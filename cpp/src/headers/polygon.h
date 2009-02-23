@@ -19,9 +19,20 @@
 *             providing the resources for creating 2D physical models (polygons), and providing an easy-to-use set of graphical
 *             parameters.
 * Properties: 
-* Methods:    
+* Methods: 
+*
+*   add_vertix( <x> , <y> [, <index>] )
+*   rem_vertix( [ <x> , <y> ] | [ <index> ] )
+*   edt_vertix ( <index> , <x> , <y> )
+*   is_closed()
+*   
 * Examples:   
 */
+
+/* This macros probably would suit better inside macros.h */
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 
 class Polygon
 {
@@ -35,6 +46,8 @@ class Polygon
         float    color_green;
         float     color_blue;
         int       line_style;
+        double vertix_radius; /* i'm still thinking about this one: Maybe we should add circles at the vertices to make them more accessible */
+        
         
         /* physical properties */
         double       density;
@@ -172,7 +185,100 @@ class Polygon
             return ((vertices[POS(0, 0, 2)] == vertices[POS(n_vertices-1, 0, 2)]) && (vertices[POS(0, 1, 2)] == vertices[POS(n_vertices-1, 1, 2)]));
         }
         
-        
+
+        /* Checks if the new vertix (x_coord, y_coord) is valid (i.e. if it does not create a crossing   */
+        /* line with previous lines/vertices).  This particular function only works for the last vertix, */
+        /* which means this function should be called while adding a new vertix at the "end"             */
+        /* of the polygon. Returns 1 if it is valid, 0 otherwise.                                        */
+        int is_valid_vertix( double x_coord, double y_coord  )
+        {
+            long int i; /* used for indexing */
+            /* and here are a lot of variables used to handle the lines' coefficients. */
+            /* these could be removed to improve the speed (there're a lot of unecessary attributions) */
+            double x0, x1, y0, y1, a0, b0;
+            double xn, yn, a, b; /* last vertix, and the coefficients of the line created between (xn,yn) and (x_coord,y_coord) */
+            double x_inter, y_inter; /* intersection coordinates */
+            
+            xn = vertices[POS(n_vertices-1, 0, 2)];
+            yn = vertices[POS(n_vertices-1, 1, 2)];
+            
+            /* starts checking if the new line is vertical (if it is, the whole problem changes).          */
+            /* this comparision could also be made by considering numerical precision, since close numbers */
+            /* might result an almost-vertical line. This has to be tested eventually                      */
+            if ( xn == x_coord )
+            {
+                for (i = 0; i < n_vertices; i++)
+                {
+                    x0 = vertices[POS(i, 0, 2)]; x1 = vertices[POS(i+1, 0, 2)];
+                    y0 = vertices[POS(i, 1, 2)]; y1 = vertices[POS(i+1, 1, 2)];
+                
+                    /* same "numerical precision" bullshit here */
+                    if ( x0 == x1 )
+                    {
+                        /* here we have 2 vertical lines, so, the only way they could intersect is by */
+                        /* having the same x coordinate, and being at the same interval               */
+                        if (x0 == xn)
+                        {
+                            /* now we have some possibilities... let's start with the great exception: coincident lines */
+                            /* this case would only occur if the polygon is already closed, but i'm leaving this here   */
+                            /* for now.                                                                                 */
+                            if ((MIN(y0,y1) == MIN(y_coord,yn)) && (MAX(y0,y1) == MAX(y_coord,yn)))
+                            {
+                                return 0;
+                            }
+                            else if () /* gotta think about this */
+                            {
+                                /* hm */
+                            }
+                        }
+                    }
+                }
+            }
+            else /* And here's the default routine (for a non-vertical new line) */
+            {
+                a = (y_coord - yn)/(x_coord - xn);
+                b = yn - (a * xn);
+                
+                for (i = 0; i < n_vertices; i++)
+                {
+                    x0 = vertices[POS(i, 0, 2)]; x1 = vertices[POS(i+1, 0, 2)];
+                    y0 = vertices[POS(i, 1, 2)]; y1 = vertices[POS(i+1, 1, 2)];
+                    
+                    /* same "numerical precision" bullshit here */
+                    if ( x0 == x1 )
+                    {
+                        /* here we have a vertical line, so, we basically have to check the intervals */
+                        if (( MIN(x_coord, xn) <= x0 ) && ( x0 <= MAX(x_coord, xn) ))
+                        {
+                            y_inter = (a * x0) + b;
+                            if(( MIN(y_coord, yn) <= y_inter ) && ( y_inter <= MAX(y_coord, yn) ))
+                            {
+                                return 0; /* the lines are crossing... */
+                            }
+                        }
+                    }
+                    else /* default */
+                    {
+                        a0 = (y1 - y0)/(x1 - x0);
+                        b0 = y0 - ( a0 * x0);
+                        
+                        /* if they're parallel there's no reason to check if they cross */
+                        if (a0 != a) 
+                        {
+                            y_inter = ((-b0) + ((a0 / a) * b)) / ((a0/a) - 1);
+                        
+                            /* Now we check if the intersection point is within both intervals */
+                            if (((MIN(y0,y1) <= y_inter) && (y_inter <= MAX(y0,y1)))  &&  ((MIN(yn,y_coord) <= y_inter) && (y_inter <= MAX(yn,y_coord))))
+                            {
+                                return 0; /* ok, the lines are crossing */
+                            } 
+                        }
+                    }
+                } 
+            }
+            
+            return 1; /* if it has come this far, then it's ok: there're no lines crossing with the new one */
+        }
         
 };
 
