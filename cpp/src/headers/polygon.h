@@ -1,8 +1,15 @@
 /* 
-* Filename:     polygon.h
-* Description:  this file basically contains the Polygon class
-*
-*/
+ * Filename:     polygon.h
+ * $Revision$
+ * Last edited: $Date $
+ * Edited by: $Author $
+ *
+ * Created by: Zezinho
+ *
+ * Description:
+ *  This file basically contains the Polygon class.
+ *
+ */
 
 #ifndef _POLYGON_H_       
 #define _POLYGON_H_
@@ -28,10 +35,6 @@
 *   
 * Examples:   
 */
-
-/* This macros probably would suit better inside macros.h */
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 
 class Polygon
