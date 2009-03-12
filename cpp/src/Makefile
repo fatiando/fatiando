@@ -17,6 +17,7 @@ build: log.o
 log.o: log.cpp headers/log.h
 	g++ -o log.o ${COMP_OPT} -c log.cpp
 
+
 # Build for Windows
 win:
 
