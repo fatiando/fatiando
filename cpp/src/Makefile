@@ -1,8 +1,8 @@
 ################################################################################
 # Makefile for project Fatiando O Mundo.
-# $Revision $
-# Last edited: $Date $
-# Edited by: $Author $
+# $Revision$
+# Last edited: $Date$
+# Edited by: $Author$
 ################################################################################
 
 

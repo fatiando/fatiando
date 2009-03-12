@@ -1,8 +1,8 @@
 /* 
  * Filename:     macros.h
  * $Revision$
- * Last edited: $Date $
- * Edited by: $Author $
+ * Last edited: $Date$
+ * Edited by: $Author$
  *
  * Created by: Zezinho
  *

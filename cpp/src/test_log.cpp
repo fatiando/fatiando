@@ -1,8 +1,8 @@
 /* 
  * File:   test_log.cpp
  * $Revision$
- * Last edited: $Date $
- * Edited by: $Author $
+ * Last edited: $Date$
+ * Edited by: $Author$
  *
  * Created by: Leonardo Uieda (leouieda@gmail.com)
  *
