@@ -1,5 +1,5 @@
 """
-Setup file for building the C-coded extention modules for slooT.
+blaSetup file for building the C-coded extention modules for slooT.
 """
 # Created on 01-Mar-2010
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
