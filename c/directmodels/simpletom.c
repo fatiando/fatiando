@@ -31,6 +31,13 @@ double traveltime(double slowness, double x1, double y1, double x2, double y2,
     minx = MIN(x_src, x_rec);
     miny = MIN(y_src, y_rec);
 
+    /* Check if the cell is with the rectangle with the ray path as a
+     * diagonal. If not, then the ray doesn't go through the cell. */
+    if(x2 < minx || x1 > maxx || y2 < miny || y1 > maxy)
+    {
+        return 0;
+    }
+
     /* Vertical case */
     if((x_rec - x_src) == 0)
     {
@@ -67,7 +74,6 @@ double traveltime(double slowness, double x1, double y1, double x2, double y2,
     }
     else
     {
-
         a_ray = (double)(y_rec - y_src)/(x_rec - x_src);
 
         b_ray = y_src - a_ray*x_src;
@@ -96,8 +102,8 @@ double traveltime(double slowness, double x1, double y1, double x2, double y2,
         crossingsize = 6;
     }
 
-    /* Find out how many points are inside both the cell and the square with the
-     * ray path as a diagonal */
+    /* Find out how many points are inside both the cell and the rectangle with
+     * the ray path as a diagonal */
     inside = 0;
     for(i=0; i < crossingsize; i++)
     {
@@ -120,6 +126,7 @@ double traveltime(double slowness, double x1, double y1, double x2, double y2,
                     break;
                 }
             }
+
             if(!duplicate)
             {
                 crossingx[inside] = xp;

@@ -115,7 +115,7 @@ def simple_model(sizex, sizey, slowness_outer=1, slowness_inner=2):
             model[i][j] = slowness_inner
             
     return model
-                
+         
     
 def invert(sizex, sizey, data, srcs, recs, reg_param, contam=None):
     
@@ -156,56 +156,113 @@ def invert(sizex, sizey, data, srcs, recs, reg_param, contam=None):
     start = time.clock()
     
     A = numpy.matrix(A)
+    
+    # Check if the problem is under or over determined
+    if len(data) >= A.shape[1]:
         
-    sys.stderr.write("  Building Normal Equations...")
-    start_minor = time.clock()
-    
-    N = A.T*A + reg_param*numpy.matrix(numpy.identity(sizex*sizey))
-    
-    end_minor = time.clock()
-    sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
-    
-    sys.stderr.write("  Determinant of normal equations: %g\n" \
-                     % (numpy.linalg.det(N)))
-    
-    sys.stderr.write("  Performing LU decomposition...")
-    start_minor = time.clock()
-    
-    LU, permut = lu.decomp(N.tolist())
-    
-    end_minor = time.clock()
-    sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
-    
-    y = A.T*numpy.matrix(data).T
-    
-    sys.stderr.write("  Solving the linear system...")
-    start_minor = time.clock()
-    
-    est_model = lu.solve(LU, permut, y.T.tolist()[0]) 
-    
-    end_minor = time.clock()
-    sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
+        # The OVERDETERMINED case
+        sys.stderr.write("  Solving an OVERDETERMINED system\n")
+        sys.stderr.write("  Building Normal Equations...")
+        start_minor = time.clock()
+        
+        N = A.T*A + reg_param*numpy.matrix(numpy.identity(sizex*sizey))
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
+        
+#        sys.stderr.write("  Determinant of normal equations: %g\n" \
+#                         % (numpy.linalg.det(N)))
+        
+        sys.stderr.write("  Performing LU decomposition...")
+        start_minor = time.clock()
+        
+        LU, permut = lu.decomp(N.tolist())
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
+        
+        y = A.T*numpy.matrix(data).T
+        
+        sys.stderr.write("  Solving the linear system...")
+        start_minor = time.clock()
+        
+        est_model = lu.solve(LU, permut, y.T.tolist()[0]) 
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))            
+        
+        # Contaminate the model with errors 'contam' number of times
+        estimates = [est_model]
+        if contam != None:
+            sys.stderr.write("\nContaminating data %d times\n" % (contam))
+            for i in range(contam):
+                
+                contam_data, stddev = datamani.contaminate(data, 0.01, \
+                                                           percent=True, \
+                                                           return_stddev=True)
+                
+                y = A.T*numpy.matrix(contam_data).T
+                
+                est_model = lu.solve(LU, permut, y.T.tolist()[0]) 
+        
+                estimates.append(est_model)
+                
+            sys.stderr.write("  Standard deviation: %g\n" % (stddev))
             
-    ############################################################################
-    
-    # Contaminate the model with errors 'contam' number of times
-    ############################################################################
-    estimates = [est_model]
-    if contam != None:
-        sys.stderr.write("\nContaminating data %d times\n" % (contam))
-        for i in range(contam):
-            
-            contam_data, stddev = datamani.contaminate(data, 0.01, \
-                                                       percent=True, \
-                                                       return_stddev=True)
-            
-            y = A.T*numpy.matrix(contam_data).T
-            
-            est_model = lu.solve(LU, permut, y.T.tolist()[0]) 
-    
-            estimates.append(est_model)
-            
-        sys.stderr.write("  Standard deviation: %g\n" % (stddev))        
+    else:              
+        # The UNDERDETERMINED case
+        sys.stderr.write("  Solving an UNDERDETERMINED system\n")
+        sys.stderr.write("  Building Normal Equations (N)...")
+        start_minor = time.clock()
+        
+        N = A*A.T + reg_param*numpy.matrix(numpy.identity(len(data)))
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
+        
+#        sys.stderr.write("  Determinant of N: %g\n" \
+#                         % (numpy.linalg.det(N)))
+        
+        sys.stderr.write("  Performing LU decomposition...")
+        start_minor = time.clock()
+        
+        LU, permut = lu.decomp(N.tolist())
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))
+        
+        sys.stderr.write("  Calculating N inverse...")
+        start_minor = time.clock()
+        
+        Ninv = lu.inv(LU, permut)
+        Ninv = numpy.matrix(Ninv)
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))            
+                
+        sys.stderr.write("  Calculating the estimate...")
+        start_minor = time.clock()
+        
+        est_model = A.T*Ninv*numpy.matrix(data).T
+        
+        end_minor = time.clock()
+        sys.stderr.write("  Done (%g s)\n" % (end_minor - start_minor))    
+        
+        # Contaminate the model with errors 'contam' number of times
+        estimates = [est_model.T.tolist()[0]]
+        if contam != None:
+            sys.stderr.write("\nContaminating data %d times\n" % (contam))
+            for i in range(contam):
+                
+                contam_data, stddev = datamani.contaminate(data, 0.01, \
+                                                           percent=True, \
+                                                           return_stddev=True)
+                                                
+                est_model = A.T*Ninv*numpy.matrix(contam_data).T
+        
+                estimates.append(est_model.T.tolist()[0])
+                
+            sys.stderr.write("  Standard deviation: %g\n" % (stddev))
     ############################################################################
     
     ############################################################################
@@ -239,33 +296,35 @@ def invert(sizex, sizey, data, srcs, recs, reg_param, contam=None):
     return est_model, est_model_stddev, residuals
     
 
-def main(src_n=15, rec_n=10, reg_param=0.01, imagefile=None, \
-         sizex=10, sizey=10):
+def main(src_n=15, rec_n=10, reg_param=0.01, modeltype='simple', \
+         sizex=10, sizey=10, cmap=pylab.cm.Greys):
     
     sys.stderr.write("SimpleTom: simple Cartesian tomography\n\n")
     total_start = time.clock()
+    
+    
+    if modeltype == 'simple':
         
-    if imagefile != None:
+        # Make a simple synthetic model
+        ########################################################################
+        sys.stderr.write("Using a simple synthetic model\n")            
+        model = simple_model(sizex, sizey, slowness_outer=1, slowness_inner=2)
+        ########################################################################
+    
+    else:
     
         # Load an image as a model
         ########################################################################
-        sys.stderr.write("Loading model from image file '%s'\n" % (imagefile))    
-        im = Image.open(imagefile)
+        sys.stderr.write("Loading model from image file '%s'\n" % (modeltype))    
+        im = Image.open(modeltype)
         imagearray = scipy.misc.fromimage(im, flatten=True)
-        model = (numpy.max(imagearray) + 1 - imagearray).tolist()
+        model = (numpy.max(imagearray) + 1 - imagearray)/numpy.max(imagearray)
+        model = model.tolist()
         model.reverse()
         model = numpy.array(model)
         sizey, sizex = model.shape
         ########################################################################
-    
-    else:
-        
-        # Make a simple synthetic model
-        ########################################################################
-        sys.stderr.write("Using a synthetic model\n")            
-        model = simple_model(sizex, sizey, slowness_outer=1, slowness_inner=2)
-        ########################################################################
-    
+            
     sys.stderr.write("  Model size: %d x %d" % model.shape)
     sys.stderr.write(" = %d\n" % (sizex*sizey))     
     
@@ -300,8 +359,8 @@ def main(src_n=15, rec_n=10, reg_param=0.01, imagefile=None, \
     pylab.axis('scaled')
     pylab.title('True Model with Sources and Receivers')
     
-    pylab.pcolor(model, cmap=pylab.cm.Greys, \
-                 vmin=numpy.min(estimate), vmax=numpy.max(estimate))
+    pylab.pcolor(model, cmap=cmap, \
+                 vmin=numpy.min(model), vmax=numpy.max(model))
     cb = pylab.colorbar(orientation='vertical')
     cb.set_label("Slowness")
     
@@ -355,8 +414,8 @@ def main(src_n=15, rec_n=10, reg_param=0.01, imagefile=None, \
     pylab.figure()
     pylab.axis('scaled')
     pylab.title('Inversion Result')    
-    pylab.pcolor(numpy.array(estimate), cmap=pylab.cm.Greys, \
-                 vmin=numpy.min(estimate), vmax=numpy.max(estimate))
+    pylab.pcolor(numpy.array(estimate), cmap=cmap, \
+                 vmin=numpy.min(model), vmax=numpy.max(model))
     cb = pylab.colorbar(orientation='vertical')
     cb.set_label("Slowness")                   
     pylab.xlim(0, sizex)
@@ -380,12 +439,10 @@ def main(src_n=15, rec_n=10, reg_param=0.01, imagefile=None, \
     
 if __name__ == '__main__':
     
-    
-#    main(src_n=15, rec_n=15, reg_param=1, imagefile='examples/simpletom/meh/test.jpg')
+    main(src_n=70, rec_n=40, reg_param=1, \
+         modeltype='/home/leo/src/fatiando/examples/simpletom/mickey3.jpg', \
+         cmap=pylab.cm.Greys)
 
-#    main(src_n=30, rec_n=30, reg_param=0.1, imagefile='examples/simpletom/mickey2.jpg')
 
-#    main(src_n=10, rec_n=10, reg_param=0.01, imagefile='examples/simpletom//eu.jpg')
-    
-    main(src_n=70, rec_n=30, sizex=20, sizey=20, reg_param=0.001)
+#    main(src_n=60, rec_n=20, sizex=50, sizey=50, reg_param=0.01, modeltype='simple')
     

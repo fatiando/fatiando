@@ -469,13 +469,13 @@ extern int lu_decomp(double *matrix, int dim, double *lu, int *permut);
 /* ************************************************************************** */
 
 
-/* SOLVE_LINSYS_LU */
+/* SOLVE_LU */
 /* ************************************************************************** */
 
 /* A temp variable used to check if the dimension of the input matrix A is the
    same as the input vector y */
 %{
-int lu_decomp_pivot_tmpdim;
+int lu_tmpdim;
 %}
 
 
@@ -493,7 +493,7 @@ int lu_decomp_pivot_tmpdim;
     }
 
     /* Set the tmpdim */
-    lu_decomp_pivot_tmpdim = $2;
+    lu_tmpdim = $2;
 }
 /* This cleans up the array we malloc'd before the function call */
 %typemap(freearg) (double *lu, int dim)
@@ -521,7 +521,7 @@ int lu_decomp_pivot_tmpdim;
 
     /* Check if the size of the list is the same as the dimension of the system
        matrix A */
-    if(tmpsize != lu_decomp_pivot_tmpdim)
+    if(tmpsize != lu_tmpdim)
     {
         /* Raise the appropriate exception */
         PyErr_SetString(PyExc_AttributeError, "Permutations list must have the same number of elements as A has lines.");
@@ -540,7 +540,7 @@ int lu_decomp_pivot_tmpdim;
 
 
 /* The in typemap to recieve a 1D python list (vector) and convert ir to a C 1D
-   array. Also allocated the memory for the output buffer vector. */
+   array and allocate the memory for the output buffer vector. */
 %typemap(in) (double *y, double *x)
 {
     /* A tmp variable to hold the size of the PyList recieved */
@@ -557,7 +557,7 @@ int lu_decomp_pivot_tmpdim;
 
     /* Check if the size of the list is the same as the dimension of the system
        matrix A */
-    if(tmpsize != lu_decomp_pivot_tmpdim)
+    if(tmpsize != lu_tmpdim)
     {
         /* Raise the appropriate exception */
         PyErr_SetString(PyExc_AttributeError, "In the linear system Ax=y, y list must have the same number of elements as A has lines.");
@@ -601,14 +601,14 @@ int lu_decomp_pivot_tmpdim;
     free($5);
 }
 
-/* EXPOSE THE SOLVE_LINSYS_LU FUNCTION */
+/* EXPOSE THE SOLVE_LU FUNCTION */
 %feature("autodoc", "1");
-%define SOLVE_LINSYS_LUDOC
+%define SOLVE_LUDOC
 "
 Solve a linear system Ax=y given it's LU decomposition (with pivoting).
 For LU decomposition, see function 'lu_decomp'
 
-Parameters:
+Parameters: double *inv
 
      lu: The LU decomposition of matrix A put into one matrix (ommit the
         diagonal of L).
@@ -628,10 +628,108 @@ EX:
 "
 %enddef
 
-%feature("docstring", SOLVE_LINSYS_LUDOC);
+%feature("docstring", SOLVE_LUDOC);
 %rename(solve) solve_lu;
 extern int solve_lu(double *lu, int dim, int *permut, double *y, double *x);
 /* ************************************************************************** */
+
+
+/* INV_LU */
+/* ************************************************************************** */
+
+/* The in typemap to recieve a 1D python list (vector) and convert ir to a C 1D
+   array and allocate the memory for the output buffer vector. */
+%typemap(in) (int *permut, double *inv)
+{
+    /* A tmp variable to hold the size of the PyList recieved */
+    int tmpsize;
+
+    /* Check and convert the input to a C array */
+    $1 = PyList_to_int_vector($input, &tmpsize);
+
+    /* Check if there was any error in the conversion */
+    if(!$1)
+    {
+        return NULL;
+    }
+
+    /* Check if the size of the list is the same as the dimension of the system
+       matrix A */
+    if(tmpsize != lu_tmpdim)
+    {
+        /* Raise the appropriate exception */
+        PyErr_SetString(PyExc_AttributeError, "Permutations list must have the same number of elements as A has lines.");
+        free($1);
+        return NULL;
+    }
+    
+    /* Allocate the memory for the output buffer */
+    $2 = (double *)malloc(tmpsize*tmpsize*sizeof(double));
+}
+/* This cleans up the array we malloc'd before the function call */
+%typemap(freearg) (double *permut, double *inv)
+{
+    if($1)
+    {
+        free($1);
+    }
+}
+
+/* Convert the temp output buffer to a Python list (the dimension will come
+   in the result) */
+%typemap(argout) (double *lu, int dim, int *permut, double *inv)
+{
+    /* First, check if there was any problem */
+    if(!result)
+    {
+        /* Liberate the memory used for the output buffer */
+        free($4);
+        /* Raise the appropriate exception */
+        PyErr_SetString(PyExc_MemoryError, "Memory allocation problem.");
+        return NULL;
+    }
+
+    /* Blow away any previous result */
+    Py_XDECREF($result);
+
+    /* Convert the C vector to a PyList */
+    $result = square_matrix_to_PyList($4, result);
+
+    /* Liberate the memory used for the output buffer */
+    free($4);
+}
+
+
+/* EXPOSE THE INV_LU FUNCTION */
+%feature("autodoc", "1");
+%define INV_LUDOC
+"
+Calculate the inverse of a square matrix given it's LU decomposition (with pivoting).
+For LU decomposition, see function 'lu_decomp'
+
+Parameters:
+
+     lu: The LU decomposition of matrix A put into one matrix (ommit the
+        diagonal of L).
+
+     p: The list of permutations made during the pivoting of LU
+
+Returns:
+
+     inverse as a 2D list
+
+EX:
+
+    lu, p = lu.decomp(A)
+    inverse = lu.inv(lu, p)
+"
+%enddef
+
+%feature("docstring", INV_LUDOC);
+%rename(inv) inv_lu;
+extern int inv_lu(double *lu, int dim, int *permut, double *inv);
+/* ************************************************************************** */
+
 
 /* ************************************************************************** */
 /* ************************************************************************** */

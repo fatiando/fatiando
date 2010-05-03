@@ -11,6 +11,7 @@
    ************************************************************************** */
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "lu.h"
 
 /* LU_DECOMP_NOPIVOT */
@@ -222,7 +223,7 @@ int solve_lu(double *lu, int dim, int *permut, double *y, double *x)
     int i, k;
     double *b, tmp;
 
-    /* Dive the system LUx=y into Lb=y and Ux=b */
+    /* Divide the system LUx=y into Lb=y and Ux=b */
 
     /* First malloc memory for b */
     b = (double *)malloc(dim*sizeof(double));
@@ -268,6 +269,93 @@ int solve_lu(double *lu, int dim, int *permut, double *y, double *x)
         }
 
         x[i] = (double) x[i]/lu[POS(i,i,dim)];
+    }
+
+    /* Free the memory for b */
+    free(b);
+
+    /* Return the dimension */
+    return dim;
+}
+/* ************************************************************************** */
+
+
+/* INV_LU */
+/* ************************************************************************** */
+/* Calculate the inverse of a square matrix given it's LU decomposition
+ * (with pivoting).
+ * REMEMBER: pre-allocate the memory for the buffers!
+ * Parameters:
+ *      lu: pointer to a 1D array containing the LU decomposition of a matrix
+ *          such as returned by lu_decomp
+ *          EX: [u11,u12,u13,...,u1N,l21,u22,...,u2N,...,uNN]
+ *      dim: the dimension N of the matrix
+ *      permut: pointer to a 1D array with the permutations done in the LU
+ *         decomposition as returned by lu_decomp
+ *      inv: pointer to a 1D array matrix for the output buffer;
+ *  Returns:
+ *      'dim' if all went well
+ *      0 if an error occurred
+ */
+int inv_lu(double *lu, int dim, int *permut, double *inv)
+{
+    int i, k, j;
+    double *b, tmp;
+
+    /* Divide the system LU(invA)=I dim number of systems and solve for each
+     * column of invA. The systems are solved like in solve_lu */
+
+    /* First malloc memory for b */
+    b = (double *)malloc(dim*sizeof(double));
+    if(!b)
+    {
+        return 0;
+    }
+
+    /* Calculate each column of inv */
+    for(j=0; j<dim; j++)
+    {
+        /* First, copy the jth column of I into b so that I can permute it in
+         * place. That should be the initial value for b anyway. */
+        for(i=0; i<dim; i++)
+        {
+            b[i] = 0;
+        }
+
+        b[j] = 1;
+
+        /* Permute b */
+        for(i=0; i<dim; i++)
+        {
+            tmp = b[i];
+            b[i] = b[permut[i]];
+            b[permut[i]] = tmp;
+        }
+
+        /* Now solve the first system for b */
+        for(i=0; i<dim; i++)
+        {
+            /* By now b[i] is already y_permuted[i] */
+
+            for(k=0; k<i; k++)
+            {
+                b[i] -= lu[POS(i,k,dim)]*b[k];
+            }
+        }
+
+        /* Now that we have b, solve the second system for jth column of the
+         * inverse by back propagating */
+        for(i=dim-1; i>=0; i--)
+        {
+            inv[POS(i,j,dim)] = b[i];
+
+            for(k=i+1; k<dim; k++)
+            {
+                inv[POS(i,j,dim)] -= inv[POS(k,j,dim)]*lu[POS(i,k,dim)];
+            }
+
+            inv[POS(i,j,dim)] = (double) inv[POS(i,j,dim)]/lu[POS(i,i,dim)];
+        }
     }
 
     /* Free the memory for b */

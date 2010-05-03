@@ -88,6 +88,25 @@ extern int lu_decomp(double *matrix, int dim, double *lu, int *permut);
  */
 extern int solve_lu(double *lu, int dim, int *permut, double *y,
                            double *x);
+
+
+/* INV_LU */
+/* Calculate the inverse of a square matrix given it's LU decomposition
+ * (with pivoting).
+ * REMEMBER: pre-allocate the memory for the buffers!
+ * Parameters:
+ *      lu: pointer to a 1D array containing the LU decomposition of a matrix
+ *          such as returned by lu_decomp
+ *          EX: [u11,u12,u13,...,u1N,l21,u22,...,u2N,...,uNN]
+ *      dim: the dimension N of the matrix
+ *      permut: pointer to a 1D array with the permutations done in the LU
+ *         decomposition as returned by lu_decomp
+ *      inv: pointer to a 1D array matrix for the output buffer;
+ *  Returns:
+ *      'dim' if all went well
+ *      0 if an error occurred
+ */
+extern int inv_lu(double *lu, int dim, int *permut, double *inv);
 /* ************************************************************************** */
 
 #endif

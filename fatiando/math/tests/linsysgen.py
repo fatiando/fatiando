@@ -44,6 +44,8 @@ def mktestdata(datadir='testdata', verbose=False):
         LU, p = scipy.linalg.lu_factor(A)
 
         x = scipy.linalg.lu_solve((LU,p), y)
+        
+        inv = scipy.linalg.inv(A)
 
         # Save the results
         pylab.savetxt(os.path.join(datadir,'matrix%d.txt' % (sysnum)), A)
@@ -53,6 +55,8 @@ def mktestdata(datadir='testdata', verbose=False):
         pylab.savetxt(os.path.join(datadir,'permut%d.txt' % (sysnum)), p)
 
         pylab.savetxt(os.path.join(datadir,'solution%d.txt' % (sysnum)), x)
+        
+        pylab.savetxt(os.path.join(datadir,'inverse%d.txt' % (sysnum)), inv)        
 
     if verbose:
         print "Total %d test cases" % (sysnum)

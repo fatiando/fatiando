@@ -11,7 +11,7 @@ import pylab
 import os
 import sys
 
-from fatiando.math.lu import decomp_nopivot, decomp, solve
+from fatiando.math.lu import decomp_nopivot, decomp, solve, inv
 
 
 class LUDecompNoPivotTestCase(unittest.TestCase):
@@ -146,7 +146,7 @@ class LUDecompTestCase(unittest.TestCase):
             fatiando.math.tests.linsysgen.mktestdata(self.testdatadir)
             sys.stderr.write("done) ")
 
-        testcases = len(os.listdir(self.testdatadir)) / 5
+        testcases = len(os.listdir(self.testdatadir)) / 6
 
         if self.label == 'full':
             self.number_testcases = testcases
@@ -258,7 +258,7 @@ class LUSolveTestCase(unittest.TestCase):
             fatiando.math.tests.linsysgen.mktestdata(self.testdatadir)
             sys.stderr.write("done) ")
 
-        testcases = len(os.listdir(self.testdatadir)) / 5
+        testcases = len(os.listdir(self.testdatadir)) / 6
 
         if self.label == 'full':
             self.number_testcases = testcases
@@ -362,6 +362,136 @@ class LUSolveTestCase(unittest.TestCase):
         self.assertRaises(ex.AttributeError, solve, [[1,2],[3,4]], [1,2], [1,2,3,4])
         
         
+        
+class LUInvTestCase(unittest.TestCase):
+
+    label = 'fast'
+
+    def setUp(self):
+
+        self.testdatadir = os.path.join(os.path.dirname(__file__),'testdata')
+
+        if not os.path.exists(self.testdatadir):
+            import fatiando.math.tests.linsysgen
+            sys.stderr.write("(Generating test data... ")
+            fatiando.math.tests.linsysgen.mktestdata(self.testdatadir)
+            sys.stderr.write("done) ")
+
+        testcases = len(os.listdir(self.testdatadir)) / 6
+
+        if self.label == 'full':
+            self.number_testcases = testcases
+        else:
+            self.number_testcases = int(testcases/2)
+
+
+    def test_for_known_values(self):
+        "lu.inv returns the correct results given test data"
+
+        sys.stderr.write("(%d sets) " % (self.number_testcases))
+
+        for tnum in range(1, self.number_testcases + 1):
+
+            lu = pylab.loadtxt(os.path.join(self.testdatadir, 'lu%d.txt' % (tnum))).tolist()
+            p = pylab.loadtxt(os.path.join(self.testdatadir, 'permut%d.txt' % (tnum)), dtype=int).tolist()
+            inv_known = pylab.loadtxt(os.path.join(self.testdatadir, 'inverse%d.txt' % (tnum))).tolist()
+
+            inv_my = inv(lu, p)
+            
+            # Check the number of lines
+            nlines = len(inv_my)
+
+            self.assertEqual(nlines, len(lu), \
+                msg="Failed test %d. Different number of lines in LU" % (tnum))
+
+            # Check each element in inv_my
+            for i in range(len(inv_my)):
+
+                # Check the size of each line
+                self.assertEqual(len(inv_my[i]), nlines, \
+                msg="Failed test %d. Different number of columns in line %d of LU" \
+                % (tnum, i))
+
+                for j in range(len(inv_my[i])):
+
+                    self.assertAlmostEqual(inv_my[i][j], inv_known[i][j], \
+                    places=6, \
+                    msg="Failed test %d for matrix element %d,%d: my = %.6f / known = %.6f\n"\
+                        % (tnum, i, j, inv_my[i][j], inv_known[i][j]))
+                    
+                    
+    def test_LU_string_input(self):
+        "lu.inv raises TypeError when passed string as LU"
+        self.assertRaises(ex.TypeError, inv, "meh", [1,2])
+
+    def test_LU_int_input(self):
+        "lu.inv raises TypeError when passed int as LU"
+        self.assertRaises(ex.TypeError, inv, 533, [1,2])
+
+    def test_LU_float_input(self):
+        "lu.inv raises TypeError when passed float as LU"
+        self.assertRaises(ex.TypeError, inv, 34.2564, [1,2])
+
+    def test_LU_tuple_input(self):
+        "lu.inv raises TypeError when passed tuple as LU"
+        self.assertRaises(ex.TypeError, inv, ((1,2),(3,4)), [1,2])
+
+    def test_LU_dict_input(self):
+        "lu.inv raises TypeError when passed dict as LU"
+        self.assertRaises(ex.TypeError, inv, {1:2,3:4}, [5.,3.6])
+
+    def test_LU_listofstrings_input(self):
+        "lu.inv raises TypeError when passed list of strings as LU"
+        self.assertRaises(ex.TypeError, inv, ['m','e'], [1,2])
+
+    def test_LU_listoffloats_input(self):
+        "lu.inv raises TypeError when passed list of floats as LU"
+        self.assertRaises(ex.TypeError, inv, [2.34, 24.677], [1,2])
+
+    def test_LU_listofints_input(self):
+        "lu.inv raises TypeError when passed list of ints as LU"
+        self.assertRaises(ex.TypeError, inv, [5654, 677], [1,2])
+
+    def test_LU_nonsquare_input(self):
+        "lu.inv raises AttributeError when passed non-square matrix as LU"
+        self.assertRaises(ex.AttributeError, inv, [[5654, 677],[2.3]], [2,3])
+        self.assertRaises(ex.AttributeError, inv, [[5654],[2.3]], [1,4,5])
+        self.assertRaises(ex.AttributeError, inv, [[5654, 677],[2.3,4,5]], [2,3])
+
+    def test_LU_matrixofstrings_input(self):
+        "lu.inv raises TypeError when passed matrix of strings as LU"
+        self.assertRaises(ex.TypeError, inv, [['1','2'],['3','4']], [13,2.551])
+  
+    def test_p_string_input(self):
+        "lu.inv raises TypeError when passed string as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], "meh")
+
+    def test_p_int_input(self):
+        "lu.inv raises TypeError when passed int as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], 533)
+
+    def test_p_float_input(self):
+        "lu.inv raises TypeError when passed float as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], 34.2564)
+
+    def test_p_tuple_input(self):
+        "lu.inv raises TypeError when passed tuple as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], (1,2))
+
+    def test_p_dict_input(self):
+        "lu.inv raises TypeError when passed dict as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], {1:2,3:4})
+
+    def test_p_listofstrings_input(self):
+        "lu.inv raises TypeError when passed list of strings as p"
+        self.assertRaises(ex.TypeError, inv, [[1,2],[3,4]], ['m','e'])
+
+    def test_p_wrongsize_input(self):
+        "lu.inv raises AttributeError when passed wrong size p"
+        self.assertRaises(ex.AttributeError, inv, [[1,2],[3,4]], [1])
+        self.assertRaises(ex.AttributeError, inv, [[1,2],[3,4]], [1,2,3,4])
+        
+        
 # Return the test suit for this module
 ################################################################################
 def suite(label='fast'):
@@ -377,6 +507,9 @@ def suite(label='fast'):
     
     LUSolveTestCase.label = label
     suite.addTest(unittest.makeSuite(LUSolveTestCase, prefix='test'))
+    
+    LUInvTestCase.label = label
+    suite.addTest(unittest.makeSuite(LUInvTestCase, prefix='test'))
 
     return suite
 
