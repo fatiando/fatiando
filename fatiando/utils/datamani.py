@@ -29,11 +29,11 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
 
     # Contaminate all the data in data and store it in a new list
     cont_data = []
-    for data in data:
+    for value in data:
 
         # Append the new data belonging to a normal distribution with the old
         # data as mean and stddev standard deviation
-        cont_data.append(numpy.random.normal(data, stddev))
+        cont_data.append(numpy.random.normal(value, stddev))
 
     # Return the new data
     if return_stddev:
