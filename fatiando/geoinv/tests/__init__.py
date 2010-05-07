@@ -9,9 +9,9 @@ import unittest
 
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
-    return suite
+    return testsuite
 
 
 if __name__ == '__main__':

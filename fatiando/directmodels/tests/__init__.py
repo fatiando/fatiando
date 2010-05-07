@@ -13,13 +13,13 @@ import fatiando.directmodels.heat.tests
 
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
-    suite.addTest(fatiando.directmodels.seismo.tests.suite(label))
-    suite.addTest(fatiando.directmodels.gravity.tests.suite(label))
-    suite.addTest(fatiando.directmodels.heat.tests.suite(label))
+    testsuite.addTest(fatiando.directmodels.seismo.tests.suite(label))
+    testsuite.addTest(fatiando.directmodels.gravity.tests.suite(label))
+    testsuite.addTest(fatiando.directmodels.heat.tests.suite(label))
 
-    return suite
+    return testsuite
 
 
 if __name__ == '__main__':

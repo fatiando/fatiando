@@ -11,11 +11,11 @@ import fatiando.directmodels.seismo.tests.simple
 
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
-    suite.addTest(fatiando.directmodels.seismo.tests.simple.suite(label))
+    testsuite.addTest(fatiando.directmodels.seismo.tests.simple.suite(label))
 
-    return suite
+    return testsuite
 
 
 if __name__ == '__main__':

@@ -18,16 +18,20 @@ def test(label='fast', verbose=True):
         verbose: controls if the whole test information is printed
                  or just the final results
     """
-    if label!='fast' and label!='full':
+    
+    if label != 'fast' and label != 'full':
+        
         from exceptions import ValueError
+        
         raise ValueError("Test label must be either 'fast' or 'full'")
 
     import unittest
 
-    import fatiando.directmodels.tests
+    import tests
 
     suite = unittest.TestSuite()
-    suite.addTest(fatiando.directmodels.tests.suite(label))
+    
+    suite.addTest(tests.suite(label))    
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)

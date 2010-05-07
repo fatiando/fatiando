@@ -11,11 +11,11 @@ import fatiando.math.tests.lu
 
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
-    suite.addTest(fatiando.math.tests.lu.suite(label))
+    testsuite.addTest(fatiando.math.tests.lu.suite(label))
 
-    return suite
+    return testsuite
 
 
 if __name__ == '__main__':

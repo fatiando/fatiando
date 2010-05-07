@@ -14,14 +14,14 @@ import fatiando.utils.tests
 
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
-    suite.addTest(fatiando.directmodels.tests.suite(label))
-    suite.addTest(fatiando.geoinv.tests.suite(label))
-    suite.addTest(fatiando.math.tests.suite(label))
-    suite.addTest(fatiando.utils.tests.suite(label))
+    testsuite.addTest(fatiando.directmodels.tests.suite(label))
+    testsuite.addTest(fatiando.geoinv.tests.suite(label))
+    testsuite.addTest(fatiando.math.tests.suite(label))
+    testsuite.addTest(fatiando.utils.tests.suite(label))
 
-    return suite
+    return testsuite
 
 
 if __name__ == '__main__':

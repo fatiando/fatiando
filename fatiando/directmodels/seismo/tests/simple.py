@@ -10,10 +10,16 @@ from fatiando.directmodels.seismo.simple import traveltime
 
 
 class SimpleTravelTimeTestCase(unittest.TestCase):
-
+    """
+    Test case for the traveltime function in the simple Cartesian Tomography.
+    """
+    
     label = 'fast'
 
     def setUp(self):
+        """
+        Test case setup. Generate the test data or read it from a file.
+        """
 
         # Arguments: [S   x1  y1  x2  y2  xf   yf   xr  yr], t
         vertical = [ \
@@ -86,12 +92,13 @@ class SimpleTravelTimeTestCase(unittest.TestCase):
 ################################################################################
 def suite(label='fast'):
 
-    suite = unittest.TestSuite()
+    testsuite = unittest.TestSuite()
 
     SimpleTravelTimeTestCase.label = label
-    suite.addTest(unittest.makeSuite(SimpleTravelTimeTestCase, prefix='test'))
+    testsuite.addTest(unittest.makeSuite(SimpleTravelTimeTestCase, \
+                                         prefix='test'))
     
-    return suite
+    return testsuite
 
 ################################################################################
 
