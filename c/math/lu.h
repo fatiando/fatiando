@@ -18,10 +18,14 @@
 
 /* Macro for accessing the element i,j of a matrix with ncols columns. This
 matrix should be laid out in a 1D array. */
+#ifndef POS
 #define POS(i,j,ncols) (((i)*(ncols)) + (j))
+#endif
 
 /* Macro to calculate the absolute value of x */
+#ifndef ABSOLUTE
 #define ABSOLUTE(x) ((x) > 0 ? (x) : (-1)*(x))
+#endif
 
 /* ************************************************************************** */
 

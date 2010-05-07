@@ -6,14 +6,16 @@ __date__ = 'Created 02-Apr-2010'
 
 import unittest
 
-import fatiando.math.tests.lu
+from fatiando.math.tests import lu, glq
 
 
 def suite(label='fast'):
 
     testsuite = unittest.TestSuite()
 
-    testsuite.addTest(fatiando.math.tests.lu.suite(label))
+    testsuite.addTest(lu.suite(label))
+    
+    testsuite.addTest(glq.suite(label))
 
     return testsuite
 

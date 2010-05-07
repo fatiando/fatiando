@@ -9,9 +9,8 @@
    Date: 01 March 2010
 
    ************************************************************************** */
-#include <math.h>
+
 #include <stdlib.h>
-#include <stdio.h>
 #include "lu.h"
 
 /* LU_DECOMP_NOPIVOT */
