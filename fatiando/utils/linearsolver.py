@@ -15,6 +15,7 @@ import logging
 import exceptions
 import math
 import sys
+import time
 
 import numpy
 
@@ -55,11 +56,12 @@ stlogger.addHandler(console_handler)
 class LinearSolver():
     """
     Mother class for linear inverse problem solvers.
-    Methods that should be implemented by the child are:
+    Methods that MUST be implemented by the child are:
         _build_sensibility()
         _build_first_deriv()
         _calc_distances(points, lines)
         _build_compact_weights(distances)
+    Optional methods:
         set_discretization(...)
         _plot_data(folder)
         _plot_results(folder)
@@ -132,39 +134,8 @@ class LinearSolver():
         # Raise an exception if the method was raised without being implemented
         raise LinearSolverError, \
             "_build_compact_weights was called before being implemented"
-                        
-                        
-    def set_discretization(self):
-        """
-        Set the discretization of the model space.
-        Must be done before the inversion!
-        """
-        
-        # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
-            "set_discretization was called before being implemented"
-                        
             
-    def plot_data(self, outdir=None):
-        """
-        Plot the data.
-        """
-        
-        # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
-            "plot_data was called before being implemented"
-             
-                          
-    def plot_results(self, outdir=None):
-        """
-        Plot the results.
-        """
-        
-        # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
-            "plot_results was called before being implemented"
-                        
-    
+            
     def clear(self):
         """
         Erase the inversion results.
@@ -175,7 +146,7 @@ class LinearSolver():
         self._first_deriv = [[]]
                 
         # Inversion results
-        self._estimates = [[]]
+        self._estimates = []
         self._mean = []
         self._stddev = []
         self._residuals = []
@@ -210,6 +181,11 @@ class LinearSolver():
         self._residuals                         
         """
         
+        total_start = time.clock()
+        
+        # Clear previous results
+        self.clear()
+        
         self._sensibility = self._build_sensibility()
         
         ndata, nparams = self._sensibility.shape
@@ -221,7 +197,10 @@ class LinearSolver():
              smoothness*numpy.dot(self._first_deriv.T, self._first_deriv)
         
         # Overdetermined
-        if nparams < ndata:
+        if nparams <= ndata:
+            
+            self._log.info("Solving overdetermined problem: %d d x %d p" % \
+                           (ndata, nparams))            
             
             # Data weight matrix
             Wd = apriori_var*numpy.linalg.inv(self._data_cov)
@@ -230,15 +209,26 @@ class LinearSolver():
             N = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                           self._sensibility) + Wp
                           
-            # Use LU decomposition to solve the system N*p=A.T*d
+            start = time.clock()
+                          
             N_LU, N_permut = lu.decomp(N.tolist())
             
-            # An auxiliary variable
+            end = time.clock()
+            self._log.info("  LU decomposition of normal equations (%g s)" % \
+                           (end - start))
+            
             y = numpy.dot(numpy.dot(self._sensibility.T, Wd), self._data)
+            
+            start = time.clock()
             
             estimate = lu.solve(N_LU, N_permut, y.tolist())
             
+            end = time.clock()
+            self._log.info("  Solve linear system (%g s)" % (end - start))
+            
             self._estimates.append(estimate)
+            
+            start = time.clock()
             
             # Contaminate
             for i in range(contam_times):
@@ -252,30 +242,47 @@ class LinearSolver():
                 estimate = lu.solve(N_LU, N_permut, y.tolist())
                 
                 self._estimates.append(estimate)
-        
+                
+            end = time.clock()
+            self._log.info("  Contaminate data %d times " % (contam_times) + \
+                           "with Gaussian noise (%g s)" % (end - start))
+                   
         # Underdetermined        
         else:
+            
+            self._log.info("Solving underdetermined problem: %d d x %d p" % \
+                           (ndata, nparams))            
             
             # Inverse of the data weight matrix
             Wd_inv = self._data_cov/apriori_var
             
+            start = time.clock()
+            
             # The inverse of the parameter weight matrix
             Wp_inv = numpy.linalg.inv(Wp)
+            
+            end = time.clock()
+            self._log.info("  Invert parameter weights (%g s)" % (end - start))            
             
             # The normal equations
             N = numpy.dot(numpy.dot(self._sensibility, Wp_inv), \
                           self._sensibility.T) + Wd_inv
                           
-            # The inverse of the normal equations
+            start = time.clock()
+            
             N_inv = numpy.linalg.inv(N)
+            
+            end = time.clock()
+            self._log.info("  Invert normal equations (%g s)" % (end - start))          
                           
-            # The pseudo-inverse
             pseudo_inv = numpy.dot(numpy.dot(Wp_inv, self._sensibility.T), \
                                    N_inv)
         
             estimate = numpy.dot(pseudo_inv, self._data)
             
             self._estimates.append(estimate)
+            
+            start = time.clock()
             
             # Contaminate
             for i in range(contam_times):
@@ -288,6 +295,10 @@ class LinearSolver():
                 
                 self._estimates.append(estimate)
                 
+            end = time.clock()
+            self._log.info("  Contaminate data %d times " % (contam_times) + \
+                           "with Gaussian noise (%g s)" % (end - start))
+            
         # Compute means, standard deviations and residuals
         for param in numpy.transpose(self._estimates):
             
@@ -297,18 +308,22 @@ class LinearSolver():
             
         self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
 
+        total_end = time.clock()
+        self._log.info("Total time: %g s" % (total_end - total_start))
+        
 
-    def compact(self, points, lines, compact=0, apriori_var=1, \
-                contam_times=10, max_iterations=50):        
+    def compact(self, points, lines, compact=1, damping=0, smoothness=0, \
+                apriori_var=1, contam_times=10, max_it=50):        
         """
         Perform a compact inversion. Parameters will be condensed around 
         geometric elements (points and lines).
         This is done with a non-linear process. The starting point for this can
         be either:
+        
             1) previous estimate obtained by calling the solve function
             
             2) if 1 is absent, estimate initial solution with standard damped 
-               least squares
+               least squares (damping=1)
                
         NOTE: The value of variables estimates, mean, stddev, and residuals will
             be altered!
@@ -330,6 +345,12 @@ class LinearSolver():
                    
             compact: regularization parameter for the compactness (how much to
                      enforce the compactness)
+            
+            damping: 0th order regularization parameter (how much damping to 
+                     apply)
+            
+            smoothness: 1st order regularization parameter (how much smoothness
+                        to apply)
                     
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
@@ -338,13 +359,15 @@ class LinearSolver():
             contam_times: how many times to contaminate the data and run the 
                           inversion.
                           
-            max_iterations: maximum number of iterations that the will be run
+            max_it: maximum number of iterations that the will be run
              
         The means and standard deviations of the 'contam_times' estimates are
         kept in the self._mean and self._stddev
         Residuals are also calculated based on the mean value and kept in 
         self._residuals                         
         """
+        
+        start = time.clock()
         
         # Clear the estimates
         self._estimates = []
@@ -356,152 +379,92 @@ class LinearSolver():
         # Set the values for the first estimate in case there was none
         if len(self._mean) == 0:
             
+            self._log.info("Starting estimate with null vector")
+            
             self._sensibility = self._build_sensibility()
+            
+            self._first_deriv = self._build_first_deriv()
             
             ndata, nparams = self._sensibility.shape
             
-            # The parameter weights
-            Wp = numpy.identity(nparams)
-            
-            # The first estimate
             estimate = numpy.zeros(nparams)
+            
+            Wp = numpy.identity(nparams)
             
         else:
             
-            # The first estimate
+            self._log.info("Starting estimate with previous results")
+                        
             estimate = numpy.copy(self._mean)
-            
-            # The parameter weight matrix
-            Wp = compact*self._build_compact_weights(distances, estimate)
             
             ndata, nparams = self._sensibility.shape
             
+            Wp = compact*self._build_compact_weights(distances, estimate)
+                        
         # The data weight matrix
-        if nparams < ndata:
+        if nparams <= ndata:
             
+            self._log.info("Solving overdetermined problem: %d d x %d p" % \
+                           (ndata, nparams))            
+                        
             Wd = apriori_var*numpy.linalg.inv(self._data_cov)
             
         else:
             
+            self._log.info("Solving underdetermined problem: %d d x %d p" % \
+                           (ndata, nparams))            
+                        
             Wd_inv = self._data_cov/apriori_var
             
+        # First, start with the uncontaminated data
         contam_data = numpy.copy(self._data)
             
-        # Now compact the solution
-        for contam_iteration in range(contam_times):
-                
-            for iteration in range(max_iterations):
-                
-                # Overdetermined
-                if nparams < ndata:
-                    
-                    # The normal equations                
-                    N = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
-                                  self._sensibility) + Wp
-                                  
-                    # Use LU decomposition to solve the system N*p=A.T*d
-                    N_LU, N_permut = lu.decomp(N.tolist())
-                    
-                    # The data misfit of the current estimate
-                    misfit = contam_data - numpy.dot(self._sensibility, \
-                                                     estimate)
-                    
-                    # An auxiliary variable
-                    y = numpy.dot(numpy.dot(self._sensibility.T, Wd), misfit)
-                    
-                    correction = lu.solve(N_LU, N_permut, y.tolist())
-                    
-                # Undertermined
-                else:
-                    
-                    # The inverse of the parameter weights
-                    Wp_inv = numpy.linalg.inv(Wp)
-                    
-                    # The normal equations
-                    N = numpy.dot(numpy.dot(self._sensibility, Wp_inv), \
-                                  self._sensibility.T) + Wd_inv
-                                  
-                    # The inverse of the normal equations
-                    N_inv = numpy.linalg.inv(N)
-                                  
-                    # The pseudo-inverse
-                    pseudo_inv = numpy.dot(numpy.dot(Wp_inv, \
-                                           self._sensibility.T), N_inv)
-                    
-                    # The data misfit of the current estimate
-                    misfit = contam_data - numpy.dot(self._sensibility, \
-                                                     estimate)
-                
-                    correction = numpy.dot(pseudo_inv, misfit)
-                                    
-                estimate += correction
-                
-                # Stop if all estimates are bellow their targets\
-                num = 0
-                for i in range(nparams):
-                    
-                    if abs(estimate[i]) < 1.15*abs(targets[i]):
-                        
-                        num += 1
-                
-                if num == nparams:
-                    
-                    break
-                
-                # If not, update Wp and move on                        
-                Wp = compact*self._build_compact_weights(distances, estimate)
-                
-                # Freeze the parameters that have passed the targets
-                for i in range(nparams):
-                    
-                    if targets[i] > 0:
-                        
-                        if estimate[i] > 1.05*targets[i]:
-                             
-                            estimate[i] = targets[i]
-                            
-                            Wp[i][i] = 10**10
-                             
-                        elif estimate[i] < 0: 
-                        
-                            if estimate[i] > -0.1*targets[i]:
-                            
-                                estimate[i] = 0
-                                
-                                Wp[i][i] = 10**10
-                            
-                            else:
-                                
-                                estimate[i] = targets[i]
-                                
-                        elif  estimate[i] < 0.5*targets[i]:
-                             
-                            estimate[i] = 0
-                            
-                            Wp[i][i] = 10**10
-                            
-                            
-                            
-                    if targets[i] < 0:
-                        
-                        if estimate[i] < 1.05*targets[i]:
-                                                     
-                            estimate[i] = targets[i]
-                            
-                            Wp[i][i] = 10**10
-                             
-                        elif estimate[i] > 0:
-                            
-                            estimate[i] = 0
-                            
-                            Wp[i][i] = 10**10
-                                    
-            # Save the estimate contaminate the data and run again
-            self._estimates.append(estimate)
+        self._log.info("Contaminate %d times (noise 0: original data)" \
+                       % (contam_times))
+        
+        for contam_iteration in range(contam_times + 1):
             
+            self._log.info("***** noise %d *****" % (contam_iteration))
+            
+            # Overdetermined  
+            if nparams <= ndata:
+                
+                estimate = self._estimate_odet_compact(compact, \
+                                                       damping, smoothness, \
+                                                       estimate, Wp, \
+                                                       contam_data, Wd, 
+                                                       distances, targets, 
+                                                       max_it)
+                
+            # Undertermined
+            else:
+
+                estimate = self._estimate_udet_compact(compact, \
+                                                       damping, smoothness, \
+                                                       estimate, Wp, \
+                                                       contam_data, Wd_inv, \
+                                                       distances, targets, \
+                                                       max_it)
+                        
+            self._estimates.append(estimate)
+                                            
+            if contam_iteration == contam_times:
+                
+                break
+                                   
+            # Contaminate the data and run again            
             contam_data = contaminate(self._data, \
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
+            
+            # Reset the first estimate
+            if len(self._mean) == 0:
+                
+                estimate = numpy.zeros(nparams)
+                
+            else:
+                
+                estimate = numpy.copy(self._mean)                
                                
         # Compute means, standard deviations and residuals
         self._mean = []
@@ -513,6 +476,281 @@ class LinearSolver():
             self._stddev.append(param.std())
             
         self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
+                        
+        end = time.clock()
+        self._log.info("Total time: %g s" % (end - start))   
                 
+                
+    def _freeze_params(self, estimate, targets, param_weights):
+        """
+        Free the parameters that have passed their targets.
+        """
         
+        for i in range(len(estimate)):
             
+            if targets[i] > 0:
+                
+                if abs(estimate[i]) > 1.05*targets[i]:
+                     
+                    estimate[i] = targets[i]
+                    
+                    param_weights[i][i] *= 10**3
+                     
+                elif estimate[i] < 0:                    
+                    
+                    estimate[i] = 0      
+                
+                    param_weights[i][i] *= 10**3         
+                    
+            if targets[i] < 0:
+                
+                if estimate[i] < 1.05*targets[i]:
+                                             
+                    estimate[i] = targets[i]
+                    
+                    param_weights[i][i] *= 10**3
+                     
+                elif estimate[i] > 0:
+                    
+                    estimate[i] = 0
+                    
+                    param_weights[i][i] *= 10**3
+                    
+                
+    def _estimate_udet_compact(self, compact, damping, smoothness, \
+                               initial_estimate, initial_param_weights, \
+                               data, data_weights_inv, distances, targets, \
+                               max_iterations=50):
+        """
+        Iterated to find the compact estimate in an underdetermined problem.
+        
+        Parameters:
+        
+            compact: regularization parameter
+            
+            initial_estimate: starting point for the iterations
+            
+            data: the data vector
+        
+            data_weights_inv: the inverse of the data weight matrix
+            
+            distances: distances of each parameter to the closest geometric
+                       element
+                       
+            targets: target values for each parameter
+            
+        Returns the final estimate vector.
+        """       
+        
+        nparams = len(initial_estimate)
+        
+        estimate = numpy.copy(initial_estimate)
+        
+        # The Tikhonov parameter weights
+        Wp_tikho = damping*numpy.identity(nparams) + \
+                   smoothness*numpy.dot(self._first_deriv.T, self._first_deriv)
+        
+        # Parameter weight matrix
+        Wp = initial_param_weights + Wp_tikho
+        
+        # Iterate to compact the mass around the geometric elements
+        for iteration in range(max_iterations):
+            
+            self._log.info("it %d:" % (iteration + 1))
+            it_start = time.clock()
+        
+            start = time.clock()
+            
+            Wp_inv = numpy.linalg.inv(Wp)
+            
+            end = time.clock()
+            self._log.info("  Invert parameter weights (%g s)" % (end - start))
+            
+            # The normal equations
+            N = numpy.dot(numpy.dot(self._sensibility, Wp_inv), \
+                          self._sensibility.T) + data_weights_inv
+                          
+            start = time.clock()                          
+                          
+            N_inv = numpy.linalg.inv(N)
+            
+            end = time.clock()
+            self._log.info("  Invert normal equations (%g s)" % (end - start))
+                          
+            pseudo_inv = numpy.dot(numpy.dot(Wp_inv, \
+                                   self._sensibility.T), N_inv)
+            
+            misfit = data - numpy.dot(self._sensibility, \
+                                             estimate)
+        
+            correction = numpy.dot(pseudo_inv, misfit)
+            
+            estimate += correction
+                        
+            it_end = time.clock()
+            self._log.info("  Iteration time: %g s" % (it_end - it_start))
+            
+            num = 0
+            for i in range(nparams):
+                
+#                if abs(estimate[i]) <= 1.10*abs(targets[i]):
+                if abs(correction[i]) <= 0.01*abs(targets[i]):# and \
+#                   abs(estimate[i]) <= 1.15*abs(targets[i]):
+                    
+                    num += 1
+            
+            if num == nparams or iteration == max_iterations - 1:
+                
+                break
+            
+            else:            
+                
+                Wp = compact*self._build_compact_weights(distances, estimate) +\
+                     Wp_tikho
+            
+                self._freeze_params(estimate, targets, Wp)
+        
+        return estimate
+        
+                
+    def _estimate_odet_compact(self, compact, damping, smoothness, \
+                               initial_estimate, initial_param_weights, \
+                               data, data_weights, distances, targets, \
+                               max_iterations=50):
+        """
+        Iterated to find the compact estimate in an overdetermined problem.
+        
+        Parameters:
+        
+            compact: regularization parameterDon_L._Anderson-New_theory_of_the_Earth-Cambridge_University_Press(2007).pdf
+            
+            initial_estimate: starting point for the iterations
+            
+            data: the data vector
+        
+            data_weights: the data weight matrix
+            
+            distances: distances of each parameter to the closest geometric
+                       element
+                       
+            targets: target values for each parameter
+            
+        Returns the final estimate vector.
+        """       
+        
+        nparams = len(initial_estimate)
+        
+        estimate = numpy.copy(initial_estimate)
+                
+        # The Tikhonov parameter weights
+        Wp_tikho = damping*numpy.identity(nparams) + \
+                   smoothness*numpy.dot(self._first_deriv.T, self._first_deriv)
+                
+        # Parameter weight matrix
+        Wp = initial_param_weights + Wp_tikho
+        
+        # Iterate to compact the mass around the geometric elements
+        for iteration in range(max_iterations):
+            
+            self._log.info("it %d:" % (iteration + 1))
+            it_start = time.clock()
+        
+            # The normal equations                
+            N = numpy.dot(numpy.dot(self._sensibility.T, data_weights), \
+                          self._sensibility) + Wp
+                          
+            start = time.clock()
+            
+            N_LU, N_permut = lu.decomp(N.tolist())
+            
+            end = time.clock()
+            self._log.info("  LU decomposition of normal equations (%g s)" \
+                           % (end - start))
+            
+            misfit = data - numpy.dot(self._sensibility, estimate)
+            
+            y = numpy.dot(numpy.dot(self._sensibility.T, data_weights), misfit)
+            
+            start = time.clock()
+            
+            correction = lu.solve(N_LU, N_permut, y.tolist())
+            
+            end = time.clock()
+            self._log.info("  Solve linear system (%g s)" % (end - start))
+                        
+            estimate += correction
+                        
+            it_end = time.clock()
+            self._log.info("  Iteration time: %g s" % (it_end - it_start))
+            
+            num = 0
+            for i in range(nparams):
+                
+                if abs(correction[i])/abs(estimate[i]) < 10*-(8):
+                    
+                    num += 1
+            
+            if num == nparams or iteration == max_iterations - 1:
+                
+                break
+            
+            else:            
+                
+                Wp = compact*self._build_compact_weights(distances, estimate) +\
+                     Wp_tikho
+            
+                self._freeze_params(estimate, targets, Wp)
+        
+        return estimate
+    
+    
+    def sharpen(self, sharpen=1, initial_estimate=[], apriori_var=1, 
+                contam_times=10, max_it=100, \
+                max_marq_it=10, marq_start=1, marq_step=10):
+        """
+        Invert with Total Variation to create a sharpened image. Uses the 
+        Levenberg-Marquardt (LM) algorithm to optimize the goal (misfit) 
+        function.
+        
+        Note: If the initial estimate is not given:
+
+            1) initial estimate is the previous estimate obtained by calling the
+               solve function
+            
+            2) if 1 is absent, estimate initial solution with standard damped 
+               least squares (damping=1)
+        
+        Parameters:
+        
+            sharpen: the regularization parameter (how much to sharpen)
+            
+            apriori_var: the a-priori variance factor. Assumed variance of the
+                         data. This will be the variance used to contaminate
+                         the data.
+                         
+            contam_times: how many times to contaminate the data and run the 
+                          inversion.
+                          
+            max_it: maximum number of iterations when seaching for the minimum
+                    of the goal (or misfit) function.
+                    
+            max_marq_it: maximum number of iterations in the LM when looking for
+                         the right step size (Marquardt parameter).
+                         
+            marq_start: starting step size (Marquardt parameter).
+            
+            marq_step: how much to increase or decrease the step size at each
+                       LM iteration.
+        """
+        
+        if len(self._mean) == 0:
+            
+            self._sensibility = self._build_sensibility()
+            
+            self._first_deriv = self._build_first_deriv()
+            
+            ndata, nparams = self._sensibility.shape
+            
+            if len(initial_estimate) == nparams:
+                
+                

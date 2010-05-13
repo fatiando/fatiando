@@ -88,15 +88,12 @@ class SimpleTom(LinearSolver):
         """
         Make the sensibility matrix.
         """
-                
-        nlines = len(self._data)
-        ncolumns = self._mod_sizex*self._mod_sizey
-        
-        self._log.info("Building sensibility matrix: %d x %d" \
-                      % (nlines, ncolumns))
         
         start = time.clock()
-        
+                        
+        nlines = len(self._data)
+        ncolumns = self._mod_sizex*self._mod_sizey
+                
         sensibility = numpy.zeros((nlines, ncolumns))
         
         for i in range(nlines):
@@ -117,7 +114,8 @@ class SimpleTom(LinearSolver):
                     j += 1
                     
         end = time.clock()
-        self._log.info("Time it took: %g s" % (end - start))
+        self._log.info("Build sensibility matrix: %d x %d  (%g s)" \
+                      % (nlines, ncolumns, end - start))
         
         return sensibility
         
@@ -127,15 +125,13 @@ class SimpleTom(LinearSolver):
         Compute the first derivative matrix of the model parameters.
         """
         
+        start = time.clock()
+        
         # The number of derivatives there will be
         deriv_num = (self._mod_sizex - 1)*self._mod_sizey + \
                     (self._mod_sizey - 1)*self._mod_sizex
         
         param_num = self._mod_sizex*self._mod_sizey
-        
-        self._log.info("Building first derivative matrix: %d x %d" \
-                      % (deriv_num, param_num))
-        start = time.clock()
         
         first_deriv = numpy.zeros((deriv_num, param_num))
         
@@ -174,7 +170,8 @@ class SimpleTom(LinearSolver):
         
         
         end = time.clock()
-        self._log.info("Time it took: %g s" % (end - start))
+        self._log.info("Building first derivative matrix: %d x %d  (%g s)" \
+                      % (deriv_num, param_num, end - start))
         
         return first_deriv
         
@@ -185,13 +182,11 @@ class SimpleTom(LinearSolver):
         line and put the values in the compact_weights. 
         Also assign the target value for each parameter based on the closest 
         point or line.
-        """       
+        """  
+        
+        start = time.clock()
         
         param_num = self._mod_sizex*self._mod_sizey
-        
-        self._log.info("Calculating distances to points and lines: " + \
-                "%d points  %d lines" % (len(points), len(lines)))        
-        start = time.clock()
         
         distances = numpy.zeros(param_num)
         
@@ -218,9 +213,11 @@ class SimpleTom(LinearSolver):
                                                 
                     pnum += 1
         
-        end = time.clock()
-        self._log.info("Time it took: %g s" % (end - start))
-        
+        end = time.clock()        
+        self._log.info("Calculate distances to points and lines: " + \
+                "%d points  %d lines  (%g s)" % (len(points), len(lines), \
+                                                 end - start))      
+                
         return [distances, target_values]
     
         
@@ -230,7 +227,7 @@ class SimpleTom(LinearSolver):
         'estimate' is the current estimate for the parameters.
         """    
         
-        eps = 0.000001
+        eps = 0.000000001
         
         param_num = self._mod_sizex*self._mod_sizey
                 
@@ -240,7 +237,7 @@ class SimpleTom(LinearSolver):
         for i in range(param_num):
             
             compact_weights[i][i] = (distances[i]**2)/ \
-                                    (abs(estimate[i]) + eps)
+                                    (abs(estimate[i])**2 + eps)
                 
         return compact_weights
                                                            
@@ -283,6 +280,7 @@ class SimpleTom(LinearSolver):
         Load the synthetic model from an image file. Converts the image to grey
         scale and puts it in the range [vmin,vmax].
         """
+        self._log.info("Loading model from image file '%s'" % (image_file))
         
         image = Image.open(image_file)
         
@@ -467,10 +465,12 @@ class SimpleTom(LinearSolver):
         pylab.ylabel("Count")
         
         
-    def plot_result(self, cmap=pylab.cm.Greys, outdir=None):
+    def plot_result(self, points=[], lines=[], cmap=pylab.cm.Greys, \
+                    outdir=None):
         """
         Plot the inversion result (mean of all the estimates), standard 
-        deviation, and histogram of the residuals.        
+        deviation, and histogram of the residuals.
+        points and lines are the skeleton used in the compact inversion.  
         """
         
         # Make the results into grids so that they can be plotted
@@ -495,7 +495,17 @@ class SimpleTom(LinearSolver):
         pylab.pcolor(result, cmap=cmap)
         
         cb = pylab.colorbar(orientation='vertical')
-        cb.set_label("Slowness")                   
+        cb.set_label("Slowness")
+        
+        for point, value in points: 
+            
+            pylab.plot(point[0], point[1], 'o')
+            
+        for point1, point2, value in lines:
+            
+            xs = [point1[0], point2[0]]
+            ys = [point1[1], point2[1]]
+            pylab.plot(xs, ys, '-')  
         
         pylab.xlim(0, self._mod_sizex)
         pylab.ylim(0, self._mod_sizey)
@@ -512,29 +522,7 @@ class SimpleTom(LinearSolver):
         pylab.xlim(0, self._mod_sizex)
         pylab.ylim(0, self._mod_sizey)
     
-    
-    def plot_skeleton(self, points, lines):
-        """
-        Plot the skeleton that was used to estimate the model in invert_compact.
-        """
         
-        pylab.figure()
-        pylab.axis('scaled')
-        pylab.title('Model skeleton')    
-        
-        for point, value in points:
-            
-            pylab.plot(point[0], point[1], 'o')
-            
-        for point1, point2, value in lines:
-            
-            xs = [point1[0], point2[0]]
-            ys = [point1[1], point2[1]]
-            pylab.plot(xs, ys, '-')
-        
-        pylab.xlim(0, self._mod_sizex)
-        pylab.ylim(0, self._mod_sizey)
-    
     
 if __name__ == '__main__':
     
@@ -542,27 +530,28 @@ if __name__ == '__main__':
     
     stom = SimpleTom()    
     
-    log.info("* Generating synthetic model")
+    log.info("*********** Generating synthetic model ***********")
 #    stom.synthetic_square(sizex=30, sizey=30, slowness_out=1, slowness_in=5)
-    image = "/home/leo/src/fatiando/examples/simpletom/2src.jpg"
+    image = "/home/leo/src/fatiando/examples/simpletom/mickey4.jpg"
     stom.synthetic_image(image, vmin=1, vmax=8)
     
-    log.info("* Shooting rays")
-    apriori_std = stom.shoot_rays(src_n=30, rec_n=15, stddev=0.05)  
+    log.info("**************** Shooting rays *******************")
+    apriori_std = stom.shoot_rays(src_n=20, rec_n=15, stddev=0.01)  
     
-    log.info("* Inverting Tikhonov")
+    log.info("************** Inverting Tikhonov ****************")
     stom.solve(damping=1, smoothness=3, apriori_var=apriori_std**2, \
-               contam_times=20)    
+               contam_times=20)
     stom.plot_result()
     
-    log.info("* Compacting")
-    points = [((8, 23), 8), ((20, 8), 8)]
-    lines = []
-    stom.compact(points, lines, compact=1, apriori_var=apriori_std**2, \
-                contam_times=1, max_iterations=30)
-    stom.plot_result()
+#    log.info("***************** Compacting *********************")
+#    stom.clear()
+#    points = [((8, 23), 8), ((20, 8), 8)]
+#    lines = []
+#    stom.compact(points, lines, compact=1, damping=0, smoothness=0, \
+#                 apriori_var=apriori_std**2, \
+#                 contam_times=0, max_iterations=10)
+#    stom.plot_result(points, lines)
     
     stom.plot_data()
-    stom.plot_skeleton(points, lines)
     pylab.show()
     
