@@ -362,7 +362,7 @@ class SimpleTom(LinearSolver):
         
         # Make the sources and receivers
         srcs, recs = self._random_src_rec(src_n, rec_n)
-        
+                
         # Compute the travel times
         data = numpy.zeros(src_n*rec_n)
         self._sources = []
@@ -374,13 +374,13 @@ class SimpleTom(LinearSolver):
                                                        
                 for i in range(0, self._mod_sizey):
                     for j in range(0, self._mod_sizex):
-                        
+                       
                         data[l] += traveltime(\
                                            self._model[i][j], \
                                            j, i, \
                                            j + 1, i + 1, \
-                                           src[0], src[1], rec[00.01], rec[1])
-                        
+                                           src[0], src[1], rec[0], rec[1])
+                            
                 self._sources.append(src)
                 self._receivers.append(rec)
                 
@@ -490,9 +490,9 @@ class SimpleTom(LinearSolver):
         pylab.axis('scaled')        
         pylab.title('Inversion Result')    
         
-#        pylab.pcolor(result, cmap=cmap, \
-#                     vmin=numpy.min(self._model), vmax=numpy.max(self._model))
-        pylab.pcolor(result, cmap=cmap)
+        pylab.pcolor(result, cmap=cmap, \
+                     vmin=numpy.min(self._model), vmax=numpy.max(self._model))
+#        pylab.pcolor(result, cmap=cmap)
         
         cb = pylab.colorbar(orientation='vertical')
         cb.set_label("Slowness")
@@ -523,6 +523,15 @@ class SimpleTom(LinearSolver):
         pylab.ylim(0, self._mod_sizey)
     
         
+    def plot_goal(self):
+        
+        pylab.figure()
+        pylab.title("Goal function")
+        pylab.xlabel("LM iteration")
+        pylab.ylabel("Goal")
+        pylab.plot(self._goals, '.-k')
+        
+        
     
 if __name__ == '__main__':
     
@@ -532,16 +541,28 @@ if __name__ == '__main__':
     
     log.info("*********** Generating synthetic model ***********")
 #    stom.synthetic_square(sizex=30, sizey=30, slowness_out=1, slowness_in=5)
-    image = "/home/leo/src/fatiando/examples/simpletom/mickey4.jpg"
+    image = "/home/leo/src/fatiando/examples/simpletom/mickey-f2.jpg"
     stom.synthetic_image(image, vmin=1, vmax=8)
     
     log.info("**************** Shooting rays *******************")
-    apriori_std = stom.shoot_rays(src_n=20, rec_n=15, stddev=0.01)  
+    apriori_std = stom.shoot_rays(src_n=30, rec_n=20, stddev=0.01)  
     
     log.info("************** Inverting Tikhonov ****************")
     stom.solve(damping=1, smoothness=3, apriori_var=apriori_std**2, \
-               contam_times=20)
+               contam_times=5)
     stom.plot_result()
+    
+    log.info("***************** Sharpening *********************")
+#    stom.clear()
+#    initial = 10**(-7)*numpy.ones(900)
+    initial = []
+    stom.sharpen(sharpen=0.1, initial_estimate=initial, \
+                 apriori_var=apriori_std**2, \
+                 contam_times=5, max_it=50, max_marq_it=20, \
+                 marq_start=1, marq_step=10)
+    stom.plot_result()
+    stom.plot_goal()
+
     
 #    log.info("***************** Compacting *********************")
 #    stom.clear()
@@ -551,7 +572,7 @@ if __name__ == '__main__':
 #                 apriori_var=apriori_std**2, \
 #                 contam_times=0, max_iterations=10)
 #    stom.plot_result(points, lines)
-    
+
     stom.plot_data()
     pylab.show()
     

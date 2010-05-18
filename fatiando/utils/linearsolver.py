@@ -87,6 +87,7 @@ class LinearSolver():
         self._mean = []
         self._stddev = []
         self._residuals = []
+        self._goals = []
         
         # The logger for this class
         self._log = logging.getLogger('linearsolver')    
@@ -150,6 +151,7 @@ class LinearSolver():
         self._mean = []
         self._stddev = []
         self._residuals = []
+        self._goals = []
         
     
     def solve(self, damping=0, smoothness=0, apriori_var=1, contam_times=10):        
@@ -179,7 +181,12 @@ class LinearSolver():
         kept in the self._mean and self._stddev
         Residuals are also calculated based on the mean value and kept in 
         self._residuals                         
-        """
+        """       
+        
+        self._log.info("Regularization parameters:")
+        self._log.info("  damping = %g" % (damping))
+        self._log.info("  smoothness = %g" % (smoothness))
+        self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()
         
@@ -195,16 +202,16 @@ class LinearSolver():
         # The parameter weights
         Wp = damping*numpy.identity(nparams) + \
              smoothness*numpy.dot(self._first_deriv.T, self._first_deriv)
+             
+        # Data weight matrix
+        Wd = apriori_var*numpy.linalg.inv(self._data_cov)
         
         # Overdetermined
         if nparams <= ndata:
             
             self._log.info("Solving overdetermined problem: %d d x %d p" % \
                            (ndata, nparams))            
-            
-            # Data weight matrix
-            Wd = apriori_var*numpy.linalg.inv(self._data_cov)
-            
+                        
             # The normal equations
             N = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                           self._sensibility) + Wp
@@ -310,6 +317,13 @@ class LinearSolver():
 
         total_end = time.clock()
         self._log.info("Total time: %g s" % (total_end - total_start))
+        
+        # Compute the goal function
+        self._mean = numpy.array(self._mean)
+        goal = numpy.dot(numpy.dot(self._residuals.T, Wd), self._residuals) + \
+               numpy.dot(numpy.dot(self._mean.T, Wp), self._mean)
+               
+        self._log.info("Goal function: %g" % (goal))
         
 
     def compact(self, points, lines, compact=1, damping=0, smoothness=0, \
@@ -743,14 +757,227 @@ class LinearSolver():
                        LM iteration.
         """
         
-        if len(self._mean) == 0:
+        self._log.info("Regularization parameters:")
+        self._log.info("  sharpness = %g" % (sharpen))
+        self._log.info("a priori variance: %g" % (apriori_var))
+        
+        total_start = time.clock()
+                
+        if initial_estimate == []:
+                
+            if len(self._mean) == 0:            
+                
+                self._log.info("Calculating initial estimate with Tikhonov " + \
+                               "order 0 (damped)")
+            
+                self.solve(damping=1, smoothness=0, apriori_var=apriori_var, \
+                           contam_times=0)
+            
+            else:              
+                
+                self._log.info("Using previous solution as initial estimate")
+                    
+            next = self._mean
+                
+        else:               
             
             self._sensibility = self._build_sensibility()
             
             self._first_deriv = self._build_first_deriv()
             
-            ndata, nparams = self._sensibility.shape
+            next = initial_estimate
+        
+        # Clear the estimates
+        self._estimates = []
             
-            if len(initial_estimate) == nparams:
+        ndata, nparams = self._sensibility.shape
                 
+        nderivs = len(self._first_deriv)
+        
+        identity_nderivs = numpy.identity(nderivs)
+        
+        # The data weight matrix
+        Wd = apriori_var*numpy.linalg.inv(self._data_cov)
+        
+        eps = 10**(-7)
+        
+        # The Hessian due to the residuals
+        hessian_res = 2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
+                              self._sensibility)
                 
+        data = self._data
+                    
+        self._log.info("Contaminate %d times (noise 0: original data)" \
+                       % (contam_times))
+                
+        # Contaminate the data with Gaussian noite and run the inversion
+        for contam_it in range(contam_times + 1):
+            
+            self._log.info("***** noise %d *****" % (contam_it))
+                
+            start = time.clock()
+            
+            residuals = data - numpy.dot(self._sensibility, next)
+            
+            # Part of the goal function due to the residuals
+            goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
+            
+            # Part due to the Total Variation
+            derivatives = numpy.dot(self._first_deriv, next)
+            
+            for deriv in derivatives:
+                
+                goal += abs(deriv)
+            
+            goals = [goal]
+            
+            marq_param = marq_start
+            
+            self._log.info("Starting goal function: %g" % (goal))
+            self._log.info("Starting LM parameter: %g" % (marq_param))
+            self._log.info("LM step size: %g" % (marq_step))
+                                    
+            for it in range(1, max_it + 1):
+                
+                self._log.info("it %d:" % (it))
+                    
+                inner_start = time.clock()
+                
+                prev = next
+                
+                misfit = data - numpy.dot(self._sensibility, prev)
+                                
+                # Auxiliary for calculating the Hessian and gradient
+                d = numpy.zeros(nderivs)
+                D = numpy.zeros((nderivs, nderivs))
+                for l in range(len(self._first_deriv)):
+                    
+                    deriv = numpy.dot(self._first_deriv[l], prev)
+                    
+                    sqrt = math.sqrt(deriv**2 + eps)
+                    
+                    d[l] = deriv/sqrt
+                    
+                    D[l][l] = eps/(sqrt**3)
+                                    
+                grad = -2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
+                                    misfit) + \
+                        sharpen*numpy.dot(self._first_deriv.T, d)
+                    
+                hessian = hessian_res + \
+                          numpy.dot(numpy.dot(self._first_deriv.T, \
+                                              sharpen*D + identity_nderivs), \
+                                    self._first_deriv)
+                                       
+                hessian_diag = numpy.diag(numpy.diag(hessian))
+                
+                inner_end = time.clock()
+                self._log.info("  Build the gradient and Hessian (%g s)" \
+                               % (inner_end - inner_start)) 
+                                                       
+                # LM loop
+                for marq_it in range(1, max_marq_it + 1):
+                    
+                    self._log.info("  LM it %d: " % (marq_it))
+                    self._log.info("    LM parameter: %g" % (marq_param))
+                    
+                    inner_start = time.clock()
+                    
+                    N = hessian + marq_param*hessian_diag
+                    
+#                    N_LU, N_permut = lu.decomp(N.tolist())
+#                    
+#                    correction = lu.solve(N_LU, N_permut, grad.tolist())
+                    correction = numpy.linalg.solve(N, grad.tolist())
+                    
+                    inner_end = time.clock()
+                    self._log.info("    Solve for correction (%g s)" \
+                                   % (inner_end - inner_start)) 
+                    
+                    next = prev - numpy.array(correction)
+                                
+                    residuals = data - numpy.dot(self._sensibility, next)
+                    
+                    # Part of the goal function due to the residuals
+                    goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
+                    
+                    # Part due to the Total Variation
+                    derivatives = numpy.dot(self._first_deriv, next)
+                    for deriv in derivatives:
+                        
+                        goal += abs(deriv)
+                        
+                    self._log.info("    Goal function: %f" % (goal))
+                
+                    if goal < goals[it - 1]:
+                        
+                        goals.append(goal)
+                        
+                        marq_param /= float(marq_step)
+                        
+                        break
+                        
+                    else:
+                        
+                        marq_param *= float(marq_step)
+            
+                # Stopping conditions for the LM algorithm
+                
+                # Got out of LM loop because of max_marq_it reached
+                if len(goals) == it: 
+                    
+                    next = prev
+
+                    break
+                
+                # Stagnation
+                if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-6):
+                    
+                    break
+                        
+            self._estimates.append(next)
+            
+            # Keep the goals of the original data
+            if contam_it == 0:
+                
+                self._goals = numpy.copy(goals)
+            
+            end = time.clock()
+            self._log.info("Total time: %g s" % (end - start))            
+                                            
+            if contam_it == contam_times:
+                
+                break
+            
+            else:
+                                   
+                # Contaminate the data and run again            
+                data = contaminate(self._data, \
+                                   stddev=math.sqrt(apriori_var), \
+                                   percent=False, return_stddev=False)
+                
+                # Reset the first estimate
+                if initial_estimate == []:
+                            
+                    next = self._mean
+                        
+                else:               
+                    
+                    next = initial_estimate
+                               
+        # Compute means, standard deviations and residuals
+        self._mean = []
+        self._stddev = []
+        for param in numpy.transpose(self._estimates):
+            
+            self._mean.append(param.mean())
+            
+            self._stddev.append(param.std())
+            
+        self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
+                        
+        total_end = time.clock()
+        self._log.info("Total time for inversion: %g s" \
+                       % (total_end - total_start))   
+                
+            
