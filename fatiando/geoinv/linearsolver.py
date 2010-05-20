@@ -71,7 +71,7 @@ class LinearSolver():
     
     def __init__(self):
         """
-        Initialize the paramters
+        Initialize the parameters
         """        
         
         # Data parameters

@@ -19,12 +19,15 @@ def run(args=[]):
     for arg in args[1:]:
         
         if arg == '-v':
+            
             verbosity = True
             
         elif arg == '-full':
+            
             label = 'full'
             
-        elif arg == '-h':                        
+        elif arg == '-h':     
+                               
             helpmsg = \
             """
             Test runner for the Fatiando test suite.
@@ -39,10 +42,13 @@ def run(args=[]):
                        version of the test suite (better when running the tests 
                        multiple times)
             """
+            
             print helpmsg
             
         else:
+            
             print "Invalid option. Use 'python test.py -h' for help."
+            
             return 0
 
     fatiando.test(label=label, verbose=verbosity)

@@ -4,6 +4,7 @@ fatiando:
     models, inversion programs, a useful math package and various utils for 
     general geophysics tasks.
 """
+
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 

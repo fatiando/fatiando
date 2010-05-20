@@ -3,6 +3,14 @@ SimpleTom:
     A simplified Cartesian tomography problem. Does not consider reflection or 
     refraction.
 """
+
+# TODO:
+#    Make a load data function
+#    Separate the synthetic model size and the model space discretization
+#    Make a Data class that can load the data or make it from a synthetic model
+#    
+
+
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
 
@@ -20,7 +28,7 @@ import numpy
 from fatiando.directmodels.seismo.simple import traveltime
 from fatiando.utils import datamani
 from fatiando.math import lu
-from fatiando.utils.linearsolver import LinearSolver
+from fatiando.geoinv.linearsolver import LinearSolver
 
 
 # Set the default handler to the class logger. 
@@ -73,10 +81,10 @@ class SimpleTom(LinearSolver):
         self._model = [[]]
         self._mod_sizex = 0
         self._mod_sizey = 0
+        self._dx = 0
+        self._dy = 0
         
         # Data parameters
-        self._src_n = 0
-        self._rec_n = 0
         self._sources = []
         self._receivers = []
         
@@ -96,22 +104,27 @@ class SimpleTom(LinearSolver):
                 
         sensibility = numpy.zeros((nlines, ncolumns))
         
-        for i in range(nlines):
+        for l in range(nlines):
                 
-            j = 0
+            p = 0
             
-            for y in range(self._mod_sizey):
+            for i in range(self._mod_sizey):
                 
-                for x in range(self._mod_sizex): 
+                for j in range(self._mod_sizex):
                     
-                    sensibility[i][j] = traveltime(\
+                    x1 = j*self._dx
+                    x2 = x1 + self._dx
+                        
+                    y1 = i*self._dy
+                    y2 = y1 + self._dy
+                    
+                    sensibility[l][p] = traveltime(\
                                   1, \
-                                  x, y, \
-                                  x + 1, y + 1, \
-                                  self._sources[i][0], self._sources[i][1], \
-                                  self._receivers[i][0], self._receivers[i][1])
+                                  x1, y1, x2, y2, \
+                                  self._sources[l][0], self._sources[l][1], \
+                                  self._receivers[l][0], self._receivers[l][1])
                     
-                    j += 1
+                    p += 1
                     
         end = time.clock()
         self._log.info("Build sensibility matrix: %d x %d  (%g s)" \
@@ -198,11 +211,14 @@ class SimpleTom(LinearSolver):
             
             pnum = 0
             
-            for y in range(self._mod_sizey):
-                for x in range(self._mod_sizex):
+            for i in range(self._mod_sizey):
+                for j in range(self._mod_sizex):
                     
-                    deltax = (point[0] - x + 0.5)
-                    deltay = (point[1] - y + 0.5)
+                    x = j*self._dx
+                    y = i*self._dy
+                    
+                    deltax = (point[0] - x + 0.5*self._dx)
+                    deltay = (point[1] - y + 0.5*self._dy)
                     dist_sqr = math.sqrt(deltax**2 + deltay**2)
                     
                     if dist_sqr < distances[pnum] or distances[pnum] == 0:
@@ -242,7 +258,8 @@ class SimpleTom(LinearSolver):
         return compact_weights
                                                            
                 
-    def synthetic_square(self, sizex, sizey, slowness_out=1, slowness_in=2):
+    def synthetic_square(self, sizex, sizey, dx=1, dy=1, \
+                         slowness_out=1, slowness_in=2):
         """
         Make a square synthetic model with a different slowness region in the
         middle.
@@ -268,6 +285,9 @@ class SimpleTom(LinearSolver):
         
         self._mod_sizex = sizex
         self._mod_sizey = sizey
+        
+        self._dx = dx
+        self._dy = dy
                 
         # Log the model size
         self._log.info("Synthetic model size: %d x %d = %d params" \
@@ -275,10 +295,11 @@ class SimpleTom(LinearSolver):
                          self._mod_sizex*self._mod_sizey))
         
     
-    def synthetic_image(self, image_file, vmin=1, vmax=5):
+    def synthetic_image(self, image_file, dx=1, dy=1, vmin=1, vmax=5):
         """
         Load the synthetic model from an image file. Converts the image to grey
         scale and puts it in the range [vmin,vmax].
+        dx and dy are the cell size in the x and y dimensions.
         """
         self._log.info("Loading model from image file '%s'" % (image_file))
         
@@ -304,6 +325,9 @@ class SimpleTom(LinearSolver):
         
         self._mod_sizey, self._mod_sizex = model.shape
         
+        self._dx = dx
+        self._dy = dy
+        
         # Log the model size
         self._log.info("Synthetic model size: %d x %d = %d params" \
                       % (self._mod_sizex, self._mod_sizey, \
@@ -318,17 +342,21 @@ class SimpleTom(LinearSolver):
         in the model region. Receivers are normally distributed in a circle.
         """
         
-        srcs_x = numpy.random.random(src_n)*self._mod_sizex
-        srcs_y = numpy.random.random(src_n)*self._mod_sizey
+        sizex = self._mod_sizex*self._dx
+        sizey = self._mod_sizey*self._dy
+        
+        minsize = min([sizex, sizey])
+        
+        srcs_x = numpy.random.random(src_n)*sizex
+        srcs_y = numpy.random.random(src_n)*sizey
         
         srcs = numpy.array([srcs_x, srcs_y]).T
         
-        recs_r = numpy.random.normal(0.48*self._mod_sizex, \
-                                     0.02*self._mod_sizex, rec_n)
+        recs_r = numpy.random.normal(0.48*minsize, 0.02*minsize, rec_n)
         recs_theta = numpy.random.random(rec_n)*2*numpy.pi
         
-        recs_x = 0.5*self._mod_sizex + recs_r*numpy.cos(recs_theta)
-        recs_y = 0.5*self._mod_sizey + recs_r*numpy.sin(recs_theta)
+        recs_x = 0.5*sizex + recs_r*numpy.cos(recs_theta)
+        recs_y = 0.5*sizey + recs_r*numpy.sin(recs_theta)
         
         recs = numpy.array([recs_x, recs_y]).T
         
@@ -375,10 +403,15 @@ class SimpleTom(LinearSolver):
                 for i in range(0, self._mod_sizey):
                     for j in range(0, self._mod_sizex):
                        
+                        x1 = j*self._dx
+                        x2 = x1 + self._dx
+                        
+                        y1 = i*self._dy
+                        y2 = y1 + self._dy
+                        
                         data[l] += traveltime(\
                                            self._model[i][j], \
-                                           j, i, \
-                                           j + 1, i + 1, \
+                                           x1, y1, x2, y2, \
                                            src[0], src[1], rec[0], rec[1])
                             
                 self._sources.append(src)
@@ -407,18 +440,28 @@ class SimpleTom(LinearSolver):
         return data_stddev    
         
             
-    def plot_data(self, cmap=pylab.cm.Greys, outdir=None):
+    def set_discretization(self, sizex, sizey, dx, dy):
         """
-        Plot the original model, sources, receivers, ray paths, and histogram of
-        the travel times.
+        Set the discretization of the model space to be used in the inversion.
         """
-        # Plot the model with the sources and receivers
-        ########################################################################
+        pass
+            
+            
+    def plot_synthetic(self, title="Synthetic model", cmap=pylab.cm.Greys):
+        """
+        Plot the synthetic model with the sources and receivers.
+        """
+        
+        xvalues = numpy.arange(0, (self._mod_sizex + 1)*self._dx, self._dx)
+        yvalues = numpy.arange(0, (self._mod_sizey + 1)*self._dy, self._dy)
+        
+        gridx, gridy = pylab.meshgrid(xvalues, yvalues)
+        
         pylab.figure()
         pylab.axis('scaled')
-        pylab.title('True Model with Sources and Receivers')
+        pylab.title(title)
         
-        pylab.pcolor(self._model, cmap=cmap, \
+        pylab.pcolor(gridx, gridy, self._model, cmap=cmap, \
                      vmin=numpy.min(self._model), vmax=numpy.max(self._model))
         
         cb = pylab.colorbar(orientation='vertical')
@@ -431,68 +474,91 @@ class SimpleTom(LinearSolver):
         
         pylab.legend(numpoints=1, prop={'size':7})
                  
-        pylab.xlim(0, self._mod_sizex)
-        pylab.ylim(0, self._mod_sizey)   
+        pylab.xlim(0, self._mod_sizex*self._dx)
+        pylab.ylim(0, self._mod_sizey*self._dy)   
         
-        # Plot the raypaths
-        ########################################################################
-        pylab.figure()
-        pylab.axis('scaled')    
-        pylab.title('Raypaths')    
         
-        for i in range(len(self._data)):
-            pylab.plot([self._sources[i][0], self._receivers[i][0]], \
-                       [self._sources[i][1], self._receivers[i][1]], 'k-')      
+    def plot_traveltimes(self, title="Travel times", bins=0):
+        """
+        Plot a histogram of the travel times with 'bins' number of bins.        
+        If bins is zero, the default number of bins (len(data)/8) will be 
+        used.
+        """
         
-        pylab.plot(self._sources.T[0], self._sources.T[1], 'r*', ms=9, \
-                   label='Source')
-        pylab.plot(self._receivers.T[0], self._receivers.T[1], 'b^', ms=7, \
-                   label='Receiver')
+        bins = len(self._data)/8
         
-        pylab.legend(numpoints=1, prop={'size':7})
-                 
-        pylab.xlim(0, self._mod_sizex)
-        pylab.ylim(0, self._mod_sizey)
-        
-        # Plot a histogram of the travel times    
-        ########################################################################
         pylab.figure()
         pylab.title("Travel times")
         
-        pylab.hist(self._data, bins=len(self._data)/8, facecolor='gray')
+        pylab.hist(self._data, bins=bins, facecolor='gray')
         
         pylab.xlabel("Travel time")
         pylab.ylabel("Count")
         
         
-    def plot_result(self, points=[], lines=[], cmap=pylab.cm.Greys, \
-                    outdir=None):
+    def plot_rays(self, title="Ray paths", cmap=pylab.cm.Greys):
         """
-        Plot the inversion result (mean of all the estimates), standard 
-        deviation, and histogram of the residuals.
+        Plot the ray paths. If the data was generated by a synthetic model, plot
+        it beneath the rays. 
+        """
+
+        xvalues = numpy.arange(0, (self._mod_sizex + 1)*self._dx, self._dx)
+        yvalues = numpy.arange(0, (self._mod_sizey + 1)*self._dy, self._dy)
+        
+        gridx, gridy = pylab.meshgrid(xvalues, yvalues)
+        
+        pylab.figure()
+        pylab.axis('scaled')    
+        pylab.title(title)    
+        
+        if len(self._model[0]) != 0:
+            
+            pylab.pcolor(gridx, gridy, self._model, cmap=cmap, \
+                         vmin=numpy.min(self._model), \
+                         vmax=numpy.max(self._model))
+            
+            cb = pylab.colorbar(orientation='vertical')
+            cb.set_label("Slowness")
+        
+        for i in range(len(self._data)):
+            
+            pylab.plot([self._sources[i][0], self._receivers[i][0]], \
+                       [self._sources[i][1], self._receivers[i][1]], 'k-')      
+        
+        pylab.plot(self._sources.T[0], self._sources.T[1], 'r*', ms=9, \
+                   label='Source')
+        
+        pylab.plot(self._receivers.T[0], self._receivers.T[1], 'b^', ms=7, \
+                   label='Receiver')
+        
+        pylab.legend(numpoints=1, prop={'size':7})
+                 
+        pylab.xlim(0, self._mod_sizex*self._dx)
+        pylab.ylim(0, self._mod_sizey*self._dy)
+        
+        
+    def plot_result(self, title='Inversion Result', points=[], lines=[], \
+                    cmap=pylab.cm.Greys):
+        """
+        Plot the inversion result (mean of all the estimates)
         points and lines are the skeleton used in the compact inversion.  
         """
+                
+        xvalues = numpy.arange(0, (self._mod_sizex + 1)*self._dx, self._dx)
+        yvalues = numpy.arange(0, (self._mod_sizey + 1)*self._dy, self._dy)
+        
+        gridx, gridy = pylab.meshgrid(xvalues, yvalues)
         
         # Make the results into grids so that they can be plotted
         result = numpy.resize(self._mean, (self._mod_sizey, self._mod_sizex))
-        stddev = numpy.resize(self._stddev, (self._mod_sizey, self._mod_sizex))
-        
-        pylab.figure()
-        pylab.title("Residuals")
-        
-        pylab.hist(self._residuals, bins=len(self._residuals)/8, \
-                   facecolor='gray')
-        
-        pylab.xlabel("Residuals")
-        pylab.ylabel("Count")
         
         pylab.figure()
         pylab.axis('scaled')        
-        pylab.title('Inversion Result')    
+        pylab.title(title)    
         
-        pylab.pcolor(result, cmap=cmap, \
-                     vmin=numpy.min(self._model), vmax=numpy.max(self._model))
-#        pylab.pcolor(result, cmap=cmap)
+#        pylab.pcolor(gridx, gridy, result, cmap=cmap, \
+#                     vmin=numpy.min(self._model), vmax=numpy.max(self._model))
+        pylab.pcolor(gridx, gridy, result, cmap=cmap)
         
         cb = pylab.colorbar(orientation='vertical')
         cb.set_label("Slowness")
@@ -507,21 +573,52 @@ class SimpleTom(LinearSolver):
             ys = [point1[1], point2[1]]
             pylab.plot(xs, ys, '-')  
         
-        pylab.xlim(0, self._mod_sizex)
-        pylab.ylim(0, self._mod_sizey)
+        pylab.xlim(0, self._mod_sizex*self._dx)
+        pylab.ylim(0, self._mod_sizey*self._dy)
+        
+        
+    def plot_residuals(self, title="Residuals", bins=0):
+        """
+        Plot a histogram of the residuals with 'bins' number of bins.
+        If bins is zero, the default number of bins (len(residuals)/8) will be 
+        used.
+        """
+        
+        bins = len(self._residuals)/8
+    
+        pylab.figure()
+        pylab.title(title)
+        
+        pylab.hist(self._residuals, bins=bins, facecolor='gray')
+        
+        pylab.xlabel("Residuals")
+        pylab.ylabel("Count")
+        
+    
+    def plot_std(self, title='Result Standard Deviation', cmap=pylab.cm.Greys):
+        """
+        Plot the result standard deviation calculated from all the estimates.
+        """
+                
+        xvalues = numpy.arange(0, (self._mod_sizex + 1)*self._dx, self._dx)
+        yvalues = numpy.arange(0, (self._mod_sizey + 1)*self._dy, self._dy)
+        
+        gridx, gridy = pylab.meshgrid(xvalues, yvalues)        
+        
+        stddev = numpy.resize(self._stddev, (self._mod_sizey, self._mod_sizex))
         
         pylab.figure()
         pylab.axis('scaled')
-        pylab.title('Result Standard Deviation')    
+        pylab.title(title)    
         
-        pylab.pcolor(stddev, cmap=pylab.cm.jet)
+        pylab.pcolor(gridx, gridy, stddev, cmap=pylab.cm.jet)
         
         cb = pylab.colorbar(orientation='vertical')
         cb.set_label("Standard Deviation")  
         
-        pylab.xlim(0, self._mod_sizex)
-        pylab.ylim(0, self._mod_sizey)
-    
+        pylab.xlim(0, self._mod_sizex*self._dx)
+        pylab.ylim(0, self._mod_sizey*self._dy)
+        
         
     def plot_goal(self):
         
@@ -540,28 +637,36 @@ if __name__ == '__main__':
     stom = SimpleTom()    
     
     log.info("*********** Generating synthetic model ***********")
-#    stom.synthetic_square(sizex=30, sizey=30, slowness_out=1, slowness_in=5)
-    image = "/home/leo/src/fatiando/examples/simpletom/mickey-f2.jpg"
-    stom.synthetic_image(image, vmin=1, vmax=8)
+#    stom.synthetic_square(sizex=30, sizey=30, dx=3, dy=3, \
+#                          slowness_out=1, slowness_in=5)
+#    image = "/home/leo/src/fatiando/examples/simpletom/cabrito.jpg"
+    stom.synthetic_image(image, dx=2, dy=2, vmin=1, vmax=8)
     
     log.info("**************** Shooting rays *******************")
-    apriori_std = stom.shoot_rays(src_n=30, rec_n=20, stddev=0.01)  
+    apriori_std = stom.shoot_rays(src_n=100, rec_n=30, stddev=0.01)  
     
     log.info("************** Inverting Tikhonov ****************")
-    stom.solve(damping=1, smoothness=3, apriori_var=apriori_std**2, \
-               contam_times=5)
-    stom.plot_result()
+    stom.solve(damping=5, smoothness=3, apriori_var=apriori_std**2, \
+               contam_times=20)
+    stom.plot_result(title="Tikhonov")
+    stom.plot_std(title="Tikhonov Stddev")
     
-    log.info("***************** Sharpening *********************")
-#    stom.clear()
-#    initial = 10**(-7)*numpy.ones(900)
-    initial = []
-    stom.sharpen(sharpen=0.1, initial_estimate=initial, \
-                 apriori_var=apriori_std**2, \
-                 contam_times=5, max_it=50, max_marq_it=20, \
-                 marq_start=1, marq_step=10)
-    stom.plot_result()
-    stom.plot_goal()
+#    log.info("************** Inverting Tikhonov ****************")
+#    stom.solve(damping=10, smoothness=0, apriori_var=apriori_std**2, \
+#               contam_times=20)
+#    stom.plot_result(cmap=pylab.cm.jet)
+    
+#    log.info("***************** Sharpening *********************")
+#    initial = []
+##    stom.clear()
+##    initial = 10**(-7)*numpy.ones(900)
+#    stom.sharpen(sharpen=0.5, initial_estimate=initial, \
+#                 apriori_var=apriori_std**2, \
+#                 contam_times=2, max_it=50, max_marq_it=20, \
+#                 marq_start=1, marq_step=10)
+#    stom.plot_result(title='Total Variation')
+#    stom.plot_std(title='Total Variation Stddev')
+#    stom.plot_goal()
 
     
 #    log.info("***************** Compacting *********************")
@@ -573,6 +678,7 @@ if __name__ == '__main__':
 #                 contam_times=0, max_iterations=10)
 #    stom.plot_result(points, lines)
 
-    stom.plot_data()
+    stom.plot_synthetic()
+    stom.plot_rays()
     pylab.show()
     
