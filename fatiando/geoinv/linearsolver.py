@@ -12,50 +12,30 @@ __date__ = 'Created 11-May-2010'
 
 
 import logging
-import exceptions
 import math
-import sys
 import time
 
 import numpy
 
 from fatiando.math import lu
-from fatiando.utils.datamani import contaminate
-
-class LinearSolverError(exceptions.Exception):
-    """
-    Standard exception for the LinearSolver class.
-    """
-    pass
+from fatiando.utils import contaminate
+import fatiando
 
 
-# Set the default handler to the class logger. 
-# By default, logging is set to stderr.
-################################################################################ 
-stlogger = logging.getLogger('linearsolver')
-       
-stlogger.setLevel(logging.DEBUG)
+logger = logging.getLogger('linearsolver')       
+logger.setLevel(logging.DEBUG)
+logger.addHandler(fatiando.default_log_handler)
 
-# Create console handler and set level to debug
-console_handler = logging.StreamHandler(strm=sys.stderr)
-
-# Create formatter
-formatter = logging.Formatter("linearsolver> %(message)s")
-
-# Add formatter to the console handler
-console_handler.setFormatter(formatter)
-
-# Set verbose level
-console_handler.setLevel(logging.INFO)
-
-# Add the console handler to logger
-stlogger.addHandler(console_handler)
-################################################################################
 
 
 class LinearSolver():
     """
     Mother class for linear inverse problem solvers.
+    Receives a GeoData subclass instance with the data to invert.
+    
+    mean and standard deviation of the estimates made can be accessed via the
+    mean and std class properties.
+    
     Methods that MUST be implemented by the child are:
         _build_sensibility()
         _build_first_deriv()
@@ -69,25 +49,24 @@ class LinearSolver():
         some function(s) for creating synthetic models        
     """
     
-    def __init__(self):
+    def __init__(self, data):
         """
-        Initialize the parameters
+        Parameters:
+        
+            - data: instance of a subclass of GeoData with the data to be
+                    inverted
         """        
         
         # Data parameters
-        self._data = []
-        self._data_cov = [[]]
+        self._data = data
         
         # Inversion parameters
-        self._sensibility = [[]]
-        self._first_deriv = [[]]
+        self._sensibility = None
+        self._first_deriv = None
                 
         # Inversion results
-        self._estimates = []
-        self._mean = []
-        self._stddev = []
-        self._residuals = []
-        self._goals = []
+        self._estimates = None
+        self._goals = None
         
         # The logger for this class
         self._log = logging.getLogger('linearsolver')    
@@ -99,7 +78,7 @@ class LinearSolver():
         """
         
         # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
+        raise NotImplementedError, \
             "_build_sensibility was called before being implemented"
         
         
@@ -109,7 +88,7 @@ class LinearSolver():
         """
         
         # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
+        raise NotImplementedError, \
             "_build_first_deriv was called before being implemented"
         
         
@@ -122,7 +101,7 @@ class LinearSolver():
         """       
         
         # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
+        raise NotImplementedError, \
             "_calc_distances was called before being implemented"
         
                 
@@ -133,9 +112,45 @@ class LinearSolver():
         """    
         
         # Raise an exception if the method was raised without being implemented
-        raise LinearSolverError, \
+        raise NotImplementedError, \
             "_build_compact_weights was called before being implemented"
             
+            
+    def _calc_means(self):
+        """
+        Calculate the means of the parameter estimates. 
+        """
+        
+        means = []
+        
+        for param in numpy.transpose(self._estimates):
+            
+            means.append(param.mean())
+            
+        return means
+    
+    
+    # Property for accessing the means of the parameter estimates
+    mean = property(_calc_means)
+    
+            
+    def _calc_stds(self):
+        """
+        Calculate the standard deviations of the parameter estimates. 
+        """
+        
+        stds = []
+        
+        for param in numpy.transpose(self._estimates):
+            
+            stds.append(param.std())
+            
+        return stds
+    
+    
+    # Property for accessing the standard deviations of the parameter estimates
+    std = property(_calc_stds)
+        
             
     def clear(self):
         """
@@ -143,24 +158,24 @@ class LinearSolver():
         """
         
         # Inversion parameters
-        self._sensibility = [[]]
-        self._first_deriv = [[]]
+        self._sensibility = None
+        self._first_deriv = None
                 
         # Inversion results
-        self._estimates = []
-        self._mean = []
-        self._stddev = []
-        self._residuals = []
-        self._goals = []
+        self._estimates = None
+        self._goals = None
         
     
-    def solve(self, damping=0, smoothness=0, apriori_var=1, contam_times=10):        
+    def solve(self, damping=0, smoothness=0, curvature=0, apriori_var=1, \
+              contam_times=10):        
         """
         Perform the inversion with Tikhonov regularization:
         
             * 0th order: Ridge Regression (Damped);
             
             * 1st order: Smoothness;
+            
+            * 2nd order: Curvature;
             
         Parameters:
             
@@ -169,18 +184,16 @@ class LinearSolver():
             
             smoothness: 1st order regularization parameter (how much smoothness
                         to apply)
+                        
+            curvature: 2st order regularization parameter (how much to minimize
+                       the curvature)
             
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
                          the data.
                          
             contam_times: how many times to contaminate the data and run the 
-                          inversion.
-                          
-        The means and standard deviations of the 'contam_times' estimates are
-        kept in the self._mean and self._stddev
-        Residuals are also calculated based on the mean value and kept in 
-        self._residuals                         
+                          inversion.                          
         """       
         
         self._log.info("Regularization parameters:")
@@ -193,6 +206,8 @@ class LinearSolver():
         # Clear previous results
         self.clear()
         
+        self._estimates = []
+        
         self._sensibility = self._build_sensibility()
         
         ndata, nparams = self._sensibility.shape
@@ -200,35 +215,30 @@ class LinearSolver():
         self._first_deriv = self._build_first_deriv()
         
         # The parameter weights
+        tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
         Wp = damping*numpy.identity(nparams) + \
-             smoothness*numpy.dot(self._first_deriv.T, self._first_deriv)
+             smoothness*tmp + curvature*numpy.dot(tmp.T, tmp)
              
-        # Data weight matrix
-        Wd = apriori_var*numpy.linalg.inv(self._data_cov)
+        del tmp             
         
         # Overdetermined
         if nparams <= ndata:
             
             self._log.info("Solving overdetermined problem: %d d x %d p" % \
-                           (ndata, nparams))            
+                           (ndata, nparams))      
+              
+            # Data weight matrix
+            Wd = apriori_var*numpy.linalg.inv(self._data.cov)
                         
             # The normal equations
             N = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                           self._sensibility) + Wp
                           
             start = time.clock()
-                          
-            N_LU, N_permut = lu.decomp(N.tolist())
             
-            end = time.clock()
-            self._log.info("  LU decomposition of normal equations (%g s)" % \
-                           (end - start))
+            y = numpy.dot(numpy.dot(self._sensibility.T, Wd), self._data.array)
             
-            y = numpy.dot(numpy.dot(self._sensibility.T, Wd), self._data)
-            
-            start = time.clock()
-            
-            estimate = lu.solve(N_LU, N_permut, y.tolist())
+            estimate = numpy.linalg.solve(N, y)
             
             end = time.clock()
             self._log.info("  Solve linear system (%g s)" % (end - start))
@@ -240,13 +250,14 @@ class LinearSolver():
             # Contaminate
             for i in range(contam_times):
                 
-                contam_data = contaminate(self._data, \
+                contam_data = contaminate.gaussian(\
+                                          self._data.array, \
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
                 
                 y = numpy.dot(numpy.dot(self._sensibility.T, Wd), contam_data)
                 
-                estimate = lu.solve(N_LU, N_permut, y.tolist())
+                estimate = numpy.linalg.solve(N, y)
                 
                 self._estimates.append(estimate)
                 
@@ -261,7 +272,7 @@ class LinearSolver():
                            (ndata, nparams))            
             
             # Inverse of the data weight matrix
-            Wd_inv = self._data_cov/apriori_var
+            Wd_inv = self._data.cov/apriori_var
             
             start = time.clock()
             
@@ -285,7 +296,7 @@ class LinearSolver():
             pseudo_inv = numpy.dot(numpy.dot(Wp_inv, self._sensibility.T), \
                                    N_inv)
         
-            estimate = numpy.dot(pseudo_inv, self._data)
+            estimate = numpy.dot(pseudo_inv, self._data.array)
             
             self._estimates.append(estimate)
             
@@ -294,7 +305,8 @@ class LinearSolver():
             # Contaminate
             for i in range(contam_times):
                 
-                contam_data = contaminate(self._data, \
+                contam_data = contaminate.gaussian( \
+                                          self._data.array, \
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
                 
@@ -306,28 +318,13 @@ class LinearSolver():
             self._log.info("  Contaminate data %d times " % (contam_times) + \
                            "with Gaussian noise (%g s)" % (end - start))
             
-        # Compute means, standard deviations and residuals
-        for param in numpy.transpose(self._estimates):
             
-            self._mean.append(param.mean())
-            
-            self._stddev.append(param.std())
-            
-        self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
-
         total_end = time.clock()
         self._log.info("Total time: %g s" % (total_end - total_start))
         
-        # Compute the goal function
-        self._mean = numpy.array(self._mean)
-        goal = numpy.dot(numpy.dot(self._residuals.T, Wd), self._residuals) + \
-               numpy.dot(numpy.dot(self._mean.T, Wp), self._mean)
-               
-        self._log.info("Goal function: %g" % (goal))
-        
 
     def compact(self, points, lines, compact=1, damping=0, smoothness=0, \
-                apriori_var=1, contam_times=10, max_it=50):        
+            initial_estimate=None, apriori_var=1, contam_times=10, max_it=50):        
         """
         Perform a compact inversion. Parameters will be condensed around 
         geometric elements (points and lines).
@@ -365,6 +362,8 @@ class LinearSolver():
             
             smoothness: 1st order regularization parameter (how much smoothness
                         to apply)
+                        
+            initial_estimate: 1D array with the initial estimate
                     
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
@@ -390,16 +389,21 @@ class LinearSolver():
         # values for the parameters
         distances, targets = self._calc_distances(points, lines)
         
-        # Set the values for the first estimate in case there was none
-        if len(self._mean) == 0:
-            
-            self._log.info("Starting estimate with null vector")
+        # Make the sensibility and first derivative if they are missing
+        if self._sensibility == None:
             
             self._sensibility = self._build_sensibility()
             
+        if self._first_deriv == None:
+            
             self._first_deriv = self._build_first_deriv()
             
-            ndata, nparams = self._sensibility.shape
+        ndata, nparams = self._sensibility.shape
+        
+        # Set the values for the first estimate in case there was none
+        if initial_estimate == None:
+            
+            self._log.info("Starting estimate with null vector")
             
             estimate = numpy.zeros(nparams)
             
@@ -409,9 +413,7 @@ class LinearSolver():
             
             self._log.info("Starting estimate with previous results")
                         
-            estimate = numpy.copy(self._mean)
-            
-            ndata, nparams = self._sensibility.shape
+            estimate = initial_estimate
             
             Wp = compact*self._build_compact_weights(distances, estimate)
                         
@@ -421,17 +423,17 @@ class LinearSolver():
             self._log.info("Solving overdetermined problem: %d d x %d p" % \
                            (ndata, nparams))            
                         
-            Wd = apriori_var*numpy.linalg.inv(self._data_cov)
+            Wd = apriori_var*numpy.linalg.inv(self._data.cov)
             
         else:
             
             self._log.info("Solving underdetermined problem: %d d x %d p" % \
                            (ndata, nparams))            
                         
-            Wd_inv = self._data_cov/apriori_var
+            Wd_inv = self._data.cov/apriori_var
             
         # First, start with the uncontaminated data
-        contam_data = numpy.copy(self._data)
+        contam_data = self._data.array
             
         self._log.info("Contaminate %d times (noise 0: original data)" \
                        % (contam_times))
@@ -467,30 +469,24 @@ class LinearSolver():
                 break
                                    
             # Contaminate the data and run again            
-            contam_data = contaminate(self._data, \
+            contam_data = contaminate.gaussian( \
+                                          self._data.array, \
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
             
             # Reset the first estimate
-            if len(self._mean) == 0:
+            if initial_estimate == None:
                 
                 estimate = numpy.zeros(nparams)
+            
+                Wp = numpy.identity(nparams)
                 
             else:
                 
-                estimate = numpy.copy(self._mean)                
-                               
-        # Compute means, standard deviations and residuals
-        self._mean = []
-        self._stddev = []
-        for param in numpy.transpose(self._estimates):
+                estimate = numpy.copy(self._mean)     
             
-            self._mean.append(param.mean())
-            
-            self._stddev.append(param.std())
-            
-        self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
-                        
+                Wp = compact*self._build_compact_weights(distances, estimate)           
+                                                       
         end = time.clock()
         self._log.info("Total time: %g s" % (end - start))   
                 
@@ -718,7 +714,7 @@ class LinearSolver():
         return estimate
     
     
-    def sharpen(self, sharpen=1, initial_estimate=[], apriori_var=1, 
+    def sharpen(self, sharpen=1, initial_estimate=None, apriori_var=1, 
                 contam_times=10, max_it=100, \
                 max_marq_it=10, marq_start=1, marq_step=10):
         """
@@ -761,43 +757,39 @@ class LinearSolver():
         self._log.info("  sharpness = %g" % (sharpen))
         self._log.info("a priori variance: %g" % (apriori_var))
         
-        total_start = time.clock()
-                
-        if initial_estimate == []:
-                
-            if len(self._mean) == 0:            
-                
-                self._log.info("Calculating initial estimate with Tikhonov " + \
-                               "order 0 (damped)")
-            
-                self.solve(damping=1, smoothness=0, apriori_var=apriori_var, \
-                           contam_times=0)
-            
-            else:              
-                
-                self._log.info("Using previous solution as initial estimate")
-                    
-            next = self._mean
-                
-        else:               
+        total_start = time.clock()    
+        
+        # Clear the estimates
+        self._estimates = []           
+        
+        # Make the sensibility and first derivative if they are missing
+        if self._sensibility == None:
             
             self._sensibility = self._build_sensibility()
             
+        if self._first_deriv == None:
+            
             self._first_deriv = self._build_first_deriv()
             
-            next = initial_estimate
-        
-        # Clear the estimates
-        self._estimates = []
-            
         ndata, nparams = self._sensibility.shape
+        
+        # Set the values for the first estimate in case there was none
+        if initial_estimate == None:
+            
+            self._log.info("Starting estimate with null vector")
+            
+            next = numpy.zeros(nparams)
+                
+        else:               
+            
+            next = initial_estimate
                 
         nderivs = len(self._first_deriv)
         
         identity_nderivs = numpy.identity(nderivs)
         
         # The data weight matrix
-        Wd = apriori_var*numpy.linalg.inv(self._data_cov)
+        Wd = apriori_var*numpy.linalg.inv(self._data.cov)
         
         eps = 10**(-7)
         
@@ -805,7 +797,7 @@ class LinearSolver():
         hessian_res = 2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                               self._sensibility)
                 
-        data = self._data
+        data = self._data.array
                     
         self._log.info("Contaminate %d times (noise 0: original data)" \
                        % (contam_times))
@@ -838,9 +830,7 @@ class LinearSolver():
             self._log.info("LM step size: %g" % (marq_step))
                                     
             for it in range(1, max_it + 1):
-                
-                self._log.info("it %d:" % (it))
-                    
+                                    
                 inner_start = time.clock()
                 
                 prev = next
@@ -870,29 +860,13 @@ class LinearSolver():
                                     self._first_deriv)
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
-                
-                inner_end = time.clock()
-                self._log.info("  Build the gradient and Hessian (%g s)" \
-                               % (inner_end - inner_start)) 
                                                        
                 # LM loop
                 for marq_it in range(1, max_marq_it + 1):
                     
-                    self._log.info("  LM it %d: " % (marq_it))
-                    self._log.info("    LM parameter: %g" % (marq_param))
-                    
-                    inner_start = time.clock()
-                    
                     N = hessian + marq_param*hessian_diag
                     
-#                    N_LU, N_permut = lu.decomp(N.tolist())
-#                    
-#                    correction = lu.solve(N_LU, N_permut, grad.tolist())
-                    correction = numpy.linalg.solve(N, grad.tolist())
-                    
-                    inner_end = time.clock()
-                    self._log.info("    Solve for correction (%g s)" \
-                                   % (inner_end - inner_start)) 
+                    correction = numpy.linalg.solve(N, grad)
                     
                     next = prev - numpy.array(correction)
                                 
@@ -906,8 +880,6 @@ class LinearSolver():
                     for deriv in derivatives:
                         
                         goal += abs(deriv)
-                        
-                    self._log.info("    Goal function: %f" % (goal))
                 
                     if goal < goals[it - 1]:
                         
@@ -920,9 +892,13 @@ class LinearSolver():
                     else:
                         
                         marq_param *= float(marq_step)
-            
-                # Stopping conditions for the LM algorithm
+                        
                 
+                inner_end = time.clock()
+                self._log.info("it %d: LM its = %d  LM param = %g  goal = %g" \
+                               % (it, marq_it, marq_param, goal) + \
+                               "  (%g s)" % (inner_end - inner_start))
+                                            
                 # Got out of LM loop because of max_marq_it reached
                 if len(goals) == it: 
                     
@@ -930,7 +906,7 @@ class LinearSolver():
 
                     break
                 
-                # Stagnation
+                # Stop if there is stagnation
                 if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-6):
                     
                     break
@@ -940,7 +916,7 @@ class LinearSolver():
             # Keep the goals of the original data
             if contam_it == 0:
                 
-                self._goals = numpy.copy(goals)
+                self._goals = goals
             
             end = time.clock()
             self._log.info("Total time: %g s" % (end - start))            
@@ -952,30 +928,20 @@ class LinearSolver():
             else:
                                    
                 # Contaminate the data and run again            
-                data = contaminate(self._data, \
+                data = contaminate.gaussian( \
+                                   self._data.array, \
                                    stddev=math.sqrt(apriori_var), \
                                    percent=False, return_stddev=False)
                 
                 # Reset the first estimate
-                if initial_estimate == []:
-                            
-                    next = self._mean
+                if initial_estimate == None:
+                    
+                    next = numpy.zeros(nparams)
                         
                 else:               
                     
                     next = initial_estimate
                                
-        # Compute means, standard deviations and residuals
-        self._mean = []
-        self._stddev = []
-        for param in numpy.transpose(self._estimates):
-            
-            self._mean.append(param.mean())
-            
-            self._stddev.append(param.std())
-            
-        self._residuals = self._data - numpy.dot(self._sensibility, self._mean)
-                        
         total_end = time.clock()
         self._log.info("Total time for inversion: %g s" \
                        % (total_end - total_start))   

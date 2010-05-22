@@ -37,15 +37,15 @@ mathenv = Environment(
     CPPPATH=[distutils.sysconfig.get_python_inc()],
     SHLIBPREFIX="")
 
-lumod = mathenv.SharedLibrary(os.path.join(math_outdir,'_lu'),
-    [os.path.join(cmath_path, 'lu.c'), os.path.join(cmath_path, 'lu.i')])
+lumod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_lu'),
+    source=[os.path.join(cmath_path, 'lu.c'), os.path.join(cmath_path, 'lu.i')])
 
 Depends(lumod, os.path.join(cmath_path, 'lu.h'))
 
 Clean(os.path.curdir,os.path.join(math_outdir,'lu.py'))
 
-glqmod = mathenv.SharedLibrary(os.path.join(math_outdir,'_glq'),
-    [os.path.join(cmath_path, 'glq.c'), os.path.join(cmath_path, 'glq.i')])
+glqmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_glq'),
+  source=[os.path.join(cmath_path, 'glq.c'), os.path.join(cmath_path, 'glq.i')])
 
 Depends(glqmod, os.path.join(cmath_path, 'glq.h'))
 
@@ -70,9 +70,10 @@ gravityenv = Environment(
     CPPPATH=[distutils.sysconfig.get_python_inc()],
     SHLIBPREFIX="")
 
-prismgravmod = gravityenv.SharedLibrary(os.path.join(gravity_outdir,'_prism'),
-    [os.path.join(cdirect_path, 'prismgrav.c'), \
-     os.path.join(cdirect_path, 'prismgrav.i')])
+prismgravmod = gravityenv.SharedLibrary( \
+    target=os.path.join(gravity_outdir,'_prism'),
+    source=[os.path.join(cdirect_path, 'prismgrav.c'), \
+            os.path.join(cdirect_path, 'prismgrav.i')])
 
 Depends(prismgravmod, os.path.join(cdirect_path, 'prismgrav.h'))
 
@@ -87,9 +88,10 @@ seismoenv = Environment(
     CPPPATH=[distutils.sysconfig.get_python_inc()],
     SHLIBPREFIX="")
     
-simpletommod = seismoenv.SharedLibrary(os.path.join(seismo_outdir,'_simple'),
-    [os.path.join(cdirect_path, 'simpletom.c'), \
-     os.path.join(cdirect_path, 'simpletom.i')])
+simpletommod = seismoenv.SharedLibrary( \
+    target=os.path.join(seismo_outdir,'_simple'),
+    source=[os.path.join(cdirect_path, 'simpletom.c'), \
+            os.path.join(cdirect_path, 'simpletom.i')])
 
 Depends(simpletommod, os.path.join(cdirect_path, 'simpletom.h'))
 

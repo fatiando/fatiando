@@ -9,6 +9,26 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
 
+# Set the default handler to the class loggers. 
+# By default, logging is set to stderr.
+################################################################################ 
+import logging
+import sys
+
+# Create console handler and set level to debug
+default_log_handler = logging.StreamHandler(strm=sys.stderr)
+
+# Create formatter
+formatter = logging.Formatter("%(name)s> %(message)s")
+
+# Add formatter to the console handler
+default_log_handler.setFormatter(formatter)
+
+# Set verbose level
+default_log_handler.setLevel(logging.INFO)
+################################################################################
+
+
 def test(label='fast', verbose=True):
     """
     Runs the unit tests for the fatiando package.

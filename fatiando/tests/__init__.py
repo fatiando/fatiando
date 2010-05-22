@@ -10,6 +10,7 @@ import fatiando.directmodels.tests
 import fatiando.geoinv.tests
 import fatiando.math.tests
 import fatiando.utils.tests
+import fatiando.data.tests
 
 
 def suite(label='fast'):
@@ -20,6 +21,7 @@ def suite(label='fast'):
     testsuite.addTest(fatiando.geoinv.tests.suite(label))
     testsuite.addTest(fatiando.math.tests.suite(label))
     testsuite.addTest(fatiando.utils.tests.suite(label))
+    testsuite.addTest(fatiando.data.tests.suite(label))
 
     return testsuite
 
