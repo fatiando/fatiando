@@ -70,6 +70,9 @@ class SimpleTom(LinearSolver):
         
         # The logger for this class
         self._log = logging.getLogger('simpletom')
+        
+        self._log.info("Model space discretization: %d cells in x |" % (nx) + \
+                       " %d cells in y = %d parameters" % (ny, nx*ny))
                   
 
     def _build_sensibility(self):
@@ -297,7 +300,7 @@ class SimpleTom(LinearSolver):
         pylab.ylim(self._mod_y1, self._mod_y2)
                         
     
-    def plot_std(self, title='Result Standard Deviation', cmap=pylab.cm.jet):
+    def plot_std(self, title='Result Standard Deviation', cmap=pylab.cm.Greys):
         """
         Plot the result standard deviation calculated from all the estimates. 
         
@@ -369,10 +372,12 @@ class SimpleTom(LinearSolver):
         pylab.ylabel("Count")
         
         
-    def plot_goal(self, title="Goal function"):
+    def plot_goal(self, title="Goal function", scale='log'):
         """
         Plot the goal function versus the iterations of the Levemberg-Marquardt
         algorithm. 
+        
+        scale is the scale type for the y axis. Can be either 'log' or 'linear'
         """
         
         pylab.figure()
@@ -382,5 +387,13 @@ class SimpleTom(LinearSolver):
         pylab.ylabel("Goal")
         
         pylab.plot(self._goals, '.-k')
+        
+        if scale == 'log':
+            
+            ax = pylab.gca()
+            
+            ax.set_yscale('log')
+            
+            pylab.draw()
         
         

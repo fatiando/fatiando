@@ -199,6 +199,7 @@ class LinearSolver():
         self._log.info("Regularization parameters:")
         self._log.info("  damping = %g" % (damping))
         self._log.info("  smoothness = %g" % (smoothness))
+        self._log.info("  curvature = %g" % (curvature))
         self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()
@@ -907,7 +908,7 @@ class LinearSolver():
                     break
                 
                 # Stop if there is stagnation
-                if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-6):
+                if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-4):
                     
                     break
                         

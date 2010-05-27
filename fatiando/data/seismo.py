@@ -15,7 +15,7 @@ from PIL import Image
 
 from fatiando.data import GeoData
 from fatiando.utils import points, contaminate
-from fatiando.directmodels import seismo
+from fatiando.directmodels.seismo import simple
 import fatiando
 
 
@@ -68,6 +68,9 @@ class CartTravelTime(GeoData):
         # Need to transpose because the data is in columns (second index) and
         # I don't want that
         self._data = data.T
+        
+        self._log.info("Loaded %d travel times from file '%s'" \
+                       % (len(self._data[4]), fname))
         
     def dump(self, fname):
         """
@@ -199,7 +202,7 @@ class CartTravelTime(GeoData):
         sizey, sizex = model.shape
                 
         # Log the model size
-        self._log.info("Image model size: %d x %d = %d params" \
+        self._log.info("Image model size: %d x %d = %d cells" \
                       % (sizex, sizey, sizex*sizey))
         
         if type == 'circ':
@@ -320,7 +323,7 @@ class CartTravelTime(GeoData):
                     y1 = i*dy
                     y2 = y1 + dy
                     
-                    traveltimes[l] += seismo.simple.traveltime(\
+                    traveltimes[l] += simple.traveltime(\
                                        model[i][j], \
                                        x1, y1, x2, y2, \
                                        srcs_x[l], srcs_y[l], \
@@ -437,10 +440,11 @@ class CartTravelTime(GeoData):
         """
                 
         pylab.figure()
-        pylab.axis('scaled')    
-        pylab.title(title)    
+        pylab.title(title)
         
         if model != None:
+            
+            pylab.axis('scaled') 
             
             sizey, sizex = model.shape
             
@@ -469,5 +473,10 @@ class CartTravelTime(GeoData):
         if model != None:
         
             pylab.xlim(0, sizex*dx)
-            pylab.ylim(0, sizey*dy)   
+            pylab.ylim(0, sizey*dy)  
+        
+        else:
+            
+            pylab.axis('scaled') 
+            
     
