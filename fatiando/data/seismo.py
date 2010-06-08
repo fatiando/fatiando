@@ -19,7 +19,7 @@ from fatiando.directmodels.seismo import simple
 import fatiando
 
 
-logger = logging.getLogger('carttraveltime')       
+logger = logging.getLogger('seismodata')       
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
 
@@ -37,7 +37,7 @@ class CartTravelTime(GeoData):
         # standard deviation
         self._data = None
                 
-        self._log = logging.getLogger('carttraveltime')
+        self._log = logging.getLogger('seismodata.CartTravelTime')
         
         
     def __len__(self):
