@@ -174,7 +174,7 @@ class CartTravelTime(GeoData):
                       standard deviation for the errors contaminating the data
             
         Returns a numpy 2D array with the synthetic image model loaded. Pass it
-        along to print_synthetic if you wanna visualize it.            
+        along to print_synthetic if you want to visualize it.            
         """
         
         self._log.info("Loading model from image file '%s'" % (image_file))
