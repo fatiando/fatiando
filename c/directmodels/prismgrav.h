@@ -21,10 +21,10 @@
 #define G 0.00000000006673
 
 /* Conversion factor from SI units to Eotvos: 1 /s**2 = 10**9 Eotvos */
-#define SI2EOTVOS 1000000000
+#define SI2EOTVOS 1000000000.0
 
 /* Conversion factor from SI units to mGal: 1 m/s**2 = 10**5 mGal */
-#define SI2MGAL 100000
+#define SI2MGAL 100000.0
 
 /* ************************************************************************** */
 

@@ -58,7 +58,9 @@ class SimpleTom(LinearSolver):
     
     def __init__(self, traveltimedata, x1, x2, y1, y2, nx, ny):
         
-        LinearSolver.__init__(self, traveltimedata)
+        LinearSolver.__init__(self)
+        
+        self._data = traveltimedata
         
         # Model space parameters
         self._mod_x1 = x1
@@ -167,6 +169,24 @@ class SimpleTom(LinearSolver):
         
         return first_deriv
         
+        
+    def _get_data_array(self):
+        """
+        Return the data in a Numpy array so that the algorithm can access it
+        in a general way
+        """        
+        
+        return self._data.array
+                           
+            
+    def _get_data_cov(self):
+        """
+        Return the data covariance in a 2D Numpy array so that the algorithm can
+        access it in a general way
+        """        
+        
+        return self._data.cov
+            
                        
     def _calc_distances(self, points, lines):
         """
@@ -334,44 +354,8 @@ class SimpleTom(LinearSolver):
                 
         pylab.xlim(self._mod_x1, self._mod_x2)
         pylab.ylim(self._mod_y1, self._mod_y2)
-                
-    
-    def plot_residuals(self, title="Residuals", bins=0):
-        """
-        Plot a histogram of the residuals.
-        
-        Parameters:
+                   
             
-            - title: title of the figure
-            
-            - bins: number of bins (default to len(residuals)/8)
-            
-        Note: to view the image use pylab.show()
-        """
-            
-        if self._sensibility == None:
-
-            sensibility = self._build_sensibility()
-            
-        else:
-            
-            sensibility = self._sensibility
-            
-        residuals = self._data.array - numpy.dot(sensibility, self.mean)
-        
-        if bins == 0:
-        
-            bins = len(residuals)/8
-    
-        pylab.figure()
-        pylab.title(title)
-        
-        pylab.hist(residuals, bins=bins, facecolor='gray')
-        
-        pylab.xlabel("Residuals")
-        pylab.ylabel("Count")
-        
-        
     def plot_goal(self, title="Goal function", scale='log'):
         """
         Plot the goal function versus the iterations of the Levemberg-Marquardt
