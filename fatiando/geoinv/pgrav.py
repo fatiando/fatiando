@@ -461,15 +461,8 @@ class PGrav(LinearSolver):
         prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
         prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
         
-        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))
-        
-#        tmp = []
-#        for layer in model:
-#            
-#            tmp.append(layer.T)
-            
-#        model = numpy.array(tmp)
-                
+        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))*0.001
+                        
         grid = tvtk.RectilinearGrid()
         grid.cell_data.scalars = model.ravel()
         grid.cell_data.scalars.name = 'Density'

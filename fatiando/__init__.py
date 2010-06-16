@@ -15,17 +15,14 @@ __date__ = 'Created 02-Apr-2010'
 import logging
 import sys
 
+class NullHandler(logging.Handler):
+    
+    def emit(self, record):
+        
+        pass
+
 # Create console handler and set level to debug
-default_log_handler = logging.StreamHandler(strm=sys.stderr)
-
-# Create formatter
-formatter = logging.Formatter("%(name)s> %(message)s")
-
-# Add formatter to the console handler
-default_log_handler.setFormatter(formatter)
-
-# Set verbose level
-default_log_handler.setLevel(logging.INFO)
+default_log_handler = NullHandler()
 ################################################################################
 
 

@@ -1,5 +1,5 @@
 """
-Run the Fatiando test suite.
+Run the Fatiando unit test suite.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 28-Mar-2010'

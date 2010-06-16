@@ -217,6 +217,7 @@ class LinearSolver():
                           inversion.                          
         """       
         
+        self._log.info("*** Tikhonov Inversion ***")
         self._log.info("Regularization parameters:")
         self._log.info("  damping = %g" % (damping))
         self._log.info("  smoothness = %g" % (smoothness))
@@ -385,6 +386,7 @@ class LinearSolver():
                        LM iteration.
         """
         
+        self._log.info("*** Total Variation Inversion ***")
         self._log.info("Regularization parameters:")
         self._log.info("  sharpness = %g" % (sharpen))
         self._log.info("a priori variance: %g" % (apriori_var))

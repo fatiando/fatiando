@@ -73,7 +73,7 @@ class SimpleTom(LinearSolver):
         # The logger for this class
         self._log = logging.getLogger('simpletom')
         
-        self._log.info("Model space discretization: %d cells in x |" % (nx) + \
+        self._log.info("Model space discretization: %d cells in x *" % (nx) + \
                        " %d cells in y = %d parameters" % (ny, nx*ny))
                   
 

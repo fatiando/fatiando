@@ -112,10 +112,11 @@ ext_mods = [directmods, mathmods]
 
 
 # Make a phony target for the tests (the fast test suite)
-PhonyTarget(target='test', action='python test.py -v', depends=ext_mods)
+PhonyTarget(target='unittest_runner', \
+            action='python unittest_runner.py -v', depends=ext_mods)
 
 # An alias for running the full test suite
-full_test = Alias('test_full', ext_mods, 'python test.py -v -full')
+full_test = Alias('test_full', ext_mods, 'python unittest_runner.py -v -full')
 AlwaysBuild(full_test)
 
 
@@ -126,15 +127,19 @@ def listpyc(path):
     pycfiles = []
 
     fnames = os.listdir(path)
+    
     for fname in fnames:
 
         fname = os.path.join(path, fname)
 
         if os.path.isdir(fname):
+        
             pycfiles.extend(listpyc(fname))
 
         else:
+        
             if os.path.splitext(fname)[-1] == '.pyc':
+            
                 pycfiles.append(fname)
 
     return pycfiles
