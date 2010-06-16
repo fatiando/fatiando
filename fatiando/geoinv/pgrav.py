@@ -428,7 +428,7 @@ class PGrav(LinearSolver):
         
         Y, X = pylab.meshgrid(prism_ys, prism_xs)
         
-        model = numpy.reshape(self.mean, (self._nz, self._nx, self._ny))
+        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))*0.001
         
         z = self._mod_z1
         
@@ -437,10 +437,9 @@ class PGrav(LinearSolver):
             pylab.figure()
             pylab.axis('scaled')
             pylab.title("Result layer z=%g" % (z))
-            
             pylab.pcolor(Y, X, layer.T, vmin=model.min(), vmax=model.max())
             cb = pylab.colorbar()
-            cb.set_label("Density")
+            cb.set_label("Density [g/cm^3]")
             
             pylab.xlabel("Y")
             pylab.ylabel("X")
@@ -462,21 +461,21 @@ class PGrav(LinearSolver):
         prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
         prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
         
-        model = numpy.reshape(self.mean, (self._nz, self._nx, self._ny))
+        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))
         
-        tmp = []
-        for layer in model:
+#        tmp = []
+#        for layer in model:
+#            
+#            tmp.append(layer.T)
             
-            tmp.append(layer.T)
-            
-        model = numpy.array(tmp)
+#        model = numpy.array(tmp)
                 
         grid = tvtk.RectilinearGrid()
         grid.cell_data.scalars = model.ravel()
         grid.cell_data.scalars.name = 'Density'
-        grid.dimensions = (self._nx, self._nx, self._nz)
-        grid.x_coordinates = prism_ys
-        grid.y_coordinates = prism_xs
+        grid.dimensions = (self._nx+1, self._ny+1, self._nz+1)
+        grid.x_coordinates = prism_xs
+        grid.y_coordinates = prism_ys
         grid.z_coordinates = prism_zs
         
         mlab.pipeline.surface(grid)
@@ -496,7 +495,7 @@ class PGrav(LinearSolver):
         
         Y, X = pylab.meshgrid(prism_ys, prism_xs)
         
-        stds = numpy.reshape(self.std, (self._nz, self._nx, self._ny))
+        stds = numpy.reshape(self.std, (self._nz, self._ny, self._nx))*0.001
         
         z = self._mod_z1
         
@@ -508,7 +507,7 @@ class PGrav(LinearSolver):
             
             pylab.pcolor(Y, X, layer.T)
             cb = pylab.colorbar()
-            cb.set_label("Standard Deviation")
+            cb.set_label("Standard Deviation [g/cm^3]")
             
             pylab.xlabel("Y")
             pylab.ylabel("X")
