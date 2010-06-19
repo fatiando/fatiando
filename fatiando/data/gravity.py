@@ -49,7 +49,7 @@ class TensorComponent(GeoData):
         # Matrix holding the full data set (location, data, stddev)
         self._data = None
         
-        self._log = logging.getLogger('gravitydata.GravityComponent')
+        self._log = logging.getLogger('gravitydata')
         
         self._calculators = {'xx':prism_gravity.gxx, 'xy':prism_gravity.gxy, \
                              'xz':prism_gravity.gxz, 'yy':prism_gravity.gyy, \

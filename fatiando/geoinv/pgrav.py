@@ -50,6 +50,8 @@ class PGrav(LinearSolver):
         provided            
         """
         
+        LinearSolver.__init__(self)
+        
         if not (gz or gxx or gxy or gxz or gyy or gyz or gzz):
             
             raise RuntimeError, "Provide at least one of gz, gxx, gxy, gxz," + \

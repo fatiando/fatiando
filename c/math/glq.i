@@ -49,7 +49,7 @@ Created 07 May 2010
 %{
 
 #include "glq.h"
-#include "typeconversions.c"
+#include "../typeconversions.c"
 
 %}
 

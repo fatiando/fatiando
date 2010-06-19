@@ -24,7 +24,7 @@ Created 01 March 2010
 %{
 
 #include "lu.h"
-#include "typeconversions.c"
+#include "../typeconversions.c"
 
 %}
 

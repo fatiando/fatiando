@@ -428,8 +428,14 @@ class LinearSolver():
         eps = 10**(-7)
         
         # The Hessian due to the residuals
+        start = time.clock()
+        
         hessian_res = 2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                               self._sensibility)
+        
+        end = time.clock()
+        self._log.info("Calculate misfit portion of the Hessian (%g s)" \
+                       % (end - start))
                 
         data = self._get_data_array()
                     
@@ -515,7 +521,7 @@ class LinearSolver():
                         
                         goal += abs(deriv)
                 
-                    if goal < goals[it - 1]:
+                    if goal < goals[it - 1] and marq_param >= 10**(-10):
                         
                         goals.append(goal)
                         

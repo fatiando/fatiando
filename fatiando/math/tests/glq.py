@@ -212,7 +212,6 @@ class ScaleTestCase(GLQTestCase):
 # Return the test suit for this module
 ################################################################################
 def suite(label='fast'):
-
     
     testsuite = unittest.TestSuite()
 

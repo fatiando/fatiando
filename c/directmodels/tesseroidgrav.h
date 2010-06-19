@@ -9,7 +9,7 @@
 #define G 0.00000000006673
 
 /* The mean earth radius (m) */
-#define R 6378137.0
+#define MEAN_EARTH_RADIUS 6378137.0
 
 /* Conversion factor from SI units to Eotvos: 1 /s**2 = 10**9 Eotvos */
 #define SI2EOTVOS 1000000000

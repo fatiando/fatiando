@@ -74,10 +74,19 @@ prismgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_prism'),
     source=[os.path.join(cdirect_path, 'prismgrav.c'), \
             os.path.join(cdirect_path, 'prismgrav.i')])
-
+            
 Depends(prismgravmod, os.path.join(cdirect_path, 'prismgrav.h'))
 
-Clean(os.path.curdir,os.path.join(gravity_outdir,'prism.py'))
+Clean(os.path.curdir, os.path.join(gravity_outdir,'prism.py'))
+
+tesseroidgravmod = gravityenv.SharedLibrary( \
+    target=os.path.join(gravity_outdir,'_tesseroid'),
+    source=[os.path.join(cdirect_path, 'tesseroidgrav.c'), \
+            os.path.join(cdirect_path, 'tesseroidgrav.i')])
+            
+Depends(tesseroidgravmod, os.path.join(cdirect_path, 'tesseroidgrav.h'))
+
+Clean(os.path.curdir, os.path.join(gravity_outdir,'tesseroid.py'))
 ###########################################
 
 # SEISMO
@@ -114,10 +123,6 @@ ext_mods = [directmods, mathmods]
 # Make a phony target for the tests (the fast test suite)
 PhonyTarget(target='unittest_runner', \
             action='python unittest_runner.py -v', depends=ext_mods)
-
-# An alias for running the full test suite
-full_test = Alias('test_full', ext_mods, 'python unittest_runner.py -v -full')
-AlwaysBuild(full_test)
 
 
 # Include all the .pyc files in the cleaning
