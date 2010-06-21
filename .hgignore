@@ -1,0 +1,4 @@
+syntax: glob
+
+./fatiando/math/tests/testdata
+./.sconsign.dblite

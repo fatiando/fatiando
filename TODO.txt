@@ -1,0 +1,23 @@
+LinearSolver
+    * Implement equality constraints
+    * Compactness regularization
+    * Sparsity regularization
+    * Depth weights
+    * Fix data weighting in the Tikhonov regularization
+    
+PGrav
+    * Automate configuration of the 3D plot
+
+SimpleTom
+    * make integration test output pngs instead of using pylab.show()
+
+Geometry
+    * Discretize a sphere into prisms
+    
+Dicrect Models
+    * Create wikis
+
+Grav
+    * potential and derivatives of a sphere
+    * C functions receive prism struct
+    * Tesseroids

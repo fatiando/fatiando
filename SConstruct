@@ -25,12 +25,12 @@ def PhonyTarget(target, action, depends=[], env = None):
 ################################################################################
 ################################################################################
 
-c_path = 'c'
+c_path = os.path.join('src', 'c')
 
 # MATH
 ################################################################################
 cmath_path = os.path.join(c_path, 'math')
-math_outdir = 'fatiando/math'
+math_outdir = os.path.join('src', os.path.join('fatiando', 'math'))
 
 mathenv = Environment(
     SWIGFLAGS=['-python', '-outdir', math_outdir],
@@ -59,7 +59,7 @@ mathmods = [lumod, glqmod]
 
 # DIRECT MODELS
 ################################################################################
-direct_outdir = 'fatiando/directmodels'
+direct_outdir = os.path.join('src', os.path.join('fatiando', 'directmodels'))
 cdirect_path = os.path.join(c_path, 'directmodels')
 
 # GRAVITY 
@@ -121,8 +121,8 @@ ext_mods = [directmods, mathmods]
 
 
 # Make a phony target for the tests (the fast test suite)
-PhonyTarget(target='unittest_runner', \
-            action='python unittest_runner.py -v', depends=ext_mods)
+PhonyTarget(target=os.path.join('src', 'unittest_runner'), \
+            action='python src/unittest_runner.py -v', depends=ext_mods)
 
 
 # Include all the .pyc files in the cleaning

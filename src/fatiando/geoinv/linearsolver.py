@@ -234,14 +234,33 @@ class LinearSolver():
         
         ndata, nparams = self._sensibility.shape
         
-        self._first_deriv = self._build_first_deriv()
+        start = time.clock()
         
         # The parameter weights
-        tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
-        Wp = damping*numpy.identity(nparams) + \
-             smoothness*tmp + curvature*numpy.dot(tmp.T, tmp)
+        Wp = numpy.zeros((nparams, nparams))
+        
+        if damping:
+            
+            Wp = Wp + damping*numpy.identity(nparams)
+        
+        if smoothness or curvature:
+            
+            self._first_deriv = self._build_first_deriv()
+        
+            tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
+ 
+            if smoothness:
+                
+                Wp = Wp + smoothness*tmp
+                
+            if curvature: 
+                
+                Wp = Wp + curvature*numpy.dot(tmp.T, tmp)
              
-        del tmp
+            del tmp
+        
+        end = time.clock()
+        self._log.info("Build parameter weight matrix (%g s)" % (end - start))
         
         # Overdetermined
         if nparams <= ndata:
@@ -250,16 +269,29 @@ class LinearSolver():
                            (ndata, nparams))      
               
             # Data weight matrix
-            Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
-                        
-            # The normal equations
-            N = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
-                          self._sensibility) + Wp
-                          
             start = time.clock()
             
-            y = numpy.dot(numpy.dot(self._sensibility.T, Wd), \
-                          self._get_data_array())
+#            Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
+            Wd = numpy.identity(ndata)
+            
+            end = time.clock()
+            self._log.info("  Build data weight matrix (%g s)" % (end - start))          
+              
+            # The normal equations
+            start = time.clock()
+            
+            aux = numpy.dot(self._sensibility.T, Wd)
+            
+            N = numpy.dot(aux, self._sensibility) + Wp
+                          
+            end = time.clock()
+            self._log.info("  Build normal equations matrix (%g s)" \
+                           % (end - start))  
+            
+            # Solve the system for the parameters
+            start = time.clock()
+            
+            y = numpy.dot(aux, self._get_data_array())
             
             estimate = numpy.linalg.solve(N, y)
             
@@ -278,7 +310,7 @@ class LinearSolver():
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
                 
-                y = numpy.dot(numpy.dot(self._sensibility.T, Wd), contam_data)
+                y = numpy.dot(aux, contam_data)
                 
                 estimate = numpy.linalg.solve(N, y)
                 
@@ -288,38 +320,62 @@ class LinearSolver():
             self._log.info("  Contaminate data %d times " % (contam_times) + \
                            "with Gaussian noise (%g s)" % (end - start))
                    
-        # Underdetermined        
+        # Underdetermined
         else:
             
             self._log.info("Solving underdetermined problem: %d d x %d p" % \
                            (ndata, nparams))            
             
             # Inverse of the data weight matrix
-            Wd_inv = self._get_data_cov()/apriori_var
-            
             start = time.clock()
             
+            Wd_inv = self._get_data_cov()/apriori_var
+            
+            end = time.clock()
+            self._log.info("  Inverse of data weight matrix (%g s)" \
+                            % (end - start))
+                        
             # The inverse of the parameter weight matrix
+            start = time.clock()
+            
             Wp_inv = numpy.linalg.inv(Wp)
             
             end = time.clock()
-            self._log.info("  Invert parameter weights (%g s)" % (end - start))            
+            self._log.info("  Inverse parameter weight matrix (%g s)" \
+                            % (end - start))            
             
             # The normal equations
-            N = numpy.dot(numpy.dot(self._sensibility, Wp_inv), \
-                          self._sensibility.T) + Wd_inv
-                          
+            start = time.clock()
+            
+            aux = numpy.dot(Wp_inv, self._sensibility.T)
+            
+            N = numpy.dot(self._sensibility, aux) + Wd_inv
+            
+            end = time.clock()
+            self._log.info("  Build normal equations matrix (%g s)" \
+                            % (end - start))
+            
             start = time.clock()
             
             N_inv = numpy.linalg.inv(N)
             
             end = time.clock()
-            self._log.info("  Invert normal equations (%g s)" % (end - start))          
+            self._log.info("  Invert normal equations matrix (%g s)" \
+                            % (end - start))          
                           
-            pseudo_inv = numpy.dot(numpy.dot(Wp_inv, self._sensibility.T), \
-                                   N_inv)
+            start = time.clock()
+            
+            pseudo_inv = numpy.dot(aux, N_inv)
+            
+            end = time.clock()
+            self._log.info("  Calculate pseudo-inverse (%g s)" % (end - start))        
+        
+            start = time.clock()
         
             estimate = numpy.dot(pseudo_inv, self._get_data_array())
+            
+            end = time.clock()
+            self._log.info("  Calculate parameters (%g s)" % (end - start))        
             
             self._estimates.append(estimate)
             
@@ -347,8 +403,8 @@ class LinearSolver():
         
     
     
-    def sharpen(self, sharpen=1, initial_estimate=None, apriori_var=1, 
-                contam_times=10, max_it=100, \
+    def sharpen(self, sharpness=1, damping=0, initial_estimate=None, \
+                apriori_var=1, contam_times=10, max_it=100, \
                 max_marq_it=10, marq_start=1, marq_step=10):
         """
         Invert with Total Variation to create a sharpened image. Uses the 
@@ -365,7 +421,10 @@ class LinearSolver():
         
         Parameters:
         
-            sharpen: the regularization parameter (how much to sharpen)
+            sharpness: the regularization parameter (how much to sharpen)
+            
+            damping: 0th order regularization parameter (how much damping to 
+                     apply)
             
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
@@ -388,7 +447,8 @@ class LinearSolver():
         
         self._log.info("*** Total Variation Inversion ***")
         self._log.info("Regularization parameters:")
-        self._log.info("  sharpness = %g" % (sharpen))
+        self._log.info("  sharpness = %g" % (sharpness))
+        self._log.info("  damping = %g" % (damping))
         self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()    
@@ -423,7 +483,8 @@ class LinearSolver():
         identity_nderivs = numpy.identity(nderivs)
         
         # The data weight matrix
-        Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
+#        Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
+        Wd = numpy.identity(ndata)
         
         eps = 10**(-7)
         
@@ -432,6 +493,10 @@ class LinearSolver():
         
         hessian_res = 2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                               self._sensibility)
+        
+        if damping != 0:
+            
+            hessian_res = hessian_res + damping*numpy.identity(nparams)
         
         end = time.clock()
         self._log.info("Calculate misfit portion of the Hessian (%g s)" \
@@ -492,11 +557,11 @@ class LinearSolver():
                                     
                 grad = -2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
                                     misfit) + \
-                        sharpen*numpy.dot(self._first_deriv.T, d)
+                        sharpness*numpy.dot(self._first_deriv.T, d)
                     
                 hessian = hessian_res + \
                           numpy.dot(numpy.dot(self._first_deriv.T, \
-                                              sharpen*D + identity_nderivs), \
+                                              sharpness*D + identity_nderivs), \
                                     self._first_deriv)
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
@@ -508,7 +573,7 @@ class LinearSolver():
                     
                     correction = numpy.linalg.solve(N, grad)
                     
-                    next = prev - numpy.array(correction)
+                    next = prev - correction
                                 
                     residuals = data - numpy.dot(self._sensibility, next)
                     
@@ -521,7 +586,7 @@ class LinearSolver():
                         
                         goal += abs(deriv)
                 
-                    if goal < goals[it - 1] and marq_param >= 10**(-10):
+                    if goal < goals[it - 1] and marq_param > 10**(-10):
                         
                         goals.append(goal)
                         

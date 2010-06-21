@@ -453,8 +453,7 @@ class PGrav(LinearSolver):
     
     @mlab.show
     def plot_mean3d(self):
-        
-        
+                
         dx = (self._mod_x2 - self._mod_x1)/self._nx
         dy = (self._mod_y2 - self._mod_y1)/self._ny      
         dz = (self._mod_z2 - self._mod_z1)/self._nz
@@ -468,7 +467,7 @@ class PGrav(LinearSolver):
         grid = tvtk.RectilinearGrid()
         grid.cell_data.scalars = model.ravel()
         grid.cell_data.scalars.name = 'Density'
-        grid.dimensions = (self._nx+1, self._ny+1, self._nz+1)
+        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
         grid.x_coordinates = prism_xs
         grid.y_coordinates = prism_ys
         grid.z_coordinates = prism_zs
