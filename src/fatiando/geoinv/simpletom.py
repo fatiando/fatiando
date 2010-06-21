@@ -354,30 +354,8 @@ class SimpleTom(LinearSolver):
                 
         pylab.xlim(self._mod_x1, self._mod_x2)
         pylab.ylim(self._mod_y1, self._mod_y2)
-                   
+                 
             
-    def plot_goal(self, title="Goal function", scale='log'):
-        """
-        Plot the goal function versus the iterations of the Levemberg-Marquardt
-        algorithm. 
-        
-        scale is the scale type for the y axis. Can be either 'log' or 'linear'
-        """
-        
-        pylab.figure()
-        pylab.title(title)
-        
-        pylab.xlabel("LM iteration")
-        pylab.ylabel("Goal")
-        
-        pylab.plot(self._goals, '.-k')
-        
-        if scale == 'log':
-            
-            ax = pylab.gca()
-            
-            ax.set_yscale('log')
-            
-            pylab.draw()
+
         
         

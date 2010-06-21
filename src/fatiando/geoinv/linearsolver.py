@@ -184,7 +184,32 @@ class LinearSolver():
         pylab.hist(residuals, bins=bins, facecolor='gray')
         
         pylab.xlabel("Residuals")
-        pylab.ylabel("Count")
+        pylab.ylabel("Count")    
+        
+    
+    def plot_goal(self, title="Goal function", scale='log'):
+        """
+        Plot the goal function versus the iterations of the Levemberg-Marquardt
+        algorithm. 
+        
+        scale is the scale type for the y axis. Can be either 'log' or 'linear'
+        """
+        
+        pylab.figure()
+        pylab.title(title)
+        
+        pylab.xlabel("LM iteration")
+        pylab.ylabel("Goal")
+        
+        pylab.plot(self._goals, '.-k')
+        
+        if scale == 'log':
+            
+            ax = pylab.gca()
+            
+            ax.set_yscale('log')
+            
+            pylab.draw()
         
     
     def solve(self, damping=0, smoothness=0, curvature=0, apriori_var=1, \
@@ -488,19 +513,20 @@ class LinearSolver():
         
         eps = 10**(-7)
         
-        # The Hessian due to the residuals
+        # The Hessian due to the residuals and damping
         start = time.clock()
         
-        hessian_res = 2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
-                              self._sensibility)
+        aux_AT_Wd = numpy.dot(self._sensibility.T, Wd)
         
-        if damping != 0:
+        hessian_res = 2*numpy.dot(aux_AT_Wd, self._sensibility)
+        
+        if damping:
             
             hessian_res = hessian_res + damping*numpy.identity(nparams)
         
         end = time.clock()
-        self._log.info("Calculate misfit portion of the Hessian (%g s)" \
-                       % (end - start))
+        self._log.info("Calculate misfit and damping portion of the Hessian" + \
+                       " (%g s)" % (end - start))
                 
         data = self._get_data_array()
                     
@@ -526,6 +552,11 @@ class LinearSolver():
                 
                 goal += abs(deriv)
             
+            # Part due to Tikhonov 0 order (damping)
+            if damping:        
+                
+                goal += damping*numpy.dot(next.T, next)
+            
             goals = [goal]
             
             marq_param = marq_start
@@ -545,6 +576,7 @@ class LinearSolver():
                 # Auxiliary for calculating the Hessian and gradient
                 d = numpy.zeros(nderivs)
                 D = numpy.zeros((nderivs, nderivs))
+                
                 for l in range(len(self._first_deriv)):
                     
                     deriv = numpy.dot(self._first_deriv[l], prev)
@@ -555,9 +587,12 @@ class LinearSolver():
                     
                     D[l][l] = eps/(sqrt**3)
                                     
-                grad = -2*numpy.dot(numpy.dot(self._sensibility.T, Wd), \
-                                    misfit) + \
+                grad = -2*numpy.dot(aux_AT_Wd, misfit) + \
                         sharpness*numpy.dot(self._first_deriv.T, d)
+                        
+                if damping:
+                    
+                    grad = grad + damping*prev
                     
                 hessian = hessian_res + \
                           numpy.dot(numpy.dot(self._first_deriv.T, \
@@ -585,8 +620,13 @@ class LinearSolver():
                     for deriv in derivatives:
                         
                         goal += abs(deriv)
+                    
+                    # Part due to Tikhonov 0 order (damping)
+                    if damping:           
+                        
+                        goal += damping*numpy.dot(next.T, next)
                 
-                    if goal < goals[it - 1] and marq_param > 10**(-10):
+                    if goal < goals[it - 1] and marq_param >= 10**(-9):
                         
                         goals.append(goal)
                         
