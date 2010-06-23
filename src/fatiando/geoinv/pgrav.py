@@ -416,6 +416,147 @@ class PGrav(LinearSolver):
         return numpy.diag(stddev**2)
     
     
+    def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):
+        """
+        Plot the original data plus the adjusted data with contour lines.
+        """
+        
+        adjusted = numpy.dot(self._sensibility, self.mean)
+        
+        if self._gxx:
+            
+            gxx = numpy.reshape(adjusted[:len(self._gxx)], shape)
+            
+            adjusted = adjusted[len(self._gxx):]
+            
+            X = self._gxx.get_xgrid(*shape)
+            
+            Y = self._gxx.get_ygrid(*shape)
+            
+            vmin = min([gxx.min(), self._gxx.array.min()])
+            vmax = max([gxx.max(), self._gxx.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{xx}$")
+            CS = pylab.contour(X, Y, gxx, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gxx.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        if self._gxy:
+            
+            gxy = numpy.reshape(adjusted[:len(self._gxy)], shape)
+            
+            adjusted = adjusted[len(self._gxy):]
+            
+            X = self._gxy.get_xgrid(*shape)
+            
+            Y = self._gxy.get_ygrid(*shape)
+            
+            vmin = min([gxy.min(), self._gxy.array.min()])
+            vmax = max([gxy.max(), self._gxy.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{xy}$")
+            CS = pylab.contour(X, Y, gxy, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gxy.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        if self._gxz:
+            
+            gxz = numpy.reshape(adjusted[:len(self._gxz)], shape)
+            
+            adjusted = adjusted[len(self._gxz):]
+            
+            X = self._gxz.get_xgrid(*shape)
+            
+            Y = self._gxz.get_ygrid(*shape)
+            
+            vmin = min([gxz.min(), self._gxz.array.min()])
+            vmax = max([gxz.max(), self._gxz.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{xz}$")
+            CS = pylab.contour(X, Y, gxz, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gxz.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        if self._gyy:
+            
+            gyy = numpy.reshape(adjusted[:len(self._gyy)], shape)
+            
+            adjusted = adjusted[len(self._gyy):]
+            
+            X = self._gyy.get_xgrid(*shape)
+            
+            Y = self._gyy.get_ygrid(*shape)
+            
+            vmin = min([gyy.min(), self._gyy.array.min()])
+            vmax = max([gyy.max(), self._gyy.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{yy}$")
+            CS = pylab.contour(X, Y, gyy, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gyy.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        if self._gyz:
+            
+            gyz = numpy.reshape(adjusted[:len(self._gyz)], shape)
+            
+            adjusted = adjusted[len(self._gyz):]
+            
+            X = self._gyz.get_xgrid(*shape)
+            
+            Y = self._gyz.get_ygrid(*shape)
+            
+            vmin = min([gyz.min(), self._gyz.array.min()])
+            vmax = max([gyz.max(), self._gyz.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{yz}$")
+            CS = pylab.contour(X, Y, gyz, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gyz.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        if self._gzz:
+            
+            gzz = numpy.reshape(adjusted[:len(self._gzz)], shape)
+            
+            adjusted = adjusted[len(self._gzz):]
+            
+            X = self._gzz.get_xgrid(*shape)
+            
+            Y = self._gzz.get_ygrid(*shape)
+            
+            vmin = min([gzz.min(), self._gzz.array.min()])
+            vmax = max([gzz.max(), self._gzz.array.max()])
+            
+            pylab.figure()
+            pylab.title(title + r" $g_{zz}$")
+            CS = pylab.contour(X, Y, gzz, colors='r', label="Adjusted", \
+                               vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+            CS = pylab.contour(X, Y, self._gzz.togrid(*X.shape), colors='b', \
+                          label="Observed", vmin=vmin, vmax=vmax)
+            pylab.clabel(CS)
+        
+        
+        
     def plot_mean(self):
         """
         Plot the mean solution in layers.
@@ -450,29 +591,6 @@ class PGrav(LinearSolver):
             pylab.ylim(X.min(), X.max())
             
             z += dz
-    
-    @mlab.show
-    def plot_mean3d(self):
-                
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        dy = (self._mod_y2 - self._mod_y1)/self._ny      
-        dz = (self._mod_z2 - self._mod_z1)/self._nz
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
-        prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
-        prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
-        
-        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))*0.001
-                        
-        grid = tvtk.RectilinearGrid()
-        grid.cell_data.scalars = model.ravel()
-        grid.cell_data.scalars.name = 'Density'
-        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
-        grid.x_coordinates = prism_xs
-        grid.y_coordinates = prism_ys
-        grid.z_coordinates = prism_zs
-        
-        mlab.pipeline.surface(grid)
                     
     
     def plot_std(self):
@@ -510,5 +628,84 @@ class PGrav(LinearSolver):
             pylab.ylim(X.min(), X.max())
             
             z += dz
-            
+                        
+    
+    def plot_mean3d(self):
+        """
+        Plot the mean result in 3D using Mayavi
+        """
         
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny      
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
+        
+        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))*0.001
+                        
+        grid = tvtk.RectilinearGrid()
+        grid.cell_data.scalars = model.ravel()
+        grid.cell_data.scalars.name = 'Density'
+        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
+        grid.x_coordinates = prism_xs
+        grid.y_coordinates = prism_ys
+        grid.z_coordinates = prism_zs
+        
+        fig = mlab.figure()
+        fig.scene.background = (0, 0, 0)
+        fig.scene.camera.pitch(180)
+        fig.scene.camera.roll(180)
+        source = mlab.pipeline.add_dataset(grid)
+        filter = mlab.pipeline.threshold(source)
+        axes = mlab.axes(filter, nb_labels=self._nx+1, \
+                         extent=[prism_xs[0], prism_xs[-1], \
+                                 prism_ys[0], prism_ys[-1], \
+                                 prism_zs[0], prism_zs[-1]])
+        surf = mlab.pipeline.surface(axes, vmax=model.max(), vmin=model.min())
+        surf.actor.property.edge_visibility = 1
+        surf.actor.property.line_width = 1.5
+        mlab.colorbar(surf, title="Density [g/m^3]", orientation='vertical', \
+                      nb_labels=10)
+        
+        
+    def plot_std3d(self):
+        """
+        Plot the standard deviation of the results in 3D using Mayavi
+        """
+        
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny      
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
+        
+        std = numpy.reshape(self.std, (self._nz, self._ny, self._nx))*0.001
+                        
+        grid = tvtk.RectilinearGrid()
+        grid.cell_data.scalars = std.ravel()
+        grid.cell_data.scalars.name = 'Standard Deviation'
+        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
+        grid.x_coordinates = prism_xs
+        grid.y_coordinates = prism_ys
+        grid.z_coordinates = prism_zs
+        
+        fig = mlab.figure()
+        fig.scene.background = (0, 0, 0)
+        fig.scene.camera.pitch(180)
+        fig.scene.camera.roll(180)
+        source = mlab.pipeline.add_dataset(grid)
+        filter = mlab.pipeline.threshold(source)
+        axes = mlab.axes(filter, nb_labels=self._nx+1, \
+                         extent=[prism_xs[0], prism_xs[-1], \
+                                 prism_ys[0], prism_ys[-1], \
+                                 prism_zs[0], prism_zs[-1]])
+        surf = mlab.pipeline.surface(axes, vmax=std.max(), vmin=std.min())
+        surf.actor.property.edge_visibility = 1
+        surf.actor.property.line_width = 1.5
+        mlab.colorbar(surf, title="Standard Deviation [g/m^3]", \
+                      orientation='vertical', \
+                      nb_labels=10)
