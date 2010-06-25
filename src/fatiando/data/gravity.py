@@ -217,7 +217,7 @@ class TensorComponent(GeoData):
         return numpy.reshape(self._data[2], (nrows, ncolumns))
     
 
-    def synthetic_prism(self, prism, X, Y, z, stddev=0.01):
+    def synthetic_prism(self, prism, X, Y, z, stddev=0.01, percent=True):
         """
         Create synthetic tensor component data from a prism.
         Coordinate system is x->north, y->east, and z->down.
@@ -237,6 +237,8 @@ class TensorComponent(GeoData):
             stddev: percentage of the maximum data value that will be used as 
                     standard deviation for the errors contaminating the data.
                     set to False if you don't want contaminated data
+                    
+            percent: if False, stddev should be actual value in Eotvos
             
         Note: to generate X and Y, see pylab.meshgrid
         """
@@ -265,8 +267,8 @@ class TensorComponent(GeoData):
         
         if stddev:
         
-            values, error = contaminate.gaussian(values, stddev, percent=True, \
-                                             return_stddev=True)
+            values, error = contaminate.gaussian(values, stddev, \
+                                percent=percent, return_stddev=True)
             
         else:
             

@@ -7,6 +7,7 @@ LinearSolver
     
 PGrav
     * Automate configuration of the 3D plot
+    * Separate derivatives in each direction
 
 SimpleTom
     * make integration test output pngs instead of using pylab.show()

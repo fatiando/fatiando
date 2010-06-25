@@ -7,6 +7,7 @@ __date__ = 'Created 14-Jun-2010'
 
 import time
 import logging
+import math
 
 import pylab
 import numpy
@@ -416,6 +417,39 @@ class PGrav(LinearSolver):
         return numpy.diag(stddev**2)
     
     
+    def depth_weights(self, z0, power):
+        """
+        Calculate and return the depth weight matrix as in Li and Oldenburg 
+        (1996)
+        
+        Parameters:
+        
+            z0: reference height
+            
+            power: decrease rate of the kernel
+        """
+                      
+        weight = numpy.identity(self._nx*self._ny*self._nz)
+        
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        depths = numpy.arange(self._mod_z1, self._mod_z2, dz, 'float')
+        
+        l = 0
+        
+        for depth in depths:
+            
+            for j in xrange(self._ny*self._nx):
+                                    
+                weight[l][l] = 1./(math.sqrt(depth + 0.5*dz + z0)**power)
+                
+                l += 1
+        
+        weight = weight/weight.max()
+        
+        return weight
+                    
+            
     def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):
         """
         Plot the original data plus the adjusted data with contour lines.
@@ -437,6 +471,7 @@ class PGrav(LinearSolver):
             vmax = max([gxx.max(), self._gxx.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{xx}$")
             CS = pylab.contour(X, Y, gxx, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -444,6 +479,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gxx.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         if self._gxy:
             
@@ -459,6 +500,7 @@ class PGrav(LinearSolver):
             vmax = max([gxy.max(), self._gxy.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{xy}$")
             CS = pylab.contour(X, Y, gxy, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -466,6 +508,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gxy.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         if self._gxz:
             
@@ -481,6 +529,7 @@ class PGrav(LinearSolver):
             vmax = max([gxz.max(), self._gxz.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{xz}$")
             CS = pylab.contour(X, Y, gxz, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -488,6 +537,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gxz.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         if self._gyy:
             
@@ -503,6 +558,7 @@ class PGrav(LinearSolver):
             vmax = max([gyy.max(), self._gyy.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{yy}$")
             CS = pylab.contour(X, Y, gyy, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -510,6 +566,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gyy.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         if self._gyz:
             
@@ -525,6 +587,7 @@ class PGrav(LinearSolver):
             vmax = max([gyz.max(), self._gyz.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{yz}$")
             CS = pylab.contour(X, Y, gyz, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -532,6 +595,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gyz.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         if self._gzz:
             
@@ -547,6 +616,7 @@ class PGrav(LinearSolver):
             vmax = max([gzz.max(), self._gzz.array.max()])
             
             pylab.figure()
+            pylab.axis('scaled')
             pylab.title(title + r" $g_{zz}$")
             CS = pylab.contour(X, Y, gzz, colors='r', label="Adjusted", \
                                vmin=vmin, vmax=vmax)
@@ -554,6 +624,12 @@ class PGrav(LinearSolver):
             CS = pylab.contour(X, Y, self._gzz.togrid(*X.shape), colors='b', \
                           label="Observed", vmin=vmin, vmax=vmax)
             pylab.clabel(CS)
+            
+            pylab.xlabel("Y")
+            pylab.ylabel("X")
+            
+            pylab.xlim(Y.min(), Y.max())
+            pylab.ylim(X.min(), X.max())
         
         
         

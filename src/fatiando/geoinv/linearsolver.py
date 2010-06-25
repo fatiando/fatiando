@@ -212,8 +212,8 @@ class LinearSolver():
             pylab.draw()
         
     
-    def solve(self, damping=0, smoothness=0, curvature=0, apriori_var=1, \
-              contam_times=10):        
+    def solve(self, damping=0, smoothness=0, curvature=0, param_weights=None, \
+              apriori_var=1, contam_times=10):        
         """
         Perform the inversion with Tikhonov regularization:
         
@@ -233,6 +233,9 @@ class LinearSolver():
                         
             curvature: 2st order regularization parameter (how much to minimize
                        the curvature)
+            
+            param_weights: if you want to specify a parameter weight matrix. 
+                This matrix will multiply the parameters in the regularizations
             
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
@@ -266,20 +269,36 @@ class LinearSolver():
         
         if damping:
             
-            Wp = Wp + damping*numpy.identity(nparams)
+            if param_weights == None:
+                
+                Wp = Wp + damping*numpy.identity(nparams)
+                                
+            else:
+                
+                Wp = Wp + damping*param_weights
         
         if smoothness or curvature:
             
             self._first_deriv = self._build_first_deriv()
+            
+            if param_weights == None:
         
-            tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
+                tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
+                
+            else:
+                
+                tmp1 = numpy.dot(self._first_deriv, param_weights)
+                
+                tmp = numpy.dot(tmp1.T, tmp1)
+                
+                del tmp1
  
             if smoothness:
-                
+                       
                 Wp = Wp + smoothness*tmp
                 
             if curvature: 
-                
+                                                
                 Wp = Wp + curvature*numpy.dot(tmp.T, tmp)
              
             del tmp
@@ -421,19 +440,68 @@ class LinearSolver():
             end = time.clock()
             self._log.info("  Contaminate data %d times " % (contam_times) + \
                            "with Gaussian noise (%g s)" % (end - start))
+                               
+        residuals = self._get_data_array() - numpy.dot(self._sensibility, \
+                                                       self.mean)
+        
+        rms = numpy.dot(residuals.T, residuals)
+                
+        self._log.info("RMS = %g" % (rms))
             
-#        tmp = numpy.dot(self._first_deriv, self.mean)
-#        goal_smt = numpy.dot(tmp.T, tmp)
-#        
-#        self._log.info("Smoothness goal = %g" % (goal_smt))
+        if damping:
+            
+            if param_weights == None:
+                
+                goal_damp = numpy.dot(numpy.transpose(self.mean), self.mean)
+                
+            else:
+                
+                goal_damp = numpy.dot(numpy.dot(numpy.transpose(self.mean), \
+                                                param_weights),
+                                      self.mean)
+                
+            self._log.info("Damping goal = %g" % (goal_damp))
+                
+        if smoothness:
+            
+            if param_weights == None:
+            
+                tmp = numpy.dot(self._first_deriv, self.mean)
+                
+            else:
+                
+                tmp = numpy.dot(self._first_deriv, \
+                                numpy.dot(param_weights, self.mean))
+            
+            goal_smooth = numpy.dot(tmp.T, tmp)
+        
+            self._log.info("Smoothness goal = %g" % (goal_smooth))
+            
+        if curvature:
+            
+            if param_weights == None:
+                
+                tmp = numpy.dot(self._first_deriv, self.mean)
+                
+            else:
+                
+                tmp = numpy.dot(self._first_deriv, \
+                                numpy.dot(param_weights, self.mean))
+            
+            tmp1 = numpy.dot(self._first_deriv.T, tmp)
+            
+            goal_curv = numpy.dot(tmp1.T, tmp1)
+        
+            self._log.info("Curvature goal = %g" % (goal_curv))
+            
         total_end = time.clock()
         self._log.info("Total time: %g s" % (total_end - total_start))
         
     
     
     def sharpen(self, sharpness=1, damping=0, initial_estimate=None, \
-                beta = 10**(-7), apriori_var=1, contam_times=10, max_it=100, \
-                max_marq_it=10, marq_start=1, marq_step=10):
+        param_weights=None, beta=10**(-7), apriori_var=1, contam_times=10, \
+        max_it=100, max_marq_it=10, marq_start=1, marq_step=10):
         """
         Invert with Total Variation to create a sharpened image. Uses the 
         Levenberg-Marquardt (LM) algorithm to optimize the goal (misfit) 
@@ -453,6 +521,11 @@ class LinearSolver():
             
             damping: 0th order regularization parameter (how much damping to 
                      apply)
+                     
+            initial_estimate: see Note above
+            
+            param_weights: if you want to specify a parameter weight matrix. 
+                This matrix will multiply the parameters in the regularizations
             
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
@@ -498,9 +571,9 @@ class LinearSolver():
         # Set the values for the first estimate in case there was none
         if initial_estimate == None:
             
-            self._log.info("Starting estimate with null vector")
+            self._log.info("Starting estimate with (almost) null vector")
             
-            next = numpy.zeros(nparams)
+            next = 10**(-7)*numpy.ones(nparams)
                 
         else:               
             
@@ -508,7 +581,7 @@ class LinearSolver():
                 
         nderivs = len(self._first_deriv)
         
-        identity_nderivs = numpy.identity(nderivs)
+#        identity_nderivs = numpy.identity(nderivs)
         
         # The data weight matrix
 #        Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
@@ -523,7 +596,13 @@ class LinearSolver():
         
         if damping:
             
-            hessian_res = hessian_res + damping*numpy.identity(nparams)
+            if param_weights == None:
+            
+                hessian_res = hessian_res + damping*numpy.identity(nparams)
+                
+            else:
+                
+                hessian_res = hessian_res + damping*param_weights                
         
         end = time.clock()
         self._log.info("Calculate misfit and damping portion of the Hessian" + \
@@ -544,28 +623,45 @@ class LinearSolver():
             residuals = data - numpy.dot(self._sensibility, next)
             
             # Part of the goal function due to the residuals
-            goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
+            rms = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
             
             # Part due to the Total Variation
-            derivatives = numpy.dot(self._first_deriv, next)
+            if param_weights == None:
+                
+                derivatives = numpy.dot(self._first_deriv, next)
+                
+            else:
+                
+                aux_next = numpy.dot(param_weights, next)
+                                
+                derivatives = numpy.dot(self._first_deriv, aux_next)
             
             goal_tv = 0
             
             for deriv in derivatives:
                 
                 goal_tv += abs(deriv)
+                
+            goal = rms + sharpness*goal_tv
             
             # Part due to Tikhonov 0 order (damping)
             if damping:        
                 
-                goal += damping*numpy.dot(next.T, next)
-                
-            goal += sharpness*goal_tv
+                if param_weights == None:
+                    
+                    goal += damping*numpy.dot(next.T, next)
+                    
+                else:
+                    
+                    goal += damping*numpy.dot(next.T, aux_next)
+            
+            del aux_next
             
             goals = [goal]
             
             marq_param = marq_start
             
+            self._log.info("Starting RMS: %g" % (rms))
             self._log.info("Starting goal function: %g" % (goal))
             self._log.info("Starting TV goal function: %g" % (goal_tv))
             self._log.info("Starting LM parameter: %g" % (marq_param))
@@ -583,9 +679,17 @@ class LinearSolver():
                 d = numpy.zeros(nderivs)
                 D = numpy.zeros((nderivs, nderivs))
                 
+                if param_weights == None:
+                    
+                    aux_prev = prev
+                    
+                else:
+                    
+                    aux_prev = numpy.dot(param_weights, prev)
+                
                 for l in range(len(self._first_deriv)):
                     
-                    deriv = numpy.dot(self._first_deriv[l], prev)
+                    deriv = numpy.dot(self._first_deriv[l], aux_prev)
                     
                     sqrt = math.sqrt(deriv**2 + beta)
                     
@@ -598,7 +702,13 @@ class LinearSolver():
                         
                 if damping:
                     
-                    grad = grad + damping*prev
+                    if param_weights == None:
+                    
+                        grad = grad + damping*prev
+                        
+                    else:
+                        
+                        grad = grad + damping*aux_prev
                     
 #                hessian = hessian_res + \
 #                          numpy.dot(numpy.dot(self._first_deriv.T, \
@@ -607,9 +717,8 @@ class LinearSolver():
 
                 # See what happens when I don't put the identity (smoothness)
                 hessian = hessian_res + \
-                          sharpness*numpy.dot(numpy.dot(self._first_deriv.T, \
-                                              D), \
-                                    self._first_deriv)
+                          sharpness*numpy.dot( \
+                        numpy.dot(self._first_deriv.T, D), self._first_deriv)
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
                                                        
@@ -625,23 +734,39 @@ class LinearSolver():
                     residuals = data - numpy.dot(self._sensibility, next)
                     
                     # Part of the goal function due to the residuals
-                    goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
+                    rms = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
                     
                     # Part due to the Total Variation
-                    derivatives = numpy.dot(self._first_deriv, next)
+                    if param_weights == None:
+                        
+                        derivatives = numpy.dot(self._first_deriv, next)
+                        
+                    else:
+                        
+                        aux_next = numpy.dot(param_weights, next)
+                        
+                        derivatives = numpy.dot(self._first_deriv, aux_next)
                     
                     goal_tv = 0
                     
                     for deriv in derivatives:
                         
                         goal_tv += abs(deriv)
+                        
+                    goal = rms + sharpness*goal_tv
                     
                     # Part due to Tikhonov 0 order (damping)
-                    if damping:           
+                    if damping:
                         
-                        goal += damping*numpy.dot(next.T, next)
-                        
-                    goal += sharpness*goal_tv
+                        if param_weights == None:
+                            
+                            goal += damping*numpy.dot(next.T, next)
+                            
+                        else:
+                            
+                            goal += damping*numpy.dot(next.T, aux_next)
+                            
+                    del aux_next
                 
                     if goal < goals[it - 1] and marq_param >= 10**(-9):
                         
@@ -657,10 +782,10 @@ class LinearSolver():
                         
                 
                 inner_end = time.clock()
-                self._log.info("it %d: LM its = %d  LM param = %g  goal = %g" \
-                               % (it, marq_it, marq_param, goal) + \
-                               "  goal_tv = %g  (%g s)" \
-                                % (goal_tv, inner_end - inner_start))
+                self._log.info("it %d: LM its = %d  LM param = %g  RMS = %g" \
+                               % (it, marq_it, marq_param, rms) + \
+                               "  goal_tv = %g  goal = %g  (%g s)" \
+                                % (goal_tv, goal, inner_end - inner_start))
                                             
                 # Got out of LM loop because of max_marq_it reached
                 if len(goals) == it: 
@@ -699,7 +824,7 @@ class LinearSolver():
                 # Reset the first estimate
                 if initial_estimate == None:
                     
-                    next = numpy.zeros(nparams)
+                    next = 10**(-7)*numpy.ones(nparams)
                         
                 else:               
                     
