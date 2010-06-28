@@ -8,6 +8,7 @@ __date__ = 'Created 14-Jun-2010'
 import time
 import logging
 import math
+from multiprocessing import Process, Pipe
 
 import pylab
 import numpy
@@ -93,7 +94,7 @@ class PGrav(LinearSolver):
         start = time.clock()
         
         dx = (self._mod_x2 - self._mod_x1)/self._nx
-        dy = (self._mod_y2 - self._mod_y1)/self._ny      
+        dy = (self._mod_y2 - self._mod_y1)/self._ny
         dz = (self._mod_z2 - self._mod_z1)/self._nz
         
         prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
@@ -428,6 +429,9 @@ class PGrav(LinearSolver):
             
             power: decrease rate of the kernel
         """
+        
+        self._log.info("Building depth weights: z0 = %g   power = %g"\
+                        % (z0, power))
                       
         weight = numpy.identity(self._nx*self._ny*self._nz)
         
