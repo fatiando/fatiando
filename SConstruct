@@ -30,7 +30,7 @@ c_path = os.path.join('src', 'c')
 # MATH
 ################################################################################
 cmath_path = os.path.join(c_path, 'math')
-math_outdir = os.path.join('src', os.path.join('fatiando', 'math'))
+math_outdir = os.path.join('fatiando', 'math')
 
 mathenv = Environment(
     SWIGFLAGS=['-python', '-outdir', math_outdir],
@@ -59,7 +59,7 @@ mathmods = [lumod, glqmod]
 
 # DIRECT MODELS
 ################################################################################
-direct_outdir = os.path.join('src', os.path.join('fatiando', 'directmodels'))
+direct_outdir = os.path.join('fatiando', 'directmodels')
 cdirect_path = os.path.join(c_path, 'directmodels')
 
 # GRAVITY 
@@ -121,8 +121,9 @@ ext_mods = [directmods, mathmods]
 
 
 # Make a phony target for the tests (the fast test suite)
-PhonyTarget(target=os.path.join('src', 'unittest_runner'), \
-            action='python src/unittest_runner.py -v', depends=ext_mods)
+target = 'unittest_runner'
+action = 'python %s.py -v' % (target)
+PhonyTarget(target=target, action=action, depends=ext_mods)
 
 
 # Include all the .pyc files in the cleaning

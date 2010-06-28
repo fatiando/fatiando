@@ -654,9 +654,7 @@ class LinearSolver():
                 else:
                     
                     goal += damping*numpy.dot(next.T, aux_next)
-            
-            del aux_next
-            
+                        
             goals = [goal]
             
             marq_param = marq_start
@@ -765,9 +763,7 @@ class LinearSolver():
                         else:
                             
                             goal += damping*numpy.dot(next.T, aux_next)
-                            
-                    del aux_next
-                
+                                            
                     if goal < goals[it - 1] and marq_param >= 10**(-9):
                         
                         goals.append(goal)

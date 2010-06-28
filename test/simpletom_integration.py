@@ -41,7 +41,7 @@ def run():
     stom.plot_std(title='Tikhonov Standard Deviation')
     stom.plot_residuals(title='Tikhonov Residuals')
 
-    stom.sharpen(sharpness=1, initial_estimate=numpy.zeros_like(stom.mean), \
+    stom.sharpen(sharpness=10, initial_estimate=None, \
                  apriori_var=ttdata.cov[0][0], \
                  max_it=30, max_marq_it=20, marq_start=100, marq_step=10, \
                  contam_times=2)

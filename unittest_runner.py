@@ -7,7 +7,17 @@ __date__ = 'Created 28-Mar-2010'
 
 import sys
 
-import fatiando
+try:
+    
+    import fatiando
+    
+except ImportError:
+    
+    import os
+    
+    sys.path.append(os.path.abspath(os.curdir))
+    print sys.path
+    import fatiando
 
 
 def run(args=[]):
