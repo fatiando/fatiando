@@ -35,7 +35,7 @@ stom.sharpen(sharpness=1*10**(0), damping=10**(-3), beta=10**(-7), \
              contam_times=1)
 
 stom.plot_mean(vmin=1, vmax=5, title='Total Variation Result')
-stom.plot_std(title='Total Variation Standard Deviation')
+stom.plot_std(title='Total Variation Standard Deviation', cmap=pylab.cm.jet)
 stom.plot_residuals(title='Total Variation Residuals')
 stom.plot_goal(title='Total Variation Goal Function')
 

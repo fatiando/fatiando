@@ -18,7 +18,6 @@ import time
 import numpy
 import pylab
 
-from fatiando.math import lu
 from fatiando.utils import contaminate
 import fatiando
 
@@ -142,7 +141,7 @@ class LinearSolver():
             
             means.append(param.mean())
             
-        return means
+        return numpy.array(means)
     
     
     # Property for accessing the means of the parameter estimates
@@ -415,9 +414,11 @@ class LinearSolver():
             
             if self._equality_matrix != None:
                 
-                tmp_y_eq = numpy.dot(\
+                tmp_p_eq = numpy.dot(\
                             numpy.dot(Wp_inv, self._equality_matrix.T), \
                             self._equality_values)
+                
+                tmp_y_eq = numpy.dot(self._sensibility, tmp_p_eq)
                 
                 y = y + tmp_y_eq
                 
@@ -433,7 +434,7 @@ class LinearSolver():
             
             if self._equality_matrix != None:
                 
-                estimate = estimate + tmp_y_eq
+                estimate = estimate + tmp_p_eq
             
             self._estimates.append(estimate)
             
@@ -463,7 +464,7 @@ class LinearSolver():
             
                 if self._equality_matrix != None:
                 
-                    estimate = estimate + tmp_y_eq
+                    estimate = estimate + tmp_p_eq
                 
                 self._estimates.append(estimate)
                 

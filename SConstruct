@@ -65,6 +65,7 @@ cdirect_path = os.path.join(c_path, 'directmodels')
 # GRAVITY 
 ###########################################
 gravity_outdir = os.path.join(direct_outdir, 'gravity')
+
 gravityenv = Environment(
     SWIGFLAGS=['-python', '-outdir', gravity_outdir],
     CPPPATH=[distutils.sysconfig.get_python_inc()],
@@ -92,6 +93,7 @@ Clean(os.path.curdir, os.path.join(gravity_outdir,'tesseroid.py'))
 # SEISMO
 ###########################################
 seismo_outdir = os.path.join(direct_outdir, 'seismo')
+
 seismoenv = Environment(
     SWIGFLAGS=['-python', '-outdir', seismo_outdir],
     CPPPATH=[distutils.sysconfig.get_python_inc()],
@@ -104,17 +106,28 @@ simpletommod = seismoenv.SharedLibrary( \
 
 Depends(simpletommod, os.path.join(cdirect_path, 'simpletom.h'))
 
-Clean(os.path.curdir,os.path.join(seismo_outdir,'simple.py'))
+Clean(os.path.curdir, os.path.join(seismo_outdir,'simple.py'))
+    
+wavefdmod = seismoenv.SharedLibrary( \
+    target=os.path.join(seismo_outdir,'_wavefd_ext'),
+    source=[os.path.join(cdirect_path, 'wavefd.c'), \
+            os.path.join(cdirect_path, 'wavefd.i')])
+
+Depends(wavefdmod, os.path.join(cdirect_path, 'wavefd.h'))
+
+Clean(os.path.curdir, os.path.join(seismo_outdir,'wavefd_ext.py'))
 ###########################################
 
 # Group direct mods
-directmods = [prismgravmod, simpletommod]
+directmods = [prismgravmod, simpletommod, wavefdmod]
 
 ################################################################################
 
 
 # Group all the C coded modules
-ext_mods = [directmods, mathmods]
+ext_mods = []
+ext_mods.extend(directmods)
+ext_mods.extend(mathmods)
 
 ################################################################################
 ################################################################################
