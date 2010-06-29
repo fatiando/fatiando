@@ -84,10 +84,12 @@ def main():
     solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, nx=10, ny=10, nz=10, \
                    gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
+    solver.add_equality(450, 450, 450, 1000)
+    
     Wp = solver.depth_weights(z0=150, power=6)
     
-    solver.solve(damping=10**(-3), smoothness=0, curvature=0, \
-                 param_weights=Wp, apriori_var=0.1**2, contam_times=5)
+    solver.solve(damping=10**(-5), smoothness=10**(-5), curvature=0, \
+                 param_weights=Wp, apriori_var=0.02**2, contam_times=5)
     
     solver.plot_residuals()
     solver.plot_adjustment(X.shape)

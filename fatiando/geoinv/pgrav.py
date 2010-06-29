@@ -452,7 +452,64 @@ class PGrav(LinearSolver):
         weight = weight/weight.max()
         
         return weight
+    
+    
+    def add_equality(self, x, y, z, value):
+        """
+        Set an equality constraint for the model cell containing point (x, y, z)        
+        """
+    
+        if self._equality_matrix == None:
+            
+            D = []
+            
+        else:
+            
+            D = self._equality_matrix.tolist()
+            
+        if self._equality_values == None:
+            
+            p_ref = []
+            
+        else:
+            
+            p_ref = self._equality_values.tolist()
+        
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2, dz, 'float')
+        
+        # This is to know what parameter we're talking about
+        l = 0
+            
+        for prism_z in prism_zs:
+            
+            for prism_y in prism_ys:
+                
+                for prism_x in prism_xs:
                     
+                    if x >= prism_x and x <= prism_x + dx and \
+                       y >= prism_y and y <= prism_y + dy and \
+                       z >= prism_z and z <= prism_z + dz:
+                        
+                        p_ref.append(value)
+                        
+                        tmp = numpy.zeros(self._nx*self._ny*self._nz)
+                        
+                        tmp[l] = 1
+                        
+                        D.append(tmp)
+                        
+                    l += 1
+                    
+        self._equality_matrix = numpy.array(D)
+        
+        self._equality_values = numpy.array(p_ref)
+                            
             
     def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):
         """

@@ -44,6 +44,11 @@ class LinearSolver():
         _get_data_cov()
         _calc_distances(points, lines)
         _build_compact_weights(distances)
+    Optional:
+        some method to set the equality constraints.
+            the constraints are set by setting self._equality_values to the 
+            desired values and self._equality_matrix to the matrix mapping
+            each parameter to its desired value.
     Suggested methods:
         set_discretization(...)
         _plot_data(folder)
@@ -57,6 +62,8 @@ class LinearSolver():
         # Inversion parameters
         self._sensibility = None
         self._first_deriv = None
+        self._equality_values = None
+        self._equality_matrix = None
                 
         # Inversion results
         self._estimates = None
@@ -64,6 +71,22 @@ class LinearSolver():
         
         # The logger for this class
         self._log = logging.getLogger('linearsolver')    
+        
+            
+    def clear(self):
+        """
+        Erase the inversion results.
+        """
+        
+        # Inversion parameters
+        self._sensibility = None
+        self._first_deriv = None
+        self._equality_values = None
+        self._equality_matrix = None
+                
+        # Inversion results
+        self._estimates = None
+        self._goals = None
 
 
     def _build_sensibility(self):
@@ -142,20 +165,6 @@ class LinearSolver():
     
     # Property for accessing the standard deviations of the parameter estimates
     std = property(_calc_stds)
-        
-            
-    def clear(self):
-        """
-        Erase the inversion results.
-        """
-        
-        # Inversion parameters
-        self._sensibility = None
-        self._first_deriv = None
-                
-        # Inversion results
-        self._estimates = None
-        self._goals = None
         
             
     def plot_residuals(self, title="Residuals", bins=0):
@@ -253,9 +262,7 @@ class LinearSolver():
         self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()
-        
-        self.clear()
-        
+                
         self._estimates = []
         
         self._sensibility = self._build_sensibility()
@@ -302,6 +309,10 @@ class LinearSolver():
                 Wp = Wp + curvature*numpy.dot(tmp.T, tmp)
              
             del tmp
+            
+        if self._equality_matrix != None:
+            
+            Wp = Wp + numpy.dot(self._equality_matrix.T, self._equality_matrix)
         
         end = time.clock()
         self._log.info("Build parameter weight matrix (%g s)" % (end - start))
@@ -337,6 +348,13 @@ class LinearSolver():
             
             y = numpy.dot(aux, self._get_data_array())
             
+            if self._equality_matrix != None:
+                
+                tmp_y_eq = numpy.dot(self._equality_matrix.T, \
+                                      self._equality_values)
+                
+                y = y + tmp_y_eq
+            
             estimate = numpy.linalg.solve(N, y)
             
             end = time.clock()
@@ -355,6 +373,10 @@ class LinearSolver():
                                           percent=False, return_stddev=False)
                 
                 y = numpy.dot(aux, contam_data)
+                
+                if self._equality_matrix != None:
+                    
+                    y = y + tmp_y_eq
                 
                 estimate = numpy.linalg.solve(N, y)
                 
@@ -399,29 +421,59 @@ class LinearSolver():
             self._log.info("  Build normal equations matrix (%g s)" \
                             % (end - start))
             
+#            start = time.clock()
+#            
+#            N_inv = numpy.linalg.inv(N)
+#            
+#            end = time.clock()
+#            self._log.info("  Invert normal equations matrix (%g s)" \
+#                            % (end - start))
+#        
+#            start = time.clock()
+#            
+#            pseudo_inv = numpy.dot(aux, N_inv)
+#            
+#            end = time.clock()
+#            self._log.info("  Calculate pseudo-inverse (%g s)" % (end - start))        
+#        
+#            start = time.clock()
+#        
+#            estimate = numpy.dot(pseudo_inv, self._get_data_array())
+#            
+#            end = time.clock()
+#            self._log.info("  Calculate parameters (%g s)" % (end - start))
+
             start = time.clock()
             
-            N_inv = numpy.linalg.inv(N)
+            y = self._get_data_array()
+            
+            if self._equality_matrix != None:
+                
+                tmp_y_eq = numpy.dot(\
+                            numpy.dot(Wp_inv, self._equality_matrix.T), \
+                            self._equality_values)
+                
+                y = y + tmp_y_eq
+                
+            lamb = numpy.linalg.solve(N, y)
             
             end = time.clock()
-            self._log.info("  Invert normal equations matrix (%g s)" \
-                            % (end - start))          
-                          
+            self._log.info("  Solve for Lagrange multipliers (%g s)" \
+                           % (end - start))
+            
             start = time.clock()
             
-            pseudo_inv = numpy.dot(aux, N_inv)
+            estimate = numpy.dot(aux, lamb)
             
-            end = time.clock()
-            self._log.info("  Calculate pseudo-inverse (%g s)" % (end - start))        
-        
-            start = time.clock()
-        
-            estimate = numpy.dot(pseudo_inv, self._get_data_array())
-            
-            end = time.clock()
-            self._log.info("  Calculate parameters (%g s)" % (end - start))        
+            if self._equality_matrix != None:
+                
+                estimate = estimate + tmp_y_eq
             
             self._estimates.append(estimate)
+            
+            end = time.clock()
+            self._log.info("  Calculate the estimate (%g s)" \
+                           % (end - start))
             
             start = time.clock()
             
@@ -433,7 +485,20 @@ class LinearSolver():
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
                 
-                estimate = numpy.dot(pseudo_inv, contam_data)
+#                estimate = numpy.dot(pseudo_inv, contam_data)
+                y = contam_data
+            
+                if self._equality_matrix != None:
+                    
+                    y = y + tmp_y_eq
+                
+                lamb = numpy.linalg.solve(N, y)
+                    
+                estimate = numpy.dot(aux, lamb)
+            
+                if self._equality_matrix != None:
+                
+                    estimate = estimate + tmp_y_eq
                 
                 self._estimates.append(estimate)
                 
@@ -460,7 +525,8 @@ class LinearSolver():
                                                 param_weights),
                                       self.mean)
                 
-            self._log.info("Damping goal = %g" % (goal_damp))
+            self._log.info("Tikhonov 0 goal = %g  (with damping coef = %g)" \
+                           % (goal_damp, damping*goal_damp))
                 
         if smoothness:
             
@@ -475,7 +541,8 @@ class LinearSolver():
             
             goal_smooth = numpy.dot(tmp.T, tmp)
         
-            self._log.info("Smoothness goal = %g" % (goal_smooth))
+            self._log.info("Tikhonov 1 goal = %g  (with smoothness coef = %g)" \
+                           % (goal_smooth, smoothness*goal_smooth))
             
         if curvature:
             
@@ -492,7 +559,8 @@ class LinearSolver():
             
             goal_curv = numpy.dot(tmp1.T, tmp1)
         
-            self._log.info("Curvature goal = %g" % (goal_curv))
+            self._log.info("Tikhonov 2 goal = %g  (with curvature coef = %g)" \
+                           % (goal_curv, curvature*goal_curv))
             
         total_end = time.clock()
         self._log.info("Total time: %g s" % (total_end - total_start))
