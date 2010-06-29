@@ -276,29 +276,13 @@ class LinearSolver():
         
         if damping:
             
-            if param_weights == None:
+            Wp = Wp + damping*numpy.identity(nparams)
                 
-                Wp = Wp + damping*numpy.identity(nparams)
-                                
-            else:
-                
-                Wp = Wp + damping*param_weights
-        
         if smoothness or curvature:
             
             self._first_deriv = self._build_first_deriv()
-            
-            if param_weights == None:
-        
-                tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
-                
-            else:
-                
-                tmp1 = numpy.dot(self._first_deriv, param_weights)
-                
-                tmp = numpy.dot(tmp1.T, tmp1)
-                
-                del tmp1
+                    
+            tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
  
             if smoothness:
                        
@@ -313,6 +297,10 @@ class LinearSolver():
         if self._equality_matrix != None:
             
             Wp = Wp + numpy.dot(self._equality_matrix.T, self._equality_matrix)
+            
+        if param_weights != None:
+        
+            Wp = numpy.dot(param_weights, Wp)
         
         end = time.clock()
         self._log.info("Build parameter weight matrix (%g s)" % (end - start))
@@ -514,30 +502,15 @@ class LinearSolver():
         self._log.info("RMS = %g" % (rms))
             
         if damping:
-            
-            if param_weights == None:
                 
-                goal_damp = numpy.dot(numpy.transpose(self.mean), self.mean)
-                
-            else:
-                
-                goal_damp = numpy.dot(numpy.dot(numpy.transpose(self.mean), \
-                                                param_weights),
-                                      self.mean)
+            goal_damp = numpy.dot(numpy.transpose(self.mean), self.mean)
                 
             self._log.info("Tikhonov 0 goal = %g  (with damping coef = %g)" \
                            % (goal_damp, damping*goal_damp))
                 
         if smoothness:
             
-            if param_weights == None:
-            
-                tmp = numpy.dot(self._first_deriv, self.mean)
-                
-            else:
-                
-                tmp = numpy.dot(self._first_deriv, \
-                                numpy.dot(param_weights, self.mean))
+            tmp = numpy.dot(self._first_deriv, self.mean)
             
             goal_smooth = numpy.dot(tmp.T, tmp)
         
@@ -545,16 +518,9 @@ class LinearSolver():
                            % (goal_smooth, smoothness*goal_smooth))
             
         if curvature:
-            
-            if param_weights == None:
                 
-                tmp = numpy.dot(self._first_deriv, self.mean)
+            tmp = numpy.dot(self._first_deriv, self.mean)
                 
-            else:
-                
-                tmp = numpy.dot(self._first_deriv, \
-                                numpy.dot(param_weights, self.mean))
-            
             tmp1 = numpy.dot(self._first_deriv.T, tmp)
             
             goal_curv = numpy.dot(tmp1.T, tmp1)

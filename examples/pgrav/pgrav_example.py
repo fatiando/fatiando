@@ -13,47 +13,49 @@ from fatiando.utils import contaminate
 
 def main():
     
-    prisma = Prism(x1=400, x2=600, y1=400, y2=600, z1=400, z2=500, dens=1000)
+    prisma = Prism(x1=400, x2=600, y1=400, y2=600, z1=400, z2=600, dens=1000)
     
     x = numpy.arange(0, 1050, 50, 'f')
     y = numpy.arange(0, 1050, 50, 'f')
     X, Y = pylab.meshgrid(x, y)
     
+    stddev = 0.05
+    
     zzdata = TensorComponent(component='zz')
-#    zzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    zzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    zzdata.dump("gzz_data.txt")
-    zzdata.load("gzz_data.txt")
+#    zzdata.load("gzz_data.txt")
     
     xxdata = TensorComponent(component='xx')
-#    xxdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    xxdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    xxdata.dump("gxx_data.txt")
-    xxdata.load("gxx_data.txt")
+#    xxdata.load("gxx_data.txt")
     
     yydata = TensorComponent(component='yy')
-#    yydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    yydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    yydata.dump("gyy_data.txt")
-    yydata.load("gyy_data.txt")
+#    yydata.load("gyy_data.txt")
     
     xydata = TensorComponent(component='xy')
-#    xydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    xydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    xydata.dump("gxy_data.txt")
-    xydata.load("gxy_data.txt")
+#    xydata.load("gxy_data.txt")
     
     xzdata = TensorComponent(component='xz')
-#    xzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    xzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    xzdata.dump("gxz_data.txt")
-    xzdata.load("gxz_data.txt")
+#    xzdata.load("gxz_data.txt")
     
     yzdata = TensorComponent(component='yz')
-#    yzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=0.02, \
-#                           percent=False)
+    yzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+                           percent=False)
 #    yzdata.dump("gyz_data.txt")
-    yzdata.load("gyz_data.txt")
+#    yzdata.load("gyz_data.txt")
     
     
     #pylab.figure()
@@ -81,15 +83,16 @@ def main():
     #pylab.contourf(Y, X, yzdata.togrid(*X.shape), 30)
     #pylab.colorbar()
     
-    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, nx=10, ny=10, nz=10, \
-                   gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
+    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, \
+       nx=10, ny=10, nz=10, \
+       gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
-    solver.add_equality(450, 450, 450, 1000)
+#    solver.add_equality(450, 450, 450, 1000)
     
     Wp = solver.depth_weights(z0=150, power=6)
     
-    solver.solve(damping=10**(-5), smoothness=10**(-5), curvature=0, \
-                 param_weights=Wp, apriori_var=0.02**2, contam_times=5)
+    solver.solve(damping=10**(-4), smoothness=0, curvature=0, \
+                 param_weights=Wp, apriori_var=stddev**2, contam_times=5)
     
     solver.plot_residuals()
     solver.plot_adjustment(X.shape)
@@ -116,7 +119,7 @@ def main():
     #mlab.show()
     #
     #solver.sharpen(sharpness=1*10**(-3), damping=0, beta=10**(-5), param_weights=Wp, \
-    #               initial_estimate=initial, apriori_var=0.1**2, contam_times=1, \
+    #               initial_estimate=initial, apriori_var=stddev**2, contam_times=1, \
     #               max_it=100, max_marq_it=20, marq_start=10**5, marq_step=10)
     #
     #solver.plot_goal(scale='linear')
