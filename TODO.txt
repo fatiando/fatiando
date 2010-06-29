@@ -1,22 +1,38 @@
+General
+    * Write better (or any at all) docs for the inverse problem theory
+    * Make example wikis
+    * Make tutorial for subclassing LinearSolver    
+
+
 LinearSolver
-    * Implement equality constraints
+    * Implement equality constraints (Working in Tikhonov but not tested in TV)
     * Compactness regularization
     * Sparsity regularization
-    * Depth weights
     * Fix data weighting in the Tikhonov regularization
     
+    Done:
+    * Depth weights
+    
+    
 PGrav
-    * Automate configuration of the 3D plot
     * Separate derivatives in each direction
+    * Build sensibility concurrently
+    
+    Done:
+    * Automate configuration of the 3D plot
+    
 
 SimpleTom
     * make integration test output pngs instead of using pylab.show()
+    
 
 Geometry
     * Discretize a sphere into prisms
     
+    
 Dicrect Models
     * Create wikis
+    
 
 Grav
     * potential and derivatives of a sphere

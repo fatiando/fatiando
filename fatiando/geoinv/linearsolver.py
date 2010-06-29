@@ -601,7 +601,7 @@ class LinearSolver():
         
         aux_AT_Wd = numpy.dot(self._sensibility.T, Wd)
         
-        hessian_res = numpy.dot(aux_AT_Wd, self._sensibility)
+        hessian_res = 2*numpy.dot(aux_AT_Wd, self._sensibility)
         
         if damping:
             
@@ -612,7 +612,16 @@ class LinearSolver():
             else:
                 
                 hessian_res = hessian_res + 2*damping*param_weights
-                      
+                
+        if self._equality_matrix != None:
+            
+            ref_params = numpy.dot(self._equality_matrix.T, \
+                                   self._equality_values)         
+            
+            param_equality_weights = numpy.dot(self._equality_matrix.T, \
+                                               self._equality_matrix)
+            
+            hessian_res = hessian_res + 2*param_equality_weights
         
         end = time.clock()
         self._log.info("Calculate misfit and damping portion of the Hessian" + \
@@ -664,6 +673,14 @@ class LinearSolver():
                 else:
                             
                     goal += damping*numpy.dot(next.T, aux_next)
+                    
+            # Part due to the equality constraints
+            if self._equality_matrix != None:
+                
+                aux = numpy.dot(self._equality_matrix, next) - \
+                      self._equality_values
+                      
+                goal += numpy.dot(aux.T, aux)
                         
             goals = [goal]
             
@@ -699,8 +716,10 @@ class LinearSolver():
                     
                 grad_tv = sharpness*numpy.dot(self._first_deriv.T, d)
                 
-                hessian_tv = sharpness*numpy.dot(\
-                        numpy.dot(self._first_deriv.T, D), self._first_deriv)
+                hessian_tv = numpy.dot(\
+                        numpy.dot(self._first_deriv.T, \
+                                  sharpness*D + numpy.identity(nderivs)), \
+                        self._first_deriv)
                     
                 if param_weights != None:
                     
@@ -711,7 +730,8 @@ class LinearSolver():
                 grad = -2*numpy.dot(aux_AT_Wd, misfit) + grad_tv
                 
                 hessian = hessian_res + hessian_tv                        
-                        
+                
+                # Add the damping part of the gradient
                 if damping:
                     
                     if param_weights == None:
@@ -721,6 +741,12 @@ class LinearSolver():
                     else:
                         
                         grad = grad + 2*damping*numpy.dot(param_weights, prev)
+                        
+                # Add the equality constraint part of the gradient
+                if self._equality_matrix != None:
+                    
+                    grad = grad + 2*numpy.dot(param_equality_weights, prev) - \
+                           2*ref_params
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
                                                        
@@ -767,8 +793,18 @@ class LinearSolver():
                         else:
                             
                             goal += damping*numpy.dot(next.T, aux_next)
+                            
+                    
+                    # Part due to the equality constraints
+                    if self._equality_matrix != None:
+                
+                        aux = numpy.dot(self._equality_matrix, next) - \
+                              self._equality_values
+                              
+                        goal += numpy.dot(aux.T, aux)
                                             
-                    if goal < goals[it - 1] and marq_param >= 10**(-9):
+                    # Accept the step if it's going down or reject and try again
+                    if goal < goals[it - 1] and marq_param >= 10**(-6):
                         
                         goals.append(goal)
                         

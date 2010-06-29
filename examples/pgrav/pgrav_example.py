@@ -89,10 +89,11 @@ def main():
     
     Wp = solver.depth_weights(z0=150, power=6)
     
-#    solver.add_equality(450, 450, 450, 1000)
+#    solver.add_equality(450, 450, 250, 1000)
+#    solver.add_equality(450, 650, 250, 1000)
     
-#    solver.solve(damping=10**(-4), smoothness=0, curvature=0, \
-#                 param_weights=Wp, apriori_var=stddev**2, contam_times=5)
+#    solver.solve(damping=10**(-5), smoothness=0, curvature=0, \
+#                 param_weights=Wp, apriori_var=stddev**2, contam_times=10)
 #    
 #    solver.plot_residuals()
 #    solver.plot_adjustment(X.shape)
@@ -103,7 +104,7 @@ def main():
 #    mlab.show_pipeline()
 #    mlab.show()
     
-    initial = 10*numpy.ones(10*10*5)
+    initial = 1*numpy.ones(10*10*5)
     #initial = numpy.zeros((5,10,10))
     #initial[2][4][4] = 1000
     #initial[2][4][5] = 1000
@@ -118,9 +119,10 @@ def main():
     #solver.plot_mean3d()
     #mlab.show()
     
-    solver.sharpen(sharpness=1*10**(0), damping=0, beta=10**(-5), param_weights=Wp, \
-                   initial_estimate=initial, apriori_var=stddev**2, contam_times=1, \
-                   max_it=200, max_marq_it=20, marq_start=10**5, marq_step=10)
+    solver.sharpen(sharpness=10**(-5), damping=0, beta=10**(-5), \
+                   param_weights=Wp, initial_estimate=initial, \
+                   apriori_var=stddev**2, contam_times=0, \
+                   max_it=100, max_marq_it=20, marq_start=10**(2), marq_step=10)
     
     solver.plot_goal(scale='linear')
     solver.plot_residuals()
