@@ -13,10 +13,10 @@ from fatiando.utils import contaminate
 
 def main():
     
-    prisma = Prism(x1=400, x2=600, y1=400, y2=600, z1=400, z2=600, dens=1000)
+    prisma = Prism(x1=400, x2=600, y1=200, y2=800, z1=100, z2=400, dens=1000)
     
-    x = numpy.arange(0, 1050, 50, 'f')
-    y = numpy.arange(0, 1050, 50, 'f')
+    x = numpy.arange(-500, 1550, 100, 'f')
+    y = numpy.arange(-500, 1550, 100, 'f')
     X, Y = pylab.meshgrid(x, y)
     
     stddev = 0.05
@@ -83,27 +83,27 @@ def main():
     #pylab.contourf(Y, X, yzdata.togrid(*X.shape), 30)
     #pylab.colorbar()
     
-    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, \
-       nx=10, ny=10, nz=10, \
+    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=500, \
+       nx=10, ny=10, nz=5, \
        gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
-    
-#    solver.add_equality(450, 450, 450, 1000)
     
     Wp = solver.depth_weights(z0=150, power=6)
     
-    solver.solve(damping=10**(-4), smoothness=0, curvature=0, \
-                 param_weights=Wp, apriori_var=stddev**2, contam_times=5)
+#    solver.add_equality(450, 450, 450, 1000)
     
-    solver.plot_residuals()
-    solver.plot_adjustment(X.shape)
-    pylab.show()
+#    solver.solve(damping=10**(-4), smoothness=0, curvature=0, \
+#                 param_weights=Wp, apriori_var=stddev**2, contam_times=5)
+#    
+#    solver.plot_residuals()
+#    solver.plot_adjustment(X.shape)
+#    pylab.show()
+#    
+#    solver.plot_std3d()
+#    solver.plot_mean3d()
+#    mlab.show_pipeline()
+#    mlab.show()
     
-    solver.plot_std3d()
-    solver.plot_mean3d()
-    mlab.show_pipeline()
-    mlab.show()
-    
-    #initial = 1*numpy.ones(10*10*5)
+    initial = 10*numpy.ones(10*10*5)
     #initial = numpy.zeros((5,10,10))
     #initial[2][4][4] = 1000
     #initial[2][4][5] = 1000
@@ -117,19 +117,19 @@ def main():
     #solver._estimates = [initial.ravel()]
     #solver.plot_mean3d()
     #mlab.show()
-    #
-    #solver.sharpen(sharpness=1*10**(-3), damping=0, beta=10**(-5), param_weights=Wp, \
-    #               initial_estimate=initial, apriori_var=stddev**2, contam_times=1, \
-    #               max_it=100, max_marq_it=20, marq_start=10**5, marq_step=10)
-    #
-    #solver.plot_goal(scale='linear')
-    #solver.plot_residuals()
-    #solver.plot_adjustment(X.shape)
-    #pylab.show()
-    #solver.plot_std3d()
-    #solver.plot_mean3d()
-    #mlab.show_pipeline()
-    #mlab.show()
+    
+    solver.sharpen(sharpness=1*10**(0), damping=0, beta=10**(-5), param_weights=Wp, \
+                   initial_estimate=initial, apriori_var=stddev**2, contam_times=1, \
+                   max_it=200, max_marq_it=20, marq_start=10**5, marq_step=10)
+    
+    solver.plot_goal(scale='linear')
+    solver.plot_residuals()
+    solver.plot_adjustment(X.shape)
+    pylab.show()
+    solver.plot_std3d()
+    solver.plot_mean3d()
+    mlab.show_pipeline()
+    mlab.show()
     
     
 if __name__ == '__main__':

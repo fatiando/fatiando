@@ -294,13 +294,13 @@ class LinearSolver():
              
             del tmp
             
-        if self._equality_matrix != None:
-            
-            Wp = Wp + numpy.dot(self._equality_matrix.T, self._equality_matrix)
-            
         if param_weights != None:
         
             Wp = numpy.dot(param_weights, Wp)
+            
+        if self._equality_matrix != None:
+            
+            Wp = Wp + numpy.dot(self._equality_matrix.T, self._equality_matrix)
         
         end = time.clock()
         self._log.info("Build parameter weight matrix (%g s)" % (end - start))
@@ -408,28 +408,6 @@ class LinearSolver():
             end = time.clock()
             self._log.info("  Build normal equations matrix (%g s)" \
                             % (end - start))
-            
-#            start = time.clock()
-#            
-#            N_inv = numpy.linalg.inv(N)
-#            
-#            end = time.clock()
-#            self._log.info("  Invert normal equations matrix (%g s)" \
-#                            % (end - start))
-#        
-#            start = time.clock()
-#            
-#            pseudo_inv = numpy.dot(aux, N_inv)
-#            
-#            end = time.clock()
-#            self._log.info("  Calculate pseudo-inverse (%g s)" % (end - start))        
-#        
-#            start = time.clock()
-#        
-#            estimate = numpy.dot(pseudo_inv, self._get_data_array())
-#            
-#            end = time.clock()
-#            self._log.info("  Calculate parameters (%g s)" % (end - start))
 
             start = time.clock()
             
@@ -473,7 +451,6 @@ class LinearSolver():
                                           stddev=math.sqrt(apriori_var), \
                                           percent=False, return_stddev=False)
                 
-#                estimate = numpy.dot(pseudo_inv, contam_data)
                 y = contam_data
             
                 if self._equality_matrix != None:
@@ -614,9 +591,7 @@ class LinearSolver():
             next = initial_estimate
                 
         nderivs = len(self._first_deriv)
-        
-#        identity_nderivs = numpy.identity(nderivs)
-        
+                
         # The data weight matrix
 #        Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
         Wd = numpy.identity(ndata)
@@ -626,17 +601,18 @@ class LinearSolver():
         
         aux_AT_Wd = numpy.dot(self._sensibility.T, Wd)
         
-        hessian_res = 2*numpy.dot(aux_AT_Wd, self._sensibility)
+        hessian_res = numpy.dot(aux_AT_Wd, self._sensibility)
         
         if damping:
             
             if param_weights == None:
             
-                hessian_res = hessian_res + damping*numpy.identity(nparams)
+                hessian_res = hessian_res + 2*damping*numpy.identity(nparams)
                 
             else:
                 
-                hessian_res = hessian_res + damping*param_weights                
+                hessian_res = hessian_res + 2*damping*param_weights
+                      
         
         end = time.clock()
         self._log.info("Calculate misfit and damping portion of the Hessian" + \
@@ -659,7 +635,7 @@ class LinearSolver():
             # Part of the goal function due to the residuals
             rms = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
             
-            # Part due to the Total Variation
+            # Part due to the Total Variation               
             if param_weights == None:
                 
                 derivatives = numpy.dot(self._first_deriv, next)
@@ -667,7 +643,7 @@ class LinearSolver():
             else:
                 
                 aux_next = numpy.dot(param_weights, next)
-                                
+                
                 derivatives = numpy.dot(self._first_deriv, aux_next)
             
             goal_tv = 0
@@ -686,7 +662,7 @@ class LinearSolver():
                     goal += damping*numpy.dot(next.T, next)
                     
                 else:
-                    
+                            
                     goal += damping*numpy.dot(next.T, aux_next)
                         
             goals = [goal]
@@ -710,47 +686,41 @@ class LinearSolver():
                 # Auxiliary for calculating the Hessian and gradient
                 d = numpy.zeros(nderivs)
                 D = numpy.zeros((nderivs, nderivs))
-                
-                if param_weights == None:
-                    
-                    aux_prev = prev
-                    
-                else:
-                    
-                    aux_prev = numpy.dot(param_weights, prev)
-                
+                                
                 for l in range(len(self._first_deriv)):
                     
-                    deriv = numpy.dot(self._first_deriv[l], aux_prev)
+                    deriv = numpy.dot(self._first_deriv[l], prev)
                     
                     sqrt = math.sqrt(deriv**2 + beta)
                     
                     d[l] = deriv/sqrt
                     
                     D[l][l] = beta/(sqrt**3)
+                    
+                grad_tv = sharpness*numpy.dot(self._first_deriv.T, d)
+                
+                hessian_tv = sharpness*numpy.dot(\
+                        numpy.dot(self._first_deriv.T, D), self._first_deriv)
+                    
+                if param_weights != None:
+                    
+                    grad_tv = numpy.dot(param_weights, grad_tv)
+                    
+                    hessian_tv = numpy.dot(param_weights, hessian_tv)
                                     
-                grad = -2*numpy.dot(aux_AT_Wd, misfit) + \
-                        sharpness*numpy.dot(self._first_deriv.T, d)
+                grad = -2*numpy.dot(aux_AT_Wd, misfit) + grad_tv
+                
+                hessian = hessian_res + hessian_tv                        
                         
                 if damping:
                     
                     if param_weights == None:
                     
-                        grad = grad + damping*prev
+                        grad = grad + 2*damping*prev
                         
                     else:
                         
-                        grad = grad + damping*aux_prev
-                    
-#                hessian = hessian_res + \
-#                          numpy.dot(numpy.dot(self._first_deriv.T, \
-#                                              sharpness*D + identity_nderivs), \
-#                                    self._first_deriv)
-
-                # See what happens when I don't put the identity (smoothness)
-                hessian = hessian_res + \
-                          sharpness*numpy.dot( \
-                        numpy.dot(self._first_deriv.T, D), self._first_deriv)
+                        grad = grad + 2*damping*numpy.dot(param_weights, prev)
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
                                                        
