@@ -26,6 +26,9 @@ PGrav
 SimpleTom
     * make integration test output pngs instead of using pylab.show()
     
+WaveFD
+    * Make WaveFD1D output Seismogram instances
+
 
 Geometry
     * Discretize a sphere into prisms

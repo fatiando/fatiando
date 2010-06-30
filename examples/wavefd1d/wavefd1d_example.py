@@ -14,13 +14,14 @@ source = SinSQWaveSource(amplitude=-0.001, period=period, \
 size = 300
 vel = 4000*numpy.ones(size)
 vel[0:100] = 0.50*vel[0:100]
+vel[200:] = 0.50*vel[200:]
 deltat = 10**(-4)
-iterations = 500
+iterations = 650
 
-solver = WaveFD1D(x1=1., x2=150., num_nodes=size, delta_t=deltat, velocities=vel, \
+solver = WaveFD1D(x1=0., x2=150., num_nodes=size, delta_t=deltat, velocities=vel, \
                   source=source, left_bc='fixed', right_bc='fixed')
 
-solver.set_geophones([39, 79, 119, 159])
+solver.set_geophones(offset=10, deltag=10, num=14)
 
 start = time.clock()
 
@@ -28,7 +29,9 @@ for i in xrange(iterations):
     
     solver.timestep()
     
-    solver.plot(seismogram=True, tmax=iterations*deltat)
+    solver.plot(velocity=True, seismogram=True, tmax=iterations*deltat, \
+            exaggerate=5000)
+
     pylab.savefig("figures/wave%04d.png" % i, dpi=50)
     pylab.close()
     
@@ -38,7 +41,7 @@ for i in xrange(iterations):
 #solver.plot_velocity()
 #pylab.savefig("velocity_structure.png")
 
-#pylab.show()
-
 end = time.clock()
 print "Time: %g s" % (end - start)
+
+#pylab.show()

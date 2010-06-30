@@ -14,13 +14,141 @@ from PIL import Image
 
 from fatiando.data import GeoData
 from fatiando.utils import points, contaminate
-from fatiando.directmodels.seismo import simple
+from fatiando.directmodels.seismo import simple, wavefd
 import fatiando
 
 
 logger = logging.getLogger('seismodata')       
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
+
+
+
+    
+class Seismogram(GeoData):
+    """
+    Loads and stores seismograms.
+    """
+    
+    def __init__(self):
+        
+        GeoData.__init__(self)
+    
+        self._data = None
+        
+        self._offset = 0
+        
+        self._deltag = 0
+                
+        self._log = logging.getLogger('seismodata.Seismogram')
+        
+    
+    def __len__(self):
+        
+        return self._data[0]
+    
+    
+    def _toarray(self):
+        """
+        Convert the data (only value, no position) to a Numpy array.
+        """
+        
+        amplitude_data = []
+        
+        for i in xrange(1, len(self._data), 2):
+            
+            amplitude_data.extend(self._data[i])
+        
+        return numpy.array(amplitude_data)
+    
+    
+    array = property(_toarray)
+    
+    
+    def _get_cov(self):
+        """
+        Build the covariance matrix based on the standard deviation values.
+        """
+        
+        stddev_data = []
+        
+        for i in xrange(2, len(self._data), 2):
+            
+            stddev_data.extend(self._data[i])
+            
+        return numpy.diag(stddev_data)**2
+        
+    
+    cov = property(_get_cov)
+    
+    
+    def load(self, fname, offset, deltag):
+        """
+        Load seismogram data from file fname.
+        File structure:
+            
+            # This is a comment
+            time1 gp1_amplitude1 gp1_stddev1 gp2_amplitude1 gp2_stddev1 ...
+            time2 gp1_amplitude2 gp1_stddev2 gp2_amplitude2 gp2_stddev2 ...
+            ...
+            timeN gp1_amplitudeN gp1_stddevN gp2_amplitudeN gp2_stddevN ...
+            
+            gp stands for geophone.
+            
+        Parameters:
+        
+            fname: file name
+            
+            offset: the offset from source to 1st geophone
+            
+            deltag: distance between geophones
+        """
+        
+        self._data = pylab.loadtxt(fname, dtype='f', comments='#').T
+        
+        self._log.info("Loaded %d amplitude values of %d geophones" \
+                       % (len(self._data[0]), (len(data) - 1)/2) + \
+                       " from file '%s'" % (fname))
+        
+        
+    def dump(self, fname):
+        """
+        Save seismogram data to file fname.
+        File structure:
+            
+            # This is a comment
+            time1 gp1_amplitude1 gp1_stddev1 gp2_amplitude1 gp2_stddev1 ...
+            time2 gp1_amplitude2 gp1_stddev2 gp2_amplitude2 gp2_stddev2 ...
+            ...
+            timeN gp1_amplitudeN gp1_stddevN gp2_amplitudeN gp2_stddevN ...
+            
+            gp stands for geophone. 
+        """         
+        
+        pylab.savetxt(fname, self._data.T, fmt='%f', delimiter=' ')
+        
+        
+    def contaminate(self, stddev, percent=True):
+        """
+        Contaminate the seismograms with gaussian noise.
+        
+        If percent is True, stddev is a decimal percentage of the largest
+        amplitude value.
+        """
+        
+        if percent:
+            
+            stddev = stddev*max(self.array)
+        
+        for i in xrange(1, len(self._data), 2):
+            
+            self._data[i] = contaminate.gaussian(self._data[i], stddev=stddev, \
+                                            percent=False, return_stddev=False)
+            
+            self._data[i + 1] = stddev*numpy.ones_like(self._data[i])
+            
+        self._log.info("Contaminate amplitude data with %g noise" % (stddev))
+        
 
 
 class CartTravelTime(GeoData):
@@ -37,7 +165,6 @@ class CartTravelTime(GeoData):
         self._data = None
                 
         self._log = logging.getLogger('seismodata.CartTravelTime')
-        
         
         
     def __len__(self):

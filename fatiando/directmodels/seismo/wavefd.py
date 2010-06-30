@@ -83,7 +83,7 @@ class WaveFD1D():
         # Grid parameters
         self._x1 = x1
         self._x2 = x2
-        self._deltax = (x2 - x1)/float(num_nodes - 1.)
+        self._deltax = (x2 - x1)/float(num_nodes)
         self._num_nodes = num_nodes
         self._vel = velocities
         self._u_t = None
@@ -216,36 +216,71 @@ class WaveFD1D():
         self._record()
         
         
-    def set_geophones(self, indexes):
+    def set_geophones(self, offset, deltag, num):
         """
-        Set the position of the geophones at the desired grid indexes. 
+        Set the position of the geophones at the desired grid indexes.
+            
+        Parameters:
+            
+            offset: the offset from source to 1st geophone
+            
+            deltag: distance between geophones
+            
+            num: how many geophones to use
         """
+        
+        first = self._source.pos() + int(offset/self._deltax)
+        
+        deltai = int(deltag/self._deltax)
         
         self._geophones_index = []
         
         self._geophones = []
         
-        for index in indexes:
+        for i in xrange(num):
             
-            self._geophones_index.append(index)
-        
+            self._geophones_index.append(first + i*deltai)
+            
             self._geophones.append([])
-        
+            
     
-    def plot(self, title="", seismogram=False, tmax=None):
+    def plot(self, title="", velocity=False, seismogram=False, tmax=None, \
+             exaggerate=1000):
         """
         Plot the current amplitudes.
+        
+        Parameters:
+        
+            title: Title of the figure. Will append 'time: %g' to it
+            
+            velocity: if True, plot the velocities as well
+            
+            seismogram: if True, plot the seismograms as well
+            
+            tmax: maximum time range for the seismogram
+            
+            exaggerate: how much to exaggerate the traces in the seismogram
         """
         
         pylab.figure()
+            
+        pylab.suptitle(title + " time: %g" % (self._time))
+            
+        pylab.subplots_adjust(left=0.15)
+        
+        num_plots = 1
         
         if seismogram:
             
-            pylab.suptitle(title + " time: %g" % (self._time))
+            num_plots += 1
             
-            pylab.subplots_adjust(left=0.15)
+        if velocity:
+            
+            num_plots += 1
+        
+        if seismogram:
                     
-            pylab.subplot(2,1,1)
+            pylab.subplot(num_plots,1,1)
             
             for i in xrange(len(self._geophones)):
                 
@@ -253,7 +288,7 @@ class WaveFD1D():
                 
                 position = self._x1 + self._deltax*self._geophones_index[i]
                 
-                x = position + 10000*amplitudes
+                x = position + exaggerate*amplitudes
                 
                 pylab.plot(x, times, '-k') 
                             
@@ -269,12 +304,8 @@ class WaveFD1D():
                 
                 pylab.ylim(self._time, 0)
             
-            pylab.subplot(2,1,2)
-    
-        else:
+            pylab.subplot(num_plots,1,2)
             
-            pylab.title(title + " time: %g" % (self._time))
-        
         x = numpy.arange(self._x1, self._x2 + self._deltax, self._deltax)
         
         # Sometimes there is trouble with the number of points in x
@@ -282,7 +313,7 @@ class WaveFD1D():
         # point in the end
         if len(x) > self._num_nodes:
             
-            x = x[:-1]
+            x = x[:-1]        
         
         pylab.plot(x, self._u_tp1, '-k')
         
@@ -300,15 +331,30 @@ class WaveFD1D():
         pylab.ylim(-abs(2*self._source.amplitude), \
                    abs(2*self._source.amplitude))
         
-        pylab.xlabel("Position")
-        
         pylab.ylabel("Amplitude")
+                    
+        if velocity:
         
+            pylab.subplot(num_plots, 1, 3)
+                                
+            pylab.plot(x, self._vel, '-k')
+            
+            pylab.xlim(self._x1, self._x2)
+            
+            pylab.ylim(0.9*min(self._vel), 1.1*max(self._vel))
+                        
+            pylab.ylabel("Velocity")
         
-        
-    def plot_seismograms(self):
+        pylab.xlabel("Position")
+            
+            
+    def plot_seismograms(self, exaggerate=1000):
         """
         Plot the recorded seismograms.
+            
+        Parameters:
+        
+            exaggerate: how much to exaggerate the traces in the seismogram
         """
         
         pylab.figure()
@@ -320,7 +366,7 @@ class WaveFD1D():
             
             position = self._x1 + self._deltax*self._geophones_index[i]
             
-            x = position + 10000*amplitudes
+            x = position + exaggerate*amplitudes
             
             pylab.plot(x, times, '-k') 
             
