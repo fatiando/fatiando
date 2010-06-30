@@ -31,13 +31,15 @@ logger.addHandler(fatiando.default_log_handler)
 class SinSQWaveSource():
     """sin^2(t) wave source"""
 
-    def __init__(self, amplitude, period, duration, index):
+    def __init__(self, amplitude, period, duration, offset, index):
         
         self._period = period
         
-        self._amplitude = amplitude
+        self.amplitude = amplitude
         
         self._duration = duration
+        
+        self._offset = offset
         
         self._index = index
     
@@ -47,7 +49,8 @@ class SinSQWaveSource():
     def at(self, time):
         """What the value of the source is at a given time"""
 
-        return self._amplitude*math.sin(math.pi*time/self._period)**2
+        return self.amplitude*math.sin(math.pi*(time + self._offset)/ \
+                                       self._period)**2
     
 
     def active(self, time):
@@ -68,6 +71,7 @@ class SinSQWaveSource():
         return self._index
 
 
+
 class WaveFD1D():
     """
     Finite differences solver for the 1D elastic wave.
@@ -79,7 +83,7 @@ class WaveFD1D():
         # Grid parameters
         self._x1 = x1
         self._x2 = x2
-        self._deltax = (x2 - x1)/(num_nodes - 1.)
+        self._deltax = (x2 - x1)/float(num_nodes - 1.)
         self._num_nodes = num_nodes
         self._vel = velocities
         self._u_t = None
@@ -107,63 +111,63 @@ class WaveFD1D():
             
             self._u_tp1[0] = self._u_tp1[1]
             
+        if self._left_bc == 'fixed':
+            
+            self._u_tp1[0] = 0
+            
         if self._right_bc == 'free':            
             
             self._u_tp1[-1] = self._u_tp1[-2]
-        
+            
+        if self._right_bc == 'fixed':
+            
+            self._u_tp1[-1] = 0
+                    
         
     def timestep(self):
         """
         Perform a time step.
         """
+        self._first_timestep()
+        
+        
+    def _first_timestep(self):
+        """
+        Do the first time step (put zeros on all 'u's and start the source).
+        Sets the timestep to _second_timestep
+        """
+        
+        
         
         if self._time == 0:
             
-            self._u_tp1 = numpy.zeros(self._num_nodes)
-            
-            self._u_tp1[self._source.pos()] = self._source.at(self._time)
-            
-            self._set_bc()
-            
-            self._time += self._deltat
+            self._u_tp1 = numpy.zeros(self._num_nodes).tolist()
         
         elif self._time == self._deltat:
             
             self._u_t = self._u_tp1
             
-            self._u_tp1 = numpy.zeros(self._num_nodes)
-            
-            if self._source.active(self._time):
-                
-                self._u_tp1[self._source.pos()] = self._source.at(self._time)
-            
-            self._set_bc()
-            
-            self._time += self._deltat
-        
+            self._u_tp1 = numpy.zeros(self._num_nodes).tolist()
+                            
         else:
-            
-            del self._u_tm1
-            
+                        
             self._u_tm1 = self._u_t
             
             self._u_t = self._u_tp1
-            
+                        
             self._u_tp1 = wavefd_ext.timestep1d(self._deltax, self._deltat, \
-                                                self._u_tm1.tolist(), \
-                                                self._u_t.tolist(), \
+                                                self._u_tm1, \
+                                                self._u_t, \
                                                 self._vel.tolist())
-            
-            if self._source.active(self._time):
-                
-                self._u_tp1[self._source.pos()] = self._source.at(self._time)
                         
-            self._set_bc()
+        self._set_bc()
+
+        if self._source.active(self._time):
             
-            self._time += self._deltat
-                        
-            self._u_tp1 = numpy.array(self._u_tp1)
-            
+            self._u_tp1[self._source.pos()] = self._source.at(self._time)
+                                        
+        self._time += self._deltat
+        
     
     def plot(self, title=""):
         """
@@ -175,7 +179,16 @@ class WaveFD1D():
         
         x = numpy.arange(self._x1, self._x2 + self._deltax, self._deltax)
         
-        pylab.plot(x, self._u_tp1, '.-k')
+        # Sometimes there is trouble with the number of points in x
+        # This is because of rounding self._deltax, making there be one extra
+        # point in the end
+        if len(x) > self._num_nodes:
+            
+            x = x[:-1]
+        
+        pylab.plot(x, self._u_tp1, '-k')
+        pylab.xlim(self._x1, self._x2)
+        pylab.ylim(-abs(self._source.amplitude), abs(self._source.amplitude))
         
         
         

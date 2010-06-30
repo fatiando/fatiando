@@ -38,18 +38,11 @@ Created 29 June 2010
     int tmpsize;
 
     $1 = PyList_to_vector($input, &tmpsize);
-
+    
     /* Check if there was any error in the conversion */
     if(!$1)
     {
         return NULL;
-    }
-}
-%typemap(freearg) (double *)
-{
-    if($1)
-    {
-        free($1);
     }
 }
 
@@ -59,36 +52,29 @@ Created 29 June 2010
 
     /* Check if there was any error in the conversion */
     if(!$1)
-    {
+    {     
         return NULL;
     }
     
     /* Malloc for the output buffer */
     $3 = (double *)malloc($2*sizeof(double));
-    
+        
     /* Check if there was any error in the conversion */
     if(!$3)
     {
-        return NULL;
+       return NULL;
     }    
 }
-%typemap(freearg) (double *vel, int size, double *u_tp1)
-{
-    if($1)
-    {
-        free($1);
-    }
-    if($3)
-    {
-        free($3);
-    }
-}
 
-%typemap(argout) (double *u_tp1)
-{
+%typemap(argout) (double deltax, double deltat, double *u_tm1, double *u_t, 
+        double *vel, int size, double *u_tp1)
+{    
     if(!result)
     {
-        free($1);
+        free($3);
+        free($4);
+        free($5);
+        free($7);     
         PyErr_SetString(PyExc_MemoryError, "Memory allocation problem.");
         return NULL;
     }
@@ -96,9 +82,12 @@ Created 29 June 2010
     /* Blow away any previous result */
     Py_XDECREF($result);
 
-    $result = vector_to_PyList($1, result);
-
-    free($1);
+    $result = vector_to_PyList($7, result);
+    
+    free($3);
+    free($4);
+    free($5);
+    free($7);
 }
 
 %feature("autodoc", "1");
