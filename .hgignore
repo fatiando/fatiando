@@ -1,4 +1,5 @@
 syntax: glob
 
+./examples/wavefd1d/figures
 ./fatiando/math/tests/testdata
 ./.sconsign.dblite

@@ -90,6 +90,10 @@ class WaveFD1D():
         self._u_tp1 = None
         self._u_tm1 = None
         
+        # Geophones to record the event
+        self._geophones_index = None        
+        self._geophones = None
+        
         # Boundary conditions
         self._left_bc = left_bc
         self._right_bc = right_bc    
@@ -121,9 +125,22 @@ class WaveFD1D():
             
         if self._right_bc == 'fixed':
             
-            self._u_tp1[-1] = 0
-                    
+            self._u_tp1[-1] = 0            
+            
+            
+    def _record(self):
+        """
+        If there are any geophones, record current timestep in them.
+        """
         
+        if self._geophones != None:
+            
+            for i in xrange(len(self._geophones)):
+                
+                self._geophones[i].append([self._time, \
+                                    self._u_tp1[self._geophones_index[i]]])
+                
+                
     def timestep(self):
         """
         Perform a time step.
@@ -136,29 +153,57 @@ class WaveFD1D():
         Do the first time step (put zeros on all 'u's and start the source).
         Sets the timestep to _second_timestep
         """
+            
+        self._u_tp1 = numpy.zeros(self._num_nodes).tolist()
+
+        self._set_bc()
+
+        if self._source.active(self._time):
+            
+            self._u_tp1[self._source.pos()] = self._source.at(self._time)
+                                        
+        self._time += self._deltat
+
+        self.timestep = self._second_timestep
+        
+        self._record()
+        
+    
+    def _second_timestep(self):
+        """
+        Do the second time step.
+        """        
+        
+        self._u_t = self._u_tp1
+        
+        self._u_tp1 = numpy.zeros(self._num_nodes).tolist()                
+
+        self._set_bc()
+
+        if self._source.active(self._time):
+            
+            self._u_tp1[self._source.pos()] = self._source.at(self._time)
+                                        
+        self._time += self._deltat
+
+        self.timestep = self._normal_timestep
+        
+        self._record()
         
         
+    def _normal_timestep(self):
+        """
+        Do the normal timestep using the C functions.
+        """
+                     
+        self._u_tm1 = self._u_t
         
-        if self._time == 0:
-            
-            self._u_tp1 = numpy.zeros(self._num_nodes).tolist()
-        
-        elif self._time == self._deltat:
-            
-            self._u_t = self._u_tp1
-            
-            self._u_tp1 = numpy.zeros(self._num_nodes).tolist()
-                            
-        else:
-                        
-            self._u_tm1 = self._u_t
-            
-            self._u_t = self._u_tp1
-                        
-            self._u_tp1 = wavefd_ext.timestep1d(self._deltax, self._deltat, \
-                                                self._u_tm1, \
-                                                self._u_t, \
-                                                self._vel.tolist())
+        self._u_t = self._u_tp1
+                    
+        self._u_tp1 = wavefd_ext.timestep1d(self._deltax, self._deltat, \
+                                            self._u_tm1, \
+                                            self._u_t, \
+                                            self._vel.tolist())
                         
         self._set_bc()
 
@@ -168,14 +213,67 @@ class WaveFD1D():
                                         
         self._time += self._deltat
         
+        self._record()
+        
+        
+    def set_geophones(self, indexes):
+        """
+        Set the position of the geophones at the desired grid indexes. 
+        """
+        
+        self._geophones_index = []
+        
+        self._geophones = []
+        
+        for index in indexes:
+            
+            self._geophones_index.append(index)
+        
+            self._geophones.append([])
+        
     
-    def plot(self, title=""):
+    def plot(self, title="", seismogram=False, tmax=None):
         """
         Plot the current amplitudes.
         """
         
         pylab.figure()
-        pylab.title(title + " time: %g" % (self._time))
+        
+        if seismogram:
+            
+            pylab.suptitle(title + " time: %g" % (self._time))
+            
+            pylab.subplots_adjust(left=0.15)
+                    
+            pylab.subplot(2,1,1)
+            
+            for i in xrange(len(self._geophones)):
+                
+                times, amplitudes = numpy.array(self._geophones[i]).T
+                
+                position = self._x1 + self._deltax*self._geophones_index[i]
+                
+                x = position + 10000*amplitudes
+                
+                pylab.plot(x, times, '-k') 
+                            
+            pylab.ylabel("Time")
+                
+            pylab.xlim(self._x1, self._x2)
+            
+            if tmax != None:
+                            
+                pylab.ylim(tmax, 0)
+            
+            else:
+                
+                pylab.ylim(self._time, 0)
+            
+            pylab.subplot(2,1,2)
+    
+        else:
+            
+            pylab.title(title + " time: %g" % (self._time))
         
         x = numpy.arange(self._x1, self._x2 + self._deltax, self._deltax)
         
@@ -187,9 +285,72 @@ class WaveFD1D():
             x = x[:-1]
         
         pylab.plot(x, self._u_tp1, '-k')
+        
+        if self._geophones != None:
+        
+            seismo_x = self._x1 + \
+                self._deltax*numpy.array(self._geophones_index)
+                
+            seismo_y = numpy.zeros_like(seismo_x)
+            
+            pylab.plot(seismo_x, seismo_y, 'vb', label='Geophone')
+        
         pylab.xlim(self._x1, self._x2)
-        pylab.ylim(-abs(self._source.amplitude), abs(self._source.amplitude))
+        
+        pylab.ylim(-abs(2*self._source.amplitude), \
+                   abs(2*self._source.amplitude))
+        
+        pylab.xlabel("Position")
+        
+        pylab.ylabel("Amplitude")
         
         
         
+    def plot_seismograms(self):
+        """
+        Plot the recorded seismograms.
+        """
         
+        pylab.figure()
+        pylab.title("Seismograms")
+        
+        for i in xrange(len(self._geophones)):
+            
+            times, amplitudes = numpy.array(self._geophones[i]).T
+            
+            position = self._x1 + self._deltax*self._geophones_index[i]
+            
+            x = position + 10000*amplitudes
+            
+            pylab.plot(x, times, '-k') 
+            
+        pylab.xlabel("Position")
+        
+        pylab.ylabel("Time")
+            
+        pylab.xlim(self._x1, self._x2)
+        
+        pylab.ylim(self._time, 0)
+        
+    
+    def plot_velocity(self, title="Velocity structure"):
+        """
+        Plot the velocities of the grid.
+        """       
+        
+        x = numpy.arange(self._x1, self._x2 + self._deltax, self._deltax)
+        
+        pylab.figure()
+        
+        pylab.title(title)
+        
+        pylab.plot(x, self._vel, '-k')
+        
+        pylab.xlim(self._x1, self._x2)
+        
+        pylab.ylim(0.9*min(self._vel), 1.1*max(self._vel))
+        
+        pylab.xlabel("Position")
+        
+        pylab.ylabel("Velocity")
+            

@@ -1,6 +1,5 @@
 """
-Seismological data structures such as travel times (Cartesian), surface wave
-scatering, etc.
+Seismological data structures such as travel times, seismograms, etc.
    
 NOTE: for now only the cartesian travel times are implemented.
 """
