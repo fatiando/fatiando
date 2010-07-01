@@ -8,7 +8,6 @@ __date__ = 'Created 14-Jun-2010'
 import time
 import logging
 import math
-from multiprocessing import Process, Pipe
 
 import pylab
 import numpy
@@ -803,7 +802,7 @@ class PGrav(LinearSolver):
         surf = mlab.pipeline.surface(axes, vmax=model.max(), vmin=model.min())
         surf.actor.property.edge_visibility = 1
         surf.actor.property.line_width = 1.5
-        mlab.colorbar(surf, title="Density [g/m^3]", orientation='vertical', \
+        mlab.colorbar(surf, title="Density [g/cm^3]", orientation='vertical', \
                       nb_labels=10)
         
         
@@ -843,6 +842,263 @@ class PGrav(LinearSolver):
         surf = mlab.pipeline.surface(axes, vmax=std.max(), vmin=std.min())
         surf.actor.property.edge_visibility = 1
         surf.actor.property.line_width = 1.5
-        mlab.colorbar(surf, title="Standard Deviation [g/m^3]", \
+        mlab.colorbar(surf, title="Standard Deviation [g/cm^3]", \
                       orientation='vertical', \
                       nb_labels=10)
+        
+        
+    def map_goal(self, true, res, lower, upper, dp1, dp2, \
+        damping=0, smoothness=0, curvature=0, equality=0, param_weights=None):
+        """
+        Map the goal function in the parameter space if there are only 2 
+        parameters.
+        """
+        
+        if self._nx*self._ny*self._nz != 2:
+            
+            raise AttributeError, "Can't do this for %d parameters, only 2" \
+                % (self._nx*self._ny*self._nz)
+                
+        if self._sensibility == None:
+            
+            self._sensibility = self._build_sensibility()
+            
+        if self._first_deriv == None:
+            
+            self._first_deriv = self._build_first_deriv()
+            
+        p1 = numpy.arange(lower[0], upper[0] + dp1, dp1)
+        
+        p2 = numpy.arange(lower[1], upper[1] + dp2, dp2)
+                
+        X, Y = pylab.meshgrid(p1, p2)
+        
+        np1 = len(p1)
+        
+        np2 = len(p2)
+        
+        goal = numpy.zeros((np2, np1))
+        
+        goal_tk0 = numpy.zeros((np2, np1))
+        
+        goal_tk1 = numpy.zeros((np2, np1))
+        
+        goal_tk2 = numpy.zeros((np2, np1))
+        
+        goal_eq = numpy.zeros((np2, np1))
+        
+        for i in xrange(np2):
+            
+            for j in xrange(np1):
+                
+                p = numpy.array([p1[j], p2[i]])
+                
+                if damping:
+                    
+                    if param_weights != None:                    
+                    
+                        goal_tk0[i][j] += damping*numpy.dot(\
+                                            numpy.dot(p.T, param_weights), p)
+                
+                    else:
+                        
+                        goal_tk0[i][j] += damping*numpy.dot(p.T, p)
+                        
+                    goal[i][j] += goal_tk0[i][j]
+                        
+                if smoothness:
+                    
+                    tmp = numpy.dot(self._first_deriv, p)
+                    
+                    if param_weights != None:
+                        
+                        tmp2 = numpy.dot(numpy.dot(self._first_deriv, param_weights), \
+                                         p)                                  
+                    
+                        goal_tk1[i][j] += smoothness*numpy.dot(tmp2.T, tmp2)
+                
+                    else:
+                        
+                        goal_tk1[i][j] += smoothness*numpy.dot(tmp.T, tmp)
+                        
+                    goal[i][j] += goal_tk1[i][j]
+                        
+                if curvature:
+                    
+                    tmp = numpy.dot(numpy.dot(self._first_deriv.T, \
+                                              self._first_deriv), p)
+                    
+                    if param_weights != None:
+                        
+                        tmp2 = numpy.dot(numpy.dot(p.T, param_weights), \
+                                         numpy.dot(self._first_deriv.T, \
+                                                   self._first_deriv))                                  
+                    
+                        goal_tk2[i][j] += curvature*numpy.dot(tmp2, tmp)
+                
+                    else:
+                        
+                        goal_tk2[i][j] += curvature*numpy.dot(tmp.T, tmp)
+                        
+                    goal[i][j] += goal_tk2[i][j]
+                        
+                if equality:
+                    
+                    tmp = numpy.dot(self._equality_matrix, p) - \
+                            self._equality_values
+                    
+                    goal_eq[i][j] += equality*numpy.dot(tmp.T, tmp)
+                        
+                    goal[i][j] += goal_eq[i][j]
+                    
+                r = self._get_data_array() - numpy.dot(self._sensibility, p)
+                
+                goal[i][j] += numpy.dot(r.T, r)
+                
+        pylab.figure()
+        
+        pylab.axis('scaled')
+        
+        pylab.title("Total Goal Function")
+        
+        pylab.pcolor(X, Y, goal, cmap=pylab.cm.jet)
+        
+        pylab.colorbar()        
+        
+        CS = pylab.contour(X, Y, goal, 20, colors='k')
+        
+        pylab.plot(true[0], true[1], 'oc', label="True")
+        
+        pylab.plot(res[0], res[1], '*k', label="Result")
+                   
+        pylab.legend(numpoints=1, prop={'size':7})
+
+        pylab.xlabel(r'$p_1$')
+        
+        pylab.ylabel(r'$p_2$')
+        
+        pylab.xlim(lower[0], upper[0])
+        
+        pylab.ylim(lower[1], upper[1])
+                
+        if damping:            
+            
+            pylab.figure()
+            
+            pylab.axis('scaled')
+            
+            pylab.title("Tikhonov 0")
+            
+            pylab.pcolor(X, Y, goal_tk0, cmap=pylab.cm.jet)
+            
+            pylab.colorbar()        
+            
+            CS = pylab.contour(X, Y, goal_tk0, 10, colors='k')
+            
+            pylab.plot(true[0], true[1], 'oc', label="True")
+            
+            pylab.plot(res[0], res[1], '*k', label="Result")
+                       
+            pylab.legend(numpoints=1, prop={'size':7})
+    
+            pylab.xlabel(r'$p_1$')
+            
+            pylab.ylabel(r'$p_2$')
+            
+            pylab.xlim(lower[0], upper[0])
+            
+            pylab.ylim(lower[1], upper[1])
+                
+        if smoothness:            
+            
+            pylab.figure()
+            
+            pylab.axis('scaled')
+            
+            pylab.title("Tikhonov 1")
+            
+            pylab.pcolor(X, Y, goal_tk1, cmap=pylab.cm.jet)
+                      
+            pylab.colorbar()        
+            
+            CS = pylab.contour(X, Y, goal_tk1, 10, colors='k')
+            
+            pylab.clabel(CS)
+            
+            pylab.plot(true[0], true[1], 'oc', label="True")
+            
+            pylab.plot(res[0], res[1], '*k', label="Result")
+                       
+            pylab.legend(numpoints=1, prop={'size':7})
+    
+            pylab.xlabel(r'$p_1$')
+            
+            pylab.ylabel(r'$p_2$')
+            
+            pylab.xlim(lower[0], upper[0])
+            
+            pylab.ylim(lower[1], upper[1])
+            
+#            f = pylab.figure()
+#                        
+#            from mpl_toolkits.mplot3d import Axes3D
+#            
+#            ax = Axes3D(f)
+#            
+#            ax.plot_surface(X, Y, goal_tk1, rstride=1, cstride=1, cmap=pylab.cm.jet)
+                
+        if curvature:            
+            
+            pylab.figure()
+            
+            pylab.axis('scaled')
+            
+            pylab.title("Tikhonov 2")
+            
+            pylab.pcolor(X, Y, goal_tk2, cmap=pylab.cm.jet)
+            
+            pylab.colorbar()        
+            
+            CS = pylab.contour(X, Y, goal_tk2, 10, colors='k')
+            
+            pylab.plot(true[0], true[1], 'oc', label="True")
+            
+            pylab.plot(res[0], res[1], '*k', label="Result")
+                       
+            pylab.legend(numpoints=1, prop={'size':7})
+    
+            pylab.xlabel(r'$p_1$')
+            
+            pylab.ylabel(r'$p_2$')
+            
+            pylab.xlim(lower[0], upper[0])      
+            
+            pylab.ylim(lower[1], upper[1])      
+                
+        if equality:            
+            
+            pylab.figure()
+            
+            pylab.axis('scaled')
+            
+            pylab.title("Equality")
+            
+            pylab.pcolor(X, Y, goal_eq, cmap=pylab.cm.jet)
+            
+            pylab.colorbar()        
+            
+            CS = pylab.contour(X, Y, goal_eq, 10, colors='k')
+            
+            pylab.plot(true[0], true[1], 'oc', label="True")
+            
+            pylab.plot(res[0], res[1], '*k', label="Result")
+                       
+            pylab.legend(numpoints=1, prop={'size':7})
+    
+            pylab.xlabel(r'$p_1$')
+            
+            pylab.ylabel(r'$p_2$')
+            
+            pylab.xlim(lower[0], upper[0])
+            
+            pylab.ylim(lower[1], upper[1])

@@ -98,7 +98,7 @@ def main():
                 
                 solver.add_equality(x, y, z, 1000)    
     
-    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=10**(-3), \
+    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=10**(0), \
                  param_weights=Wp, apriori_var=stddev**2, contam_times=10)
 
     solver.plot_residuals()
