@@ -85,14 +85,20 @@ def main():
     
     solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=500, \
        nx=10, ny=10, nz=5, \
-       gzz=zzdata)#, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
+       gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
     Wp = solver.depth_weights(z0=150, power=6)
     
-    solver.add_equality(450, 450, 250, 1000)
-    solver.add_equality(650, 200, 150, 0)
+    # Add equality to all the prisms
+    for z in numpy.arange(50, 500, 100, 'f'):
+        
+        for y in numpy.arange(50, 1000, 100, 'f'):
+            
+            for x in numpy.arange(50, 1000, 100, 'f'):
+                
+                solver.add_equality(x, y, z, 1000)    
     
-    solver.solve(damping=10**(-5), smoothness=0, curvature=0, \
+    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=10**(-3), \
                  param_weights=Wp, apriori_var=stddev**2, contam_times=10)
 
     solver.plot_residuals()
@@ -104,21 +110,8 @@ def main():
     mlab.show_pipeline()
     mlab.show()
     
-    initial = 1*numpy.ones(10*10*5)
-    #initial = numpy.zeros((5,10,10))
-    #initial[2][4][4] = 1000
-    #initial[2][4][5] = 1000
-    #initial[2][5][4] = 1000
-    #initial[2][5][5] = 1000
-    #initial[3][4][4] = 1000
-    #initial[3][4][5] = 1000
-    #initial[3][5][4] = 1000
-    #initial[3][5][5] = 1000
-    #solver._estimates = [contaminate.gaussian(initial.ravel(), stddev=0.25)]
-    #solver._estimates = [initial.ravel()]
-    #solver.plot_mean3d()
-    #mlab.show()
-    
+#    initial = 1*numpy.ones(10*10*5)
+#    
 #    solver.sharpen(sharpness=10**(1), damping=10**(-5), beta=10**(-7), \
 #                   param_weights=Wp, initial_estimate=initial, \
 #                   apriori_var=stddev**2, contam_times=0, \

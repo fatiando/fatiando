@@ -348,7 +348,7 @@ class WaveFD1D():
         pylab.xlabel("Position")
             
             
-    def plot_seismograms(self, exaggerate=1000):
+    def plot_seismograms(self, exaggerate=5000):
         """
         Plot the recorded seismograms.
             
@@ -385,6 +385,13 @@ class WaveFD1D():
         """       
         
         x = numpy.arange(self._x1, self._x2 + self._deltax, self._deltax)
+        
+        # Sometimes there is trouble with the number of points in x
+        # This is because of rounding self._deltax, making there be one extra
+        # point in the end
+        if len(x) > self._num_nodes:
+            
+            x = x[:-1]        
         
         pylab.figure()
         

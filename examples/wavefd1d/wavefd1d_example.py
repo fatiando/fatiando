@@ -29,19 +29,19 @@ for i in xrange(iterations):
     
     solver.timestep()
     
-    solver.plot(velocity=True, seismogram=True, tmax=iterations*deltat, \
-            exaggerate=5000)
+solver.plot(velocity=True, seismogram=True, tmax=iterations*deltat, \
+        exaggerate=5000)
 
-    pylab.savefig("figures/wave%04d.png" % i, dpi=50)
-    pylab.close()
+#    pylab.savefig("figures/wave%04d.png" % i, dpi=50)
+#    pylab.close()
     
-#solver.plot_seismograms()
+#solver.plot_seismograms(exaggerate=6000)
 #pylab.savefig("seismogram.png")
-
+#
 #solver.plot_velocity()
 #pylab.savefig("velocity_structure.png")
 
 end = time.clock()
 print "Time: %g s" % (end - start)
 
-#pylab.show()
+pylab.show()

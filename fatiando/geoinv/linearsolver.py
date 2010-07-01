@@ -220,7 +220,8 @@ class LinearSolver():
             pylab.draw()
         
     
-    def solve(self, damping=0, smoothness=0, curvature=0, param_weights=None, \
+    def solve(self, damping=0, smoothness=0, curvature=0, equality=0, \
+              param_weights=None, \
               apriori_var=1, contam_times=10):        
         """
         Perform the inversion with Tikhonov regularization:
@@ -241,6 +242,9 @@ class LinearSolver():
                         
             curvature: 2st order regularization parameter (how much to minimize
                        the curvature)
+                       
+            equality: if equality constraints were set, this measures how much
+                      to enforce them
             
             param_weights: if you want to specify a parameter weight matrix. 
                 This matrix will multiply the parameters in the regularizations
@@ -258,6 +262,7 @@ class LinearSolver():
         self._log.info("  damping = %g" % (damping))
         self._log.info("  smoothness = %g" % (smoothness))
         self._log.info("  curvature = %g" % (curvature))
+        self._log.info("  equality = %g" % (equality))
         self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()
@@ -299,7 +304,8 @@ class LinearSolver():
             
         if self._equality_matrix != None:
             
-            Wp = Wp + numpy.dot(self._equality_matrix.T, self._equality_matrix)
+            Wp = Wp + equality*numpy.dot(self._equality_matrix.T, \
+                                         self._equality_matrix)
         
         end = time.clock()
         self._log.info("Build parameter weight matrix (%g s)" % (end - start))
@@ -337,8 +343,8 @@ class LinearSolver():
             
             if self._equality_matrix != None:
                 
-                tmp_y_eq = numpy.dot(self._equality_matrix.T, \
-                                      self._equality_values)
+                tmp_y_eq = equality*numpy.dot(self._equality_matrix.T, \
+                                              self._equality_values)
                 
                 y = y + tmp_y_eq
             
@@ -414,7 +420,7 @@ class LinearSolver():
             
             if self._equality_matrix != None:
                 
-                tmp_p_eq = numpy.dot(\
+                tmp_p_eq = equality*numpy.dot(\
                             numpy.dot(Wp_inv, self._equality_matrix.T), \
                             self._equality_values)
                 
