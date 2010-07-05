@@ -22,37 +22,37 @@ def main():
     stddev = 0.05
     
     zzdata = TensorComponent(component='zz')
-    zzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    zzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    zzdata.dump("gzz_data.txt")
 #    zzdata.load("gzz_data.txt")
     
     xxdata = TensorComponent(component='xx')
-    xxdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    xxdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    xxdata.dump("gxx_data.txt")
 #    xxdata.load("gxx_data.txt")
     
     yydata = TensorComponent(component='yy')
-    yydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    yydata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    yydata.dump("gyy_data.txt")
 #    yydata.load("gyy_data.txt")
     
     xydata = TensorComponent(component='xy')
-    xydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    xydata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    xydata.dump("gxy_data.txt")
 #    xydata.load("gxy_data.txt")
     
     xzdata = TensorComponent(component='xz')
-    xzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    xzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    xzdata.dump("gxz_data.txt")
 #    xzdata.load("gxz_data.txt")
     
     yzdata = TensorComponent(component='yz')
-    yzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+    yzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
                            percent=False)
 #    yzdata.dump("gyz_data.txt")
 #    yzdata.load("gyz_data.txt")
@@ -88,17 +88,8 @@ def main():
        gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
     Wp = solver.depth_weights(z0=150, power=6)
-    
-    # Add equality to all the prisms
-    for z in numpy.arange(50, 500, 100, 'f'):
         
-        for y in numpy.arange(50, 1000, 100, 'f'):
-            
-            for x in numpy.arange(50, 1000, 100, 'f'):
-                
-                solver.add_equality(x, y, z, 1000)    
-    
-    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=10**(0), \
+    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=0, \
                  param_weights=Wp, apriori_var=stddev**2, contam_times=10)
 
     solver.plot_residuals()

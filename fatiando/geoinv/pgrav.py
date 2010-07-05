@@ -1038,14 +1038,6 @@ class PGrav(LinearSolver):
             pylab.xlim(lower[0], upper[0])
             
             pylab.ylim(lower[1], upper[1])
-            
-#            f = pylab.figure()
-#                        
-#            from mpl_toolkits.mplot3d import Axes3D
-#            
-#            ax = Axes3D(f)
-#            
-#            ax.plot_surface(X, Y, goal_tk1, rstride=1, cstride=1, cmap=pylab.cm.jet)
                 
         if curvature:            
             

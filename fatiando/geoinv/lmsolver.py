@@ -16,6 +16,7 @@ import logging
 import math
 
 import numpy
+import pylab
 
 import fatiando
 from fatiando.utils import contaminate
@@ -48,19 +49,13 @@ class LMSolver():
         some function(s) for creating synthetic models        
     """
     
-    def __init__(self, data):
-        """
-        Parameters:
-        
-            - data: The data vector
-        """        
-        
-        # Data parameters
-        self._data = data
+    def __init__(self):
         
         # Inversion parameters
         self._first_deriv = None
         self._nparams = None
+        self._equality_matrix = None
+        self._equality_values = None
                 
         # Inversion results
         self._estimates = None
@@ -82,14 +77,14 @@ class LMSolver():
             "_build_jacobian was called before being implemented"
             
     
-    def _calc_residuals(self, data, estimate):
+    def _calc_adjusted_data(self, estimate):
         """
-        Calculate the residual vector based on the data and the current estimate
+        Calculate the adjusted data vector based on the current estimate
         """
         
         # Raise an exception if the method was raised without being implemented
         raise NotImplementedError, \
-            "_calc_residuals was called before being implemented"
+            "_calc_adjusted_data was called before being implemented"
         
         
     def _build_first_deriv(self):
@@ -100,8 +95,30 @@ class LMSolver():
         # Raise an exception if the method was raised without being implemented
         raise NotImplementedError, \
             "_build_first_deriv was called before being implemented"
-                          
             
+            
+    def _get_data_array(self):
+        """
+        Return the data in a Numpy array so that the algorithm can access it
+        in a general way
+        """        
+        
+        # Raise an exception if the method was raised without being implemented
+        raise NotImplementedError, \
+            "_get_data_array was called before being implemented"
+                           
+            
+    def _get_data_cov(self):
+        """
+        Return the data covariance in a 2D Numpy array so that the algorithm can
+        access it in a general way
+        """        
+        
+        # Raise an exception if the method was raised without being implemented
+        raise NotImplementedError, \
+            "_get_data_cov was called before being implemented"
+        
+                                      
     def _calc_means(self):
         """
         Calculate the means of the parameter estimates. 
@@ -145,15 +162,19 @@ class LMSolver():
         
         # Inversion parameters
         self._first_deriv = None
+        self._equality_matrix = None
+        self._equality_values = None
                 
         # Inversion results
         self._estimates = None
         self._goals = None
         
     
-    def solve(self, damping=0, smoothness=0, curvature=0, \
-              initial_estimate=None, apriori_var=1, contam_times=10, \
-              max_it=100, max_lm_it=10, lm_start=1, lm_step=10):       
+    def solve(self, damping=0, smoothness=0, curvature=0, sharpness=0, \
+              equality=0, param_weights=None, initial_estimate=None, \
+              apriori_var=1, beta=10**(-7), \
+              contam_times=10, max_it=100, max_lm_it=10, lm_start=1, \
+              lm_step=10):       
         """
         Perform the inversion with Tikhonov regularization:
         
@@ -200,6 +221,8 @@ class LMSolver():
         self._log.info("  damping = %g" % (damping))
         self._log.info("  smoothness = %g" % (smoothness))
         self._log.info("  curvature = %g" % (curvature))
+        self._log.info("  sharpness = %g" % (sharpness))
+        self._log.info("  equality = %g" % (equality))
         self._log.info("a priori variance: %g" % (apriori_var))
         
         total_start = time.clock()        
@@ -218,24 +241,43 @@ class LMSolver():
         else:
             
             next = initial_estimate       
+                                        
+        # Make the parameter weight matrix with the regularization parameters
+        Wp = numpy.zeros((self._nparams, self._nparams))
+
+        if damping:
             
-        if self._first_deriv == None:
+            Wp = Wp + damping*numpy.identity(self._nparams)
+            
+        if smoothness or curvature or sharpness:
             
             self._first_deriv = self._build_first_deriv()
+            
+            nderivs = len(self._first_deriv)
+             
+            tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
+            
+            if smoothness:
+                
+                Wp = Wp + smoothness*tmp
+                
+            if curvature:
+                
+                Wp = Wp + curvature*numpy.dot(tmp.T, tmp)
+                            
+            del tmp        
         
-        # The data weight matrix is the inverse of the data covariance scaled
-        # by the apriori variance factor
-        Wd = apriori_var*numpy.linalg.inv(self._data.cov)
+        if self._equality_matrix != None and equality:
+            
+            ref_params = numpy.dot(self._equality_matrix.T, \
+                                   self._equality_values)         
+            
+            equality_weights = numpy.dot(self._equality_matrix.T, \
+                                        self._equality_matrix)
                                 
-        tmp = numpy.dot(self._first_deriv.T, self._first_deriv)
-        # Make the parameter weight matrix with the regularization parameters
-        Wp = damping*numpy.identity(self._nparams) + \
-             smoothness*tmp + \
-             curvature*numpy.dot(tmp.T, tmp)
-    
-        del tmp
-                                
-        data = self._data.array
+        data = self._get_data_array()
+        
+        Wd = numpy.identity(len(data))
                     
         self._log.info("Contaminate %d times (noise 0: original data)" \
                        % (contam_times))
@@ -247,18 +289,61 @@ class LMSolver():
                 
             start = time.clock()
             
-            residuals = self._calc_residuals(data, next)
+            residuals = data - self._calc_adjusted_data(next)
             
-            # Have to calculate the goal function for the initial estimate so
-            # that I can compare it with the new estimate
-            goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals) + \
-                   numpy.dot(numpy.dot(next.T, Wp), next)
+            rms = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
             
+            goal = rms
+            
+            # Part of the goal due to the different regularizations
+            if damping or smoothness or curvature:
+                
+                goal_tk = numpy.dot(numpy.dot(next.T, Wp), next)
+                
+                goal += goal_tk
+                
+            if sharpness:
+            
+                derivatives = numpy.dot(self._first_deriv, next)
+                            
+                goal_tv = 0
+                
+                for deriv in derivatives:
+                    
+                    goal_tv += abs(deriv)
+                            
+                goal_tv *= sharpness
+                
+                goal += goal_tv      
+                    
+            # Part due to the equality constraints
+            if self._equality_matrix != None and equality:
+        
+                aux = numpy.dot(self._equality_matrix, next) - \
+                      self._equality_values
+                      
+                goal_eq = equality*numpy.dot(aux.T, aux)
+                
+                goal += goal_eq         
+                            
             goals = [goal]
             
             lm_param = lm_start
             
             self._log.info("Starting goal function: %g" % (goal))
+            self._log.info("  due to RMS: %g" % (rms))
+            if damping or smoothness or curvature:
+                
+                self._log.info("  due to Tk reg: %g" % (goal_tk))
+                
+            if sharpness:
+                
+                self._log.info("  due to TV reg: %g" % (goal_tv))
+                
+            if self._equality_matrix != None and equality:
+                
+                self._log.info("  due to equality constraints: %g" % (goal_eq))
+                
             self._log.info("Starting LM parameter: %g" % (lm_param))
             self._log.info("LM step size: %g" % (lm_step))
                                     
@@ -271,11 +356,45 @@ class LMSolver():
                 jacobian = self._build_jacobian(prev)
                 
                 # The residuals were calculated in the previous iteration
-                grad = 2*(numpy.dot(Wp, prev) - \
-                          numpy.dot(numpy.dot(jacobian.T, Wd), residuals))
+                grad = -2*numpy.dot(numpy.dot(jacobian.T, Wd), residuals)
                     
-                hessian = 2*(numpy.dot(numpy.dot(jacobian.T, Wd), jacobian) + \
-                             Wp)
+                hessian = 2*numpy.dot(numpy.dot(jacobian.T, Wd), jacobian)
+                
+                if damping or smoothness or curvature:
+                    
+                    grad = grad + 2*numpy.dot(Wp, prev)
+                    
+                    hessian = hessian + 2*Wp
+                    
+                if sharpness:                    
+                    
+                    # Auxiliary for calculating the Hessian and gradient of the
+                    # TV regularization
+                    d = numpy.zeros(nderivs)
+                    
+                    D = numpy.zeros((nderivs, nderivs))
+                                    
+                    for l in xrange(nderivs):
+                        
+                        deriv = numpy.dot(self._first_deriv[l], prev)
+                        
+                        sqrt = math.sqrt(deriv**2 + beta)
+                        
+                        d[l] = deriv/sqrt
+                        
+                        D[l][l] = beta/(sqrt**3)
+                        
+                    grad = grad + sharpness*numpy.dot(self._first_deriv.T, d)
+                    
+                    hessian = hessian + sharpness*numpy.dot(\
+                        numpy.dot(self._first_deriv.T, D), self._first_deriv)
+                    
+                if self._equality_matrix != None and equality:
+                    
+                    grad = grad + equality*2*( \
+                           numpy.dot(equality_weights, prev) - ref_params)
+                           
+                    hessian = hessian + equality*2*equality_weights
                                        
                 hessian_diag = numpy.diag(numpy.diag(hessian))
                                                        
@@ -286,13 +405,44 @@ class LMSolver():
                     
                     correction = numpy.linalg.solve(N, -1*grad)
                     
-                    next = prev + numpy.array(correction)
+                    next = prev + correction
                                 
-                    residuals = self._calc_residuals(data, next)
+                    residuals = data - self._calc_adjusted_data(next)
+            
+                    rms = numpy.dot(numpy.dot(residuals.T, Wd), residuals)
                     
-                    # Part of the goal function due to the residuals
-                    goal = numpy.dot(numpy.dot(residuals.T, Wd), residuals) + \
-                           numpy.dot(numpy.dot(next.T, Wp), next)
+                    goal = rms
+                    
+                    # Part of the goal due to the different regularizations
+                    if damping or smoothness or curvature:
+                        
+                        goal_tk = numpy.dot(numpy.dot(next.T, Wp), next)
+                        
+                        goal += goal_tk
+                        
+                    if sharpness:
+                    
+                        derivatives = numpy.dot(self._first_deriv, next)
+                                    
+                        goal_tv = 0
+                        
+                        for deriv in derivatives:
+                            
+                            goal_tv += abs(deriv)
+                                    
+                        goal_tv *= sharpness
+                        
+                        goal += goal_tv      
+                            
+                    # Part due to the equality constraints
+                    if self._equality_matrix != None and equality:
+                
+                        aux = numpy.dot(self._equality_matrix, next) - \
+                              self._equality_values
+                              
+                        goal_eq = equality*numpy.dot(aux.T, aux)
+                        
+                        goal += goal_eq
                                     
                     if goal < goals[it - 1]:
                         
@@ -307,9 +457,22 @@ class LMSolver():
                         lm_param *= float(lm_step)
                                         
                 inner_end = time.clock()
-                self._log.info("it %d: LM its = %d  LM param = %g  goal = %g" \
-                               % (it, lm_it, lm_param, goal) + \
-                               "  (%g s)" % (inner_end - inner_start))
+                msg = "it %d: LM its = %d  LM param = %g  goal = %g  rms = %g" \
+                      % (it, lm_it, lm_param, goal, rms)
+                      
+                if damping or smoothness or curvature:
+                    
+                    msg = msg + "  Tk = %g" % (goal_tk)
+                    
+                if sharpness:
+                    
+                    msg = msg + "  TV = %g" % (goal_tv)
+                    
+                if self._equality_matrix != None and equality:
+                    
+                    msg = msg + "  Eq = %g" % (goal_eq)
+                
+                self._log.info(msg + "  (%g s)" % (inner_end - inner_start))
                                             
                 # Got out of LM loop because of max_marq_it reached
                 if len(goals) == it: 
@@ -341,7 +504,7 @@ class LMSolver():
                                    
                 # Contaminate the data and run again            
                 data = contaminate.gaussian( \
-                                   self._data.array, \
+                                   self._get_data_array(), \
                                    stddev=math.sqrt(apriori_var), \
                                    percent=False, return_stddev=False)
                 
@@ -357,4 +520,56 @@ class LMSolver():
         total_end = time.clock()
         self._log.info("Total time for inversion: %g s" \
                        % (total_end - total_start))   
+                
+    
+    def plot_residuals(self, title="Residuals", bins=0):
+        """
+        Plot a histogram of the residuals.
         
+        Parameters:
+            
+            - title: title of the figure
+            
+            - bins: number of bins (default to 10% len(residuals))
+            
+        Note: to view the image use pylab.show()
+        """
+                        
+        residuals = self._get_data_array() - self._calc_adjusted_data(self.mean)
+        
+        if bins == 0:
+        
+            bins = int(0.1*len(residuals))
+    
+        pylab.figure()
+        pylab.title(title)
+        
+        pylab.hist(residuals, bins=bins, facecolor='gray')
+        
+        pylab.xlabel("Residuals")
+        pylab.ylabel("Count")    
+        
+    
+    def plot_goal(self, title="Goal function", scale='log'):
+        """
+        Plot the goal function versus the iterations of the Levemberg-Marquardt
+        algorithm. 
+        
+        scale is the scale type for the y axis. Can be either 'log' or 'linear'
+        """
+        
+        pylab.figure()
+        pylab.title(title)
+        
+        pylab.xlabel("LM iteration")
+        pylab.ylabel("Goal")
+        
+        pylab.plot(self._goals, '.-k')
+        
+        if scale == 'log':
+            
+            ax = pylab.gca()
+            
+            ax.set_yscale('log')
+            
+            pylab.draw()
