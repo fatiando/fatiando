@@ -83,39 +83,39 @@ def main():
     #pylab.contourf(Y, X, yzdata.togrid(*X.shape), 30)
     #pylab.colorbar()
     
-    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=500, \
-       nx=10, ny=10, nz=5, \
+    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, \
+       nx=10, ny=10, nz=10, \
        gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
-    Wp = solver.depth_weights(z0=150, power=6)
+    Wp = solver.depth_weights(z0=150, power=4)
         
-    solver.solve(damping=10**(-4), smoothness=0, curvature=0, equality=0, \
+    solver.solve(damping=0, smoothness=10**(-2), curvature=0, equality=0, \
                  param_weights=Wp, apriori_var=stddev**2, contam_times=10)
-
-    solver.plot_residuals()
-    solver.plot_adjustment(X.shape)
-    pylab.show()
-    
-    solver.plot_std3d()
-    solver.plot_mean3d()
-    mlab.show_pipeline()
-    mlab.show()
-    
-#    initial = 1*numpy.ones(10*10*5)
-#    
-#    solver.sharpen(sharpness=10**(1), damping=10**(-5), beta=10**(-7), \
-#                   param_weights=Wp, initial_estimate=initial, \
-#                   apriori_var=stddev**2, contam_times=0, \
-#                   max_it=200, max_marq_it=20, marq_start=10**(5), marq_step=100)
-#    
-#    solver.plot_goal(scale='linear')
+#
 #    solver.plot_residuals()
 #    solver.plot_adjustment(X.shape)
 #    pylab.show()
+#    
 #    solver.plot_std3d()
 #    solver.plot_mean3d()
 #    mlab.show_pipeline()
 #    mlab.show()
+    
+    initial = 1*numpy.ones(10*10*10)
+    
+    solver.sharpen(sharpness=10**(-3), damping=0, beta=10**(-7), \
+                   param_weights=Wp, initial_estimate=solver.mean, \
+                   apriori_var=stddev**2, contam_times=0, \
+                   max_it=200, max_marq_it=20, marq_start=10**(5), marq_step=10)
+    
+    solver.plot_goal(scale='linear')
+    solver.plot_residuals()
+    solver.plot_adjustment(X.shape)
+    pylab.show()
+    solver.plot_std3d()
+    solver.plot_mean3d()
+    mlab.show_pipeline()
+    mlab.show()
     
     
 if __name__ == '__main__':

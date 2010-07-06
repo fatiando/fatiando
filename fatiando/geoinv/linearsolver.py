@@ -300,7 +300,7 @@ class LinearSolver():
             
         if param_weights != None:
         
-            Wp = numpy.dot(param_weights, Wp)
+            Wp = numpy.dot(param_weights.T, numpy.dot(Wp, param_weights))
             
         if self._equality_matrix != None:
             
@@ -618,7 +618,10 @@ class LinearSolver():
                 
             else:
                 
-                hessian_res = hessian_res + 2*damping*param_weights
+                tmp_param_weights = numpy.dot(param_weights.T, param_weights)
+                
+                hessian_res = hessian_res + 2*damping*tmp_param_weights
+                        
                 
         if self._equality_matrix != None:
             
@@ -679,7 +682,7 @@ class LinearSolver():
                     
                 else:
                             
-                    goal += damping*numpy.dot(next.T, aux_next)
+                    goal += damping*numpy.dot(aux_next.T, aux_next)
                     
             # Part due to the equality constraints
             if self._equality_matrix != None:
@@ -747,7 +750,8 @@ class LinearSolver():
                         
                     else:
                         
-                        grad = grad + 2*damping*numpy.dot(param_weights, prev)
+                        grad = grad + 2*damping*numpy.dot(tmp_param_weights, \
+                                                          prev)
                         
                 # Add the equality constraint part of the gradient
                 if self._equality_matrix != None:
@@ -799,7 +803,7 @@ class LinearSolver():
                             
                         else:
                             
-                            goal += damping*numpy.dot(next.T, aux_next)
+                            goal += damping*numpy.dot(aux_next.T, aux_next)
                             
                     
                     # Part due to the equality constraints

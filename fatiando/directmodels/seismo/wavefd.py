@@ -243,6 +243,14 @@ class WaveFD1D():
             
             self._geophones.append([])
             
+            
+    def get_seismogram(self, index):
+        """
+        Returns a seismogram as a numpy array. 1st column is time, 2nd amplitude 
+        """
+        
+        return numpy.array(self._geophones[index])
+            
     
     def plot(self, title="", velocity=False, seismogram=False, tmax=None, \
              exaggerate=1000):

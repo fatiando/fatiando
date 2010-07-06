@@ -104,10 +104,14 @@ class Seismogram(GeoData):
             deltag: distance between geophones
         """
         
+        self._offset = offset
+        
+        self._deltag = deltag
+        
         self._data = pylab.loadtxt(fname, dtype='f', comments='#').T
         
         self._log.info("Loaded %d amplitude values of %d geophones" \
-                       % (len(self._data[0]), (len(data) - 1)/2) + \
+                       % (len(self._data[0]), (len(self._data) - 1)/2) + \
                        " from file '%s'" % (fname))
         
         
@@ -149,6 +153,135 @@ class Seismogram(GeoData):
             
         self._log.info("Contaminate amplitude data with %g noise" % (stddev))
         
+        
+    def synthetic_1d(self, offset, deltag, num_gp, xmax, num_nodes, \
+                     velocities, deltat, tmax, stddev=0.01, percent=True):
+        """
+        Make synthetic seismograms assuming a 1D wave propagation. Wave source
+        is set to be a sin^2
+            
+        Parameters:
+            
+            offset: the offset from source to 1st geophone
+            
+            deltag: distance between geophones
+            
+            num_gp: number of geophones to use
+            
+            deltat: time step in the Finite Differences simulation
+            
+            tmax: maximum time to run the simulation
+            
+            num_nodes: number of nodes used in the simulation
+            
+            velocities: array with the velocity in each node
+        """
+        
+        # Extend the model region so that the seismograms won't be affected
+        # by the reflection in the borders. Also increase the number of nodes
+        # so that the resolution in the area of interest is not lost
+        extended = 2*xmax
+        
+        velocities = numpy.append(velocities, \
+                                  velocities[-1]*numpy.ones(num_nodes))
+        
+        velocities = numpy.append(velocities[0]*numpy.ones(num_nodes), \
+                                  velocities)
+        
+        extended_nodes = 3*num_nodes        
+        
+        period = 5*10**(-3)
+        
+        source = wavefd.SinSQWaveSource(amplitude=-0.001, period=period, \
+                                        duration=period, offset=period, \
+                                        index=num_nodes)
+        
+        solver = wavefd.WaveFD1D(x1=-xmax, x2=extended, \
+                                 num_nodes=extended_nodes, \
+                                 delta_t=deltat, velocities=velocities, \
+                                 source=source, left_bc='fixed', \
+                                 right_bc='fixed')
+        
+        solver.set_geophones(offset=offset, deltag=deltag, num=num_gp)
+        
+        start = time.clock()
+        
+        for t in numpy.arange(0, tmax + deltat, deltat):
+        
+            solver.timestep()
+
+        times, amplitudes = solver.get_seismogram(0).T
+        
+#        solver.plot(velocity=True, seismogram=True, tmax=tmax, \
+#        exaggerate=5000)
+
+        self._data = [times]
+
+        for i in xrange(num_gp):
+            
+            times, amplitudes = solver.get_seismogram(i).T
+            
+            if stddev:
+            
+                contam_amps, error = contaminate.gaussian(data=amplitudes, \
+                                                          stddev=stddev, \
+                                                          percent=percent, \
+                                                          return_stddev=True)
+                
+            else:
+                
+                contam_amps = amplitudes
+                
+                error = 0
+            
+            self._data.append(contam_amps)
+            self._data.append(error*numpy.ones_like(contam_amps))
+        
+        end = time.clock()
+        
+        self._log.info("Generated %d synthetic seismograms with " % (num_gp) + \
+                       "%d times  (%g s)" % (len(times), end - start))        
+        
+        self._data = numpy.array(self._data)
+        
+        self._offset = offset
+        
+        self._deltag = deltag
+            
+            
+    def plot(self, title="Seismograms", exaggerate=5000):
+        """
+        Plot the recorded seismograms.
+            
+        Parameters:
+        
+            title: title of the figure
+        
+            exaggerate: how much to exaggerate the traces in the seismogram
+        """
+        
+        pylab.figure()
+        pylab.title(title)
+        
+        times = self._data[0]
+        
+        n = (len(self._data) - 1)/2 
+                
+        for i in xrange(n):
+            
+            amplitudes = self._data[1 + 2*i]
+            
+            position = self._offset + self._deltag*i
+            
+            x = position + exaggerate*amplitudes
+            
+            pylab.plot(x, times, '-k') 
+            
+        pylab.xlabel("Offset (m)")
+        
+        pylab.ylabel("Time (s)")
+        
+        pylab.ylim(times.max(), 0)
 
 
 class CartTravelTime(GeoData):
