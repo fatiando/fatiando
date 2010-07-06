@@ -624,10 +624,34 @@ class InterG2D(LMSolver):
                 
                 std_array = numpy.append(std_array, data.std)
         
-        return numpy.diag(std_array**2)           
+        return numpy.diag(std_array**2)
+    
+    
+    def split(self, factor):
+        """
+        Split the mean solution into factor*nx prisms.
+        
+        Parameters:
+        
+            factor: into how many prisms each prism will be split into
+            
+        Returns the new solution with factor*nx elements.
+        """
+                
+        new = []
+        
+        mean = self.mean
+        
+        for i in xrange(self._nx):
+            
+            for j in xrange(factor):
+                
+                new.append(mean[i])
+            
+        return numpy.array(new)            
    
         
-    def set_equality(self, x, z):
+    def add_equality(self, x, z):
         """
         Set an equality constraint to hold the prism with x coordinate at depth 
         z
@@ -670,7 +694,8 @@ class InterG2D(LMSolver):
         self._equality_values = numpy.array(p_ref)
         
         
-    def plot_mean(self, true_x, true_z, title="Mean inversion result"):
+    def plot_mean(self, true_x=None, true_z=None, \
+                  title="Mean inversion result"):
         """
         Plot the mean solution
         """
@@ -695,8 +720,17 @@ class InterG2D(LMSolver):
                 
         pylab.figure()
         pylab.title(title)
-        pylab.plot(x, model, '-k')
-        pylab.plot(true_x, true_z, '-r')
+        pylab.plot(x, model, '-k', label="Mean Solution", linewidth=2)
+        
+        vmax = max(model)
+        vmin = min(model)
+        
+        if true_x != None and true_z != None:
+            
+            pylab.plot(true_x, true_z, '-r', label="True Model")
+            
+            vmax = numpy.append(true_z, vmax).max()
+            vmin = numpy.append(true_z, vmin).min()
         
         for estimate in self._estimates:
                   
@@ -707,13 +741,18 @@ class InterG2D(LMSolver):
                 model.append(estimate[i])
                 model.append(estimate[i])
                     
-            pylab.plot(x, model, '-b')            
+            pylab.plot(x, model, '-b')
+            
+            vmax = numpy.append(model, vmax).max()
+            vmin = numpy.append(model, vmin).min()
                 
         pylab.xlabel("Position X [m]")
         pylab.ylabel("Depth [m]")
+                    
+        pylab.legend(prop={'size':9})
         
         pylab.xlim(prism_xs.min(), prism_xs.max())
-        pylab.ylim(1.2*max(true_z), 0)
+        pylab.ylim(1.2*vmax, 0)
             
                         
     def plot_std(self, title="Result Standard Deviation", cmap=pylab.cm.jet):

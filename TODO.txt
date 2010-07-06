@@ -1,7 +1,8 @@
 General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
-    * Make tutorial for subclassing LinearSolver    
+    * Make tutorial for subclassing LinearSolver
+    * Pickle *Solvers so that I can dump and reload them
 
 
 LinearSolver
@@ -13,6 +14,12 @@ LinearSolver
     
     Done:
     * Depth weights
+    
+LMSolver
+    * Make first derivatives local
+    
+InterG
+    * Save model, load it and split it to use in adaptative discretization
     
     
 PGrav
