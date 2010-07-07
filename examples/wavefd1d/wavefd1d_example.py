@@ -57,7 +57,7 @@ start = time.clock()
 
 i = 0
 
-for t in numpy.arange(0, tmax + deltat, deltat):
+for t in numpy.arange(0, tmax, deltat):
     
     solver.timestep()
     

@@ -42,7 +42,6 @@ class LMSolver():
         _build_sensibility(estimate)
         _build_first_deriv()
     Optional methods:
-        set_discretization(...)
         _plot_data(folder)
         _plot_results(folder)
         some function for loading data
@@ -64,7 +63,7 @@ class LMSolver():
         # The logger for this class
         self._log = logging.getLogger('lmsolver')    
 
-
+    
     def _build_jacobian(self, estimate):
         """
         Make the Jacobian matrix of the function of the parameters.
@@ -287,7 +286,7 @@ class LMSolver():
             
             self._log.info("***** noise %d *****" % (contam_it))
                 
-            start = time.clock()
+            start = time.clock()            
             
             residuals = data - self._calc_adjusted_data(next)
             

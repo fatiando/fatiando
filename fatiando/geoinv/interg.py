@@ -438,7 +438,8 @@ class InterG2D(LMSolver):
             
             raise RuntimeError, "Provide at least one of gz, gxx, gxy, gxz," + \
                 " gyy, gyz, or gzz. Can't do the inversion without data!"
-                
+        
+        # Data parameters
         self._gz = gz
         self._gxx = gxx
         self._gxy = gxy

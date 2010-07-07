@@ -45,7 +45,7 @@ class Seismogram(GeoData):
     
     def __len__(self):
         
-        return self._data[0]
+        return len(self._data[0])
     
     
     def _toarray(self):
@@ -81,6 +81,69 @@ class Seismogram(GeoData):
     
     cov = property(_get_cov)
     
+    
+    def _get_offset(self):
+        """
+        Returns the offset of the seismogram
+        """
+        
+        return self._offset
+    
+    
+    offset = property(_get_offset)
+    
+    
+    def _get_deltag(self):
+        """
+        Returns the spacing between geophones
+        """
+    
+        return self._deltag
+    
+    
+    deltag = property(_get_deltag)
+    
+    
+    def _get_deltat(self):
+        """
+        Returns the time interval in the seismograms
+        """
+    
+        return self._data[0][1] - self._data[0][0]
+    
+    
+    deltat = property(_get_deltat)
+    
+    
+    def _get_num_geophones(self):
+        """
+        Return the number of geophones (how many seismograms there are)
+        """
+        
+        return (len(self._data) - 1)/2
+    
+    
+    num_geophones = property(_get_num_geophones)
+    
+    
+    def _get_times(self):
+        """
+        Return a numpy array with the times
+        """
+        
+        return self._data[0].copy()
+    
+    
+    times = property(_get_times)
+    
+    
+    def get_seismogram(self, i):
+        """
+        Return a numpy array with the ith seismogram
+        """
+    
+        return self._data[1 + i*2].copy()
+        
     
     def load(self, fname, offset, deltag):
         """
@@ -154,7 +217,7 @@ class Seismogram(GeoData):
         self._log.info("Contaminate amplitude data with %g noise" % (stddev))
         
         
-    def synthetic_1d(self, offset, deltag, num_gp, xmax, num_nodes, \
+    def synthetic_1d(self, offset, deltag, num_gp, xmax, num_nodes, source, \
                      velocities, deltat, tmax, stddev=0.01, percent=True):
         """
         Make synthetic seismograms assuming a 1D wave propagation. Wave source
@@ -168,13 +231,19 @@ class Seismogram(GeoData):
             
             num_gp: number of geophones to use
             
-            deltat: time step in the Finite Differences simulation
-            
-            tmax: maximum time to run the simulation
+            xmax: size of the simulation
             
             num_nodes: number of nodes used in the simulation
             
+            source: source of the wave that will be used in the FD simulation
+                    instance of one of the source classes found in
+                    fatiando.directmodels.seismo.wavefd 
+            
             velocities: array with the velocity in each node
+            
+            deltat: time step in the Finite Differences simulation
+            
+            tmax: maximum time to run the simulation
         """
         
         # Extend the model region so that the seismograms won't be affected
@@ -188,13 +257,11 @@ class Seismogram(GeoData):
         velocities = numpy.append(velocities[0]*numpy.ones(num_nodes), \
                                   velocities)
         
-        extended_nodes = 3*num_nodes        
+        extended_nodes = 3*num_nodes
         
-        period = 5*10**(-3)
+        source = source.copy()
         
-        source = wavefd.SinSQWaveSource(amplitude=-0.001, period=period, \
-                                        duration=period, offset=period, \
-                                        index=num_nodes)
+        source.move(source.pos() + num_nodes)
         
         solver = wavefd.WaveFD1D(x1=-xmax, x2=extended, \
                                  num_nodes=extended_nodes, \
@@ -206,15 +273,12 @@ class Seismogram(GeoData):
         
         start = time.clock()
         
-        for t in numpy.arange(0, tmax + deltat, deltat):
+        for t in numpy.arange(0, tmax, deltat):
         
             solver.timestep()
 
         times, amplitudes = solver.get_seismogram(0).T
         
-#        solver.plot(velocity=True, seismogram=True, tmax=tmax, \
-#        exaggerate=5000)
-
         self._data = [times]
 
         for i in xrange(num_gp):
@@ -240,7 +304,8 @@ class Seismogram(GeoData):
         end = time.clock()
         
         self._log.info("Generated %d synthetic seismograms with " % (num_gp) + \
-                       "%d times  (%g s)" % (len(times), end - start))        
+                       "%d times contaminated with error = %g (%g s)" \
+                       % (len(times), error, end - start))        
         
         self._data = numpy.array(self._data)
         

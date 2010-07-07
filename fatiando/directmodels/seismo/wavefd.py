@@ -31,7 +31,7 @@ logger.addHandler(fatiando.default_log_handler)
 class SinSQWaveSource():
     """sin^2(t) wave source"""
 
-    def __init__(self, amplitude, period, duration, offset, index):
+    def __init__(self, amplitude, period, duration, offset, index=0):
         
         self._period = period
         
@@ -64,11 +64,29 @@ class SinSQWaveSource():
             
             return True
         
+    
+    def move(self, index):
+        """
+        Move the source to the given index
+        """
+        
+        self._index = index
+        
         
     def pos(self):
         """Grid index of where the source is located"""
         
         return self._index
+    
+    
+    def copy(self):
+        """
+        Return a copy of this class
+        """
+
+        return SinSQWaveSource(amplitude=self.amplitude, period=self._period, \
+                               duration=self._duration, offset=self._offset, \
+                               index=self._index)
 
 
 
