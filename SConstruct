@@ -26,6 +26,7 @@ def PhonyTarget(target, action, depends=[], env = None):
 ################################################################################
 
 c_path = os.path.join('src', 'c')
+wrap_path = os.path.join('src', 'wrap')
 
 # MATH
 ################################################################################
@@ -38,14 +39,14 @@ mathenv = Environment(
     SHLIBPREFIX="")
 
 lumod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_lu'),
-    source=[os.path.join(cmath_path, 'lu.c'), os.path.join(cmath_path, 'lu.i')])
+    source=[os.path.join(cmath_path, 'lu.c'), os.path.join(wrap_path, 'lu.i')])
 
 Depends(lumod, os.path.join(cmath_path, 'lu.h'))
 
 Clean(os.path.curdir,os.path.join(math_outdir,'lu.py'))
 
 glqmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_glq'),
-  source=[os.path.join(cmath_path, 'glq.c'), os.path.join(cmath_path, 'glq.i')])
+  source=[os.path.join(cmath_path, 'glq.c'), os.path.join(wrap_path, 'glq.i')])
 
 Depends(glqmod, os.path.join(cmath_path, 'glq.h'))
 
@@ -74,7 +75,7 @@ gravityenv = Environment(
 prismgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_prism'),
     source=[os.path.join(cdirect_path, 'prismgrav.c'), \
-            os.path.join(cdirect_path, 'prismgrav.i')])
+            os.path.join(wrap_path, 'prismgrav.i')])
             
 Depends(prismgravmod, os.path.join(cdirect_path, 'prismgrav.h'))
 
@@ -83,7 +84,7 @@ Clean(os.path.curdir, os.path.join(gravity_outdir,'prism.py'))
 tesseroidgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_tesseroid'),
     source=[os.path.join(cdirect_path, 'tesseroidgrav.c'), \
-            os.path.join(cdirect_path, 'tesseroidgrav.i')])
+            os.path.join(wrap_path, 'tesseroidgrav.i')])
             
 Depends(tesseroidgravmod, os.path.join(cdirect_path, 'tesseroidgrav.h'))
 
@@ -102,7 +103,7 @@ seismoenv = Environment(
 simpletommod = seismoenv.SharedLibrary( \
     target=os.path.join(seismo_outdir,'_simple'),
     source=[os.path.join(cdirect_path, 'simpletom.c'), \
-            os.path.join(cdirect_path, 'simpletom.i')])
+            os.path.join(wrap_path, 'simpletom.i')])
 
 Depends(simpletommod, os.path.join(cdirect_path, 'simpletom.h'))
 
@@ -111,7 +112,7 @@ Clean(os.path.curdir, os.path.join(seismo_outdir,'simple.py'))
 wavefdmod = seismoenv.SharedLibrary( \
     target=os.path.join(seismo_outdir,'_wavefd_ext'),
     source=[os.path.join(cdirect_path, 'wavefd.c'), \
-            os.path.join(cdirect_path, 'wavefd.i')])
+            os.path.join(wrap_path, 'wavefd.i')])
 
 Depends(wavefdmod, os.path.join(cdirect_path, 'wavefd.h'))
 

@@ -22,8 +22,8 @@ Created 17 Jun 2010
 /* Put the headers with the definitions */
 %{
 
-#include "tesseroidgrav.h"
-#include "../typeconversions.c"
+#include "../c/directmodels/tesseroidgrav.h"
+#include "typeconversions.c"
 
 %}
 

@@ -33,20 +33,20 @@ data.synthetic_1d(offset=10, deltag=30, num_gp=5, xmax=150., source=source, \
 solver = FullWave1D(xmax=150., nx=2, num_nodes=nodes, seismogram=data, \
                     source=source)
 
-solver.map_goal(lower=[0,0], upper=[5000,5000], delta=[1000,1000], damping=10**(-11), \
-                smoothness=0)
+#solver.map_goal(lower=[0,0], upper=[5000,5000], delta=[1000,1000], damping=10**(-11), \
+#                smoothness=0)
 
-#initial = numpy.array([5000,5000])
-#
-#solver.solve(damping=10**(-15), smoothness=0, curvature=0, sharpness=0, \
-#             equality=0, initial_estimate=initial, apriori_var=data.cov[0][0], \
-#             contam_times=0, \
-#             max_it=100, max_lm_it=20, lm_start=10**(-2), lm_step=2)
-#
-#print "Velocities: ", solver.mean
-#
-#solver.plot_residuals()
-#
-#solver.plot_adjustment(exaggerate=10000)
+initial = numpy.array([2500,4200])
+
+solver.solve(damping=0, smoothness=10**(-17), curvature=0, sharpness=0, \
+             equality=0, initial_estimate=initial, apriori_var=data.cov[0][0], \
+             contam_times=0, \
+             max_it=100, max_lm_it=20, lm_start=10**(-2), lm_step=10)
+
+print "Velocities: ", solver.mean
+
+solver.plot_residuals()
+
+solver.plot_adjustment(exaggerate=10000)
 
 pylab.show()

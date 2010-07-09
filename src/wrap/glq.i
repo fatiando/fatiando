@@ -48,8 +48,8 @@ Created 07 May 2010
 /* Put the headers with the definitions */
 %{
 
-#include "glq.h"
-#include "../typeconversions.c"
+#include "../c/math/glq.h"
+#include "typeconversions.c"
 
 %}
 

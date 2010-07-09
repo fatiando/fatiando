@@ -61,20 +61,20 @@ for t in numpy.arange(0, tmax, deltat):
     
     solver.timestep()
     
-    solver.plot(velocity=True, seismogram=True, tmax=tmax, exaggerate=5000)
-
-    pylab.savefig("figures/wave%04d.png" % i, dpi=200)
-    pylab.close()
+#    solver.plot(velocity=True, seismogram=True, tmax=tmax, exaggerate=5000)
+#
+#    pylab.savefig("figures/wave%04d.png" % i, dpi=200)
+#    pylab.close()
     
     i += 1
     
 solver.plot_seismograms(exaggerate=6000)
-pylab.savefig("seismogram.png")
+#pylab.savefig("seismogram.png")
 
 solver.plot_velocity()
-pylab.savefig("velocity_structure.png")
+#pylab.savefig("velocity_structure.png")
 
 end = time.clock()
 print "Time: %g s" % (end - start)
 
-#pylab.show()
+pylab.show()

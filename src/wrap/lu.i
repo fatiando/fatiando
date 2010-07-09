@@ -23,8 +23,8 @@ Created 01 March 2010
 /* Put the headers with the definitions */
 %{
 
-#include "lu.h"
-#include "../typeconversions.c"
+#include "../c/math/lu.h"
+#include "typeconversions.c"
 
 %}
 
