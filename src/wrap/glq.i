@@ -48,7 +48,7 @@ Created 07 May 2010
 /* Put the headers with the definitions */
 %{
 
-#include "../c/math/glq.h"
+#include "../c/glq.h"
 #include "typeconversions.c"
 
 %}

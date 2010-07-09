@@ -23,7 +23,7 @@ Created 01 March 2010
 /* Put the headers with the definitions */
 %{
 
-#include "../c/math/lu.h"
+#include "../c/lu.h"
 #include "typeconversions.c"
 
 %}

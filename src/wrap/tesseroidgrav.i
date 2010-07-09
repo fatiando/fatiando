@@ -22,7 +22,7 @@ Created 17 Jun 2010
 /* Put the headers with the definitions */
 %{
 
-#include "../c/directmodels/tesseroidgrav.h"
+#include "../c/tesseroidgrav.h"
 #include "typeconversions.c"
 
 %}

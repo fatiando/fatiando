@@ -25,7 +25,7 @@ Created 29 June 2010
 /* Put the headers with the definitions */
 %{
 
-#include "../c/directmodels/wavefd.h"
+#include "../c/wavefd.h"
 #include "typeconversions.c"
 
 %}

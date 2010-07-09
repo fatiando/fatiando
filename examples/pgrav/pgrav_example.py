@@ -13,7 +13,7 @@ from fatiando.utils import contaminate
 
 def main():
     
-    prisma = Prism(x1=400, x2=600, y1=200, y2=800, z1=100, z2=400, dens=1000)
+    prisma = Prism(dens=1000, x1=400, x2=600, y1=200, y2=800, z1=100, z2=400)
     
     x = numpy.arange(-500, 1550, 100, 'f')
     y = numpy.arange(-500, 1550, 100, 'f')
@@ -91,31 +91,31 @@ def main():
         
     solver.solve(damping=0, smoothness=10**(-2), curvature=0, equality=0, \
                  param_weights=Wp, apriori_var=stddev**2, contam_times=10)
-#
-#    solver.plot_residuals()
-#    solver.plot_adjustment(X.shape)
-#    pylab.show()
-#    
-#    solver.plot_std3d()
-#    solver.plot_mean3d()
-#    mlab.show_pipeline()
-#    mlab.show()
-    
-    initial = 1*numpy.ones(10*10*10)
-    
-    solver.sharpen(sharpness=10**(-3), damping=0, beta=10**(-7), \
-                   param_weights=Wp, initial_estimate=solver.mean, \
-                   apriori_var=stddev**2, contam_times=0, \
-                   max_it=200, max_marq_it=20, marq_start=10**(5), marq_step=10)
-    
-    solver.plot_goal(scale='linear')
+
     solver.plot_residuals()
     solver.plot_adjustment(X.shape)
     pylab.show()
+    
     solver.plot_std3d()
     solver.plot_mean3d()
     mlab.show_pipeline()
     mlab.show()
+#    
+#    initial = 1*numpy.ones(10*10*10)
+#    
+#    solver.sharpen(sharpness=10**(-3), damping=0, beta=10**(-7), \
+#                   param_weights=Wp, initial_estimate=solver.mean, \
+#                   apriori_var=stddev**2, contam_times=0, \
+#                   max_it=200, max_marq_it=20, marq_start=10**(5), marq_step=10)
+#    
+#    solver.plot_goal(scale='linear')
+#    solver.plot_residuals()
+#    solver.plot_adjustment(X.shape)
+#    pylab.show()
+#    solver.plot_std3d()
+#    solver.plot_mean3d()
+#    mlab.show_pipeline()
+#    mlab.show()
     
     
 if __name__ == '__main__':

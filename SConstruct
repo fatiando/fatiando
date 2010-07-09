@@ -30,7 +30,6 @@ wrap_path = os.path.join('src', 'wrap')
 
 # MATH
 ################################################################################
-cmath_path = os.path.join(c_path, 'math')
 math_outdir = os.path.join('fatiando', 'math')
 
 mathenv = Environment(
@@ -39,16 +38,16 @@ mathenv = Environment(
     SHLIBPREFIX="")
 
 lumod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_lu'),
-    source=[os.path.join(cmath_path, 'lu.c'), os.path.join(wrap_path, 'lu.i')])
+    source=[os.path.join(c_path, 'lu.c'), os.path.join(wrap_path, 'lu.i')])
 
-Depends(lumod, os.path.join(cmath_path, 'lu.h'))
+Depends(lumod, os.path.join(c_path, 'lu.h'))
 
 Clean(os.path.curdir,os.path.join(math_outdir,'lu.py'))
 
 glqmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_glq'),
-  source=[os.path.join(cmath_path, 'glq.c'), os.path.join(wrap_path, 'glq.i')])
+  source=[os.path.join(c_path, 'glq.c'), os.path.join(wrap_path, 'glq.i')])
 
-Depends(glqmod, os.path.join(cmath_path, 'glq.h'))
+Depends(glqmod, os.path.join(c_path, 'glq.h'))
 
 Clean(os.path.curdir,os.path.join(math_outdir,'glq.py'))
 
@@ -61,7 +60,6 @@ mathmods = [lumod, glqmod]
 # DIRECT MODELS
 ################################################################################
 direct_outdir = os.path.join('fatiando', 'directmodels')
-cdirect_path = os.path.join(c_path, 'directmodels')
 
 # GRAVITY 
 ###########################################
@@ -74,19 +72,19 @@ gravityenv = Environment(
 
 prismgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_prism'),
-    source=[os.path.join(cdirect_path, 'prismgrav.c'), \
+    source=[os.path.join(c_path, 'prismgrav.c'), \
             os.path.join(wrap_path, 'prismgrav.i')])
             
-Depends(prismgravmod, os.path.join(cdirect_path, 'prismgrav.h'))
+Depends(prismgravmod, os.path.join(c_path, 'prismgrav.h'))
 
 Clean(os.path.curdir, os.path.join(gravity_outdir,'prism.py'))
 
 tesseroidgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_tesseroid'),
-    source=[os.path.join(cdirect_path, 'tesseroidgrav.c'), \
+    source=[os.path.join(c_path, 'tesseroidgrav.c'), \
             os.path.join(wrap_path, 'tesseroidgrav.i')])
             
-Depends(tesseroidgravmod, os.path.join(cdirect_path, 'tesseroidgrav.h'))
+Depends(tesseroidgravmod, os.path.join(c_path, 'tesseroidgrav.h'))
 
 Clean(os.path.curdir, os.path.join(gravity_outdir,'tesseroid.py'))
 ###########################################
@@ -102,19 +100,19 @@ seismoenv = Environment(
     
 simpletommod = seismoenv.SharedLibrary( \
     target=os.path.join(seismo_outdir,'_simple'),
-    source=[os.path.join(cdirect_path, 'simpletom.c'), \
+    source=[os.path.join(c_path, 'simpletom.c'), \
             os.path.join(wrap_path, 'simpletom.i')])
 
-Depends(simpletommod, os.path.join(cdirect_path, 'simpletom.h'))
+Depends(simpletommod, os.path.join(c_path, 'simpletom.h'))
 
 Clean(os.path.curdir, os.path.join(seismo_outdir,'simple.py'))
     
 wavefdmod = seismoenv.SharedLibrary( \
     target=os.path.join(seismo_outdir,'_wavefd_ext'),
-    source=[os.path.join(cdirect_path, 'wavefd.c'), \
+    source=[os.path.join(c_path, 'wavefd.c'), \
             os.path.join(wrap_path, 'wavefd.i')])
 
-Depends(wavefdmod, os.path.join(cdirect_path, 'wavefd.h'))
+Depends(wavefdmod, os.path.join(c_path, 'wavefd.h'))
 
 Clean(os.path.curdir, os.path.join(seismo_outdir,'wavefd_ext.py'))
 ###########################################
@@ -124,6 +122,25 @@ directmods = [prismgravmod, simpletommod, wavefdmod]
 
 ################################################################################
 
+
+# GEOMETRY
+################################################################################
+geometry_outdir = os.path.join('fatiando', 'utils')
+
+geometryenv = Environment(
+    SWIGFLAGS=['-python', '-shadow', '-outdir', geometry_outdir],
+    CPPPATH=[distutils.sysconfig.get_python_inc()],
+    SHLIBPREFIX="")
+    
+geometrymod = geometryenv.SharedLibrary( \
+    target=os.path.join(geometry_outdir ,'_geometry'),
+    source=[os.path.join(wrap_path, 'geometry.i')])
+        
+
+Depends(geometrymod, os.path.join(c_path, 'geometry.c'))
+
+Clean(os.path.curdir, os.path.join(geometry_outdir,'geometry.py'))
+################################################################################
 
 # Group all the C coded modules
 ext_mods = []
