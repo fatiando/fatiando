@@ -11,6 +11,7 @@ LinearSolver
     * Sparsity regularization
     * Fix data weighting in the Tikhonov regularization
     * Take away the summing identity fix in TV and replace it with Tikhonov 1
+    * Make first derivatives local
     
     Done:
     * Depth weights

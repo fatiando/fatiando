@@ -16,11 +16,437 @@ from enthought.tvtk.api import tvtk
 
 import fatiando
 from fatiando.geoinv.linearsolver import LinearSolver
+from fatiando.geoinv.lmsolver import LMSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
 
 logger = logging.getLogger('pgrav')       
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
+
+
+
+class PGravNL(LinearSolver):
+    """
+    3D gravity inversion using right rectangular prisms
+    """
+    
+    
+    def __init__(self, x1, x2, y1, y2, z1, z2, nx, ny, nz, gz=None, gxx=None, \
+                 gxy=None, gxz=None, gyy=None, gyz=None, gzz=None):
+        """
+        Parameters:
+        
+            x1, x2, y1, y2, z1, z2: boundaries of the model space
+            
+            nx, ny, nz: number of prisms into which the model space will be cut
+                in the x, y, and z directions
+                        
+            gz: instance of fatiando.data.gravity.VerticalGravity holding the
+                vertical gravity data
+                
+            gxx, gxy, gxz, gyy, gyz, gzz: instances of 
+                fatiando.data.gravity.TensorComponent holding each a respective
+                gravity gradient tensor component data
+                
+        Note: at least of one gz, gxx, gxy, gxz, gyy, gyz, or gzz must be 
+        provided            
+        """
+        
+        LinearSolver.__init__(self)
+        
+        if not (gz or gxx or gxy or gxz or gyy or gyz or gzz):
+            
+            raise RuntimeError, "Provide at least one of gz, gxx, gxy, gxz," + \
+                " gyy, gyz, or gzz. Can't do the inversion without data!"
+                
+        self._gz = gz
+        self._gxx = gxx
+        self._gxy = gxy
+        self._gxz = gxz
+        self._gyy = gyy
+        self._gyz = gyz
+        self._gzz = gzz
+        
+        # Model space parameters
+        self._mod_x1 = float(x1)
+        self._mod_x2 = float(x2)
+        self._mod_y1 = float(y1)
+        self._mod_y2 = float(y2)  
+        self._mod_z1 = float(z1)
+        self._mod_z2 = float(z2)        
+        self._nx = nx
+        self._ny = ny
+        self._nz = nz
+        self._nparams = nx*ny*nz
+        
+        # The logger for this class
+        self._log = logging.getLogger('pgravnl')
+        
+        self._log.info("Model space discretization: %d cells in x *" % (nx) + \
+                       " %d cells in y * %d cells in z = %d parameters" \
+                       % (ny, nz, nx*ny*nz))
+    
+    
+    def _build_sensibility(self):
+        """
+        Make the sensibility matrix.
+        """
+        
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny
+        dz = (self._mod_z2 - self._mod_z1)/self._nz        
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2, dz, 'float')
+        
+        sensibility = []
+        
+        data_types = [(self._gz, prism_gravity.gz), \
+                      (self._gxx, prism_gravity.gxx), \
+                      (self._gxy, prism_gravity.gxy), \
+                      (self._gxz, prism_gravity.gxz), \
+                      (self._gyy, prism_gravity.gyy), \
+                      (self._gyz, prism_gravity.gyz), \
+                      (self._gzz, prism_gravity.gzz)]
+        
+        for data, calculator in data_types:
+            
+            if data != None:
+                
+                for i in xrange(len(data)):
+                    
+                    xp, yp, zp = data.loc(i)
+                    
+                    line = numpy.zeros(self._nparams)
+                    
+                    j = 0
+                                                            
+                    for z in prism_zs:
+                        
+                        for y in prism_ys:
+                            
+                            for x in prism_xs:
+                                                                
+                                line[j] = calculator(self._dens, \
+                                            x, x + dx, \
+                                            y, y + dy, \
+                                            z, z + dz, \
+                                            xp, yp, zp)
+                                
+                                j += 1
+                            
+                    sensibility.append(line)
+                    
+        sensibility = numpy.array(sensibility)
+        
+        return sensibility
+            
+    
+    def _calc_adjusted_data(self, estimate):
+        """
+        Calculate the adjusted data vector based on the current estimate
+        """
+        
+        assert self._jacobian != None, "Jacobian not calculated"
+        
+        adjusted = numpy.dot(self._sensibility, estimate)
+                
+        return adjusted
+        
+        
+    def _build_first_deriv(self):
+        """
+        Compute the first derivative matrix of the model parameters.
+        """
+        
+        start = time.clock()
+        
+        # The number of derivatives there will be
+        deriv_num = (self._nx - 1)*self._ny*self._nz + \
+                    (self._ny - 1)*self._nx*self._nz + \
+                    (self._nz - 1)*self._nx*self._ny
+        
+        param_num = self._nx*self._ny*self._nz
+        
+        first_deriv = numpy.zeros((deriv_num, param_num))
+        
+        deriv_i = 0
+        
+        # Derivatives in the x direction        
+        param_i = 0
+        
+        for k in xrange(self._nz):
+            
+            for j in xrange(self._ny):
+                
+                for i in xrange(self._nx - 1):                
+                    
+                    first_deriv[deriv_i][param_i] = 1
+                    
+                    first_deriv[deriv_i][param_i + 1] = -1
+                    
+                    deriv_i += 1
+                    
+                    param_i += 1
+                
+                param_i += 1
+            
+        # Derivatives in the y direction        
+        param_i = 0
+        
+        for k in xrange(self._nz):
+        
+            for j in range(self._ny - 1):
+                
+                for i in range(self._nx):
+            
+                    first_deriv[deriv_i][param_i] = 1
+                    
+                    first_deriv[deriv_i][param_i + self._nx] = -1
+                    
+                    deriv_i += 1
+                    
+                    param_i += 1
+                    
+            param_i += self._nx
+            
+        # Derivatives in the z direction        
+        param_i = 0
+        
+        for k in xrange(self._nz - 1):
+        
+            for j in range(self._ny):
+                
+                for i in range(self._nx):
+            
+                    first_deriv[deriv_i][param_i] = 1
+                    
+                    first_deriv[deriv_i][param_i + self._nx*self._ny] = -1
+                    
+                    deriv_i += 1
+                    
+                    param_i += 1
+                                
+        end = time.clock()
+        self._log.info("Building first derivative matrix: %d x %d  (%g s)" \
+                      % (deriv_num, param_num, end - start))
+        
+        return first_deriv
+            
+            
+    def _get_data_array(self):
+        """
+        Return the data in a Numpy array so that the algorithm can access it
+        in a general way
+        """
+        
+        data_array = numpy.array([])
+        
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
+            
+            if data:
+                
+                data_array = numpy.append(data_array, data.array)
+        
+        return data_array
+                           
+            
+    def _get_data_cov(self):
+        """
+        Return the data covariance in a 2D Numpy array so that the algorithm can
+        access it in a general way
+        """
+        
+        std_array = numpy.array([])
+        
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
+            
+            if data:
+                
+                std_array = numpy.append(std_array, data.std)
+        
+        return numpy.diag(std_array**2)
+                        
+    
+    def plot_mean3d(self):
+        """
+        Plot the mean result in 3D using Mayavi
+        """
+        
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny      
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
+        
+        model = numpy.reshape(self.mean, (self._nz, self._ny, self._nx))*0.001
+                        
+        grid = tvtk.RectilinearGrid()
+        grid.cell_data.scalars = model.ravel()
+        grid.cell_data.scalars.name = 'Density'
+        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
+        grid.x_coordinates = prism_xs
+        grid.y_coordinates = prism_ys
+        grid.z_coordinates = prism_zs
+        
+        fig = mlab.figure()
+        fig.scene.background = (0, 0, 0)
+        fig.scene.camera.pitch(180)
+        fig.scene.camera.roll(180)
+        source = mlab.pipeline.add_dataset(grid)
+        filter = mlab.pipeline.threshold(source)
+        axes = mlab.axes(filter, nb_labels=self._nx+1, \
+                         extent=[prism_xs[0], prism_xs[-1], \
+                                 prism_ys[0], prism_ys[-1], \
+                                 prism_zs[0], prism_zs[-1]])
+        surf = mlab.pipeline.surface(axes, vmax=model.max(), vmin=model.min())
+        surf.actor.property.edge_visibility = 1
+        surf.actor.property.line_width = 1.5
+        mlab.colorbar(surf, title="Density [g/cm^3]", orientation='vertical', \
+                      nb_labels=10)
+        
+        
+    def plot_std3d(self):
+        """
+        Plot the standard deviation of the results in 3D using Mayavi
+        """
+        
+        dx = (self._mod_x2 - self._mod_x1)/self._nx
+        dy = (self._mod_y2 - self._mod_y1)/self._ny      
+        dz = (self._mod_z2 - self._mod_z1)/self._nz
+        
+        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
+        prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
+        prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
+        
+        std = numpy.reshape(self.std, (self._nz, self._ny, self._nx))*0.001
+                        
+        grid = tvtk.RectilinearGrid()
+        grid.cell_data.scalars = std.ravel()
+        grid.cell_data.scalars.name = 'Standard Deviation'
+        grid.dimensions = (self._nx + 1, self._ny + 1, self._nz + 1)
+        grid.x_coordinates = prism_xs
+        grid.y_coordinates = prism_ys
+        grid.z_coordinates = prism_zs
+        
+        fig = mlab.figure()
+        fig.scene.background = (0, 0, 0)
+        fig.scene.camera.pitch(180)
+        fig.scene.camera.roll(180)
+        source = mlab.pipeline.add_dataset(grid)
+        filter = mlab.pipeline.threshold(source)
+        axes = mlab.axes(filter, nb_labels=self._nx+1, \
+                         extent=[prism_xs[0], prism_xs[-1], \
+                                 prism_ys[0], prism_ys[-1], \
+                                 prism_zs[0], prism_zs[-1]])
+        surf = mlab.pipeline.surface(axes, vmax=std.max(), vmin=std.min())
+        surf.actor.property.edge_visibility = 1
+        surf.actor.property.line_width = 1.5
+        mlab.colorbar(surf, title="Standard Deviation [g/cm^3]", \
+                      orientation='vertical', \
+                      nb_labels=10)
+                            
+            
+    def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):
+        """
+        Plot the original data plus the adjusted data with contour lines.
+        """
+                
+        adjusted = numpy.dot(self._sensibility, estimate)
+        
+        data_types = [(self._gz, ' $g_{z}'), \
+                      (self._gxx, ' $g_{xx}'), \
+                      (self._gxy, ' $g_{xy}'), \
+                      (self._gxz, ' $g_{xz}'), \
+                      (self._gyy, ' $g_{yy}'), \
+                      (self._gyz, ' $g_{yz}'), \
+                      (self._gzz, ' $g_{zz}')]
+        
+        for data, subtitle in data_types:
+            
+            if data != None:
+            
+                this_adjusted = numpy.reshape(adjusted[:len(data)], shape)
+            
+                adjusted = adjusted[len(data):]
+            
+                X = data.get_xgrid(*shape)
+                
+                Y = data.get_ygrid(*shape)
+                
+                vmin = min([this_adjusted.min(), data.array.min()])
+                vmax = max([this_adjusted.max(), data.array.max()])
+            
+                pylab.figure()
+                pylab.axis('scaled')
+                pylab.title(title + subtitle)
+                CS = pylab.contour(X, Y, this_adjusted, colors='r', \
+                                   label="Adjusted", \
+                                   vmin=vmin, vmax=vmax)
+                pylab.clabel(CS)
+                CS = pylab.contour(X, Y, data.togrid(*X.shape), colors='b', \
+                              label="Observed", vmin=vmin, vmax=vmax)
+                pylab.clabel(CS)
+                
+                pylab.xlabel("Y")
+                pylab.ylabel("X")
+                
+                pylab.xlim(Y.min(), Y.max())
+                pylab.ylim(X.min(), X.max())
+                        
+    
+    def bimodal_prior(self, reg_param=1, prior_means=None, prior_covs=None, \
+              apriori_var=1, contam_times=10):       
+        """
+        Perform the inversion with Tikhonov regularization:
+        
+            * 0th order: Ridge Regression (Damped);
+            
+            * 1st order: Smoothness;
+            
+            * 2nd order: Curvature;
+            
+        Parameters:
+            
+            damping: 0th order regularization parameter (how much damping to 
+                     apply)
+            
+            smoothness: 1st order regularization parameter (how much smoothness
+                        to apply)
+                        
+            curvature: 2st order regularization parameter (how much to minimize
+                       the curvature)
+                       
+            initial_estimate: an array with the initial estimate. If not given,
+                              a zero array will be used. 
+            
+            apriori_var: the a-priori variance factor. Assumed variance of the
+                         data. This will be the variance used to contaminate
+                         the data.
+                         
+            contam_times: how many times to contaminate the data and run the 
+                          inversion.
+                                                    
+            max_it: maximum number of iterations when seaching for the minimum
+                    of the goal (or misfit) function.
+                    
+            max_lm_it: maximum number of iterations in the LM when looking for
+                         the right step size (Marquardt parameter).
+                         
+            lm_start: starting step size (Marquardt parameter).
+            
+            lm_step: how much to increase or decrease the step size at each
+                       LM iteration.                   
+        """       
 
 
 
