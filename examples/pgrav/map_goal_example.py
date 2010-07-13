@@ -11,7 +11,7 @@ from fatiando.utils.geometry import Prism
 
 
     
-prisma = Prism(x1=400, x2=600, y1=400, y2=600, z1=200, z2=400, dens=1000)
+prisma = [Prism(x1=400, x2=600, y1=400, y2=600, z1=200, z2=400, dens=1000)]
 
 x = numpy.arange(-500, 1550, 100, 'f')
 y = numpy.arange(-500, 1550, 100, 'f')
@@ -20,27 +20,27 @@ X, Y = pylab.meshgrid(x, y)
 stddev = 0.05
 
 zzdata = TensorComponent(component='zz')
-zzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+zzdata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 xxdata = TensorComponent(component='xx')
-xxdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+xxdata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 yydata = TensorComponent(component='yy')
-yydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+yydata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 xydata = TensorComponent(component='xy')
-xydata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+xydata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 xzdata = TensorComponent(component='xz')
-xzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+xzdata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 yzdata = TensorComponent(component='yz')
-yzdata.synthetic_prism(prism=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
+yzdata.synthetic_prism(prisms=prisma, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 
 

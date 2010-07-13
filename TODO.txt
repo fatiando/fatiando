@@ -26,6 +26,7 @@ InterG
 PGrav
     * Separate derivatives in each direction
     * Build sensibility concurrently
+    * Clean up the code (remove multimodal method: didn't work)
     
     Done:
     * Automate configuration of the 3D plot

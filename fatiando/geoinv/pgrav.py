@@ -18,6 +18,7 @@ import fatiando
 from fatiando.geoinv.linearsolver import LinearSolver
 from fatiando.geoinv.lmsolver import LMSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
+from fatiando.utils import contaminate
 
 logger = logging.getLogger('pgrav')       
 logger.setLevel(logging.DEBUG)
@@ -403,51 +404,6 @@ class PGravNL(LinearSolver):
                 pylab.xlim(Y.min(), Y.max())
                 pylab.ylim(X.min(), X.max())
                         
-    
-    def bimodal_prior(self, reg_param=1, prior_means=None, prior_covs=None, \
-              apriori_var=1, contam_times=10):       
-        """
-        Perform the inversion with Tikhonov regularization:
-        
-            * 0th order: Ridge Regression (Damped);
-            
-            * 1st order: Smoothness;
-            
-            * 2nd order: Curvature;
-            
-        Parameters:
-            
-            damping: 0th order regularization parameter (how much damping to 
-                     apply)
-            
-            smoothness: 1st order regularization parameter (how much smoothness
-                        to apply)
-                        
-            curvature: 2st order regularization parameter (how much to minimize
-                       the curvature)
-                       
-            initial_estimate: an array with the initial estimate. If not given,
-                              a zero array will be used. 
-            
-            apriori_var: the a-priori variance factor. Assumed variance of the
-                         data. This will be the variance used to contaminate
-                         the data.
-                         
-            contam_times: how many times to contaminate the data and run the 
-                          inversion.
-                                                    
-            max_it: maximum number of iterations when seaching for the minimum
-                    of the goal (or misfit) function.
-                    
-            max_lm_it: maximum number of iterations in the LM when looking for
-                         the right step size (Marquardt parameter).
-                         
-            lm_start: starting step size (Marquardt parameter).
-            
-            lm_step: how much to increase or decrease the step size at each
-                       LM iteration.                   
-        """       
-
 
 
 class PGrav(LinearSolver):
@@ -525,155 +481,44 @@ class PGrav(LinearSolver):
         prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
         prism_ys = numpy.arange(self._mod_y1, self._mod_y2, dy, 'float')
         prism_zs = numpy.arange(self._mod_z1, self._mod_z2, dz, 'float')
-                
-        sensibility = [] 
         
-        if self._gz:
+        sensibility = []
+        
+        data_types = [(self._gz, prism_gravity.gz), \
+                      (self._gxx, prism_gravity.gxx), \
+                      (self._gxy, prism_gravity.gxy), \
+                      (self._gxz, prism_gravity.gxz), \
+                      (self._gyy, prism_gravity.gyy), \
+                      (self._gyz, prism_gravity.gyz), \
+                      (self._gzz, prism_gravity.gzz)]
+        
+        for data, calculator in data_types:
             
-            for i in xrange(len(self._gz)):
+            if data != None:
                 
-                xp, yp, zp = self._gz.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
+                for i in xrange(len(data)):
                     
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gz(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gxx:
-            
-            for i in xrange(len(self._gxx)):
-                
-                xp, yp, zp = self._gxx.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
+                    xp, yp, zp = data.loc(i)
                     
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gxx(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gxy:
-            
-            for i in xrange(len(self._gxy)):
-                
-                xp, yp, zp = self._gxy.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
+                    line = numpy.zeros(self._nx*self._ny*self._nz)
                     
-                    for y in prism_ys:
+                    j = 0
+                                                            
+                    for z in prism_zs:
                         
-                        for x in prism_xs:
+                        for y in prism_ys:
                             
-                            value = prism_gravity.gxy(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
+                            for x in prism_xs:
+                                                                
+                                line[j] = calculator(1, \
+                                            x, x + dx, \
+                                            y, y + dy, \
+                                            z, z + dz, \
+                                            xp, yp, zp)
+                                
+                                j += 1
                             
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gxz:
-            
-            for i in xrange(len(self._gxz)):
-                
-                xp, yp, zp = self._gxz.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
-                    
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gxz(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gyy:
-            
-            for i in xrange(len(self._gyy)):
-                
-                xp, yp, zp = self._gyy.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
-                    
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gyy(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gyz:
-            
-            for i in xrange(len(self._gyz)):
-                
-                xp, yp, zp = self._gyz.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
-                    
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gyz(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
-                
-        if self._gzz:
-            
-            for i in xrange(len(self._gzz)):
-                
-                xp, yp, zp = self._gzz.loc(i)
-                
-                line = []
-                
-                for z in prism_zs:
-                    
-                    for y in prism_ys:
-                        
-                        for x in prism_xs:
-                            
-                            value = prism_gravity.gzz(1., x, x + dx, y, y + dy, \
-                                        z, z + dz, xp, yp, zp)
-                            
-                            line.append(value)
-            
-                sensibility.append(line)
+                    sensibility.append(line)
         
         sensibility = numpy.array(sensibility)
         
@@ -769,39 +614,20 @@ class PGrav(LinearSolver):
         """
         Return the data in a Numpy array so that the algorithm can access it
         in a general way
-        """        
+        """
         
-        data = numpy.array([])
+        data_array = numpy.array([])
         
-        if self._gz:
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
             
-            data = numpy.append(data, self._gz.array)
-            
-        if self._gxx:
-            
-            data = numpy.append(data, self._gxx.array)
-            
-        if self._gxy:
-            
-            data = numpy.append(data, self._gxy.array)
-            
-        if self._gxz:
-            
-            data = numpy.append(data, self._gxz.array)
-            
-        if self._gyy:
-            
-            data = numpy.append(data, self._gyy.array)
-            
-        if self._gyz:
-            
-            data = numpy.append(data, self._gyz.array)
-            
-        if self._gzz:
-            
-            data = numpy.append(data, self._gzz.array)
-            
-        return data                           
+            if data:
+                
+                data_array = numpy.append(data_array, data.array)
+        
+        return data_array
                            
             
     def _get_data_cov(self):
@@ -810,40 +636,21 @@ class PGrav(LinearSolver):
         access it in a general way
         """        
         
-        stddev = numpy.array([])
+        std_array = numpy.array([])
         
-        if self._gz:
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
             
-            stddev = numpy.append(stddev, self._gz.std)
-            
-        if self._gxx:
-            
-            stddev = numpy.append(stddev, self._gxx.std)
-            
-        if self._gxy:
-            
-            stddev = numpy.append(stddev, self._gxy.std)
-            
-        if self._gxz:
-            
-            stddev = numpy.append(stddev, self._gxz.std)
-            
-        if self._gyy:
-            
-            stddev = numpy.append(stddev, self._gyy.std)
-            
-        if self._gyz:
-            
-            stddev = numpy.append(stddev, self._gyz.std)
-            
-        if self._gzz:
-            
-            stddev = numpy.append(stddev, self._gzz.std)
-            
-        return numpy.diag(stddev**2)
+            if data:
+                
+                std_array = numpy.append(std_array, data.std)
+        
+        return numpy.diag(std_array**2)
     
     
-    def depth_weights(self, z0, power):
+    def depth_weights(self, z0, power, normalize=True):
         """
         Calculate and return the depth weight matrix as in Li and Oldenburg 
         (1996)
@@ -874,7 +681,9 @@ class PGrav(LinearSolver):
                 
                 l += 1
         
-        weight = weight/weight.max()
+        if normalize:
+            
+            weight = weight/weight.max()
         
         return weight
     
@@ -934,6 +743,217 @@ class PGrav(LinearSolver):
         self._equality_matrix = numpy.array(D)
         
         self._equality_values = numpy.array(p_ref)
+        
+        
+    def multimodal_prior(self, reg_params, prior_means=None, prior_covs=None, \
+              apriori_var=1, contam_times=10, param_weights=None):
+        
+        self._log.info("a priori variance: %g" % (apriori_var))
+        
+        total_start = time.clock()
+                
+        self._estimates = []
+        
+        if self._sensibility == None:
+        
+            self._sensibility = self._build_sensibility()
+        
+        ndata, nparams = self._sensibility.shape
+        
+        start = time.clock()
+        
+        Wp = numpy.zeros((nparams, nparams))
+        
+        ref_params = numpy.zeros(nparams)
+        
+        if prior_covs != None and prior_means != None:
+            
+            assert len(prior_covs) == len(prior_means), \
+                "Must give same number of prior covariances and means"
+            
+            for i in xrange(len(prior_covs)):
+                
+                cov_inv = numpy.linalg.inv(prior_covs[i])
+            
+                Wp = Wp + reg_params[i]*cov_inv
+                
+                ref_params = ref_params + \
+                             reg_params[i]*numpy.dot(cov_inv, prior_means[i])
+        
+        end = time.clock()
+        self._log.info("Build parameter weight matrix (%g s)" % (end - start))
+        
+        # Overdetermined
+        if nparams <= ndata:
+            
+            self._log.info("Solving overdetermined problem: %d d x %d p" % \
+                           (ndata, nparams))      
+              
+            # Data weight matrix
+            start = time.clock()
+            
+#            Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
+            Wd = numpy.identity(ndata)
+            
+            end = time.clock()
+            self._log.info("  Build data weight matrix (%g s)" % (end - start))          
+              
+            # The normal equations
+            start = time.clock()
+            
+            aux = numpy.dot(self._sensibility.T, Wd)
+            
+            N = numpy.dot(aux, self._sensibility) + Wp
+                          
+            end = time.clock()
+            self._log.info("  Build normal equations matrix (%g s)" \
+                           % (end - start))  
+            
+            # Solve the system for the parameters
+            start = time.clock()
+            
+            y = numpy.dot(aux, self._get_data_array()) + ref_params            
+            
+            estimate = numpy.linalg.solve(N, y)
+            
+            end = time.clock()
+            self._log.info("  Solve linear system (%g s)" % (end - start))
+            
+            self._estimates.append(estimate)
+            
+            start = time.clock()
+            
+            # Contaminate
+            for i in range(contam_times):
+                
+                contam_data = contaminate.gaussian(\
+                                          self._get_data_array(), \
+                                          stddev=math.sqrt(apriori_var), \
+                                          percent=False, return_stddev=False)
+                
+                y = numpy.dot(aux, contam_data) + ref_params
+                
+                estimate = numpy.linalg.solve(N, y)
+                
+                self._estimates.append(estimate)
+                
+            end = time.clock()
+            self._log.info("  Contaminate data %d times " % (contam_times) + \
+                           "with Gaussian noise (%g s)" % (end - start))
+                   
+#        # Underdetermined
+#        else:
+#            
+#            self._log.info("Solving underdetermined problem: %d d x %d p" % \
+#                           (ndata, nparams))            
+#            
+#            # Inverse of the data weight matrix
+#            start = time.clock()
+#            
+#            Wd_inv = self._get_data_cov()/apriori_var
+#            
+#            end = time.clock()
+#            self._log.info("  Inverse of data weight matrix (%g s)" \
+#                            % (end - start))
+#                        
+#            # The inverse of the parameter weight matrix
+#            start = time.clock()
+#            
+#            Wp_inv = numpy.linalg.inv(Wp)
+#            
+#            end = time.clock()
+#            self._log.info("  Inverse parameter weight matrix (%g s)" \
+#                            % (end - start))            
+#            
+#            # The normal equations
+#            start = time.clock()
+#            
+#            aux = numpy.dot(Wp_inv, self._sensibility.T)
+#            
+#            N = numpy.dot(self._sensibility, aux) + Wd_inv
+#            
+#            end = time.clock()
+#            self._log.info("  Build normal equations matrix (%g s)" \
+#                            % (end - start))
+#
+#            start = time.clock()
+#            
+#            y = self._get_data_array()
+#            
+#            if self._equality_matrix != None:
+#                
+#                tmp_p_eq = equality*numpy.dot(\
+#                            numpy.dot(Wp_inv, self._equality_matrix.T), \
+#                            self._equality_values)
+#                
+#                tmp_y_eq = numpy.dot(self._sensibility, tmp_p_eq)
+#                
+#                y = y + tmp_y_eq
+#                
+#            lamb = numpy.linalg.solve(N, y)
+#            
+#            end = time.clock()
+#            self._log.info("  Solve for Lagrange multipliers (%g s)" \
+#                           % (end - start))
+#            
+#            start = time.clock()
+#            
+#            estimate = numpy.dot(aux, lamb)
+#            
+#            if self._equality_matrix != None:
+#                
+#                estimate = estimate + tmp_p_eq
+#            
+#            self._estimates.append(estimate)
+#            
+#            end = time.clock()
+#            self._log.info("  Calculate the estimate (%g s)" \
+#                           % (end - start))
+#            
+#            start = time.clock()
+#            
+#            # Contaminate
+#            for i in range(contam_times):
+#                
+#                contam_data = contaminate.gaussian( \
+#                                          self._get_data_array(), \
+#                                          stddev=math.sqrt(apriori_var), \
+#                                          percent=False, return_stddev=False)
+#                
+#                y = contam_data
+#            
+#                if self._equality_matrix != None:
+#                    
+#                    y = y + tmp_y_eq
+#                
+#                lamb = numpy.linalg.solve(N, y)
+#                    
+#                estimate = numpy.dot(aux, lamb)
+#            
+#                if self._equality_matrix != None:
+#                
+#                    estimate = estimate + tmp_p_eq
+#                
+#                self._estimates.append(estimate)
+#                
+#            end = time.clock()
+#            self._log.info("  Contaminate data %d times " % (contam_times) + \
+#                           "with Gaussian noise (%g s)" % (end - start))
+                               
+        residuals = self._get_data_array() - numpy.dot(self._sensibility, \
+                                                       self.mean)
+        
+        rms = numpy.dot(residuals.T, residuals)
+                
+        self._log.info("RMS = %g" % (rms))
+            
+        total_end = time.clock()
+        self._log.info("Total time: %g s" % (total_end - total_start))
+        
+        
+        
+        
+        
                             
             
     def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):

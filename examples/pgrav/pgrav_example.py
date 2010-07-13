@@ -13,7 +13,7 @@ from fatiando.utils import contaminate
 
 def main():
     
-    prisma = Prism(dens=1000, x1=400, x2=600, y1=200, y2=800, z1=100, z2=400)
+    prisma = Prism(dens=1000, x1=400, x2=600, y1=400, y2=600, z1=200, z2=400)
     
     x = numpy.arange(-500, 1550, 100, 'f')
     y = numpy.arange(-500, 1550, 100, 'f')
@@ -83,14 +83,23 @@ def main():
     #pylab.contourf(Y, X, yzdata.togrid(*X.shape), 30)
     #pylab.colorbar()
     
-    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, \
-       nx=10, ny=10, nz=10, \
+    solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=500, \
+       nx=10, ny=10, nz=5, \
        gzz=zzdata, gxy=xydata, gxz=xzdata, gxx=xxdata, gyy=yydata, gyz=yzdata)
     
-    Wp = solver.depth_weights(z0=150, power=4)
-        
-    solver.solve(damping=0, smoothness=10**(-2), curvature=0, equality=0, \
-                 param_weights=Wp, apriori_var=stddev**2, contam_times=10)
+    Wp = solver.depth_weights(z0=150, power=4, normalize=True)
+#        
+#    solver.solve(damping=0, smoothness=10**(-2), curvature=0, equality=0, \
+#                 param_weights=Wp, apriori_var=stddev**2, contam_times=10)
+
+    Wp_inv = numpy.linalg.inv(Wp)
+    prior_means = [numpy.zeros(500), 1000*numpy.ones(500)]
+    prior_covs = [0.0000000000000001*numpy.dot(numpy.identity(500), Wp_inv), \
+                  (30**2)*numpy.dot(numpy.identity(500), Wp_inv)]
+
+    solver.multimodal_prior(reg_params=[1*10**(-18), 10**(-16)], prior_means=prior_means, \
+                            prior_covs=prior_covs, apriori_var=stddev**2, \
+                            contam_times=5, param_weights=None)
 
     solver.plot_residuals()
     solver.plot_adjustment(X.shape)
