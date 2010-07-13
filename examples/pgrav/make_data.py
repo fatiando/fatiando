@@ -13,7 +13,7 @@ y = numpy.arange(-500, 1550, 100, 'f')
 X, Y = pylab.meshgrid(x, y)
 
 
-prisma = Prism(dens=1000, x1=400, x2=600, y1=400, y2=600, z1=200, z2=400)
+prisma = Prism(dens=1000, x1=200, x2=800, y1=400, y2=600, z1=600, z2=800)
 
 stddev = 0.05
 

@@ -269,12 +269,14 @@ class PGrav(LinearSolver):
         return numpy.diag(std_array**2)
     
     
-    def depth_weights(self, z0, power, normalize=True):
+    def depth_weights(self, w0, z0, power, normalize=True):
         """
         Calculate and return the depth weight matrix as in Li and Oldenburg 
         (1996)
         
         Parameters:
+        
+            w0: scale factor
         
             z0: reference height
             
@@ -282,6 +284,7 @@ class PGrav(LinearSolver):
         """
         
         self._log.info("Building depth weights:")
+        self._log.info("  w0 = %g" % (w0))
         self._log.info("  z0 = %g" % (z0))
         self._log.info("  power = %g" % (power))
         self._log.info("  normalized = %s" % (str(normalize)))
@@ -299,9 +302,8 @@ class PGrav(LinearSolver):
             for j in xrange(self._ny*self._nx):
                                     
 #                weight[l][l] = 1./(math.sqrt(depth + 0.5*dz + z0)**power)
-                tmp1 = 1./((power - 1)*(depth + z0)**(power - 1))
-                tmp2 = 1./((power - 1)*(depth + dz + z0)**(power - 1))
-                weight[l][l] = math.sqrt((1./dz)*(tmp1 - tmp2))
+
+                weight[l][l] = w0/(math.sqrt(depth + 0.5*dz + z0)**power)
                 
                 l += 1
         

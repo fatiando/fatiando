@@ -31,18 +31,21 @@ shape = (21,21)
 
 stddev = 0.05
     
-solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=500, \
-               nx=10, ny=10, nz=5, \
+solver = PGrav(x1=0, x2=1000, y1=0, y2=1000, z1=200, z2=1200, \
+               nx=5, ny=5, nz=5, \
                gzz=zzdata, gxy=xydata, gxz=xzdata, \
                gxx=xxdata, gyy=yydata, gyz=yzdata)
 
-Wp = solver.depth_weights(z0=300, power=3, normalize=True)
+Wp = solver.depth_weights(w0=3.87616, \
+z0=-182.981, \
+power=1.21991, \
+                          normalize=True)
 
-solver.solve(damping=0, smoothness=10**(-5), curvature=0, equality=0, \
+solver.solve(damping=10**(-5), smoothness=10**(-5), curvature=0, equality=0, \
          param_weights=Wp, apriori_var=stddev**2, contam_times=10)
 
 solver.plot_residuals()
-solver.plot_adjustment(shape)
+#solver.plot_adjustment(shape)
 pylab.show()
 
 solver.plot_std3d()
