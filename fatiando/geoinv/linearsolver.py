@@ -517,7 +517,7 @@ class LinearSolver():
         
     
     
-    def sharpen(self, sharpness=1, damping=0, initial_estimate=None, \
+    def sharpen(self, residual=1, sharpness=1, damping=0, initial_estimate=None, \
         param_weights=None, beta=10**(-7), apriori_var=1, contam_times=10, \
         max_it=100, max_marq_it=10, marq_start=1, marq_step=10):
         """
@@ -671,7 +671,7 @@ class LinearSolver():
                 
                 goal_tv += abs(deriv)
                 
-            goal = rms + sharpness*goal_tv
+            goal = residual*rms + sharpness*goal_tv
             
             # Part due to Tikhonov 0 order (damping)
             if damping:        
@@ -728,7 +728,7 @@ class LinearSolver():
                 
                 hessian_tv = numpy.dot(\
                         numpy.dot(self._first_deriv.T, \
-                                  sharpness*D + numpy.identity(nderivs)), \
+                                  sharpness*D), \
                         self._first_deriv)
                     
                 if param_weights != None:
@@ -737,9 +737,9 @@ class LinearSolver():
                     
                     hessian_tv = numpy.dot(param_weights, hessian_tv)
                                     
-                grad = -2*numpy.dot(aux_AT_Wd, misfit) + grad_tv
+                grad = -residual*2*numpy.dot(aux_AT_Wd, misfit) + grad_tv
                 
-                hessian = hessian_res + hessian_tv                        
+                hessian = residual*hessian_res + hessian_tv                        
                 
                 # Add the damping part of the gradient
                 if damping:
@@ -792,7 +792,7 @@ class LinearSolver():
                         
                         goal_tv += abs(deriv)
                         
-                    goal = rms + sharpness*goal_tv
+                    goal = residual*rms + sharpness*goal_tv
                     
                     # Part due to Tikhonov 0 order (damping)
                     if damping:
