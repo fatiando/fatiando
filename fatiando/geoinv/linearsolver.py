@@ -544,6 +544,9 @@ class LinearSolver():
             
             param_weights: if you want to specify a parameter weight matrix. 
                 This matrix will multiply the parameters in the regularizations
+                
+            beta: abs(R*p) (TV goal function) is substituted by a differential
+                 form: sqrt((R*p)**2 + beta). Should be a small positive float
             
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate

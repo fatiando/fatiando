@@ -51,8 +51,15 @@ Depends(glqmod, os.path.join(c_path, 'glq.h'))
 
 Clean(os.path.curdir,os.path.join(math_outdir,'glq.py'))
 
+specialmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_special'),
+  source=[os.path.join(c_path, 'special.c'), os.path.join(wrap_path, 'special.i')])
+
+Depends(specialmod, os.path.join(c_path, 'special.h'))
+
+Clean(os.path.curdir,os.path.join(math_outdir,'special.py'))
+
 # Group the math mods
-mathmods = [lumod, glqmod]
+mathmods = [lumod, glqmod, specialmod]
 
 ################################################################################
 

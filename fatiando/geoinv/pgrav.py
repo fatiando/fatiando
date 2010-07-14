@@ -20,6 +20,16 @@ from fatiando.geoinv.lmsolver import LMSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
 from fatiando.utils import contaminate
 
+
+
+
+
+
+
+
+
+
+
 logger = logging.getLogger('pgrav')       
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
@@ -588,6 +598,14 @@ class PGrav(LinearSolver):
         """
         
         adjusted = numpy.dot(self._sensibility, self.mean)
+              
+        data_types = [(self._gz, prism_gravity.gz), \
+                      (self._gxx, prism_gravity.gxx), \
+                      (self._gxy, prism_gravity.gxy), \
+                      (self._gxz, prism_gravity.gxz), \
+                      (self._gyy, prism_gravity.gyy), \
+                      (self._gyz, prism_gravity.gyz), \
+                      (self._gzz, prism_gravity.gzz)]
         
         if self._gxx:
             

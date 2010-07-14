@@ -175,13 +175,18 @@ class LMSolver():
               contam_times=10, max_it=100, max_lm_it=10, lm_start=1, \
               lm_step=10):       
         """
-        Perform the inversion with Tikhonov regularization:
+        Perform the inversion with Tikhonov and Total Variation regularization:
         
             * 0th order: Ridge Regression (Damped);
             
             * 1st order: Smoothness;
             
             * 2nd order: Curvature;
+            
+            * TV: Sharpness
+            
+        Uses the Levenberg-Marquardt (LM) algorithm to optimize the goal 
+        (misfit) function.
             
         Parameters:
             
@@ -194,13 +199,20 @@ class LMSolver():
             curvature: 2st order regularization parameter (how much to minimize
                        the curvature)
                        
+            sharpness: the TV regularization parameter (how much to sharpen)
+            
+            equality: how much to enforce the equality constraints
+                       
             initial_estimate: an array with the initial estimate. If not given,
                               a zero array will be used. 
-            
+                              
             apriori_var: the a-priori variance factor. Assumed variance of the
                          data. This will be the variance used to contaminate
                          the data.
-                         
+                
+            beta: abs(R*p) (TV goal function) is substituted by a differential
+                 form: sqrt((R*p)**2 + beta). Should be a small positive float
+                                     
             contam_times: how many times to contaminate the data and run the 
                           inversion.
                                                     
@@ -233,7 +245,7 @@ class LMSolver():
         # loop is updating prev (previous estimate)
         if initial_estimate == None:
             
-            self._log.info("Starting estimate with null vector")
+            self._log.info("Starting estimate with (almost) null vector")
             
             next = (10**(-10))*numpy.ones(self._nparams)
             

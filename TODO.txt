@@ -3,6 +3,9 @@ General
     * Make example wikis
     * Make tutorial for subclassing LinearSolver
     * Pickle *Solvers so that I can dump and reload them
+    * Implement Erf and Erfc in special.c
+    * Module doc in geometry
+    * Module doc in special
 
 
 LinearSolver
