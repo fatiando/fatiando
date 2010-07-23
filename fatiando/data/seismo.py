@@ -349,9 +349,9 @@ class Seismogram(GeoData):
         pylab.ylim(times.max(), 0)
 
 
-class CartTravelTime(GeoData):
+class Cart2DTravelTime(GeoData):
     """
-    Loads, holds and simulates Cartesian travel time data. 
+    Loads, holds and simulates Cartesian 2D travel time data. 
     """
     
     def __init__(self):
@@ -362,7 +362,7 @@ class CartTravelTime(GeoData):
         # standard deviation
         self._data = None
                 
-        self._log = logging.getLogger('seismodata.CartTravelTime')
+        self._log = logging.getLogger('seismodata.Cart2DTravelTime')
         
         
     def __len__(self):

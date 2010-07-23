@@ -16,9 +16,7 @@ import pylab
 import numpy
 
 from fatiando.directmodels.seismo.simple import traveltime
-from fatiando.utils import contaminate
-from fatiando.math import lu
-from fatiando.geoinv.linearsolver import LinearSolver
+from fatiando.geoinv.gradientsolver import GradientSolver
 import fatiando
 
 
@@ -27,14 +25,14 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
 
 
-class SimpleTom(LinearSolver):
+class SimpleTom(GradientSolver):
     """
     Solver for the inverse problem of a simple Cartesian tomography with no
-    refraction or reflection.
+    refraction or reflection. (Like X-ray tomography)
     
     Parameters:
     
-        - traveltimedata: an instance of CartTravelTime found in 
+        - traveltimedata: an instance of Cart2DTravelTime found in 
                           fatiando.data.seismo with the travel time data to
                           invert
                            
@@ -53,14 +51,19 @@ class SimpleTom(LinearSolver):
         Ex:
             mylog = logging.getLogger('simpletom')
             mylog.addHandler(myhandler)
+            
+        Another option is to use the default configuration by calling
+        logging.basicConfig() inside your script.
     """
     
     
     def __init__(self, traveltimedata, x1, x2, y1, y2, nx, ny):
         
-        LinearSolver.__init__(self)
+        GradientSolver.__init__(self)
         
+        # Data parameters
         self._data = traveltimedata
+        self._ndata = len(traveltimedata)    
         
         # Model space parameters
         self._mod_x1 = x1
@@ -69,6 +72,10 @@ class SimpleTom(LinearSolver):
         self._mod_y2 = y2        
         self._nx = nx
         self._ny = ny
+        self._nparams = nx*ny
+        
+        # Inversion parameters
+        self._jacobian = None
         
         # The logger for this class
         self._log = logging.getLogger('simpletom')
@@ -77,22 +84,21 @@ class SimpleTom(LinearSolver):
                        " %d cells in y = %d parameters" % (ny, nx*ny))
                   
 
-    def _build_sensibility(self):
+    def _build_jacobian(self, estimate):
         """
-        Make the sensibility matrix.
+        Make the Jacobian matrix of the function of the parameters.
         """
         
-        start = time.clock()
-        
+        if self._jacobian != None:
+            
+            return self._jacobian
+                
         dx = float(self._mod_x2 - self._mod_x1)/ self._nx
         dy = float(self._mod_y2 - self._mod_y1)/ self._ny
-                        
-        nlines = len(self._data)
-        ncolumns = self._nx*self._ny
-                
-        sensibility = numpy.zeros((nlines, ncolumns))
+                                     
+        jacobian = numpy.zeros((self._ndata, self._nparams))
         
-        for l in range(nlines):
+        for l in xrange(self._ndata):
                 
             p = 0
             
@@ -104,17 +110,29 @@ class SimpleTom(LinearSolver):
                     
                     y2 = y1 + dy
                     
-                    sensibility[l][p] = traveltime(1, x1, y1, x2, y2, \
+                    jacobian[l][p] = traveltime(1, x1, y1, x2, y2, \
                             self._data.source(l).x, self._data.source(l).y, \
                             self._data.receiver(l).x, self._data.receiver(l).y)
                     
                     p += 1
-                    
-        end = time.clock()
-        self._log.info("Build sensibility matrix: %d x %d  (%g s)" \
-                      % (nlines, ncolumns, end - start))
         
-        return sensibility
+        self._jacobian = jacobian
+        
+        return jacobian
+    
+    
+    def _calc_adjusted_data(self, estimate):
+        """
+        Calculate the adjusted data vector based on the current estimate
+        """
+        
+        assert self._jacobian != None, "Tried to calculate adjusted data" + \
+            " before calculating the Jacobian matrix (try running the " + \
+            "inversion before doing this)."
+        
+        adjusted = numpy.dot(self._jacobian, estimate)
+        
+        return adjusted
         
         
     def _build_first_deriv(self):
@@ -122,14 +140,10 @@ class SimpleTom(LinearSolver):
         Compute the first derivative matrix of the model parameters.
         """
         
-        start = time.clock()
-        
         # The number of derivatives there will be
         deriv_num = (self._nx - 1)*self._ny + (self._ny - 1)*self._nx
-        
-        param_num = self._nx*self._ny
-        
-        first_deriv = numpy.zeros((deriv_num, param_num))
+                
+        first_deriv = numpy.zeros((deriv_num, self._nparams))
         
         deriv_i = 0
         
@@ -162,11 +176,7 @@ class SimpleTom(LinearSolver):
                 deriv_i += 1
                 
                 param_i += 1        
-        
-        end = time.clock()
-        self._log.info("Building first derivative matrix: %d x %d  (%g s)" \
-                      % (deriv_num, param_num, end - start))
-        
+                
         return first_deriv
         
         
@@ -187,90 +197,16 @@ class SimpleTom(LinearSolver):
         
         return self._data.cov
             
-                       
-    def _calc_distances(self, points, lines):
+        
+    def plot_mean(self, title='Inversion Result', vmin=None, vmax=None, \
+                  cmap=pylab.cm.Greys):
         """
-        Calculate the distance from each model element to the closest point or 
-        line and put the values in the compact_weights. 
-        Also assign the target value for each parameter based on the closest 
-        point or line.
-        """  
-        
-        start = time.clock()
-        
-        param_num = self._nx*self._ny
-        
-        dx = float(self._mod_x2 - self._mod_x1)/ self._nx
-        dy = float(self._mod_y2 - self._mod_y1)/ self._ny
-        
-        distances = numpy.zeros(param_num)
-        
-        target_values = numpy.zeros(param_num)
-                
-        # Find the points with the smallest distance to each cell and set that
-        # distance as the weight for the parameter
-        for point, value in points:
-            
-            pnum = 0
-            
-            for y1 in numpy.arange(self._mod_y1, self._mod_y2, dy):
-                
-                for x1 in numpy.arange(self._mod_x1, self._mod_x2, dx):
-                                        
-                    deltax = (point[0] - x1 + 0.5*dx)
-                    deltay = (point[1] - y1 + 0.5*dy)
-                    
-                    dist_sqr = math.sqrt(deltax**2 + deltay**2)
-                    
-                    if dist_sqr < distances[pnum] or distances[pnum] == 0:
-                        
-                        distances[pnum] = dist_sqr
-                        
-                        target_values[pnum] = value                                    
-                                                
-                    pnum += 1
-        
-        end = time.clock()        
-        self._log.info("Calculate distances to points and lines: " + \
-                "%d points  %d lines  (%g s)" % (len(points), len(lines), \
-                                                 end - start))      
-                
-        return [distances, target_values]
-    
-        
-    def _build_compact_weights(self, distances, estimate):
-        """
-        Calculate the weights for the compactness and MMI regularizations.
-        'estimate' is the current estimate for the parameters.
-        """    
-        
-        eps = 0.000000001
-        
-        param_num = self._nx*self._ny
-                
-        compact_weights = numpy.zeros((param_num, param_num))
-                        
-        # Divide the distance by the current estimate
-        for i in range(param_num):
-            
-            compact_weights[i][i] = (distances[i]**2)/ \
-                                    (abs(estimate[i])**2 + eps)
-                
-        return compact_weights
-            
-        
-    def plot_mean(self, title='Inversion Result', points=[], lines=[], \
-                  vmin=None, vmax=None, cmap=pylab.cm.Greys):
-        """
-        Plot the mean of all the estimates plus the points and lines of the 
-        skeleton used in the compact inversion (optional)  
+        Plot the mean of all the estimates.
         
         Parameters:
             
             - title: title of the figure
-            
-            - points, lines: points and lines used in the compact inversion
-           
+                       
             - vmin, vmax: mininum and maximum values in the color scale (if not
                           given, the max and min of the result will be used)
             
@@ -305,22 +241,12 @@ class SimpleTom(LinearSolver):
         cb = pylab.colorbar(orientation='vertical')
         cb.set_label("Slowness")
         
-        for point, value in points: 
-            
-            pylab.plot(point[0], point[1], 'o')
-            
-        for point1, point2, value in lines:
-            
-            xs = [point1[0], point2[0]]
-            ys = [point1[1], point2[1]]
-            
-            pylab.plot(xs, ys, '-')  
-        
         pylab.xlim(self._mod_x1, self._mod_x2)
         pylab.ylim(self._mod_y1, self._mod_y2)
                         
     
-    def plot_std(self, title='Result Standard Deviation', cmap=pylab.cm.Greys):
+    def plot_stddev(self, title='Result Standard Deviation', \
+                    cmap=pylab.cm.Greys):
         """
         Plot the result standard deviation calculated from all the estimates. 
         
@@ -341,7 +267,7 @@ class SimpleTom(LinearSolver):
         
         gridx, gridy = pylab.meshgrid(xvalues, yvalues)        
         
-        stddev = numpy.resize(self.std, (self._ny, self._nx))
+        stddev = numpy.resize(self.stddev, (self._ny, self._nx))
         
         pylab.figure()
         pylab.axis('scaled')
@@ -354,8 +280,3 @@ class SimpleTom(LinearSolver):
                 
         pylab.xlim(self._mod_x1, self._mod_x2)
         pylab.ylim(self._mod_y1, self._mod_y2)
-                 
-            
-
-        
-        
