@@ -10,14 +10,14 @@ from fatiando.data.seismo import CartTravelTime
             
 ttdata = CartTravelTime()
 
-#model = ttdata.synthetic_image('square-model.jpg', src_n=20, rec_n=10, \
-#                               dx=1, dy=1, vmin=1, vmax=5, stddev=0.005)
-#ttdata.dump('travel-time-data.txt')
-ttdata.load('travel-time-data.txt')
-#ttdata.plot_rays(dx=1, dy=1, title='Ray paths')
-#ttdata.plot_synthetic(model, dx=1, dy=1, title='Synthetic model', \
-#                      cmap=pylab.cm.Greys)
-#ttdata.plot_traveltimes()
+model = ttdata.synthetic_image('square-model.jpg', src_n=20, rec_n=10, \
+                               dx=1, dy=1, vmin=1, vmax=5, stddev=0.005)
+ttdata.dump('travel-time-data.txt')
+#ttdata.load('travel-time-data.txt')
+ttdata.plot_rays(dx=1, dy=1, title='Ray paths')
+ttdata.plot_synthetic(model, dx=1, dy=1, title='Synthetic model', \
+                      cmap=pylab.cm.Greys)
+ttdata.plot_traveltimes()
 
 stom = SimpleTom(ttdata, x1=0, x2=30, y1=0, y2=30, nx=30, ny=30)
 

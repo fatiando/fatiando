@@ -704,7 +704,7 @@ class LinearSolver():
             self._log.info("Starting TV goal function: %g" % (goal_tv))
             self._log.info("Starting LM parameter: %g" % (marq_param))
             self._log.info("LM step size: %g" % (marq_step))
-                                    
+
             for it in range(1, max_it + 1):
                                     
                 inner_start = time.clock()
@@ -731,7 +731,7 @@ class LinearSolver():
                 
                 hessian_tv = numpy.dot(\
                         numpy.dot(self._first_deriv.T, \
-                                  sharpness*D), \
+                                  sharpness*D + numpy.identity(nderivs)), \
                         self._first_deriv)
                     
                 if param_weights != None:
