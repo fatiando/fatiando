@@ -287,8 +287,17 @@ class GradientSolver():
     
     def _build_tv_grad_hessian(self, estimate, sharpness, beta, prior_weights):
         """
-        Return the gradient and Hessian of the Total Variation prior.
+        Return the gradient and Hessian of the Total Variation regularization.
         """
+        
+        if prior_weights != None:
+            
+            params = numpy.dot(numpy.dot(prior_weights.T, prior_weights), \
+                               estimate)
+        
+        else:
+            
+            params = estimate
         
         if self._first_deriv_matrix == None:
             
@@ -302,7 +311,7 @@ class GradientSolver():
                         
         for l in range(nderivs):
             
-            deriv = numpy.dot(self._first_deriv_matrix[l], estimate)
+            deriv = numpy.dot(self._first_deriv_matrix[l], params)
             
             sqrt = math.sqrt(deriv**2 + beta)
             
@@ -317,6 +326,39 @@ class GradientSolver():
                                       self._first_deriv_matrix)
     
         return grad, hessian
+    
+    
+    def _build_tk_grad_hessian(self, estimate, tk_weights, prior_mean):
+        """
+        Return the gradient and Hessian of the Tikhonov regularization.
+        """
+    
+        if prior_mean != None:
+            
+            grad = numpy.dot(tk_weights, estimate - prior_mean)
+            
+        else:
+            
+            grad = numpy.dot(tk_weights, estimate)
+            
+        hessian = tk_weights
+            
+        return grad, hessian
+    
+    
+    def _build_eq_grad_hessian(self, estimate, equality):
+        """
+        Return the gradient and Hessian of the Tikhonov regularization.
+        """
+        
+        hessian = equality*numpy.dot(self._equality_matrix.T, \
+                                     self._equality_matrix)
+        
+        grad = equality*(numpy.dot(hessian, estimate) - \
+                         numpy.dot(self._equality_matrix.T, \
+                                   self._equality_values))
+    
+        return grad, hessian    
     
     
     def _linear_overdetermined(self, tk_weights, prior_mean, equality, \
@@ -577,12 +619,21 @@ class GradientSolver():
             real numbers and >= 0
         """
         
+        # INITIAL ASSERTIONS
+        ########################################################################        
         # Regularization parameters must be >=0 by definition
         assert damping >= 0 and smoothness >= 0 and curvature >= 0 and \
             equality >= 0, \
             "All regularization parameters (including equality) must be" + \
             "real numbers and >= 0"
-                
+            
+        assert contam_times >= 0, "contam_times must be >= 0"
+        
+        assert data_variance >= 0, "data_variance must be >= 0"
+        ########################################################################
+        
+        # VERBOSE
+        ########################################################################                
         self._log.info("LINEAR INVERSION:")
         self._log.info("  damping    (Tikhonov order 0) = %g" % (damping))
         self._log.info("  smoothness (Tikhonov order 1) = %g" % (smoothness))
@@ -603,6 +654,10 @@ class GradientSolver():
         else:
             
             self._log.info("  problem type                  = UNDERDETERMINED")
+        ########################################################################
+        
+        # INITIALIZATIONS AND MORE ASSERTIONS
+        ########################################################################
             
         # Wipe a clean slate before starting
         self.clear()
@@ -628,7 +683,14 @@ class GradientSolver():
         if prior_mean != None:
             
             assert tk_weights != None, "A prior mean value only makes sense" + \
-                " when using Tikhonov inversion (set one or more of: " + \
+                " when using Tikhonov regularization (set one or more of: " + \
+                "damping, smoothness, or curvature; to non-zero.)"
+            
+        if prior_weights != None:
+            
+            assert tk_weights != None, "A prior weights value only makes" + \
+                " sense when using Tikhonov regularization " + \
+                "(set one or more of: " + \
                 "damping, smoothness, or curvature; to non-zero.)"
                         
         if equality:
@@ -636,7 +698,10 @@ class GradientSolver():
             assert self._equality_matrix != None and \
                    self._equality_values != None, \
                 "Tried to use equality constraints without setting any."
-                        
+        ########################################################################
+                
+        # REAL PROBLEM SOLVING
+        #######################################################################
         if self._ndata >= self._nparams:
                     
             self._linear_overdetermined(tk_weights, prior_mean, equality, \
@@ -651,6 +716,8 @@ class GradientSolver():
             self._linear_underdetermined(tk_weights, prior_mean, equality, \
                                          data_variance, contam_times)
                 
+        #######################################################################
+        
         self._log.info("  RMS = %g" % (self.rms))
             
         end = time.time()
@@ -724,10 +791,113 @@ class GradientSolver():
         IMPORTANT: ALL regularization parameters (including equality) must be
             real numbers and >= 0
         """
-        pass
         
+        # INITIAL ASSERTIONS
+        ########################################################################
+        # Regularization parameters must be >=0 by definition
+        assert damping >= 0 and smoothness >= 0 and curvature >= 0 and \
+            sharpness >= 0 and equality >= 0, \
+            "All regularization parameters (including equality) must be" + \
+            "real numbers and >= 0"
+            
+        assert contam_times >= 0, "contam_times must be >= 0"
         
+        assert data_variance >= 0, "data_variance must be >= 0"
+        ########################################################################
         
+        # VERBOSE
+        ########################################################################
+        self._log.info("LEVEMBERG-MARQUARDT INVERSION:")
+        self._log.info("  damping    (Tikhonov order 0) = %g" % (damping))
+        self._log.info("  smoothness (Tikhonov order 1) = %g" % (smoothness))
+        self._log.info("  curvature  (Tikhonov order 2) = %g" % (curvature))
+        self._log.info("  sharpness  (Total Variation)  = %g" % (sharpness))
+        self._log.info("  equality constraints          = %g" % (equality))
+        self._log.info("  a priori data variance        = %g" % (data_variance))
+        self._log.info("  a priori data stddev          = %g" \
+                       % (math.sqrt(data_variance)))
+        self._log.info("  use prior mean of parameters  = %s" \
+                       % (prior_mean != None))
+        self._log.info("  use prior parameters weights  = %s" \
+                       % (prior_weights != None))
+        ########################################################################
+        
+        # INITIALIZATIONS AND MORE ASSERTIONS
+        ########################################################################
+        
+        if initial == None:
+            
+            initial = 10**(-10)*numpy.ones(self._nparams)
+            
+            self._log.info("  initial estimate              = %g" \
+                           % (initial[0]))
+            
+        else:
+            
+            assert len(initial) == self._nparams, \
+                "Not enough parameters in given initial estimate." + \
+                "Has to be %d." % (self._nparams)
+        
+            self._log.info("  initial estimate              = user defined")               
+            
+        # Keep track of the time it will take to run the whole inversion
+        start = time.time()
+        
+        # Wipe a clean slate before starting
+        self.clear()
+                               
+        if damping or smoothness or curvature:
+            
+            start_tk = time.time()
+            
+            tk_weights = self._build_tikhonov_weights(damping, smoothness, \
+                                                      curvature, prior_weights)
+            
+            end_tk = time.time()
+            
+            self._log.info("  Build Tikhonov parameter weights (%g s)" \
+                           % (end_tk - start_tk))
+            
+        else:
+            
+            tk_weights = None
+            
+        if prior_mean != None:
+            
+            assert tk_weights != None, "A prior mean value only makes sense" + \
+                " when using Tikhonov regularization (set one or more of: " + \
+                "damping, smoothness, or curvature; to non-zero.)"
+            
+        if prior_weights != None:
+            
+            assert tk_weights != None, "A prior weights value only makes" + \
+                " sense when using Tikhonov regularization " + \
+                "(set one or more of: " + \
+                "damping, smoothness, or curvature; to non-zero.)"
+                        
+        if equality:
+
+            assert self._equality_matrix != None and \
+                   self._equality_values != None, \
+                "Tried to use equality constraints without setting any."
+                
+        ########################################################################
+                    
+        # REAL PROBLEM SOLVING
+        #######################################################################
+        
+                
+        ########################################################################
+        
+                
+        self._log.info("  RMS = %g" % (self.rms))
+            
+        end = time.time()
+        
+        self._log.info("  Total time of inversion: %g s" % (end - start))
+            
+            
+            
             
             
     def plot_residuals(self, title="Residuals", bins=0):
