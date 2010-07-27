@@ -8,9 +8,7 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
 
 
-import time
 import logging
-import math
 
 import pylab
 import numpy

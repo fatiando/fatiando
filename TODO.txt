@@ -30,6 +30,7 @@ PGrav
     * Separate derivatives in each direction
     * Build sensibility concurrently
     * Clean up the code (remove multimodal method: didn't work)
+    * Check if implementing cross-derivatives is better
     
     Done:
     * Automate configuration of the 3D plot
@@ -37,6 +38,7 @@ PGrav
 
 SimpleTom
     * make integration test output pngs instead of using pylab.show()
+    * missing cross-derivative causes tendency
     
 WaveFD
     * Make WaveFD1D output Seismogram instances

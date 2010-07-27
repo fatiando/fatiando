@@ -15,9 +15,9 @@ ttdata.load('travel-time-data.txt')
 solver = SimpleTom(ttdata, x1=0, x2=30, y1=0, y2=30, nx=30, ny=30)
 
 # Solve the linear problem with Tikhonov regularization
-solver.solve_linear(damping=10**(-0), \
+solver.solve_linear(damping=10**(-2), \
                     smoothness=0, \
-                    curvature=0, \
+                    curvature=10**(-1), \
                     prior_mean=None, \
                     prior_weights=None, \
                     data_variance=ttdata.cov[0][0], \

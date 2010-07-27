@@ -397,6 +397,7 @@ class Cart2DTravelTime(GeoData):
         self._log.info("Loaded %d travel times from file '%s'" \
                        % (len(self._data[4]), fname))
         
+        
     def dump(self, fname):
         """
         Dump the data to file 'fname' in the format:
@@ -470,7 +471,7 @@ class Cart2DTravelTime(GeoData):
     cov = property(_get_cov)    
     
     
-    def synthetic_image(self, image_file, src_n, rec_n, type='circ', \
+    def synthetic_image(self, image_file, src_n, rec_n, type='circle', \
                         dx=1, dy=1, vmin=1, vmax=5, stddev=0.01):
         """
         Create a synthetic model from an image file. Converts the image to grey
@@ -486,7 +487,7 @@ class Cart2DTravelTime(GeoData):
             - rec_n: number of receivers
             
             - type: type of array the receiver will be set to. Can be
-                    'circ' = random circular array around center of the image
+                    'circle' = random circular array around center of the image
                     'xray' = x-ray array with source and receivers rotating
                              around the center of the figure
                     'rand' = both receivers and sources are randomly distributed
@@ -501,6 +502,12 @@ class Cart2DTravelTime(GeoData):
         Returns a numpy 2D array with the synthetic image model loaded. Pass it
         along to print_synthetic if you want to visualize it.            
         """
+        
+        assert type in ['circle', 'xray', 'rand'], \
+            "Invalid source and receiver array type."
+            
+        assert src_n > 0 and rec_n > 0, \
+            "Need more than 0 sources and receivers."
         
         self._log.info("Loading model from image file '%s'" % (image_file))
         
@@ -530,19 +537,30 @@ class Cart2DTravelTime(GeoData):
         self._log.info("Image model size: %d x %d = %d cells" \
                       % (sizex, sizey, sizex*sizey))
         
-        if type == 'circ':
+        if type == 'circle':
             
             srcs_x, srcs_y, recs_x, recs_y = self._circ_src_rec(src_n, rec_n, \
                                                                 sizex, sizey, \
                                                                 dx, dy)
+            
+            self._log.info("Using random sources and circular array of " + \
+                           "receivers")
+                       
         elif type == 'xray':
-            pass
-        
+            
+            srcs_x, srcs_y, recs_x, recs_y = self._xray_src_rec(src_n, rec_n, \
+                                                                sizex, sizey, \
+                                                                dx, dy)
+            
+            self._log.info("Using X-ray array of sources and receivers")
+                                
         else:
             
             srcs_x, srcs_y, recs_x, recs_y = self._rand_src_rec(src_n, rec_n, \
                                                                 sizex, sizey, \
                                                                 dx, dy)
+            
+            self._log.info("Using random array of sources and receivers")
         
         self._log.info("Generated %d sources and %d receivers" % (src_n, rec_n))
                 
@@ -625,6 +643,51 @@ class Cart2DTravelTime(GeoData):
         
         return [srcs_x, srcs_y, recs_x, recs_y]
         
+        
+    def _xray_src_rec(self, src_n, rec_n, sizex, sizey, dx, dy):
+        """
+        Make some sources randomly distributed in the model region and receivers
+        normally distributed in a circle.
+        """
+        
+        minsize = min([sizex*dx, sizey*dy])
+        
+        srcs_x = []
+        srcs_y = []        
+        recs_x = []
+        recs_y = []
+        
+        # Generate random sources and receivers
+        rec_range = 45.*numpy.pi/180.
+        rec_step = rec_range/(rec_n - 1)
+        
+        radius = 1*minsize
+        angle_step = 2*numpy.pi/(src_n)
+        # Not starting in zero to avoid having horizontal or vertical rays
+        # They cause a problem with the direct model (Ray intercepting cell in
+        # more than 2 points error)
+        src_angles = numpy.arange(10**(-5), 2*numpy.pi, angle_step)
+        
+        for src_angle in src_angles:
+            
+            src_x = 0.5*sizex*dx + radius*numpy.cos(src_angle)
+            src_y = 0.5*sizey*dy + radius*numpy.sin(src_angle)
+                
+            start = src_angle + numpy.pi - 0.5*rec_range
+            end = src_angle + numpy.pi + 0.5*rec_range
+                        
+            for rec_angle in numpy.arange(start, end + rec_step, rec_step):
+                                
+                rec_x = 0.5*sizex*dx + radius*numpy.cos(rec_angle)
+                rec_y = 0.5*sizey*dy + radius*numpy.sin(rec_angle)                
+                                
+                recs_x.append(rec_x)
+                recs_y.append(rec_y)
+                srcs_x.append(src_x)
+                srcs_y.append(src_y)
+                        
+        return [srcs_x, srcs_y, recs_x, recs_y]
+    
 
     def _shoot_rays(self, model, dx, dy, srcs_x, srcs_y, recs_x, recs_y, \
                     stddev=0.01):
@@ -674,7 +737,8 @@ class Cart2DTravelTime(GeoData):
     
             
     def plot_synthetic(self, model, dx=1, dy=1, title="Synthetic model", \
-                       cmap=pylab.cm.Greys):
+                       cmap=pylab.cm.Greys, plot_src_rec=True, \
+                       vmin=None, vmax=None):
         """
         Plot the synthetic model with the sources and receivers.
         
@@ -687,6 +751,11 @@ class Cart2DTravelTime(GeoData):
             - title: title of the figure
             
             - cmap: a pylab.cm color map object
+            
+            - plot_src_rec: if True, plot the source and receiver locations.
+            
+            - vmin, vmax: mininum and maximum values in the color scale (if not
+                          given, the max and min of the model will be used)
             
         Note: to view the image use pylab.show()
         """
@@ -702,20 +771,34 @@ class Cart2DTravelTime(GeoData):
         pylab.axis('scaled')
         pylab.title(title)
         
-        pylab.pcolor(gridx, gridy, model, cmap=cmap, \
-                     vmin=numpy.min(model), vmax=numpy.max(model))
+        if vmin != None and vmax != None:
+            
+            pylab.pcolor(gridx, gridy, model, cmap=cmap, \
+                         vmin=vmin, vmax=vmax)            
+            
+        else:
+            
+            pylab.pcolor(gridx, gridy, model, cmap=cmap, \
+                         vmin=numpy.min(model), vmax=numpy.max(model))
         
         cb = pylab.colorbar(orientation='vertical')
         cb.set_label("Slowness")
         
-        pylab.plot(self._data[0], self._data[1], 'r*', ms=9, label='Source')
-        
-        pylab.plot(self._data[2], self._data[3], 'b^', ms=7, label='Receiver')
-        
-        pylab.legend(numpoints=1, prop={'size':7})
+        if plot_src_rec:
+            
+            pylab.plot(self._data[0], self._data[1], 'r*', ms=9, label='Source')
+            
+            pylab.plot(self._data[2], self._data[3], 'b^', ms=7, label='Receiver')
+            
+            pylab.legend(numpoints=1, prop={'size':7})
                  
-        pylab.xlim(0, sizex*dx)
-        pylab.ylim(0, sizey*dy)   
+            pylab.xlim(-0.5*sizex*dx, 1.5*sizex*dx)
+            pylab.ylim(-0.5*sizey*dy, 1.5*sizey*dy)
+            
+        else:
+                 
+            pylab.xlim(0, sizex*dx)
+            pylab.ylim(0, sizey*dy)     
         
         
     def plot_traveltimes(self, title="Travel times", bins=0):
@@ -787,7 +870,7 @@ class Cart2DTravelTime(GeoData):
         for i in range(len(self._data[4])):
             
             pylab.plot([self._data[0][i], self._data[2][i]], \
-                       [self._data[1][i], self._data[3][i]], 'k-')     
+                       [self._data[1][i], self._data[3][i]], '-k')     
         
         pylab.plot(self._data[0], self._data[1], 'r*', ms=9, label='Source')
         
@@ -796,9 +879,9 @@ class Cart2DTravelTime(GeoData):
         pylab.legend(numpoints=1, prop={'size':7})
                  
         if model != None:
-        
-            pylab.xlim(0, sizex*dx)
-            pylab.ylim(0, sizey*dy)  
+                 
+            pylab.xlim(-0.5*sizex*dx, 1.5*sizex*dx)
+            pylab.ylim(-0.5*sizey*dy, 1.5*sizey*dy)   
         
         else:
             
