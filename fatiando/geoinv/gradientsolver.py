@@ -320,7 +320,7 @@ class GradientSolver():
     
     
     def _linear_overdetermined(self, tk_weights, prior_mean, equality, \
-                               adjustment, data_variance, contam_times):
+                               data_variance, contam_times):
         """
         Solves the linear overdetermined problem. See doc for solve_linear for
         details on the parameters.
@@ -402,7 +402,7 @@ class GradientSolver():
     
     
     def _linear_underdetermined(self, tk_weights, prior_mean, equality, \
-                                adjustment=1, data_variance=0, contam_times=0):
+                                data_variance, contam_times):
         """
         Solves the linear underdetermined problem. See doc for solve_linear for
         details on the parameters.
@@ -529,34 +529,60 @@ class GradientSolver():
         self._log.info("  Contaminate data %d times with " % (contam_times) + \
                        "Gaussian noise (%g s)" % (end - start))
         
-                        
+    
     def solve_linear(self, damping=0, smoothness=0, curvature=0, equality=0, \
-                     adjustment=1, prior_mean=None, prior_weights=None, \
-                     data_variance=1, contam_times=0):
+                     prior_mean=None, prior_weights=None, data_variance=1, \
+                     contam_times=0):
         """
         Solve the linear inverse problem with Tikhonov regularization.
         
+        The inversion will be run multiple times, each time contaminating the
+        data with a different Gaussian error realization. The many estimates 
+        obtained like this can be used to compute a mean value and a standard
+        deviation (see properties mean and stddev)
+        
         Parameters:
             
-            damping:
+            damping: Tikhonov order 0 regularization parameter (i.e. how much
+                     damping to impose)
         
-            smoothness:
+            smoothness: Tikhonov order 1 regularization parameter (i.e. how much
+                        smoothness to impose)
                    
-            curvature:
+            curvature: Tikhonov order 2 regularization parameter (i.e. how much
+                       [minimum] curvature to impose)
         
-            equality:
-        
-            adjustment:
+            equality: how much to impose the equality constraints
             
-            prior_mean:
+            prior_mean: a priori value of the parameters. Estimates will be as
+                        close to these values as the data permits. Must be a 1D
+                        array with a reference value for all the parameters
+                        
+            prior_weights: a priori value of the parameter covariance. (Actually
+                           should be the square root of the covariance matrix).
+                           Must be 2D array. Use this for, for example, 
+                           implementing depth weights in gravity inversion.
             
-            prior_weights:
+            data_variance: the a priori data variance factor. If all data have
+                           the same standard deviation, this value should be it
+                           squared. This is also the value that will be used to
+                           contaminate the data and re-run the inversion 
+                           multiple times to test stability.
             
-            data_variance:
+            contam_times: how many times to re-run the inversion with a 
+                          different error realization. Set to 0 to only run on 
+                          the original data set. 
             
-            contam_times:
+        IMPORTANT: ALL regularization parameters (including equality) must be
+            real numbers and >= 0
         """
         
+        # Regularization parameters must be >=0 by definition
+        assert damping >= 0 and smoothness >= 0 and curvature >= 0 and \
+            equality >= 0, \
+            "All regularization parameters (including equality) must be" + \
+            "real numbers and >= 0"
+                
         self._log.info("LINEAR INVERSION:")
         self._log.info("  damping    (Tikhonov order 0) = %g" % (damping))
         self._log.info("  smoothness (Tikhonov order 1) = %g" % (smoothness))
@@ -614,7 +640,7 @@ class GradientSolver():
         if self._ndata >= self._nparams:
                     
             self._linear_overdetermined(tk_weights, prior_mean, equality, \
-                                       adjustment, data_variance, contam_times)
+                                       data_variance, contam_times)
 
         else:
             
@@ -623,14 +649,85 @@ class GradientSolver():
                 "information (regularization or equality constraints)."
                     
             self._linear_underdetermined(tk_weights, prior_mean, equality, \
-                                         adjustment, data_variance, \
-                                         contam_times)
+                                         data_variance, contam_times)
                 
         self._log.info("  RMS = %g" % (self.rms))
             
         end = time.time()
         
         self._log.info("  Total time of inversion: %g s" % (end - start))
+        
+        
+    def solve_lm(self, damping=0, smoothness=0, curvature=0, sharpness=0, \
+                 equality=0, initial=None, prior_mean=None, \
+                 prior_weights=None, data_variance=1, contam_times=0, \
+                 lm_start=100, lm_step=10, it_p_step=20, max_it=100):
+        """
+        Solve the non-linear inverse problem with Tikhonov and Total Variation
+        regularization using the Levemberg-Marquardt algorithm.
+        
+        The inversion will be run multiple times, each time contaminating the
+        data with a different Gaussian error realization. The many estimates 
+        obtained like this can be used to compute a mean value and a standard
+        deviation (see properties mean and stddev)
+        
+        Parameters:
+            
+            damping: Tikhonov order 0 regularization parameter (i.e. how much
+                     damping to impose)
+        
+            smoothness: Tikhonov order 1 regularization parameter (i.e. how much
+                        smoothness to impose)
+                   
+            curvature: Tikhonov order 2 regularization parameter (i.e. how much
+                       [minimum] curvature to impose)
+                   
+            sharpness: Total Variation regularization parameter (i.e. how much
+                       sharpness to impose)
+        
+            equality: how much to impose the equality constraints
+            
+            initial: initial value of the parameter estimate to start the 
+                     iterative algorithm (this is not the same as the 
+                     prior_mean!)
+            
+            prior_mean: a priori value of the parameters. Estimates will be as
+                        close to these values as the data permits. Must be a 1D
+                        array with a reference value for all the parameters
+                        
+            prior_weights: a priori value of the parameter covariance. (Actually
+                           should be the square root of the covariance matrix).
+                           Must be 2D array. Use this for, for example, 
+                           implementing depth weights in gravity inversion.
+            
+            data_variance: the a priori data variance factor. If all data have
+                           the same standard deviation, this value should be it
+                           squared. This is also the value that will be used to
+                           contaminate the data and re-run the inversion 
+                           multiple times to test stability.
+            
+            contam_times: how many times to re-run the inversion with a 
+                          different error realization. Set to 0 to only run on 
+                          the original data set.
+                          
+            lm_start: starting Marquardt parameter (inverse of step size)
+            
+            lm_step: how much to decrease/increase the Marquardt parameter at 
+                     each successful/failed step
+            
+            it_p_step: how many iterations the LM algorithm is allowed to have
+                       at each step
+            
+            max_it: maximum iterations in the LM algorithm (to prevent infinite
+                    loops in case there is no convergence)
+            
+        IMPORTANT: ALL regularization parameters (including equality) must be
+            real numbers and >= 0
+        """
+        pass
+        
+        
+        
             
             
     def plot_residuals(self, title="Residuals", bins=0):

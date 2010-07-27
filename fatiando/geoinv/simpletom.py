@@ -3,7 +3,6 @@ SimpleTom:
     A simplified Cartesian tomography problem. Does not consider reflection or 
     refraction.
 """
-
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
 
