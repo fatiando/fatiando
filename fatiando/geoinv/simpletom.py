@@ -123,9 +123,9 @@ class SimpleTom(GradientSolver):
         Calculate the adjusted data vector based on the current estimate
         """
         
-        assert self._jacobian != None, "Tried to calculate adjusted data" + \
-            " before calculating the Jacobian matrix (try running the " + \
-            "inversion before doing this)."
+        if self._jacobian == None:
+            
+            self._jacobian = self._build_jacobian(estimate)
         
         adjusted = numpy.dot(self._jacobian, estimate)
         

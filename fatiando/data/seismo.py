@@ -661,7 +661,7 @@ class Cart2DTravelTime(GeoData):
         rec_range = 45.*numpy.pi/180.
         rec_step = rec_range/(rec_n - 1)
         
-        radius = 1*minsize
+        radius = 1.5*minsize
         angle_step = 2*numpy.pi/(src_n)
         # Not starting in zero to avoid having horizontal or vertical rays
         # They cause a problem with the direct model (Ray intercepting cell in
@@ -732,8 +732,7 @@ class Cart2DTravelTime(GeoData):
                        % (data_stddev[0], 100*stddev, '%'))
         self._log.info("Time it took: %g s" % (end - start))
         
-        return [traveltimes, data_stddev]
-    
+        return [traveltimes, data_stddev]    
     
             
     def plot_synthetic(self, model, dx=1, dy=1, title="Synthetic model", \
@@ -792,8 +791,8 @@ class Cart2DTravelTime(GeoData):
             
             pylab.legend(numpoints=1, prop={'size':7})
                  
-            pylab.xlim(-0.5*sizex*dx, 1.5*sizex*dx)
-            pylab.ylim(-0.5*sizey*dy, 1.5*sizey*dy)
+            pylab.xlim(-sizex*dx, 2*sizex*dx)
+            pylab.ylim(-sizey*dy, 2*sizey*dy)
             
         else:
                  

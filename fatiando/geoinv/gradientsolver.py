@@ -57,9 +57,9 @@ class GradientSolver():
         # inversion parameters
         self._nparams = 0
         self._ndata = 0
+        self._first_deriv_matrix = None
         self._equality_matrix = None
         self._equality_values = None
-        self._first_deriv_matrix = None
                 
         # Inversion results
         self.estimates = []
@@ -322,11 +322,43 @@ class GradientSolver():
         grad = sharpness*numpy.dot(self._first_deriv_matrix.T, d)
         
         hessian = sharpness*numpy.dot( \
-                            numpy.dot(self._first_deriv_matrix.T, D), \
-                                      self._first_deriv_matrix)
+                                numpy.dot(self._first_deriv_matrix.T, D), \
+                                self._first_deriv_matrix)
     
         return grad, hessian
     
+    
+    def _calc_tv_goal(self, estimate, sharpness, prior_weights):
+        """
+        Calculate the Total Variation portion of the goal function for a given
+        estimate
+        """ 
+        
+        if prior_weights != None:
+            
+            params = numpy.dot(numpy.dot(prior_weights.T, prior_weights), \
+                               estimate)
+        
+        else:
+            
+            params = estimate
+        
+        if self._first_deriv_matrix == None:
+            
+            self._first_deriv_matrix = self._build_first_deriv()
+            
+        derivatives = numpy.dot(self._first_deriv_matrix, params)
+            
+        goal = 0
+        
+        for deriv in derivatives:
+            
+            goal += abs(deriv)
+            
+        goal *= sharpness
+        
+        return goal            
+            
     
     def _build_tk_grad_hessian(self, estimate, tk_weights, prior_mean):
         """
@@ -345,20 +377,49 @@ class GradientSolver():
             
         return grad, hessian
     
+
+    def _calc_tk_goal(self, estimate, tk_weights, prior_mean):
+        """
+        Calculate the Tikhonov portion of the goal function for a given
+        estimate
+        """ 
     
-    def _build_eq_grad_hessian(self, estimate, equality):
+        if prior_mean != None:
+            
+            params = estimate - prior_mean
+            
+        else:
+            
+            params = estimate
+            
+        goal = numpy.dot(numpy.dot(params.T, tk_weights), params)
+    
+        return goal
+    
+    
+    def _build_eq_grad_hessian(self, estimate, eq_weights, eq_ref_params):
         """
         Return the gradient and Hessian of the Tikhonov regularization.
         """
+                    
+        hessian = eq_weights
         
-        hessian = equality*numpy.dot(self._equality_matrix.T, \
-                                     self._equality_matrix)
-        
-        grad = equality*(numpy.dot(hessian, estimate) - \
-                         numpy.dot(self._equality_matrix.T, \
-                                   self._equality_values))
-    
+        grad = numpy.dot(eq_weights, estimate) - eq_ref_params
+                
         return grad, hessian    
+    
+    
+    def _calc_eq_goal(self, estimate, equality):
+        """
+        Calculate the Equality Constraints portion of the goal function for a 
+        given estimate
+        """ 
+    
+        aux = numpy.dot(self._equality_matrix, estimate) - self._equality_values
+        
+        goal = equality*numpy.dot(aux.T, aux)
+        
+        return goal
     
     
     def _linear_overdetermined(self, tk_weights, prior_mean, equality, \
@@ -390,7 +451,7 @@ class GradientSolver():
                 y_tk_priormean = numpy.dot(tk_weights, prior_mean)
             
         if equality:
-            
+                    
             normal_eq = normal_eq + \
                         equality*numpy.dot(self._equality_matrix.T, \
                                            self._equality_matrix)
@@ -469,7 +530,16 @@ class GradientSolver():
             
             param_weights = param_weights + tk_weights
                         
-        if equality:
+        if equality:            
+            
+            if self._eq_weights == None or self._eq_ref_params == None:
+                
+                self._eq_weights = equality*numpy.dot(self._equality_matrix.T, \
+                                                      self._equality_matrix)
+                                               
+                self._eq_ref_params = equality*\
+                                      numpy.dot(self._equality_matrix.T, \
+                                                self._equality_values)
             
             param_weights = param_weights + \
                             equality*numpy.dot(self._equality_matrix.T, \
@@ -718,7 +788,7 @@ class GradientSolver():
                 
         #######################################################################
         
-        self._log.info("  RMS = %g" % (self.rms))
+        self._log.info("  RMS of the mean solution = %g" % (self.rms))
             
         end = time.time()
         
@@ -726,7 +796,7 @@ class GradientSolver():
         
         
     def solve_lm(self, damping=0, smoothness=0, curvature=0, sharpness=0, \
-                 equality=0, initial=None, prior_mean=None, \
+                 beta=10**(-7), equality=0, initial=None, prior_mean=None, \
                  prior_weights=None, data_variance=1, contam_times=0, \
                  lm_start=100, lm_step=10, it_p_step=20, max_it=100):
         """
@@ -751,6 +821,10 @@ class GradientSolver():
                    
             sharpness: Total Variation regularization parameter (i.e. how much
                        sharpness to impose)
+                       
+            beta: parameter used in the Total Variation to make a continuous
+                  approximation to the absolute value. The larger it is, the 
+                  worse the approximation is but also the more stable it is.             
         
             equality: how much to impose the equality constraints
             
@@ -777,10 +851,10 @@ class GradientSolver():
                           different error realization. Set to 0 to only run on 
                           the original data set.
                           
-            lm_start: starting Marquardt parameter (inverse of step size)
+            lm_start: starting Marquardt parameter (real positive)
             
             lm_step: how much to decrease/increase the Marquardt parameter at 
-                     each successful/failed step
+                     each successful/failed step (real positive)
             
             it_p_step: how many iterations the LM algorithm is allowed to have
                        at each step
@@ -803,6 +877,12 @@ class GradientSolver():
         assert contam_times >= 0, "contam_times must be >= 0"
         
         assert data_variance >= 0, "data_variance must be >= 0"
+        
+        assert lm_start >= 0 and lm_step >= 0, \
+            "lm_start and lm_step must be real numbers and >= 0"
+            
+        assert it_p_step > 0 and max_it > 0, \
+            "it_p_step and max_it must be integers > 0"
         ########################################################################
         
         # VERBOSE
@@ -820,6 +900,8 @@ class GradientSolver():
                        % (prior_mean != None))
         self._log.info("  use prior parameters weights  = %s" \
                        % (prior_weights != None))
+        self._log.info("  intial LM parameter           = %g" % (lm_start))
+        self._log.info("  LM parameter step             = %g" % (lm_step))
         ########################################################################
         
         # INITIALIZATIONS AND MORE ASSERTIONS
@@ -881,16 +963,254 @@ class GradientSolver():
                    self._equality_values != None, \
                 "Tried to use equality constraints without setting any."
                 
+            eq_weights = equality*numpy.dot(self._equality_matrix.T, \
+                                            self._equality_matrix)
+                        
+            eq_ref_params = equality*numpy.dot(self._equality_matrix.T, \
+                                               self._equality_values) 
+                            
         ########################################################################
                     
         # REAL PROBLEM SOLVING
-        #######################################################################
-        
-                
         ########################################################################
         
+        data = self._get_data_array()
+        
+        for contam_it in xrange(contam_times + 1): # +1 is for the real data
+        
+            if contam_it == 0:
                 
-        self._log.info("  RMS = %g" % (self.rms))
+                self._log.info("  Contamination iteration: Original data")
+                
+            else:
+                
+                self._log.info("  Contamination iteration: %d" % (contam_it))
+            
+            goals = []
+        
+            next = initial
+            
+            # COMPUTE THE GOAL FUNCTION
+            ####################################################################
+            residuals = data - self._calc_adjusted_data(next)
+            
+            rms = numpy.dot(residuals.T, residuals)
+            
+            self._log.info("    Initial RMS = %g" % (rms))
+            
+            goal = rms
+                        
+            if damping or smoothness or curvature:
+                
+                goal_tk = self._calc_tk_goal(next, tk_weights, prior_mean)
+            
+                self._log.info("    Initial Tikhonov goal function = %g" \
+                               % (goal_tk))
+                
+                goal += goal_tk
+                
+            if sharpness:
+                
+                goal_tv = self._calc_tv_goal(next, sharpness, prior_weights)
+            
+                self._log.info("    Initial Total Variation goal function =" + \
+                               " %g" % (goal_tv))
+                
+                goal += goal_tv
+                
+            if equality:
+                
+                goal_eq = self._calc_eq_goal(next, equality)
+            
+                self._log.info("    Initial Equality Constraints goal " + \
+                               "function = %g" % (goal_eq))
+                
+                goal += goal_eq
+                
+            self._log.info("    Total initial goal function = %g" % (goal))
+            
+            goals.append(goal)
+            ####################################################################
+            
+            # START THE LM ALGORITHM
+            ####################################################################
+            lm_param = lm_start
+            
+            for iteration in xrange(max_it):
+                
+                iteration_start = time.time()
+                
+                prev = next
+                
+                jacobian = self._build_jacobian(prev)
+                
+                
+                # COMPUTE THE GRADIENT AND HESSIAN
+                ################################################################
+                               
+                # The residuals were calculated in the previous iteration in
+                # order to compute the new goal function
+                gradient = -1*numpy.dot(jacobian.T, residuals)
+                
+                hessian = numpy.dot(jacobian.T, jacobian)
+                                
+                if damping or smoothness or curvature:
+                
+                    grad_tk, hess_tk = self._build_tk_grad_hessian(prev, \
+                                                        tk_weights, prior_mean)
+                    
+                    gradient = gradient + grad_tk
+                    
+                    hessian = hessian + hess_tk
+                    
+                    # Can't put the hessian up for garbage collection because
+                    # it referes to tk_weights
+                    del grad_tk
+                    
+                if sharpness:
+                    
+                    grav_tv, hess_tv = self._build_tv_grad_hessian(prev, \
+                                                 sharpness, beta, prior_weights)
+                    
+                    gradient = gradient + grav_tv
+                    
+                    hessian = hessian + hess_tv
+                    
+                    del grav_tv
+                    del hess_tv
+                    
+                if equality:
+                    
+                    grad_eq, hess_eq = self._build_eq_grad_hessian(prev, \
+                                                    eq_weights, eq_ref_params)
+                    
+                    gradient = gradient + grad_eq
+                    
+                    hessian = hessian + hess_eq
+                    
+                    # Can't put the hessian up for garbage collection because
+                    # it referes to eq_weights
+                    del grad_eq
+                    
+                hessian_diag = numpy.diag(numpy.diag(hessian))
+                ################################################################
+                                
+                # TAKE A STEP, BUT ONLY IF IT'S DOWNHILL
+                ################################################################
+                # To be able to check if the step loop exited because of max 
+                # iterations (don't want that because it means that it couldn't 
+                # take a step)
+                stagnation = True 
+                
+                # Try to take a step (i.e. solve the system for a given lm_param
+                # if the goal function increases, go back and try a smaller step
+                for lm_it in xrange(it_p_step):
+                    
+                    normal_eq = hessian + lm_param*hessian_diag
+                    
+                    correction = numpy.linalg.solve(normal_eq, -1*gradient)
+                    
+                    next = prev + correction
+                    
+                    # COMPUTE THE GOAL FUNCTION
+                    ############################################################
+                    residuals = data - self._calc_adjusted_data(next)
+                    
+                    rms = numpy.dot(residuals.T, residuals)
+                    
+                    goal = rms
+                                
+                    if damping or smoothness or curvature:
+                        
+                        goal_tk = self._calc_tk_goal(next, tk_weights, \
+                                                     prior_mean)
+                        
+                        goal += goal_tk
+                        
+                    if sharpness:
+                        
+                        goal_tv = self._calc_tv_goal(next, sharpness, \
+                                                     prior_weights)
+                        
+                        goal += goal_tv
+                        
+                    if equality:
+                        
+                        goal_eq = self._calc_eq_goal(next, equality)
+                        
+                        goal += goal_eq
+                    ############################################################
+                    
+                    if goal < goals[-1]:
+                        
+                        lm_param /= float(lm_step)
+                        
+                        stagnation = False
+                        
+                        break
+                    
+                    else:
+                        
+                        lm_param *= float(lm_step)
+                    
+                # Check if the step loop exited because of max iterations (don't
+                # want that because it means that it couldn't take a step)
+                if stagnation:
+                    
+                    self._log.warning("    Stopped because couldn't take " + \
+                                      "a step")
+                    
+                    break                    
+                ################################################################
+                
+                log_message = "    it %d: " % (iteration + 1) + \
+                              "LMits=%g " % (lm_it + 1) + \
+                              "LMparam=%g " % (lm_param) + \
+                              "RMS=%g " % (rms)
+                              
+                if damping or smoothness or curvature:
+                    
+                    log_message += "TKgoal=%g " % (goal_tk)
+                    
+                if sharpness:
+                    
+                    log_message += "TVgoal=%g " % (goal_tv)
+                    
+                if equality:
+                    
+                    log_message += "EQgoal=%g " % (goal_eq)
+                    
+                iteration_end = time.time()
+                    
+                log_message += "Total=%g (%g s)" \
+                               % (goal, iteration_end - iteration_start)
+                                
+                self._log.info(log_message)
+                
+                # Save the new goal function and check if the algorithm should
+                # stop based on how much the goal function has decreased
+                goals.append(goal)
+                
+                if abs((goals[-1] - goals[-2])/goals[-2]) <= 10**(-4):
+                    
+                    break
+            ####################################################################
+                
+            self.estimates.append(next)
+            
+            if contam_it == 0:
+                
+                self._goals = goals
+                
+            if contam_times > 0:
+                
+                data = contaminate.gaussian(self._get_data_array(), \
+                                            stddev=math.sqrt(data_variance), \
+                                            percent=False, return_stddev=False)
+                
+        ########################################################################
+                        
+        self._log.info("  RMS of the mean solution = %g" % (self.rms))
             
         end = time.time()
         

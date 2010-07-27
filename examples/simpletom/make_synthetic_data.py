@@ -12,8 +12,8 @@ from fatiando.data.seismo import Cart2DTravelTime
             
 ttdata = Cart2DTravelTime()
 
-model = ttdata.synthetic_image('square-model.jpg', src_n=3, rec_n=30, \
-                               dx=1, dy=1, vmin=1, vmax=5, stddev=0.005, \
+model = ttdata.synthetic_image('square-model.jpg', src_n=60, rec_n=10, \
+                               dx=1, dy=1, vmin=0, vmax=10, stddev=0.005, \
                                type='xray')
 
 ttdata.dump('travel-time-data.txt')
