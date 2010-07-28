@@ -892,6 +892,7 @@ class GradientSolver():
         self._log.info("  smoothness (Tikhonov order 1) = %g" % (smoothness))
         self._log.info("  curvature  (Tikhonov order 2) = %g" % (curvature))
         self._log.info("  sharpness  (Total Variation)  = %g" % (sharpness))
+        self._log.info("  beta parameter                = %g" % (beta))
         self._log.info("  equality constraints          = %g" % (equality))
         self._log.info("  a priori data variance        = %g" % (data_variance))
         self._log.info("  a priori data stddev          = %g" \
@@ -1042,8 +1043,7 @@ class GradientSolver():
                 
                 prev = next
                 
-                jacobian = self._build_jacobian(prev)
-                
+                jacobian = self._build_jacobian(prev)                
                 
                 # COMPUTE THE GRADIENT AND HESSIAN
                 ################################################################
