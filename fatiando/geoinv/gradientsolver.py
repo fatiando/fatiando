@@ -918,7 +918,7 @@ class GradientSolver():
         else:
             
             assert len(initial) == self._nparams, \
-                "Not enough parameters in given initial estimate." + \
+                "Wrong number of parameters in given initial estimate. " + \
                 "Has to be %d." % (self._nparams)
         
             self._log.info("  initial estimate              = user defined")               
