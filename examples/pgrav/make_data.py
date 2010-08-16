@@ -1,3 +1,7 @@
+"""
+Make some synthetic FTG data
+"""
+
 import logging
 logging.basicConfig()
 
@@ -7,44 +11,52 @@ import pylab
 from fatiando.data.gravity import TensorComponent
 from fatiando.utils.geometry import Prism
 
-
+# Make a computation grid
 x = numpy.arange(-500, 1550, 100, 'f')
 y = numpy.arange(-500, 1550, 100, 'f')
 X, Y = pylab.meshgrid(x, y)
 
+# Create a synthetic body (a prism)
+prisms = []
+prism = Prism(dens=1000, x1=200, x2=800, y1=400, y2=600, z1=200, z2=800)
+prisms.append(prism)
+prism = Prism(dens=1000, x1=400, x2=600, y1=600, y2=1000, z1=200, z2=600)
+prisms.append(prism)
+prism = Prism(dens=1000, x1=400, x2=600, y1=200, y2=400, z1=200, z2=600)
+prisms.append(prism)
+prism = Prism(dens=1000, x1=400, x2=600, y1=400, y2=600, z1=0, z2=200)
+prisms.append(prism)
 
-prisma = Prism(dens=1000, x1=200, x2=800, y1=400, y2=600, z1=400, z2=600)
-
+# Create the data classes and generate synthetic data (at 150 m altitude)
 stddev = 0.05
 
-# Create the data classes and generate synthetic data
 zzdata = TensorComponent(component='zz')
-zzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+zzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 zzdata.dump("gzz_data.txt")
 
 xxdata = TensorComponent(component='xx')
-xxdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+xxdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 xxdata.dump("gxx_data.txt")
 
 yydata = TensorComponent(component='yy')
-yydata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+yydata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 yydata.dump("gyy_data.txt")
 
 xydata = TensorComponent(component='xy')
-xydata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+xydata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 xydata.dump("gxy_data.txt")
 
 xzdata = TensorComponent(component='xz')
-xzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+xzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 xzdata.dump("gxz_data.txt")
 
 yzdata = TensorComponent(component='yz')
-yzdata.synthetic_prism(prisms=[prisma], X=X, Y=Y, z=-150, stddev=stddev, \
+yzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
                        percent=False)
 yzdata.dump("gyz_data.txt")
 

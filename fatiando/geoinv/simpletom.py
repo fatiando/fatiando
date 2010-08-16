@@ -27,7 +27,7 @@ class SimpleTom(GradientSolver):
     Solver for the inverse problem of a simple Cartesian tomography with no
     refraction or reflection. (Like X-ray tomography)
     
-    Parameters:
+    Constructor parameters:
     
         - traveltimedata: an instance of Cart2DTravelTime found in 
                           fatiando.data.seismo with the travel time data to
@@ -39,7 +39,7 @@ class SimpleTom(GradientSolver):
                   each direction
     
     To access the mean and standard deviation of the estimates, use 
-    simpletom_instance.mean and simpletom_instance.std
+    mean and std properties
     
     Note:        
         Log messages are printed to stderr by default using the logging module.

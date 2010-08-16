@@ -138,7 +138,7 @@ class GradientSolver():
             
             means.append(param.mean())
             
-        return means
+        return numpy.array(means)
     
     
     # Property for accessing the means of the parameter estimates

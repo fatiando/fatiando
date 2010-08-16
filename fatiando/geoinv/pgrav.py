@@ -1,6 +1,6 @@
 """
 PGrav:
-    3D gravity inversion using right rectangular prisms.
+    Gravity inversion for density using right rectangular prisms.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -15,56 +15,244 @@ from enthought.mayavi import mlab
 from enthought.tvtk.api import tvtk
 
 import fatiando
-from fatiando.geoinv.linearsolver import LinearSolver
-from fatiando.geoinv.lmsolver import LMSolver
-from fatiando.directmodels.gravity import prism as prism_gravity
-from fatiando.utils import contaminate
 
-
-
-
-
-
-
-
-
-
-
-logger = logging.getLogger('pgrav')       
+logger = logging.getLogger('PGrav')       
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
 
+logger = logging.getLogger('DepthWeightsCalculator')       
+logger.setLevel(logging.DEBUG)
+logger.addHandler(fatiando.default_log_handler)
 
-class PGrav(LinearSolver):
+from fatiando.geoinv.gradientsolver import GradientSolver
+from fatiando.directmodels.gravity import prism as prism_gravity
+
+
+
+class DepthWeightsCalculator(GradientSolver):
     """
-    3D gravity inversion using right rectangular prisms
+    Solves for the coefficients of the depth weighing function used in PGrav
+    based on the decay of the zz component.
+    
+    Constructor parameters:
+    
+        pgrav_solver: instance of PGrav3D for which the weight coefficients will
+                      be calculated
+                      
+        height: height of the observations (positive upward)
+    """
+
+
+    def __init__(self, pgrav_solver, height):
+        
+        GradientSolver.__init__(self)
+       
+        self._pgrav_solver = pgrav_solver
+        
+        self._height = height
+                
+        self._nparams = 2
+        
+        self._dz = (pgrav_solver._mod_z2 - pgrav_solver._mod_z1)/ \
+                   pgrav_solver._nz
+                   
+        self._depths = numpy.arange(pgrav_solver._mod_z1, \
+                                    pgrav_solver._mod_z2, self._dz, 'float')
+        
+        self._ndata = len(self._depths)
+        
+        self._data = None
+        
+        self._log = logging.getLogger('DepthWeightsCalculator')
+        
+        
+    def _build_jacobian(self, estimate):
+        """
+        Make the Jacobian matrix of the function of the parameters.
+        """
+        
+        assert estimate != None, "Can't use solve_linear. " + \
+            "This is a non-linear inversion!"
+        
+        jacobian = []
+        
+        z0 = estimate[0]
+        
+        power = estimate[1]
+                        
+        for z in self._depths:
+                        
+            z0_deriv = -power/((z + 0.5*self._dz + z0)**(power + 1))
+            
+            power_deriv = -1./((z + 0.5*self._dz + z0)**power)
+            
+            jacobian.append([z0_deriv, power_deriv])
+            
+        return numpy.array(jacobian)        
+            
+    
+    def _calc_adjusted_data(self, estimate):
+        """
+        Calculate the adjusted data vector based on the current estimate
+        """
+        
+        z0 = estimate[0]
+        
+        power = estimate[1]
+        
+        adjusted = []
+        
+        for z in self._depths: 
+        
+            adjusted.append(1./((z + 0.5*self._dz + z0)**power))
+            
+        return numpy.array(adjusted)
+            
+        
+    def _build_first_deriv(self):
+        """
+        Compute the first derivative matrix of the model parameters.
+        """
+        
+        # Raise an exception if the method was raised without being implemented
+        raise NotImplementedError, \
+            "Only Tikhonov order 0 (damping) is implemented for this solver"
+            
+            
+    def _get_data_array(self):
+        """
+        Return the data in a Numpy array so that the algorithm can access it
+        in a general way
+        """        
+        
+        if self._data != None:
+            
+            return self._data
+        
+        data = []
+        
+        dx = (self._pgrav_solver._mod_x2 - self._pgrav_solver._mod_x1)/ \
+             self._pgrav_solver._nx
+             
+        dy = (self._pgrav_solver._mod_y2 - self._pgrav_solver._mod_y1)/ \
+             self._pgrav_solver._ny
+                        
+        for depth in self._depths:
+            
+            tmp = prism_gravity.gzz(1., -0.5*dx, 0.5*dx, -0.5*dy, 0.5*dy, \
+                            depth, depth + self._dz, 0., 0., -self._height)
+                
+            data.append(tmp)
+        
+        self._data = numpy.array(data)
+        
+        return self._data
+                           
+            
+    def _get_data_cov(self):
+        """
+        Return the data covariance in a 2D Numpy array so that the algorithm can
+        access it in a general way
+        """        
+        
+        return numpy.identity(len(self._depths))
+    
+    
+    def set_equality(self, z0=None, power=None):
+        """
+        Set an equality constraint for the parameters z0 and/or power.
+        """
+        
+        self._equality_matrix = []
+          
+        self._equality_values = []
+        
+        if z0 != None:
+            
+            self._equality_values.append(z0)
+            
+            self._equality_matrix.append([1, 0])
+            
+        if power != None:
+                        
+            self._equality_values.append(power)
+            
+            self._equality_matrix.append([0, 1])
+            
+        self._equality_values = numpy.array(self._equality_values)
+        
+        self._equality_matrix = numpy.array(self._equality_matrix)
+        
+    
+    def plot_adjustment(self, title="Depth weights adjustment"):
+        """
+        Plot the depth weights versus the decay of gzz with depth of the model
+        cell.
+        """
+                
+        weights = self._calc_adjusted_data(self.mean)
+            
+        pylab.figure()
+        pylab.title(title)
+        
+        yaxis = self._depths + 0.5*self._dz
+        
+        pylab.plot(self._get_data_array(), yaxis, '-b', label='$g_{zz}$')
+        
+        pylab.plot(weights, yaxis, '-r', label='Weights')
+        
+        pylab.legend(loc='lower right')
+        
+        pylab.xlabel('Decay')
+        
+        pylab.ylabel('Depth')
+        
+        pylab.ylim(yaxis.max(), yaxis.min())
+        
+
+
+
+
+class PGrav3D(GradientSolver):
+    """
+    3D gravity inversion for density using right rectangular prisms.
+    
+    Constructor parameters:
+    
+        x1, x2, y1, y2, z1, z2: boundaries of the model space
+        
+        nx, ny, nz: number of prisms into which the model space will be cut
+            in the x, y, and z directions
+                    
+        gz: instance of fatiando.data.gravity.VerticalGravity holding the
+            vertical gravity data
+            
+        gxx, gxy, gxz, gyy, gyz, gzz: instances of 
+            fatiando.data.gravity.TensorComponent holding each a respective
+            gravity gradient tensor component data
+            
+    Note: at least of one gz, gxx, gxy, gxz, gyy, gyz, or gzz must be 
+    provided
+    
+    Log messages are printed to stderr by default using the logging module.
+    If you want to modify the logging, add handlers to the 'simpletom'
+    logger.
+    Ex:
+        mylog = logging.getLogger('simpletom')
+        mylog.addHandler(myhandler)
+        
+    Another option is to use the default configuration by calling
+    logging.basicConfig() inside your script.   
     """
     
     
     def __init__(self, x1, x2, y1, y2, z1, z2, nx, ny, nz, gz=None, gxx=None, \
                  gxy=None, gxz=None, gyy=None, gyz=None, gzz=None):
-        """
-        Parameters:
         
-            x1, x2, y1, y2, z1, z2: boundaries of the model space
-            
-            nx, ny, nz: number of prisms into which the model space will be cut
-                in the x, y, and z directions
-                        
-            gz: instance of fatiando.data.gravity.VerticalGravity holding the
-                vertical gravity data
-                
-            gxx, gxy, gxz, gyy, gyz, gzz: instances of 
-                fatiando.data.gravity.TensorComponent holding each a respective
-                gravity gradient tensor component data
-                
-        Note: at least of one gz, gxx, gxy, gxz, gyy, gyz, or gzz must be 
-        provided            
-        """
+        GradientSolver.__init__(self)
         
-        LinearSolver.__init__(self)
-        
-        if not (gz or gxx or gxy or gxz or gyy or gyz or gzz):
+        if not (gz != None or gxx != None or gxy != None or gxz != None or \
+                gyy != None or gyz != None or gzz != None):
             
             raise RuntimeError, "Provide at least one of gz, gxx, gxy, gxz," + \
                 " gyy, gyz, or gzz. Can't do the inversion without data!"
@@ -77,6 +265,14 @@ class PGrav(LinearSolver):
         self._gyz = gyz
         self._gzz = gzz
         
+        self._ndata = 0
+        
+        for data in [gz, gxx, gxy, gxz, gyy, gyz, gzz]:
+            
+            if data != None:
+                
+                self._ndata += len(data)
+        
         # Model space parameters
         self._mod_x1 = float(x1)
         self._mod_x2 = float(x2)
@@ -87,21 +283,29 @@ class PGrav(LinearSolver):
         self._nx = nx
         self._ny = ny
         self._nz = nz
+        self._nparams = nx*ny*nz
+        
+        # Inversion parameters
+        self._jacobian = None
         
         # The logger for this class
-        self._log = logging.getLogger('pgrav')
+        self._log = logging.getLogger('PGrav')
         
         self._log.info("Model space discretization: %d cells in x *" % (nx) + \
                        " %d cells in y * %d cells in z = %d parameters" \
                        % (ny, nz, nx*ny*nz))
-        
-        
-    def _build_sensibility(self):
+
+
+    def _build_jacobian(self, estimate):
         """
-        Make the sensibility matrix.
+        Make the Jacobian matrix of the function of the parameters.
         """
         
-        start = time.clock()
+        if self._jacobian != None:
+            
+            return self._jacobian
+
+        jacobian = []
         
         dx = (self._mod_x2 - self._mod_x1)/self._nx
         dy = (self._mod_y2 - self._mod_y1)/self._ny
@@ -110,9 +314,7 @@ class PGrav(LinearSolver):
         prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
         prism_ys = numpy.arange(self._mod_y1, self._mod_y2, dy, 'float')
         prism_zs = numpy.arange(self._mod_z1, self._mod_z2, dz, 'float')
-        
-        sensibility = []
-        
+                
         data_types = [(self._gz, prism_gravity.gz), \
                       (self._gxx, prism_gravity.gxx), \
                       (self._gxy, prism_gravity.gxy), \
@@ -129,7 +331,7 @@ class PGrav(LinearSolver):
                     
                     xp, yp, zp = data.loc(i)
                     
-                    line = numpy.zeros(self._nx*self._ny*self._nz)
+                    line = numpy.zeros(self._nparams)
                     
                     j = 0
                                                             
@@ -147,33 +349,78 @@ class PGrav(LinearSolver):
                                 
                                 j += 1
                             
-                    sensibility.append(line)
+                    jacobian.append(line)
         
-        sensibility = numpy.array(sensibility)
+        self._jacobian = numpy.array(jacobian)        
         
-        end = time.clock()
-        self._log.info("Build sensibility matrix: %d x %d  (%g s)" \
-                      % (sensibility.shape[0], sensibility.shape[1], \
-                         end - start))
+        return self._jacobian
+    
+    
+    def _calc_adjusted_data(self, estimate):
+        """
+        Calculate the adjusted data vector based on the current estimate
+        """
         
-        return sensibility
+        if self._jacobian == None:
+            
+            self._jacobian = self._build_jacobian(estimate)
+        
+        adjusted = numpy.dot(self._jacobian, estimate)
+        
+        return adjusted
+    
+    
+    def _get_data_array(self):
+        """
+        Return the data in a Numpy array so that the algorithm can access it
+        in a general way
+        """
+        
+        data_array = numpy.array([])
+        
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
+            
+            if data:
+                
+                data_array = numpy.append(data_array, data.array)
+        
+        return data_array
+                           
+            
+    def _get_data_cov(self):
+        """
+        Return the data covariance in a 2D Numpy array so that the algorithm can
+        access it in a general way
+        """        
+        
+        std_array = numpy.array([])
+        
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
+        
+        for data in data_types:
+            
+            if data:
+                
+                std_array = numpy.append(std_array, data.std)
+        
+        return numpy.diag(std_array**2)
     
         
     def _build_first_deriv(self):
         """
         Compute the first derivative matrix of the model parameters.
         """
-        
-        start = time.clock()
-        
+                
         # The number of derivatives there will be
         deriv_num = (self._nx - 1)*self._ny*self._nz + \
                     (self._ny - 1)*self._nx*self._nz + \
                     (self._nz - 1)*self._nx*self._ny
-        
-        param_num = self._nx*self._ny*self._nz
-        
-        first_deriv = numpy.zeros((deriv_num, param_num))
+                
+        first_deriv = numpy.zeros((deriv_num, self._nparams))
         
         deriv_i = 0
         
@@ -231,75 +478,28 @@ class PGrav(LinearSolver):
                     deriv_i += 1
                     
                     param_i += 1
-                                
-        end = time.clock()
-        self._log.info("Building first derivative matrix: %d x %d  (%g s)" \
-                      % (deriv_num, param_num, end - start))
         
         return first_deriv
-                    
-            
-    def _get_data_array(self):
-        """
-        Return the data in a Numpy array so that the algorithm can access it
-        in a general way
-        """
-        
-        data_array = numpy.array([])
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        for data in data_types:
-            
-            if data:
-                
-                data_array = numpy.append(data_array, data.array)
-        
-        return data_array
-                           
-            
-    def _get_data_cov(self):
-        """
-        Return the data covariance in a 2D Numpy array so that the algorithm can
-        access it in a general way
-        """        
-        
-        std_array = numpy.array([])
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        for data in data_types:
-            
-            if data:
-                
-                std_array = numpy.append(std_array, data.std)
-        
-        return numpy.diag(std_array**2)
     
-    
-    def depth_weights(self, w0, z0, power, normalize=True):
+        
+    def depth_weights(self, z0, power, normalize=True):
         """
         Calculate and return the depth weight matrix as in Li and Oldenburg 
         (1996)
         
         Parameters:
-        
-            w0: scale factor
-        
+                
             z0: reference height
             
             power: decrease rate of the kernel
         """
         
         self._log.info("Building depth weights:")
-        self._log.info("  w0 = %g" % (w0))
         self._log.info("  z0 = %g" % (z0))
         self._log.info("  power = %g" % (power))
         self._log.info("  normalized = %s" % (str(normalize)))
                       
-        weight = numpy.identity(self._nx*self._ny*self._nz)
+        weight = numpy.identity(self._nparams)
         
         dz = (self._mod_z2 - self._mod_z1)/self._nz
         
@@ -310,10 +510,9 @@ class PGrav(LinearSolver):
         for depth in depths:
             
             for j in xrange(self._ny*self._nx):
-                                    
-#                weight[l][l] = 1./(math.sqrt(depth + 0.5*dz + z0)**power)
 
-                weight[l][l] = w0/(math.sqrt(depth + 0.5*dz + z0)**power)
+                weight[l][l] = math.sqrt( \
+                                1./(math.sqrt(depth + 0.5*dz + z0)**power))
                 
                 l += 1
         
@@ -322,9 +521,9 @@ class PGrav(LinearSolver):
             weight = weight/weight.max()
         
         return weight
+            
     
-    
-    def add_equality(self, x, y, z, value):
+    def set_equality(self, x, y, z, value):
         """
         Set an equality constraint for the model cell containing point (x, y, z)        
         """
@@ -379,411 +578,62 @@ class PGrav(LinearSolver):
         self._equality_matrix = numpy.array(D)
         
         self._equality_values = numpy.array(p_ref)
-        
-        
-    def multimodal_prior(self, reg_params, prior_means=None, prior_covs=None, \
-              apriori_var=1, contam_times=10, param_weights=None):
-        
-        self._log.info("a priori variance: %g" % (apriori_var))
-        
-        total_start = time.clock()
-                
-        self._estimates = []
-        
-        if self._sensibility == None:
-        
-            self._sensibility = self._build_sensibility()
-        
-        ndata, nparams = self._sensibility.shape
-        
-        start = time.clock()
-        
-        Wp = numpy.zeros((nparams, nparams))
-        
-        ref_params = numpy.zeros(nparams)
-        
-        if prior_covs != None and prior_means != None:
-            
-            assert len(prior_covs) == len(prior_means), \
-                "Must give same number of prior covariances and means"
-            
-            for i in xrange(len(prior_covs)):
-                
-                cov_inv = numpy.linalg.inv(prior_covs[i])
-            
-                Wp = Wp + reg_params[i]*cov_inv
-                
-                ref_params = ref_params + \
-                             reg_params[i]*numpy.dot(cov_inv, prior_means[i])
-        
-        end = time.clock()
-        self._log.info("Build parameter weight matrix (%g s)" % (end - start))
-        
-        # Overdetermined
-        if nparams <= ndata:
-            
-            self._log.info("Solving overdetermined problem: %d d x %d p" % \
-                           (ndata, nparams))      
-              
-            # Data weight matrix
-            start = time.clock()
-            
-#            Wd = apriori_var*numpy.linalg.inv(self._get_data_cov())
-            Wd = numpy.identity(ndata)
-            
-            end = time.clock()
-            self._log.info("  Build data weight matrix (%g s)" % (end - start))          
-              
-            # The normal equations
-            start = time.clock()
-            
-            aux = numpy.dot(self._sensibility.T, Wd)
-            
-            N = numpy.dot(aux, self._sensibility) + Wp
-                          
-            end = time.clock()
-            self._log.info("  Build normal equations matrix (%g s)" \
-                           % (end - start))  
-            
-            # Solve the system for the parameters
-            start = time.clock()
-            
-            y = numpy.dot(aux, self._get_data_array()) + ref_params            
-            
-            estimate = numpy.linalg.solve(N, y)
-            
-            end = time.clock()
-            self._log.info("  Solve linear system (%g s)" % (end - start))
-            
-            self._estimates.append(estimate)
-            
-            start = time.clock()
-            
-            # Contaminate
-            for i in range(contam_times):
-                
-                contam_data = contaminate.gaussian(\
-                                          self._get_data_array(), \
-                                          stddev=math.sqrt(apriori_var), \
-                                          percent=False, return_stddev=False)
-                
-                y = numpy.dot(aux, contam_data) + ref_params
-                
-                estimate = numpy.linalg.solve(N, y)
-                
-                self._estimates.append(estimate)
-                
-            end = time.clock()
-            self._log.info("  Contaminate data %d times " % (contam_times) + \
-                           "with Gaussian noise (%g s)" % (end - start))
-                   
-#        # Underdetermined
-#        else:
-#            
-#            self._log.info("Solving underdetermined problem: %d d x %d p" % \
-#                           (ndata, nparams))            
-#            
-#            # Inverse of the data weight matrix
-#            start = time.clock()
-#            
-#            Wd_inv = self._get_data_cov()/apriori_var
-#            
-#            end = time.clock()
-#            self._log.info("  Inverse of data weight matrix (%g s)" \
-#                            % (end - start))
-#                        
-#            # The inverse of the parameter weight matrix
-#            start = time.clock()
-#            
-#            Wp_inv = numpy.linalg.inv(Wp)
-#            
-#            end = time.clock()
-#            self._log.info("  Inverse parameter weight matrix (%g s)" \
-#                            % (end - start))            
-#            
-#            # The normal equations
-#            start = time.clock()
-#            
-#            aux = numpy.dot(Wp_inv, self._sensibility.T)
-#            
-#            N = numpy.dot(self._sensibility, aux) + Wd_inv
-#            
-#            end = time.clock()
-#            self._log.info("  Build normal equations matrix (%g s)" \
-#                            % (end - start))
-#
-#            start = time.clock()
-#            
-#            y = self._get_data_array()
-#            
-#            if self._equality_matrix != None:
-#                
-#                tmp_p_eq = equality*numpy.dot(\
-#                            numpy.dot(Wp_inv, self._equality_matrix.T), \
-#                            self._equality_values)
-#                
-#                tmp_y_eq = numpy.dot(self._sensibility, tmp_p_eq)
-#                
-#                y = y + tmp_y_eq
-#                
-#            lamb = numpy.linalg.solve(N, y)
-#            
-#            end = time.clock()
-#            self._log.info("  Solve for Lagrange multipliers (%g s)" \
-#                           % (end - start))
-#            
-#            start = time.clock()
-#            
-#            estimate = numpy.dot(aux, lamb)
-#            
-#            if self._equality_matrix != None:
-#                
-#                estimate = estimate + tmp_p_eq
-#            
-#            self._estimates.append(estimate)
-#            
-#            end = time.clock()
-#            self._log.info("  Calculate the estimate (%g s)" \
-#                           % (end - start))
-#            
-#            start = time.clock()
-#            
-#            # Contaminate
-#            for i in range(contam_times):
-#                
-#                contam_data = contaminate.gaussian( \
-#                                          self._get_data_array(), \
-#                                          stddev=math.sqrt(apriori_var), \
-#                                          percent=False, return_stddev=False)
-#                
-#                y = contam_data
-#            
-#                if self._equality_matrix != None:
-#                    
-#                    y = y + tmp_y_eq
-#                
-#                lamb = numpy.linalg.solve(N, y)
-#                    
-#                estimate = numpy.dot(aux, lamb)
-#            
-#                if self._equality_matrix != None:
-#                
-#                    estimate = estimate + tmp_p_eq
-#                
-#                self._estimates.append(estimate)
-#                
-#            end = time.clock()
-#            self._log.info("  Contaminate data %d times " % (contam_times) + \
-#                           "with Gaussian noise (%g s)" % (end - start))
-                               
-        residuals = self._get_data_array() - numpy.dot(self._sensibility, \
-                                                       self.mean)
-        
-        rms = numpy.dot(residuals.T, residuals)
-                
-        self._log.info("RMS = %g" % (rms))
-            
-        total_end = time.clock()
-        self._log.info("Total time: %g s" % (total_end - total_start))
-        
-        
-        
-        
-        
-                            
-            
-    def plot_adjustment(self, shape, title="Adjustment", cmap=pylab.cm.jet):
+    
+
+    def plot_adjustment(self, shape, title="Adjustment"):
         """
         Plot the original data plus the adjusted data with contour lines.
         """
         
-        adjusted = numpy.dot(self._sensibility, self.mean)
-              
-        data_types = [(self._gz, prism_gravity.gz), \
-                      (self._gxx, prism_gravity.gxx), \
-                      (self._gxy, prism_gravity.gxy), \
-                      (self._gxz, prism_gravity.gxz), \
-                      (self._gyy, prism_gravity.gyy), \
-                      (self._gyz, prism_gravity.gyz), \
-                      (self._gzz, prism_gravity.gzz)]
+        adjusted = self._calc_adjusted_data(self.mean)
         
-        if self._gxx:
-            
-            gxx = numpy.reshape(adjusted[:len(self._gxx)], shape)
-            
-            adjusted = adjusted[len(self._gxx):]
-            
-            X = self._gxx.get_xgrid(*shape)
-            
-            Y = self._gxx.get_ygrid(*shape)
-            
-            vmin = min([gxx.min(), self._gxx.array.min()])
-            vmax = max([gxx.max(), self._gxx.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{xx}$")
-            CS = pylab.contour(X, Y, gxx, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gxx.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
+        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
+                      self._gyz, self._gzz]
         
-        if self._gxy:
-            
-            gxy = numpy.reshape(adjusted[:len(self._gxy)], shape)
-            
-            adjusted = adjusted[len(self._gxy):]
-            
-            X = self._gxy.get_xgrid(*shape)
-            
-            Y = self._gxy.get_ygrid(*shape)
-            
-            vmin = min([gxy.min(), self._gxy.array.min()])
-            vmax = max([gxy.max(), self._gxy.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{xy}$")
-            CS = pylab.contour(X, Y, gxy, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gxy.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
+        titles = ['$g_{z}$', '$g_{xx}$', '$g_{xy}$', '$g_{xz}$', '$g_{yy}$', \
+                  '$g_{yz}$', '$g_{zz}$']
         
-        if self._gxz:
-            
-            gxz = numpy.reshape(adjusted[:len(self._gxz)], shape)
-            
-            adjusted = adjusted[len(self._gxz):]
-            
-            X = self._gxz.get_xgrid(*shape)
-            
-            Y = self._gxz.get_ygrid(*shape)
-            
-            vmin = min([gxz.min(), self._gxz.array.min()])
-            vmax = max([gxz.max(), self._gxz.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{xz}$")
-            CS = pylab.contour(X, Y, gxz, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gxz.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
+        i = 0
         
-        if self._gyy:
+        for data in data_types:
             
-            gyy = numpy.reshape(adjusted[:len(self._gyy)], shape)
+            if data:                
             
-            adjusted = adjusted[len(self._gyy):]
-            
-            X = self._gyy.get_xgrid(*shape)
-            
-            Y = self._gyy.get_ygrid(*shape)
-            
-            vmin = min([gyy.min(), self._gyy.array.min()])
-            vmax = max([gyy.max(), self._gyy.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{yy}$")
-            CS = pylab.contour(X, Y, gyy, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gyy.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
+                adj_matrix = numpy.reshape(adjusted[:len(data)], shape)
+                
+                # Remove this data set from the adjuted data
+                adjusted = adjusted[len(data):]
+                
+                X = data.get_xgrid(*shape)
+                
+                Y = data.get_ygrid(*shape)
+                
+                vmin = min([adj_matrix.min(), data.array.min()])
+                vmax = max([adj_matrix.max(), data.array.max()])
+                
+                pylab.figure()
+                pylab.axis('scaled')
+                pylab.title(title + titles[i])
+                
+                CS = pylab.contour(X, Y, adj_matrix, colors='r', \
+                                   label="Adjusted", vmin=vmin, vmax=vmax)
+                pylab.clabel(CS)
+                
+                CS = pylab.contour(X, Y, data.togrid(*X.shape), colors='b', \
+                              label="Observed", vmin=vmin, vmax=vmax)
+                
+                pylab.clabel(CS)
+                
+                pylab.xlabel("Y")
+                pylab.ylabel("X")
+                
+                pylab.xlim(Y.min(), Y.max())
+                pylab.ylim(X.min(), X.max())
         
-        if self._gyz:
-            
-            gyz = numpy.reshape(adjusted[:len(self._gyz)], shape)
-            
-            adjusted = adjusted[len(self._gyz):]
-            
-            X = self._gyz.get_xgrid(*shape)
-            
-            Y = self._gyz.get_ygrid(*shape)
-            
-            vmin = min([gyz.min(), self._gyz.array.min()])
-            vmax = max([gyz.max(), self._gyz.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{yz}$")
-            CS = pylab.contour(X, Y, gyz, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gyz.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
+            i += 1
+                        
         
-        if self._gzz:
-            
-            gzz = numpy.reshape(adjusted[:len(self._gzz)], shape)
-            
-            adjusted = adjusted[len(self._gzz):]
-            
-            X = self._gzz.get_xgrid(*shape)
-            
-            Y = self._gzz.get_ygrid(*shape)
-            
-            vmin = min([gzz.min(), self._gzz.array.min()])
-            vmax = max([gzz.max(), self._gzz.array.max()])
-            
-            pylab.figure()
-            pylab.axis('scaled')
-            pylab.title(title + r" $g_{zz}$")
-            CS = pylab.contour(X, Y, gzz, colors='r', label="Adjusted", \
-                               vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            CS = pylab.contour(X, Y, self._gzz.togrid(*X.shape), colors='b', \
-                          label="Observed", vmin=vmin, vmax=vmax)
-            pylab.clabel(CS)
-            
-            pylab.xlabel("Y")
-            pylab.ylabel("X")
-            
-            pylab.xlim(Y.min(), Y.max())
-            pylab.ylim(X.min(), X.max())
-        
-        
-        
-    def plot_mean(self):
+    def plot_mean_layers(self):
         """
         Plot the mean solution in layers.
         """
@@ -819,7 +669,7 @@ class PGrav(LinearSolver):
             z += dz
                     
     
-    def plot_std(self):
+    def plot_std_layers(self):
         """
         Plot the standard deviation of the model parameters in layers.
         """
@@ -856,7 +706,7 @@ class PGrav(LinearSolver):
             z += dz
                         
     
-    def plot_mean3d(self):
+    def plot_mean(self):
         """
         Plot the mean result in 3D using Mayavi
         """
@@ -883,9 +733,11 @@ class PGrav(LinearSolver):
         fig.scene.background = (0, 0, 0)
         fig.scene.camera.pitch(180)
         fig.scene.camera.roll(180)
+        
         source = mlab.pipeline.add_dataset(grid)
-        filter = mlab.pipeline.threshold(source)
-        axes = mlab.axes(filter, nb_labels=self._nx+1, \
+        ext_grid = mlab.pipeline.extract_grid(source)        
+        threshold = mlab.pipeline.threshold(ext_grid)
+        axes = mlab.axes(threshold, nb_labels=self._nx+1, \
                          extent=[prism_xs[0], prism_xs[-1], \
                                  prism_ys[0], prism_ys[-1], \
                                  prism_zs[0], prism_zs[-1]])
@@ -896,7 +748,7 @@ class PGrav(LinearSolver):
                       nb_labels=10)
         
         
-    def plot_std3d(self):
+    def plot_stddev(self, title="Standard Deviation"):
         """
         Plot the standard deviation of the results in 3D using Mayavi
         """
@@ -909,7 +761,7 @@ class PGrav(LinearSolver):
         prism_ys = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy, 'float')
         prism_zs = numpy.arange(self._mod_z1, self._mod_z2 + dz, dz, 'float')
         
-        std = numpy.reshape(self.std, (self._nz, self._ny, self._nx))*0.001
+        std = numpy.reshape(self.stddev, (self._nz, self._ny, self._nx))*0.001
                         
         grid = tvtk.RectilinearGrid()
         grid.cell_data.scalars = std.ravel()
@@ -922,7 +774,7 @@ class PGrav(LinearSolver):
         fig = mlab.figure()
         fig.scene.background = (0, 0, 0)
         fig.scene.camera.pitch(180)
-        fig.scene.camera.roll(180)
+        fig.scene.camera.roll(180)       
         source = mlab.pipeline.add_dataset(grid)
         filter = mlab.pipeline.threshold(source)
         axes = mlab.axes(filter, nb_labels=self._nx+1, \
@@ -937,250 +789,38 @@ class PGrav(LinearSolver):
                       nb_labels=10)
         
         
-    def map_goal(self, true, res, lower, upper, dp1, dp2, \
-        damping=0, smoothness=0, curvature=0, equality=0, param_weights=None):
+    def dump(self, fname):
         """
-        Map the goal function in the parameter space if there are only 2 
-        parameters.
+        Dumps the mean result and standard deviation into file fname. 
         """
         
-        if self._nx*self._ny*self._nz != 2:
-            
-            raise AttributeError, "Can't do this for %d parameters, only 2" \
-                % (self._nx*self._ny*self._nz)
+        file_obj = file(fname, 'w')
+        
+        file_obj.write("%g %g %d\n" % (self._mod_x1, self._mod_x2, self._nx))
+        file_obj.write("%g %g %d\n" % (self._mod_y1, self._mod_y2, self._ny))
+        file_obj.write("%g %g %d\n" % (self._mod_z1, self._mod_z2, self._nz))
+        
+        pylab.savetxt(file_obj, self.estimates)
+        
+        
+    def load(self, fname):
+        """
+        Load saved estimates from file fname.
+        """
+        
+        file_obj = file(fname, 'r')
+        
+        line = file_obj.readline()        
+        self._mod_x1, self._mod_x2, self._nx = [float(v) \
+                                                for v in line.split(' ')]
+        
+        line = file_obj.readline()        
+        self._mod_y1, self._mod_y2, self._ny = [float(v) \
+                                                for v in line.split(' ')]
+        
+        line = file_obj.readline()        
+        self._mod_z1, self._mod_z2, self._nz = [float(v) \
+                                                for v in line.split(' ')]
                 
-        if self._sensibility == None:
-            
-            self._sensibility = self._build_sensibility()
-            
-        if self._first_deriv == None:
-            
-            self._first_deriv = self._build_first_deriv()
-            
-        p1 = numpy.arange(lower[0], upper[0] + dp1, dp1)
+        self.estimates = pylab.loadtxt(file_obj)
         
-        p2 = numpy.arange(lower[1], upper[1] + dp2, dp2)
-                
-        X, Y = pylab.meshgrid(p1, p2)
-        
-        np1 = len(p1)
-        
-        np2 = len(p2)
-        
-        goal = numpy.zeros((np2, np1))
-        
-        goal_tk0 = numpy.zeros((np2, np1))
-        
-        goal_tk1 = numpy.zeros((np2, np1))
-        
-        goal_tk2 = numpy.zeros((np2, np1))
-        
-        goal_eq = numpy.zeros((np2, np1))
-        
-        for i in xrange(np2):
-            
-            for j in xrange(np1):
-                
-                p = numpy.array([p1[j], p2[i]])
-                
-                if damping:
-                    
-                    if param_weights != None:                    
-                    
-                        goal_tk0[i][j] += damping*numpy.dot(\
-                                            numpy.dot(p.T, param_weights), p)
-                
-                    else:
-                        
-                        goal_tk0[i][j] += damping*numpy.dot(p.T, p)
-                        
-                    goal[i][j] += goal_tk0[i][j]
-                        
-                if smoothness:
-                    
-                    tmp = numpy.dot(self._first_deriv, p)
-                    
-                    if param_weights != None:
-                        
-                        tmp2 = numpy.dot(numpy.dot(self._first_deriv, param_weights), \
-                                         p)                                  
-                    
-                        goal_tk1[i][j] += smoothness*numpy.dot(tmp2.T, tmp2)
-                
-                    else:
-                        
-                        goal_tk1[i][j] += smoothness*numpy.dot(tmp.T, tmp)
-                        
-                    goal[i][j] += goal_tk1[i][j]
-                        
-                if curvature:
-                    
-                    tmp = numpy.dot(numpy.dot(self._first_deriv.T, \
-                                              self._first_deriv), p)
-                    
-                    if param_weights != None:
-                        
-                        tmp2 = numpy.dot(numpy.dot(p.T, param_weights), \
-                                         numpy.dot(self._first_deriv.T, \
-                                                   self._first_deriv))                                  
-                    
-                        goal_tk2[i][j] += curvature*numpy.dot(tmp2, tmp)
-                
-                    else:
-                        
-                        goal_tk2[i][j] += curvature*numpy.dot(tmp.T, tmp)
-                        
-                    goal[i][j] += goal_tk2[i][j]
-                        
-                if equality:
-                    
-                    tmp = numpy.dot(self._equality_matrix, p) - \
-                            self._equality_values
-                    
-                    goal_eq[i][j] += equality*numpy.dot(tmp.T, tmp)
-                        
-                    goal[i][j] += goal_eq[i][j]
-                    
-                r = self._get_data_array() - numpy.dot(self._sensibility, p)
-                
-                goal[i][j] += numpy.dot(r.T, r)
-                
-        pylab.figure()
-        
-        pylab.axis('scaled')
-        
-        pylab.title("Total Goal Function")
-        
-        pylab.pcolor(X, Y, goal, cmap=pylab.cm.jet)
-        
-        pylab.colorbar()        
-        
-        CS = pylab.contour(X, Y, goal, 20, colors='k')
-        
-        pylab.plot(true[0], true[1], 'oc', label="True")
-        
-        pylab.plot(res[0], res[1], '*k', label="Result")
-                   
-        pylab.legend(numpoints=1, prop={'size':7})
-
-        pylab.xlabel(r'$p_1$')
-        
-        pylab.ylabel(r'$p_2$')
-        
-        pylab.xlim(lower[0], upper[0])
-        
-        pylab.ylim(lower[1], upper[1])
-                
-        if damping:            
-            
-            pylab.figure()
-            
-            pylab.axis('scaled')
-            
-            pylab.title("Tikhonov 0")
-            
-            pylab.pcolor(X, Y, goal_tk0, cmap=pylab.cm.jet)
-            
-            pylab.colorbar()        
-            
-            CS = pylab.contour(X, Y, goal_tk0, 10, colors='k')
-            
-            pylab.plot(true[0], true[1], 'oc', label="True")
-            
-            pylab.plot(res[0], res[1], '*k', label="Result")
-                       
-            pylab.legend(numpoints=1, prop={'size':7})
-    
-            pylab.xlabel(r'$p_1$')
-            
-            pylab.ylabel(r'$p_2$')
-            
-            pylab.xlim(lower[0], upper[0])
-            
-            pylab.ylim(lower[1], upper[1])
-                
-        if smoothness:            
-            
-            pylab.figure()
-            
-            pylab.axis('scaled')
-            
-            pylab.title("Tikhonov 1")
-            
-            pylab.pcolor(X, Y, goal_tk1, cmap=pylab.cm.jet)
-                      
-            pylab.colorbar()        
-            
-            CS = pylab.contour(X, Y, goal_tk1, 10, colors='k')
-            
-            pylab.clabel(CS)
-            
-            pylab.plot(true[0], true[1], 'oc', label="True")
-            
-            pylab.plot(res[0], res[1], '*k', label="Result")
-                       
-            pylab.legend(numpoints=1, prop={'size':7})
-    
-            pylab.xlabel(r'$p_1$')
-            
-            pylab.ylabel(r'$p_2$')
-            
-            pylab.xlim(lower[0], upper[0])
-            
-            pylab.ylim(lower[1], upper[1])
-                
-        if curvature:            
-            
-            pylab.figure()
-            
-            pylab.axis('scaled')
-            
-            pylab.title("Tikhonov 2")
-            
-            pylab.pcolor(X, Y, goal_tk2, cmap=pylab.cm.jet)
-            
-            pylab.colorbar()        
-            
-            CS = pylab.contour(X, Y, goal_tk2, 10, colors='k')
-            
-            pylab.plot(true[0], true[1], 'oc', label="True")
-            
-            pylab.plot(res[0], res[1], '*k', label="Result")
-                       
-            pylab.legend(numpoints=1, prop={'size':7})
-    
-            pylab.xlabel(r'$p_1$')
-            
-            pylab.ylabel(r'$p_2$')
-            
-            pylab.xlim(lower[0], upper[0])      
-            
-            pylab.ylim(lower[1], upper[1])      
-                
-        if equality:            
-            
-            pylab.figure()
-            
-            pylab.axis('scaled')
-            
-            pylab.title("Equality")
-            
-            pylab.pcolor(X, Y, goal_eq, cmap=pylab.cm.jet)
-            
-            pylab.colorbar()        
-            
-            CS = pylab.contour(X, Y, goal_eq, 10, colors='k')
-            
-            pylab.plot(true[0], true[1], 'oc', label="True")
-            
-            pylab.plot(res[0], res[1], '*k', label="Result")
-                       
-            pylab.legend(numpoints=1, prop={'size':7})
-    
-            pylab.xlabel(r'$p_1$')
-            
-            pylab.ylabel(r'$p_2$')
-            
-            pylab.xlim(lower[0], upper[0])
-            
-            pylab.ylim(lower[1], upper[1])
