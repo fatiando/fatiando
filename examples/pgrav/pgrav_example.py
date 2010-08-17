@@ -2,8 +2,6 @@
 Example script for doing the inversion of synthetic FTG data
 """
 
-import pickle
-
 import logging
 logging.basicConfig()
 
@@ -43,7 +41,7 @@ solver = PGrav3D(x1=0, x2=1000, y1=0, y2=1000, z1=0, z2=1000, \
 # Compute the depth weight coefficients
 dwsolver = DepthWeightsCalculator(pgrav_solver=solver, height=150)
 
-dwsolver.solve_lm(initial=[150, 3], contam_times=0, \
+dwsolver.solve_lm(initial=[10, 3], contam_times=0, \
                   lm_start=1, lm_step=10, it_p_step=20, max_it=100)
 
 dwsolver.plot_adjustment(title="Depth Weights Adjustment")
@@ -54,7 +52,7 @@ Wp = solver.depth_weights(z0, power, normalize=True)
 
 # Solve the linear inverse problem using Tikhonov regularization
 #solver.solve_linear(damping=10**(-10), \
-#                    smoothness=10**(-8), \
+#                    smoothness=10**(-6), \
 #                    curvature=0, \
 #                    prior_weights=Wp, \
 #                    data_variance=0.05**2, \
@@ -65,7 +63,7 @@ Wp = solver.depth_weights(z0, power, normalize=True)
 solver.solve_lm(damping=10**(-8), \
                 smoothness=0, \
                 curvature=0, \
-                sharpness=10**(-3), beta=10**(-7), \
+                sharpness=10**(-5), beta=10**(-3), \
                 initial=None, \
                 prior_weights=Wp, \
                 data_variance=0.05**2, \
