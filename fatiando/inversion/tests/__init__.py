@@ -1,5 +1,5 @@
 """
-Test suite for the fatiando.geoinv package.
+Test suite for the fatiando.inversion package.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'

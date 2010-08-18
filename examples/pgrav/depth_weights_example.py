@@ -3,7 +3,7 @@ logging.basicConfig()
 
 import pylab
 
-from fatiando.geoinv.pgrav import PGrav3D, DepthWeightsCalculator
+from fatiando.inversion.pgrav import PGrav3D, DepthWeightsCalculator
 
 
 class MockData():

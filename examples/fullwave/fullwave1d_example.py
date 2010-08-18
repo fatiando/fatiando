@@ -6,7 +6,7 @@ import numpy
 
 from fatiando.directmodels.seismo.wavefd import SinSQWaveSource
 from fatiando.data.seismo import Seismogram
-from fatiando.geoinv.fullwave import FullWave1D
+from fatiando.inversion.fullwave import FullWave1D
 
 
 period = 5*10**(-3)

@@ -4,7 +4,7 @@ logging.basicConfig()
 import pylab
 import numpy
 
-from fatiando.geoinv.simpletom import SimpleTom
+from fatiando.inversion.simpletom import SimpleTom
 from fatiando.data.seismo import Cart2DTravelTime
 
 # Load the synthetic data

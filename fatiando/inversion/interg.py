@@ -7,15 +7,12 @@ __date__ = 'Created 05-Jul-2010'
 
 import time
 import logging
-import math
 
 import pylab
 import numpy
-from enthought.mayavi import mlab
-from enthought.tvtk.api import tvtk
 
 import fatiando
-from fatiando.geoinv.lmsolver import LMSolver
+from fatiando.inversion.gradientsolver import GradientSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
 
 
@@ -25,7 +22,7 @@ logger.addHandler(fatiando.default_log_handler)
 
 
 
-class InterG2D(LMSolver):
+class InterG2D(GradientSolver):
     """
     2D gravity inversion of an interface using right rectangular prisms
     
@@ -49,12 +46,12 @@ class InterG2D(LMSolver):
     def __init__(self, x1, x2, nx, dens, gz=None, gxx=None, gxy=None, \
                  gxz=None, gyy=None, gyz=None, gzz=None):
         
-        LMSolver.__init__(self)
+        GradientSolver.__init__(self)
         
-        if not (gz or gxx or gxy or gxz or gyy or gyz or gzz):
-            
-            raise RuntimeError, "Provide at least one of gz, gxx, gxy, gxz," + \
-                " gyy, gyz, or gzz. Can't do the inversion without data!"
+        assert gz != None or gxx != None or gxy != None or gxz != None or \
+            gyy != None or gyz != None or gzz != None, \
+            "Provide at least one of gz, gxx, gxy, gxz," + \
+            " gyy, gyz, or gzz. Can't do the inversion without data!"
         
         # Data parameters
         self._gz = gz
@@ -64,6 +61,14 @@ class InterG2D(LMSolver):
         self._gyy = gyy
         self._gyz = gyz
         self._gzz = gzz
+        
+        self._ndata = 0
+        
+        for data in [gz, gxx, gxy, gxz, gyy, gyz, gzz]:
+            
+            if data != None:
+                
+                self._ndata += len(data)
         
         # Model space parameters
         self._mod_x1 = float(x1)
@@ -81,9 +86,10 @@ class InterG2D(LMSolver):
     def _build_jacobian(self, estimate):
         """
         Make the Jacobian matrix of the function of the parameters.
-        'estimate' is the the point in the parameter space where the Jacobian
-        will be evaluated.
         """
+        
+        assert estimate != None, "Can't use solve_linear method. " + \
+            "This is a non-linear problem."
         
         delta = 0.1
         
@@ -183,9 +189,7 @@ class InterG2D(LMSolver):
         """
         Compute the first derivative matrix of the model parameters.
         """
-        
-        start = time.clock()
-        
+                
         # The number of derivatives there will be
         deriv_num = (self._nx - 1)
         
@@ -197,11 +201,7 @@ class InterG2D(LMSolver):
             first_deriv[i][i] = -1
             
             first_deriv[i][i + 1] = 1
-        
-        end = time.clock()
-        self._log.info("Building first derivative matrix: %d x %d  (%g s)" \
-                      % (deriv_num, self._nparams, end - start))
-        
+                
         return first_deriv
             
             
@@ -269,7 +269,7 @@ class InterG2D(LMSolver):
         return numpy.array(new)            
    
         
-    def add_equality(self, x, z):
+    def set_equality(self, x, z):
         """
         Set an equality constraint to hold the prism with x coordinate at depth 
         z
@@ -350,7 +350,7 @@ class InterG2D(LMSolver):
             vmax = numpy.append(true_z, vmax).max()
             vmin = numpy.append(true_z, vmin).min()
         
-        for estimate in self._estimates:
+        for estimate in self.estimates:
                   
             model = []
                                 
@@ -382,7 +382,7 @@ class InterG2D(LMSolver):
         
         prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
                 
-        stds = numpy.array(self.std)
+        stds = numpy.array(self.stddev)
         
         model = []
         

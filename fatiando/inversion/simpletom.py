@@ -13,7 +13,7 @@ import pylab
 import numpy
 
 from fatiando.directmodels.seismo.simple import traveltime
-from fatiando.geoinv.gradientsolver import GradientSolver
+from fatiando.inversion.gradientsolver import GradientSolver
 import fatiando
 
 

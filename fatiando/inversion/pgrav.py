@@ -24,7 +24,7 @@ logger = logging.getLogger('DepthWeightsCalculator')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
 
-from fatiando.geoinv.gradientsolver import GradientSolver
+from fatiando.inversion.gradientsolver import GradientSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
 
 

@@ -10,7 +10,7 @@ import numpy
 from enthought.mayavi import mlab
 
 from fatiando.data.gravity import TensorComponent
-from fatiando.geoinv.pgrav import PGrav3D, DepthWeightsCalculator
+from fatiando.inversion.pgrav import PGrav3D, DepthWeightsCalculator
 
 # Read the tensor component data from the data files
 zzdata = TensorComponent(component='zz')
