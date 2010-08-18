@@ -8,7 +8,7 @@ General
     * Module doc in special
 
 
-LinearSolver
+LinearSolver (Deprecated: exchanged for GradientSolver)
     * Implement equality constraints (Working in Tikhonov but not tested in TV)
     * Compactness regularization
     * Sparsity regularization
@@ -19,11 +19,10 @@ LinearSolver
     Done:
     * Depth weights
     
-LMSolver
-    * Make first derivatives local
     
 InterG
     * Save model, load it and split it to use in adaptative discretization
+    * Make integration test for this
     
     
 PGrav
@@ -39,6 +38,7 @@ PGrav
 SimpleTom
     * make integration test output pngs instead of using pylab.show()
     * missing cross-derivative causes tendency
+    * add TV to integration tests
     
 WaveFD
     * Make WaveFD1D output Seismogram instances
