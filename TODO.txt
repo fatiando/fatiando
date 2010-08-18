@@ -56,3 +56,4 @@ Grav
     * potential and derivatives of a sphere
     * C functions receive prism struct
     * Tesseroids
+    * Change TensorComponent to GravTensor, GravVector, GravPotential
