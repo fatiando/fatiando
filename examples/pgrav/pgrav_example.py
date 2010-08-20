@@ -59,17 +59,30 @@ Wp = solver.depth_weights(z0, power, normalize=True)
 #                    contam_times=2)
 #solver.dump("res_tk_10x10x10.txt")
 
-# Solve the non-linear problem
-solver.solve_lm(damping=10**(-8), \
+# Compact the Tikhonov solution
+solver.solve_lm(damping=10**(-10), \
                 smoothness=0, \
                 curvature=0, \
-                sharpness=10**(-5), beta=10**(-3), \
+                sharpness=10**(-5), beta=10**(-7), \
+                compactness=2*10**(-5), epsilon=10**(-5), \
                 initial=None, \
                 prior_weights=Wp, \
                 data_variance=0.05**2, \
-                contam_times=0, \
-                lm_start=10, lm_step=10, it_p_step=10, max_it=100)
-solver.dump("res_vt_10x10x10.txt")
+                contam_times=1, \
+                lm_start=0.1, lm_step=10, it_p_step=10, max_it=100)
+#solver.dump("res_compact_10x10x10.txt")
+
+# Solve the non-linear problem
+#solver.solve_lm(damping=10**(-8), \
+#                smoothness=0, \
+#                curvature=0, \
+#                sharpness=10**(-5), beta=10**(-7), \
+#                initial=None, \
+#                prior_weights=None, \
+#                data_variance=0.05**2, \
+#                contam_times=0, \
+#                lm_start=10, lm_step=10, it_p_step=10, max_it=100)
+#solver.dump("res_vt_10x10x10.txt")
 
 solver.plot_residuals()
 #solver.plot_adjustment((21,21))

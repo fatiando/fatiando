@@ -578,7 +578,7 @@ class PGrav3D(GradientSolver):
         self._equality_matrix = numpy.array(D)
         
         self._equality_values = numpy.array(p_ref)
-    
+              
 
     def plot_adjustment(self, shape, title="Adjustment"):
         """
