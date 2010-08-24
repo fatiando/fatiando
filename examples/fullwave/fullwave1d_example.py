@@ -1,52 +1,65 @@
+"""
+Invert a synthetic seismogram for the 1D velocity structure along a line.
+"""
+
 import logging
 logging.basicConfig()
+logger = logging.getLogger("fullwave1D_example.py")
+logger.setLevel(logging.DEBUG)
+
+# Set logging to a file
+baselogger = logging.getLogger()
+baselogger.addHandler(logging.FileHandler("fullwave1d_example.log", 'w'))
+
 
 import pylab
 import numpy
 
-from fatiando.directmodels.seismo.wavefd import SinSQWaveSource
 from fatiando.data.seismo import Seismogram
 from fatiando.inversion.fullwave import FullWave1D
 
+# To get the simulation parameters
+from make_seismograms import offset, deltag, xmax, num_nodes, source
 
-period = 5*10**(-3)
 
-source = SinSQWaveSource(amplitude=-0.001, period=period, \
-                         duration=period, offset=period, index=0)
-
-nodes = 300
-
-velocities = 4000*numpy.ones(nodes)
-
-velocities[0:150] = 0.50*velocities[0:150]
-
+# Load the data
 data = Seismogram()
 
-data.synthetic_1d(offset=10, deltag=30, num_gp=5, xmax=150., source=source, \
-                  num_nodes=nodes, velocities=velocities, deltat=10**(-4), \
-                  tmax=0.08, stddev=0.05, percent=True)
+data.load('synthetic_2vels.txt', offset, deltag)
 
-#data.plot(exaggerate=10000)
-
-#pylab.show()
-
-solver = FullWave1D(xmax=150., nx=2, num_nodes=nodes, seismogram=data, \
+# Initiate the solver class
+solver = FullWave1D(xmax=xmax,
+                    nx=2, # Assume there are 2 parameters (velocities)
+                    num_nodes=num_nodes, 
+                    seismogram=data,
                     source=source)
 
-#solver.map_goal(lower=[0,0], upper=[5000,5000], delta=[1000,1000], damping=10**(-11), \
-#                smoothness=0)
+initial = numpy.array([1600,4200])
 
-initial = numpy.array([2500,4200])
+solver.solve(damping=0, \
+             smoothness=0, \
+             curvature=0, \
+             sharpness=10**(-7), \
+             initial_estimate=initial, \
+             apriori_var=data.cov[0][0], \
+             contam_times=5, \
+             max_it=500, max_lm_it=20, lm_start=10**(-3), lm_step=10)
 
-solver.solve(damping=0, smoothness=10**(-17), curvature=0, sharpness=0, \
-             equality=0, initial_estimate=initial, apriori_var=data.cov[0][0], \
-             contam_times=0, \
-             max_it=100, max_lm_it=20, lm_start=10**(-2), lm_step=10)
-
-print "Velocities: ", solver.mean
+mean_vels = solver.mean
+std_vels = solver.std
+logger.info("Velocities:")
+logger.info("  v1 = %g +- %g" % (mean_vels[0], std_vels[0]))
+logger.info("  v2 = %g +- %g" % (mean_vels[1], std_vels[1]))
 
 solver.plot_residuals()
+pylab.savefig("residuals.png")
 
-solver.plot_adjustment(exaggerate=10000)
+solver.plot_adjustment(exaggerate=15000)
+pylab.xlim(0, xmax)
+pylab.savefig("adjustment.png")
+
+#solver.map_goal(lower=[1000,1000], upper=[5000,5000], delta=[100,100], \
+#                damping=0, \
+#                smoothness=0, sharpness=10**(-10))
 
 pylab.show()

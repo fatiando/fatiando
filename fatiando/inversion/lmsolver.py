@@ -27,7 +27,6 @@ logger.addHandler(fatiando.default_log_handler)
 
 
 
-
 class LMSolver():
     """
     Mother class for non-linear inverse problem solvers using the 
@@ -363,6 +362,15 @@ class LMSolver():
                 inner_start = time.clock()
                 
                 prev = next
+            
+                # Hack for when mapping the goal function
+                if contam_it == 0:
+                    
+                    if it == 1:
+                        
+                        steps_taken = []
+                        
+                    steps_taken.append(prev)
                 
                 jacobian = self._build_jacobian(prev)
                 
@@ -459,7 +467,9 @@ class LMSolver():
                         
                         goals.append(goal)
                         
-                        lm_param /= float(lm_step)
+                        if lm_param > 10**(-10):
+                        
+                            lm_param /= float(lm_step)
                         
                         break
                         
@@ -489,11 +499,11 @@ class LMSolver():
                 if len(goals) == it: 
                     
                     next = prev
-
+                    
                     break
                 
                 # Stop if there is stagnation
-                if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-4):
+                if abs((goals[it] - goals[it - 1])/goals[it - 1]) <= 10**(-7):
                     
                     break
                         
@@ -530,7 +540,10 @@ class LMSolver():
                                
         total_end = time.clock()
         self._log.info("Total time for inversion: %g s" \
-                       % (total_end - total_start))   
+                       % (total_end - total_start))
+        
+        
+        return steps_taken
                 
     
     def plot_residuals(self, title="Residuals", bins=0):

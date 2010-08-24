@@ -271,7 +271,7 @@ class WaveFD1D():
             
     
     def plot(self, title="", velocity=False, seismogram=False, tmax=None, \
-             exaggerate=1000):
+             xmin=None, xmax=None, exaggerate=1000):
         """
         Plot the current amplitudes.
         
@@ -284,6 +284,8 @@ class WaveFD1D():
             seismogram: if True, plot the seismograms as well
             
             tmax: maximum time range for the seismogram
+            
+            xmin, xmax: if any, limits of the x coordinate
             
             exaggerate: how much to exaggerate the traces in the seismogram
         """
@@ -319,8 +321,6 @@ class WaveFD1D():
                 pylab.plot(x, times, '-k') 
                             
             pylab.ylabel("Time")
-                
-            pylab.xlim(self._x1, self._x2)
             
             if tmax != None:
                             
@@ -329,6 +329,14 @@ class WaveFD1D():
             else:
                 
                 pylab.ylim(self._time, 0)
+                
+            if xmin != None and xmax != None:
+                
+                pylab.xlim(xmin, xmax) 
+                
+            else:
+                
+                pylab.xlim(self._x1, self._x2)
             
             pylab.subplot(num_plots,1,2)
             
@@ -351,25 +359,37 @@ class WaveFD1D():
             seismo_y = numpy.zeros_like(seismo_x)
             
             pylab.plot(seismo_x, seismo_y, 'vb', label='Geophone')
-        
-        pylab.xlim(self._x1, self._x2)
-        
+                
         pylab.ylim(-abs(2*self._source.amplitude), \
                    abs(2*self._source.amplitude))
         
         pylab.ylabel("Amplitude")
+                
+        if xmin != None and xmax != None:
+            
+            pylab.xlim(xmin, xmax) 
+            
+        else:
+            
+            pylab.xlim(self._x1, self._x2)
                     
         if velocity:
         
             pylab.subplot(num_plots, 1, 3)
                                 
             pylab.plot(x, self._vel, '-k')
-            
-            pylab.xlim(self._x1, self._x2)
-            
+                        
             pylab.ylim(0.9*min(self._vel), 1.1*max(self._vel))
                         
             pylab.ylabel("Velocity")
+                
+            if xmin != None and xmax != None:
+                
+                pylab.xlim(xmin, xmax) 
+                
+            else:
+                
+                pylab.xlim(self._x1, self._x2)
         
         pylab.xlabel("Position")
             

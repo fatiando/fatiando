@@ -109,7 +109,7 @@ class Seismogram(GeoData):
         Returns the time interval in the seismograms
         """
     
-        return self._data[0][1] - self._data[0][0]
+        return float(self._data[0][1] - self._data[0][0])
     
     
     deltat = property(_get_deltat)
@@ -167,9 +167,9 @@ class Seismogram(GeoData):
             deltag: distance between geophones
         """
         
-        self._offset = offset
+        self._offset = float(offset)
         
-        self._deltag = deltag
+        self._deltag = float(deltag)
         
         self._data = pylab.loadtxt(fname, dtype='f', comments='#').T
         
@@ -251,11 +251,11 @@ class Seismogram(GeoData):
         # so that the resolution in the area of interest is not lost
         extended = 2*xmax
         
-        velocities = numpy.append(velocities, \
-                                  velocities[-1]*numpy.ones(num_nodes))
+        ext_vels = numpy.append(velocities, \
+                                velocities[-1]*numpy.ones(num_nodes))
         
-        velocities = numpy.append(velocities[0]*numpy.ones(num_nodes), \
-                                  velocities)
+        ext_vels = numpy.append(ext_vels[0]*numpy.ones(num_nodes), \
+                                ext_vels)
         
         extended_nodes = 3*num_nodes
         
@@ -265,7 +265,7 @@ class Seismogram(GeoData):
         
         solver = wavefd.WaveFD1D(x1=-xmax, x2=extended, \
                                  num_nodes=extended_nodes, \
-                                 delta_t=deltat, velocities=velocities, \
+                                 delta_t=deltat, velocities=ext_vels, \
                                  source=source, left_bc='fixed', \
                                  right_bc='fixed')
         
@@ -304,7 +304,7 @@ class Seismogram(GeoData):
         end = time.clock()
         
         self._log.info("Generated %d synthetic seismograms with " % (num_gp) + \
-                       "%d times contaminated with error = %g (%g s)" \
+                       "%d time steps contaminated with error = %g (%g s)" \
                        % (len(times), error, end - start))        
         
         self._data = numpy.array(self._data)
