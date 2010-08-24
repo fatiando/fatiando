@@ -16,7 +16,7 @@ from fatiando.inversion.gradientsolver import GradientSolver
 from fatiando.directmodels.gravity import prism as prism_gravity
 
 
-logger = logging.getLogger('InterG2D')       
+logger = logging.getLogger('InterG2D')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(fatiando.default_log_handler)
 

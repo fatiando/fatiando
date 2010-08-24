@@ -22,10 +22,10 @@ initial = 500*numpy.ones(nx)
 
 solver.set_equality(x=2500, z=1000)
 
-solver.solve_lm(damping=10**(-10), \
+solver.solve_lm(damping=10**(-9), \
                 smoothness=0*10**(-6), \
                 curvature=0, \
-                sharpness=1*3*10**(-4), beta=10**(-7), \
+                sharpness=3*10**(-4), beta=10**(-7), \
                 equality=1, \
                 initial=initial, \
                 data_variance=data.cov[0][0], \

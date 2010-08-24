@@ -6,6 +6,8 @@ General
     * Implement Erf and Erfc in special.c
     * Module doc in geometry
     * Module doc in special
+    * Implement Conjugate Gradient and compare speed with LU decomposition
+    * Change C code that uses arrays to Fortran
 
 
 LinearSolver (Deprecated: exchanged for GradientSolver)

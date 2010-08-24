@@ -13,7 +13,7 @@ import pylab
 import numpy
 
 import fatiando
-from fatiando.geoinv.lmsolver import LMSolver
+from fatiando.inversion.lmsolver import LMSolver
 from fatiando.directmodels.seismo import wavefd
 from fatiando.data.seismo import Seismogram
 
@@ -79,7 +79,7 @@ class FullWave1D(LMSolver):
 #        
 #        source.move(source.pos() + self._num_nodes)
         
-        dvel = 1
+        dvel = 50
         
         deltat = self._seismogram.deltat
         
@@ -131,34 +131,6 @@ class FullWave1D(LMSolver):
             
             vel1[index:index + nodes_per_cell] = (estimate[i] - dvel)* \
                                                   numpy.ones(nodes_per_cell)
-                                                                                                    
-#            # Expand the simulation space to avoid edge effects        
-#            vel2 = numpy.append(vel2, vel2[-1]*numpy.ones(self._num_nodes))
-#            
-#            vel2 = numpy.append(vel2[0]*numpy.ones(self._num_nodes), vel2)  
-#            
-#            vel1 = numpy.append(vel1, vel1[-1]*numpy.ones(self._num_nodes))
-#        
-#            vel1 = numpy.append(vel1[0]*numpy.ones(self._num_nodes), vel1)            
-#            
-#            seismo2 = wavefd.WaveFD1D(x1=-self._xmax, x2=2*self._xmax, \
-#                                 num_nodes=3*self._num_nodes, \
-#                                 delta_t=deltat, velocities=vel2, \
-#                                 source=source, left_bc='fixed', \
-#                                 right_bc='fixed')
-#            
-#                                   
-#            seismo1 = wavefd.WaveFD1D(x1=-self._xmax, x2=2*self._xmax, \
-#                                 num_nodes=3*self._num_nodes, \
-#                                 delta_t=deltat, velocities=vel1, \
-#                                 source=source, left_bc='fixed', \
-#                                 right_bc='fixed')
-#            
-#            for i in xrange(len(self._seismogram)):
-#                
-#                seismo2.timestep()                
-#                
-#                seismo1.timestep()
 
             seismo2.synthetic_1d(offset=offset, deltag=deltag, num_gp=num_gp, \
                                  xmax=self._xmax, num_nodes=self._num_nodes, \
@@ -193,7 +165,7 @@ class FullWave1D(LMSolver):
         tmax = len(self._seismogram)*deltat
         
         # Build the velocity array to match the model space discretization
-        velocities = numpy.empty(self._num_nodes)
+        velocities = numpy.zeros(self._num_nodes)
         
         node_dx = self._xmax/(self._num_nodes - 1)
         
@@ -205,7 +177,7 @@ class FullWave1D(LMSolver):
             
             index = i*nodes_per_cell
             
-            velocities[index:index + nodes_per_cell] = estimate[i]*\
+            velocities[index:index + nodes_per_cell] = float(estimate[i])*\
                                                     numpy.ones(nodes_per_cell)
 
         seismo = Seismogram()
@@ -338,7 +310,8 @@ class FullWave1D(LMSolver):
         pylab.ylim(times.max(), 0)
         
         
-    def map_goal(self, lower, upper, delta, damping=0, smoothness=0):
+    def map_goal(self, lower, upper, delta, damping=0, smoothness=0, \
+                 sharpness=0):
         
         
         if self._first_deriv == None:
@@ -349,13 +322,15 @@ class FullWave1D(LMSolver):
         
         p1s = numpy.arange(lower[0], upper[0] + delta[0], delta[0])
         
-        goal = numpy.zeros((len(p2s), len(p1s)))
+        rms = numpy.zeros((len(p2s), len(p1s)))
         
         goal_tk0 = numpy.zeros((len(p2s), len(p1s)))
         
         goal_tk1 = numpy.zeros((len(p2s), len(p1s)))
         
-        goal_res = numpy.zeros((len(p2s), len(p1s)))
+        goal_tv = numpy.zeros((len(p2s), len(p1s)))
+        
+        data = self._seismogram.array
         
         for i in xrange(len(p2s)):
             
@@ -363,35 +338,66 @@ class FullWave1D(LMSolver):
                 
                 p = numpy.array([p1s[j], p2s[i]])
         
-                residuals = self._seismogram.array - self._calc_adjusted_data(p)
+                residuals = data - self._calc_adjusted_data(p)
         
-                goal_res[i][j] = numpy.dot(residuals.T, residuals)
+                rms[i][j] = (residuals*residuals).sum()     
                 
-                goal_tk0[i][j] = damping*numpy.dot(p.T, p)
+                if damping:
                 
-                tmp = numpy.dot(self._first_deriv, p)
+                    goal_tk0[i][j] = damping*((p*p).sum())
                 
-                goal_tk1[i][j] = smoothness*numpy.dot(tmp.T, tmp)
-                
-                goal[i][j] = goal_res[i][j] + goal_tk0[i][j] + goal_tk1[i][j]
-                            
+                if smoothness or sharpness:
+                    
+                    tmp = numpy.dot(self._first_deriv, p)
+                    
+                    if smoothness:
+                    
+                        goal_tk1[i][j] = smoothness*((tmp*tmp).sum())
+                    
+                    if sharpness:
+                                                         
+                        goal_tv[i][j] = sharpness*(abs(tmp).sum())
+                                            
         X, Y = pylab.meshgrid(p1s, p2s)
+        
+        pylab.savetxt('v1grid.txt', X)
+        pylab.savetxt('v2grid.txt', Y)
+        
+        goal = rms + goal_tk0 + goal_tk1 + goal_tv
+        
+        pylab.savetxt('rmsgrid.txt', rms)
+        pylab.savetxt('tk0grid.txt', goal_tk0)
+        pylab.savetxt('tk1grid.txt', goal_tk1)
+        pylab.savetxt('tvgrid.txt', goal_tv)
+        pylab.savetxt('goalgrid.txt', goal)
         
         pylab.figure()
         
-        pylab.title("Total goal function")
+        pylab.title("Goal Function")
         
         CS = pylab.contourf(X, Y, goal, 20)
         
         pylab.colorbar()
         
+        pylab.xlabel('v1')
+        pylab.ylabel('v2')
+        
+        pylab.xlim(lower[0], upper[0])
+        pylab.ylim(lower[1], upper[1])
+        
         pylab.figure()
         
-        pylab.title("Residuals goal function")
+        pylab.title("RMS")
         
-        CS = pylab.contourf(X, Y, goal_res, 20)
+        CS = pylab.contourf(X, Y, rms, 20)
         
         pylab.colorbar()
+        
+        pylab.xlabel('v1')
+        pylab.ylabel('v2')
+        
+        pylab.xlim(lower[0], upper[0])
+        pylab.ylim(lower[1], upper[1])
         
         if damping:
             
@@ -403,6 +409,12 @@ class FullWave1D(LMSolver):
             
             pylab.colorbar()
         
+            pylab.xlabel('v1')
+            pylab.ylabel('v2')
+        
+            pylab.xlim(lower[0], upper[0])
+            pylab.ylim(lower[1], upper[1])
+        
         if smoothness:
             
             pylab.figure()
@@ -413,8 +425,24 @@ class FullWave1D(LMSolver):
             
             pylab.colorbar()
         
+            pylab.xlabel('v1')
+            pylab.ylabel('v2')
         
-        
-        
-        
+            pylab.xlim(lower[0], upper[0])
+            pylab.ylim(lower[1], upper[1])
+                
+        if sharpness:
             
+            pylab.figure()
+            
+            pylab.title("TV goal function")
+            
+            CS = pylab.contourf(X, Y, goal_tv, 20)
+            
+            pylab.colorbar()
+        
+            pylab.xlabel('v1')
+            pylab.ylabel('v2')
+        
+            pylab.xlim(lower[0], upper[0])
+            pylab.ylim(lower[1], upper[1])
