@@ -287,7 +287,8 @@ class GradientSolver():
     
     def _build_tv_grad_hessian(self, estimate, sharpness, beta, prior_weights):
         """
-        Return the gradient and Hessian of the Total Variation regularization.
+        Return the gradient and Hessian of the Total Variation regularization 
+        term
         """
         
         if prior_weights != None:
@@ -362,7 +363,7 @@ class GradientSolver():
     
     def _build_tk_grad_hessian(self, estimate, tk_weights, prior_mean):
         """
-        Return the gradient and Hessian of the Tikhonov regularization.
+        Return the gradient and Hessian of the Tikhonov regularization term
         """
     
         if prior_mean != None:
@@ -397,9 +398,35 @@ class GradientSolver():
         return goal
     
     
+    def _build_compact_grad_hessian(self, estimate, compactness, epsilon):
+        """
+        Return the gradient and Hessian of the Compact regularization term
+        """
+        
+        grad = compactness*estimate/(estimate**2 + epsilon)
+            
+        hessian = compactness* \
+                  numpy.identity(self._nparams)/(estimate**2 + epsilon)
+                  
+        return grad, hessian
+    
+    
+    def _calc_compact_goal(self, estimate, compactness, epsilon):
+        """
+        Calculate the Compactness portion of the goal function for a given
+        estimate
+        """ 
+        
+        estimate_sqr = estimate**2
+        
+        goal = compactness*(estimate_sqr/(estimate_sqr + epsilon)).sum()
+        
+        return goal
+        
+        
     def _build_eq_grad_hessian(self, estimate, eq_weights, eq_ref_params):
         """
-        Return the gradient and Hessian of the Tikhonov regularization.
+        Return the gradient and Hessian of the Tikhonov regularization term
         """
                     
         hessian = eq_weights
@@ -796,12 +823,13 @@ class GradientSolver():
         
         
     def solve_lm(self, damping=0, smoothness=0, curvature=0, sharpness=0, \
-                 beta=10**(-7), equality=0, initial=None, prior_mean=None, \
-                 prior_weights=None, data_variance=1, contam_times=0, \
+                 beta=10**(-7), compactness=0, epsilon=10**(-7), equality=0, \
+                 initial=None, prior_mean=None, prior_weights=None, \
+                 data_variance=1, contam_times=0, \
                  lm_start=100, lm_step=10, it_p_step=20, max_it=100):
         """
-        Solve the non-linear inverse problem with Tikhonov and Total Variation
-        regularization using the Levemberg-Marquardt algorithm.
+        Solve the non-linear inverse problem with Tikhonov, Total Variation, and
+        Compact regularizations using the Levemberg-Marquardt algorithm.
         
         The inversion will be run multiple times, each time contaminating the
         data with a different Gaussian error realization. The many estimates 
@@ -824,7 +852,14 @@ class GradientSolver():
                        
             beta: parameter used in the Total Variation to make a continuous
                   approximation to the absolute value. The larger it is, the 
-                  worse the approximation is but also the more stable it is.             
+                  worse the approximation is but also the more stable it is.
+                  
+            compactness: Compact regularization parameter (i.e. how much 
+                         compactness to impose). See Last and Kubik (1983)
+                         
+            epsilon: small positive constant used to avoid zero division when 
+                     calculating the parameter weights for the compact inversion
+                     See Last and Kubik (1983)
         
             equality: how much to impose the equality constraints
             
@@ -870,9 +905,13 @@ class GradientSolver():
         ########################################################################
         # Regularization parameters must be >=0 by definition
         assert damping >= 0 and smoothness >= 0 and curvature >= 0 and \
-            sharpness >= 0 and equality >= 0, \
+            sharpness >= 0 and equality >= 0 and compactness >= 0, \
             "All regularization parameters (including equality) must be" + \
-            "real numbers and >= 0"
+            "Real numbers and >= 0"
+            
+        assert beta >= 0, "Beta parameter must be Real >= 0"
+        
+        assert epsilon >= 0, "Epsilon parameter must be Real >= 0"
             
         assert contam_times >= 0, "contam_times must be >= 0"
         
@@ -891,8 +930,10 @@ class GradientSolver():
         self._log.info("  damping    (Tikhonov order 0) = %g" % (damping))
         self._log.info("  smoothness (Tikhonov order 1) = %g" % (smoothness))
         self._log.info("  curvature  (Tikhonov order 2) = %g" % (curvature))
-        self._log.info("  sharpness  (Total Variation)  = %g" % (sharpness))
+        self._log.info("  sharpness   (Total Variation) = %g" % (sharpness))
         self._log.info("  beta parameter                = %g" % (beta))
+        self._log.info("  compactness         (Compact) = %g" % (compactness))
+        self._log.info("  epsilon parameter             = %g" % (epsilon))
         self._log.info("  equality constraints          = %g" % (equality))
         self._log.info("  a priori data variance        = %g" % (data_variance))
         self._log.info("  a priori data stddev          = %g" \
@@ -907,6 +948,9 @@ class GradientSolver():
         
         # INITIALIZATIONS AND MORE ASSERTIONS
         ########################################################################
+                
+        # Wipe a clean slate before starting
+        self.clear()
         
         if initial == None:
             
@@ -925,9 +969,6 @@ class GradientSolver():
             
         # Keep track of the time it will take to run the whole inversion
         start = time.time()
-        
-        # Wipe a clean slate before starting
-        self.clear()
                                
         if damping or smoothness or curvature:
             
@@ -1019,6 +1060,16 @@ class GradientSolver():
                 
                 goal += goal_tv
                 
+            if compactness:
+            
+                goal_compact = self._calc_compact_goal(next, compactness, \
+                                                       epsilon)
+            
+                self._log.info("    Initial Compactness goal function =" + \
+                               " %g" % (goal_compact))
+                
+                goal += goal_compact
+                
             if equality:
                 
                 goal_eq = self._calc_eq_goal(next, equality)
@@ -1079,6 +1130,18 @@ class GradientSolver():
                     del grav_tv
                     del hess_tv
                     
+                if compactness:
+                    
+                    grav_cp, hess_cp = self._build_compact_grad_hessian(prev, \
+                                                           compactness, epsilon)
+                    
+                    gradient = gradient + grav_cp
+                    
+                    hessian = hessian + hess_cp
+                    
+                    del grav_cp
+                    del hess_cp
+                    
                 if equality:
                     
                     grad_eq, hess_eq = self._build_eq_grad_hessian(prev, \
@@ -1134,6 +1197,13 @@ class GradientSolver():
                         
                         goal += goal_tv
                         
+                    if compactness:
+                        
+                        goal_compact = self._calc_compact_goal(next, \
+                                                        compactness, epsilon)
+                        
+                        goal += goal_compact
+                        
                     if equality:
                         
                         goal_eq = self._calc_eq_goal(next, equality)
@@ -1175,6 +1245,10 @@ class GradientSolver():
                 if sharpness:
                     
                     log_message += "TVgoal=%g " % (goal_tv)
+                    
+                if compactness:
+                    
+                    log_message += "CMPCTgoal=%g " % (goal_compact)
                     
                 if equality:
                     
