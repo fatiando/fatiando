@@ -1,3 +1,10 @@
+REFACTORING:
+
+    * Separate all visualization!
+    * Separate synthetic data generation from GeoData classes
+    * Make geometry a python module
+
+
 General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis

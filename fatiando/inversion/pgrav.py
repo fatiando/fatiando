@@ -730,7 +730,7 @@ class PGrav3D(GradientSolver):
         grid.z_coordinates = prism_zs
         
         fig = mlab.figure()
-        fig.scene.background = (0, 0, 0)
+        fig.scene.background = (0.1, 0.1, 0.1)
         fig.scene.camera.pitch(180)
         fig.scene.camera.roll(180)
         
@@ -742,8 +742,8 @@ class PGrav3D(GradientSolver):
                                  prism_ys[0], prism_ys[-1], \
                                  prism_zs[0], prism_zs[-1]])
         surf = mlab.pipeline.surface(axes, vmax=model.max(), vmin=model.min())
-        surf.actor.property.edge_visibility = 1
-        surf.actor.property.line_width = 1.5
+#        surf.actor.property.edge_visibility = 1
+#        surf.actor.property.line_width = 1.5
         mlab.colorbar(surf, title="Density [g/cm^3]", orientation='vertical', \
                       nb_labels=10)
         
@@ -772,7 +772,7 @@ class PGrav3D(GradientSolver):
         grid.z_coordinates = prism_zs
         
         fig = mlab.figure()
-        fig.scene.background = (0, 0, 0)
+        fig.scene.background = (0.1, 0.1, 0.1)
         fig.scene.camera.pitch(180)
         fig.scene.camera.roll(180)       
         source = mlab.pipeline.add_dataset(grid)
@@ -782,8 +782,8 @@ class PGrav3D(GradientSolver):
                                  prism_ys[0], prism_ys[-1], \
                                  prism_zs[0], prism_zs[-1]])
         surf = mlab.pipeline.surface(axes, vmax=std.max(), vmin=std.min())
-        surf.actor.property.edge_visibility = 1
-        surf.actor.property.line_width = 1.5
+#        surf.actor.property.edge_visibility = 1
+#        surf.actor.property.line_width = 1.5
         mlab.colorbar(surf, title="Standard Deviation [g/cm^3]", \
                       orientation='vertical', \
                       nb_labels=10)
