@@ -6,20 +6,15 @@ __date__ = 'Created 28-Mar-2010'
 
 import unittest
 
-from fatiando.directmodels.seismo.simple import traveltime
+import fatiando.seismo.traveltime
 
 
-class SimpleTravelTimeTestCase(unittest.TestCase):
-    """
-    Test case for the traveltime function in the simple Cartesian Tomography.
-    """
+class CartesianStraightTestCase(unittest.TestCase):
+    """Test case for the cartesian_straight function"""
     
     label = 'fast'
 
     def setUp(self):
-        """
-        Test case setup. Generate the test data or read it from a file.
-        """
 
         # Arguments: [S   x1  y1  x2  y2  xf   yf   xr  yr], t
         vertical = [ \
@@ -71,14 +66,14 @@ class SimpleTravelTimeTestCase(unittest.TestCase):
 
 
     def test_known_values(self):
-        "simple.traveltime returns correct results given test data"
+        "cartesian_straight returns correct results given test data"
 
         tnum = 0
         for args, t_known in self.known:
 
             tnum += 1
 
-            t_my = traveltime(*args)
+            t_my = fatiando.seismo.traveltime.cartesian_straight(*args)
 
             self.assertAlmostEquals(t_my, t_known, places=8, \
                 msg='Failed test case %d. t_my=%.10g  t_known=%.10g' \
@@ -94,8 +89,8 @@ def suite(label='fast'):
 
     testsuite = unittest.TestSuite()
 
-    SimpleTravelTimeTestCase.label = label
-    testsuite.addTest(unittest.makeSuite(SimpleTravelTimeTestCase, \
+    CartesianStraightTestCase.label = label
+    testsuite.addTest(unittest.makeSuite(CartesianStraightTestCase, \
                                          prefix='test'))
     
     return testsuite

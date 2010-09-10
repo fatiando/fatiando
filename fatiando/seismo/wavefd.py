@@ -13,8 +13,7 @@ import time
 import numpy
 import pylab
 
-from fatiando.utils import contaminate
-from fatiando.directmodels.seismo import wavefd_ext
+from fatiando.seismo import wavefd_ext
 import fatiando
 
 
@@ -414,7 +413,8 @@ class WaveFD1D():
             
             x = position + exaggerate*amplitudes
             
-            pylab.plot(x, times, '-k') 
+#            pylab.plot(x, times, '-k')
+            pylab.fill_betweenx(times, x, position, color='black')
             
         pylab.xlabel("Position")
         

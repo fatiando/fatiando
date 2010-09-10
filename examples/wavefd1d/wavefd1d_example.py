@@ -8,7 +8,7 @@ import pylab
 import numpy
 import time
 
-from fatiando.directmodels.seismo.wavefd import WaveFD1D, SinSQWaveSource
+from fatiando.seismo.wavefd import WaveFD1D, SinSQWaveSource
 
 # The simulation parameters
 offset = 10
@@ -54,11 +54,11 @@ for t in numpy.arange(0, tmax, deltat):
     
     solver.timestep()
     
-    solver.plot(velocity=True, seismogram=True, tmax=tmax, xmin=0, xmax=xmax, \
-                exaggerate=6000)
-
-    pylab.savefig("figures/wave%05d.png" % i, dpi=150)
-    pylab.close()
+#    solver.plot(velocity=True, seismogram=True, tmax=tmax, xmin=0, xmax=xmax, \
+#                exaggerate=6000)
+#
+#    pylab.savefig("figures/wave%05d.png" % i, dpi=150)
+#    pylab.close()
     
     i += 1
     

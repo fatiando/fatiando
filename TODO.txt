@@ -1,58 +1,39 @@
 REFACTORING:
 
-    * Separate all visualization!
-    * Separate synthetic data generation from GeoData classes
-    * Make geometry a python module
+    * Make geometry.py
+    * Make synthetic data generation for gravity
+    * Make synthetic data generation for seismo
+    * Make load and dump for gravity
+    * Make load and dump for seismo
+    * Unit tests for gravity
+    * Implement equality constraints
+    * Implement depth weights
+    * Implement visualizations
+    * Port inverse problems to the new solvers.py
+    * Port integration tests
+    * Include license info in all files
 
 
 General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
-    * Make tutorial for subclassing LinearSolver
-    * Pickle *Solvers so that I can dump and reload them
-    * Implement Erf and Erfc in special.c
-    * Module doc in geometry
-    * Module doc in special
-    * Implement Conjugate Gradient and compare speed with LU decomposition
+    * Make tutorial for implementing new inversion
     * Change C code that uses arrays to Fortran
 
 
-LinearSolver (Deprecated: exchanged for GradientSolver)
-    * Implement equality constraints (Working in Tikhonov but not tested in TV)
-    * Compactness regularization
+Inversion
     * Sparsity regularization
-    * Fix data weighting in the Tikhonov regularization
-    * Take away the summing identity fix in TV and replace it with Tikhonov 1
-    * Make first derivatives local
-    
-    Done:
-    * Depth weights
-    
+   
     
 InterG
-    * Save model, load it and split it to use in adaptative discretization
-    * Make integration test for this
-    
+    * Make integration test    
     
 PGrav
-    * Separate derivatives in each direction
+    * Make integration test
     * Build sensibility concurrently
-    * Clean up the code (remove multimodal method: didn't work)
     * Check if implementing cross-derivatives is better
     
-    Done:
-    * Automate configuration of the 3D plot
     
-
-SimpleTom
-    * make integration test output pngs instead of using pylab.show()
-    * missing cross-derivative causes tendency
-    * add TV to integration tests
-    
-WaveFD
-    * Make WaveFD1D output Seismogram instances
-
-
 Geometry
     * Discretize a sphere into prisms
     
@@ -60,9 +41,10 @@ Geometry
 Dicrect Models
     * Create wikis
     
-
-Grav
+Gravity
     * potential and derivatives of a sphere
-    * C functions receive prism struct
-    * Tesseroids
-    * Change TensorComponent to GravTensor, GravVector, GravPotential
+    * potential and derivatives of a tesseroid
+    * spherical harmonics
+    * reductions
+    * terrain correction
+    * continuation

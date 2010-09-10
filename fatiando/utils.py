@@ -15,29 +15,43 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Collection of plotting functions. Uses Matplotlib for 2D and Mayavi2 for 3D.
+Set of misc utility functions.
+
+  * contaminate: add random noise to a data array
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 01-Sep-2010'
+__date__ = 'Created 07-Mar-2010'
 
 
-import pylab
 import numpy
-from enthought.mayavi import mlab
-from enthought.tvtk.api import tvtk
 
 
-def plot_prism(prism):
+def contaminate(data, stddev, percent=True, return_stddev=False):
+    """
+    Contaminate a given data array (1D) with a normally distributed error of
+    standard deviation stddev. If percent=True, then stddev is assumed to be a
+    percentage of the maximum value in data (0 < stddev <= 1).
+    If return_stddev=True, the calculated stddev will be returned with the 
+    contaminated data.
+    """
+
+    if percent:
+
+        maximum = abs(numpy.array(data)).max()
+
+        stddev = stddev*maximum
+
+    cont_data = []
+    
+    for value in data:
+
+        cont_data.append(numpy.random.normal(value, stddev))
+
+    if return_stddev:
         
-    vtkprism = tvtk.RectilinearGrid()
-    vtkprism.cell_data.scalars = [prism.dens]
-    vtkprism.cell_data.scalars.name = 'Density'
-    vtkprism.dimensions = (2, 2, 2)
-    vtkprism.x_coordinates = [prism.x1, prism.x2]
-    vtkprism.y_coordinates = [prism.y1, prism.y2]
-    vtkprism.z_coordinates = [prism.z1, prism.z2]    
+        return [cont_data, stddev]
+    
+    else:
         
-    source = mlab.pipeline.add_dataset(vtkprism)
-    outline = mlab.pipeline.outline(source)
-    outline.actor.property.line_width = 4
-    outline.actor.property.color = (1,1,1)
+        return cont_data
+

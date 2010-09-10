@@ -1,21 +1,40 @@
+/* *****************************************************************************
+ Copyright 2010 Leonardo Uieda
+
+ This file is part of Fatiando a Terra.
+
+ Fatiando a Terra is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Fatiando a Terra is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
+ **************************************************************************** */
+
 /* **************************************************************************
 
-   This module contains a set of functions that calculate the travel times in a
-   simplified tomography with no reflection or refraction.
+ This module contains a set of functions that calculate the travel times of
+ seismic waves.
 
-   Author: Leonardo Uieda
-   Date: 29 April 2010
-   Last Update: $DATE: $
-   $REVISION: $
+ Author: Leonardo Uieda
+ Date: 29 April 2010
 
-   ************************************************************************** */
+ **************************************************************************** */
 
 #include <math.h>
-#include "simpletom.h"
+#include "traveltime.h"
 
-/* Calculate the travel time inside a cell */
-double traveltime(double slowness, double x1, double y1, double x2, double y2,
-                  double x_src, double y_src, double x_rec, double y_rec)
+/* Calculate the travel time inside a square cell assuming the ray is a straight
+ * line */
+double cartesian_straight(double slowness, double x1, double y1,
+						  double x2, double y2, double x_src, double y_src,
+						  double x_rec, double y_rec)
 {
 
     double maxx, maxy, minx, miny;
@@ -148,8 +167,10 @@ double traveltime(double slowness, double x1, double y1, double x2, double y2,
         return -1;
     }
 
-    distance = sqrt((crossingx[1] - crossingx[0])*(crossingx[1] - crossingx[0]) +
-                    (crossingy[1] - crossingy[0])*(crossingy[1] - crossingy[0]));
+    distance = sqrt((crossingx[1] - crossingx[0])*
+    				(crossingx[1] - crossingx[0]) +
+                    (crossingy[1] - crossingy[0])*
+                    (crossingy[1] - crossingy[0]));
 
     return distance*slowness;
 

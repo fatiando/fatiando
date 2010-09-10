@@ -1,22 +1,19 @@
 """
-Test suite for the fatiando.utils package.
+Test suite for the fatiando.gravity package.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
+__date__ = 'Created 10-Sep-2010'
 
 import unittest
-
-import fatiando.utils.tests.points
 
 
 def suite(label='fast'):
 
     testsuite = unittest.TestSuite()
     
-    testsuite.addTest(fatiando.utils.tests.points.suite(label))
-
     return testsuite
 
 
 if __name__ == '__main__':
+    
     unittest.main(defaultTest='suite')

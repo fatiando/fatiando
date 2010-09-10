@@ -1,3 +1,22 @@
+/* *****************************************************************************
+ Copyright 2010 Leonardo Uieda
+
+ This file is part of Fatiando a Terra.
+
+ Fatiando a Terra is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Fatiando a Terra is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
+ **************************************************************************** */
+
 /* **************************************************************************
    Interface file for generation SWIG wrappers around 'prismgrav.c'
    ************************************************************************** */
@@ -18,21 +37,11 @@ Created 01 March 2010
 /* Declare the module name */
 %module(docstring=DOCSTRING) prism
 
-/* ************************************************************************** */
-
-/* Put the headers with the definitions */
-/* ************************************************************************** */
 %{
 
 #include "../c/prismgrav.h"
 
 %}
-/* ************************************************************************** */
-
-/* Expose the functions and variables that will be wrapped */
-/* ************************************************************************** */
-/* ************************************************************************** */
-
 
 /* GZ */
 /* ************************************************************************** */
@@ -165,8 +174,4 @@ Parameters:
 %rename(gzz) prism_gzz;
 extern double prism_gzz(double dens, double x1, double x2, double y1, double y2,
                         double z1, double z2, double xp, double yp, double zp);
-/* ************************************************************************** */
-
-
-/* ************************************************************************** */
 /* ************************************************************************** */

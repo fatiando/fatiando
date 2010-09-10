@@ -5,7 +5,6 @@ import os
 
 
 # Phony target generator
-################################################################################
 def PhonyTarget(target, action, depends=[], env = None):
 
     if not env:
@@ -18,59 +17,18 @@ def PhonyTarget(target, action, depends=[], env = None):
     Depends(phony, depends)
 
     env.AlwaysBuild(phony)
-################################################################################
 
-
-# PYTHON EXTENTIONS (SWIG)
-################################################################################
-################################################################################
 
 c_path = os.path.join('src', 'c')
+
 wrap_path = os.path.join('src', 'wrap')
-
-# MATH
-################################################################################
-math_outdir = os.path.join('fatiando', 'math')
-
-mathenv = Environment(
-    SWIGFLAGS=['-python', '-outdir', math_outdir],
-    CPPPATH=[distutils.sysconfig.get_python_inc()],
-    SHLIBPREFIX="")
-
-lumod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_lu'),
-    source=[os.path.join(c_path, 'lu.c'), os.path.join(wrap_path, 'lu.i')])
-
-Depends(lumod, os.path.join(c_path, 'lu.h'))
-
-Clean(os.path.curdir,os.path.join(math_outdir,'lu.py'))
-
-glqmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_glq'),
-  source=[os.path.join(c_path, 'glq.c'), os.path.join(wrap_path, 'glq.i')])
-
-Depends(glqmod, os.path.join(c_path, 'glq.h'))
-
-Clean(os.path.curdir,os.path.join(math_outdir,'glq.py'))
-
-specialmod = mathenv.SharedLibrary(target=os.path.join(math_outdir,'_special'),
-  source=[os.path.join(c_path, 'special.c'), os.path.join(wrap_path, 'special.i')])
-
-Depends(specialmod, os.path.join(c_path, 'special.h'))
-
-Clean(os.path.curdir,os.path.join(math_outdir,'special.py'))
-
-# Group the math mods
-mathmods = [lumod, glqmod, specialmod]
-
-################################################################################
 
 
 # DIRECT MODELS
 ################################################################################
-direct_outdir = os.path.join('fatiando', 'directmodels')
 
-# GRAVITY 
-###########################################
-gravity_outdir = os.path.join(direct_outdir, 'gravity')
+# GRAVITY
+gravity_outdir = os.path.join('fatiando', 'gravity')
 
 gravityenv = Environment(
     SWIGFLAGS=['-python', '-outdir', gravity_outdir],
@@ -86,33 +44,22 @@ Depends(prismgravmod, os.path.join(c_path, 'prismgrav.h'))
 
 Clean(os.path.curdir, os.path.join(gravity_outdir,'prism.py'))
 
-tesseroidgravmod = gravityenv.SharedLibrary( \
-    target=os.path.join(gravity_outdir,'_tesseroid'),
-    source=[os.path.join(c_path, 'tesseroidgrav.c'), \
-            os.path.join(wrap_path, 'tesseroidgrav.i')])
-            
-Depends(tesseroidgravmod, os.path.join(c_path, 'tesseroidgrav.h'))
-
-Clean(os.path.curdir, os.path.join(gravity_outdir,'tesseroid.py'))
-###########################################
-
-# SEISMO
-###########################################
-seismo_outdir = os.path.join(direct_outdir, 'seismo')
+# SEISMOLOGY
+seismo_outdir = os.path.join('fatiando', 'seismo')
 
 seismoenv = Environment(
     SWIGFLAGS=['-python', '-outdir', seismo_outdir],
     CPPPATH=[distutils.sysconfig.get_python_inc()],
     SHLIBPREFIX="")
     
-simpletommod = seismoenv.SharedLibrary( \
-    target=os.path.join(seismo_outdir,'_simple'),
-    source=[os.path.join(c_path, 'simpletom.c'), \
-            os.path.join(wrap_path, 'simpletom.i')])
+traveltimemod = seismoenv.SharedLibrary( \
+    target=os.path.join(seismo_outdir,'_traveltime'),
+    source=[os.path.join(c_path, 'traveltime.c'), \
+            os.path.join(wrap_path, 'traveltime.i')])
 
-Depends(simpletommod, os.path.join(c_path, 'simpletom.h'))
+Depends(traveltimemod, os.path.join(c_path, 'traveltime.h'))
 
-Clean(os.path.curdir, os.path.join(seismo_outdir,'simple.py'))
+Clean(os.path.curdir, os.path.join(seismo_outdir,'traveltime.py'))
     
 wavefdmod = seismoenv.SharedLibrary( \
     target=os.path.join(seismo_outdir,'_wavefd_ext'),
@@ -122,40 +69,16 @@ wavefdmod = seismoenv.SharedLibrary( \
 Depends(wavefdmod, os.path.join(c_path, 'wavefd.h'))
 
 Clean(os.path.curdir, os.path.join(seismo_outdir,'wavefd_ext.py'))
-###########################################
 
 # Group direct mods
-directmods = [prismgravmod, simpletommod, wavefdmod]
+directmods = [prismgravmod, traveltimemod, wavefdmod]
 
 ################################################################################
 
-
-# GEOMETRY
-################################################################################
-geometry_outdir = os.path.join('fatiando', 'utils')
-
-geometryenv = Environment(
-    SWIGFLAGS=['-python', '-shadow', '-outdir', geometry_outdir],
-    CPPPATH=[distutils.sysconfig.get_python_inc()],
-    SHLIBPREFIX="")
-    
-geometrymod = geometryenv.SharedLibrary( \
-    target=os.path.join(geometry_outdir ,'_geometry'),
-    source=[os.path.join(wrap_path, 'geometry.i')])
-        
-
-Depends(geometrymod, os.path.join(c_path, 'geometry.c'))
-
-Clean(os.path.curdir, os.path.join(geometry_outdir,'geometry.py'))
-################################################################################
 
 # Group all the C coded modules
 ext_mods = []
 ext_mods.extend(directmods)
-ext_mods.extend(mathmods)
-
-################################################################################
-################################################################################
 
 
 # Make a phony target for the tests (the fast test suite)

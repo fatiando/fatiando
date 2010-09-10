@@ -1,6 +1,5 @@
 """
-Gravity:
-    A collection of gravimetry direct models
+A collection of seismology direct models and simulations
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
@@ -8,7 +7,7 @@ __date__ = 'Created 16-Mar-2010'
 
 def test(label='fast', verbose=True):
     """
-    Runs the unit tests for the fatiando.directmodels.gravity package.
+    Runs the unit tests for the fatiando.seismo package.
 
     Parameters:
 
@@ -27,11 +26,11 @@ def test(label='fast', verbose=True):
 
     import unittest
 
-    import tests
+    import fatiando.seismo.tests
 
     suite = unittest.TestSuite()
     
-    suite.addTest(tests.suite(label))
+    suite.addTest(fatiando.seismo.tests.suite(label))
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)
