@@ -15,6 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
+Perform statistical analysis on inversion results.
+
+Functions:
+  * mean: calculate the mean (per parameter) of several parameter vectors
+  * stddev: calculate the standard deviation (per parameter) of several 
+            parameter vectors
+  * chisquare: perform the chi square test on a population
+  * outliers: test a population for outliers
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
+__date__ = 'Created 11-Sep-2010'

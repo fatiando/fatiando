@@ -1,4 +1,4 @@
-# Copyright 2010 Leonardo Uieda
+# Copyright 2010 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,12 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-fatiando:
-    Geophysical direct and inverse modeling package. Includes various direct
-    models, inversion programs, a useful math package and various utils for 
-    general geophysics tasks.
-"""
+Geophysical direct and inverse modeling package. 
 
+Includes various direct models, inversion programs,and various utilities for 
+general geophysics tasks.
+
+Functions:
+  * test: run the unit test suite for this package
+"""
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
@@ -63,11 +65,11 @@ def test(label='fast', verbose=True):
 
     import unittest
 
-    import tests
+    import fatiando.tests
 
     suite = unittest.TestSuite()
     
-    suite.addTest(tests.suite(label))
+    suite.addTest(fatiando.tests.suite(label))
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)

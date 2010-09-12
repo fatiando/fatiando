@@ -1,5 +1,5 @@
 /* *****************************************************************************
- Copyright 2010 Leonardo Uieda
+ Copyright 2010 The Fatiando a Terra Development Team
 
  This file is part of Fatiando a Terra.
 

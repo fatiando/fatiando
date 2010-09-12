@@ -2,9 +2,8 @@ REFACTORING:
 
     * Make geometry.py
     * Make synthetic data generation for gravity
-    * Make synthetic data generation for seismo
+    * Make synthetic data generation for fullwave
     * Make load and dump for gravity
-    * Make load and dump for seismo
     * Unit tests for gravity
     * Implement equality constraints
     * Implement depth weights
@@ -13,6 +12,8 @@ REFACTORING:
     * Port integration tests
     * Include license info in all files
 
+    Done:    
+    * Make synthetic data generation for simpletom (11-Sep-2010)
 
 General
     * Write better (or any at all) docs for the inverse problem theory
@@ -23,15 +24,23 @@ General
 
 Inversion
     * Sparsity regularization
+    * Unit tests for solvers
    
+Stats
+    * Implement the Chi squared test for a population
+    * Implement the test for outliers in a population
     
 InterG
-    * Make integration test    
+    * Make integration test
+    * Function descriptions in the docstring
     
 PGrav
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
+    
+Sesimo
+    * Module descriptions in the docstring
     
     
 Geometry

@@ -1,4 +1,4 @@
-# Copyright 2010 Leonardo Uieda
+# Copyright 2010 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Linear and non-linear solvers for inverse problems.
-Includes:
-    - linear solver
-    - Levemberg-Marquardt solver
+Linear and non-linear generic solvers for inverse problems.
+
+Functions:
+  * lm: Levemberg-Marquardt solver
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 10-Sep-2010'
@@ -52,6 +52,26 @@ epsilon = 10**(-5)
 _tk_weights = None
 _first_deriv = None
 
+
+def clear():
+    """
+    Reset all globals to their default.
+    """
+    
+    global damping, smoothness, curvature, \
+           sharpness, beta, compactness, epsilon
+    global _tk_weights, _first_deriv
+           
+    damping = 0
+    smoothness = 0
+    curvature = 0
+    sharpness = 0
+    beta = 10**(-5)
+    compactness = 0
+    epsilon = 10**(-5)
+    _tk_weights = None
+    _first_deriv = None
+    
 
 def _build_jacobian(estimate):
     """
@@ -99,6 +119,8 @@ def _build_tk_weights(nparams):
     
       nparams: number of parameters
     """
+    
+    global _first_deriv
         
     weights = numpy.zeros((nparams, nparams))
     
@@ -138,6 +160,8 @@ def _build_tk_weights(nparams):
 def _calc_tk_goal(estimate, msg):
     """Portion of the goal function due to Tikhonov regularization"""
     
+    global _tk_weights
+    
     if _tk_weights is None:
         
         _tk_weights = _build_tk_weights(len(estimate))
@@ -154,6 +178,8 @@ def _calc_tk_goal(estimate, msg):
 
 def _calc_tv_goal(estimate, msg):
     """Portion of the goal function due to Total Variation regularization"""
+    
+    global _first_deriv
 
     if _first_deriv is None:
         
@@ -182,7 +208,9 @@ def _calc_compact_goal(estimate, msg):
 
 def _calc_eq_goal(estimate, msg):
     """Portion of the goal function due to equality constraints"""
-    pass
+    
+    raise NotImplementedError(
+          "_calc_eq_goal was called before being implemented")
 
     
 def _calc_regularizer_goal(estimate, msg):
@@ -212,8 +240,10 @@ def _sum_tk_hessian(hessian):
     
     Parameters:
     
-      hessian: array-like Hessian due to the adjustment
-    """
+      hessian: array-like Hessian matrix
+    """    
+    
+    global _tk_weights
     
     if _tk_weights is None:
         
@@ -222,57 +252,172 @@ def _sum_tk_hessian(hessian):
     hessian += _tk_weights    
     
 
-def _sum_tv_hessian(hessian):
-    pass
-
-def _sum_compact_hessian(hessian):
-    pass
-
-def _sum_eq_hessian(hessian):
-    pass
-    
-    
-def _sum_reg_hessians(hessian):
+def _sum_tv_hessian(hessian, estimate):
     """
-    Sum the Hessians of the regularizers to the given Hessian.
+    Sum the Total Variation regularization Hessian to hessian.
     
     Parameters:
     
-      hessian: array-like Hessian due to the adjustment
+      hessian: array-like Hessian matrix
+        
+      estimate: array-like current estimate
+    """
+        
+    global _first_deriv
+    
+    if _first_deriv is None:
+        
+        _first_deriv = _build_first_deriv_matrix()
+
+    derivatives = numpy.dot(_first_deriv, estimate)
+    
+    tmp = _first_deriv.copy()
+    
+    for i, deriv in enumerate(derivatives):
+        
+        sqrt = numpy.sqrt(deriv**2 + beta)
+                
+        tmp[i] *= beta/(sqrt**3)
+                    
+    hessian += sharpness*numpy.dot(_first_deriv.T, tmp)
+        
+
+def _sum_compact_hessian(hessian, estimate):
+    """
+    Sum the Compact regularization Hessian to hessian.
+    
+    Parameters:
+    
+      hessian: array-like Hessian matrix
+        
+      estimate: array-like current estimate
+    """
+    
+    for i, param in enumerate(estimate):
+        
+        hessian[i][i] += compactness/(param**2 + epsilon)
+
+
+def _sum_eq_hessian(hessian):
+    """
+    Sum the Equality Constraints Hessian to hessian.
+    
+    Parameters:
+    
+      hessian: array-like Hessian matrix
+        
+      estimate: array-like current estimate
+    """
+       
+    raise NotImplementedError(
+          "_sum_eq_hessian was called before being implemented")
+    
+    
+def _sum_reg_hessians(hessian, estimate):
+    """
+    Sum the Hessians of the regularizers to the Hessian of the adjustment.
+    
+    Parameters:
+    
+      hessian: array-like Hessian matrix of the adjustment
+        
+      estimate: array-like current estimate
     """
     
     _sum_tk_hessian(hessian)
-    _sum_tv_hessian(hessian)
-    _sum_compact_hessian(hessian)
-    _sum_eq_hessian(hessian)
+    _sum_tv_hessian(hessian, estimate)
+    _sum_compact_hessian(hessian, estimate)
+#    _sum_eq_hessian(hessian)
     
     
-def _sum_tk_gradient(gradient):
-    pass
-
-def _sum_tv_gradient(gradient):
-    pass
-
-def _sum_compact_gradient(gradient):
-    pass
-
-def _sum_eq_gradient(gradient):
-    pass
-    
-    
-def _sum_reg_gradients(gradient):
+def _sum_tk_gradient(gradient, estimate):
     """
-    Sum the gradients of the regularizers to the given gradient.
+    Sum the gradient vector of the Tikhonov regularizers to gradient
+    
+    Parameters:
+    
+      gradient: array-like gradient vector
+        
+      estimate: array-like current estimate
+    """
+        
+    global _tk_weights
+    
+    if _tk_weights is None:
+        
+        _tk_weights = _build_tk_weights(len(estimate))    
+    
+    gradient += numpy.dot(_tk_weights, estimate)
+
+
+def _sum_tv_gradient(gradient, estimate):
+    """
+    Sum the gradient vector of the Total Variation regularizer to gradient
+    
+    Parameters:
+    
+      gradient: array-like gradient vector
+        
+      estimate: array-like current estimate
+    """
+        
+    global _first_deriv
+    
+    if _first_deriv is None:
+        
+        _first_deriv = _build_first_deriv_matrix()
+        
+    derivatives = numpy.dot(_first_deriv, estimate)
+        
+    d = derivatives/numpy.sqrt(derivatives**2 + beta)
+    
+    gradient += sharpness*numpy.dot(_first_deriv.T, d)
+    
+
+def _sum_compact_gradient(gradient, estimate):
+    """
+    Sum the gradient vector of the Compact regularizer to gradient
+    
+    Parameters:
+    
+      gradient: array-like gradient vector
+        
+      estimate: array-like current estimate
+    """
+    
+    gradient += compactness*estimate/(estimate**2 + epsilon)
+
+
+def _sum_eq_gradient(gradient, estimate):
+    """
+    Sum the gradient vector of the Equality Constraints to gradient
+    
+    Parameters:
+    
+      gradient: array-like gradient vector
+        
+      estimate: array-like current estimate
+    """
+       
+    raise NotImplementedError(
+          "_sum_eq_gradient was called before being implemented")
+    
+    
+def _sum_reg_gradients(gradient, estimate):
+    """
+    Sum the gradients of the regularizers to the gradient of the adjustment.
     
     Parameters:
     
       gradient: array-like gradient due to the adjustment
+        
+      estimate: array-like current estimate
     """
     
-    _sum_tk_gradient(gradient)
-    _sum_tv_gradient(gradient)
-    _sum_compact_gradient(gradient)
-    _sum_eq_gradient(gradient)
+    _sum_tk_gradient(gradient, estimate)
+    _sum_tv_gradient(gradient, estimate)
+    _sum_compact_gradient(gradient, estimate)
+#    _sum_eq_gradient(gradient, estimate)
     
     
 def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
@@ -327,11 +472,11 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
         
         gradient = -1*numpy.dot(jacobian.T, residuals)
         
-        _sum_reg_gradients(gradient)
+        _sum_reg_gradients(gradient, prev)
         
         hessian = numpy.dot(jacobian.T, jacobian)
     
-        _sum_reg_hessians(hessian)
+        _sum_reg_hessians(hessian, prev)
         
         hessian_diag = numpy.diag(numpy.diag(hessian))
         
@@ -378,7 +523,3 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
             break
         
     return next, goals
-
-
-if __name__ == '__main__':
-    pass

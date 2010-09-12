@@ -1,8 +1,32 @@
+# Copyright 2010 The Fatiando a Terra Development Team
+#
+# This file is part of Fatiando a Terra.
+#
+# Fatiando a Terra is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatiando a Terra is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A collection of seismology direct models and simulations
+A collection of seismology direct models, simulations and utilities.
+
+Modules:
+  * traveltime: functions for calculating the travel times of seismic waves
+  * wavefd: finite differences simulation of seismic waves
+  * synthetic: synthetic data generation (travel times, seismograms)
+  
+Functions:
+  * test: run the unit test suite for this package
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 16-Mar-2010'
+__date__ = 'Created 11-Sep-2010'
 
 
 def test(label='fast', verbose=True):

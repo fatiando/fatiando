@@ -1,5 +1,5 @@
 /* *****************************************************************************
- Copyright 2010 Leonardo Uieda
+ Copyright 2010 The Fatiando a Terra Development Team
 
  This file is part of Fatiando a Terra.
 
@@ -23,9 +23,7 @@
 
 /* The module docstring */
 %define DOCSTRING
-"
-TravelTime:
-    C-coded functions for calculating the travel times of seismic waves.
+"C-coded functions for calculating the travel times of seismic waves.
 
 Author: Leonardo Uieda
 Created 29 April 2010

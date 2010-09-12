@@ -1,5 +1,3 @@
-# Builder for the shared libs of the slooT package
-
 import distutils.sysconfig
 import os
 

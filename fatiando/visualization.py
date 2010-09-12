@@ -1,4 +1,4 @@
-# Copyright 2010 Leonardo Uieda
+# Copyright 2010 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,17 +15,61 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Collection of plotting functions. Uses Matplotlib for 2D and Mayavi2 for 3D.
+Collection of plotting functions. 
+Uses Matplotlib for 2D and Mayavi2 for 3D.
+
+Functions:
+  * plot_src_rec: plot the locations of seismic sources and receivers in a map
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
 
 
-import pylab
 import numpy
-from enthought.mayavi import mlab
-from enthought.tvtk.api import tvtk
 
+import pylab
+#from enthought.mayavi import mlab
+#from enthought.tvtk.api import tvtk
+
+
+def plot_src_rec(sources, receivers):
+    """
+    Plot the locations of seismic sources and receivers in a map.
+    
+    Parameters:
+          
+        sources: list with the x,y coordinates of each source
+        
+        receivers: list with the x,y coordinates of each receiver
+    """
+    
+    src_x, src_y = numpy.transpose(sources)
+    rec_x, rec_y = numpy.transpose(receivers)
+    
+    pylab.plot(src_x, src_y, 'r*', ms=9, label='Source')
+    pylab.plot(rec_x, rec_y, 'b^', ms=7, label='Receiver')
+    
+    pylab.legend(numpoints=1, prop={'size':7})
+    
+
+def plot_ray_coverage(sources, receivers, linestyle='-k'):
+    """
+    Plot the rays between sources and receivers in a map.
+    
+    Parameters:
+          
+        sources: list with the x,y coordinates of each source
+        
+        receivers: list with the x,y coordinates of each receiver
+        
+        linestyle: type of line to display and color. See 'pylab.plot'
+                   documentation for more details.
+    """
+    
+    for src, rec in zip(sources, receivers):
+        
+        pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
+    
 
 def plot_prism(prism):
         
@@ -41,3 +85,6 @@ def plot_prism(prism):
     outline = mlab.pipeline.outline(source)
     outline.actor.property.line_width = 4
     outline.actor.property.color = (1,1,1)
+    
+    
+    

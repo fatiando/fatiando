@@ -1,4 +1,4 @@
-# Copyright 2010 Leonardo Uieda
+# Copyright 2010 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -17,6 +17,7 @@
 """
 Set of misc utility functions.
 
+Functions:
   * contaminate: add random noise to a data array
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'

@@ -1,4 +1,4 @@
-# Copyright 2010 Leonardo Uieda
+# Copyright 2010 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-InterG:
-    Gravity inversion of an interface using right rectangular prisms.
+Gravity inversion of an interface using right rectangular prisms.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 05-Jul-2010'
