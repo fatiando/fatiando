@@ -31,8 +31,11 @@ __date__ = 'Created 01-Sep-2010'
 import numpy
 
 import pylab
-#from enthought.mayavi import mlab
-#from enthought.tvtk.api import tvtk
+
+# Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
+# 3D plotting
+mlab = None
+tvtk = None
 
 
 def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
@@ -102,7 +105,7 @@ def residuals_histogram(residuals, nbins=None):
     pylab.hist(residuals, bins=nbins, facecolor='gray')
     
 
-def plot_src_rec(sources, receivers):
+def plot_src_rec(sources, receivers, markersize=9):
     """
     Plot the locations of seismic sources and receivers in a map.
     
@@ -111,13 +114,15 @@ def plot_src_rec(sources, receivers):
         sources: list with the x,y coordinates of each source
         
         receivers: list with the x,y coordinates of each receiver
+        
+        markersize: size of the source and receiver markers
     """
     
     src_x, src_y = numpy.transpose(sources)
     rec_x, rec_y = numpy.transpose(receivers)
     
-    pylab.plot(src_x, src_y, 'r*', ms=9, label='Source')
-    pylab.plot(rec_x, rec_y, 'b^', ms=7, label='Receiver')
+    pylab.plot(src_x, src_y, 'r*', ms=markersize, label='Source')
+    pylab.plot(rec_x, rec_y, 'b^', ms=int(0.78*markersize), label='Receiver')
     
     pylab.legend(numpoints=1, prop={'size':7})
     
@@ -142,6 +147,16 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
     
 
 def plot_prism(prism):
+    
+    global mlab, tvtk
+    
+    if mlab is None:        
+        
+        from enthought.mayavi import mlab
+        
+    if tvtk is None:
+        
+        from enthought.tvtk.api import tvtk
         
     vtkprism = tvtk.RectilinearGrid()
     vtkprism.cell_data.scalars = [prism.dens]

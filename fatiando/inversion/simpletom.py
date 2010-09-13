@@ -73,24 +73,34 @@ def _build_simpletom_jacobian(estimate):
     
     if _jacobian is None:
         
-        nparams = _mesh.size
-        
-        ndata = len(_sources)
-        
-        _jacobian = numpy.zeros((ndata, nparams))
+        _jacobian = []
                 
-        for i, pair in enumerate(zip(_sources, _receivers)):
+        for src, rec in zip(_sources, _receivers):
+                        
+            line = []
             
-            src, rec = pair
-            
-            for j, cell in enumerate(_mesh.ravel()):
+            for cell in _mesh.ravel():
                 
-                _jacobian[i][j] = traveltime.cartesian_straight(
-                    1., cell['x1'], cell['y1'], cell['x2'], cell['y2'], 
-                    src[0], src[1], rec[0], rec[1])
+                value = traveltime.cartesian_straight(1., 
+                                                      cell['x1'], cell['y1'], 
+                                                      cell['x2'], cell['y2'], 
+                                                      src[0], src[1], 
+                                                      rec[0], rec[1])
+                
+                line.append(value)
+            
+            _jacobian.append(line)
+            
+        _jacobian = numpy.array(_jacobian)
                 
     return _jacobian
 
+
+def _build_simpletom_jacobian2(estimate):
+    """Try to speed up jacobian building using map"""
+    pass   
+    
+    
         
 def _build_simpletom_first_deriv():
     """
@@ -173,6 +183,10 @@ def make_mesh(x1, x2, y1, y2, nx, ny):
         {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
     """
     
+    log.info("Building model space mesh:")
+    log.info("  Discretization: nx=%d X ny=%d = %d parameters" 
+             % (nx, ny, nx*ny))
+    
     dx = float(x2 - x1)/nx
     dy = float(y2 - y1)/ny
     
@@ -228,7 +242,8 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
       sharpness: Total Variation regularization parameter. Must be >= 0
       
       beta: small constant used to make Total Variation differentiable. 
-            Must be >= 0
+            Must be >= 0. The smaller it is, the sharper the solution but also 
+            the less stable
     
       max_it: maximum number of iterations 
         
@@ -248,6 +263,13 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
                    mesh
         goals = list of goal function value per iteration    
     """
+    
+    log.info("Inversion parameters:")
+    log.info("  damping    = %g" % (damping))
+    log.info("  smoothness = %g" % (smoothness))
+    log.info("  curvature  = %g" % (curvature))
+    log.info("  sharpness  = %g" % (sharpness))
+    log.info("  beta       = %g" % (beta))
         
     global _mesh, _sources, _receivers
     
@@ -274,6 +296,10 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     if initial is None:
         
         initial = (10**(-10))*numpy.ones(mesh.size)
+        
+    else:
+        
+        initial = 1./numpy.array(initial)
     
     estimate, goals = solvers.lm(data_vector, None, initial, lm_start, lm_step, 
                                  max_steps, max_it)

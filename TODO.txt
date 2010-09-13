@@ -1,23 +1,9 @@
 REFACTORING:
 
     * Make geometry.py
-    * Make synthetic data generation for gravity
-    * Make synthetic data generation for fullwave
-    * Make load and dump for gravity
-    * Unit tests for gravity
     * Implement equality constraints
     * Implement depth weights
-    * Implement visualizations
-        Done:
-            * simpletom
-    * Port inverse problems to the new solvers.py
-        Done:
-            * simpletom
-    * Port integration tests
     * Include license info in all files
-
-    Done:    
-    * Make synthetic data generation for simpletom (11-Sep-2010)
 
 General
     * Write better (or any at all) docs for the inverse problem theory
@@ -29,25 +15,41 @@ General
 Inversion
     * Sparsity regularization
     * Unit tests for solvers
+    * Linear solver
    
 Stats
     * Implement the Chi squared test for a population
     * Implement the test for outliers in a population
     
 InterG
+    * IO for inversion results and initial estimate
+    * Make synthetic data generation
     * Make integration test
     * Function descriptions in the docstring
+    * Port to the new solvers.py
+    * Make visualizations
     
 PGrav
+    * IO for inversion results and initial estimate
+    * Make synthetic data generation
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
+    * Port to the new solvers.py
+    * Make visualizations
     
 Sesimo
     * Module descriptions in the docstring
     
 Simpletom:
-    * Put versbose in solve and make_mesh    
+    * Port integration tests
+    * IO for inversion results and initial estimate
+
+    Done:
+    * Put versbose in solve and make_mesh
+    * Port to the new solvers.py
+    * Make visualizations
+    * Make synthetic data generatio
     
 Geometry
     * Discretize a sphere into prisms
@@ -57,9 +59,21 @@ Dicrect Models
     * Create wikis
     
 Gravity
+    * Unit tests for existing functions
+    * Make io module with load and dump functions
     * potential and derivatives of a sphere
     * potential and derivatives of a tesseroid
     * spherical harmonics
     * reductions
     * terrain correction
     * continuation
+    
+WaveFD:
+    * Port to Fortran
+    * Get rid of Python interface (put it in seismo.synthetic)
+    
+Fullwave1D:
+    * Make integration test
+    * Port to the new solvers.py
+    * Make visualizations
+    

@@ -88,7 +88,7 @@ def vel_from_image(fname, vmax, vmin):
     return model
     
     
-def shoot_cartesian_straight(model, src_n, rec_n, type='circle'):
+def shoot_cartesian_straight(model, src_n, rec_n, type='circle', rec_span=45.):
     """
     Shoot straight rays through a 2D Cartesian velocity model.
     
@@ -108,6 +108,9 @@ def shoot_cartesian_straight(model, src_n, rec_n, type='circle'):
                       the number different angles the array is placed in and
                       rec_n is the number of receivers per source.
               'rand': both receivers and sources are randomly distributed
+              
+        rec_span: angular spread of the receivers in the xray type configuration
+                  in decimal degrees
                             
     Return:
     
@@ -154,7 +157,7 @@ def shoot_cartesian_straight(model, src_n, rec_n, type='circle'):
                 
     elif type == 'xray':
         
-        rec_range = 45.*numpy.pi/180.
+        rec_range = rec_span*numpy.pi/180.
         rec_step = rec_range/(rec_n - 1)
         
         radius = 1.5*smallest

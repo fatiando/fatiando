@@ -17,6 +17,15 @@
 """
 Linear and non-linear generic solvers for inverse problems.
 
+Implemented regularizations:
+
+  * Tikhonov orders 0, 1 and 2: imposes minimum norm (damping), smoothness and 
+      minimum curvature, respectively, of the solution
+  * Total Variation: imposes minimum l1 norm of the model derivatives 
+      (discontinuities)
+  * Compact: imposes minimum area (volume) of the solution (as in Last and Kubic
+      (1983))
+
 Functions:
   * lm: Levemberg-Marquardt solver
 """
@@ -512,8 +521,8 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     log.info("  Initial RMS: %g" % (rms))
     log.info("  Initial regularizers:%s" % (msg))
     log.info("  Total initial goal function: %g" % (goals[0]))
-    log.info("  Initial LM param: %g" % (lm_start))
-    log.info("  LM param step: %g" % (lm_step))
+    log.info("  Initial Marquardt parameter: %g" % (lm_start))
+    log.info("  Marquardt parameter step: %g" % (lm_step))
     
     lm_param = lm_start
     
