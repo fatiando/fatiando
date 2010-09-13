@@ -20,6 +20,9 @@ Uses Matplotlib for 2D and Mayavi2 for 3D.
 
 Functions:
   * plot_src_rec: plot the locations of seismic sources and receivers in a map
+  * plot_ray_coverage: Plot the rays between sources and receivers in a map
+  * plot_square_mesh: Plot a pcolor map of a 2D mesh made of square cells
+  * residuals_histogram: Plot a histogram of the residual vector
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
@@ -31,6 +34,73 @@ import pylab
 #from enthought.mayavi import mlab
 #from enthought.tvtk.api import tvtk
 
+
+def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
+    """
+    Plot a 2D mesh made of square cells. Each cell is a dictionary as:
+      {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
+    The pseudo color of the plot is key 'value'.
+    
+    Parameters:
+    
+      mesh: a list of cells describing the square mesh
+      
+      cmap: color map to use
+      
+      vmin, vmax: lower and upper limits for the color scale
+    """
+    
+    xvalues = []
+    for cell in mesh[0]:
+        
+        xvalues.append(cell['x1'])
+        
+    xvalues.append(mesh[0][-1]['x2'])
+        
+    yvalues = []
+    
+    for line in mesh:
+        
+        yvalues.append(line[0]['y1'])
+    
+    yvalues.append(mesh[-1][0]['y2'])
+    
+    X, Y = numpy.meshgrid(xvalues, yvalues)
+    
+    Z = numpy.zeros_like(X)
+    
+    for i, line in enumerate(mesh):
+        
+        for j, cell in enumerate(line):
+            
+            Z[i][j] = cell['value']
+            
+    if vmin is None and vmax is None:
+        
+        pylab.pcolor(X, Y, Z, cmap=cmap)
+        
+    else:
+        
+        pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+
+
+def residuals_histogram(residuals, nbins=None):
+    """
+    Plot a histogram of the residual vector.
+    
+    Parameters:
+    
+      residuals: 1D array-like vector of residuals
+      
+      nbins: number of bins (default to len(residuals)/8)
+    """
+    
+    if nbins is None:
+    
+        nbins = len(residuals)/8
+    
+    pylab.hist(residuals, bins=nbins, facecolor='gray')
+    
 
 def plot_src_rec(sources, receivers):
     """

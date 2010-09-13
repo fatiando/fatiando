@@ -15,8 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A simplified Cartesian tomography problem. Does not consider reflection or 
-refraction.
+A simplified 2D Cartesian tomography problem.
+Considers straight (seismic) rays, eg does not consider reflection or refraction
+
+Functions:
+  * clear: Erase garbage from previous inversions
+  * make_mesh: Make a model space discretization mesh
+  * solve: Solve the tomography problem for a given data set and model mesh
+  * residuals: Calculate the residuals produced by a given estimate
+  * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
@@ -24,271 +31,319 @@ __date__ = 'Created 29-Apr-2010'
 
 import logging
 
-import pylab
 import numpy
 
-from fatiando.directmodels.seismo.simple import traveltime
-from fatiando.inversion.gradientsolver import GradientSolver
 import fatiando
+from fatiando.seismo import traveltime
+from fatiando.inversion import solvers
+
+log = logging.getLogger('fatiando.inversion.simpletom')  
+log.setLevel(logging.DEBUG)
+log.addHandler(fatiando.default_log_handler)
 
 
-logger = logging.getLogger('simpletom')       
-logger.setLevel(logging.DEBUG)
-logger.addHandler(fatiando.default_log_handler)
+# Defined as globals so that they won't have to be re-calculated
+_jacobian = None
+_mesh = None
+_sources = None
+_receivers = None
 
 
-class SimpleTom(GradientSolver):
+def clear():
+    """Erase garbage from previous inversions"""
+    
+    global _jacobian, _mesh, _sources, _receivers
+    
+    _jacobian = None
+    _mesh = None
+    _sources = None
+    _receivers = None
+
+
+def _build_simpletom_jacobian(estimate):
+    """Build the Jacobian matrix of the traveltime function."""
+    
+    assert _mesh is not None, "Can't build simpletom Jacobian. No mesh defined"
+    assert _sources is not None, "Can't build simpletom Jacobian." + \
+        "No ray sources given"
+    assert _receivers is not None, "Can't build simpletom Jacobian." + \
+        "No ray receivers given"
+    
+    global _jacobian
+    
+    if _jacobian is None:
+        
+        nparams = _mesh.size
+        
+        ndata = len(_sources)
+        
+        _jacobian = numpy.zeros((ndata, nparams))
+                
+        for i, pair in enumerate(zip(_sources, _receivers)):
+            
+            src, rec = pair
+            
+            for j, cell in enumerate(_mesh.ravel()):
+                
+                _jacobian[i][j] = traveltime.cartesian_straight(
+                    1., cell['x1'], cell['y1'], cell['x2'], cell['y2'], 
+                    src[0], src[1], rec[0], rec[1])
+                
+    return _jacobian
+
+        
+def _build_simpletom_first_deriv():
     """
-    Solver for the inverse problem of a simple Cartesian tomography with no
-    refraction or reflection. (Like X-ray tomography)
-    
-    Constructor parameters:
-    
-        - traveltimedata: an instance of Cart2DTravelTime found in 
-                          fatiando.data.seismo with the travel time data to
-                          invert
-                           
-        - x1, x2, y1, y2: boundaries of the model space
-        
-        - nx, ny: number of cells into which the model space will be cut up in 
-                  each direction
-    
-    To access the mean and standard deviation of the estimates, use 
-    mean and std properties
-    
-    Note:        
-        Log messages are printed to stderr by default using the logging module.
-        If you want to modify the logging, add handlers to the 'simpletom'
-        logger.
-        Ex:
-            mylog = logging.getLogger('simpletom')
-            mylog.addHandler(myhandler)
-            
-        Another option is to use the default configuration by calling
-        logging.basicConfig() inside your script.
+    Build the first derivative finite differences matrix for the model space
     """
     
+    assert _mesh is not None, "Can't build simpletom derivative matrix." + \
+        "No mesh defined"
     
-    def __init__(self, traveltimedata, x1, x2, y1, y2, nx, ny):
-        
-        GradientSolver.__init__(self)
-        
-        # Data parameters
-        self._data = traveltimedata
-        self._ndata = len(traveltimedata)    
-        
-        # Model space parameters
-        self._mod_x1 = x1
-        self._mod_x2 = x2
-        self._mod_y1 = y1
-        self._mod_y2 = y2        
-        self._nx = nx
-        self._ny = ny
-        self._nparams = nx*ny
-        
-        # Inversion parameters
-        self._jacobian = None
-        
-        # The logger for this class
-        self._log = logging.getLogger('simpletom')
-        
-        self._log.info("Model space discretization: %d cells in x *" % (nx) + \
-                       " %d cells in y = %d parameters" % (ny, nx*ny))
-                  
-
-    def _build_jacobian(self, estimate):
-        """
-        Make the Jacobian matrix of the function of the parameters.
-        """
-        
-        if self._jacobian != None:
+    ny, nx = _mesh.shape
             
-            return self._jacobian
+    deriv_num = (nx - 1)*ny + (ny - 1)*nx
                 
-        dx = float(self._mod_x2 - self._mod_x1)/ self._nx
-        dy = float(self._mod_y2 - self._mod_y1)/ self._ny
-                                     
-        jacobian = numpy.zeros((self._ndata, self._nparams))
+    first_deriv = numpy.zeros((deriv_num, nx*ny))
         
-        for l in xrange(self._ndata):
-                
-            p = 0
+    deriv_i = 0
+        
+    # Derivatives in the x direction        
+    param_i = 0
+    for i in xrange(ny):
+        
+        for j in xrange(nx - 1):                
             
-            for y1 in numpy.arange(self._mod_y1, self._mod_y2, dy):
-                
-                for x1 in numpy.arange(self._mod_x1, self._mod_x2, dx):
-                   
-                    x2 = x1 + dx
-                    
-                    y2 = y1 + dy
-                    
-                    jacobian[l][p] = traveltime(1, x1, y1, x2, y2, \
-                            self._data.source(l).x, self._data.source(l).y, \
-                            self._data.receiver(l).x, self._data.receiver(l).y)
-                    
-                    p += 1
-        
-        self._jacobian = jacobian
-        
-        return jacobian
-    
-    
-    def _calc_adjusted_data(self, estimate):
-        """
-        Calculate the adjusted data vector based on the current estimate
-        """
-        
-        if self._jacobian == None:
+            first_deriv[deriv_i][param_i] = 1
             
-            self._jacobian = self._build_jacobian(estimate)
-        
-        adjusted = numpy.dot(self._jacobian, estimate)
-        
-        return adjusted
-        
-        
-    def _build_first_deriv(self):
-        """
-        Compute the first derivative matrix of the model parameters.
-        """
-        
-        # The number of derivatives there will be
-        deriv_num = (self._nx - 1)*self._ny + (self._ny - 1)*self._nx
-                
-        first_deriv = numpy.zeros((deriv_num, self._nparams))
-        
-        deriv_i = 0
-        
-        # Derivatives in the x direction        
-        param_i = 0
-        for i in range(self._ny):
+            first_deriv[deriv_i][param_i + 1] = -1
             
-            for j in range(self._nx - 1):                
-                
-                first_deriv[deriv_i][param_i] = 1
-                
-                first_deriv[deriv_i][param_i + 1] = -1
-                
-                deriv_i += 1
-                
-                param_i += 1
+            deriv_i += 1
             
             param_i += 1
+        
+        param_i += 1
             
-        # Derivatives in the y direction        
-        param_i = 0
-        for i in range(self._ny - 1):
-            
-            for j in range(self._nx):
+    # Derivatives in the y direction        
+    param_i = 0
+    for i in xrange(ny - 1):
         
-                first_deriv[deriv_i][param_i] = 1
-                
-                first_deriv[deriv_i][param_i + self._nx] = -1
-                
-                deriv_i += 1
-                
-                param_i += 1        
-                
-        return first_deriv
-        
-        
-    def _get_data_array(self):
-        """
-        Return the data in a Numpy array so that the algorithm can access it
-        in a general way
-        """        
-        
-        return self._data.array
-                           
-            
-    def _get_data_cov(self):
-        """
-        Return the data covariance in a 2D Numpy array so that the algorithm can
-        access it in a general way
-        """        
-        
-        return self._data.cov
-            
-        
-    def plot_mean(self, title='Inversion Result', vmin=None, vmax=None, \
-                  cmap=pylab.cm.Greys):
-        """
-        Plot the mean of all the estimates.
-        
-        Parameters:
-            
-            - title: title of the figure
-                       
-            - vmin, vmax: mininum and maximum values in the color scale (if not
-                          given, the max and min of the result will be used)
-            
-            - cmap: a pylab.cm color map object
-            
-        Note: to view the image use pylab.show()
-        """
-        
-        dx = float(self._mod_x2 - self._mod_x1)/self._nx
-        dy = float(self._mod_y2 - self._mod_y1)/self._ny
-                
-        xvalues = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx)
-        yvalues = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy)
-        
-        gridx, gridy = pylab.meshgrid(xvalues, yvalues)
-        
-        # Make the results into grids so that they can be plotted
-        result = numpy.resize(self.mean, (self._ny, self._nx))
-        
-        pylab.figure()
-        pylab.axis('scaled')        
-        pylab.title(title)    
-        
-        if vmin == None or vmax == None:
-            
-            pylab.pcolor(gridx, gridy, result, cmap=cmap)
-        
-        else:
-            
-            pylab.pcolor(gridx, gridy, result, vmin=vmin, vmax=vmax, cmap=cmap)
-        
-        cb = pylab.colorbar(orientation='vertical')
-        cb.set_label("Slowness")
-        
-        pylab.xlim(self._mod_x1, self._mod_x2)
-        pylab.ylim(self._mod_y1, self._mod_y2)
-                        
+        for j in xrange(nx):
     
-    def plot_stddev(self, title='Result Standard Deviation', \
-                    cmap=pylab.cm.Greys):
-        """
-        Plot the result standard deviation calculated from all the estimates. 
-        
-        Parameters:
+            first_deriv[deriv_i][param_i] = 1
             
-            - title: title of the figure
-                        
-            - cmap: a pylab.cm color map object
+            first_deriv[deriv_i][param_i + nx] = -1
             
-        Note: to view the image use pylab.show()
-        """
+            deriv_i += 1
+            
+            param_i += 1        
+            
+    return first_deriv
+
+
+def _calc_simpletom_adjustment(estimate):
+    """Calculate the adjusted data produced by a given estimate"""
+    
+    global _jacobian
+    
+    if _jacobian is None:
         
-        dx = float(self._mod_x2 - self._mod_x1)/self._nx
-        dy = float(self._mod_y2 - self._mod_y1)/self._ny
+        _jacobian = _build_simpletom_jacobian(estimate)
+        
+    adjusted = numpy.dot(_jacobian, estimate)
+    
+    return adjusted
+
+
+def make_mesh(x1, x2, y1, y2, nx, ny):
+    """
+    Make a model space discretization mesh.
+    
+    Parameters:
+      
+      x1, x2: lower and upper limits of the model space in the x direction
+      
+      y1, y2: lower and upper limits of the model space in the y direction
+      
+      nx, ny: number of cells in the x and y directions
+      
+    Return:
+    
+      2D array of cells. Each cell is a dictionary as:
+        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
+    """
+    
+    dx = float(x2 - x1)/nx
+    dy = float(y2 - y1)/ny
+    
+    mesh = []
+    
+    for i, celly1 in enumerate(numpy.arange(y1, y2, dy)):
+        
+        # To ensure that there are the right number of cells. arange sometimes
+        # makes more cells because of floating point rounding
+        if i >= ny:
+            
+            break
+        
+        line = []
+        
+        for j, cellx1 in enumerate(numpy.arange(x1, x2, dx)):
+            
+            if j >= nx:
                 
-        xvalues = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx)
-        yvalues = numpy.arange(self._mod_y1, self._mod_y2 + dy, dy)
+                break
+            
+            cell = {'x1':cellx1, 'x2':cellx1 + dx, 
+                    'y1':celly1, 'y2':celly1 + dy}
+            
+            line.append(cell)
+            
+        mesh.append(line)
+            
+    return numpy.array(mesh)
         
-        gridx, gridy = pylab.meshgrid(xvalues, yvalues)        
         
-        stddev = numpy.resize(self.stddev, (self._ny, self._nx))
+def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
+          sharpness=0, beta=10**(-5), max_it=100, lm_start=1, lm_step=10, 
+          max_steps=20):
+    """
+    Solve the tomography problem for a given data set and model space mesh.
+    
+    Parameters:
+    
+      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
+      
+      mesh: model space discretization mesh (see make_mesh function)
+      
+      initial: initial estimate (only used when given sharpness > 0). If None,
+               will use zero initial estimate
+      
+      damping: Tikhonov order 0 regularization parameter. Must be >= 0
+      
+      smoothness: Tikhonov order 1 regularization parameter. Must be >= 0
+      
+      curvature: Tikhonov order 2 regularization parameter. Must be >= 0
+      
+      sharpness: Total Variation regularization parameter. Must be >= 0
+      
+      beta: small constant used to make Total Variation differentiable. 
+            Must be >= 0
+    
+      max_it: maximum number of iterations 
         
-        pylab.figure()
-        pylab.axis('scaled')
-        pylab.title(title)    
+      lm_start: initial Marquardt parameter (controls the step size)
+    
+      lm_step: factor by which the Marquardt parameter will be reduced with
+               each successful step
+             
+      max_steps: how many times to try giving a step before exiting
+      
+    Return:
+    
+      [estimate, goals]:
+        estimate = array-like parameter vector estimated by the inversion
+                   parameters are the velocity values in the mesh cells
+                   use estimate2matrix function to convert it to the shape of 
+                   mesh
+        goals = list of goal function value per iteration    
+    """
         
-        pylab.pcolor(gridx, gridy, stddev, cmap=cmap)
+    global _mesh, _sources, _receivers
+    
+    _mesh = mesh
+    
+    _sources = data['src']
+    
+    _receivers = data['rec']
+    
+    data_vector = data['traveltime']
+
+    solvers.clear()
+    
+    solvers.damping = damping
+    solvers.smoothness = smoothness
+    solvers.curvature = curvature
+    solvers.sharpness = sharpness
+    solvers.beta = beta
+    
+    solvers._build_jacobian = _build_simpletom_jacobian
+    solvers._build_first_deriv_matrix = _build_simpletom_first_deriv
+    solvers._calc_adjustment = _calc_simpletom_adjustment
+    
+    if initial is None:
         
-        cb = pylab.colorbar(orientation='vertical')
-        cb.set_label("Standard Deviation")  
-                
-        pylab.xlim(self._mod_x1, self._mod_x2)
-        pylab.ylim(self._mod_y1, self._mod_y2)
+        initial = (10**(-10))*numpy.ones(mesh.size)
+    
+    estimate, goals = solvers.lm(data_vector, None, initial, lm_start, lm_step, 
+                                 max_steps, max_it)
+
+    # The inversion outputs a slowness estimate. Convert it to velocity
+    estimate = 1./numpy.array(estimate)
+
+    return estimate, goals
+
+
+def residuals(data, estimate):
+    """
+    Calculate the residuals produced by a given estimate.
+    
+    Parameters:
+    
+      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
+    
+      estimate: array-like parameter vector produced by the inversion.
+      
+    Return:
+    
+      array-like vector of residuals
+    """
+
+    adjusted = _calc_simpletom_adjustment(1./estimate)
+
+    residuals = numpy.array(data['traveltime']) - adjusted
+    
+    return residuals
+
+
+def fill_mesh(estimate, mesh):
+    """
+    Fill the 'value' keys of mesh with the values in the estimate
+    
+    Parameters:
+    
+      estimate: array-like parameter vector produced by the inversion
+      
+      mesh: model space discretization mesh used in the inversion to produce the
+            estimate (see make_mesh function)
+    """
+            
+    estimate_matrix = numpy.reshape(estimate, mesh.shape)
+        
+    for i, line in enumerate(mesh):
+        
+        for j, cell in enumerate(line):
+            
+            cell['value'] = estimate_matrix[i][j]
+            
+            
+def copy_mesh(mesh):
+    """
+    Make a copy of mesh.
+    Use this instead of numpy.copy or mesh.copy because they don't copy the
+    cells.
+    """
+    
+    copy = []
+    
+    for line in mesh:
+        
+        copy_line = []
+        
+        for cell in line:
+            
+            copy_line.append(cell.copy())
+            
+        copy.append(copy_line)
+        
+    return numpy.array(copy)

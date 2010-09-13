@@ -26,3 +26,53 @@ Functions:
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
+
+
+import numpy
+
+
+def mean(estimates):
+    """
+    Calculate the mean (per parameter) of several parameter vectors.
+    
+    Parameters:
+    
+      estimates: list of parameter vector estimates. Each estimate should be
+                 an array-like 1D parameter vector.
+                 
+    Return:
+    
+      array-like 1D mean parameter vector.
+    """
+    
+    mean_estimate = []
+    
+    for parameter in numpy.transpose(estimates):
+        
+        mean_estimate.append(parameter.mean())
+        
+    return numpy.array(mean_estimate)
+
+
+def stddev(estimates):
+    """    
+    Calculate the standard deviation (per parameter) of several parameter 
+    vectors.
+    
+    Parameters:
+    
+      estimates: list of parameter vector estimates. Each estimate should be
+                 an array-like 1D parameter vector.
+                 
+    Return:
+    
+      array-like 1D parameter standard deviation vector.
+    """       
+    
+    stddev_estimate = []
+    
+    for parameter in numpy.transpose(estimates):
+        
+        stddev_estimate.append(parameter.std())
+        
+    return numpy.array(stddev_estimate)  

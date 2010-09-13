@@ -25,6 +25,7 @@ __date__ = 'Created 10-Sep-2010'
 
 
 import logging
+import time
 
 import numpy
 
@@ -47,6 +48,7 @@ sharpness = 0
 beta = 10**(-5)
 compactness = 0
 epsilon = 10**(-5)
+equality = 0
 
 # These globals are things that only need to be calculated once per inversion
 _tk_weights = None
@@ -59,7 +61,8 @@ def clear():
     """
     
     global damping, smoothness, curvature, \
-           sharpness, beta, compactness, epsilon
+           sharpness, beta, compactness, epsilon, \
+           equality
     global _tk_weights, _first_deriv
            
     damping = 0
@@ -69,6 +72,7 @@ def clear():
     beta = 10**(-5)
     compactness = 0
     epsilon = 10**(-5)
+    equality = 0
     _tk_weights = None
     _first_deriv = None
     
@@ -157,7 +161,7 @@ def _build_tk_weights(nparams):
     return weights
 
     
-def _calc_tk_goal(estimate, msg):
+def _calc_tk_goal(estimate):
     """Portion of the goal function due to Tikhonov regularization"""
     
     global _tk_weights
@@ -170,13 +174,13 @@ def _calc_tk_goal(estimate, msg):
     # already in the _tk_weights
     goal = (numpy.dot(estimate.T, _tk_weights)*estimate).sum()
     
-    msg.join(" TK=%g" % (goal))
+    msg = "TK=%g" % (goal)
     
-    return goal
+    return goal, msg
     
 
 
-def _calc_tv_goal(estimate, msg):
+def _calc_tv_goal(estimate):
     """Portion of the goal function due to Total Variation regularization"""
     
     global _first_deriv
@@ -189,49 +193,76 @@ def _calc_tv_goal(estimate, msg):
     
     goal = sharpness*abs(derivatives).sum()
     
-    msg.join(" TV=%g" % (goal))
+    msg = "TV=%g" % (goal)
     
-    return goal
+    return goal, msg
 
 
-def _calc_compact_goal(estimate, msg):    
+def _calc_compact_goal(estimate):    
     """Portion of the goal function due to Compact regularization"""
         
     estimate_sqr = estimate**2
     
     goal = compactness*(estimate_sqr/(estimate_sqr + epsilon)).sum()    
     
-    msg.join(" CP=%g" % (goal))
+    msg = "CP=%g" % (goal)
     
-    return goal
+    return goal, msg
 
 
-def _calc_eq_goal(estimate, msg):
+def _calc_eq_goal(estimate):
     """Portion of the goal function due to equality constraints"""
     
     raise NotImplementedError(
           "_calc_eq_goal was called before being implemented")
 
     
-def _calc_regularizer_goal(estimate, msg):
+def _calc_regularizer_goal(estimate):
     """
     Calculate the portion of the goal function due to the regularizers
     
     Parameters:
         
       estimate: array-like current estimate
-      
-      msg: string that will be printed in the current iteration verbose.
-           use it to inform the value of each regularizer 
     """
     
     goal = 0
-    goal += _calc_tk_goal(estimate, msg)
-    goal += _calc_tv_goal(estimate, msg)
-    goal += _calc_compact_goal(estimate, msg)
-#    goal += _calc_eq_goal(estimate, msg)
     
-    return goal
+    msg = ''
+    
+    if damping > 0 or smoothness > 0 or curvature > 0:
+        
+        reg_goal, reg_msg = _calc_tk_goal(estimate)
+        
+        goal += reg_goal
+        
+        msg = ' '.join([msg, reg_msg])
+        
+    if sharpness > 0:
+        
+        reg_goal, reg_msg = _calc_tv_goal(estimate)
+        
+        goal += reg_goal
+        
+        msg = ' '.join([msg, reg_msg])
+        
+    if compactness > 0:
+        
+        reg_goal, reg_msg = _calc_compact_goal(estimate)
+        
+        goal += reg_goal
+        
+        msg = ' '.join([msg, reg_msg])
+        
+    if equality > 0:
+        
+        reg_goal, reg_msg = _calc_eq_goal(estimate)
+        
+        goal += reg_goal
+        
+        msg = ' '.join([msg, reg_msg])
+    
+    return goal, msg
     
     
 def _sum_tk_hessian(hessian):
@@ -324,10 +355,21 @@ def _sum_reg_hessians(hessian, estimate):
       estimate: array-like current estimate
     """
     
-    _sum_tk_hessian(hessian)
-    _sum_tv_hessian(hessian, estimate)
-    _sum_compact_hessian(hessian, estimate)
-#    _sum_eq_hessian(hessian)
+    if damping > 0 or smoothness > 0 or curvature > 0:
+        
+        _sum_tk_hessian(hessian)
+        
+    if sharpness > 0:
+        
+        _sum_tv_hessian(hessian, estimate)
+        
+    if compactness > 0:
+        
+        _sum_compact_hessian(hessian, estimate)
+        
+    if equality > 0:
+        
+        _sum_eq_hessian(hessian)
     
     
 def _sum_tk_gradient(gradient, estimate):
@@ -414,10 +456,21 @@ def _sum_reg_gradients(gradient, estimate):
       estimate: array-like current estimate
     """
     
-    _sum_tk_gradient(gradient, estimate)
-    _sum_tv_gradient(gradient, estimate)
-    _sum_compact_gradient(gradient, estimate)
-#    _sum_eq_gradient(gradient, estimate)
+    if damping > 0 or smoothness > 0 or curvature > 0:
+        
+        _sum_tk_gradient(gradient, estimate)
+        
+    if sharpness > 0:
+        
+        _sum_tv_gradient(gradient, estimate)
+        
+    if compactness > 0:
+        
+        _sum_compact_gradient(gradient, estimate)
+        
+    if equality > 0:
+        
+        _sum_eq_gradient(gradient, estimate)
     
     
 def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
@@ -442,6 +495,8 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
         max_it: maximum number of iterations 
     """
     
+    total_start = time.time()
+    
     log.info("Levemberg-Marquardt Inversion:")
 
     next = initial
@@ -449,22 +504,22 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     residuals = data - _calc_adjustment(next)
 
     rms = (residuals*residuals).sum()
-    
-    msg = ''
-    
-    reg_goal = _calc_regularizer_goal(next, msg)
+        
+    reg_goal, msg = _calc_regularizer_goal(next)
     
     goals = [rms + reg_goal]
     
     log.info("  Initial RMS: %g" % (rms))
-    log.info("  Initial regularizers: %s" % (msg))
-    log.into("  Total initial goal function: %g" % (goals[0]))
+    log.info("  Initial regularizers:%s" % (msg))
+    log.info("  Total initial goal function: %g" % (goals[0]))
     log.info("  Initial LM param: %g" % (lm_start))
     log.info("  LM param step: %g" % (lm_step))
     
     lm_param = lm_start
     
     for iteration in xrange(max_it):
+                
+        it_start = time.time()
         
         prev = next
         
@@ -496,7 +551,7 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
             
             msg = ''
             
-            reg_goal = _calc_regularizer_goal(next, msg)
+            reg_goal, msg = _calc_regularizer_goal(next)
             
             goal = rms + reg_goal
             
@@ -516,10 +571,17 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
         
         goals.append(goal)
         
-        log.info("  it %d: RMS=%g %s" % (iteration + 1, rms, msg))
+        it_finish = time.time()
+        
+        log.info("  it %d: RMS=%g%s TOTAL=%g (%.3lf s)" % 
+                 (iteration + 1, rms, msg, goal, it_finish - it_start))
         
         if abs((goals[-1] - goals[-2])/goals[-2]) <= 10**(-4):
             
             break
+        
+    total_finish = time.time()
+    
+    log.info("  Total time: %g s" % (total_finish - total_start))
         
     return next, goals

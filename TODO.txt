@@ -8,7 +8,11 @@ REFACTORING:
     * Implement equality constraints
     * Implement depth weights
     * Implement visualizations
+        Done:
+            * simpletom
     * Port inverse problems to the new solvers.py
+        Done:
+            * simpletom
     * Port integration tests
     * Include license info in all files
 
@@ -42,6 +46,8 @@ PGrav
 Sesimo
     * Module descriptions in the docstring
     
+Simpletom:
+    * Put versbose in solve and make_mesh    
     
 Geometry
     * Discretize a sphere into prisms
