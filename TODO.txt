@@ -10,6 +10,9 @@ General
     * Make example wikis
     * Make tutorial for implementing new inversion
     * Change C code that uses arrays to Fortran
+    
+Visualization:
+    * Make contour labels from 2 plots coincide
 
 
 Inversion
@@ -31,7 +34,6 @@ InterG
     
 PGrav
     * IO for inversion results and initial estimate
-    * Make synthetic data generation
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
@@ -60,13 +62,16 @@ Dicrect Models
     
 Gravity
     * Unit tests for existing functions
-    * Make io module with load and dump functions
     * potential and derivatives of a sphere
     * potential and derivatives of a tesseroid
     * spherical harmonics
     * reductions
     * terrain correction
     * continuation
+    
+    Done:    
+    * Make synthetic data generation
+    * Make io module with load and dump functions
     
 WaveFD:
     * Port to Fortran

@@ -5,96 +5,32 @@ Make some synthetic FTG data
 import logging
 logging.basicConfig()
 
-import numpy
 import pylab
 
-from fatiando.data.gravity import TensorComponent
-from fatiando.utils.geometry import Prism
+from fatiando.gravity import synthetic, io
+from fatiando.visualization import contour_grid
+import fatiando.utils
 
-
-# Create a synthetic body
 prisms = []
-prism = Prism(dens=1000, x1=200, x2=400, y1=200, y2=400, z1=0, z2=200)
-prisms.append(prism)
-#prism = Prism(dens=1000, x1=400, x2=800, y1=400, y2=600, z1=400, z2=600)
-#prisms.append(prism)
-    
-    
-def main():
-    
-    # Make a computation grid
-    step = 60
-    x = numpy.arange(0, 600 + step, step, 'f')
-    y = numpy.arange(0, 600 + step, step, 'f')
-    X, Y = pylab.meshgrid(x, y)
-        
-    # Create the data classes and generate synthetic data (at 150 m altitude)
-    stddev = 1
-    
-    zzdata = TensorComponent(component='zz')
-    zzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    zzdata.dump("gzz_data.txt")
-    
-    xxdata = TensorComponent(component='xx')
-    xxdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    xxdata.dump("gxx_data.txt")
-    
-    yydata = TensorComponent(component='yy')
-    yydata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    yydata.dump("gyy_data.txt")
-    
-    xydata = TensorComponent(component='xy')
-    xydata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    xydata.dump("gxy_data.txt")
-    
-    xzdata = TensorComponent(component='xz')
-    xzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    xzdata.dump("gxz_data.txt")
-    
-    yzdata = TensorComponent(component='yz')
-    yzdata.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-150, stddev=stddev, \
-                           percent=False)
-    yzdata.dump("gyz_data.txt")
-    
-    # Make nice plots
-    pylab.figure()
-    pylab.title("Synthetic $g_{zz}$")
-    pylab.contourf(X, Y, zzdata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.figure()
-    pylab.title("Synthetic $g_{xx}$")
-    pylab.contourf(Y, X, xxdata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.figure()
-    pylab.title("Synthetic $g_{xy}$")
-    pylab.contourf(Y, X, xydata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.figure()
-    pylab.title("Synthetic $g_{xz}$")
-    pylab.contourf(Y, X, xzdata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.figure()
-    pylab.title("Synthetic $g_{yy}$")
-    pylab.contourf(Y, X, yydata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.figure()
-    pylab.title("Synthetic $g_{yz}$")
-    pylab.contourf(Y, X, yzdata.togrid(*X.shape), 30)
-    pylab.colorbar()
-    
-    pylab.show()
-    
-    
-if __name__ == '__main__':
-    
-    main()
+prisms.append({'x1':-100, 'x2':100, 'y1':-100, 'y2':100, 'z1':300, 'z2':500,
+               'density':100})
+
+data = synthetic.from_prisms(prisms, x1=-500, x2=500, y1=-1000, y2=1000, 
+                             nx=100, ny=200, height=150, field='gzz')
+
+contam = data.copy()
+contam['value'], error = fatiando.utils.contaminate(data['value'], stddev=0.01, 
+                                                    percent=True, 
+                                                    return_stddev=True)
+
+io.dump('syntheticdata.txt', data)
+
+pylab.figure()
+pylab.title("Synthetic data with %g noise" % (error))
+contour_grid(data, ncontours=5, color='b', width=1, style='dashed', fontsize=9, 
+             label='Pure', alpha=1)
+contour_grid(contam, ncontours=5, color='r', width=1, style='solid', 
+             fontsize=9, label='Noisy', alpha=1)
+pylab.legend()
+
+pylab.show()

@@ -38,6 +38,64 @@ mlab = None
 tvtk = None
 
 
+def contour_grid(grid, ncontours, vmin=None, vmax=None, color='black', width=1, 
+                 style='solid', fontsize=9, label=None, alpha=1, format='%g'):
+    """
+    Draw a contour map of the data.
+    
+    If the data is not a regular grid, it will be gridded.
+    
+    Parameters:
+    
+      grid: data to contour. Should be a dictionay with the keys:
+            {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
+             'value':[data1, data2, ...], 'error':[error1, error2, ...],
+             'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
+            the keys 'nx' and 'ny' are only given if 'grid' is True
+            
+      ncontours: number of contour lines
+      
+      vmin, vmax: set the range of the values to contour (must give both)
+      
+      color: color of the contour lines
+      
+      width: width of the contour lines
+      
+      style: style of the contour lines ['solid', 'dashed', 'dashdot', 'dotted']
+      
+      fontsize: fontsize of the contour values
+      
+      label: label of the contour
+      
+      alpha: transparency in the interval [0, 1]
+      
+      format: fotmat to print the contour values
+    """
+
+    assert grid['grid'] is True, "Only regular grids supported at the moment"
+    assert 'nx' in grid.keys() and 'ny' in grid.keys(), \
+        "Need nx and ny values in the grid (number of points in x and y)"
+    
+    X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
+    Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
+    Z = numpy.reshape(grid['value'], (grid['ny'], grid['nx']))
+    
+    if vmin is None or vmax is None:
+    
+        CS = pylab.contour(X, Y, Z, ncontours, colors=color, linestyles=style, 
+                           linewidths=width, alpha=alpha)
+        
+    else:
+    
+        CS = pylab.contour(X, Y, Z, ncontours, vmin=vmin, vmax=vmax, 
+                           colors=color, linestyles=style, linewidths=width, 
+                           alpha=alpha)
+        
+    pylab.clabel(CS, fontsize=fontsize, fmt=format)
+    
+    CS.collections[0].set_label(label)
+
+
 def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
     """
     Plot a 2D mesh made of square cells. Each cell is a dictionary as:

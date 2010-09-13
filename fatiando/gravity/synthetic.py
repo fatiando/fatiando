@@ -18,16 +18,29 @@
 Create, load and dump synthetic gravity data.
 
 Functions:
-  * from_prisms: create synthetic data from a prism model
+  * from_prisms: Create synthetic data from a prism model
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
 
+import logging
+
 import numpy
 
+import fatiando
+import fatiando.gravity.prism
 
-def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, type='gz', dist='grid'):
+
+# Add the default handler (a null handler) to the logger to ensure that
+# it won't print verbose if the program calling them doesn't want it
+log = logging.getLogger('fatiando.gravity.synthetic')       
+log.setLevel(logging.DEBUG)
+log.addHandler(fatiando.default_log_handler)
+
+
+def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz', 
+                grid='regular'):
     """
     Create synthetic gravity data from a prism model.
     
@@ -47,18 +60,87 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, type='gz', dist='grid'):
       
       height: height at which the data will be computed
       
-      type: what component of the gravity field to calculate. Can be any one of
-            'potential', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
+      field: what component of the gravity field to calculate. Can be any one of
+             'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
             
-      dist: distribution of the data along the selected region. Can be either
-            'grid' or 'random'
+      grid: distribution of the data along the selected region. Can be either
+            'regular' or 'random'
             
     Return:
         
         dictionary with the data values and coordinates of each point.
-        keys: {'x':[x1, x2, x3, ...], 'y':[y1, y2, y3, ...], 
-               type:[data1, data2, data3, ...]} 
+        keys: {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
+               'value':[data1, data2, ...]} 
     """
+    
+    assert grid in ['regular', 'random'], "Invalid grid type '%s'" % (grid)
+    
+    fields = {'gz':fatiando.gravity.prism.gz, 
+              'gxx':fatiando.gravity.prism.gxx, 
+              'gxy':fatiando.gravity.prism.gxy, 
+              'gxz':fatiando.gravity.prism.gxz, 
+              'gyy':fatiando.gravity.prism.gyy, 
+              'gyz':fatiando.gravity.prism.gyz, 
+              'gzz':fatiando.gravity.prism.gzz}    
+    
+    assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
+    
+    data = {'z':height*numpy.ones(nx*ny), 'value':numpy.zeros(nx*ny), 
+            'error':numpy.zeros(nx*ny)}
+    
+    if grid == 'regular':
         
-    raise NotImplementedError(
-          "from_prisms was called before being implemented")
+        dx = float(x2 - x1)/(nx - 1)
+        dy = float(y2 - y1)/(ny - 1)
+        
+        x_range = numpy.arange(x1, x2, dx)
+        y_range = numpy.arange(y1, y2, dy)
+        
+        if len(x_range) < nx:
+            
+            x_range = numpy.append(x_range, x2)
+        
+        if len(y_range) < ny:
+            
+            y_range = numpy.append(y_range, y2)
+            
+        xs = []
+        ys = []
+        
+        for y in y_range:
+            
+            for x in x_range:
+                
+                xs.append(x)
+                ys.append(y)
+                
+        xs = numpy.array(xs)
+        ys = numpy.array(ys)
+        
+        data['grid'] = True
+        data['nx'] = nx
+        data['ny'] = ny
+            
+    if grid == 'random':
+        
+        xs = numpy.random.uniform(x1, x2, nx*ny)
+        ys = numpy.random.uniform(y1, y2, nx*ny)
+        
+        data['grid'] = False
+        
+    data['x'] = xs
+    data['y'] = ys
+    
+    for i, coordinates in enumerate(zip(data['x'], data['y'], data['z'])):
+        
+        x, y, z = coordinates
+        
+        for prism in prisms:        
+                        
+            data['value'][i] += fields[field](prism['density'], 
+                                              prism['x1'], prism['x2'], 
+                                              prism['y1'], prism['y2'], 
+                                              prism['z1'], prism['z2'], 
+                                              x, y, z)
+    
+    return data
