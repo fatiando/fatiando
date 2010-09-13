@@ -20,7 +20,6 @@ Considers straight (seismic) rays, eg does not consider reflection or refraction
 
 Functions:
   * clear: Erase garbage from previous inversions
-  * make_mesh: Make a model space discretization mesh
   * solve: Solve the tomography problem for a given data set and model mesh
   * residuals: Calculate the residuals produced by a given estimate
   * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
@@ -163,59 +162,6 @@ def _calc_simpletom_adjustment(estimate):
     adjusted = numpy.dot(_jacobian, estimate)
     
     return adjusted
-
-
-def make_mesh(x1, x2, y1, y2, nx, ny):
-    """
-    Make a model space discretization mesh.
-    
-    Parameters:
-      
-      x1, x2: lower and upper limits of the model space in the x direction
-      
-      y1, y2: lower and upper limits of the model space in the y direction
-      
-      nx, ny: number of cells in the x and y directions
-      
-    Return:
-    
-      2D array of cells. Each cell is a dictionary as:
-        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
-    """
-    
-    log.info("Building model space mesh:")
-    log.info("  Discretization: nx=%d X ny=%d = %d parameters" 
-             % (nx, ny, nx*ny))
-    
-    dx = float(x2 - x1)/nx
-    dy = float(y2 - y1)/ny
-    
-    mesh = []
-    
-    for i, celly1 in enumerate(numpy.arange(y1, y2, dy)):
-        
-        # To ensure that there are the right number of cells. arange sometimes
-        # makes more cells because of floating point rounding
-        if i >= ny:
-            
-            break
-        
-        line = []
-        
-        for j, cellx1 in enumerate(numpy.arange(x1, x2, dx)):
-            
-            if j >= nx:
-                
-                break
-            
-            cell = {'x1':cellx1, 'x2':cellx1 + dx, 
-                    'y1':celly1, 'y2':celly1 + dy}
-            
-            line.append(cell)
-            
-        mesh.append(line)
-            
-    return numpy.array(mesh)
         
         
 def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
@@ -228,7 +174,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     
       data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
       
-      mesh: model space discretization mesh (see make_mesh function)
+      mesh: model space discretization mesh (see geometry.square_mesh function)
       
       initial: initial estimate (only used when given sharpness > 0). If None,
                will use zero initial estimate
@@ -341,7 +287,7 @@ def fill_mesh(estimate, mesh):
       estimate: array-like parameter vector produced by the inversion
       
       mesh: model space discretization mesh used in the inversion to produce the
-            estimate (see make_mesh function)
+            estimate (see geometry.square_mesh function)
     """
             
     estimate_matrix = numpy.reshape(estimate, mesh.shape)
@@ -353,23 +299,3 @@ def fill_mesh(estimate, mesh):
             cell['value'] = estimate_matrix[i][j]
             
             
-def copy_mesh(mesh):
-    """
-    Make a copy of mesh.
-    Use this instead of numpy.copy or mesh.copy because they don't copy the
-    cells.
-    """
-    
-    copy = []
-    
-    for line in mesh:
-        
-        copy_line = []
-        
-        for cell in line:
-            
-            copy_line.append(cell.copy())
-            
-        copy.append(copy_line)
-        
-    return numpy.array(copy)
