@@ -18,7 +18,8 @@
 Set of misc utility functions.
 
 Functions:
-  * contaminate: add random noise to a data array
+  * contaminate: Add random noise to a data array
+  * extract_matrices: Extract value and x and y coordinate matrices from grid
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 07-Mar-2010'
@@ -55,4 +56,34 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
     else:
         
         return cont_data
+    
+    
+def extract_matrices(grid):
+    """
+    Extract value and x and y coordinate matrices from grid. Use to plot with
+    matplotlib. 
+    
+    If the data is not a regular grid, it will be gridded.
+    
+    Parameters:
+    
+      grid: data to contour. Should be a dictionay with the keys:
+            {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
+             'value':[data1, data2, ...], 'error':[error1, error2, ...],
+             'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
+            the keys 'nx' and 'ny' are only given if 'grid' is True
+            
+    Return:
+        
+      X, Y, V matrices
+    """
 
+    assert grid['grid'] is True, "Only regular grids supported at the moment"
+    assert 'nx' in grid.keys() and 'ny' in grid.keys(), \
+        "Need nx and ny values in the grid (number of points in x and y)"
+    
+    X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
+    Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
+    V = numpy.reshape(grid['value'], (grid['ny'], grid['nx']))
+    
+    return X, Y, V

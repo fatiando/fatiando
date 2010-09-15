@@ -38,64 +38,6 @@ mlab = None
 tvtk = None
 
 
-def contour_grid(grid, ncontours, vmin=None, vmax=None, color='black', width=1, 
-                 style='solid', fontsize=9, label=None, alpha=1, format='%g'):
-    """
-    Draw a contour map of the data.
-    
-    If the data is not a regular grid, it will be gridded.
-    
-    Parameters:
-    
-      grid: data to contour. Should be a dictionay with the keys:
-            {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
-             'value':[data1, data2, ...], 'error':[error1, error2, ...],
-             'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
-            the keys 'nx' and 'ny' are only given if 'grid' is True
-            
-      ncontours: number of contour lines
-      
-      vmin, vmax: set the range of the values to contour (must give both)
-      
-      color: color of the contour lines
-      
-      width: width of the contour lines
-      
-      style: style of the contour lines ['solid', 'dashed', 'dashdot', 'dotted']
-      
-      fontsize: fontsize of the contour values
-      
-      label: label of the contour
-      
-      alpha: transparency in the interval [0, 1]
-      
-      format: fotmat to print the contour values
-    """
-
-    assert grid['grid'] is True, "Only regular grids supported at the moment"
-    assert 'nx' in grid.keys() and 'ny' in grid.keys(), \
-        "Need nx and ny values in the grid (number of points in x and y)"
-    
-    X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
-    Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
-    Z = numpy.reshape(grid['value'], (grid['ny'], grid['nx']))
-    
-    if vmin is None or vmax is None:
-    
-        CS = pylab.contour(X, Y, Z, ncontours, colors=color, linestyles=style, 
-                           linewidths=width, alpha=alpha)
-        
-    else:
-    
-        CS = pylab.contour(X, Y, Z, ncontours, vmin=vmin, vmax=vmax, 
-                           colors=color, linestyles=style, linewidths=width, 
-                           alpha=alpha)
-        
-    pylab.clabel(CS, fontsize=fontsize, fmt=format)
-    
-    CS.collections[0].set_label(label)
-
-
 def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
     """
     Plot a 2D mesh made of square cells. Each cell is a dictionary as:
@@ -204,7 +146,21 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
         pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
     
 
-def plot_prism(prism):
+def plot_prism_mesh(mesh, style='surface', label='scalar'):
+    """
+    Plot a 3D prism mesh using Mayavi2.
+    
+    Parameters:
+    
+      mesh: 3D array-like prism mesh (see fatiando.geometry.prism_mesh)
+      
+      style: either 'surface' for solid prisms or 'wireframe' for just the 
+             wireframe
+             
+      label: name of the scalar 'value' of the mesh cells. 
+    """
+    
+    assert style in ['surface', 'wireframe'], "Invalid style '%s'" % (style)
     
     global mlab, tvtk
     
@@ -216,18 +172,66 @@ def plot_prism(prism):
         
         from enthought.tvtk.api import tvtk
         
-    vtkprism = tvtk.RectilinearGrid()
-    vtkprism.cell_data.scalars = [prism.dens]
-    vtkprism.cell_data.scalars.name = 'Density'
-    vtkprism.dimensions = (2, 2, 2)
-    vtkprism.x_coordinates = [prism.x1, prism.x2]
-    vtkprism.y_coordinates = [prism.y1, prism.y2]
-    vtkprism.z_coordinates = [prism.z1, prism.z2]    
+    points = []
+    cells = []
+    start = 0   # To mark what index in the points the cell starts
+    offsets = []
+    offset = 0
         
-    source = mlab.pipeline.add_dataset(vtkprism)
-    outline = mlab.pipeline.outline(source)
-    outline.actor.property.line_width = 4
-    outline.actor.property.color = (1,1,1)
+    for cell in mesh.ravel():
+        
+        x1, x2 = cell['x1'], cell['x2']
+        y1, y2 = cell['y1'], cell['y2']
+        z1, z2 = cell['z1'], cell['z2']
+        
+        points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
+                       [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
+        
+        cells.append(8)
+        cells.extend([i for i in xrange(start, start + 8)])
+        start += 8
+        
+        offsets.append(offset)
+        offset += 9
+                    
+    cell_array = tvtk.CellArray()
+    cell_array.set_cells(mesh.size, numpy.array(cells))
+    cell_types = numpy.array([12]*mesh.size, 'i')
     
+    vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
     
+    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
     
+    scalars = []
+    
+    for cell in mesh.ravel():
+        
+        if 'value' not in cell.keys():
+            
+            scalars = numpy.zeros(mesh.size)
+            
+            break
+        
+        scalars = numpy.append(scalars, cell['value'])
+        
+    vtkmesh.cell_data.scalars = scalars
+    vtkmesh.cell_data.scalars.name = label
+        
+    dataset = mlab.pipeline.add_dataset(vtkmesh)                       
+        
+    if style == 'wireframe':
+        
+        surf = mlab.pipeline.surface(dataset, vmax=max(scalars), 
+                                     vmin=min(scalars))
+        surf.actor.property.representation = 'wireframe'
+        surf.actor.mapper.scalar_visibility = False
+        
+    if style == 'surface':
+        
+        thresh = mlab.pipeline.threshold(dataset)    
+        surf = mlab.pipeline.surface(thresh, vmax=max(scalars), 
+                                     vmin=min(scalars))
+        surf.actor.property.representation = 'surface'        
+        mlab.colorbar(surf, title=label, orientation='vertical', nb_labels=10)
+        
+    return surf

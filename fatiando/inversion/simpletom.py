@@ -49,7 +49,11 @@ _receivers = None
 
 
 def clear():
-    """Erase garbage from previous inversions"""
+    """
+    Erase garbage from previous inversions.
+    Only use if changing the data and/or mesh (otherwise it saves time to keep
+    the garbage)
+    """
     
     global _jacobian, _mesh, _sources, _receivers
     
@@ -57,6 +61,49 @@ def clear():
     _mesh = None
     _sources = None
     _receivers = None
+
+
+def fill_mesh(estimate, mesh):
+    """
+    Fill the 'value' keys of mesh with the values in the estimate
+    
+    Parameters:
+    
+      estimate: array-like parameter vector produced by the inversion
+      
+      mesh: model space discretization mesh used in the inversion to produce the
+            estimate (see geometry.square_mesh function)
+    """
+            
+    estimate_matrix = numpy.reshape(estimate, mesh.shape)
+        
+    for i, line in enumerate(mesh):
+        
+        for j, cell in enumerate(line):
+            
+            cell['value'] = estimate_matrix[i][j]
+
+
+def residuals(data, estimate):
+    """
+    Calculate the residuals produced by a given estimate.
+    
+    Parameters:
+    
+      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
+    
+      estimate: array-like parameter vector produced by the inversion.
+      
+    Return:
+    
+      array-like vector of residuals
+    """
+
+    adjusted = _calc_simpletom_adjustment(1./estimate)
+
+    residuals = numpy.array(data['traveltime']) - adjusted
+    
+    return residuals
 
 
 def _build_simpletom_jacobian(estimate):
@@ -92,13 +139,7 @@ def _build_simpletom_jacobian(estimate):
             
         _jacobian = numpy.array(_jacobian)
                 
-    return _jacobian
-
-
-def _build_simpletom_jacobian2(estimate):
-    """Try to speed up jacobian building using map"""
-    pass   
-    
+    return _jacobian    
     
         
 def _build_simpletom_first_deriv():
@@ -203,10 +244,10 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     Return:
     
       [estimate, goals]:
-        estimate = array-like parameter vector estimated by the inversion
-                   parameters are the velocity values in the mesh cells
-                   use estimate2matrix function to convert it to the shape of 
-                   mesh
+        estimate = array-like parameter vector estimated by the inversion.
+                   parameters are the velocity values in the mesh cells.
+                   use fill_mesh function to put the estimate in a mesh so you
+                   can plot and save it.
         goals = list of goal function value per iteration    
     """
     
@@ -245,6 +286,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
         
     else:
         
+        # Convert the initial velocity model to slowness
         initial = 1./numpy.array(initial)
     
     estimate, goals = solvers.lm(data_vector, None, initial, lm_start, lm_step, 
@@ -254,48 +296,3 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     estimate = 1./numpy.array(estimate)
 
     return estimate, goals
-
-
-def residuals(data, estimate):
-    """
-    Calculate the residuals produced by a given estimate.
-    
-    Parameters:
-    
-      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
-    
-      estimate: array-like parameter vector produced by the inversion.
-      
-    Return:
-    
-      array-like vector of residuals
-    """
-
-    adjusted = _calc_simpletom_adjustment(1./estimate)
-
-    residuals = numpy.array(data['traveltime']) - adjusted
-    
-    return residuals
-
-
-def fill_mesh(estimate, mesh):
-    """
-    Fill the 'value' keys of mesh with the values in the estimate
-    
-    Parameters:
-    
-      estimate: array-like parameter vector produced by the inversion
-      
-      mesh: model space discretization mesh used in the inversion to produce the
-            estimate (see geometry.square_mesh function)
-    """
-            
-    estimate_matrix = numpy.reshape(estimate, mesh.shape)
-        
-    for i, line in enumerate(mesh):
-        
-        for j, cell in enumerate(line):
-            
-            cell['value'] = estimate_matrix[i][j]
-            
-            

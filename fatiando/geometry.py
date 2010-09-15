@@ -19,7 +19,8 @@ Tools for manipulating geometric elements and creating model space
 discretization meshes.
 
 Functions:
-  * square_mesh: divide a region into rectangles
+  * prism_mesh: Dived a volume into right rectangular prisms
+  * square_mesh: Divide an area into rectangles
   * copy_mesh: Make a copy of an n-dimensional mesh
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -37,9 +38,78 @@ log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
 
+
+def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
+    """
+    Dived a volume into right rectangular prisms.
+    
+    Parameters:
+      
+      x1, x2: lower and upper limits of the volume in the x direction
+      
+      y1, y2: lower and upper limits of the volume in the y direction
+      
+      z1, z2: lower and upper limits of the volume in the z direction
+      
+      nx, ny, nz: number of cells in the x, y, and z directions
+          
+    Return:
+    
+      3D array of cells. Each cell is a dictionary as:
+        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 
+         'z1':cellz1, 'z2':cellz2}
+    """
+    
+    log.info("Building prism mesh:")
+    log.info("  Discretization: nx=%d X ny=%d X nz=%d = %d cells" 
+             % (nx, ny, nz, nx*ny*nz))
+    
+    dx = float(x2 - x1)/nx
+    dy = float(y2 - y1)/ny
+    dz = float(z2 - z1)/nz
+    
+    mesh = []
+    
+    for k, cellz1 in enumerate(numpy.arange(z1, z2, dz)):
+        
+        # To ensure that there are the right number of cells. arange 
+        # sometimes makes more cells because of floating point rounding
+        if k >= nz:
+            
+            break
+        
+        plane = []
+    
+        for j, celly1 in enumerate(numpy.arange(y1, y2, dy)):
+            
+            if j >= ny:
+                
+                break
+            
+            line = []
+            
+            for i, cellx1 in enumerate(numpy.arange(x1, x2, dx)):
+                
+                if i >= nx:
+                    
+                    break
+                
+                cell = {'x1':cellx1, 'x2':cellx1 + dx, 
+                        'y1':celly1, 'y2':celly1 + dy,
+                        'z1':cellz1, 'z2':cellz1 + dz}
+                
+                line.append(cell)
+                
+            plane.append(line)
+            
+        mesh.append(plane)
+            
+    return numpy.array(mesh)
+        
+
 def square_mesh(x1, x2, y1, y2, nx, ny):
     """
-    Divide a region into rectangles. 
+    Divide an area into rectangles. 
     
     Parameters:
       
@@ -53,6 +123,8 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
     
       2D array of cells. Each cell is a dictionary as:
         {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
+        
+      mesh is arranged with x varying with the columns and y with the rows
     """
     
     log.info("Building square mesh:")

@@ -2,103 +2,60 @@
 Example script for doing the inversion of synthetic FTG data
 """
 
+import pickle
 import logging
-logging.basicConfig()
+log = logging.getLogger()
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter())
+log.addHandler(handler)
+log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.data.gravity import TensorComponent
-from fatiando.inversion.pgrav import PGrav3D, DepthWeightsCalculator
-from fatiando.visualization import plot_prism
+from fatiando.inversion import pgrav3d
+from fatiando.gravity import io
+import fatiando.geometry
+import fatiando.utils
+from fatiando.visualization import residuals_histogram, plot_prism_mesh
 
-import make_data
+# Load the synthetic data
+gzz = io.load('gzz_data.txt')
 
+data = {'gzz':gzz}
 
-# Read the tensor component data from the data files
-zzdata = TensorComponent(component='zz')
-zzdata.load("gzz_data.txt")
+# Generate a model space mesh
+mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
+                                    z1=0, z2=1600, nx=8, ny=8, nz=8)
 
-xxdata = TensorComponent(component='xx')
-xxdata.load("gxx_data.txt")
+# Run the inversion
+estimate, goals = pgrav3d.solve(data, mesh, initial=None, 
+                                damping=10**(-10), 
+                                smoothness=10**(-5),
+                                compactness=3*10**(-3), epsilon=10**(-5),
+                                lm_start=0.01)
 
-yydata = TensorComponent(component='yy')
-yydata.load("gyy_data.txt")
+pgrav3d.fill_mesh(estimate, mesh)
 
-xydata = TensorComponent(component='xy')
-xydata.load("gxy_data.txt")
+residuals = pgrav3d.residuals(data, estimate)
 
-xzdata = TensorComponent(component='xz')
-xzdata.load("gxz_data.txt")
+pylab.figure()
+residuals_histogram(residuals)
 
-yzdata = TensorComponent(component='yz')
-yzdata.load("gyz_data.txt")
+# Load the synthetic model for comparison
+synth_file = open('model.pickle')
+synthetic = pickle.load(synth_file)
+synth_file.close()
 
+fig = mlab.figure()
+fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.camera.pitch(180)
+fig.scene.camera.roll(180)
 
-# Make a solver class and define the model space discretization    
-solver = PGrav3D(x1=0, x2=600, y1=0, y2=600, z1=0, z2=1000, \
-                 nx=6, ny=6, nz=10, \
-                 gzz=zzdata,\
-                 gxy=xydata, gxz=xzdata, \
-                 gxx=xxdata, gyy=yydata, gyz=yzdata)
-# Compute the depth weight coefficients
-dwsolver = DepthWeightsCalculator(pgrav_solver=solver, height=150)
+plot = plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 
-dwsolver.solve_lm(initial=[10, 3], contam_times=0, \
-                  lm_start=1, lm_step=10, it_p_step=20, max_it=100)
+plot_prism_mesh(mesh, style='surface', label='Density')
+axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
-dwsolver.plot_adjustment(title="Depth Weights Adjustment")
-
-z0, power = dwsolver.mean
-
-Wp = solver.depth_weights(z0, power, normalize=True)
-
-# Solve the linear inverse problem using Tikhonov regularization
-solver.solve_linear(damping=10**(-10), \
-                    smoothness=5*10**(-6), \
-                    curvature=0, \
-                    prior_weights=Wp, \
-                    data_variance=1**2, \
-                    contam_times=2)
-#solver.dump("res_tk_10x10x10.txt")
-
-# Compact the Tikhonov solution
-#solver.solve_lm(damping=10**(-12), \
-#                smoothness=10**(-8), \
-#                curvature=0, \
-#                sharpness=0, beta=10**(-7), \
-#                compactness=10**(-5), epsilon=10**(-5), \
-#                initial=None, \
-#                prior_weights=Wp, \
-#                data_variance=1**2, \
-#                contam_times=1, \
-#                lm_start=0.1, lm_step=10, it_p_step=10, max_it=100)
-#solver.dump("res_compact_10x10x10.txt")
-
-# Solve the non-linear problem
-#solver.solve_lm(damping=10**(-10), \
-#                smoothness=0, \
-#                curvature=0, \
-#                sharpness=10**(-4), beta=10**(-8), \
-#                initial=None, \
-#                prior_weights=Wp, \
-#                data_variance=1**2, \
-#                contam_times=1, \
-#                lm_start=10, lm_step=10, it_p_step=10, max_it=100)
-#solver.dump("res_vt_10x10x10.txt")
-
-solver.plot_residuals()
-#solver.plot_adjustment((21,21))
-pylab.show()
-
-solver.plot_stddev()
-solver.plot_mean()
-
-for prism in make_data.prisms:
-    
-    plot_prism(prism)
-    
-mlab.show_pipeline()
 mlab.show()
-

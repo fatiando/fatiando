@@ -48,7 +48,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
       
       prisms: list of dictionaries representing each prism in the model. 
               Required keys are {'x1':, 'x2':, 'y1':, 'y2':, 'z1':, 'z2':, 
-              'density':}
+              'value':density}
               
       x1, x2: limits in the x direction of the region where the data will be 
               computed
@@ -85,10 +85,14 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     
     assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
     
-    data = {'z':height*numpy.ones(nx*ny), 'value':numpy.zeros(nx*ny), 
+    data = {'z':-height*numpy.ones(nx*ny), 'value':numpy.zeros(nx*ny), 
             'error':numpy.zeros(nx*ny)}
     
+    log.info("Generating synthetic %s data:" % (field))
+    
     if grid == 'regular':
+        
+        log.info("  grid type: regular")
         
         dx = float(x2 - x1)/(nx - 1)
         dy = float(y2 - y1)/(ny - 1)
@@ -123,6 +127,8 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
             
     if grid == 'random':
         
+        log.info("  grid type: random")
+        
         xs = numpy.random.uniform(x1, x2, nx*ny)
         ys = numpy.random.uniform(y1, y2, nx*ny)
         
@@ -131,16 +137,21 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     data['x'] = xs
     data['y'] = ys
     
+    function = fields[field]
+    value = data['value']
+    
     for i, coordinates in enumerate(zip(data['x'], data['y'], data['z'])):
         
         x, y, z = coordinates
         
         for prism in prisms:        
                         
-            data['value'][i] += fields[field](prism['density'], 
-                                              prism['x1'], prism['x2'], 
-                                              prism['y1'], prism['y2'], 
-                                              prism['z1'], prism['z2'], 
-                                              x, y, z)
+            value[i] += function(prism['value'], 
+                                 prism['x1'], prism['x2'], 
+                                 prism['y1'], prism['y2'], 
+                                 prism['z1'], prism['z2'], 
+                                 x, y, z)
+            
+    log.info("  data points = %d" % (len(data['value'])))
     
     return data

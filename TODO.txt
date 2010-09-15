@@ -1,8 +1,6 @@
 REFACTORING:
 
-    * Make geometry.py
     * Implement equality constraints
-    * Implement depth weights
     * Include license info in all files
 
 General
@@ -11,10 +9,6 @@ General
     * Make tutorial for implementing new inversion
     * Change C code that uses arrays to Fortran
     
-Visualization:
-    * Make contour labels from 2 plots coincide
-
-
 Inversion
     * Sparsity regularization
     * Unit tests for solvers
@@ -33,25 +27,29 @@ InterG
     * Make visualizations
     
 PGrav
-    * IO for inversion results and initial estimate
+    * IO for initial estimate
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
+    * Implement depth weights
+    Done:
     * Port to the new solvers.py
     * Make visualizations
+    * IO for inversion results (pickle the mesh)
     
 Sesimo
     * Module descriptions in the docstring
     
 Simpletom:
     * Port integration tests
-    * IO for inversion results and initial estimate
+    * IO for initial estimate
 
     Done:
     * Put versbose in solve and make_mesh
     * Port to the new solvers.py
     * Make visualizations
     * Make synthetic data generatio
+    * IO for inversion results (pickle the mesh)
     
 Geometry
     * Discretize a sphere into prisms
