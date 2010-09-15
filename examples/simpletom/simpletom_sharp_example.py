@@ -3,6 +3,7 @@ Perform a tomography on synthetic travel time data using Total Variation
 regularization for sharpness.
 """
 
+import pickle
 import logging
 
 # Configure the logging output to print to stderr
@@ -19,16 +20,17 @@ log.setLevel(logging.DEBUG)
 import pylab
 import numpy
 
-from fatiando.seismo import synthetic, io
+from fatiando.seismo import io
 from fatiando.inversion import simpletom    
 import fatiando.geometry                            
 import fatiando.utils
 import fatiando.stats
-from fatiando.visualization import residuals_histogram, \
-                                   plot_square_mesh   
+import fatiando.vis
 
 # Load the synthetic model for comparison
-model = synthetic.vel_from_image('model.jpg', vmax=5, vmin=1)
+modelfile = open("model.pickle")
+model = pickle.load(modelfile)
+modelfile.close()
 
 # Load the travel time data
 data = io.load_traveltime('traveltimedata.txt')
@@ -107,7 +109,7 @@ pylab.ylim(0, model.shape[0])
 pylab.subplot(2,2,2)
 pylab.axis('scaled')
 pylab.title("Inversion result")
-plot_square_mesh(mesh, vmin=vmin, vmax=vmax)
+fatiando.vis.plot_square_mesh(mesh, vmin=vmin, vmax=vmax)
 cb = pylab.colorbar()
 cb.set_label("Velocity")
 pylab.xlim(0, model.shape[1])
@@ -116,14 +118,14 @@ pylab.ylim(0, model.shape[0])
 pylab.subplot(2,2,3)
 pylab.axis('scaled')
 pylab.title("Result Standard Deviation")
-plot_square_mesh(std_mesh)
+fatiando.vis.plot_square_mesh(std_mesh)
 pylab.colorbar()
 pylab.xlim(0, model.shape[1])
 pylab.ylim(0, model.shape[0])
 
 pylab.subplot(2,2,4)
 pylab.title("Histogram of residuals")
-residuals_histogram(residuals, nbins=len(residuals)/10)
+fatiando.vis.residuals_histogram(residuals, nbins=len(residuals)/10)
 pylab.xlabel("Residual travel time")
 pylab.ylabel("Residual count")
 

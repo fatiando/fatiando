@@ -228,7 +228,10 @@ def plot_prism_mesh(mesh, style='surface', label='scalar'):
         
     if style == 'surface':
         
-        thresh = mlab.pipeline.threshold(dataset)    
+        extract = mlab.pipeline.extract_unstructured_grid(dataset)
+        extract.filter.extent_clipping = True
+        extract.filter.merging = True
+        thresh = mlab.pipeline.threshold(extract)    
         surf = mlab.pipeline.surface(thresh, vmax=max(scalars), 
                                      vmin=min(scalars))
         surf.actor.property.representation = 'surface'        

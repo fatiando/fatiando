@@ -18,7 +18,8 @@ from fatiando.inversion import pgrav3d
 from fatiando.gravity import io
 import fatiando.geometry
 import fatiando.utils
-from fatiando.visualization import residuals_histogram, plot_prism_mesh
+import fatiando.vis
+import fatiando.stats
 
 # Load the synthetic data
 gzz = io.load('gzz_data.txt')
@@ -29,19 +30,71 @@ data = {'gzz':gzz}
 mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
                                     z1=0, z2=1600, nx=8, ny=8, nz=8)
 
+# Inversion parameters
+damping = 10**(-10)
+smoothness = 10**(-2)
+curvature = 0
+sharpness = 0
+beta = 10**(-5)
+compactness = 10**(-2)
+epsilon = 10**(-5)
+initial = None
+
+pgrav3d.use_depth_weights(mesh, grid_height=150, normalize=False)
+
 # Run the inversion
-estimate, goals = pgrav3d.solve(data, mesh, initial=None, 
-                                damping=10**(-10), 
-                                smoothness=10**(-5),
-                                compactness=3*10**(-3), epsilon=10**(-5),
-                                lm_start=0.01)
+estimate, goals = pgrav3d.solve(data, mesh, initial, damping, smoothness,
+                                curvature, sharpness, beta,  
+                                compactness, epsilon, lm_start=0.01)
 
 pgrav3d.fill_mesh(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
+# Contaminate the data and re-run the inversion to test the stability
+estimates = []
+error = 1
+contam_times = 2
+
+log.info("Contaminating with %g Eotvos and re-running %d times" 
+          % (error, contam_times))
+
+for i in xrange(contam_times):
+    
+    contam = {}   
+    
+    for field in data.keys():
+        
+        contam[field] = data[field].copy()
+         
+        contam[field]['value'] = fatiando.utils.contaminate(
+                                        data[field]['value'], stddev=error, 
+                                        percent=False, return_stddev=False)
+    
+    new_estimate, new_goal = pgrav3d.solve(contam, mesh, initial, damping,
+                                           smoothness, curvature, sharpness, 
+                                           beta, compactness, epsilon,
+                                           lm_start=0.01)
+    
+    estimates.append(new_estimate)
+    
+stddev = fatiando.stats.stddev(estimates)
+stddev = stddev.max()
+
+# Plot the results
 pylab.figure()
-residuals_histogram(residuals)
+pylab.suptitle(r"Inversion results: $\sigma_{max} = %g$" % (stddev),
+               fontsize=16)
+
+pylab.subplot(2,1,1)
+pylab.title("Residuals")
+fatiando.vis.residuals_histogram(residuals)
+
+pylab.subplot(2,1,2)
+pylab.title("Total goal function")
+pylab.plot(goals, '.-k')
+pylab.xlabel("Iteration")
+pylab.show()
 
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')
@@ -53,9 +106,10 @@ fig.scene.background = (0.1, 0.1, 0.1)
 fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
 
-plot = plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
+plot = fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', 
+                                    label='Synthetic')
 
-plot_prism_mesh(mesh, style='surface', label='Density')
+fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
 mlab.show()

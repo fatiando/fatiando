@@ -17,10 +17,10 @@ from enthought.mayavi import mlab
 
 from fatiando.gravity import synthetic, io
 import fatiando.utils
-from fatiando.visualization import plot_prism_mesh
+import fatiando.vis
 
 prisms = []
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':000, 'z2':400,
+prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':800, 'z2':1200,
                'value':1000})
 
 prisms = numpy.array(prisms)
@@ -29,7 +29,8 @@ fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
 fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
-dataset = plot_prism_mesh(prisms, style='surface', label='Density kg/cm^3')
+dataset = fatiando.vis.plot_prism_mesh(prisms, style='surface', 
+                                       label='Density kg/cm^3')
 axes = mlab.axes(dataset, nb_labels=5, extent=[-800,800,-800,800,0,1600])
 mlab.show()
 
@@ -37,7 +38,7 @@ modelfile = open('model.pickle', 'w')
 pickle.dump(prisms, modelfile)
 modelfile.close()
 
-error = 5
+error = 1
 
 pylab.figure(figsize=(16,8))
 pylab.suptitle(r'Synthetic FTG data with %g $E\"otv\"os$ noise' 
