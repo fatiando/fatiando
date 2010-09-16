@@ -28,6 +28,8 @@ Implemented regularizations:
 
 Functions:
   * lm: Levemberg-Marquardt solver
+  * set_bounds: Set upper and lower bounds on the parameter values
+  * clear: Reset all globals to their default
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 10-Sep-2010'
@@ -58,6 +60,10 @@ beta = 10**(-5)
 compactness = 0
 epsilon = 10**(-5)
 equality = 0
+
+# Need access the lower and upper bounds on the parameters
+_lower = None
+_upper = None
 
 # These globals are things that only need to be calculated once per inversion
 _tk_weights = None
@@ -480,6 +486,56 @@ def _sum_reg_gradients(gradient, estimate):
     if equality > 0:
         
         _sum_eq_gradient(gradient, estimate)
+        
+        
+def _apply_variable_change(system, y, prev):
+    """Apply a variable change of the parameters to the equation system"""
+    pass
+
+
+def _revert_variable_change(correction, prev):
+    """Change back the estimated correction"""
+    
+    return correction
+    
+
+def _apply_log_barrier(hessian, y, prev):
+    """Apply a log barrier to the equation system"""
+    
+    jacobian_diag = (prev - _lower + 10**(-8))*(_upper - prev + 10**(-8))/ \
+                    float(_upper - _lower)
+                    
+    y *= jacobian_diag
+    
+    for i, row in enumerate(hessian):
+        
+        row *= jacobian_diag[i]*jacobian_diag
+        
+    
+def _revert_log_barrier(correction, prev):
+    """Revert the log barrier from the correction"""
+    
+    changed = -1*numpy.log((_upper - prev)/(prev - _lower))
+    
+    delta = float(_upper - _lower)
+    
+    corr_reverted = delta/(1. + numpy.exp(-1*(changed + correction))) - \
+                    delta/(1. + numpy.exp(-1*changed))
+    
+    return corr_reverted
+
+
+def set_bounds(lower, upper):
+    """Set upper and lower bounds on the parameter values."""
+    
+    global _lower, _upper, _apply_variable_change, _revert_variable_change
+    
+    _lower = lower
+    _upper = upper
+    
+    _apply_variable_change = _apply_log_barrier
+    _revert_variable_change = _revert_log_barrier
+    
     
     
 def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
@@ -541,6 +597,10 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
         hessian = numpy.dot(jacobian.T, jacobian)
     
         _sum_reg_hessians(hessian, prev)
+            
+        gradient *= -1
+            
+        _apply_variable_change(hessian, gradient, prev)
         
         hessian_diag = numpy.diag(numpy.diag(hessian))
         
@@ -550,7 +610,9 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
             
             system = hessian + lm_param*hessian_diag
             
-            correction = numpy.linalg.solve(system, -1*gradient)
+            correction = numpy.linalg.solve(system, gradient)
+            
+            correction = _revert_variable_change(correction, prev)
             
             next = prev + correction
             
@@ -566,9 +628,19 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
             
             if goal < goals[-1]:
                 
+                if lm_param > 10**(-10):
+                
+                    lm_param /= lm_step
+                
                 stagnation = False
                 
                 break
+            
+            else:
+                
+                if lm_param < 10**(10):
+                
+                    lm_param *= lm_step
             
         if stagnation:
             

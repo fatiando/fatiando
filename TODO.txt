@@ -10,15 +10,20 @@ General
     * Change C code that uses arrays to Fortran
     
 Inversion
+    * Unit tests
     * Sparsity regularization
-    * Unit tests for solvers
     * Linear solver
+    * Use the data covariance matrix
+    Done
+    * Implement log barrier
    
 Stats
+    * Unit tests
     * Implement the Chi squared test for a population
     * Implement the test for outliers in a population
     
 InterG
+    * Unit tests
     * IO for inversion results and initial estimate
     * Make synthetic data generation
     * Make integration test
@@ -27,20 +32,22 @@ InterG
     * Make visualizations
     
 PGrav
+    * Unit tests
     * IO for initial estimate
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
-    * Implement depth weights
     Done:
     * Port to the new solvers.py
     * Make visualizations
+    * Implement depth weights
     * IO for inversion results (pickle the mesh)
     
-Sesimo
+Seismo
     * Module descriptions in the docstring
     
 Simpletom:
+    * Unit tests
     * Port integration tests
     * IO for initial estimate
 

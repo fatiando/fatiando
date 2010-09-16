@@ -32,27 +32,33 @@ mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
 
 # Inversion parameters
 damping = 10**(-10)
-smoothness = 10**(-2)
+smoothness = 10**(-6)
 curvature = 0
 sharpness = 0
 beta = 10**(-5)
-compactness = 10**(-2)
+compactness = 10**(-4)
 epsilon = 10**(-5)
-initial = None
+initial = numpy.ones(mesh.size)
+lm_start = 100000
+lm_step = 10
 
-pgrav3d.use_depth_weights(mesh, grid_height=150, normalize=False)
+pgrav3d.use_depth_weights(mesh, z0=-55.8202, power=1.49562, grid_height=150, 
+                          normalize=True)
+
+pgrav3d.set_bounds(0, 1000)
 
 # Run the inversion
 estimate, goals = pgrav3d.solve(data, mesh, initial, damping, smoothness,
                                 curvature, sharpness, beta,  
-                                compactness, epsilon, lm_start=0.01)
+                                compactness, epsilon, lm_start=lm_start, 
+                                lm_step=lm_step)
 
 pgrav3d.fill_mesh(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
 # Contaminate the data and re-run the inversion to test the stability
-estimates = []
+estimates = [estimate]
 error = 1
 contam_times = 2
 
@@ -74,7 +80,7 @@ for i in xrange(contam_times):
     new_estimate, new_goal = pgrav3d.solve(contam, mesh, initial, damping,
                                            smoothness, curvature, sharpness, 
                                            beta, compactness, epsilon,
-                                           lm_start=0.01)
+                                           lm_start=lm_start, lm_step=lm_step)
     
     estimates.append(new_estimate)
     

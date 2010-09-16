@@ -23,6 +23,7 @@ Functions:
   * plot_ray_coverage: Plot the rays between sources and receivers in a map
   * plot_square_mesh: Plot a pcolor map of a 2D mesh made of square cells
   * residuals_histogram: Plot a histogram of the residual vector
+  * plot_prism_mesh: Plot a 3D prism mesh using Mayavi2
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'

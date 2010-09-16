@@ -22,6 +22,9 @@ Functions:
   * fill_mesh: Fill the 'value' keys of mesh with the inversion estimate.
   * extract_data_vector: Put all the gravity field data in a single array.
   * cal_adjustment: Calculate the adjusted data produced by a given estimate.
+  * residuals: Calculate the residuals produced by a given estimate
+  * use_depth_weights :Use depth weighting in the next inversions
+  * set_bounds: Set lower and upper bounds on the density values
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -506,6 +509,12 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
     solvers._build_tk_weights = _build_tk_depth_weights
 
     return z0, power
+
+
+def set_bounds(lower, upper):
+    """Set lower and upper bounds on the density values"""
+    
+    solvers.set_bounds(lower, upper)
 
 
 def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
