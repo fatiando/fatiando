@@ -65,6 +65,10 @@ equality = 0
 _lower = None
 _upper = None
 
+# Parameters of the discretization variable change
+_alpha = None
+_target = None
+
 # These globals are things that only need to be calculated once per inversion
 _tk_weights = None
 _first_deriv = None
@@ -537,6 +541,43 @@ def set_bounds(lower, upper):
     _revert_variable_change = _revert_log_barrier
     
     
+def _apply_discretization(hessian, y, prev):
+    """Apply a variable change to make parameters discrete to the system"""
+    
+    jacobian_diag = 2*_alpha*prev*(_target - prev + 10**(-8))/_target
+                    
+    y *= jacobian_diag
+    
+    for i, row in enumerate(hessian):
+        
+        row *= jacobian_diag[i]*jacobian_diag
+        
+        
+def _revert_discretization(correction, prev):
+    """Revert the discretization variable change"""
+    
+    changed = -numpy.log(_target/(prev + 10**(-8)) - 1.)/(2*_alpha)
+    
+    reverted = _target/(1 + numpy.exp(-2*_alpha*(changed + correction))) - \
+               _target/(1 + numpy.exp(-2*_alpha*changed))
+               
+    return reverted
+    
+        
+def set_targets(target, alpha):
+    """
+    Set target values for the parameters. They only be allowed to choose from
+    these values.
+    """
+    
+    global _target, _alpha, _apply_variable_change, _revert_variable_change
+    
+    _target = target
+    _alpha = alpha
+    
+    _apply_variable_change = _apply_discretization
+    _revert_variable_change = _revert_discretization
+        
     
 def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     """

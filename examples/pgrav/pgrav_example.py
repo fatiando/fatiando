@@ -36,7 +36,7 @@ smoothness = 10**(-6)
 curvature = 0
 sharpness = 0
 beta = 10**(-5)
-compactness = 10**(-4)
+compactness = 0*10**(-4)
 epsilon = 10**(-5)
 initial = numpy.ones(mesh.size)
 lm_start = 100000
@@ -45,7 +45,7 @@ lm_step = 10
 pgrav3d.use_depth_weights(mesh, z0=-55.8202, power=1.49562, grid_height=150, 
                           normalize=True)
 
-pgrav3d.set_bounds(0, 1000)
+pgrav3d.set_targets(1000, 10**(8))
 
 # Run the inversion
 estimate, goals = pgrav3d.solve(data, mesh, initial, damping, smoothness,
@@ -60,7 +60,7 @@ residuals = pgrav3d.residuals(data, estimate)
 # Contaminate the data and re-run the inversion to test the stability
 estimates = [estimate]
 error = 1
-contam_times = 2
+contam_times = 1
 
 log.info("Contaminating with %g Eotvos and re-running %d times" 
           % (error, contam_times))

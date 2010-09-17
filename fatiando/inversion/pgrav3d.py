@@ -515,6 +515,15 @@ def set_bounds(lower, upper):
     """Set lower and upper bounds on the density values"""
     
     solvers.set_bounds(lower, upper)
+    
+    
+def set_targets(target, alpha):
+    """
+    Set target values for the densities. They only be allowed to choose from
+    these values.
+    """
+    
+    solvers.set_targets(target, alpha)
 
 
 def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
@@ -616,101 +625,3 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
                                  max_steps, max_it)
 
     return estimate, goals
-
-
-
-
-#    def _build_jacobian(self, estimate):
-#        """
-#        Make the Jacobian matrix of the function of the parameters.
-#        """
-#        
-#        assert estimate != None, "Can't use solve_linear. " + \
-#            "This is a non-linear inversion!"
-#        
-#        jacobian = []
-#        
-#        z0 = estimate[0]
-#        
-#        power = estimate[1]
-#                        
-#        for z in self._depths:
-#                        
-#            z0_deriv = -power/((z + 0.5*self._dz + z0)**(power + 1))
-#            
-#            power_deriv = -1./((z + 0.5*self._dz + z0)**power)
-#            
-#            jacobian.append([z0_deriv, power_deriv])
-#            
-#        return numpy.array(jacobian)        
-#            
-#    
-#    def _calc_adjusted_data(self, estimate):
-#        """
-#        Calculate the adjusted data vector based on the current estimate
-#        """
-#        
-#        z0 = estimate[0]
-#        
-#        power = estimate[1]
-#        
-#        adjusted = []
-#        
-#        for z in self._depths: 
-#        
-#            adjusted.append(1./((z + 0.5*self._dz + z0)**power))
-#            
-#        return numpy.array(adjusted)
-
-#    def _get_data_array(self):
-#        """
-#        Return the data in a Numpy array so that the algorithm can access it
-#        in a general way
-#        """        
-#        
-#        if self._data != None:
-#            
-#            return self._data
-#        
-#        data = []
-#        
-#        dx = (self._pgrav_solver._mod_x2 - self._pgrav_solver._mod_x1)/ \
-#             self._pgrav_solver._nx
-#             
-#        dy = (self._pgrav_solver._mod_y2 - self._pgrav_solver._mod_y1)/ \
-#             self._pgrav_solver._ny
-#                        
-#        for depth in self._depths:
-#            
-#            tmp = prism_gravity.gzz(1., -0.5*dx, 0.5*dx, -0.5*dy, 0.5*dy, \
-#                            depth, depth + self._dz, 0., 0., -self._height)
-#                
-#            data.append(tmp)
-#        
-#        self._data = numpy.array(data)
-#        
-#        return self._data
-#    def set_equality(self, z0=None, power=None):
-#        """
-#        Set an equality constraint for the parameters z0 and/or power.
-#        """
-#        
-#        self._equality_matrix = []
-#          
-#        self._equality_values = []
-#        
-#        if z0 != None:
-#            
-#            self._equality_values.append(z0)
-#            
-#            self._equality_matrix.append([1, 0])
-#            
-#        if power != None:
-#                        
-#            self._equality_values.append(power)
-#            
-#            self._equality_matrix.append([0, 1])
-#            
-#        self._equality_values = numpy.array(self._equality_values)
-#        
-#        self._equality_matrix = numpy.array(self._equality_matrix)
