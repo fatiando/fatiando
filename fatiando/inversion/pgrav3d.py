@@ -177,7 +177,7 @@ def extract_data_vector(data, inplace=False):
             
             del data['gzz']['value']
         
-    return  data_vector
+    return  numpy.array(data_vector)
 
 
 def residuals(data, estimate):
@@ -515,15 +515,6 @@ def set_bounds(lower, upper):
     """Set lower and upper bounds on the density values"""
     
     solvers.set_bounds(lower, upper)
-    
-    
-def set_targets(target, alpha):
-    """
-    Set target values for the densities. They only be allowed to choose from
-    these values.
-    """
-    
-    solvers.set_targets(target, alpha)
 
 
 def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
@@ -623,5 +614,119 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     
     estimate, goals = solvers.lm(_data_vector, None, initial, lm_start, lm_step, 
                                  max_steps, max_it)
+
+    return estimate, goals
+
+
+def grow(data, mesh, densities, damping, smoothness, apriori_variance):
+    """
+    Iteratively grow a density model with the given traget density values.
+    """
+
+    for key in data.keys():
+        assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
+            "Invalid gravity component (data key): %s" % (key)
+                
+    log.info("Inversion parameters:")
+    log.info("  damping = %g" % (damping))
+    
+    total_start = time.time()
+    
+    global _mesh, _data, _jacobian
+
+    _mesh = mesh
+    _data = data
+    
+    _build_pgrav3d_jacobian(None)
+    
+    _jacobian = _jacobian.T
+    
+    # Overload the solvers functions in order to use it's _calc_regularizer_goal
+    # function
+    solvers._build_first_deriv_matrix = _build_pgrav3d_first_deriv
+    solvers.damping = damping
+    solvers.compactness = smoothness
+        
+    # This is the maximum residuals I can have (zero estimate)
+    residuals = extract_data_vector(data)
+    
+    goals = [(residuals*residuals).sum()]
+    
+    log.info("Growing density model:")
+    log.info("  parameters = %d" % (mesh.size))
+    log.info("  data = %d" % (len(residuals)))
+    log.info("  target densities = %s" % (str(densities)))
+    log.info("  initial goal function (RMS) = %g" % (goals[-1]))
+        
+    estimate = numpy.zeros(_mesh.size)
+    
+    unmarked = range(_mesh.size)
+    
+    # The maximum number of iterations possible is marking all parameters in the
+    # mesh
+    for iteration in xrange(_mesh.size):
+    
+        start = time.time()
+    
+        best_param = -1
+        best_goal = goals[-1]
+        best_rms = 0
+        best_goal_msg = ''
+        
+        stagnation = True
+        
+        for param in unmarked:
+    
+            for target in densities:
+                
+                new_residuals = residuals - target*_jacobian[param]
+                
+                rms = (new_residuals*new_residuals).sum()
+                
+                estimate[param] = target
+                
+                reg_goal, msg = solvers._calc_regularizer_goal(estimate)
+                
+                estimate[param] = 0
+                
+                goal = rms + reg_goal
+                
+                if goal < best_goal:
+                    
+                    best_param = param
+                    best_goal = goal
+                    density = target
+                    best_rms = rms
+                    best_goal_msg = msg
+                    
+                    stagnation = False
+                    
+        if stagnation:
+            
+            log.warning("  Stopped because couldn't decrese goal anymore")
+            
+            break
+        
+        estimate[best_param] = density
+        residuals -= density*_jacobian[best_param]        
+        goals.append(best_goal)
+        unmarked.remove(best_param)
+        
+        end = time.time()
+        
+        log.info("  it %d: RMS:%g%s TOTAL=%g (%.3lf s)" % (iteration + 1, 
+                 best_rms, best_goal_msg, best_goal, end - start))
+        
+        aposteriori_variance = best_goal/float(len(residuals))
+        
+        if aposteriori_variance <= apriori_variance:
+            
+            break
+    
+    _jacobian = _jacobian.T
+    
+    total_end = time.time()
+    
+    log.info("  Total inversion time: %g s" % (total_end - total_start))
 
     return estimate, goals

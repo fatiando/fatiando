@@ -1,6 +1,5 @@
 REFACTORING:
 
-    * Implement equality constraints
     * Include license info in all files
 
 General
@@ -14,6 +13,7 @@ Inversion
     * Sparsity regularization
     * Linear solver
     * Use the data covariance matrix
+    * Implement equality constraints
     Done
     * Implement log barrier
    
