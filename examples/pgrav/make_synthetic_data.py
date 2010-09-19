@@ -20,7 +20,7 @@ import fatiando.utils
 import fatiando.vis
 
 prisms = []
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':800, 'z2':1200,
+prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
                'value':1000})
 
 prisms = numpy.array(prisms)
@@ -38,7 +38,7 @@ modelfile = open('model.pickle', 'w')
 pickle.dump(prisms, modelfile)
 modelfile.close()
 
-error = 1
+error = 0.5
 
 pylab.figure(figsize=(16,8))
 pylab.suptitle(r'Synthetic FTG data with %g $E\"otv\"os$ noise' 
@@ -53,6 +53,8 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
                                                       stddev=error, 
                                                       percent=False, 
                                                       return_stddev=True)
+    
+    data['error'] = error*numpy.ones(len(data['value']))
 
     io.dump('%s_data.txt' % (field), data)
     

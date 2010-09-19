@@ -25,6 +25,8 @@ Implemented regularizations:
       (discontinuities)
   * Compact: imposes minimum area (volume) of the solution (as in Last and Kubic
       (1983))
+  * Minimum Moment of Inertia (MMI): imposes minimum distance from parameters
+      to given points or 
 
 Functions:
   * lm: Levemberg-Marquardt solver

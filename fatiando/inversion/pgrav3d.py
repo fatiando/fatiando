@@ -50,6 +50,11 @@ _depth_weights = None
 # This will hold solvers._build_tk_weights so that I don't loose when it's
 # overwritten with _build_tk_depth_weights
 _solvers_tk_weights = None
+# The distances to the mass elements in the Minimum Moment of Inertia 
+# regularization
+_distances = None
+_points = None
+_mmi = None
 # Keep the mesh and data global to access them to build the Jacobian and derivs
 _mesh = None
 _data = None
@@ -71,7 +76,7 @@ def clear():
     """
     
     global _jacobian, _mesh, _data, _data_vector, \
-           _depth_weights, _solvers_tk_weights
+           _depth_weights, _solvers_tk_weights, _distances
                
     _jacobian = None
     _mesh = None
@@ -79,6 +84,7 @@ def clear():
     _data_vector = None
     _depth_weights = None
     _solvers_tk_weights = None
+    _distances = None
     reload(solvers)
     
 
@@ -237,17 +243,21 @@ def calc_adjustment(estimate, grid=False):
     
     if grid:
         
-        adjusted_grid = _data.copy()
+        adjusted_grid = {}
                 
         for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
             
             if field in _data.keys():
                 
+                adjusted_grid[field] = _data[field].copy()
+                
                 ndata = len(_data[field]['x'])
                           
                 adjusted_grid[field]['value'] = adjusted[:ndata]
                 
-                adjusted = adjusted[ndata:]                
+                adjusted_grid[field]['error'] = None       
+                
+                adjusted = adjusted[ndata:]      
     
         adjusted = adjusted_grid
         
@@ -618,24 +628,287 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     return estimate, goals
 
 
-def grow(data, mesh, densities, damping, smoothness, apriori_variance):
+def _calc_mmi_goal(estimate):
+    """Calculate the goal function due to MMI regularization"""
+    
+    if _mmi is None or _mmi == 0:
+        
+        return 0, ''
+    
+    global _distances
+    
+    if _distances is None:
+        
+        _distances = numpy.zeros(_mesh.size)
+        
+        for i, cell in enumerate(_mesh.ravel()):
+            
+            best_distance = None
+            
+            for point in _points:
+                
+                x, y, z = point
+                                
+                x_cell = 0.5*(cell['x1'] +  cell['x2'])
+                y_cell = 0.5*(cell['y1'] +  cell['y2'])
+                z_cell = 0.5*(cell['z1'] +  cell['z2'])
+                
+                distance = numpy.sqrt((x - x_cell)**2 + (y - y_cell)**2 +
+                                      (z - z_cell)**2)
+                
+                if best_distance is None or distance < best_distance:
+                    
+                    best_distance = distance
+                     
+            _distances[i] = best_distance
+    
+    weights = (_distances**3)
+    
+    weights = weights/(weights.max())
+    
+    goal = _mmi*((estimate**2)*weights).sum()
+    
+    msg = ' MMI:%g' % (goal)
+    
+    return goal, msg
+
+
+def get_seed(point, density, mesh):
+    """Returns as a seed the cell in mesh that has point inside it."""
+    
+    x, y, z = point
+    
+    seed = None
+    
+    for i, cell in enumerate(mesh.ravel()):
+        
+        if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
+            y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
+            
+            seed = {'param':i, 'density':density}
+            
+            break
+        
+    if seed is None:
+        
+        raise ValueError("There is no cell in 'mesh' with 'point' inside it.")
+    
+    log.info("  seed: %s" % (str(seed)))
+
+    return seed
+
+
+def _add_neighbours(param, neighbours, mesh, estimate):
+    """Add the neighbours of 'param' in 'mesh' to 'neighbours'."""
+    
+    nz, ny, nx = mesh.shape
+    
+    append = neighbours.append
+    
+    # The guy above
+    neighbour = param - nx*ny
+    above = None
+    
+    if neighbour > 0 and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        above = neighbour
+        append(neighbour)
+    
+    # The guy bellow
+    neighbour = param + nx*ny
+    bellow = None
+    
+    if neighbour < mesh.size and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        bellow = neighbour
+        append(neighbour)    
+    
+    # The guy in front
+    neighbour = param + 1
+    front = None
+    
+    if neighbour%nx < nx - 1 and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        front = neighbour
+        append(neighbour)
+    
+    # The guy in the back
+    neighbour = param - 1
+    back = None
+    
+    if neighbour%nx != 0 and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        back = neighbour
+        append(neighbour)
+    
+    # The guy to the left
+    neighbour = param + nx
+    left = None
+    
+    if neighbour%(nx*ny) < nx*(ny - 1) and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        left = neighbour
+        append(neighbour)
+    
+    # The guy to the right
+    neighbour = param - nx
+    right = None
+    
+    if neighbour%(nx*ny) >= nx and neighbour not in neighbours and \
+       estimate[neighbour] == 0.:
+        
+        right = neighbour
+        append(neighbour)
+
+    # The diagonals
+    if above is not None and front is not None and left is not None:
+        
+        neighbour = above + nx + 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if above is not None and front is not None and right is not None:
+        
+        neighbour = above - nx + 1       
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+
+    if above is not None and back is not None and left is not None:
+        
+        neighbour = above + nx - 1    
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+    
+    if above is not None and back is not None and right is not None:
+        
+        neighbour = above - nx - 1 
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if front is not None and left is not None:
+        
+        neighbour = left + 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+    
+    if front is not None and right is not None:
+        
+        neighbour = right + 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if back is not None and left is not None:
+        
+        neighbour = left - 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if back is not None and right is not None:
+    
+        neighbour = right - 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if bellow is not None and front is not None and left is not None:
+        
+        neighbour = bellow + nx + 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if bellow is not None and front is not None and right is not None:
+        
+        neighbour = bellow - nx + 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+        
+    if bellow is not None and back is not None and left is not None:
+        
+        neighbour =  bellow + nx - 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+            
+    if bellow is not None and back is not None and right is not None:
+        
+        neighbour = bellow - nx - 1
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
+        
+
+def grow(data, mesh, seeds, mmi, apriori_variance):
     """
-    Iteratively grow a density model with the given traget density values.
+    Grow the solution around given 'seeds'.
+    
+    Parameters:
+        
+      data: dictionary with the gravity component data as:
+            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
+            If there is no data for a given component, omit the respective key.
+            Each g*data is a data grid as loaded by fatiando.gravity.io
+      
+      mesh: model space discretization mesh (see geometry.prism_mesh function)
+      
+      seeds: list of seeds (to make a seed, see get_seed function)
+      
+      mmi: Minimum Moment of Inertia regularization parameter (how compact the
+           solution should be around the seeds). Has to be >= 0
+           
+      apriori_variance: a priori variance of the data
+      
+    Return:
+    
+      [estimate, goals]:
+        estimate = array-like parameter vector estimated by the inversion.
+                   parameters are the density values in the mesh cells.
+                   use fill_mesh function to put the estimate in a mesh so you
+                   can plot and save it.
+        goals = list of goal function value per iteration    
     """
+    
 
     for key in data.keys():
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
                 
     log.info("Inversion parameters:")
-    log.info("  damping = %g" % (damping))
+    log.info("  mmi = %g" % (mmi))
     
     total_start = time.time()
     
-    global _mesh, _data, _jacobian
+    global _mesh, _data, _jacobian, _points, _mmi
 
     _mesh = mesh
     _data = data
+    _mmi = mmi
+    _points = []
     
     _build_pgrav3d_jacobian(None)
     
@@ -644,84 +917,119 @@ def grow(data, mesh, densities, damping, smoothness, apriori_variance):
     # Overload the solvers functions in order to use it's _calc_regularizer_goal
     # function
     solvers._build_first_deriv_matrix = _build_pgrav3d_first_deriv
-    solvers.damping = damping
-    solvers.compactness = smoothness
-        
-    # This is the maximum residuals I can have (zero estimate)
     residuals = extract_data_vector(data)
     
-    goals = [(residuals*residuals).sum()]
+    rms = (residuals*residuals).sum()
+        
+    estimate = numpy.zeros(_mesh.size)
+    
+    # Need to set their densities before so that seeds won't be added as 
+    # neighbours
+    for seed in seeds:
+        
+        estimate[seed['param']] = seed['density']
+    
+    for seed in seeds:
+                
+        seed['neighbours'] = []
+        
+        _add_neighbours(seed['param'], seed['neighbours'], mesh, estimate)
+        
+        # Set a point source in the center of the seed to use MMI regularization
+        cell = _mesh.ravel()[seed['param']]
+        
+        x = 0.5*(cell['x1'] +  cell['x2'])
+        y = 0.5*(cell['y1'] +  cell['y2'])
+        z = 0.5*(cell['z1'] +  cell['z2'])
+        _points.append((x, y, z))
+        
+    reg_goal, msg = _calc_mmi_goal(estimate)
+    
+    goals = [rms + reg_goal] 
     
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
     log.info("  data = %d" % (len(residuals)))
-    log.info("  target densities = %s" % (str(densities)))
-    log.info("  initial goal function (RMS) = %g" % (goals[-1]))
+    log.info("  initial RMS = %g" % (rms))
+    log.info("  initial regularizer goals =%s" % (msg))
+    log.info("  initial total goal function = %g" % (goals[-1]))
         
-    estimate = numpy.zeros(_mesh.size)
-    
-    unmarked = range(_mesh.size)
-    
-    # The maximum number of iterations possible is marking all parameters in the
-    # mesh
-    for iteration in xrange(_mesh.size):
-    
+    for iteration in xrange(mesh.size - len(seeds)):
+        
         start = time.time()
-    
-        best_param = -1
-        best_goal = goals[-1]
-        best_rms = 0
-        best_goal_msg = ''
+        
+        log.info("  it %d:" % (iteration + 1))
         
         stagnation = True
         
-        for param in unmarked:
-    
-            for target in densities:
+        for seed_num, seed in enumerate(seeds):
+            
+            best_param = None
+            best_goal = goals[-1]
+            best_rms = goals[-1]
+            best_msg = ''
+            
+            density = seed['density']
+            
+            for neighbour in seed['neighbours']:
                 
-                new_residuals = residuals - target*_jacobian[param]
+                new_residuals = residuals - density*_jacobian[neighbour]
                 
                 rms = (new_residuals*new_residuals).sum()
                 
-                estimate[param] = target
+                estimate[neighbour] = density
+    
+#                reg_goal, msg = solvers._calc_regularizer_goal(estimate)
+
+                reg_goal, msg = _calc_mmi_goal(estimate)
                 
-                reg_goal, msg = solvers._calc_regularizer_goal(estimate)
-                
-                estimate[param] = 0
+                estimate[neighbour] = 0
                 
                 goal = rms + reg_goal
                 
                 if goal < best_goal:
                     
-                    best_param = param
+                    best_param = neighbour
                     best_goal = goal
-                    density = target
                     best_rms = rms
-                    best_goal_msg = msg
+                    best_msg = msg
                     
                     stagnation = False
+                
+            # NOTE: The way it, if a cell is a neighbour of 2 or more seeds
+            # the density chosen for it will not be the best of all seeds, but
+            # of the first one to try to mark it    
+            if best_param is not None:
+                
+                estimate[best_param] = density
+                residuals -= density*_jacobian[best_param] 
+                goals.append(best_goal)
+                
+                # Remove the best_param from all lists of neighbours
+                for other_seed in seeds:                    
+                    try:                                                
+                        other_seed['neighbours'].remove(best_param)                                    
+                    except ValueError:
+                        pass
                     
+                _add_neighbours(best_param, seed['neighbours'], mesh, estimate)
+                
+                log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
+                         % (seed_num + 1, best_rms, best_msg, best_goal))
+                                    
         if stagnation:
             
-            log.warning("  Stopped because couldn't decrese goal anymore")
-            
+            log.warning("  Exited because couldn't grow anymore.")
             break
-        
-        estimate[best_param] = density
-        residuals -= density*_jacobian[best_param]        
-        goals.append(best_goal)
-        unmarked.remove(best_param)
-        
+                    
         end = time.time()
-        
-        log.info("  it %d: RMS:%g%s TOTAL=%g (%.3lf s)" % (iteration + 1, 
-                 best_rms, best_goal_msg, best_goal, end - start))
-        
-        aposteriori_variance = best_goal/float(len(residuals))
+        log.info("    time: %g s" % (end - start))
+                
+        aposteriori_variance = goals[-1]/float(len(residuals))
         
         if aposteriori_variance <= apriori_variance:
             
-            break
+            break 
     
     _jacobian = _jacobian.T
     
