@@ -38,7 +38,7 @@ modelfile = open('model.pickle', 'w')
 pickle.dump(prisms, modelfile)
 modelfile.close()
 
-error = 0.5
+error = 0.1
 
 pylab.figure(figsize=(16,8))
 pylab.suptitle(r'Synthetic FTG data with %g $E\"otv\"os$ noise' 

@@ -18,6 +18,7 @@
 3D Gravity inversion using right rectangular prisms.
 
 Functions:
+  * solve: Solve the inverse problem for a given data set and model space mesh
   * clear: Erase garbage from previous inversions.
   * fill_mesh: Fill the 'value' keys of mesh with the inversion estimate.
   * extract_data_vector: Put all the gravity field data in a single array.
@@ -25,6 +26,8 @@ Functions:
   * residuals: Calculate the residuals produced by a given estimate
   * use_depth_weights :Use depth weighting in the next inversions
   * set_bounds: Set lower and upper bounds on the density values
+  * grow: Grow the solution around given 'seeds' 
+  * get_seed: Returns as a seed the cell in mesh that has point inside it
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -53,8 +56,6 @@ _solvers_tk_weights = None
 # The distances to the mass elements in the Minimum Moment of Inertia 
 # regularization
 _distances = None
-_points = None
-_mmi = None
 # Keep the mesh and data global to access them to build the Jacobian and derivs
 _mesh = None
 _data = None
@@ -628,10 +629,10 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     return estimate, goals
 
 
-def _calc_mmi_goal(estimate):
+def _calc_mmi_goal(estimate, mmi, seeds):
     """Calculate the goal function due to MMI regularization"""
     
-    if _mmi is None or _mmi == 0:
+    if mmi == 0:
         
         return 0, ''
     
@@ -642,19 +643,20 @@ def _calc_mmi_goal(estimate):
         _distances = numpy.zeros(_mesh.size)
         
         for i, cell in enumerate(_mesh.ravel()):
+                
+            dx = float(cell['x2'] - cell['x1'])
+            dy = float(cell['y2'] - cell['y1'])
+            dz = float(cell['z2'] - cell['z1'])
             
             best_distance = None
             
-            for point in _points:
+            for seed in seeds:
                 
-                x, y, z = point
-                                
-                x_cell = 0.5*(cell['x1'] +  cell['x2'])
-                y_cell = 0.5*(cell['y1'] +  cell['y2'])
-                z_cell = 0.5*(cell['z1'] +  cell['z2'])
+                x_distance = abs(cell['x1'] - seed['cell']['x1'])/dx
+                y_distance = abs(cell['y1'] - seed['cell']['y1'])/dy
+                z_distance = abs(cell['z1'] - seed['cell']['z1'])/dz
                 
-                distance = numpy.sqrt((x - x_cell)**2 + (y - y_cell)**2 +
-                                      (z - z_cell)**2)
+                distance = max([x_distance, y_distance, z_distance])
                 
                 if best_distance is None or distance < best_distance:
                     
@@ -662,11 +664,11 @@ def _calc_mmi_goal(estimate):
                      
             _distances[i] = best_distance
     
-    weights = (_distances**3)
+    weights = (_distances**5)
     
     weights = weights/(weights.max())
     
-    goal = _mmi*((estimate**2)*weights).sum()
+    goal = mmi*((estimate**2)*weights).sum()
     
     msg = ' MMI:%g' % (goal)
     
@@ -709,158 +711,234 @@ def _add_neighbours(param, neighbours, mesh, estimate):
     neighbour = param - nx*ny
     above = None
     
-    if neighbour > 0 and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour > 0:
         
         above = neighbour
-        append(neighbour)
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+        
+            append(neighbour)
     
     # The guy bellow
     neighbour = param + nx*ny
     bellow = None
     
-    if neighbour < mesh.size and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour < mesh.size:
         
         bellow = neighbour
-        append(neighbour)    
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)    
     
     # The guy in front
     neighbour = param + 1
     front = None
     
-    if neighbour%nx < nx - 1 and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour%nx < nx - 1:
         
         front = neighbour
-        append(neighbour)
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+        
+            append(neighbour)
     
     # The guy in the back
     neighbour = param - 1
     back = None
     
-    if neighbour%nx != 0 and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour%nx != 0:
         
         back = neighbour
-        append(neighbour)
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+            
+            append(neighbour)
     
     # The guy to the left
     neighbour = param + nx
     left = None
     
-    if neighbour%(nx*ny) < nx*(ny - 1) and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour%(nx*ny) < nx*(ny - 1):
         
         left = neighbour
-        append(neighbour)
+        
+        if neighbour not in neighbours and estimate[neighbour] == 0.:
+        
+            append(neighbour)
     
     # The guy to the right
     neighbour = param - nx
     right = None
     
-    if neighbour%(nx*ny) >= nx and neighbour not in neighbours and \
-       estimate[neighbour] == 0.:
+    if neighbour%(nx*ny) >= nx:
         
         right = neighbour
-        append(neighbour)
-
-    # The diagonals
-    if above is not None and front is not None and left is not None:
-        
-        neighbour = above + nx + 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if above is not None and front is not None and right is not None:
-        
-        neighbour = above - nx + 1       
         
         if neighbour not in neighbours and estimate[neighbour] == 0.:
             
             append(neighbour)
 
-    if above is not None and back is not None and left is not None:
-        
-        neighbour = above + nx - 1    
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-    
-    if above is not None and back is not None and right is not None:
-        
-        neighbour = above - nx - 1 
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if front is not None and left is not None:
-        
-        neighbour = left + 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-    
-    if front is not None and right is not None:
-        
-        neighbour = right + 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if back is not None and left is not None:
-        
-        neighbour = left - 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if back is not None and right is not None:
-    
-        neighbour = right - 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if bellow is not None and front is not None and left is not None:
-        
-        neighbour = bellow + nx + 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if bellow is not None and front is not None and right is not None:
-        
-        neighbour = bellow - nx + 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-        
-    if bellow is not None and back is not None and left is not None:
-        
-        neighbour =  bellow + nx - 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
-            
-    if bellow is not None and back is not None and right is not None:
-        
-        neighbour = bellow - nx - 1
-        
-        if neighbour not in neighbours and estimate[neighbour] == 0.:
-            
-            append(neighbour)
+    # The diagonals            
+#    if front is not None and left is not None:
+#        
+#        neighbour = left + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#    
+#    if front is not None and right is not None:
+#        
+#        neighbour = right + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if back is not None and left is not None:
+#        
+#        neighbour = left - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if back is not None and right is not None:
+#    
+#        neighbour = right - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if above is not None and left is not None:
+#        
+#        neighbour = above + nx
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if above is not None and right is not None:
+#        
+#        neighbour = above - nx
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if above is not None and front is not None:
+#        
+#        neighbour = above + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if above is not None and back is not None:
+#        
+#        neighbour = above - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)            
+#            
+#    if above is not None and front is not None and left is not None:
+#        
+#        neighbour = above + nx + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if above is not None and front is not None and right is not None:
+#        
+#        neighbour = above - nx + 1       
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#
+#    if above is not None and back is not None and left is not None:
+#        
+#        neighbour = above + nx - 1    
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#    
+#    if above is not None and back is not None and right is not None:
+#        
+#        neighbour = above - nx - 1 
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and left is not None:
+#        
+#        neighbour = bellow + nx
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and right is not None:
+#        
+#        neighbour = bellow - nx
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and front is not None:
+#        
+#        neighbour = bellow + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and back is not None:
+#        
+#        neighbour = bellow - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)         
+#            
+#    if bellow is not None and front is not None and left is not None:
+#        
+#        neighbour = bellow + nx + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and front is not None and right is not None:
+#        
+#        neighbour = bellow - nx + 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#        
+#    if bellow is not None and back is not None and left is not None:
+#        
+#        neighbour =  bellow + nx - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
+#            
+#    if bellow is not None and back is not None and right is not None:
+#        
+#        neighbour = bellow - nx - 1
+#        
+#        if neighbour not in neighbours and estimate[neighbour] == 0.:
+#            
+#            append(neighbour)
         
 
 def grow(data, mesh, seeds, mmi, apriori_variance):
@@ -901,14 +979,10 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
     log.info("Inversion parameters:")
     log.info("  mmi = %g" % (mmi))
     
-    total_start = time.time()
-    
-    global _mesh, _data, _jacobian, _points, _mmi
+    global _mesh, _data, _jacobian
 
     _mesh = mesh
     _data = data
-    _mmi = mmi
-    _points = []
     
     _build_pgrav3d_jacobian(None)
     
@@ -916,7 +990,6 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
     
     # Overload the solvers functions in order to use it's _calc_regularizer_goal
     # function
-    solvers._build_first_deriv_matrix = _build_pgrav3d_first_deriv
     residuals = extract_data_vector(data)
     
     rms = (residuals*residuals).sum()
@@ -934,16 +1007,10 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
         seed['neighbours'] = []
         
         _add_neighbours(seed['param'], seed['neighbours'], mesh, estimate)
+                
+        seed['cell'] = _mesh.ravel()[seed['param']]
         
-        # Set a point source in the center of the seed to use MMI regularization
-        cell = _mesh.ravel()[seed['param']]
-        
-        x = 0.5*(cell['x1'] +  cell['x2'])
-        y = 0.5*(cell['y1'] +  cell['y2'])
-        z = 0.5*(cell['z1'] +  cell['z2'])
-        _points.append((x, y, z))
-        
-    reg_goal, msg = _calc_mmi_goal(estimate)
+    reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
     
     goals = [rms + reg_goal] 
     
@@ -953,6 +1020,10 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
     log.info("  initial RMS = %g" % (rms))
     log.info("  initial regularizer goals =%s" % (msg))
     log.info("  initial total goal function = %g" % (goals[-1]))
+    
+    total_start = time.time()
+    
+    marked = []
         
     for iteration in xrange(mesh.size - len(seeds)):
         
@@ -961,13 +1032,16 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
         log.info("  it %d:" % (iteration + 1))
         
         stagnation = True
+            
+        # Want to find the neighbour (of all seeds) that best reduces the goal 
+        # function
+        best_param = None
+        best_goal = goals[-1]
+        best_rms = None
+        best_msg = ''
+        best_seed = None
         
         for seed_num, seed in enumerate(seeds):
-            
-            best_param = None
-            best_goal = goals[-1]
-            best_rms = goals[-1]
-            best_msg = ''
             
             density = seed['density']
             
@@ -979,9 +1053,7 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
                 
                 estimate[neighbour] = density
     
-#                reg_goal, msg = solvers._calc_regularizer_goal(estimate)
-
-                reg_goal, msg = _calc_mmi_goal(estimate)
+                reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
                 
                 estimate[neighbour] = 0
                 
@@ -993,41 +1065,144 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
                     best_goal = goal
                     best_rms = rms
                     best_msg = msg
-                    
+                    best_density = density
+                    best_seed = seed_num
                     stagnation = False
+                 
+        if best_param is not None:
+            
+            estimate[best_param] = best_density
+            residuals -= best_density*_jacobian[best_param]
+            goals.append(best_goal)
+            marked.append([best_param, best_seed])
+            
+            # Remove the best_param from all lists of neighbours
+            for seed in seeds:
                 
-            # NOTE: The way it, if a cell is a neighbour of 2 or more seeds
-            # the density chosen for it will not be the best of all seeds, but
-            # of the first one to try to mark it    
-            if best_param is not None:
-                
-                estimate[best_param] = density
-                residuals -= density*_jacobian[best_param] 
-                goals.append(best_goal)
-                
-                # Remove the best_param from all lists of neighbours
-                for other_seed in seeds:                    
-                    try:                                                
-                        other_seed['neighbours'].remove(best_param)                                    
-                    except ValueError:
-                        pass
+                try:          
+                                                          
+                    seed['neighbours'].remove(best_param)      
+                                             
+                except ValueError:
                     
-                _add_neighbours(best_param, seed['neighbours'], mesh, estimate)
+                    pass
                 
-                log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
-                         % (seed_num + 1, best_rms, best_msg, best_goal))
+            _add_neighbours(best_param, seeds[best_seed]['neighbours'], mesh, 
+                            estimate)
+            
+            log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
+                     % (best_seed + 1, best_rms, best_msg, best_goal))
                                     
         if stagnation:
-            
-            log.warning("  Exited because couldn't grow anymore.")
-            break
                     
-        end = time.time()
-        log.info("    time: %g s" % (end - start))
+            # If couldn't add any prism to the solution, try moving the ones
+            # already marked around.
+            # NOTE: The way it is, the cells are only remanaged within the same
+            # seed, not from one seed to another
+            stagnation_again = True
+                                            
+            best_goal = goals[-1]
+            best_param = None
+            param_to_remove = None
+            best_rms = None
+            best_msg = ''
+            best_seed = None
+            best_neighbours = None
+            best_density = None
+            
+            for param, seed_id in reversed(marked):
+                
+                # Remove the param from the estimate and residuals
+                density = estimate[param]                
+                estimate[param] = 0
+                tmp_residuals = residuals + density*_jacobian[param]
+                
+                # Re-calculate the neighbours so that the param is included
+                # in the list and it's sole neighbours are excluded.
+                neighbours = []
+                
+                for other_param, other_seed in marked:
+                    
+                    if other_param != param and other_seed == seed_id:
+                        
+                        # Only the ones with estimate == 0
+                        _add_neighbours(other_param, neighbours, mesh, estimate)
+                                                   
+                for neighbour in neighbours:
+                                        
+                    new_residuals = tmp_residuals - density*_jacobian[neighbour]
+                    
+                    rms = (new_residuals*new_residuals).sum()
+    
+                    estimate[neighbour] = density
+                    
+                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
+                    
+                    estimate[neighbour] = 0
+                    
+                    goal = rms + reg_goal
+                    
+                    if goal < best_goal:
+                        
+                        best_param = neighbour
+                        best_goal = goal
+                        best_rms = rms
+                        best_msg = msg
+                        best_seed = seed_id
+                        best_neighbours = neighbours
+                        best_density = density
+                        param_to_remove = param
+                        
+                        stagnation_again = False
+                        
+                # Return things to normal
+                estimate[param] = density
+                    
+            if not stagnation_again:
+                          
+                # Remove the parameter that is to be remanaged
+                estimate[param_to_remove] = 0
+                residuals += best_density*_jacobian[param_to_remove]
+                
+                # Put the remanaged parameter in the estimate
+                estimate[best_param] = best_density
+                goals.append(best_goal)
+                residuals -= best_density*_jacobian[best_param]
+                
+                # Change the neighbours in the seed that was remanaged
+                seeds[best_seed]['neighbours'] = best_neighbours
+                
+                # Remove the best_param from all lists of neighbours
+                for seed in seeds:
+                                  
+                    try:         
+                                                               
+                        seed['neighbours'].remove(best_param)    
+                                                        
+                    except ValueError:
+                        
+                        pass
+                    
+                _add_neighbours(best_param, seeds[best_seed]['neighbours'], 
+                                mesh, estimate)
+                                
+                log.info("    remanaged in seed %d: RMS=%.20g%s TOTAL=%g" 
+                         % (best_seed + 1, best_rms, best_msg, best_goal))
+                
+            else:
+                                
+                log.warning("    Exited because couldn't grow or remanage.")
+                break
                 
         aposteriori_variance = goals[-1]/float(len(residuals))
         
-        if aposteriori_variance <= apriori_variance:
+        log.info("    a posteriori variance = %g" % (aposteriori_variance))                    
+                    
+        end = time.time()
+        log.info("    time: %g s" % (end - start))
+        
+        if aposteriori_variance <= 1.1*apriori_variance and \
+           aposteriori_variance >= 0.9*apriori_variance:
             
             break 
     
@@ -1037,4 +1212,4 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
     
     log.info("  Total inversion time: %g s" % (total_end - total_start))
 
-    return estimate, goals
+    return estimate, goals, seeds[0]['neighbours']

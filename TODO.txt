@@ -32,6 +32,8 @@ InterG
     * Make visualizations
     
 PGrav
+    * Testar remover celula quando redistribui
+    * Migrar semente para centro de massa
     * Unit tests
     * IO for initial estimate
     * Make integration test
@@ -42,6 +44,9 @@ PGrav
     * Make visualizations
     * Implement depth weights
     * IO for inversion results (pickle the mesh)
+    * Calcular distancia usando casca e nao centro dos prismas
+    * Quando nao adiciona, redistribui massa. Para quando nao redistribiu e nao 
+      adiciona
     
 Seismo
     * Module descriptions in the docstring
