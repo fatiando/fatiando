@@ -60,7 +60,15 @@
 \begin_body
 
 \begin_layout Title
-Fatiando a Terra:
+
+\series bold
+\size giant
+\bar under
+Fatiando a Terra
+\series default
+\size default
+\bar default
+
 \begin_inset ERT
 status open
 
@@ -70,12 +78,52 @@ status open
 \backslash
 
 \backslash
+[30pt]
+\end_layout
+
+\end_inset
+
+
+\series bold
+\size huge
+ Users Guide
+\series default
+\size default
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+
+\backslash
+[30pt]
+\end_layout
+
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename fatiando.png
+	scale 50
+
+\end_inset
+
 
 \end_layout
 
 \end_inset
 
-User Guide
+
 \end_layout
 
 \begin_layout Standard

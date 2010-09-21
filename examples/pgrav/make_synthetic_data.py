@@ -20,8 +20,10 @@ import fatiando.utils
 import fatiando.vis
 
 prisms = []
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
+prisms.append({'x1':-400, 'x2':0, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
                'value':1000})
+prisms.append({'x1':000, 'x2':400, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
+               'value':-1000})
 
 prisms = numpy.array(prisms)
 
@@ -60,7 +62,7 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     
     pylab.subplot(2, 3, i + 1)
     pylab.axis('scaled')
-    
+    pylab.title(field)
     X, Y, V = fatiando.utils.extract_matrices(data)
     pylab.contourf(X, Y, V, 10, cmap=pylab.cm.jet)
     cb = pylab.colorbar()
@@ -69,4 +71,5 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     pylab.xlim(data['x'].min(), data['x'].max())
     pylab.ylim(data['y'].min(), data['y'].max())
 
+pylab.savefig("data.png")
 pylab.show()
