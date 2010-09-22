@@ -211,6 +211,9 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     """
     Solve the tomography problem for a given data set and model space mesh.
     
+    Note: only uses max_it, lm_start, lm_step and max_steps if using sharpness
+          because otherwise the problem is linear
+    
     Parameters:
     
       data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
@@ -248,7 +251,8 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
                    parameters are the velocity values in the mesh cells.
                    use fill_mesh function to put the estimate in a mesh so you
                    can plot and save it.
-        goals = list of goal function value per iteration    
+        goals = list of goal function value per iteration (only one value if not
+                using sharpness)
     """
     
     log.info("Inversion parameters:")
@@ -280,17 +284,32 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     solvers._build_first_deriv_matrix = _build_simpletom_first_deriv
     solvers._calc_adjustment = _calc_simpletom_adjustment
     
-    if initial is None:
+    if sharpness == 0:
         
-        initial = (10**(-10))*numpy.ones(mesh.size)
+        ndata = len(data_vector)
+        nparams = mesh.size
         
-    else:
-        
-        # Convert the initial velocity model to slowness
-        initial = 1./numpy.array(initial)
+        if ndata >= nparams:
+            
+            estimate, goals = solvers.linear_overdet(data_vector, None)
     
-    estimate, goals = solvers.lm(data_vector, None, initial, lm_start, lm_step, 
-                                 max_steps, max_it)
+        else:
+            
+            estimate, goals = solvers.linear_underdet(data_vector, None)
+            
+    else:
+    
+        if initial is None:
+            
+            initial = (10**(-10))*numpy.ones(mesh.size)
+            
+        else:
+            
+            # Convert the initial velocity model to slowness
+            initial = 1./numpy.array(initial)
+        
+        estimate, goals = solvers.lm(data_vector, None, initial, lm_start, 
+                                     lm_step, max_steps, max_it)
 
     # The inversion outputs a slowness estimate. Convert it to velocity
     estimate = 1./numpy.array(estimate)

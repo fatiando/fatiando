@@ -26,8 +26,6 @@ Functions:
   * residuals: Calculate the residuals produced by a given estimate
   * use_depth_weights :Use depth weighting in the next inversions
   * set_bounds: Set lower and upper bounds on the density values
-  * grow: Grow the solution around given 'seeds' 
-  * get_seed: Returns as a seed the cell in mesh that has point inside it
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'

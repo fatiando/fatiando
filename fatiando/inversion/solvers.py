@@ -24,13 +24,11 @@ Implemented regularizations:
   * Total Variation: imposes minimum l1 norm of the model derivatives 
       (discontinuities)
   * Compact: imposes minimum area (volume) of the solution (as in Last and Kubic
-      (1983))
-  * Minimum Moment of Inertia (MMI): imposes minimum distance from parameters
-      to given points or 
+      (1983) without parameter freezing. Use log barrier instead)
 
 Functions:
   * lm: Levemberg-Marquardt solver
-  * set_bounds: Set upper and lower bounds on the parameter values
+  * set_bounds: Set upper and lower bounds on the parameter values (log barrier)
   * clear: Reset all globals to their default
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -67,13 +65,15 @@ equality = 0
 _lower = None
 _upper = None
 
-# Parameters of the discretization variable change
-_alpha = None
-_target = None
-
-# These globals are things that only need to be calculated once per inversion
+# These globals are things that only need to be calculated once per inversion:
+# Tikhonov regularization weight matrix combining all orders
 _tk_weights = None
+# First derivative (finite differences) matrix of the parameters
 _first_deriv = None
+# Equality constraints matrix and reference parameter values
+_eq_matrix = None
+_eq_ref_values = None
+_eq_hessian = None
 
 
 def clear():
@@ -84,7 +84,8 @@ def clear():
     global damping, smoothness, curvature, \
            sharpness, beta, compactness, epsilon, \
            equality
-    global _tk_weights, _first_deriv
+    global _tk_weights, _first_deriv, \
+           _eq_matrix, _eq_ref_values, _eq_hessian
            
     damping = 0
     smoothness = 0
@@ -96,6 +97,9 @@ def clear():
     equality = 0
     _tk_weights = None
     _first_deriv = None
+    _eq_matrix = None
+    _eq_ref_values = None
+    _eq_hessian = None
     
 
 def _build_jacobian(estimate):
@@ -245,6 +249,10 @@ def _calc_regularizer_goal(estimate):
     Parameters:
         
       estimate: array-like current estimate
+      
+    Return:
+    
+      goal, msg (string with the individual regularizers information)
     """
     
     goal = 0
@@ -360,9 +368,19 @@ def _sum_eq_hessian(hessian):
         
       estimate: array-like current estimate
     """
+    
+    assert equality > 0, "'equality' regularization parameter needs to be > 0"
        
-    raise NotImplementedError(
-          "_sum_eq_hessian was called before being implemented")
+    assert _eq_matrix is not None and _eq_ref_values is not None, \
+        "Tried to use equality constraints before setting them."
+        
+    global _eq_hessian
+    
+    if _eq_hessian is None:
+        
+        _eq_hessian = equality*numpy.dot(_eq_matrix.T, _eq_matrix)
+        
+    hessian += _eq_hessian
     
     
 def _sum_reg_hessians(hessian, estimate):
@@ -408,9 +426,11 @@ def _sum_tk_gradient(gradient, estimate):
     
     if _tk_weights is None:
         
-        _tk_weights = _build_tk_weights(len(estimate))    
+        _tk_weights = _build_tk_weights(len(estimate))
+        
+    if estimate is not None:
     
-    gradient += numpy.dot(_tk_weights, estimate)
+        gradient += numpy.dot(_tk_weights, estimate)
 
 
 def _sum_tv_gradient(gradient, estimate):
@@ -461,9 +481,21 @@ def _sum_eq_gradient(gradient, estimate):
         
       estimate: array-like current estimate
     """
-       
-    raise NotImplementedError(
-          "_sum_eq_gradient was called before being implemented")
+    
+    assert equality > 0, "'equality' regularization parameter needs to be > 0"
+    
+    assert _eq_matrix is not None and _eq_ref_values is not None, \
+        "Tried to use equality constraints before setting them."
+                
+    if estimate is None:
+        
+        gradient -= equality*numpy.dot(_eq_matrix.T, _eq_ref_values)
+        
+    else:
+        
+        eq_residuals = _eq_ref_values - numpy.dot(_eq_matrix, estimate)
+        
+        gradient -= equality*numpy.dot(_eq_matrix.T, eq_residuals)
     
     
 def _sum_reg_gradients(gradient, estimate):
@@ -549,20 +581,27 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     
     Parameters:
     
-        data: array-like data vector
+      data: array-like data vector
         
-        cov: array-like covariance matrix of the data
+      cov: array-like covariance matrix of the data
+      
+      initial: array-like initial estimate
         
-        initial: array-like initial estimate
+      lm_start: initial Marquardt parameter (controls the step size)
         
-        lm_start: initial Marquardt parameter (controls the step size)
-        
-        lm_step: factor by which the Marquardt parameter will be reduced with
-                 each successful step
+      lm_step: factor by which the Marquardt parameter will be reduced with
+               each successful step
                  
-        max_steps: how many times to try giving a step before exiting
+      max_steps: how many times to try giving a step before exiting
         
-        max_it: maximum number of iterations 
+      max_it: maximum number of iterations
+        
+    Return:
+    
+      [estimate, goals]:
+    
+        estimate: array-like estimated parameter vector
+        goals: list of the goal function value per iteration
     """
     
     total_start = time.time()
@@ -671,3 +710,174 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     log.info("  Total time: %g s" % (total_finish - total_start))
         
     return next, goals
+
+
+def linear_overdet(data, cov=None):
+    """
+    Solve a linear over-determined problem.
+    Only supports Tikhonov regularization and Equality constraints
+    
+    Parameters:
+    
+      data: array-like data vector
+        
+      cov: array-like covariance matrix of the data
+        
+    Return:
+    
+      array-like estimated parameter vector
+    """
+    
+    log.info("Linear Over-determined Inversion:")
+    
+    total_start = time.time()
+        
+    sensibility = _build_jacobian(None)
+        
+    ndata, nparams = sensibility.shape
+    
+    assert len(data) == ndata, \
+        "Size of data vector doesn't match number of lines in the " + \
+        "sensibility (Jacobian) matrix."
+            
+    start = time.time()
+    
+    # Put together the normal equation system
+    hessian = numpy.dot(sensibility.T, sensibility)
+            
+    _sum_reg_hessians(hessian, None)
+    
+    gradient = -1*numpy.dot(sensibility.T, data)
+    
+    _sum_reg_gradients(gradient, None)
+    
+    end = time.time()
+    
+    log.info("  Assemble normal equation system (%g s)" % (end - start))
+    
+    start = time.time()
+    
+    estimate = numpy.linalg.solve(hessian, -1*gradient)
+    
+    end = time.time()
+    log.info("  Solve for the parameters (%g s)" % (end - start))
+        
+    residuals = data - numpy.dot(sensibility, estimate)
+    
+    rms = (residuals*residuals).sum()
+    
+    reg_goal, msg = _calc_regularizer_goal(estimate)
+    
+    goal = rms + reg_goal
+    
+    log.info("  RMS: %g" % (rms))
+    log.info("  Regularizers:%s" % (msg))
+    log.info("  Total goal function: %g" % (goal))
+    
+    total_end = time.time()
+    
+    log.info("  Total time for inversion: %g s" % (total_end - total_start))
+    
+    return estimate, [goal]
+    
+
+def linear_underdet(data, cov=None):
+    """
+    Solve a linear under-determined problem by using prior information in the
+    form of regularization.
+    Only supports Tikhonov regularization and Equality constraints.
+    
+    Parameters:
+    
+      data: array-like data vector
+        
+      cov: array-like covariance matrix of the data
+        
+    Return:
+    
+      array-like estimated parameter vector
+    """
+    
+    log.info("Linear Under-determined Inversion:")
+    
+    assert damping > 0 or smoothness > 0 or curvature > 0, \
+        "Can't solve under-determined problem without regularization." + \
+        "Use damping or smoothness or curvature."
+    
+    total_start = time.time()
+        
+    sensibility = _build_jacobian(None)
+        
+    ndata, nparams = sensibility.shape
+    
+    assert len(data) == ndata, \
+        "Size of data vector doesn't match number of lines in the " + \
+        "sensibility (Jacobian) matrix."
+    
+    start = time.time()
+    
+    hessian = numpy.zeros((nparams, nparams))
+    
+    _sum_reg_hessians(hessian, None)
+    
+    hessian = numpy.linalg.inv(hessian)
+    
+    end = time.time()
+    
+    log.info("  Calculating parameter weights matrix (%g s)" % (end - start))
+            
+    start = time.time()
+            
+    # Build the equation system to solve for the Lagrange multipliers vector
+    aux = numpy.dot(sensibility, hessian)
+    
+    A = numpy.dot(aux, sensibility.T) + \
+        numpy.identity(ndata)
+        
+    b = data
+    
+    # equality: equality constraints regularization param (global variable)
+    if equality != 0:
+        
+        eq_gradient = numpy.zeros(ndata)
+        
+        _sum_eq_gradient(eq_gradient, None)
+        
+        b += numpy.dot(aux, -1*eq_gradient)        
+        
+    lagrande_mult = numpy.linalg.solve(A, b)
+    
+    end = time.time()
+    
+    log.info("  Solving for Lagrange multiplier vector (%g s)" % (end - start))
+    
+    start = time.time()
+    
+    # Apply the multipliers to get the estimate
+    estimate = numpy.dot(numpy.dot(hessian, sensibility.T), lagrande_mult)
+    
+    if equality != 0:
+        
+        estimate += numpy.dot(hessian, -1*eq_gradient)       
+        
+    end = time.time()
+    
+    log.info("  Multiply to get the parameters (%g s)" % (end - start))
+        
+    residuals = data - numpy.dot(sensibility, estimate)
+    
+    rms = (residuals*residuals).sum()
+    
+    reg_goal, msg = _calc_regularizer_goal(estimate)
+    
+    goal = rms + reg_goal
+    
+    log.info("  RMS: %g" % (rms))
+    log.info("  Regularizers:%s" % (msg))
+    log.info("  Total goal function: %g" % (goal))
+    
+    total_end = time.time()
+    
+    log.info("  Total time for inversion: %g s" % (total_end - total_start))
+    
+    return estimate, [goal]
