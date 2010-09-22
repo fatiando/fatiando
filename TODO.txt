@@ -35,6 +35,8 @@ PGrav
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
     * Restrict common neighbors for seeds
+    * Colocar potencia da distancia como prarametro
+    * Aumentar regularizador quando redistribui
     * Unit tests
     * IO for initial estimate
     * Make integration test

@@ -629,7 +629,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     return estimate, goals
 
 
-def _calc_mmi_goal(estimate, mmi, seeds):
+def _calc_mmi_goal(estimate, mmi, power, seeds):
     """Calculate the goal function due to MMI regularization"""
     
     if mmi == 0:
@@ -664,7 +664,7 @@ def _calc_mmi_goal(estimate, mmi, seeds):
                      
             _distances[i] = best_distance
     
-    weights = (_distances**5)
+    weights = (_distances**power)
     
     weights = weights/(weights.max())
     
@@ -941,7 +941,7 @@ def _add_neighbors(param, neighbors, mesh, estimate):
 #            append(neighbor)
         
 
-def grow(data, mesh, seeds, mmi, apriori_variance):
+def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     """
     Grow the solution around given 'seeds'.
     
@@ -958,6 +958,8 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
       
       mmi: Minimum Moment of Inertia regularization parameter (how compact the
            solution should be around the seeds). Has to be >= 0
+           
+      power: power to which the distances are raised in the MMI weights
            
       apriori_variance: a priori variance of the data
       
@@ -1010,7 +1012,7 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
                 
         seed['cell'] = _mesh.ravel()[seed['param']]
         
-    reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
+    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
     
     goals = [rms + reg_goal] 
     
@@ -1053,7 +1055,7 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
                 
                 estimate[neighbor] = density
     
-                reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
+                reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
                 
                 estimate[neighbor] = 0
                 
@@ -1136,7 +1138,7 @@ def grow(data, mesh, seeds, mmi, apriori_variance):
     
                     estimate[neighbor] = density
                     
-                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, seeds)
+                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
                     
                     estimate[neighbor] = 0
                     
