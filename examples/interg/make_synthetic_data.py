@@ -2,44 +2,42 @@
 Generate synthetic gravity profile from a relief
 """
 
-import math
-
+import pickle
 import logging
-logging.basicConfig()
+log = logging.getLogger()
+shandler = logging.StreamHandler()
+shandler.setFormatter(logging.Formatter())
+log.addHandler(shandler)
+log.setLevel(logging.DEBUG)
 
 import numpy
 import pylab
 
-from fatiando.data.gravity import TensorComponent
-from fatiando.utils.geometry import Prism
+from fatiando.gravity import io, synthetic
+import fatiando.geometry
+import fatiando.utils
+import fatiando.vis
 
-log = logging.getLogger()
+import math
 
-
-log.info("Model parameters:")
-y1 = -10**(6)
-y2 = 10**(6)
-x1 = 0
-x2 = 5000
-nx = 100
-dx = float(x2 - x1)/nx
-xs = numpy.arange(x1, x2, dx)
+# Define synthetic the model
+mesh = fatiando.geometry.line_mesh(0, 5000, 100)
+y1 = -10*
+y2 = 10*dx
 density = -500.
 
-log.info("  x1=%g" % (x1))
-log.info("  x2=%g" % (x2))
-log.info("  nx=%d" % (nx))
-log.info("  dx=%g" % (dx))
-log.info("  density=%g" % (density))
 
 bottoms = []
 prisms = []
 
 # Make a smooth gaussian model
-log.info("Generating smooth gaussian model")
+log.info("Generating smooth gaussian model:")
 
 amplitude = 1000.
 stddev = 1000.
+
+log.info("  amplitude: %g" % (amplitude))
+log.info("  dispersion: %g" % (stddev))
 
 for x in xs:
     
@@ -48,9 +46,12 @@ for x in xs:
     
     bottoms.append(bottom)
     
-    prism = Prism(dens=density, x1=x, x2=x + dx, y1=y1, y2=y2, z1=0, z2=bottom)
+    prism = {'density':density, 'x1':x, 'x2':x + dx, 'y1':y1, 'y2':y2, 'z1':0, 
+             'z2':bottom}
     
     prisms.append(prism)
+
+prisms = numpy.array(prisms)
 
 
 

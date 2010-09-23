@@ -26,14 +26,17 @@ Stats
     
 InterG
     * Unit tests
-    * IO for inversion results and initial estimate
-    * Make synthetic data generation
     * Make integration test
-    * Function descriptions in the docstring
-    * Port to the new solvers.py
-    * Make visualizations
     * Use equality constraints
     * Use log barrier
+    * Test the port to new solvers.py
+    * Finish example scripts
+    Done:
+    * Function descriptions in the docstring
+    * Make visualizations
+    * Port to the new solvers.py
+    * Make synthetic data generation
+    * IO for inversion results and initial estimate
     
 PGrav
     * Testar remover celula quando redistribui

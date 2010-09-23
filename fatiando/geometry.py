@@ -111,6 +111,8 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
     """
     Divide an area into rectangles. 
     
+    Note: if the region is in x and z instead of y, simply think of y as z.
+    
     Parameters:
       
       x1, x2: lower and upper limits of the region in the x direction
@@ -161,6 +163,44 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
             
     return numpy.array(mesh)
 
+
+def line_mesh(x1, x2, nx):
+    """
+    Divide a line or region into segments. 
+    
+    Parameters:
+      
+      x1, x2: lower and upper limits of the region in the x direction
+      
+      nx: number of cells (segments) in the x
+      
+    Return:
+    
+      1D array of cells. Each cell is a dictionary as:
+        {'x1':cellx1, 'x2':cellx2}        
+    """
+    
+    log.info("Building line mesh:")
+    log.info("  Discretization: %d cells" % (nx))
+    
+    dx = float(x2 - x1)/nx
+    
+    mesh = []
+    
+    for i, cellx1 in enumerate(numpy.arange(x1, x2, dx)):
+                
+        # To ensure that there are the right number of cells. arange sometimes
+        # makes more cells because of floating point rounding
+        if i >= nx:
+            
+            break
+        
+        cell = {'x1':cellx1, 'x2':cellx1 + dx}
+        
+        mesh.append(cell)
+    
+    return mesh
+    
 
 def copy_mesh(mesh):
     """
