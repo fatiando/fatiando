@@ -34,9 +34,11 @@ InterG
 PGrav
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
-    * Restrict common neighbors for seeds
-    * Colocar potencia da distancia como prarametro
+    * Restrict common neighbors for seeds 
+      (in case of ties, use distance or allow both)
     * Aumentar regularizador quando redistribui
+    * Aglutinar uma celula por semente (no minimo)
+    * Redistribuir somente na borda
     * Unit tests
     * IO for initial estimate
     * Make integration test
@@ -50,6 +52,7 @@ PGrav
     * Calcular distancia usando casca e nao centro dos prismas
     * Quando nao adiciona, redistribui massa. Para quando nao redistribiu e nao 
       adiciona
+    * Colocar potencia da distancia como prarametro
     
 Seismo
     * Module descriptions in the docstring

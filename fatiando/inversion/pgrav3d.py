@@ -735,7 +735,7 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     neighbor = param + 1
     front = None
     
-    if neighbor%nx < nx - 1:
+    if param%nx < nx - 1:
         
         front = neighbor
         
@@ -747,7 +747,7 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     neighbor = param - 1
     back = None
     
-    if neighbor%nx != 0:
+    if param%nx != 0:
         
         back = neighbor
         
@@ -759,7 +759,7 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     neighbor = param + nx
     left = None
     
-    if neighbor%(nx*ny) < nx*(ny - 1):
+    if param%(nx*ny) < nx*(ny - 1):
         
         left = neighbor
         
@@ -771,7 +771,7 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     neighbor = param - nx
     right = None
     
-    if neighbor%(nx*ny) >= nx:
+    if param%(nx*ny) >= nx:
         
         right = neighbor
         
@@ -780,165 +780,165 @@ def _add_neighbors(param, neighbors, mesh, estimate):
             append(neighbor)
 
     # The diagonals            
-#    if front is not None and left is not None:
-#        
-#        neighbor = left + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#    
-#    if front is not None and right is not None:
-#        
-#        neighbor = right + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if back is not None and left is not None:
-#        
-#        neighbor = left - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if back is not None and right is not None:
-#    
-#        neighbor = right - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if above is not None and left is not None:
-#        
-#        neighbor = above + nx
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if above is not None and right is not None:
-#        
-#        neighbor = above - nx
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if above is not None and front is not None:
-#        
-#        neighbor = above + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if above is not None and back is not None:
-#        
-#        neighbor = above - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)            
-#            
-#    if above is not None and front is not None and left is not None:
-#        
-#        neighbor = above + nx + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if above is not None and front is not None and right is not None:
-#        
-#        neighbor = above - nx + 1       
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#
-#    if above is not None and back is not None and left is not None:
-#        
-#        neighbor = above + nx - 1    
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#    
-#    if above is not None and back is not None and right is not None:
-#        
-#        neighbor = above - nx - 1 
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and left is not None:
-#        
-#        neighbor = bellow + nx
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and right is not None:
-#        
-#        neighbor = bellow - nx
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and front is not None:
-#        
-#        neighbor = bellow + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and back is not None:
-#        
-#        neighbor = bellow - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)         
-#            
-#    if bellow is not None and front is not None and left is not None:
-#        
-#        neighbor = bellow + nx + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and front is not None and right is not None:
-#        
-#        neighbor = bellow - nx + 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#        
-#    if bellow is not None and back is not None and left is not None:
-#        
-#        neighbor =  bellow + nx - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
-#            
-#    if bellow is not None and back is not None and right is not None:
-#        
-#        neighbor = bellow - nx - 1
-#        
-#        if neighbor not in neighbors and estimate[neighbor] == 0.:
-#            
-#            append(neighbor)
+    if front is not None and left is not None:
+        
+        neighbor = left + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+    
+    if front is not None and right is not None:
+        
+        neighbor = right + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if back is not None and left is not None:
+        
+        neighbor = left - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if back is not None and right is not None:
+    
+        neighbor = right - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if above is not None and left is not None:
+        
+        neighbor = above + nx
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if above is not None and right is not None:
+        
+        neighbor = above - nx
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if above is not None and front is not None:
+        
+        neighbor = above + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if above is not None and back is not None:
+        
+        neighbor = above - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)            
+            
+    if above is not None and front is not None and left is not None:
+        
+        neighbor = above + nx + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if above is not None and front is not None and right is not None:
+        
+        neighbor = above - nx + 1       
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+
+    if above is not None and back is not None and left is not None:
+        
+        neighbor = above + nx - 1 
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+    
+    if above is not None and back is not None and right is not None:
+        
+        neighbor = above - nx - 1 
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and left is not None:
+        
+        neighbor = bellow + nx
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and right is not None:
+        
+        neighbor = bellow - nx
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and front is not None:
+        
+        neighbor = bellow + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and back is not None:
+        
+        neighbor = bellow - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)         
+            
+    if bellow is not None and front is not None and left is not None:
+        
+        neighbor = bellow + nx + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and front is not None and right is not None:
+        
+        neighbor = bellow - nx + 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+        
+    if bellow is not None and back is not None and left is not None:
+        
+        neighbor =  bellow + nx - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
+            
+    if bellow is not None and back is not None and right is not None:
+        
+        neighbor = bellow - nx - 1
+        
+        if neighbor not in neighbors and estimate[neighbor] == 0.:
+            
+            append(neighbor)
         
 
 def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
@@ -989,12 +989,6 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     _build_pgrav3d_jacobian(None)
     
     _jacobian = _jacobian.T
-    
-    # Overload the solvers functions in order to use it's _calc_regularizer_goal
-    # function
-    residuals = extract_data_vector(data)
-    
-    rms = (residuals*residuals).sum()
         
     estimate = numpy.zeros(_mesh.size)
     
@@ -1013,6 +1007,10 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
         seed['cell'] = _mesh.ravel()[seed['param']]
         
     reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
+    
+    residuals = extract_data_vector(data) - numpy.dot(_jacobian.T, estimate)
+    
+    rms = (residuals*residuals).sum()
     
     goals = [rms + reg_goal] 
     
@@ -1214,4 +1212,4 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     
     log.info("  Total inversion time: %g s" % (total_end - total_start))
 
-    return estimate, goals, seeds[0]['neighbors']
+    return estimate, goals

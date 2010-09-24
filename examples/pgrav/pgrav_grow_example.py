@@ -38,7 +38,7 @@ synth_file.close()
 
 # Generate a model space mesh
 mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
-                                    z1=0, z2=1600, nx=16, ny=16, nz=16)
+                                    z1=0, z2=1600, nx=8, ny=8, nz=8)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
@@ -68,33 +68,24 @@ pickle.dump(seeds, seed_file)
 seed_file.close()
 
 # Inversion parameters
-mmi = 2*10**(-2)
-power = 3
+mmi = 1*10**(-1)
+power = 5
 apriori_variance = 0.1**2
 
 # Run the inversion
-estimate, goals, neighbors = pgrav3d.grow(data, mesh, seeds, mmi, power, 
-                                          apriori_variance)
+estimate, goals = pgrav3d.grow(data, mesh, seeds, mmi, power, apriori_variance)
 
 pgrav3d.fill_mesh(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
-distance_mesh = fatiando.geometry.copy_mesh(mesh)
-pgrav3d.fill_mesh(pgrav3d._distances, distance_mesh)
-
-neighbor_mesh = []
-for neighbor in neighbors:
-    neighbor_mesh.append(mesh.ravel()[neighbor])
-neighbor_mesh = numpy.array(neighbor_mesh)
-
+# The seeds neighbors
 #neighbors = []  
 #pgrav3d._add_neighbors(seeds[0]['param'], neighbors, mesh, numpy.zeros_like(estimate))
 #neighbor_mesh = []
 #for neighbor in neighbors:
 #    neighbor_mesh.append(mesh.ravel()[neighbor])
 #neighbor_mesh = numpy.array(neighbor_mesh)
-#
 #fig = mlab.figure()
 #fig.scene.background = (0.1, 0.1, 0.1)
 #fig.scene.camera.pitch(180)
@@ -147,16 +138,28 @@ fig.scene.background = (0.1, 0.1, 0.1)
 fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
 fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
-#fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', label='neighbors')
 plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
+for seed in seeds:
+    neighbor_mesh = []
+    for neighbor in seed['neighbors']:
+        neighbor_mesh.append(mesh.ravel()[neighbor])
+    neighbor_mesh = numpy.array(neighbor_mesh)
+    fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
+                                 label='neighbors')
 
-#fig = mlab.figure()
-#fig.scene.background = (0.1, 0.1, 0.1)
-#fig.scene.camera.pitch(180)
-#fig.scene.camera.roll(180)
-#plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
-#axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
+
+# Get the distances and make a mesh with them
+distances = pgrav3d._distances
+distance_mesh = fatiando.geometry.copy_mesh(mesh)
+pgrav3d.fill_mesh(distances, distance_mesh)
+
+fig = mlab.figure()
+fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.camera.pitch(180)
+fig.scene.camera.roll(180)
+plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
+axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
 mlab.show()
