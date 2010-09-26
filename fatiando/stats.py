@@ -21,12 +21,20 @@ Functions:
   * mean: calculate the mean (per parameter) of several parameter vectors
   * stddev: calculate the standard deviation (per parameter) of several 
             parameter vectors
+  * normal: Return the value of the normal distribution with mean and std at 
+            position x
+  * gaussian: Return the value at x of the non-normalized Gaussian function
+            
+TODO:
   * chisquare: perform the chi square test on a population
   * outliers: test a population for outliers
+  
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
+
+import math
 
 import numpy
 
@@ -75,4 +83,18 @@ def stddev(estimates):
         
         stddev_estimate.append(parameter.std())
         
-    return numpy.array(stddev_estimate)  
+    return numpy.array(stddev_estimate)
+
+
+def normal(x, mean, std):
+    """
+    Return the value of the normal distribution with mean and std at position x
+    """
+    
+    return numpy.exp(-1*((mean - x)/std)**2)/(std*numpy.sqrt(2*numpy.pi))
+
+
+def gaussian(x, mean, std):
+    """Return the value at x of the non-normalized Gaussian function"""
+    
+    return numpy.exp(-1*((mean - x)/std)**2)

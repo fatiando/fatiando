@@ -20,8 +20,9 @@
 Functions:
   * clear: Erase garbage from previous inversions
   * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
-  * calc_adjustment: Calculate the adjusted data produced by a given estimate
+  * adjustment: Calculate the adjusted data produced by a given estimate
   * residuals: Calculate the residuals vector of a given estimate
+  * set_bounds: Set bounds on the parameter values (depth of interface)
   * solve: Solve the inversion problem for a given data set and model space mesh
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -63,7 +64,7 @@ exaggerate = 10
 _ysize = None
 
 # The size of the step in the finite differences derivative in the Jacobian
-deltaz = 0.1 
+deltaz = 1
 
 
 def clear():
@@ -152,7 +153,7 @@ def _build_interg2d_first_deriv():
     nparams = _mesh.size
     nderivs = (nparams - 1)
     
-    first_deriv = numpy.zeros((nderivs, nparams))
+    first_deriv = numpy.zeros((nderivs, nparams), dtype='f')
             
     # Derivatives in the x direction   
     for i in xrange(nparams - 1):                
@@ -164,7 +165,7 @@ def _build_interg2d_first_deriv():
     return first_deriv
 
 
-def calc_adjustment(estimate, profile=False):
+def adjustment(estimate, profile=False):
     """
     Calculate the adjusted data produced by a given estimate.
     
@@ -196,9 +197,10 @@ def calc_adjustment(estimate, profile=False):
                 
                 function = _calculators[field]
                 
-                coordinates = zip(_data[field]['x'], _data[field]['z'])
-                
-                for i, x, z in enumerate(coordinates):
+                for i, coordinates in enumerate(zip(_data[field]['x'], 
+                                                    _data[field]['z'])):
+                    
+                    x, z = coordinates
                                         
                     for z1, z2, cell in zip(_ref_surf, estimate, _mesh):
                         
@@ -252,11 +254,17 @@ def residuals(estimate):
     
     assert _data_vector is not None, "Can't calculate residuals. No data vector"
     
-    adjusted = calc_adjustment(estimate, profile=False)
+    adjusted = adjustment(estimate, profile=False)
     
     residuals = _data_vector - adjusted
     
     return residuals
+
+
+def set_bounds(lower, upper):
+    """Set bounds on the parameter values (depth of interface)"""
+    
+    solvers.set_bounds(lower, upper)
 
         
 def solve(data, mesh, density, ref_surf=None, initial=None, damping=0, 
@@ -322,9 +330,9 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     
     _ref_dens = density
     
-    if _ref_surf is None:
+    if ref_surf is None:
         
-        _ref_surf = numpy.zeros(_mesh.size)
+        _ref_surf = numpy.zeros(mesh.size)
         
     else:
         
@@ -357,9 +365,11 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     solvers.sharpness = sharpness
     solvers.beta = beta
     
+    global _build_interg2d_jacobian, _build_interg2d_first_deriv, adjustment
+    
     solvers._build_jacobian = _build_interg2d_jacobian
     solvers._build_first_deriv_matrix = _build_interg2d_first_deriv
-    solvers._calc_adjustment = calc_adjustment
+    solvers._calc_adjustment = adjustment
     
     if initial is None:
         

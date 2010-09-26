@@ -1,7 +1,3 @@
-REFACTORING:
-
-    * Include license info in all files
-
 General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
@@ -28,15 +24,15 @@ InterG
     * Unit tests
     * Make integration test
     * Use equality constraints
-    * Use log barrier
-    * Test the port to new solvers.py
-    * Finish example scripts
+    * Test the port to new solvers.py (maybe something wrong with TV)
     Done:
     * Function descriptions in the docstring
     * Make visualizations
     * Port to the new solvers.py
     * Make synthetic data generation
     * IO for inversion results and initial estimate
+    * Use log barrier
+    * Finish example scripts
     
 PGrav
     * Testar remover celula quando redistribui
@@ -60,6 +56,8 @@ PGrav
       adiciona
     
 Seismo
+
+    Done:
     * Module descriptions in the docstring
     
 Simpletom:
@@ -78,10 +76,7 @@ Simpletom:
 Geometry
     * Discretize a sphere into prisms
     
-    
-Dicrect Models
-    * Create wikis
-    
+        
 Gravity
     * Unit tests for existing functions
     * potential and derivatives of a sphere
@@ -90,6 +85,7 @@ Gravity
     * reductions
     * terrain correction
     * continuation
+    * equivalent layer
     
     Done:    
     * Make synthetic data generation
@@ -98,9 +94,4 @@ Gravity
 WaveFD:
     * Port to Fortran
     * Get rid of Python interface (put it in seismo.synthetic)
-    
-Fullwave1D:
-    * Make integration test
-    * Port to the new solvers.py
-    * Make visualizations
     

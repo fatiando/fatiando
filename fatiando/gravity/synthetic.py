@@ -166,7 +166,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
                                  prism['x1'], prism['x2'], 
                                  prism['y1'], prism['y2'], 
                                  prism['z1'], prism['z2'], 
-                                 x, y, z)
+                                 float(x), float(y), float(z))
             
     log.info("  data points = %d" % (len(data['value'])))
     

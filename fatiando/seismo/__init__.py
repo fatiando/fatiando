@@ -19,8 +19,8 @@ A collection of seismology direct models, simulations and utilities.
 
 Modules:
   * traveltime: functions for calculating the travel times of seismic waves
-  * wavefd: finite differences simulation of seismic waves
   * synthetic: synthetic data generation (travel times, seismograms)
+  * io: input and output of seismological data
   
 Functions:
   * test: run the unit test suite for this package

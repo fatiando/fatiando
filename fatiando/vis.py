@@ -241,7 +241,7 @@ def plot_prism_mesh(mesh, style='surface', label='scalar'):
     return surf
 
 
-def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
+def plot_2d_interface(mesh, key='value', style='-k', linewidth=2, label=''):
     """
     Plot a 2d prism interface mesh.
     
@@ -250,6 +250,8 @@ def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
       mesh: model space discretization mesh (see geometry.line_mesh function)
             with its 'value' keys set to the bottom of the prisms
             
+      key: which key os mesh will be used as the y axis
+      
       style: line and marker style and color (see pylab.plot)
       
       linewidth: width of the line plotted
@@ -264,8 +266,8 @@ def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
         
         xs.append(cell['x1'])
         xs.append(cell['x2'])        
-        zs.append(cell['value'])  
-        zs.append(cell['value'])
+        zs.append(cell[key])  
+        zs.append(cell[key])
         
     pylab.plot(xs, zs, style, linewidth=linewidth, label=label)
     

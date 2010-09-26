@@ -199,7 +199,7 @@ def line_mesh(x1, x2, nx):
         
         mesh.append(cell)
     
-    return mesh
+    return numpy.array(mesh)
     
 
 def copy_mesh(mesh):
