@@ -69,7 +69,7 @@ pickle.dump(seeds, seed_file)
 seed_file.close()
 
 # Inversion parameters
-mmi = 1*10**(0)
+mmi = 5*10**(-1)
 power = 5
 apriori_variance = 0.1**2
 
@@ -143,13 +143,13 @@ plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
 # Plot the neighbours
-for seed in seeds:
-    neighbor_mesh = []
-    for neighbor in seed['neighbors']:
-        neighbor_mesh.append(mesh.ravel()[neighbor])
-    neighbor_mesh = numpy.array(neighbor_mesh)
-    fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
-                                 label='neighbors')
+#for seed in seeds:
+#    neighbor_mesh = []
+#    for neighbor in seed['neighbors']:
+#        neighbor_mesh.append(mesh.ravel()[neighbor])
+#    neighbor_mesh = numpy.array(neighbor_mesh)
+#    fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
+#                                 label='neighbors')
 
 # Get the distances and make a mesh with them
 distances = pgrav3d._distances

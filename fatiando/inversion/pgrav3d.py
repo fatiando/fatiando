@@ -1147,7 +1147,8 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     
     total_start = time.time()
     
-    marked = []
+    # To keep track of which cell was appended to which seed (used to rearange)
+    marked = [[] for seed in seeds]
         
     for iteration in xrange(mesh.size - len(seeds)):
         
@@ -1155,17 +1156,20 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
         
         log.info("  it %d:" % (iteration + 1))
         
-        stagnation = True
+        grew = False
             
-        # Want to find the neighbor (of all seeds) that best reduces the goal 
-        # function
-        best_param = None
-        best_goal = goals[-1]
-        best_rms = None
-        best_msg = ''
-        best_seed = None
-        
+        # Try to grow each seed by one using the goal function as a criterium
+        # NOTE: The order of the seeds affects the growing (goals[-1] changes
+        # when a seed grows)!    
         for seed_num, seed in enumerate(seeds):
+            
+            # Want to find the neighbor that decreases the goal function the 
+            # most
+            best_goal = goals[-1]
+            best_neighbor = None
+            # Only used for verbose
+            best_rms = None
+            best_msg = None
             
             density = seed['density']
             
@@ -1185,138 +1189,156 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 
                 if goal < best_goal:
                     
-                    best_param = neighbor
+                    best_neighbor = neighbor
                     best_goal = goal
                     best_rms = rms
                     best_msg = msg
-                    best_density = density
-                    best_seed = seed_num
-                    stagnation = False
                  
-        if best_param is not None:
-            
-            estimate[best_param] = best_density
-            residuals -= best_density*_jacobian[best_param]
-            goals.append(best_goal)
-            marked.append([best_param, best_seed])
-            
-            # Remove the best_param from all lists of neighbors
-            for seed in seeds:
-                
-                try:          
-                                                          
-                    seed['neighbors'].remove(best_param)      
-                                             
-                except ValueError:
+            if best_neighbor is not None:
                     
-                    pass
+                grew = True
                 
-            _add_neighbors(best_param, seeds[best_seed]['neighbors'], seeds, 
-                           mesh, estimate)
-            
-            log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
-                     % (best_seed + 1, best_rms, best_msg, best_goal))
-                                    
-        if stagnation:
-                    
-            # If couldn't add any prism to the solution, try moving the ones
-            # already marked around.
-            # NOTE: The way it is, the cells are only remanaged within the same
-            # seed, not from one seed to another
-            stagnation_again = True
-                                            
-#            best_goal = goals[-1]
-#            best_param = None
-#            param_to_remove = None
-#            best_rms = None
-#            best_msg = ''
-#            best_seed = None
-#            best_neighbors = None
-#            best_density = None
-#            
-#            for param, seed_id in reversed(marked):
-#                
-#                # Remove the param from the estimate and residuals
-#                density = estimate[param]                
-#                estimate[param] = 0
-#                tmp_residuals = residuals + density*_jacobian[param]
-#                
-#                # Re-calculate the neighbors so that the param is included
-#                # in the list and it's sole neighbors are excluded.
-#                neighbors = []
-#                
-#                for other_param, other_seed in marked:
-#                    
-#                    if other_param != param and other_seed == seed_id:
-#                        
-#                        # Only the ones with estimate == 0
-#                        _add_neighbors(other_param, neighbors, seeds, mesh, 
-#                                       estimate)
-#                                                   
-#                for neighbor in neighbors:
-#                                        
-#                    new_residuals = tmp_residuals - density*_jacobian[neighbor]
-#                    
-#                    rms = (new_residuals*new_residuals).sum()
-#    
-#                    estimate[neighbor] = density
-#                    
-#                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
-#                    
-#                    estimate[neighbor] = 0
-#                    
-#                    goal = rms + reg_goal
-#                    
-#                    if goal < best_goal:
-#                        
-#                        best_param = neighbor
-#                        best_goal = goal
-#                        best_rms = rms
-#                        best_msg = msg
-#                        best_seed = seed_id
-#                        best_neighbors = neighbors
-#                        best_density = density
-#                        param_to_remove = param
-#                        
-#                        stagnation_again = False
-#                        
-#                # Return things to normal
-#                estimate[param] = density
-                    
-            if not stagnation_again:
-                          
-                # Remove the parameter that is to be remanaged
-                estimate[param_to_remove] = 0
-                residuals += best_density*_jacobian[param_to_remove]
+                estimate[best_neighbor] = density
                 
-                # Put the remanaged parameter in the estimate
-                estimate[best_param] = best_density
+                residuals -= density*_jacobian[best_neighbor]
+                
                 goals.append(best_goal)
-                residuals -= best_density*_jacobian[best_param]
                 
-                # Change the neighbors in the seed that was remanaged
-                seeds[best_seed]['neighbors'] = best_neighbors
-                
-                # Remove the best_param from all lists of neighbors
-                for seed in seeds:
-                                  
-                    try:         
-                                                               
-                        seed['neighbors'].remove(best_param)    
-                                                        
-                    except ValueError:
-                        
-                        pass
+                marked[seed_num].append(best_neighbor)
+                                                    
+                seed['neighbors'].remove(best_neighbor)     
                     
-                _add_neighbors(best_param, seeds[best_seed]['neighbors'], 
-                               seeds, mesh, estimate)
-                                
-                log.info("    remanaged in seed %d: RMS=%.20g%s TOTAL=%g" 
-                         % (best_seed + 1, best_rms, best_msg, best_goal))
+                _add_neighbors(best_neighbor, seed['neighbors'], seeds, mesh, 
+                               estimate)
                 
-            else:
+                log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
+                         % (seed_num + 1, best_rms, best_msg, best_goal))
+                          
+        # If couldn't grow anymore, try to rearange the already marked cells          
+        if not grew:
+            
+            # Try to move at least one already marked cell (max one per seed)                    
+            rearanged = False
+            
+            for seed_num, seed in enumerate(seeds):
+                
+                # Only rearange the one that decreses the goal function the most 
+                best_goal = goals[-1]
+                best_param = None
+                param_to_remove = None
+                best_rms = None
+                best_msg = None
+                best_neighbors = None
+                
+                density = seed['density']
+                
+                tmp_seeds = list(seeds)
+                tmp_seeds.remove(seed)
+                
+                for param in marked[seed_num]:
+                    
+                    # Find out how many unmarked neighbors this guy still has
+                    param_neighbors = []                    
+                    _add_neighbors(param, param_neighbors, tmp_seeds, mesh, 
+                                   estimate)
+            
+                    # Only try to rearange the cells that still have unmarked
+                    # neighbors (outer cells)
+                    if not param_neighbors:
+                        
+                        continue
+                    
+                    # Remove the effect of 'param' from the adjusted data
+                    tmp_residuals = residuals + density*_jacobian[param]
+        
+                    # Remove 'param's sole neighbors
+                    tmp_neighbors = list(seed['neighbors'])
+                    
+                    for neighbor in param_neighbors:
+                        
+                        # If the neighbor has all neighbors available, then
+                        # it is a sole neighbor of 'param'
+                        
+                        # NOTE: DOESN'T WORK BECAUSE THERE MAY BE LESS NEIGHBORS
+                        # DUE TO BEING CLOSE TO THE OTHER BODY.
+                        neighbor_neighbors = []
+                        _add_neighbors(neighbor, neighbor_neighbors, tmp_seeds, 
+                                       mesh, estimate)
+                        
+                        if len(neighbor_neighbors) < 26:
+                            
+                            tmp_neighbors.remove(neighbor)
+                            
+                    # 'param' is not added to the neighbor list because putting
+                    # it back should not be an option
+                                               
+                    # Will put it back when done checking
+                    estimate[param] = 0.
+                    
+                    for neighbor in tmp_neighbors:
+                        
+                        new_residuals = (tmp_residuals - 
+                                         density*_jacobian[neighbor])
+                        
+                        rms = (new_residuals*new_residuals).sum()
+                        
+                        estimate[neighbor] = density
+                        
+                        reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, 
+                                                       seeds)
+                        
+                        estimate[neighbor] = 0.
+                        
+                        goal = rms + reg_goal
+                        
+                        if goal < best_goal:
+                            
+                            best_goal = goal
+                            best_param = neighbor
+                            param_to_remove = param
+                            best_rms = rms
+                            best_msg = msg
+                            
+                            # These are the neighbors of seed without the sole
+                            # neighbors of 'param' and still not including the
+                            # neighbors of the new best
+                            best_neighbors = tmp_neighbors
+                            best_neighbors.append(param)
+                            
+                    # Put 'param' back and go try to rearange another one
+                    estimate[param] = density                        
+                    
+                if best_param is not None:
+                            
+                    rearanged = True
+                    
+                    estimate[param_to_remove] = 0.
+                    
+                    residuals += density*_jacobian[param_to_remove]
+                    
+                    estimate[best_param] = density
+                    
+                    residuals -= density*_jacobian[best_param]
+                    
+                    goals.append(best_goal)
+                    
+                    marked[seed_num].remove(param_to_remove)
+                    
+                    marked[seed_num].append(best_param)
+                    
+                    seed['neighbors'] = best_neighbors
+                    
+                    seed['neighbors'].remove(best_param)
+                    
+                    _add_neighbors(best_param, seed['neighbors'], seeds, mesh, 
+                                   estimate)
+                
+                    log.info("    rearanged in seed %d: RMS=%g%s TOTAL=%g" 
+                             % (seed_num + 1, best_rms, best_msg, best_goal))
+                                        
+            if not rearanged:
                                 
-                log.warning("    Exited because couldn't grow or remanage.")
+                log.warning("    Exited because couldn't grow or rearange.")
                 break
                 
         aposteriori_variance = goals[-1]/float(len(residuals))
