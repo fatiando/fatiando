@@ -15,449 +15,357 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Gravity inversion of an interface using right rectangular prisms.
+2D gravity inversion of the relief of an interface using rectangular prisms.
+
+Functions:
+  * clear: Erase garbage from previous inversions
+  * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
+  * calc_adjustment: Calculate the adjusted data produced by a given estimate
+  * residuals: Calculate the residuals vector of a given estimate
+  * solve: Solve the inversion problem for a given data set and model space mesh
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 05-Jul-2010'
 
-import time
 import logging
 
-import pylab
 import numpy
 
 import fatiando
-from fatiando.inversion.gradientsolver import GradientSolver
-from fatiando.directmodels.gravity import prism as prism_gravity
+import fatiando.gravity.prism
+from fatiando.inversion import solvers
+import fatiando.inversion.pgrav3d
 
 
-logger = logging.getLogger('InterG2D')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(fatiando.default_log_handler)
+log = logging.getLogger('fatiando.inversion.interg2d')
+log.setLevel(logging.DEBUG)
+log.addHandler(fatiando.default_log_handler)
 
 
+# Keep the mesh and data global to access them to build the Jacobian and derivs
+_mesh = None
+_data = None
+_data_vector = None
+_calculators = {'gz':fatiando.gravity.prism.gz,
+                'gxx':fatiando.gravity.prism.gxx,
+                'gxy':fatiando.gravity.prism.gxy,
+                'gxz':fatiando.gravity.prism.gxz,
+                'gyy':fatiando.gravity.prism.gyy,
+                'gyz':fatiando.gravity.prism.gyz,
+                'gzz':fatiando.gravity.prism.gzz}
 
-class InterG2D(GradientSolver):
+# The reference surface (top of the prisms) and density
+_ref_surf = None
+_ref_dens = None
+
+# How much to exaggerate the y dimension of the prisms to make them 2D
+exaggerate = 10
+_ysize = None
+
+# The size of the step in the finite differences derivative in the Jacobian
+deltaz = 0.1 
+
+
+def clear():
     """
-    2D gravity inversion of an interface using right rectangular prisms
+    Erase garbage from previous inversions.
+    """
+    
+    global _mesh, _data, _data_vector, _ref_surf, _ref_dens, _ysize
+               
+    _mesh = None
+    _data = None
+    _data_vector = None
+    _ref_surf = None
+    _ref_dens = None
+    _ysize = None
+    reload(solvers)
+
+
+def fill_mesh(estimate, mesh):
+    """
+    Fill the 'value' keys of mesh with the values in the estimate
     
     Parameters:
+    
+      estimate: array-like parameter vector produced by the inversion
+      
+      mesh: model space discretization mesh used in the inversion to produce the
+            estimate (see geometry.line_mesh function)
+    """
         
-        x1, x2: boundaries of the model space
+    for value, cell in zip(estimate, mesh):
         
-        nx: number of prisms into which the model space will be cut
+        cell['value'] = value
+
+
+def _build_interg2d_jacobian(estimate):
+    """Build the Jacobian matrix"""
+
+    global _mesh, _data, _ref_surf, _ref_dens, _calculators, _ysize, deltaz
+
+    assert _mesh is not None, "Can't build Jacobian. No mesh defined"
+    assert _data is not None, "Can't build Jacobian. No data defined"
+    assert _ref_surf is not None, "Can't build Jacobian. " + \
+        "No reference surface defined"
+    assert _ref_dens is not None, "Can't build Jacobian. " + \
+        "No reference density defined"
+
+    jacobian = []
+    append_row = jacobian.append
+    
+    for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
+        
+        if field in _data.keys():
+            
+            function = _calculators[field]
+            
+            for x, z in zip(_data[field]['x'], _data[field]['z']):
+                
+                row = []
+                append_col = row.append                             
+                
+                for z1, z2, cell in zip(_ref_surf, estimate, _mesh):
+                                              
+                    grav1 = function(_ref_dens, cell['x1'], cell['x2'], -_ysize, 
+                                     _ysize, z1, z2 - 0.5*deltaz, x, 0., z)
                     
-        gz: instance of fatiando.data.gravity.VerticalGravity holding the
-            vertical gravity data
+                    grav2 = function(_ref_dens, cell['x1'], cell['x2'], -_ysize, 
+                                     _ysize, z1, z2 + 0.5*deltaz, x, 0., z)
+                       
+                    append_col(float(grav2 - grav1)/deltaz)
+                    
+                append_row(row)
+                
+    jacobian = numpy.array(jacobian)
+    
+    return jacobian
+
+
+def _build_interg2d_first_deriv():
+    """Build the finite differences derivative matrix of the parameters"""
+    
+    global _mesh
+    
+    assert _mesh is not None, "Can't build derivative matrix. No mesh defined"
+    
+    nparams = _mesh.size
+    nderivs = (nparams - 1)
+    
+    first_deriv = numpy.zeros((nderivs, nparams))
             
-        gxx, gxy, gxz, gyy, gyz, gzz: instances of 
-            fatiando.data.gravity.TensorComponent holding each a respective
-            gravity gradient tensor component data
+    # Derivatives in the x direction   
+    for i in xrange(nparams - 1):                
+        
+        first_deriv[i][i] = -1
+        
+        first_deriv[i][i + 1] = 1
             
-    Note: at least of one gz, gxx, gxy, gxz, gyy, gyz, or gzz must be 
-    provided
+    return first_deriv
+
+
+def calc_adjustment(estimate, profile=False):
+    """
+    Calculate the adjusted data produced by a given estimate.
+    
+    Parameters:
+    
+        estimate: array-like inversion estimate
+        
+        profile: if True, return the adjusted data in a profile data structure
+                 like the one provided to the inversion
+    """
+
+    global _data, _ref_surf, _ref_dens, _ysize, _calculators, _mesh, \
+           _data_vector
+    
+    assert _mesh is not None, "Can't calculate adjustment. No mesh defined"
+    assert _data is not None, "Can't calculate adjustment. No data defined"
+    assert _ref_surf is not None, "Can't calculate adjustment. " + \
+        "No reference surface defined"
+    assert _ref_dens is not None, "Can't calculate adjustment. " + \
+        "No reference density defined"
+    
+    if not profile:
+        
+        adjusted = numpy.zeros(len(_data_vector))
+        
+        for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
+            
+            if field in _data.keys():
+                
+                function = _calculators[field]
+                
+                coordinates = zip(_data[field]['x'], _data[field]['z'])
+                
+                for i, x, z in enumerate(coordinates):
+                                        
+                    for z1, z2, cell in zip(_ref_surf, estimate, _mesh):
+                        
+                        adjusted[i] += function(_ref_dens, 
+                                                cell['x1'], cell['x2'], 
+                                                -_ysize, _ysize, z1, z2, 
+                                                x, 0., z)
+                            
+    else:
+        
+        adjusted = {}
+        
+        for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
+            
+            if field in _data.keys():
+                
+                function = _calculators[field]
+                
+                adjusted[field] = _data[field].copy()
+        
+                adjusted[field]['value'] = []
+                
+                for x, z in zip(adjusted[field]['x'], adjusted[field]['z']):
+                    
+                    value = 0.
+                    
+                    for z1, z2, cell in zip(_ref_surf, estimate, _mesh):
+                        
+                        value += function(_ref_dens, cell['x1'], cell['x2'], 
+                                          -_ysize, _ysize, z1, z2, x, 0., z)
+        
+                    adjusted[field]['value'].append(value)
+                
+    return adjusted
+
+
+def residuals(estimate):
+    """
+    Calculate the residuals vector of a given estimate.
+    
+    Parameters:
+    
+      estimate: array-like vector of estimates
+      
+    Return:
+    
+      array-like vector of residuals
     """
     
-    def __init__(self, x1, x2, nx, dens, gz=None, gxx=None, gxy=None, \
-                 gxz=None, gyy=None, gyz=None, gzz=None):
-        
-        GradientSolver.__init__(self)
-        
-        assert gz != None or gxx != None or gxy != None or gxz != None or \
-            gyy != None or gyz != None or gzz != None, \
-            "Provide at least one of gz, gxx, gxy, gxz," + \
-            " gyy, gyz, or gzz. Can't do the inversion without data!"
-        
-        # Data parameters
-        self._gz = gz
-        self._gxx = gxx
-        self._gxy = gxy
-        self._gxz = gxz
-        self._gyy = gyy
-        self._gyz = gyz
-        self._gzz = gzz
-        
-        self._ndata = 0
-        
-        for data in [gz, gxx, gxy, gxz, gyy, gyz, gzz]:
-            
-            if data != None:
-                
-                self._ndata += len(data)
-        
-        # Model space parameters
-        self._mod_x1 = float(x1)
-        self._mod_x2 = float(x2)
-        self._nx = nx
-        self._nparams = nx
-        self._dens = dens
-        
-        # The logger for this class
-        self._log = logging.getLogger('InterG2D')
-        
-        self._log.info("Model space discretization: %d parameters" % (nx))
+    global _data_vector
     
+    assert _data_vector is not None, "Can't calculate residuals. No data vector"
     
-    def _build_jacobian(self, estimate):
-        """
-        Make the Jacobian matrix of the function of the parameters.
-        """
-        
-        assert estimate != None, "Can't use solve_linear method. " + \
-            "This is a non-linear problem."
-        
-        delta = 0.1
-        
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
-        
-        jacobian = []
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        calc_types = [prism_gravity.gz, prism_gravity.gxx, prism_gravity.gxy, \
-                      prism_gravity.gxz, prism_gravity.gyy, prism_gravity.gyz, \
-                      prism_gravity.gzz]
-        
-        for t in xrange(len(data_types)):
-            
-            if data_types[t]:
-                
-                for i in xrange(len(data_types[t])):
-                    
-                    xp, yp, zp = data_types[t].loc(i)
-                    
-                    line = numpy.zeros(self._nx)
-                    
-                    l = 0                                        
-                        
-                    for x in prism_xs:
-                            
-                        tmp_plus = calc_types[t](self._dens, \
-                                    x, x + dx, \
-                                    -10**(6), 10**(6), \
-                                    0, estimate[l] + delta, xp, yp, zp) 
-                        
-                        tmp_minus = calc_types[t](self._dens, \
-                                    x, x + dx, \
-                                    -10**(6), 10**(6), \
-                                    0, estimate[l] - delta, xp, yp, zp)
-                        
-                        line[l] = (tmp_plus - tmp_minus)/(2*delta)
-                        
-                        l += 1
-                            
-                    jacobian.append(line)
-                    
-        jacobian = numpy.array(jacobian)
-                
-        return jacobian
-            
+    adjusted = calc_adjustment(estimate, profile=False)
     
-    def _calc_adjusted_data(self, estimate):
-        """
-        Calculate the adjusted data vector based on the current estimate
-        """
-        
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
-        
-        adjusted = numpy.array([])
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        calc_types = [prism_gravity.gz, prism_gravity.gxx, prism_gravity.gxy, \
-                      prism_gravity.gxz, prism_gravity.gyy, prism_gravity.gyz, \
-                      prism_gravity.gzz]
-        
-        for t in xrange(len(data_types)):
-            
-            if data_types[t]:
-                
-                tmp = numpy.zeros(len(data_types[t]))
-                
-                for i in xrange(len(data_types[t])):
-                    
-                    xp, yp, zp = data_types[t].loc(i)
-                    
-                    l = 0
-                        
-                    for x in prism_xs:
-                        
-                        tmp[i] += calc_types[t](self._dens, \
-                                    x, x + dx, \
-                                    -10**(6), 10**(6), \
-                                    0, estimate[l], xp, yp, zp)
-                        
-                        l += 1
-                            
-                adjusted = numpy.append(adjusted, tmp)
-                
-        return adjusted
-        
-        
-    def _build_first_deriv(self):
-        """
-        Compute the first derivative matrix of the model parameters.
-        """
-                
-        # The number of derivatives there will be
-        deriv_num = (self._nx - 1)
-        
-        first_deriv = numpy.zeros((deriv_num, self._nparams))
-                
-        # Derivatives in the x direction   
-        for i in range(self._nx - 1):                
-            
-            first_deriv[i][i] = -1
-            
-            first_deriv[i][i + 1] = 1
-                
-        return first_deriv
-            
-            
-    def _get_data_array(self):
-        """
-        Return the data in a Numpy array so that the algorithm can access it
-        in a general way
-        """
-        
-        data_array = numpy.array([])
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        for data in data_types:
-            
-            if data:
-                
-                data_array = numpy.append(data_array, data.array)
-        
-        return data_array
-                           
-            
-    def _get_data_cov(self):
-        """
-        Return the data covariance in a 2D Numpy array so that the algorithm can
-        access it in a general way
-        """
-        
-        std_array = numpy.array([])
-        
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
-        
-        for data in data_types:
-            
-            if data:
-                
-                std_array = numpy.append(std_array, data.std)
-        
-        return numpy.diag(std_array**2)
+    residuals = _data_vector - adjusted
     
-    
-    def split(self, factor):
-        """
-        Split the mean solution into factor*nx prisms.
-        
-        Parameters:
-        
-            factor: into how many prisms each prism will be split into
-            
-        Returns the new solution with factor*nx elements.
-        """
-                
-        new = []
-        
-        mean = self.mean
-        
-        for i in xrange(self._nx):
-            
-            for j in xrange(factor):
-                
-                new.append(mean[i])
-            
-        return numpy.array(new)            
-   
-        
-    def set_equality(self, x, z):
-        """
-        Set an equality constraint to hold the prism with x coordinate at depth 
-        z
-        """
-    
-        if self._equality_matrix == None:
-            
-            D = []
-            
-        else:
-            
-            D = self._equality_matrix.tolist()
-            
-        if self._equality_values == None:
-            
-            p_ref = []
-            
-        else:
-            
-            p_ref = self._equality_values.tolist()
-        
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2, dx, 'float')
-                                    
-        for l in xrange(len(prism_xs)):
-            
-            if x >= prism_xs[l] and x <= prism_xs[l] + dx:
-                
-                p_ref.append(z)
-                
-                tmp = numpy.zeros(self._nx)
-                
-                tmp[l] = 1
-                
-                D.append(tmp)
-                    
-        self._equality_matrix = numpy.array(D)
-        
-        self._equality_values = numpy.array(p_ref)
-        
-        
-    def plot_mean(self, true_x=None, true_z=None, \
-                  title="Mean inversion result"):
-        """
-        Plot the mean solution
-        """
-                        
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
-                    
-        mean = numpy.array(self.mean)
-        
-        model = []
-        
-        x = []
-                
-        for i in xrange(len(mean)):
-            
-            model.append(mean[i])
-            model.append(mean[i])
-            
-            x.append(prism_xs[i])
-            x.append(prism_xs[i] + dx)
-                
-        pylab.figure()
-        pylab.title(title)
-        pylab.plot(x, model, '-k', label="Mean Solution", linewidth=2)
-        
-        vmax = max(model)
-        vmin = min(model)
-        
-        if true_x != None and true_z != None:
-            
-            pylab.plot(true_x, true_z, '-r', label="True Model")
-            
-            vmax = numpy.append(true_z, vmax).max()
-            vmin = numpy.append(true_z, vmin).min()
-        
-        for estimate in self.estimates:
-                  
-            model = []
-                                
-            for i in xrange(len(estimate)):
-                
-                model.append(estimate[i])
-                model.append(estimate[i])
-                    
-            pylab.plot(x, model, '-b')
-            
-            vmax = numpy.append(model, vmax).max()
-            vmin = numpy.append(model, vmin).min()
-                
-        pylab.xlabel("Position X [m]")
-        pylab.ylabel("Depth [m]")
-                    
-        pylab.legend(prop={'size':9})
-        
-        pylab.xlim(prism_xs.min(), prism_xs.max())
-        pylab.ylim(1.2*vmax, 0)
-            
-                        
-    def plot_std(self, title="Result Standard Deviation", cmap=pylab.cm.jet):
-        """
-        Plot the standard deviation of the model parameters.
-        """
-        
-        dx = (self._mod_x2 - self._mod_x1)/self._nx
-        
-        prism_xs = numpy.arange(self._mod_x1, self._mod_x2 + dx, dx, 'float')
-                
-        stds = numpy.array(self.stddev)
-        
-        model = []
-        
-        x = []
-                
-        for i in xrange(len(stds)):
-            
-            model.append(stds[i])
-            model.append(stds[i])
-            
-            x.append(prism_xs[i])
-            x.append(prism_xs[i] + dx)
-        
-        pylab.figure()
-        pylab.title(title)
-        pylab.plot(x, model, '-k')    
-                
-        pylab.xlabel("Position X [m]")
-        pylab.ylabel("Standard Deviation [m]")
-        
-        pylab.xlim(prism_xs.min(), prism_xs.max())
-        pylab.ylim(1.2*stds.min(), 1.2*stds.max())
+    return residuals
 
-
-    def plot_adjustment(self, title="Adjustment"):
-        """
-        Plot the original data plus the adjusted data
-        """
         
-        adjusted = self._calc_adjusted_data(self.mean)
+def solve(data, mesh, density, ref_surf=None, initial=None, damping=0, 
+          smoothness=0, curvature=0, sharpness=0, beta=10**(-5), max_it=100, 
+          lm_start=1, lm_step=10, max_steps=20):
+    """
+    Solve the inversion problem for a given data set and model space mesh.
         
-        data_types = [self._gz, self._gxx, self._gxy, self._gxz, self._gyy, \
-                      self._gyz, self._gzz]
+    Parameters:    
+    
+      data: dictionary with the gravity component data as:
+            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
+            If there is no data for a given component, omit the respective key.
+            Each g*data is a data profile as loaded by fatiando.gravity.io
+      
+      mesh: model space discretization mesh (see geometry.line_mesh function)
+      
+      density: density contrast of the basement or interface
+      
+      ref_surf: a reference surface to be used as the top of the prisms
+      
+      initial: initial estimate. If None, will use zero initial estimate
+      
+      damping: Tikhonov order 0 regularization parameter. Must be >= 0
+      
+      smoothness: Tikhonov order 1 regularization parameter. Must be >= 0
+      
+      curvature: Tikhonov order 2 regularization parameter. Must be >= 0
+      
+      sharpness: Total Variation regularization parameter. Must be >= 0
+      
+      beta: small constant used to make Total Variation differentiable. 
+            Must be >= 0. The smaller it is, the sharper the solution but also 
+            the less stable
+    
+      max_it: maximum number of iterations 
         
-        titles = [' $g_{z}$', ' $g_{xx}$', ' $g_{xy}$', ' $g_{xz}$', \
-                  ' $g_{yy}$', ' $g_{yz}$', ' $g_{zz}$']
+      lm_start: initial Marquardt parameter (controls the step size)
+    
+      lm_step: factor by which the Marquardt parameter will be reduced with
+               each successful step
+             
+      max_steps: how many times to try giving a step before exiting
+      
+    Return:
+    
+      [estimate, goals]:
+        estimate = array-like parameter vector estimated by the inversion.
+                   parameters are the depths of the bottom of the prisms in the 
+                   mesh cells. Use fill_mesh function to put the estimate in a 
+                   mesh so you can plot and save it.
+        goals = list of goal function value per iteration
+    """
+    
+    log.info("Inversion parameters:")
+    log.info("  damping    = %g" % (damping))
+    log.info("  smoothness = %g" % (smoothness))
+    log.info("  curvature  = %g" % (curvature))
+    log.info("  sharpness  = %g" % (sharpness))
+    log.info("  beta       = %g" % (beta))
         
-        i = 0
+    global _mesh, _data, _ref_dens, _ref_surf, _data_vector, _ysize, exaggerate
+    
+    _ref_dens = density
+    
+    if _ref_surf is None:
         
-        for data in data_types:
+        _ref_surf = numpy.zeros(_mesh.size)
+        
+    else:
+        
+        _ref_surf = ref_surf 
+    
+    _mesh = mesh
+    
+    # Find the biggest cell in mesh and use it to estimate the needed size in y
+    biggest = 0
+    
+    for cell in mesh:
+        
+        size = cell['x2'] - cell['x1']
+        
+        if size > biggest:
             
-            if data:                
-                                                            
-                x = data.get_xarray()
-                                
-                pylab.figure()
-                pylab.title(title + titles[i])
-                
-                pylab.plot(x, adjusted[:len(data)], '.-r', label="Adjusted")
-                
-                pylab.plot(x, data.array, '.-k', label="Observed")
-                    
-                pylab.legend(prop={'size':9})
-                
-                pylab.xlabel("Position [m]")
-                pylab.ylabel(titles[i] + " Eotvos")
-                
-                pylab.xlim(x.min(), x.max())
-                
-                # Remove this data set from the adjuted data
-                adjusted = adjusted[len(data):]
+            biggest = size
+            
+    _ysize = exaggerate*biggest
+
+    _data = data
+    
+    _data_vector = fatiando.inversion.pgrav3d.extract_data_vector(data)
+
+    solvers.clear()
+    
+    solvers.damping = damping
+    solvers.smoothness = smoothness
+    solvers.curvature = curvature
+    solvers.sharpness = sharpness
+    solvers.beta = beta
+    
+    solvers._build_jacobian = _build_interg2d_jacobian
+    solvers._build_first_deriv_matrix = _build_interg2d_first_deriv
+    solvers._calc_adjustment = calc_adjustment
+    
+    if initial is None:
         
-            i += 1
+        initial = (10**(-10))*numpy.ones(mesh.size)
+            
+    estimate, goals = solvers.lm(_data_vector, None, initial, lm_start, lm_step, 
+                                 max_steps, max_it)
+
+    return estimate, goals

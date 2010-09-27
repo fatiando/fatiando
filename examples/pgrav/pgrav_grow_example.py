@@ -4,7 +4,7 @@ Example script for doing the inversion of synthetic FTG data using grow
 
 import pickle
 import logging
-log = logging.getLogger()
+log = logging.getLogger('fatiando')
 shandler = logging.StreamHandler()
 shandler.setFormatter(logging.Formatter())
 log.addHandler(shandler)
@@ -43,8 +43,9 @@ mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(pgrav3d.get_seed((10, 10, 450), 500, mesh))
-seeds.append(pgrav3d.get_seed((10, 10, 1050), 1000, mesh))
+#seeds.append(pgrav3d.get_seed((10, 10, 650), 1000, mesh))
+seeds.append(pgrav3d.get_seed((310, 10, 650), 500, mesh))
+seeds.append(pgrav3d.get_seed((-310, 10, 650), 1000, mesh))
 
 # Show the seeds
 #seed_mesh = []
@@ -68,7 +69,7 @@ pickle.dump(seeds, seed_file)
 seed_file.close()
 
 # Inversion parameters
-mmi = 1*10**(-1)
+mmi = 1*10**(0)
 power = 5
 apriori_variance = 0.1**2
 
@@ -141,6 +142,7 @@ fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
+# Plot the neighbours
 for seed in seeds:
     neighbor_mesh = []
     for neighbor in seed['neighbors']:
@@ -149,17 +151,16 @@ for seed in seeds:
     fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
                                  label='neighbors')
 
-
 # Get the distances and make a mesh with them
 distances = pgrav3d._distances
 distance_mesh = fatiando.geometry.copy_mesh(mesh)
 pgrav3d.fill_mesh(distances, distance_mesh)
 
-fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
-fig.scene.camera.pitch(180)
-fig.scene.camera.roll(180)
-plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
-axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
+#fig = mlab.figure()
+#fig.scene.background = (0.1, 0.1, 0.1)
+#fig.scene.camera.pitch(180)
+#fig.scene.camera.roll(180)
+#plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
+#axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
 
 mlab.show()

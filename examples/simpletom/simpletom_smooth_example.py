@@ -64,7 +64,7 @@ residuals = simpletom.residuals(data, estimate)
 estimates = [estimate]
 contam_times = 5
 
-log.info("Contaminating data with %g error and re-running %d times" 
+log.info("Contaminating data with %g error and re-running %d time(s)" 
          % (error, contam_times))
 
 for i in xrange(contam_times):

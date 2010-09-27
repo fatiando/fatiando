@@ -7,14 +7,16 @@ General
     * Make example wikis
     * Make tutorial for implementing new inversion
     * Change C code that uses arrays to Fortran
+    * Make integration tests out of the examples
     
 Inversion
     * Unit tests
     * Sparsity regularization
-    * Linear solver
     * Use the data covariance matrix
-    * Implement equality constraints
+    * Test equality constraints
     Done
+    * Implement equality constraints
+    * Linear solver
     * Implement log barrier
    
 Stats
@@ -24,18 +26,21 @@ Stats
     
 InterG
     * Unit tests
-    * IO for inversion results and initial estimate
-    * Make synthetic data generation
     * Make integration test
+    * Use equality constraints
+    * Use log barrier
+    * Test the port to new solvers.py
+    * Finish example scripts
+    Done:
     * Function descriptions in the docstring
-    * Port to the new solvers.py
     * Make visualizations
+    * Port to the new solvers.py
+    * Make synthetic data generation
+    * IO for inversion results and initial estimate
     
 PGrav
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
-    * Restrict common neighbors for seeds 
-      (in case of ties, use distance or allow both)
     * Aumentar regularizador quando redistribui
     * Aglutinar uma celula por semente (no minimo)
     * Redistribuir somente na borda
@@ -44,7 +49,9 @@ PGrav
     * Make integration test
     * Build sensibility concurrently
     * Check if implementing cross-derivatives is better
+    * Use equality constraints
     Done:
+    * Restrict common neighbors for seeds 
     * Port to the new solvers.py
     * Make visualizations
     * Implement depth weights
@@ -59,8 +66,9 @@ Seismo
     
 Simpletom:
     * Unit tests
-    * Port integration tests
     * IO for initial estimate
+    * Use equality constraints
+    * Use log barrier
 
     Done:
     * Put versbose in solve and make_mesh

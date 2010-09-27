@@ -239,3 +239,33 @@ def plot_prism_mesh(mesh, style='surface', label='scalar'):
         mlab.colorbar(surf, title=label, orientation='vertical', nb_labels=10)
         
     return surf
+
+
+def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
+    """
+    Plot a 2d prism interface mesh.
+    
+    Parameters:
+      
+      mesh: model space discretization mesh (see geometry.line_mesh function)
+            with its 'value' keys set to the bottom of the prisms
+            
+      style: line and marker style and color (see pylab.plot)
+      
+      linewidth: width of the line plotted
+      
+      label: label of the line
+    """
+    
+    xs = []
+    zs = []
+    
+    for cell in mesh:
+        
+        xs.append(cell['x1'])
+        xs.append(cell['x2'])        
+        zs.append(cell['value'])  
+        zs.append(cell['value'])
+        
+    pylab.plot(xs, zs, style, linewidth=linewidth, label=label)
+    

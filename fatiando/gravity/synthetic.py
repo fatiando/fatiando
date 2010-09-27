@@ -44,6 +44,8 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     """
     Create synthetic gravity data from a prism model.
     
+    Note: to make a profile along x, set y1=y2 and ny=1
+    
     Parameters:
       
       prisms: list of dictionaries representing each prism in the model. 
@@ -95,10 +97,17 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
         log.info("  grid type: regular")
         
         dx = float(x2 - x1)/(nx - 1)
-        dy = float(y2 - y1)/(ny - 1)
-        
         x_range = numpy.arange(x1, x2, dx)
-        y_range = numpy.arange(y1, y2, dy)
+        
+        if ny > 1:
+            
+            dy = float(y2 - y1)/(ny - 1)
+            y_range = numpy.arange(y1, y2, dy)
+            
+        else:
+            
+            dy = 0
+            y_range = [y1]
         
         if len(x_range) < nx:
             
@@ -130,7 +139,14 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
         log.info("  grid type: random")
         
         xs = numpy.random.uniform(x1, x2, nx*ny)
-        ys = numpy.random.uniform(y1, y2, nx*ny)
+        
+        if ny > 1:
+            
+            ys = numpy.random.uniform(y1, y2, nx*ny)
+            
+        else:
+            
+            ys = [y1]
         
         data['grid'] = False
         

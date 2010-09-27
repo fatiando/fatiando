@@ -248,7 +248,7 @@ def calc_adjustment(estimate, grid=False):
                 
         for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
             
-            if field in _data.keys():
+            if field in _data:
                 
                 adjusted_grid[field] = _data[field].copy()
                 
@@ -282,7 +282,7 @@ def _build_pgrav3d_jacobian(estimate):
         
         for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
             
-            if field in _data.keys():
+            if field in _data:
                 
                 coordinates =  zip(_data[field]['x'], _data[field]['y'], 
                                    _data[field]['z'])
@@ -583,7 +583,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
         goals = list of goal function value per iteration    
     """
 
-    for key in data.keys():
+    for key in data:
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
     
@@ -629,6 +629,51 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     return estimate, goals
 
 
+def get_seed(point, density, mesh):
+    """Returns as a seed the cell in mesh that has point inside it."""
+    
+    x, y, z = point
+    
+    seed = None
+    
+    for i, cell in enumerate(mesh.ravel()):
+        
+        if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
+            y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
+            
+            seed = {'param':i, 'density':density, 'cell':cell, 'neighbors':[]}
+            
+            break
+        
+    if seed is None:
+        
+        raise ValueError("There is no cell in 'mesh' with 'point' inside it.")
+    
+    log.info("  seed: %s" % (str(seed)))
+
+    return seed
+
+
+def _dist_to_seed(cell, seed, dx, dy, dz):
+    """Calculate the distance (in number of cells) from cell to seed.
+    
+    Parameters:
+    
+      cell: dictionary with the cell bounds (x1, x2, y1, y2, z1, z2)
+      
+      seed: 
+    
+    """
+                    
+    x_distance = abs(cell['x1'] - seed['cell']['x1'])/dx
+    y_distance = abs(cell['y1'] - seed['cell']['y1'])/dy
+    z_distance = abs(cell['z1'] - seed['cell']['z1'])/dz
+    
+    distance = max([x_distance, y_distance, z_distance])
+    
+    return distance   
+    
+
 def _calc_mmi_goal(estimate, mmi, power, seeds):
     """Calculate the goal function due to MMI regularization"""
     
@@ -652,11 +697,7 @@ def _calc_mmi_goal(estimate, mmi, power, seeds):
             
             for seed in seeds:
                 
-                x_distance = abs(cell['x1'] - seed['cell']['x1'])/dx
-                y_distance = abs(cell['y1'] - seed['cell']['y1'])/dy
-                z_distance = abs(cell['z1'] - seed['cell']['z1'])/dz
-                
-                distance = max([x_distance, y_distance, z_distance])
+                distance = _dist_to_seed(cell, seed, dx, dy, dz)
                 
                 if best_distance is None or distance < best_distance:
                     
@@ -675,32 +716,7 @@ def _calc_mmi_goal(estimate, mmi, power, seeds):
     return goal, msg
 
 
-def get_seed(point, density, mesh):
-    """Returns as a seed the cell in mesh that has point inside it."""
-    
-    x, y, z = point
-    
-    seed = None
-    
-    for i, cell in enumerate(mesh.ravel()):
-        
-        if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
-            y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
-            
-            seed = {'param':i, 'density':density}
-            
-            break
-        
-    if seed is None:
-        
-        raise ValueError("There is no cell in 'mesh' with 'point' inside it.")
-    
-    log.info("  seed: %s" % (str(seed)))
-
-    return seed
-
-
-def _add_neighbors(param, neighbors, mesh, estimate):
+def _add_neighbors(param, neighbors, seeds, mesh, estimate):
     """Add the neighbors of 'param' in 'mesh' to 'neighbors'."""
     
     nz, ny, nx = mesh.shape
@@ -714,8 +730,11 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if neighbor > 0:
         
         above = neighbor
+            
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
         
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
+        if False not in is_neighbor and estimate[neighbor] == 0.:
         
             append(neighbor)
     
@@ -726,10 +745,13 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if neighbor < mesh.size:
         
         bellow = neighbor
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
-            append(neighbor)    
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
+            append(neighbor)
     
     # The guy in front
     neighbor = param + 1
@@ -738,8 +760,11 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if param%nx < nx - 1:
         
         front = neighbor
+            
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
         
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
+        if False not in is_neighbor and estimate[neighbor] == 0.:
         
             append(neighbor)
     
@@ -750,9 +775,12 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if param%nx != 0:
         
         back = neighbor
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
     
     # The guy to the left
@@ -762,8 +790,11 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if param%(nx*ny) < nx*(ny - 1):
         
         left = neighbor
+            
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
         
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
+        if False not in is_neighbor and estimate[neighbor] == 0.:
         
             append(neighbor)
     
@@ -774,170 +805,233 @@ def _add_neighbors(param, neighbors, mesh, estimate):
     if param%(nx*ny) >= nx:
         
         right = neighbor
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
 
     # The diagonals            
     if front is not None and left is not None:
         
         neighbor = left + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
     
     if front is not None and right is not None:
         
         neighbor = right + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if back is not None and left is not None:
         
         neighbor = left - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if back is not None and right is not None:
     
         neighbor = right - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if above is not None and left is not None:
         
         neighbor = above + nx
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if above is not None and right is not None:
         
         neighbor = above - nx
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if above is not None and front is not None:
         
         neighbor = above + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if above is not None and back is not None:
         
         neighbor = above - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
-            append(neighbor)            
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
+            append(neighbor)        
             
     if above is not None and front is not None and left is not None:
         
         neighbor = above + nx + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if above is not None and front is not None and right is not None:
         
-        neighbor = above - nx + 1       
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
+        neighbor = above - nx + 1    
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
 
     if above is not None and back is not None and left is not None:
         
         neighbor = above + nx - 1 
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
     
     if above is not None and back is not None and right is not None:
         
         neighbor = above - nx - 1 
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and left is not None:
         
         neighbor = bellow + nx
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and right is not None:
         
         neighbor = bellow - nx
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and front is not None:
         
         neighbor = bellow + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and back is not None:
         
         neighbor = bellow - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
-            append(neighbor)         
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
+            append(neighbor)    
             
     if bellow is not None and front is not None and left is not None:
         
         neighbor = bellow + nx + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and front is not None and right is not None:
         
         neighbor = bellow - nx + 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
         
     if bellow is not None and back is not None and left is not None:
         
         neighbor =  bellow + nx - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
             
     if bellow is not None and back is not None and right is not None:
         
         neighbor = bellow - nx - 1
-        
-        if neighbor not in neighbors and estimate[neighbor] == 0.:
             
+        # Need to check if neighbor is not in any seed's neighbors before adding
+        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        
+        if False not in is_neighbor and estimate[neighbor] == 0.:
+        
             append(neighbor)
         
 
@@ -974,21 +1068,15 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     """
     
 
-    for key in data.keys():
+    for key in data:
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
-                
-    log.info("Inversion parameters:")
-    log.info("  mmi = %g" % (mmi))
     
     global _mesh, _data, _jacobian
 
     _mesh = mesh
+    
     _data = data
-    
-    _build_pgrav3d_jacobian(None)
-    
-    _jacobian = _jacobian.T
         
     estimate = numpy.zeros(_mesh.size)
     
@@ -997,15 +1085,49 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     for seed in seeds:
         
         estimate[seed['param']] = seed['density']
-    
+                    
     for seed in seeds:
-                
-        seed['neighbors'] = []
         
-        _add_neighbors(seed['param'], seed['neighbors'], mesh, estimate)
-                
-        seed['cell'] = _mesh.ravel()[seed['param']]
+        # Don't send all seeds to _add_neighbors to fool it into allowing common
+        # neighbors between the seeds. The conflicts will be resolved later
+        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh, estimate)
         
+    # Resolve the conflicts in the neighbors. If the conflicting seeds have 
+    # different densities, an AttributeError will be raised.
+    for i, seed in enumerate(seeds):
+        
+        for neighbor in seed['neighbors']:
+            
+            for j, other_seed in enumerate(seeds):
+                
+                if i == j:
+                    
+                    continue
+                
+                if neighbor in other_seed['neighbors']:
+                    
+                    if seed['density'] == other_seed['density']:
+                        
+                        seed['neighbors'].remove(neighbor)
+                        
+                        # Stop checking this neighbor if it was removed. In case
+                        # it appears again in another seed, it will be tested 
+                        # against the one in that stayed in other_seed.
+                        break
+                    
+                    else:
+
+                        raise AttributeError("Seeds %d and %d are too close." 
+                                             % (i, j))
+    
+    _build_pgrav3d_jacobian(None)
+    
+    # Uses the Jacobian.T to calculate the effect of a single cell at all data
+    # points. Only do this once to save time. Will revert the transpose before 
+    # returning 
+    _jacobian = _jacobian.T
+    
+    # To report the initial status of the inversion
     reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
     
     residuals = extract_data_vector(data) - numpy.dot(_jacobian.T, estimate)
@@ -1017,6 +1139,8 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
     log.info("  data = %d" % (len(residuals)))
+    log.info("  mmi = %g" % (mmi))
+    log.info("  power = %g" % (power))
     log.info("  initial RMS = %g" % (rms))
     log.info("  initial regularizer goals =%s" % (msg))
     log.info("  initial total goal function = %g" % (goals[-1]))
@@ -1087,8 +1211,8 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                     
                     pass
                 
-            _add_neighbors(best_param, seeds[best_seed]['neighbors'], mesh, 
-                            estimate)
+            _add_neighbors(best_param, seeds[best_seed]['neighbors'], seeds, 
+                           mesh, estimate)
             
             log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
                      % (best_seed + 1, best_rms, best_msg, best_goal))
@@ -1101,62 +1225,63 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
             # seed, not from one seed to another
             stagnation_again = True
                                             
-            best_goal = goals[-1]
-            best_param = None
-            param_to_remove = None
-            best_rms = None
-            best_msg = ''
-            best_seed = None
-            best_neighbors = None
-            best_density = None
-            
-            for param, seed_id in reversed(marked):
-                
-                # Remove the param from the estimate and residuals
-                density = estimate[param]                
-                estimate[param] = 0
-                tmp_residuals = residuals + density*_jacobian[param]
-                
-                # Re-calculate the neighbors so that the param is included
-                # in the list and it's sole neighbors are excluded.
-                neighbors = []
-                
-                for other_param, other_seed in marked:
-                    
-                    if other_param != param and other_seed == seed_id:
-                        
-                        # Only the ones with estimate == 0
-                        _add_neighbors(other_param, neighbors, mesh, estimate)
-                                                   
-                for neighbor in neighbors:
-                                        
-                    new_residuals = tmp_residuals - density*_jacobian[neighbor]
-                    
-                    rms = (new_residuals*new_residuals).sum()
-    
-                    estimate[neighbor] = density
-                    
-                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
-                    
-                    estimate[neighbor] = 0
-                    
-                    goal = rms + reg_goal
-                    
-                    if goal < best_goal:
-                        
-                        best_param = neighbor
-                        best_goal = goal
-                        best_rms = rms
-                        best_msg = msg
-                        best_seed = seed_id
-                        best_neighbors = neighbors
-                        best_density = density
-                        param_to_remove = param
-                        
-                        stagnation_again = False
-                        
-                # Return things to normal
-                estimate[param] = density
+#            best_goal = goals[-1]
+#            best_param = None
+#            param_to_remove = None
+#            best_rms = None
+#            best_msg = ''
+#            best_seed = None
+#            best_neighbors = None
+#            best_density = None
+#            
+#            for param, seed_id in reversed(marked):
+#                
+#                # Remove the param from the estimate and residuals
+#                density = estimate[param]                
+#                estimate[param] = 0
+#                tmp_residuals = residuals + density*_jacobian[param]
+#                
+#                # Re-calculate the neighbors so that the param is included
+#                # in the list and it's sole neighbors are excluded.
+#                neighbors = []
+#                
+#                for other_param, other_seed in marked:
+#                    
+#                    if other_param != param and other_seed == seed_id:
+#                        
+#                        # Only the ones with estimate == 0
+#                        _add_neighbors(other_param, neighbors, seeds, mesh, 
+#                                       estimate)
+#                                                   
+#                for neighbor in neighbors:
+#                                        
+#                    new_residuals = tmp_residuals - density*_jacobian[neighbor]
+#                    
+#                    rms = (new_residuals*new_residuals).sum()
+#    
+#                    estimate[neighbor] = density
+#                    
+#                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
+#                    
+#                    estimate[neighbor] = 0
+#                    
+#                    goal = rms + reg_goal
+#                    
+#                    if goal < best_goal:
+#                        
+#                        best_param = neighbor
+#                        best_goal = goal
+#                        best_rms = rms
+#                        best_msg = msg
+#                        best_seed = seed_id
+#                        best_neighbors = neighbors
+#                        best_density = density
+#                        param_to_remove = param
+#                        
+#                        stagnation_again = False
+#                        
+#                # Return things to normal
+#                estimate[param] = density
                     
             if not stagnation_again:
                           
@@ -1184,7 +1309,7 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                         pass
                     
                 _add_neighbors(best_param, seeds[best_seed]['neighbors'], 
-                                mesh, estimate)
+                               seeds, mesh, estimate)
                                 
                 log.info("    remanaged in seed %d: RMS=%.20g%s TOTAL=%g" 
                          % (best_seed + 1, best_rms, best_msg, best_goal))
