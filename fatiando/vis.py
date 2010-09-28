@@ -147,7 +147,7 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
         pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
     
 
-def plot_prism_mesh(mesh, style='surface', label='scalar'):
+def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
     """
     Plot a 3D prism mesh using Mayavi2.
     
@@ -157,6 +157,8 @@ def plot_prism_mesh(mesh, style='surface', label='scalar'):
       
       style: either 'surface' for solid prisms or 'wireframe' for just the 
              wireframe
+             
+      opacity: decimal percentage of opacity
              
       label: name of the scalar 'value' of the mesh cells. 
     """
@@ -235,7 +237,8 @@ def plot_prism_mesh(mesh, style='surface', label='scalar'):
         thresh = mlab.pipeline.threshold(extract)    
         surf = mlab.pipeline.surface(thresh, vmax=max(scalars), 
                                      vmin=min(scalars))
-        surf.actor.property.representation = 'surface'        
+        surf.actor.property.representation = 'surface'
+        surf.actor.property.opacity = opacity
         mlab.colorbar(surf, title=label, orientation='vertical', nb_labels=10)
         
     return surf

@@ -716,8 +716,21 @@ def _calc_mmi_goal(estimate, mmi, power, seeds):
     return goal, msg
 
 
-def _add_neighbors(param, neighbors, seeds, mesh, estimate):
-    """Add the neighbors of 'param' in 'mesh' to 'neighbors'."""
+def _add_neighbors(param, neighbors, seeds, mesh, marked):
+    """Add the neighbors of 'param' in 'mesh' to 'neighbors'.
+    
+    Parameters:
+    
+      param: the index of the parameter in the parameter vector
+      
+      neighbors: list of neighbors to append to
+      
+      seeds: list of all seeds. Used to check for repeating neighbors
+      
+      mesh: the model space mesh
+      
+      marked: list of the marked parameter lists per seed
+    """
     
     nz, ny, nx = mesh.shape
     
@@ -731,10 +744,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         above = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -746,10 +761,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         bellow = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -761,10 +778,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         front = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -776,10 +795,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         back = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -791,10 +812,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         left = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -806,10 +829,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         right = neighbor
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
 
@@ -818,10 +843,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = left + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -829,10 +856,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = right + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -840,10 +869,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = left - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -851,10 +882,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
     
         neighbor = right - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -862,10 +895,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above + nx
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -873,10 +908,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above - nx
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -884,10 +921,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -895,32 +934,38 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
-            append(neighbor)        
+            append(neighbor)
             
     if above is not None and front is not None and left is not None:
         
         neighbor = above + nx + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
     if above is not None and front is not None and right is not None:
         
-        neighbor = above - nx + 1    
+        neighbor = above - nx + 1   
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
 
@@ -928,10 +973,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above + nx - 1 
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
     
@@ -939,10 +986,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = above - nx - 1 
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -950,10 +999,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow + nx
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -961,10 +1012,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow - nx
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -972,10 +1025,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -983,21 +1038,25 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
-            append(neighbor)    
+            append(neighbor)
             
     if bellow is not None and front is not None and left is not None:
         
         neighbor = bellow + nx + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -1005,10 +1064,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow - nx + 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
         
@@ -1016,10 +1077,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor =  bellow + nx - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
             
@@ -1027,10 +1090,12 @@ def _add_neighbors(param, neighbors, seeds, mesh, estimate):
         
         neighbor = bellow - nx - 1
             
-        # Need to check if neighbor is not in any seed's neighbors before adding
-        is_neighbor = [neighbor not in seed['neighbors'] for seed in seeds]
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
         
-        if False not in is_neighbor and estimate[neighbor] == 0.:
+        if True not in is_neighbor and True not in is_marked:
         
             append(neighbor)
         
@@ -1085,12 +1150,15 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     for seed in seeds:
         
         estimate[seed['param']] = seed['density']
+    
+    # To keep track of which cell was appended to which seed (used to rearange)
+    marked = [[seed['param']] for seed in seeds]
                     
     for seed in seeds:
         
         # Don't send all seeds to _add_neighbors to fool it into allowing common
         # neighbors between the seeds. The conflicts will be resolved later
-        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh, estimate)
+        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh, marked)
         
     # Resolve the conflicts in the neighbors. If the conflicting seeds have 
     # different densities, an AttributeError will be raised.
@@ -1146,9 +1214,6 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     log.info("  initial total goal function = %g" % (goals[-1]))
     
     total_start = time.time()
-    
-    # To keep track of which cell was appended to which seed (used to rearange)
-    marked = [[] for seed in seeds]
         
     for iteration in xrange(mesh.size - len(seeds)):
         
@@ -1209,12 +1274,12 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 seed['neighbors'].remove(best_neighbor)     
                     
                 _add_neighbors(best_neighbor, seed['neighbors'], seeds, mesh, 
-                               estimate)
+                               marked)
                 
                 log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
                          % (seed_num + 1, best_rms, best_msg, best_goal))
                           
-        # If couldn't grow anymore, try to rearange the already marked cells          
+        # If couldn't grow, try to rearange one already marked cell    
         if not grew:
             
             # Try to move at least one already marked cell (max one per seed)                    
@@ -1232,15 +1297,22 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 
                 density = seed['density']
                 
-                tmp_seeds = list(seeds)
-                tmp_seeds.remove(seed)
+                reduced_seeds = list(seeds)
+                reduced_seeds.remove(seed)
                 
-                for param in marked[seed_num]:
+                reduced_marked = list(marked)
+                marked_per_seed = reduced_marked.pop(seed_num)
+                
+                # Don't check the seed (first marked param)
+                for param in marked_per_seed[1:]:
                     
                     # Find out how many unmarked neighbors this guy still has
+                    # Need to pass seeds with out the current seed because
+                    # _add_neighbors doesn't add neighbors already in 
+                    # seed['neighbors'] 
                     param_neighbors = []                    
-                    _add_neighbors(param, param_neighbors, tmp_seeds, mesh, 
-                                   estimate)
+                    _add_neighbors(param, param_neighbors, reduced_seeds, mesh, 
+                                   marked)
             
                     # Only try to rearange the cells that still have unmarked
                     # neighbors (outer cells)
@@ -1253,26 +1325,42 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
         
                     # Remove 'param's sole neighbors
                     tmp_neighbors = list(seed['neighbors'])
+                    append_neighbor = tmp_neighbors.append
+                    remove_neighbor = tmp_neighbors.remove
                     
                     for neighbor in param_neighbors:
+                                      
+                        # If it wasn't on the list of seed, this means that it
+                        # was previously a neighbor of some other seed that was 
+                        # removed from it's list due to rearanging. So append it
+                        # to this seed because it is now available as a neighbor
+                        if neighbor not in seed['neighbors']:
                         
-                        # If the neighbor has all neighbors available, then
-                        # it is a sole neighbor of 'param'
+                            seed['neighbors'].append(neighbor)
+                            append_neighbor(neighbor)
                         
-                        # NOTE: DOESN'T WORK BECAUSE THERE MAY BE LESS NEIGHBORS
-                        # DUE TO BEING CLOSE TO THE OTHER BODY.
-                        neighbor_neighbors = []
-                        _add_neighbors(neighbor, neighbor_neighbors, tmp_seeds, 
-                                       mesh, estimate)
+                        # If the neighbor has all possible neighbors available, 
+                        # then it is a sole neighbor of 'param'
+                        available_neighbors = [param]
+                        _add_neighbors(neighbor, available_neighbors, 
+                                       reduced_seeds, mesh, marked)
                         
-                        if len(neighbor_neighbors) < 26:
-                            
-                            tmp_neighbors.remove(neighbor)
-                            
+                        # Pass the 'marked' list without the current seed's
+                        # marked to get the list of all possible neighbors if
+                        # none had been marked. Used to compare with the 
+                        # available_neighbors
+                        all_neighbors = []
+                        _add_neighbors(neighbor, all_neighbors, 
+                                       reduced_seeds, mesh, reduced_marked)
+                        
+                        if len(available_neighbors) == len(all_neighbors):
+                                                            
+                            remove_neighbor(neighbor)
+                                
                     # 'param' is not added to the neighbor list because putting
                     # it back should not be an option
                                                
-                    # Will put it back when done checking
+                    # Will put this back when done checking
                     estimate[param] = 0.
                     
                     for neighbor in tmp_neighbors:
@@ -1303,7 +1391,6 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                             # neighbors of 'param' and still not including the
                             # neighbors of the new best
                             best_neighbors = tmp_neighbors
-                            best_neighbors.append(param)
                             
                     # Put 'param' back and go try to rearange another one
                     estimate[param] = density                        
@@ -1311,7 +1398,7 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 if best_param is not None:
                             
                     rearanged = True
-                    
+                                        
                     estimate[param_to_remove] = 0.
                     
                     residuals += density*_jacobian[param_to_remove]
@@ -1328,14 +1415,16 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                     
                     seed['neighbors'] = best_neighbors
                     
+                    seed['neighbors'].append(param_to_remove)
+                    
                     seed['neighbors'].remove(best_param)
                     
                     _add_neighbors(best_param, seed['neighbors'], seeds, mesh, 
-                                   estimate)
+                                   marked)
                 
                     log.info("    rearanged in seed %d: RMS=%g%s TOTAL=%g" 
                              % (seed_num + 1, best_rms, best_msg, best_goal))
-                                        
+                                    
             if not rearanged:
                                 
                 log.warning("    Exited because couldn't grow or rearange.")

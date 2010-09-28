@@ -20,12 +20,12 @@ import fatiando.utils
 import fatiando.vis
 
 prisms = []
-#prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
-#               'value':1000})
-prisms.append({'x1':200, 'x2':600, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
-               'value':500})
-prisms.append({'x1':-600, 'x2':-200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
+prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
                'value':1000})
+#prisms.append({'x1':200, 'x2':600, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
+#               'value':500})
+#prisms.append({'x1':-600, 'x2':-200, 'y1':-200, 'y2':200, 'z1':400, 'z2':800,
+#               'value':1000})
 
 prisms = numpy.array(prisms)
 
