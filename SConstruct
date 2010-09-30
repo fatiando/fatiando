@@ -26,7 +26,7 @@ wrap_path = os.path.join('src', 'wrap')
 ################################################################################
 
 # GRAVITY
-gravity_outdir = os.path.join('fatiando', 'gravity')
+gravity_outdir = os.path.join('fatiando', 'grav')
 
 gravityenv = Environment(
     SWIGFLAGS=['-python', '-outdir', gravity_outdir],
@@ -35,10 +35,10 @@ gravityenv = Environment(
 
 prismgravmod = gravityenv.SharedLibrary( \
     target=os.path.join(gravity_outdir,'_prism'),
-    source=[os.path.join(c_path, 'prismgrav.c'), \
-            os.path.join(wrap_path, 'prismgrav.i')])
+    source=[os.path.join(c_path, 'grav_prism.c'), \
+            os.path.join(wrap_path, 'grav_prism.i')])
             
-Depends(prismgravmod, os.path.join(c_path, 'prismgrav.h'))
+Depends(prismgravmod, os.path.join(c_path, 'grav_prism.h'))
 
 Clean(os.path.curdir, os.path.join(gravity_outdir,'prism.py'))
 
@@ -59,17 +59,20 @@ Depends(traveltimemod, os.path.join(c_path, 'traveltime.h'))
 
 Clean(os.path.curdir, os.path.join(seismo_outdir,'traveltime.py'))
     
-wavefdmod = seismoenv.SharedLibrary( \
-    target=os.path.join(seismo_outdir,'_wavefd_ext'),
-    source=[os.path.join(c_path, 'wavefd.c'), \
-            os.path.join(wrap_path, 'wavefd.i')])
+#wavefdmod = seismoenv.SharedLibrary( \
+#    target=os.path.join(seismo_outdir,'_wavefd_ext'),
+#    source=[os.path.join(c_path, 'wavefd.c'), \
+#            os.path.join(wrap_path, 'wavefd.i')])
+#
+#Depends(wavefdmod, os.path.join(c_path, 'wavefd.h'))
+#
+#Clean(os.path.curdir, os.path.join(seismo_outdir,'wavefd_ext.py'))
 
-Depends(wavefdmod, os.path.join(c_path, 'wavefd.h'))
+# HEAT
 
-Clean(os.path.curdir, os.path.join(seismo_outdir,'wavefd_ext.py'))
 
 # Group direct mods
-directmods = [prismgravmod, traveltimemod, wavefdmod]
+directmods = [prismgravmod, traveltimemod]
 
 ################################################################################
 
@@ -80,7 +83,7 @@ ext_mods.extend(directmods)
 
 
 # Make a phony target for the tests (the fast test suite)
-target = 'unittest_runner'
+target = 'test'
 action = 'python %s.py -v' % (target)
 PhonyTarget(target=target, action=action, depends=ext_mods)
 

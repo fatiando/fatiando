@@ -14,31 +14,26 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Test suite for the fatiando package.
-"""
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 29-Mar-2010'
 
-import unittest
+import os
 
-import fatiando.grav.tests
-import fatiando.seismo.tests
-import fatiando.inversion.tests
-import fatiando.heat.tests
+from numpy.distutils.extension import Extension
+from numpy.distutils.core import setup
 
+# Define the paths
+c_dir = os.path.join('src', 'c')
+fortran_dir = os.path.join('src', 'fortran')
 
-def suite(label='fast'):
+head_diffusionfd = Extension('fatiando.heat._diffusionfd',
+                              sources=[os.path.join(fortran_dir, 
+                                                    'heat_diffusionfd.f95')])
 
-    testsuite = unittest.TestSuite()
-
-    testsuite.addTest(fatiando.grav.tests.suite(label))
-    testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inversion.tests.suite(label))
-    testsuite.addTest(fatiando.heat.tests.suite(label))
-
-    return testsuite
+ext_modules = []
+ext_modules.append(head_diffusionfd)
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+
+    setup(name='fatiando',
+          ext_modules=ext_modules
+         )

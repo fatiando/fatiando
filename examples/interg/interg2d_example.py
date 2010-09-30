@@ -17,7 +17,7 @@ import numpy
 import pylab
 
 from fatiando.inversion import interg2d
-from fatiando.gravity import io
+from fatiando.grav import io
 import fatiando.geometry
 import fatiando.utils
 import fatiando.vis

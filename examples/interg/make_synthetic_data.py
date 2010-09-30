@@ -13,7 +13,7 @@ log.setLevel(logging.DEBUG)
 import numpy
 import pylab
 
-from fatiando.gravity import io, synthetic
+from fatiando.grav import io, synthetic
 import fatiando.geometry
 import fatiando.utils
 import fatiando.stats

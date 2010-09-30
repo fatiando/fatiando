@@ -29,7 +29,7 @@
    ************************************************************************** */
 
 #include <math.h>
-#include "prismgrav.h"
+#include "grav_prism.h"
 
 
 /* Calculates the gz gravity component cause by a prism. */

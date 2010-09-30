@@ -15,7 +15,7 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.gravity import synthetic, io
+from fatiando.grav import synthetic, io
 import fatiando.utils
 import fatiando.vis
 

@@ -38,7 +38,7 @@ import logging
 import numpy
 
 import fatiando
-import fatiando.gravity.prism
+import fatiando.grav.prism
 from fatiando.inversion import solvers
         
 log = logging.getLogger('fatiando.inversion.pgrav3d')       
@@ -60,13 +60,13 @@ _distances = None
 _mesh = None
 _data = None
 _data_vector = None
-_calculators = {'gz':fatiando.gravity.prism.gz,
-                'gxx':fatiando.gravity.prism.gxx,
-                'gxy':fatiando.gravity.prism.gxy,
-                'gxz':fatiando.gravity.prism.gxz,
-                'gyy':fatiando.gravity.prism.gyy,
-                'gyz':fatiando.gravity.prism.gyz,
-                'gzz':fatiando.gravity.prism.gzz}
+_calculators = {'gz':fatiando.grav.prism.gz,
+                'gxx':fatiando.grav.prism.gxx,
+                'gxy':fatiando.grav.prism.gxy,
+                'gxz':fatiando.grav.prism.gxz,
+                'gyy':fatiando.grav.prism.gyy,
+                'gyz':fatiando.grav.prism.gyz,
+                'gzz':fatiando.grav.prism.gzz}
 
 
 def clear():
@@ -115,7 +115,7 @@ def extract_data_vector(data, inplace=False):
       data: dictionary with the gravity component data as:
             {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
             If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.gravity.io
+            Each g*data is a data grid as loaded by fatiando.grav.io
             
       inplace: wether or not to erase the values in 'data' as they are put into
                the array (use to save memory when data set is large)
@@ -194,7 +194,7 @@ def residuals(data, estimate):
     Parameters:
     
       data: gravity field data in a dictionary (as loaded by 
-            fatiando.gravity.io)
+            fatiando.grav.io)
     
       estimate: array-like parameter vector produced by the inversion.
       
@@ -233,7 +233,7 @@ def calc_adjustment(estimate, grid=False):
       
       grid: if True, return a dictionary of grids like the one given to solve
             function.
-            (grids compatible with load and dump in fatiando.gravity.io and the
+            (grids compatible with load and dump in fatiando.grav.io and the
              plotters in fatiando.visualization).
             if False, return a data vector to use in inversion
     """
@@ -474,7 +474,7 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
             x = 0.5*(cell['x1'] + cell['x2'])
             y = 0.5*(cell['y1'] + cell['y2'])
             
-            kernel = fatiando.gravity.prism.gzz(1., cell['x1'], cell['x2'], 
+            kernel = fatiando.grav.prism.gzz(1., cell['x1'], cell['x2'], 
                                                 cell['y1'], cell['y2'], 
                                                 cell['z1'], cell['z2'], 
                                                 x, y, -grid_height)
@@ -539,7 +539,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
       data: dictionary with the gravity component data as:
             {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
             If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.gravity.io
+            Each g*data is a data grid as loaded by fatiando.grav.io
       
       mesh: model space discretization mesh (see geometry.prism_mesh function)
       
@@ -950,7 +950,7 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
       data: dictionary with the gravity component data as:
             {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
             If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.gravity.io
+            Each g*data is a data grid as loaded by fatiando.grav.io
       
       mesh: model space discretization mesh (see geometry.prism_mesh function)
       

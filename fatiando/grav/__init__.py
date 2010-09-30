@@ -20,6 +20,8 @@ A collection of gravimetry direct models and utilities.
 Modules:
   * prism: gravity and gradients for the right rectangular prism, eg Nagy et al.
           (2000)
+  * io: input and output of gravity related data
+  * synthetic: Create synthetic gravity data from various types of model
           
 Functions:
   * test: run the unit test suite for this package
@@ -30,7 +32,7 @@ __date__ = 'Created 16-Mar-2010'
 
 def test(label='fast', verbose=True):
     """
-    Runs the unit tests for the fatiando.gravity package.
+    Runs the unit tests for the fatiando.grav package.
 
     Parameters:
 
@@ -49,11 +51,11 @@ def test(label='fast', verbose=True):
 
     import unittest
 
-    import fatiando.gravity.tests
+    import fatiando.grav.tests
 
     suite = unittest.TestSuite()
     
-    suite.addTest(fatiando.gravity.tests.suite(label))
+    suite.addTest(fatiando.grav.tests.suite(label))
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)

@@ -4,6 +4,8 @@ General
     * Make tutorial for implementing new inversion
     * Change C code that uses arrays to Fortran
     * Make integration tests out of the examples
+    * Include references in the modules and functions and make automatic 
+      reference generation for scripts
     
 Inversion
     * Unit tests

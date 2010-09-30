@@ -18,7 +18,7 @@ import numpy
 from enthought.mayavi import mlab
 
 from fatiando.inversion import pgrav3d
-from fatiando.gravity import io
+from fatiando.grav import io
 import fatiando.geometry
 import fatiando.utils
 import fatiando.vis

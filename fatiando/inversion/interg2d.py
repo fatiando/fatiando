@@ -33,7 +33,7 @@ import logging
 import numpy
 
 import fatiando
-import fatiando.gravity.prism
+import fatiando.grav.prism
 from fatiando.inversion import solvers
 import fatiando.inversion.pgrav3d
 
@@ -47,13 +47,13 @@ log.addHandler(fatiando.default_log_handler)
 _mesh = None
 _data = None
 _data_vector = None
-_calculators = {'gz':fatiando.gravity.prism.gz,
-                'gxx':fatiando.gravity.prism.gxx,
-                'gxy':fatiando.gravity.prism.gxy,
-                'gxz':fatiando.gravity.prism.gxz,
-                'gyy':fatiando.gravity.prism.gyy,
-                'gyz':fatiando.gravity.prism.gyz,
-                'gzz':fatiando.gravity.prism.gzz}
+_calculators = {'gz':fatiando.grav.prism.gz,
+                'gxx':fatiando.grav.prism.gxx,
+                'gxy':fatiando.grav.prism.gxy,
+                'gxz':fatiando.grav.prism.gxz,
+                'gyy':fatiando.grav.prism.gyy,
+                'gyz':fatiando.grav.prism.gyz,
+                'gzz':fatiando.grav.prism.gzz}
 
 # The reference surface (top of the prisms) and density
 _ref_surf = None
@@ -278,7 +278,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
       data: dictionary with the gravity component data as:
             {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
             If there is no data for a given component, omit the respective key.
-            Each g*data is a data profile as loaded by fatiando.gravity.io
+            Each g*data is a data profile as loaded by fatiando.grav.io
       
       mesh: model space discretization mesh (see geometry.line_mesh function)
       
