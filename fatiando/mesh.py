@@ -33,7 +33,7 @@ import numpy
 
 import fatiando
 
-log = logging.getLogger('fatiando.geometry')  
+log = logging.getLogger('fatiando.mesh')  
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -202,6 +202,32 @@ def line_mesh(x1, x2, nx):
     return numpy.array(mesh)
     
 
+def extract_key(key, mesh):
+    """
+    Extract the values of key from each of cell of mesh
+    
+    Parameters:
+    
+      key: the key whose value will be extracted
+      
+      mesh: an arbitrary mesh
+      
+    Returns:
+      
+      ndarray of same shape as mesh filled with the key value of each mesh cell 
+    """
+    
+    res = []
+    
+    for cell in mesh.ravel():
+        
+        res.append(cell[key])
+        
+    res = numpy.reshape(res, mesh.shape)
+    
+    return res    
+    
+    
 def copy_mesh(mesh):
     """
     Make a copy of mesh.

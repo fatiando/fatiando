@@ -31,8 +31,8 @@ pickle.dump(model, modelfile)
 modelfile.close()
 
 # Shoot rays through the model simulating an X-ray tomography configuration
-data = synthetic.shoot_cartesian_straight(model, src_n=20, rec_n=10, 
-                                          type='xray', rec_span=45.)
+data = synthetic.shoot_cartesian_straight(model, src_n=60, rec_n=10, 
+                                          type='xray', rec_span=30.)
 
 # Contaminate the data with Gaussian noise
 data['traveltime'], error = fatiando.utils.contaminate(data['traveltime'], 
@@ -51,36 +51,35 @@ io.dump_traveltime('traveltimedata.txt', data)
 
 
 # PLOT THE SYNTHETIC DATA AND INVERSION RESULTS
-pylab.figure(figsize=(14,8))
-pylab.suptitle("X-ray simulation: Synthetic data", fontsize=14)
-
-pylab.subplot(1,2,1)
+pylab.figure()
 pylab.axis('scaled')
-pylab.title("Synthetic velocity model")
+pylab.title("X-ray simulation: Synthetic velocity model")
 ax = pylab.pcolor(model, cmap=pylab.cm.jet)
-cb = pylab.colorbar(shrink=0.6)
+cb = pylab.colorbar()
 cb.set_label("Velocity")
 pylab.xlim(0, model.shape[1])
 pylab.ylim(0, model.shape[0])
 
-pylab.subplot(2,2,2)
+pylab.figure()
 pylab.axis('scaled')
-pylab.title("Source and receiver locations")
+pylab.title("X-ray simulation: Source and receiver locations")
 pylab.pcolor(model, cmap=pylab.cm.jet)
 cb = pylab.colorbar()
 cb.set_label("Velocity")
-fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=6)
+fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=10)
+pylab.legend(numpoints=1, prop={'size':10}, shadow=True)
 pylab.xlim(-1.2*model.shape[1], 2.2*model.shape[1])
 pylab.ylim(-1.2*model.shape[0], 2.2*model.shape[0])
 
-pylab.subplot(2,2,4)
+pylab.figure()
 pylab.axis('scaled')
-pylab.title("Ray coverage")
+pylab.title("X-ray simulation: Ray coverage")
 pylab.pcolor(model, cmap=pylab.cm.jet)
 cb = pylab.colorbar()
 cb.set_label("Velocity")
 fatiando.vis.plot_ray_coverage(data['src'], data['rec'], '-k')
-fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=6)
+fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=10)
+pylab.legend(numpoints=1, prop={'size':10}, shadow=True)
 pylab.xlim(-1.2*model.shape[1], 2.2*model.shape[1])
 pylab.ylim(-1.2*model.shape[0], 2.2*model.shape[0])
 

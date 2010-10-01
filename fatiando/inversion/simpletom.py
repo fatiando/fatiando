@@ -46,6 +46,7 @@ _jacobian = None
 _mesh = None
 _sources = None
 _receivers = None
+_use_bounds = False
 
 
 def clear():
@@ -55,12 +56,13 @@ def clear():
     the garbage)
     """
     
-    global _jacobian, _mesh, _sources, _receivers
+    global _jacobian, _mesh, _sources, _receivers, _use_bounds
     
     _jacobian = None
     _mesh = None
     _sources = None
     _receivers = None
+    _use_bounds = False
 
 
 def fill_mesh(estimate, mesh):
@@ -203,6 +205,16 @@ def _calc_simpletom_adjustment(estimate):
     adjusted = numpy.dot(_jacobian, estimate)
     
     return adjusted
+
+
+def set_bounds(vmin, vmax):
+    """Set bounds on the velocity values"""
+    
+    global _use_bounds
+    
+    _use_bounds = True 
+    
+    solvers.set_bounds(1./vmax, 1./vmin)
         
         
 def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
@@ -262,7 +274,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     log.info("  sharpness  = %g" % (sharpness))
     log.info("  beta       = %g" % (beta))
         
-    global _mesh, _sources, _receivers
+    global _mesh, _sources, _receivers, _use_bounds
     
     _mesh = mesh
     
@@ -284,7 +296,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     solvers._build_first_deriv_matrix = _build_simpletom_first_deriv
     solvers._calc_adjustment = _calc_simpletom_adjustment
     
-    if sharpness == 0:
+    if sharpness == 0 and not _use_bounds:
         
         ndata = len(data_vector)
         nparams = mesh.size

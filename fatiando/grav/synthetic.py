@@ -60,7 +60,8 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
               
       nx, ny: number of data points in the x and y directions
       
-      height: height at which the data will be computed
+      height: height at which the data will be computed (scalar for constant
+              height or 1D array with height at each x,y pair)
       
       field: what component of the gravity field to calculate. Can be any one of
              'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
@@ -89,7 +90,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     
     data = {'z':-height*numpy.ones(nx*ny), 'value':numpy.zeros(nx*ny), 
             'error':numpy.zeros(nx*ny)}
-    
+               
     log.info("Generating synthetic %s data:" % (field))
     
     if grid == 'regular':

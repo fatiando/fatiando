@@ -19,7 +19,7 @@ from enthought.mayavi import mlab
 
 from fatiando.inversion import pgrav3d
 from fatiando.grav import io
-import fatiando.geometry
+import fatiando.mesh
 import fatiando.utils
 import fatiando.vis
 
@@ -37,7 +37,7 @@ synthetic = pickle.load(synth_file)
 synth_file.close()
 
 # Generate a model space mesh
-mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
+mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
                                     z1=0, z2=1600, nx=16, ny=16, nz=16)
 
 # Set the seeds and save them for later use
@@ -80,7 +80,7 @@ pgrav3d.fill_mesh(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
-distance_mesh = fatiando.geometry.copy_mesh(mesh)
+distance_mesh = fatiando.mesh.copy_mesh(mesh)
 pgrav3d.fill_mesh(pgrav3d._distances, distance_mesh)
 
 neighbor_mesh = []

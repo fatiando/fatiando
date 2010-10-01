@@ -19,7 +19,8 @@
 
 Functions:
   * clear: Erase garbage from previous inversions
-  * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
+  * fill_mesh: Fill the 'key' value of each cell of mesh with the values in the 
+               estimate
   * adjustment: Calculate the adjusted data produced by a given estimate
   * residuals: Calculate the residuals vector of a given estimate
   * set_bounds: Set bounds on the parameter values (depth of interface)
@@ -60,11 +61,11 @@ _ref_surf = None
 _ref_dens = None
 
 # How much to exaggerate the y dimension of the prisms to make them 2D
-exaggerate = 10
+exaggerate = 1000.
 _ysize = None
 
 # The size of the step in the finite differences derivative in the Jacobian
-deltaz = 1
+deltaz = 0.5
 
 
 def clear():
@@ -83,9 +84,9 @@ def clear():
     reload(solvers)
 
 
-def fill_mesh(estimate, mesh):
+def fill_mesh(estimate, mesh, key='value'):
     """
-    Fill the 'value' keys of mesh with the values in the estimate
+    Fill the 'key' value of each cell of mesh with the values in the estimate
     
     Parameters:
     
@@ -93,11 +94,13 @@ def fill_mesh(estimate, mesh):
       
       mesh: model space discretization mesh used in the inversion to produce the
             estimate (see geometry.line_mesh function)
+            
+      key: key in the mesh to fill
     """
         
     for value, cell in zip(estimate, mesh):
         
-        cell['value'] = value
+        cell[key] = value
 
 
 def _build_interg2d_jacobian(estimate):
@@ -117,7 +120,7 @@ def _build_interg2d_jacobian(estimate):
     
     for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
         
-        if field in _data.keys():
+        if field in _data:
             
             function = _calculators[field]
             
@@ -261,10 +264,10 @@ def residuals(estimate):
     return residuals
 
 
-def set_bounds(lower, upper):
+def set_bounds(vmin, vmax):
     """Set bounds on the parameter values (depth of interface)"""
     
-    solvers.set_bounds(lower, upper)
+    solvers.set_bounds(vmin, vmax)
 
         
 def solve(data, mesh, density, ref_surf=None, initial=None, damping=0, 
@@ -345,7 +348,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     
     for cell in mesh:
         
-        size = cell['x2'] - cell['x1']
+        size = abs(cell['x2'] - cell['x1'])
         
         if size > biggest:
             

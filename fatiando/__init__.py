@@ -25,7 +25,7 @@ Packages:
   * seismo: seismology and seismic
   * heat: geothermology
 Modules:
-  * geometry: mesh generation and handling geometric elements
+  * mesh: mesh generation and handling geometric elements
   * stats: statistical tests and utilities for inverse problems
   * utils: miscellaneous utilities
   * vis: visualization of results in 2D and 3D

@@ -86,11 +86,11 @@ if __name__ == '__main__':
     initial = 40*numpy.ones(nodes)
     initial[10:30] += 50
     
-    # Define the boundary conditions and free surfaces
-    start_bc, end_bc = diffusionfd1d.free_bc()
-    
     # Assume a homogeneous thermal diffusivity
     diffusivity = numpy.ones(nodes)
+    
+    # Define the boundary conditions and free surfaces
+    start_bc, end_bc = diffusionfd1d.free_bc()
     
     run(nodes, 20, deltax, deltat, initial, diffusivity)
     

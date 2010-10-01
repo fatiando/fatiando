@@ -22,7 +22,7 @@ import numpy
 
 from fatiando.seismo import io
 from fatiando.inversion import simpletom    
-import fatiando.geometry                            
+import fatiando.mesh                            
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
@@ -40,7 +40,7 @@ error = data['error'][0]
 # Make the model space mesh
 model_ny, model_nx = model.shape
 
-mesh = fatiando.geometry.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
+mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
                                      nx=model_nx, ny=model_ny)
 
 # Inversion parameters
@@ -87,7 +87,7 @@ for i in xrange(contam_times):
         
 # Calculate the standard deviation of the estimates
 stddev_estimate = fatiando.stats.stddev(estimates)
-std_mesh = fatiando.geometry.copy_mesh(mesh)
+std_mesh = fatiando.mesh.copy_mesh(mesh)
 simpletom.fill_mesh(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results

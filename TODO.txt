@@ -2,10 +2,12 @@ General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
     * Make tutorial for implementing new inversion
-    * Change C code that uses arrays to Fortran
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
+    * Move fill_mesh to to mesh.py 
+    Done:
+    * Change C code that uses arrays to Fortran
     
 Inversion
     * Unit tests
@@ -26,7 +28,8 @@ InterG
     * Unit tests
     * Make integration test
     * Use equality constraints
-    * Test the port to new solvers.py (maybe something wrong with TV)
+    * Doesn't work with topography because it has to match the inversion mesh
+      So make a function that "interpolates" the topo into the mesh
     Done:
     * Function descriptions in the docstring
     * Make visualizations
@@ -35,6 +38,7 @@ InterG
     * IO for inversion results and initial estimate
     * Use log barrier
     * Finish example scripts
+    * Test the port to new solvers.py (the problem was in exaggerate)
     
 PGrav
     * Testar remover celula quando redistribui
@@ -66,9 +70,9 @@ Simpletom:
     * Unit tests
     * IO for initial estimate
     * Use equality constraints
-    * Use log barrier
 
     Done:
+    * Use log barrier
     * Put versbose in solve and make_mesh
     * Port to the new solvers.py
     * Make visualizations
