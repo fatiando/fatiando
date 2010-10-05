@@ -54,7 +54,7 @@ pickle.dump(seeds, seed_file)
 seed_file.close()
 
 # Inversion parameters
-mmi = 1*10**(-2)
+mmi = 1*10**(0)
 power = 3
 apriori_variance = 0.1**2
 

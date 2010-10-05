@@ -5,9 +5,9 @@ General
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
-    * Move fill_mesh to to mesh.py 
     Done:
     * Change C code that uses arrays to Fortran
+    * Move fill_mesh to to mesh.py 
     
 Inversion
     * Unit tests
@@ -41,10 +41,10 @@ InterG
     * Test the port to new solvers.py (the problem was in exaggerate)
     
 PGrav
+    * Something wrong with removing neighbors when rearanging
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
     * Aumentar regularizador quando redistribui
-    * Redistribute only the farthest
     * Put redistribution in a separate function so that I can call it whenever
       I want later
     * Build sensibility in Fortran
@@ -54,6 +54,7 @@ PGrav
     * Make integration test
     * Use equality constraints
     Done:
+    * Redistribute only the farthest
     * Aglutinar uma celula por semente (no minimo)
     * Redistribuir somente na borda
     * Restrict common neighbors for seeds 

@@ -33,6 +33,7 @@ __date__ = 'Created 14-Jun-2010'
 
 import time
 import logging
+import bisect
 
 import numpy
 
@@ -702,7 +703,7 @@ def _calc_mmi_goal(estimate, mmi, power, seeds):
     return goal, msg
 
 
-def _add_neighbors(param, neighbors, seeds, mesh, marked):
+def _add_neighbors(param, neighbors, seeds, mesh):
     """Add the neighbors of 'param' in 'mesh' to 'neighbors'.
     
     Parameters:
@@ -714,8 +715,6 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
       seeds: list of all seeds. Used to check for repeating neighbors
       
       mesh: the model space mesh
-      
-      marked: list of the marked parameter lists per seed
     """
     
     nz, ny, nx = mesh.shape
@@ -733,7 +732,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -750,7 +749,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -767,7 +766,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -784,7 +783,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -801,7 +800,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -818,7 +817,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -832,7 +831,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -845,7 +844,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -858,7 +857,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -871,7 +870,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -884,7 +883,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -897,7 +896,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -910,7 +909,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -923,7 +922,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -936,7 +935,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -949,7 +948,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -962,7 +961,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -975,7 +974,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -988,7 +987,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1001,7 +1000,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1014,7 +1013,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1027,7 +1026,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1040,7 +1039,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1053,7 +1052,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1066,7 +1065,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1079,7 +1078,7 @@ def _add_neighbors(param, neighbors, seeds, mesh, marked):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in marked_per_seed for marked_per_seed in marked]
+        is_marked = [neighbor in seed['marked'] for seed in seeds]
         
         if True not in is_neighbor and True not in is_marked:
         
@@ -1123,7 +1122,7 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
     
-    global _mesh, _data, _jacobian
+    global _mesh, _data, _jacobian, _distances
 
     _mesh = mesh
     
@@ -1136,15 +1135,17 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     for seed in seeds:
         
         estimate[seed['param']] = seed['density']
-    
-    # To keep track of which cell was appended to which seed (used to rearange)
-    marked = [[seed['param']] for seed in seeds]
-                    
+                        
     for seed in seeds:
+        
+        # To keep track of which cell was appended to which seed and how far it
+        # is from it (used to rearange)
+        seed['marked'] = [seed['param']]
+        seed['distances'] = [0]
         
         # Don't send all seeds to _add_neighbors to fool it into allowing common
         # neighbors between the seeds. The conflicts will be resolved later
-        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh, marked)
+        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh)
         
     # Resolve the conflicts in the neighbors. If the conflicting seeds have 
     # different densities, an AttributeError will be raised.
@@ -1188,7 +1189,8 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
     
     rms = (residuals*residuals).sum()
     
-    goals = [rms + reg_goal] 
+    goals = [rms + reg_goal]
+    rmss = [rms]
     
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
@@ -1216,10 +1218,10 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
             
             # Want to find the neighbor that decreases the goal function the 
             # most
-            best_goal = goals[-1]
+            best_goal = None
             best_neighbor = None
-            # Only used for verbose
             best_rms = None
+            # Only used for verbose
             best_msg = None
             
             density = seed['density']
@@ -1238,12 +1240,14 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 
                 goal = rms + reg_goal
                 
-                if goal < best_goal:
+                if rms < rmss[-1]:
                     
-                    best_neighbor = neighbor
-                    best_goal = goal
-                    best_rms = rms
-                    best_msg = msg
+                    if best_goal is None or goal < best_goal:
+                    
+                        best_neighbor = neighbor
+                        best_goal = goal
+                        best_rms = rms
+                        best_msg = msg
                  
             if best_neighbor is not None:
                     
@@ -1255,12 +1259,16 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
                 
                 goals.append(best_goal)
                 
-                marked[seed_num].append(best_neighbor)
-                                                    
+                rmss.append(best_rms)
+                
+                # Keep the farthest in the back of the list.
+                i = bisect.bisect(seed['distances'], _distances[best_neighbor])
+                seed['distances'].insert(i, _distances[best_neighbor])
+                seed['marked'].insert(i, best_neighbor)
+                    
                 seed['neighbors'].remove(best_neighbor)     
                     
-                _add_neighbors(best_neighbor, seed['neighbors'], seeds, mesh, 
-                               marked)
+                _add_neighbors(best_neighbor, seed['neighbors'], seeds, mesh)
                 
                 log.info("    append to seed %d: RMS=%g%s TOTAL=%g" 
                          % (seed_num + 1, best_rms, best_msg, best_goal))
@@ -1274,139 +1282,133 @@ def grow(data, mesh, seeds, mmi, power=5, apriori_variance=1):
             for seed_num, seed in enumerate(seeds):
                 
                 # Only rearange the one that decreses the goal function the most 
-                best_goal = goals[-1]
+                best_goal = None
                 best_param = None
-                param_to_remove = None
                 best_rms = None
                 best_msg = None
-                best_neighbors = None
                 
                 density = seed['density']
                 
                 reduced_seeds = list(seeds)
                 reduced_seeds.remove(seed)
-                
-                reduced_marked = list(marked)
-                marked_per_seed = reduced_marked.pop(seed_num)
-                
-                # Don't check the seed (first marked param)
-                for param in marked_per_seed[1:]:
-                    
-                    # Find out how many unmarked neighbors this guy still has
-                    # Need to pass seeds with out the current seed because
-                    # _add_neighbors doesn't add neighbors already in 
-                    # seed['neighbors'] 
-                    param_neighbors = []                    
-                    _add_neighbors(param, param_neighbors, reduced_seeds, mesh, 
-                                   marked)
-            
-                    # Only try to rearange the cells that still have unmarked
-                    # neighbors (outer cells)
-                    if not param_neighbors:
-                        
-                        continue
-                    
-                    # Remove the effect of 'param' from the adjusted data
-                    tmp_residuals = residuals + density*_jacobian[param]
-        
-                    # Remove 'param's sole neighbors
-                    tmp_neighbors = list(seed['neighbors'])
-                    append_neighbor = tmp_neighbors.append
-                    remove_neighbor = tmp_neighbors.remove
-                    
-                    for neighbor in param_neighbors:
-                                      
-                        # If it wasn't on the list of seed, this means that it
-                        # was previously a neighbor of some other seed that was 
-                        # removed from it's list due to rearanging. So append it
-                        # to this seed because it is now available as a neighbor
-                        if neighbor not in seed['neighbors']:
-                        
-                            seed['neighbors'].append(neighbor)
-                            append_neighbor(neighbor)
-                        
-                        # If the neighbor has all possible neighbors available, 
-                        # then it is a sole neighbor of 'param'
-                        available_neighbors = [param]
-                        _add_neighbors(neighbor, available_neighbors, 
-                                       reduced_seeds, mesh, marked)
-                        
-                        # Pass the 'marked' list without the current seed's
-                        # marked to get the list of all possible neighbors if
-                        # none had been marked. Used to compare with the 
-                        # available_neighbors
-                        all_neighbors = []
-                        _add_neighbors(neighbor, all_neighbors, 
-                                       reduced_seeds, mesh, reduced_marked)
-                        
-                        if len(available_neighbors) == len(all_neighbors):
-                                                            
-                            remove_neighbor(neighbor)
                                 
-                    # 'param' is not added to the neighbor list because putting
-                    # it back should not be an option
-                                               
-                    # Will put this back when done checking
-                    estimate[param] = 0.
+                # Try to move the farthest away (0 is the seed)
+                param = seed['marked'][-1]
+                                    
+                # Find out how many unmarked neighbors this guy still has
+                # Need to pass seeds with out the current seed because
+                # _add_neighbors doesn't add neighbors already in 
+                # seed['neighbors'] 
+                param_neighbors = []                    
+                _add_neighbors(param, param_neighbors, reduced_seeds, mesh)
+            
+                # Only try to rearange the cells that still have unmarked
+                # neighbors (outer cells)
+                if not param_neighbors:
                     
-                    for neighbor in tmp_neighbors:
+                    continue
+                    
+                # Remove the effect of 'param' from the adjusted data
+                tmp_residuals = residuals + density*_jacobian[param]
+        
+                # Remove 'param's sole neighbors
+                tmp_neighbors = list(seed['neighbors'])
+                append_neighbor = tmp_neighbors.append
+                remove_neighbor = tmp_neighbors.remove
+                
+                for neighbor in param_neighbors:
+                                  
+                    # If it wasn't on the list of seed, this means that it
+                    # was previously a neighbor of some other seed that was 
+                    # removed from it's list due to rearanging. So append it
+                    # to this seed because it is now available as a neighbor
+                    if neighbor not in seed['neighbors']:
+                    
+                        seed['neighbors'].append(neighbor)
+                        append_neighbor(neighbor)
+                    
+                    # If the neighbor has all possible neighbors available, 
+                    # then it is a sole neighbor of 'param'
+                    available_neighbors = [param]
+                    _add_neighbors(neighbor, available_neighbors, reduced_seeds,
+                                   mesh)
+                    
+                    # Pass the 'marked' list without the current seed's
+                    # marked to get the list of all possible neighbors if
+                    # none had been marked. Used to compare with the 
+                    # available_neighbors
+                    all_neighbors = []
+                    _add_neighbors(neighbor, all_neighbors, reduced_seeds, mesh)
+                    
+                    if len(available_neighbors) == len(all_neighbors):
+                                                        
+                        remove_neighbor(neighbor)
+                                                                
+                # 'param' is not added to the neighbor list because putting
+                # it back should not be an option
+                                                               
+                # Will put this back when done checking
+                estimate[param] = 0.
+                
+                for neighbor in tmp_neighbors:
+                    
+                    new_residuals = tmp_residuals - density*_jacobian[neighbor]
+                    
+                    rms = (new_residuals*new_residuals).sum()
+                    
+                    estimate[neighbor] = density
+                    
+                    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
+                    
+                    estimate[neighbor] = 0.
+                    
+                    goal = rms + reg_goal
+                    
+                    if rms < rmss[-1]:
                         
-                        new_residuals = (tmp_residuals - 
-                                         density*_jacobian[neighbor])
+                        if best_goal is None or goal < best_goal:
                         
-                        rms = (new_residuals*new_residuals).sum()
-                        
-                        estimate[neighbor] = density
-                        
-                        reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, 
-                                                       seeds)
-                        
-                        estimate[neighbor] = 0.
-                        
-                        goal = rms + reg_goal
-                        
-                        if goal < best_goal:
-                            
                             best_goal = goal
                             best_param = neighbor
-                            param_to_remove = param
                             best_rms = rms
                             best_msg = msg
-                            
-                            # These are the neighbors of seed without the sole
-                            # neighbors of 'param' and still not including the
-                            # neighbors of the new best
-                            best_neighbors = tmp_neighbors
-                            
-                    # Put 'param' back and go try to rearange another one
-                    estimate[param] = density                        
+                                                    
+                # Put 'param' back
+                estimate[param] = density
                     
                 if best_param is not None:
                             
                     rearanged = True
                                         
-                    estimate[param_to_remove] = 0.
+                    estimate[param] = 0.
                     
-                    residuals += density*_jacobian[param_to_remove]
+                    residuals += density*_jacobian[param]
                     
                     estimate[best_param] = density
                     
                     residuals -= density*_jacobian[best_param]
                     
                     goals.append(best_goal)
+                
+                    rmss.append(best_rms)
                     
-                    marked[seed_num].remove(param_to_remove)
+                    # Permanently remove the param from the marked list
+                    i = seed['marked'].index(param)                    
+                    seed['marked'].pop(i)
+                    seed['distances'].pop(i)
                     
-                    marked[seed_num].append(best_param)
+                    # Keep the farthest in the back of the list.
+                    i = bisect.bisect(seed['distances'], _distances[best_param])
+                    seed['distances'].insert(i, _distances[best_param])
+                    seed['marked'].insert(i, best_param)
                     
-                    seed['neighbors'] = best_neighbors
+                    seed['neighbors'] = tmp_neighbors
                     
-                    seed['neighbors'].append(param_to_remove)
+                    seed['neighbors'].append(param)
                     
                     seed['neighbors'].remove(best_param)
                     
-                    _add_neighbors(best_param, seed['neighbors'], seeds, mesh, 
-                                   marked)
+                    _add_neighbors(best_param, seed['neighbors'], seeds, mesh)
                 
                     log.info("    rearanged in seed %d: RMS=%g%s TOTAL=%g" 
                              % (seed_num + 1, best_rms, best_msg, best_goal))
