@@ -80,7 +80,7 @@ pgrav3d.fill_mesh(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
-distance_mesh = fatiando.mesh.copy_mesh(mesh)
+distance_mesh = fatiando.mesh.copy(mesh)
 pgrav3d.fill_mesh(pgrav3d._distances, distance_mesh)
 
 neighbor_mesh = []

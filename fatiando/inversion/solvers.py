@@ -563,13 +563,13 @@ def _revert_log_barrier(correction, prev):
     return corr_reverted
 
 
-def set_bounds(lower, upper):
+def set_bounds(vmin, vmax):
     """Set upper and lower bounds on the parameter values."""
     
     global _lower, _upper, _apply_variable_change, _revert_variable_change
     
-    _lower = lower
-    _upper = upper
+    _lower = vmin
+    _upper = vmax
     
     _apply_variable_change = _apply_log_barrier
     _revert_variable_change = _revert_log_barrier

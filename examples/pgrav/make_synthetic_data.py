@@ -4,12 +4,6 @@ Make some synthetic FTG data.
 
 
 import pickle
-import logging
-log = logging.getLogger()
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter())
-log.addHandler(handler)
-log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
@@ -19,10 +13,11 @@ from fatiando.grav import synthetic, io
 import fatiando.utils
 import fatiando.vis
 
+# Get a logger for the script
+log = fatiando.utils.get_logger()
+
 prisms = []
 prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':600,
-               'value':500})
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':800, 'z2':1200,
                'value':1000})
 
 prisms = numpy.array(prisms)

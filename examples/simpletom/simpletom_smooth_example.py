@@ -4,7 +4,6 @@ for smoothness.
 """
 
 import pickle
-import logging
 
 import pylab
 import numpy
@@ -39,7 +38,7 @@ mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny,
 initial = 1.5*numpy.ones(mesh.size)
 damping = 10**(-5)
 smoothness = 0
-curvature = 2*10**(0)
+curvature = 2*10**(-2)
 lm_start = 0.1
 
 simpletom.set_bounds(1., 5.)
@@ -49,7 +48,7 @@ estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness,
                                   curvature, lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
-simpletom.fill_mesh(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh)
 
 # Calculate the residuals
 residuals = simpletom.residuals(data, estimate)
@@ -79,8 +78,8 @@ for i in xrange(contam_times):
         
 # Calculate the standard deviation of the estimates
 stddev_estimate = fatiando.stats.stddev(estimates)
-std_mesh = fatiando.mesh.copy_mesh(mesh)
-simpletom.fill_mesh(stddev_estimate, std_mesh)
+std_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results
 pylab.figure(figsize=(12,8))

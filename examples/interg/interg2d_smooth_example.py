@@ -50,8 +50,8 @@ estimate, goals = interg2d.solve(data, mesh, density, ref_surf, initial,
                                  beta, lm_start=lm_start)
 
 # Fill in the mesh with the inversion results
-interg2d.fill_mesh(estimate, mesh, key='z2')
-interg2d.fill_mesh(ref_surf, mesh, key='z1')
+fatiando.mesh.fill(estimate, mesh, key='z2')
+fatiando.mesh.fill(ref_surf, mesh, key='z1')
 
 # Pickle the result to use later
 resultfile = open("result.pickle", 'w')
@@ -120,14 +120,14 @@ fatiando.vis.plot_2d_interface(synthetic, key='z2', style='-r', linewidth=1,
                                label='Synthetic', fill=synthetic, fillkey='z1',
                                fillcolor='r', alpha=0.5)
 # Initial estimate
-initial_mesh = fatiando.mesh.copy_mesh(mesh)
-interg2d.fill_mesh(initial, initial_mesh)
+initial_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(initial, initial_mesh)
 fatiando.vis.plot_2d_interface(initial_mesh, style='-.g', label='Initial')
 
 # Also plot the stability estimates
 for new_estimate in estimates:    
-    new_mesh = fatiando.mesh.copy_mesh(mesh)
-    interg2d.fill_mesh(new_estimate, new_mesh, key='z2')
+    new_mesh = fatiando.mesh.copy(mesh)
+    fatiando.mesh.fill(new_estimate, new_mesh, key='z2')
     plot = fatiando.vis.plot_2d_interface(new_mesh, key='z2', style='-b', 
                                           linewidth=1)
 plot.set_label("Dispersion")   

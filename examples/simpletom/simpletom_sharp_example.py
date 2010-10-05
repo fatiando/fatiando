@@ -36,14 +36,14 @@ mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny,
 
 # Inversion parameters
 initial = 2.*numpy.ones(mesh.size)
-damping = 10**(-7)
+damping = 1*10**(-3)
 smoothness = 0
 curvature = 0
-sharpness = 4*10**(-1)
-beta = 10**(-4)
-lm_start = 1
+sharpness = 5*10**(-1)
+beta = 10**(-2)
+lm_start = 100
 
-simpletom.set_bounds(1, 5)
+simpletom.set_bounds(1., 5.)
 
 # Solve
 estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness, 
@@ -51,7 +51,7 @@ estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness,
                                   lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
-simpletom.fill_mesh(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh)
 
 # Calculate the residuals
 residuals = simpletom.residuals(data, estimate)
@@ -81,8 +81,8 @@ for i in xrange(contam_times):
         
 # Calculate the standard deviation of the estimates
 stddev_estimate = fatiando.stats.stddev(estimates)
-std_mesh = fatiando.mesh.copy_mesh(mesh)
-simpletom.fill_mesh(stddev_estimate, std_mesh)
+std_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results
 pylab.figure(figsize=(12,8))
@@ -113,7 +113,8 @@ pylab.subplot(2,2,3)
 pylab.axis('scaled')
 pylab.title("Result Standard Deviation")
 fatiando.vis.plot_square_mesh(std_mesh)
-pylab.colorbar()
+cb = pylab.colorbar()
+cb.set_label("Velocity")
 pylab.xlim(0, model.shape[1])
 pylab.ylim(0, model.shape[0])
 

@@ -3,7 +3,6 @@ Make synthetic travel time data based on an image model.
 """
 
 import pickle
-import logging
 
 import pylab
 import numpy
@@ -13,18 +12,18 @@ import fatiando.utils
 import fatiando.vis
                     
 # Make a logger for the script
-log = logging.getLogger()
+log = fatiando.utils.get_logger()
                
 # Load the image model and convert it to a velocity model
-model = synthetic.vel_from_image('model.jpg', vmax=5, vmin=1)
+model = synthetic.vel_from_image('model.jpg', vmax=5., vmin=1.)
 
 modelfile = open("model.pickle", 'w')
 pickle.dump(model, modelfile)
 modelfile.close()
 
 # Shoot rays through the model simulating an X-ray tomography configuration
-data = synthetic.shoot_cartesian_straight(model, src_n=60, rec_n=10, 
-                                          type='xray', rec_span=30.)
+data = synthetic.shoot_cartesian_straight(model, src_n=10, rec_n=10, 
+                                          type='xray', rec_span=45.)
 
 # Contaminate the data with Gaussian noise
 data['traveltime'], error = fatiando.utils.contaminate(data['traveltime'], 

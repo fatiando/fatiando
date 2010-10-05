@@ -19,8 +19,6 @@
 
 Functions:
   * clear: Erase garbage from previous inversions
-  * fill_mesh: Fill the 'key' value of each cell of mesh with the values in the 
-               estimate
   * adjustment: Calculate the adjusted data produced by a given estimate
   * residuals: Calculate the residuals vector of a given estimate
   * set_bounds: Set bounds on the parameter values (depth of interface)
@@ -82,25 +80,6 @@ def clear():
     _ref_dens = None
     _ysize = None
     reload(solvers)
-
-
-def fill_mesh(estimate, mesh, key='value'):
-    """
-    Fill the 'key' value of each cell of mesh with the values in the estimate
-    
-    Parameters:
-    
-      estimate: array-like parameter vector produced by the inversion
-      
-      mesh: model space discretization mesh used in the inversion to produce the
-            estimate (see geometry.line_mesh function)
-            
-      key: key in the mesh to fill
-    """
-        
-    for value, cell in zip(estimate, mesh):
-        
-        cell[key] = value
 
 
 def _build_interg2d_jacobian(estimate):
@@ -266,6 +245,10 @@ def residuals(estimate):
 
 def set_bounds(vmin, vmax):
     """Set bounds on the parameter values (depth of interface)"""
+    
+    log.info("Setting bounds on parameter values:")
+    log.info("  vmin: %g" % (vmin))
+    log.info("  vmax: %g" % (vmax))
     
     solvers.set_bounds(vmin, vmax)
 

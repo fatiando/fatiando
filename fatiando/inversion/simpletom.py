@@ -22,7 +22,6 @@ Functions:
   * clear: Erase garbage from previous inversions
   * solve: Solve the tomography problem for a given data set and model mesh
   * residuals: Calculate the residuals produced by a given estimate
-  * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
@@ -63,27 +62,6 @@ def clear():
     _sources = None
     _receivers = None
     _use_bounds = False
-
-
-def fill_mesh(estimate, mesh):
-    """
-    Fill the 'value' keys of mesh with the values in the estimate
-    
-    Parameters:
-    
-      estimate: array-like parameter vector produced by the inversion
-      
-      mesh: model space discretization mesh used in the inversion to produce the
-            estimate (see geometry.square_mesh function)
-    """
-            
-    estimate_matrix = numpy.reshape(estimate, mesh.shape)
-        
-    for i, line in enumerate(mesh):
-        
-        for j, cell in enumerate(line):
-            
-            cell['value'] = estimate_matrix[i][j]
 
 
 def residuals(data, estimate):
@@ -213,6 +191,10 @@ def set_bounds(vmin, vmax):
     global _use_bounds
     
     _use_bounds = True 
+    
+    log.info("Setting bounds on velocity values:")
+    log.info("  vmin: %g" % (vmin))
+    log.info("  vmax: %g" % (vmax))
     
     solvers.set_bounds(1./vmax, 1./vmin)
         
