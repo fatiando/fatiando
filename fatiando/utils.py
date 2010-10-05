@@ -20,12 +20,63 @@ Set of misc utility functions.
 Functions:
   * contaminate: Add random noise to a data array
   * extract_matrices: Extract value and x and y coordinate matrices from grid
+  * get_logger: Get a logger to stderr
+  * set_logfile: Enable logging to a file.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 07-Mar-2010'
 
 
+import logging
+
 import numpy
+
+
+def get_logger(level=logging.DEBUG):
+    """
+    Get a logger to stderr
+    
+    Parameters:
+    
+      level: the logging level. Default: logging.DEBUG. See logging module
+      
+    Returns:
+    
+      the root logger
+    """
+    
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter())
+    logger.addHandler(handler)    
+    logger.setLevel(level)
+
+    return logger
+
+
+def set_logfile(fname, level=logging.DEBUG):
+    """
+    Enable logging to a file.
+    (Adds a file handler to the root logger)
+    
+    Parameters:
+    
+      fname: log file name
+      
+      level: the logging level. Default: logging.DEBUG. See logging module
+      
+    Returns:
+    
+      the root logger 
+    """
+    
+    logger = logging.getLogger()
+    fhandler = logging.FileHandler(fname, 'w')
+    fhandler.setFormatter(logging.Formatter())
+    logger.addHandler(fhandler)
+    logger.setLevel(level)
+    
+    return logger
 
 
 def contaminate(data, stddev, percent=True, return_stddev=False):

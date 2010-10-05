@@ -5,24 +5,16 @@ Make synthetic travel time data based on an image model.
 import pickle
 import logging
 
-# Configure the logging output to print to stderr
-baselog = logging.getLogger()
-stderrhandle = logging.StreamHandler()
-stderrhandle.setFormatter(logging.Formatter())
-baselog.addHandler(stderrhandle)
-baselog.setLevel(logging.DEBUG)
-
-# Make a logger for the script
-log = logging.getLogger('script')
-log.setLevel(logging.DEBUG)
-
 import pylab
 import numpy
 
 from fatiando.seismo import synthetic, io                           
 import fatiando.utils
 import fatiando.vis
-                                   
+                    
+# Make a logger for the script
+log = logging.getLogger()
+               
 # Load the image model and convert it to a velocity model
 model = synthetic.vel_from_image('model.jpg', vmax=5, vmin=1)
 

@@ -6,17 +6,6 @@ for smoothness.
 import pickle
 import logging
 
-# Configure the logging output to print to stderr
-baselog = logging.getLogger()
-stderrhandle = logging.StreamHandler()
-stderrhandle.setFormatter(logging.Formatter())
-baselog.addHandler(stderrhandle)
-baselog.setLevel(logging.DEBUG)
-
-# Make a logger for the script
-log = logging.getLogger('script')
-log.setLevel(logging.DEBUG)
-
 import pylab
 import numpy
 
@@ -26,6 +15,9 @@ import fatiando.mesh
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
+
+# Make a logger for the script
+log = fatiando.utils.get_logger()
 
 # Load the synthetic model for comparison
 modelfile = open("model.pickle")

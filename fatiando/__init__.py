@@ -36,11 +36,9 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
 
-# Set the default handler to the class loggers. 
-# By default, logging is set to stderr.
+# Create a default NullHandler so that logging is only enabled explicitly
 ################################################################################ 
 import logging
-import sys
 
 class NullHandler(logging.Handler):
     
@@ -48,7 +46,6 @@ class NullHandler(logging.Handler):
         
         pass
 
-# Create console handler and set level to debug
 default_log_handler = NullHandler()
 ################################################################################
 

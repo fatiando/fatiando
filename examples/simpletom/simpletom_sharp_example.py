@@ -4,18 +4,6 @@ regularization for sharpness.
 """
 
 import pickle
-import logging
-
-# Configure the logging output to print to stderr
-baselog = logging.getLogger()
-stderrhandle = logging.StreamHandler()
-stderrhandle.setFormatter(logging.Formatter())
-baselog.addHandler(stderrhandle)
-baselog.setLevel(logging.DEBUG)
-
-# Make a logger for the script
-log = logging.getLogger('script')
-log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
@@ -26,6 +14,9 @@ import fatiando.mesh
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
+
+# Make a logger for the script
+log = fatiando.utils.get_logger()
 
 # Load the synthetic model for comparison
 modelfile = open("model.pickle")
@@ -44,17 +35,20 @@ mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny,
                                      nx=model_nx, ny=model_ny)
 
 # Inversion parameters
-initial = numpy.ones(mesh.size)
+initial = 2.*numpy.ones(mesh.size)
 damping = 10**(-7)
 smoothness = 0
 curvature = 0
-sharpness = 3*10**(-1)
+sharpness = 4*10**(-1)
 beta = 10**(-4)
+lm_start = 1
+
+simpletom.set_bounds(1, 5)
 
 # Solve
 estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness, 
                                   curvature, sharpness, beta, 
-                                  lm_start=1)
+                                  lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
 simpletom.fill_mesh(estimate, mesh)
@@ -81,7 +75,7 @@ for i in xrange(contam_times):
     
     new_estimate, new_goal = simpletom.solve(cont_data, mesh, initial, damping, 
                                              smoothness, curvature, sharpness, 
-                                             beta, lm_start=1)
+                                             beta, lm_start=lm_start)
     
     estimates.append(new_estimate)
         

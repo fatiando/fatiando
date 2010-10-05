@@ -3,16 +3,6 @@ Invert a gravity profile for the relief of a basin using Smoothness.
 """
 
 import pickle
-import logging
-log = logging.getLogger()
-shandler = logging.StreamHandler()
-shandler.setFormatter(logging.Formatter())
-log.addHandler(shandler)
-# Save the verbose to a log file
-fhandler = logging.FileHandler("interg2d_smooth_example.log", 'w')
-fhandler.setFormatter(logging.Formatter())
-log.addHandler(fhandler)
-log.setLevel(logging.DEBUG)
 
 import numpy
 import pylab
@@ -23,6 +13,12 @@ import fatiando.mesh
 import fatiando.utils
 import fatiando.vis
 
+
+# Get a logger for the script
+log = fatiando.utils.get_logger()
+
+# Set logging to a file
+fatiando.utils.set_logfile("interg2d_smooth_example.log")
 
 # Load up the gravity data and the synthetic model
 data = {}

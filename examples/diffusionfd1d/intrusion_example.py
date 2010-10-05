@@ -3,17 +3,14 @@ Run a 1D finite differences simulation of the heat diffusion of a hotter
 intrusion.
 """
 
-import logging
-log = logging.getLogger()
-shandler = logging.StreamHandler()
-shandler.setFormatter(logging.Formatter())
-log.addHandler(shandler)
-log.setLevel(logging.DEBUG)
-
 import numpy
 import pylab
 
 from fatiando.heat import diffusionfd1d
+import fatiando.utils
+
+
+log = fatiando.utils.get_logger()
 
 
 def snapshots(nodes, times, deltax, deltat, initial, diffusivity):
