@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create, load and dump synthetic gravity data.
+Create synthetic gravity data from various types of model.
 
 Functions:
   * from_prisms: Create synthetic data from a prism model
@@ -29,12 +29,12 @@ import logging
 import numpy
 
 import fatiando
-import fatiando.gravity.prism
+import fatiando.grav.prism
 
 
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.gravity.synthetic')       
+log = logging.getLogger('fatiando.grav.synthetic')       
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -60,7 +60,8 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
               
       nx, ny: number of data points in the x and y directions
       
-      height: height at which the data will be computed
+      height: height at which the data will be computed (scalar for constant
+              height or 1D array with height at each x,y pair)
       
       field: what component of the gravity field to calculate. Can be any one of
              'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
@@ -77,19 +78,19 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     
     assert grid in ['regular', 'random'], "Invalid grid type '%s'" % (grid)
     
-    fields = {'gz':fatiando.gravity.prism.gz, 
-              'gxx':fatiando.gravity.prism.gxx, 
-              'gxy':fatiando.gravity.prism.gxy, 
-              'gxz':fatiando.gravity.prism.gxz, 
-              'gyy':fatiando.gravity.prism.gyy, 
-              'gyz':fatiando.gravity.prism.gyz, 
-              'gzz':fatiando.gravity.prism.gzz}    
+    fields = {'gz':fatiando.grav.prism.gz, 
+              'gxx':fatiando.grav.prism.gxx, 
+              'gxy':fatiando.grav.prism.gxy, 
+              'gxz':fatiando.grav.prism.gxz, 
+              'gyy':fatiando.grav.prism.gyy, 
+              'gyz':fatiando.grav.prism.gyz, 
+              'gzz':fatiando.grav.prism.gzz}    
     
     assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
     
     data = {'z':-height*numpy.ones(nx*ny), 'value':numpy.zeros(nx*ny), 
             'error':numpy.zeros(nx*ny)}
-    
+               
     log.info("Generating synthetic %s data:" % (field))
     
     if grid == 'regular':
@@ -166,7 +167,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
                                  prism['x1'], prism['x2'], 
                                  prism['y1'], prism['y2'], 
                                  prism['z1'], prism['z2'], 
-                                 x, y, z)
+                                 float(x), float(y), float(z))
             
     log.info("  data points = %d" % (len(data['value'])))
     

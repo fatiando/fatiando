@@ -444,14 +444,14 @@ def _sum_tv_gradient(gradient, estimate):
       estimate: array-like current estimate
     """
         
-    global _first_deriv
+    global _first_deriv, beta, sharpness
     
     if _first_deriv is None:
         
         _first_deriv = _build_first_deriv_matrix()
         
     derivatives = numpy.dot(_first_deriv, estimate)
-        
+            
     d = derivatives/numpy.sqrt(derivatives**2 + beta)
     
     gradient += sharpness*numpy.dot(_first_deriv.T, d)
@@ -563,13 +563,13 @@ def _revert_log_barrier(correction, prev):
     return corr_reverted
 
 
-def set_bounds(lower, upper):
+def set_bounds(vmin, vmax):
     """Set upper and lower bounds on the parameter values."""
     
     global _lower, _upper, _apply_variable_change, _revert_variable_change
     
-    _lower = lower
-    _upper = upper
+    _lower = vmin
+    _upper = vmax
     
     _apply_variable_change = _apply_log_barrier
     _revert_variable_change = _revert_log_barrier

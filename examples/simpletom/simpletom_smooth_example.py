@@ -4,28 +4,19 @@ for smoothness.
 """
 
 import pickle
-import logging
-
-# Configure the logging output to print to stderr
-baselog = logging.getLogger()
-stderrhandle = logging.StreamHandler()
-stderrhandle.setFormatter(logging.Formatter())
-baselog.addHandler(stderrhandle)
-baselog.setLevel(logging.DEBUG)
-
-# Make a logger for the script
-log = logging.getLogger('script')
-log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
 
 from fatiando.seismo import io
 from fatiando.inversion import simpletom
-import fatiando.geometry
+import fatiando.mesh
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
+
+# Make a logger for the script
+log = fatiando.utils.get_logger()
 
 # Load the synthetic model for comparison
 modelfile = open("model.pickle")
@@ -40,21 +31,24 @@ error = data['error'][0]
 # Make the model space mesh
 model_ny, model_nx = model.shape
 
-mesh = fatiando.geometry.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
+mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
                                      nx=model_nx, ny=model_ny)
 
 # Inversion parameters
-initial = numpy.ones(mesh.size)
+initial = 1.5*numpy.ones(mesh.size)
 damping = 10**(-5)
 smoothness = 0
-curvature = 2*10**(0)
+curvature = 2*10**(-2)
+lm_start = 0.1
+
+simpletom.set_bounds(1., 5.)
 
 # Solve
 estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness, 
-                                  curvature, lm_start=1)
+                                  curvature, lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
-simpletom.fill_mesh(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh)
 
 # Calculate the residuals
 residuals = simpletom.residuals(data, estimate)
@@ -77,14 +71,15 @@ for i in xrange(contam_times):
                                                          return_stddev=False)
     
     new_estimate, new_goal = simpletom.solve(cont_data, mesh, initial, damping, 
-                                             smoothness, curvature, lm_start=1)
+                                             smoothness, curvature, 
+                                             lm_start=lm_start)
     
     estimates.append(new_estimate)
         
 # Calculate the standard deviation of the estimates
 stddev_estimate = fatiando.stats.stddev(estimates)
-std_mesh = fatiando.geometry.copy_mesh(mesh)
-simpletom.fill_mesh(stddev_estimate, std_mesh)
+std_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results
 pylab.figure(figsize=(12,8))

@@ -4,28 +4,19 @@ regularization for sharpness.
 """
 
 import pickle
-import logging
-
-# Configure the logging output to print to stderr
-baselog = logging.getLogger()
-stderrhandle = logging.StreamHandler()
-stderrhandle.setFormatter(logging.Formatter())
-baselog.addHandler(stderrhandle)
-baselog.setLevel(logging.DEBUG)
-
-# Make a logger for the script
-log = logging.getLogger('script')
-log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
 
 from fatiando.seismo import io
 from fatiando.inversion import simpletom    
-import fatiando.geometry                            
+import fatiando.mesh                            
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
+
+# Make a logger for the script
+log = fatiando.utils.get_logger()
 
 # Load the synthetic model for comparison
 modelfile = open("model.pickle")
@@ -40,24 +31,27 @@ error = data['error'][0]
 # Make the model space mesh
 model_ny, model_nx = model.shape
 
-mesh = fatiando.geometry.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
+mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny, 
                                      nx=model_nx, ny=model_ny)
 
 # Inversion parameters
-initial = numpy.ones(mesh.size)
-damping = 10**(-7)
+initial = 2.*numpy.ones(mesh.size)
+damping = 1*10**(-3)
 smoothness = 0
 curvature = 0
-sharpness = 3*10**(-1)
-beta = 10**(-4)
+sharpness = 5*10**(-1)
+beta = 10**(-2)
+lm_start = 100
+
+simpletom.set_bounds(1., 5.)
 
 # Solve
 estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness, 
                                   curvature, sharpness, beta, 
-                                  lm_start=1)
+                                  lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
-simpletom.fill_mesh(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh)
 
 # Calculate the residuals
 residuals = simpletom.residuals(data, estimate)
@@ -81,14 +75,14 @@ for i in xrange(contam_times):
     
     new_estimate, new_goal = simpletom.solve(cont_data, mesh, initial, damping, 
                                              smoothness, curvature, sharpness, 
-                                             beta, lm_start=1)
+                                             beta, lm_start=lm_start)
     
     estimates.append(new_estimate)
         
 # Calculate the standard deviation of the estimates
 stddev_estimate = fatiando.stats.stddev(estimates)
-std_mesh = fatiando.geometry.copy_mesh(mesh)
-simpletom.fill_mesh(stddev_estimate, std_mesh)
+std_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results
 pylab.figure(figsize=(12,8))
@@ -119,7 +113,8 @@ pylab.subplot(2,2,3)
 pylab.axis('scaled')
 pylab.title("Result Standard Deviation")
 fatiando.vis.plot_square_mesh(std_mesh)
-pylab.colorbar()
+cb = pylab.colorbar()
+cb.set_label("Velocity")
 pylab.xlim(0, model.shape[1])
 pylab.ylim(0, model.shape[0])
 

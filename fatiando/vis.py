@@ -81,11 +81,13 @@ def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
             
     if vmin is None and vmax is None:
         
-        pylab.pcolor(X, Y, Z, cmap=cmap)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap)
         
     else:
         
-        pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+        
+    return plot
 
 
 def residuals_histogram(residuals, nbins=None):
@@ -103,7 +105,9 @@ def residuals_histogram(residuals, nbins=None):
     
         nbins = len(residuals)/8
     
-    pylab.hist(residuals, bins=nbins, facecolor='gray')
+    plot = pylab.hist(residuals, bins=nbins, facecolor='gray')
+    
+    return plot[0]
     
 
 def plot_src_rec(sources, receivers, markersize=9):
@@ -124,9 +128,7 @@ def plot_src_rec(sources, receivers, markersize=9):
     
     pylab.plot(src_x, src_y, 'r*', ms=markersize, label='Source')
     pylab.plot(rec_x, rec_y, 'b^', ms=int(0.78*markersize), label='Receiver')
-    
-    pylab.legend(numpoints=1, prop={'size':7})
-    
+        
 
 def plot_ray_coverage(sources, receivers, linestyle='-k'):
     """
@@ -144,7 +146,9 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
     
     for src, rec in zip(sources, receivers):
         
-        pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
+        plot = pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
+        
+    return plot[0]
     
 
 def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
@@ -244,7 +248,8 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
     return surf
 
 
-def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
+def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
+                      fillcolor='r', fillkey='value', alpha=1, label=''):
     """
     Plot a 2d prism interface mesh.
     
@@ -253,9 +258,19 @@ def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
       mesh: model space discretization mesh (see geometry.line_mesh function)
             with its 'value' keys set to the bottom of the prisms
             
+      key: which key os mesh will be used as the y axis
+      
       style: line and marker style and color (see pylab.plot)
       
       linewidth: width of the line plotted
+      
+      fill: if not None, another interface mesh to fill between it and mesh
+      
+      fillcolor: the color of the fill region
+      
+      fillkey: key in the mesh that represents the interface
+      
+      alpha: opacity of the fill region
       
       label: label of the line
     """
@@ -267,8 +282,21 @@ def plot_2d_interface(mesh, style='-k', linewidth=2, label=''):
         
         xs.append(cell['x1'])
         xs.append(cell['x2'])        
-        zs.append(cell['value'])  
-        zs.append(cell['value'])
+        zs.append(cell[key])  
+        zs.append(cell[key])
         
-    pylab.plot(xs, zs, style, linewidth=linewidth, label=label)
+    if fill is not None:
+        
+        fill_zs = []
+        
+        for cell in fill:    
+              
+            fill_zs.append(cell[fillkey])  
+            fill_zs.append(cell[fillkey])     
+        
+        pylab.fill_between(xs, fill_zs, zs, facecolor=fillcolor, alpha=alpha)
+        
+    plot = pylab.plot(xs, zs, style, linewidth=linewidth, label=label)
+    
+    return plot[0]
     

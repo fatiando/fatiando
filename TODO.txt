@@ -1,13 +1,13 @@
-REFACTORING:
-
-    * Include license info in all files
-
 General
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
     * Make tutorial for implementing new inversion
-    * Change C code that uses arrays to Fortran
     * Make integration tests out of the examples
+    * Include references in the modules and functions and make automatic 
+      reference generation for scripts
+    * Move fill_mesh to to mesh.py 
+    Done:
+    * Change C code that uses arrays to Fortran
     
 Inversion
     * Unit tests
@@ -28,15 +28,17 @@ InterG
     * Unit tests
     * Make integration test
     * Use equality constraints
-    * Use log barrier
-    * Test the port to new solvers.py
-    * Finish example scripts
+    * Doesn't work with topography because it has to match the inversion mesh
+      So make a function that "interpolates" the topo into the mesh
     Done:
     * Function descriptions in the docstring
     * Make visualizations
     * Port to the new solvers.py
     * Make synthetic data generation
     * IO for inversion results and initial estimate
+    * Use log barrier
+    * Finish example scripts
+    * Test the port to new solvers.py (the problem was in exaggerate)
     
 PGrav
     * Testar remover celula quando redistribui
@@ -65,15 +67,17 @@ PGrav
     * Colocar potencia da distancia como prarametro
     
 Seismo
+
+    Done:
     * Module descriptions in the docstring
     
 Simpletom:
     * Unit tests
     * IO for initial estimate
     * Use equality constraints
-    * Use log barrier
 
     Done:
+    * Use log barrier
     * Put versbose in solve and make_mesh
     * Port to the new solvers.py
     * Make visualizations
@@ -83,10 +87,7 @@ Simpletom:
 Geometry
     * Discretize a sphere into prisms
     
-    
-Dicrect Models
-    * Create wikis
-    
+        
 Gravity
     * Unit tests for existing functions
     * potential and derivatives of a sphere
@@ -95,6 +96,7 @@ Gravity
     * reductions
     * terrain correction
     * continuation
+    * equivalent layer
     
     Done:    
     * Make synthetic data generation
@@ -103,9 +105,4 @@ Gravity
 WaveFD:
     * Port to Fortran
     * Get rid of Python interface (put it in seismo.synthetic)
-    
-Fullwave1D:
-    * Make integration test
-    * Port to the new solvers.py
-    * Make visualizations
     

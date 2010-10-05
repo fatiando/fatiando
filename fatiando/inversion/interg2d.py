@@ -19,9 +19,9 @@
 
 Functions:
   * clear: Erase garbage from previous inversions
-  * fill_mesh: Fill the 'value' keys of mesh with the values in the estimate
-  * calc_adjustment: Calculate the adjusted data produced by a given estimate
+  * adjustment: Calculate the adjusted data produced by a given estimate
   * residuals: Calculate the residuals vector of a given estimate
+  * set_bounds: Set bounds on the parameter values (depth of interface)
   * solve: Solve the inversion problem for a given data set and model space mesh
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -32,7 +32,7 @@ import logging
 import numpy
 
 import fatiando
-import fatiando.gravity.prism
+import fatiando.grav.prism
 from fatiando.inversion import solvers
 import fatiando.inversion.pgrav3d
 
@@ -46,24 +46,24 @@ log.addHandler(fatiando.default_log_handler)
 _mesh = None
 _data = None
 _data_vector = None
-_calculators = {'gz':fatiando.gravity.prism.gz,
-                'gxx':fatiando.gravity.prism.gxx,
-                'gxy':fatiando.gravity.prism.gxy,
-                'gxz':fatiando.gravity.prism.gxz,
-                'gyy':fatiando.gravity.prism.gyy,
-                'gyz':fatiando.gravity.prism.gyz,
-                'gzz':fatiando.gravity.prism.gzz}
+_calculators = {'gz':fatiando.grav.prism.gz,
+                'gxx':fatiando.grav.prism.gxx,
+                'gxy':fatiando.grav.prism.gxy,
+                'gxz':fatiando.grav.prism.gxz,
+                'gyy':fatiando.grav.prism.gyy,
+                'gyz':fatiando.grav.prism.gyz,
+                'gzz':fatiando.grav.prism.gzz}
 
 # The reference surface (top of the prisms) and density
 _ref_surf = None
 _ref_dens = None
 
 # How much to exaggerate the y dimension of the prisms to make them 2D
-exaggerate = 10
+exaggerate = 1000.
 _ysize = None
 
 # The size of the step in the finite differences derivative in the Jacobian
-deltaz = 0.1 
+deltaz = 0.5
 
 
 def clear():
@@ -80,23 +80,6 @@ def clear():
     _ref_dens = None
     _ysize = None
     reload(solvers)
-
-
-def fill_mesh(estimate, mesh):
-    """
-    Fill the 'value' keys of mesh with the values in the estimate
-    
-    Parameters:
-    
-      estimate: array-like parameter vector produced by the inversion
-      
-      mesh: model space discretization mesh used in the inversion to produce the
-            estimate (see geometry.line_mesh function)
-    """
-        
-    for value, cell in zip(estimate, mesh):
-        
-        cell['value'] = value
 
 
 def _build_interg2d_jacobian(estimate):
@@ -116,7 +99,7 @@ def _build_interg2d_jacobian(estimate):
     
     for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
         
-        if field in _data.keys():
+        if field in _data:
             
             function = _calculators[field]
             
@@ -152,7 +135,7 @@ def _build_interg2d_first_deriv():
     nparams = _mesh.size
     nderivs = (nparams - 1)
     
-    first_deriv = numpy.zeros((nderivs, nparams))
+    first_deriv = numpy.zeros((nderivs, nparams), dtype='f')
             
     # Derivatives in the x direction   
     for i in xrange(nparams - 1):                
@@ -164,7 +147,7 @@ def _build_interg2d_first_deriv():
     return first_deriv
 
 
-def calc_adjustment(estimate, profile=False):
+def adjustment(estimate, profile=False):
     """
     Calculate the adjusted data produced by a given estimate.
     
@@ -196,9 +179,10 @@ def calc_adjustment(estimate, profile=False):
                 
                 function = _calculators[field]
                 
-                coordinates = zip(_data[field]['x'], _data[field]['z'])
-                
-                for i, x, z in enumerate(coordinates):
+                for i, coordinates in enumerate(zip(_data[field]['x'], 
+                                                    _data[field]['z'])):
+                    
+                    x, z = coordinates
                                         
                     for z1, z2, cell in zip(_ref_surf, estimate, _mesh):
                         
@@ -252,11 +236,21 @@ def residuals(estimate):
     
     assert _data_vector is not None, "Can't calculate residuals. No data vector"
     
-    adjusted = calc_adjustment(estimate, profile=False)
+    adjusted = adjustment(estimate, profile=False)
     
     residuals = _data_vector - adjusted
     
     return residuals
+
+
+def set_bounds(vmin, vmax):
+    """Set bounds on the parameter values (depth of interface)"""
+    
+    log.info("Setting bounds on parameter values:")
+    log.info("  vmin: %g" % (vmin))
+    log.info("  vmax: %g" % (vmax))
+    
+    solvers.set_bounds(vmin, vmax)
 
         
 def solve(data, mesh, density, ref_surf=None, initial=None, damping=0, 
@@ -270,7 +264,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
       data: dictionary with the gravity component data as:
             {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
             If there is no data for a given component, omit the respective key.
-            Each g*data is a data profile as loaded by fatiando.gravity.io
+            Each g*data is a data profile as loaded by fatiando.grav.io
       
       mesh: model space discretization mesh (see geometry.line_mesh function)
       
@@ -322,9 +316,9 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     
     _ref_dens = density
     
-    if _ref_surf is None:
+    if ref_surf is None:
         
-        _ref_surf = numpy.zeros(_mesh.size)
+        _ref_surf = numpy.zeros(mesh.size)
         
     else:
         
@@ -337,7 +331,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     
     for cell in mesh:
         
-        size = cell['x2'] - cell['x1']
+        size = abs(cell['x2'] - cell['x1'])
         
         if size > biggest:
             
@@ -357,9 +351,11 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
     solvers.sharpness = sharpness
     solvers.beta = beta
     
+    global _build_interg2d_jacobian, _build_interg2d_first_deriv, adjustment
+    
     solvers._build_jacobian = _build_interg2d_jacobian
     solvers._build_first_deriv_matrix = _build_interg2d_first_deriv
-    solvers._calc_adjustment = calc_adjustment
+    solvers._calc_adjustment = adjustment
     
     if initial is None:
         

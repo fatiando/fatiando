@@ -3,33 +3,28 @@ Example script for doing the inversion of synthetic FTG data using grow
 """
 
 import pickle
-import logging
-log = logging.getLogger('fatiando')
-shandler = logging.StreamHandler()
-shandler.setFormatter(logging.Formatter())
-log.addHandler(shandler)
-fhandler = logging.FileHandler("pgrav_grow_example.log", 'w')
-fhandler.setFormatter(logging.Formatter())
-log.addHandler(fhandler)
-log.setLevel(logging.DEBUG)
 
 import pylab
 import numpy
 from enthought.mayavi import mlab
 
 from fatiando.inversion import pgrav3d
-from fatiando.gravity import io
-import fatiando.geometry
+from fatiando.grav import io
+import fatiando.mesh
 import fatiando.utils
 import fatiando.vis
 
+# Get a logger
+log = fatiando.utils.get_logger()
+
+# Set logging to a file
+fatiando.utils.set_logfile('pgrav_grow_example.log')
+
 # Load the synthetic data
 gzz = io.load('gzz_data.txt')
-#gxy = io.load('gxy_data.txt')
 
 data = {}
 data['gzz'] = gzz
-#data['gxy'] = gxy
 
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')
@@ -37,15 +32,13 @@ synthetic = pickle.load(synth_file)
 synth_file.close()
 
 # Generate a model space mesh
-mesh = fatiando.geometry.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
-                                    z1=0, z2=1600, nx=8, ny=8, nz=8)
+mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
+                                    z1=0, z2=1600, nx=16, ny=16, nz=16)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(pgrav3d.get_seed((10, 10, 650), 1000, mesh))
-#seeds.append(pgrav3d.get_seed((510, 10, 650), 500, mesh))
-#seeds.append(pgrav3d.get_seed((-510, 10, 650), 1000, mesh))
+seeds.append(pgrav3d.get_seed((10, 10, 450), 1000, mesh))
 
 # Show the seeds
 seed_mesh = []
@@ -54,15 +47,6 @@ for seed in seeds:
     seed_cell['value'] = seed['density']
     seed_mesh.append(seed_cell)
 seed_mesh = numpy.array(seed_mesh)
-#fig = mlab.figure()
-#fig.scene.background = (0.1, 0.1, 0.1)
-#fig.scene.camera.pitch(180)
-#fig.scene.camera.roll(180)
-#fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
-#plot = fatiando.vis.plot_prism_mesh(seed_mesh, style='surface', 
-#                                    label='Seed Density')
-#axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
-#mlab.show()
 
 # Pickle them for later reference
 seed_file = open("seeds.pickle", 'w')
@@ -70,32 +54,17 @@ pickle.dump(seeds, seed_file)
 seed_file.close()
 
 # Inversion parameters
-mmi = 5*10**(-1)
-power = 5
+mmi = 1*10**(-2)
+power = 3
 apriori_variance = 0.1**2
 
 # Run the inversion
 estimate, goals = pgrav3d.grow(data, mesh, seeds, mmi, power, apriori_variance)
 
-pgrav3d.fill_mesh(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh)
 
 residuals = pgrav3d.residuals(data, estimate)
 
-# The seeds neighbors
-#neighbors = []  
-#pgrav3d._add_neighbors(seeds[0]['param'], neighbors, mesh, numpy.zeros_like(estimate))
-#neighbor_mesh = []
-#for neighbor in neighbors:
-#    neighbor_mesh.append(mesh.ravel()[neighbor])
-#neighbor_mesh = numpy.array(neighbor_mesh)
-#fig = mlab.figure()
-#fig.scene.background = (0.1, 0.1, 0.1)
-#fig.scene.camera.pitch(180)
-#fig.scene.camera.roll(180)
-#plot = fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
-#                                    label='neighbors')
-#axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,1600])
-#mlab.show()
 
 # Save the resulting model
 output = open('result.pickle', 'w')
@@ -155,8 +124,8 @@ for seed in seeds:
 
 # Get the distances and make a mesh with them
 distances = pgrav3d._distances
-distance_mesh = fatiando.geometry.copy_mesh(mesh)
-pgrav3d.fill_mesh(distances, distance_mesh)
+distance_mesh = fatiando.mesh.copy(mesh)
+fatiando.mesh.fill(distances, distance_mesh)
 
 #fig = mlab.figure()
 #fig.scene.background = (0.1, 0.1, 0.1)

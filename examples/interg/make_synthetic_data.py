@@ -1,107 +1,85 @@
 """
-Generate synthetic gravity profile from a relief
+Generate synthetic gravity profile from the relief of a basin
 """
 
 import pickle
-import logging
-log = logging.getLogger()
-shandler = logging.StreamHandler()
-shandler.setFormatter(logging.Formatter())
-log.addHandler(shandler)
-log.setLevel(logging.DEBUG)
 
 import numpy
 import pylab
 
-from fatiando.gravity import io, synthetic
-import fatiando.geometry
+from fatiando.grav import io, synthetic
+import fatiando.mesh
 import fatiando.utils
+import fatiando.stats
 import fatiando.vis
 
-import math
+# Get a logger for the script
+log = fatiando.utils.get_logger()
 
-# Define synthetic the model
-mesh = fatiando.geometry.line_mesh(0, 5000, 100)
-y1 = -10*
-y2 = 10*dx
+# Make a synthetic model mesh 
+mesh = fatiando.mesh.line_mesh(0, 5000, 100)
+dx = mesh[0]['x2'] - mesh[0]['x1']
+y1 = -1000.*dx
+y2 = 1000.*dx
 density = -500.
+amp = 2000.
+log.info("Generating smooth gaussian model")
 
-
-bottoms = []
-prisms = []
-
-# Make a smooth gaussian model
-log.info("Generating smooth gaussian model:")
-
-amplitude = 1000.
-stddev = 1000.
-
-log.info("  amplitude: %g" % (amplitude))
-log.info("  dispersion: %g" % (stddev))
-
-for x in xs:
+for i, cell in enumerate(mesh.ravel()):
     
-    bottom = amplitude*math.exp(-1*((x + 0.5*dx - 0.5*(x1 + x2))**2)/ \
-                                   (stddev**2))
+    x = 0.5*(cell['x1'] + cell['x2'])
+        
+    cell['value'] = density
+    cell['y1'] = y1
+    cell['y2'] = y2
+    cell['z1'] = 0
+    cell['z2'] = amp*(fatiando.stats.gaussian(x, 1500., 1000.) +
+                      0.4*fatiando.stats.gaussian(x, 3500., 1000.))
+        
     
-    bottoms.append(bottom)
-    
-    prism = {'density':density, 'x1':x, 'x2':x + dx, 'y1':y1, 'y2':y2, 'z1':0, 
-             'z2':bottom}
-    
-    prisms.append(prism)
+modelfile = open("model.pickle", 'w')
+pickle.dump(mesh, modelfile)
+modelfile.close()
 
-prisms = numpy.array(prisms)
+# Extract the topography from the model mesh and set a height above it for the
+# measurements
+topo = fatiando.mesh.extract_key('z1', mesh)
+height = -1*topo + 1
 
+topofile = open('topo.pickle', 'w')
+pickle.dump(topo, topofile)
+topofile.close()
 
+# Calculate the gravitational effect of the model
+gz = synthetic.from_prisms(mesh, x1=0, x2=5000, y1=0, y2=0, nx=100, ny=1, 
+                           height=height, field='gz')
 
-# Calculate the effect of the model
-prof_nx = 100
-prof_dx = float(x2 - x1)/(prof_nx - 1)
-profile_xs = numpy.arange(x1, x2, prof_dx)
-X = numpy.array([profile_xs])
-Y = numpy.zeros_like(X)
-
-data = TensorComponent('z')
-data.synthetic_prism(prisms=prisms, X=X, Y=Y, z=-100, \
-                     stddev=0.005, percent=True)
-data.dump('gzprofile.txt')
-
+# Contaminate it with gaussian noise and save
+error = 0.1
+gz['value'] = fatiando.utils.contaminate(gz['value'], stddev=error, 
+                                                percent=False)
+gz['error'] = error*numpy.ones_like(gz['value'])
+io.dump("gzprofile.txt", gz)
 
 # Plot the model and gravity effect
-pylab.figure()
+pylab.figure(figsize=(10,8))
+pylab.suptitle("Synthetic Gravity Data", fontsize=14)
+pylab.subplots_adjust(hspace=0.1)
 
-pylab.subplot(2, 1, 1)
-pylab.title("$g_z$")
+pylab.subplot(2,1,1)
+pylab.plot(gz['x'], gz['value'], '.-k', label=r"Synthetic $g_z$")
+pylab.ylabel("mGal")
+pylab.legend(loc='lower right', shadow=True)
 
-pylab.plot(profile_xs, data.array, '.-r')
-
-pylab.ylabel("[mGal]")
-
-pylab.xlim(xs[0], xs[-1])
-
-pylab.subplot(2, 1, 2)
-
-plot_xs = []
-plot_botts = []
-
-for x, bottom in zip(xs, bottoms):
-    
-    plot_xs.append(x)
-    plot_xs.append(x + dx)
-    
-    plot_botts.append(bottom)
-    plot_botts.append(bottom)
-
-pylab.plot(plot_xs, plot_botts, '-k')
-
-pylab.xlim(xs[0], xs[-1])
-pylab.ylim(1.1*max(bottoms), 0)
-
-pylab.xlabel("x [m]")
-pylab.ylabel("depth [m]")
-
-model = numpy.array([plot_xs, plot_botts]).T
-pylab.savetxt('true_model.txt', model)
+pylab.subplot(2,1,2)
+fatiando.vis.plot_2d_interface(mesh, 'z2', style='-k', linewidth=1, fill=mesh, 
+                               fillkey='z1', fillcolor='gray', alpha=0.5,
+                               label='Basin Model')
+pylab.ylim(1.2*amp, -300)
+pylab.xlabel("X [m]")
+pylab.ylabel("Depth [m]")
+pylab.text(2500, 500, r"$\Delta\rho = -500\ kg.m^{-3}$", fontsize=16,
+           horizontalalignment='center')
+pylab.legend(loc='lower right', shadow=True)
 
 pylab.show()

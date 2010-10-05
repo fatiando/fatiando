@@ -15,44 +15,20 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling package. 
+A collection of geothermal direct models, simulations and utilities.
 
-Includes various direct models, inversion programs,and various utilities for 
-general geophysics tasks.
-
-Packages:
-  * grav: gravimetry, geodesy and gravity gradiometry
-  * seismo: seismology and seismic
-  * heat: geothermology
 Modules:
-  * mesh: mesh generation and handling geometric elements
-  * stats: statistical tests and utilities for inverse problems
-  * utils: miscellaneous utilities
-  * vis: visualization of results in 2D and 3D
+  
 Functions:
   * test: run the unit test suite for this package
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
-
-
-# Create a default NullHandler so that logging is only enabled explicitly
-################################################################################ 
-import logging
-
-class NullHandler(logging.Handler):
-    
-    def emit(self, record):
-        
-        pass
-
-default_log_handler = NullHandler()
-################################################################################
+__date__ = 'Created 11-Sep-2010'
 
 
 def test(label='fast', verbose=True):
     """
-    Runs the unit tests for the fatiando package.
+    Runs the unit tests for the fatiando.heat package.
 
     Parameters:
 
@@ -71,11 +47,11 @@ def test(label='fast', verbose=True):
 
     import unittest
 
-    import fatiando.tests
+    import fatiando.heat.tests
 
     suite = unittest.TestSuite()
     
-    suite.addTest(fatiando.tests.suite(label))
+    suite.addTest(fatiando.heat.tests.suite(label))
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)

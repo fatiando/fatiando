@@ -14,31 +14,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Test suite for the fatiando package.
-"""
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 29-Mar-2010'
 
-import unittest
+include config.mk
 
-import fatiando.grav.tests
-import fatiando.seismo.tests
-import fatiando.inversion.tests
-import fatiando.heat.tests
-
-
-def suite(label='fast'):
-
-    testsuite = unittest.TestSuite()
-
-    testsuite.addTest(fatiando.grav.tests.suite(label))
-    testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inversion.tests.suite(label))
-    testsuite.addTest(fatiando.heat.tests.suite(label))
-
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+CC=gcc
+FC=gfortran
+SWIG_FLAGS=-fPIC -I${PYLIB_PATH}
