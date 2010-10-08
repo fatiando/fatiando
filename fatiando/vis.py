@@ -243,7 +243,6 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
                                      vmin=min(scalars))
         surf.actor.property.representation = 'surface'
         surf.actor.property.opacity = opacity
-        mlab.colorbar(surf, title=label, orientation='vertical', nb_labels=10)
         
     return surf
 

@@ -16,7 +16,13 @@ import fatiando.vis
 log = fatiando.utils.get_logger()
 
 prisms = []
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':600,
+prisms.append({'x1':-600, 'x2':-200, 'y1':-600, 'y2':-200, 'z1':200, 'z2':600,
+               'value':200})
+prisms.append({'x1':000, 'x2':400, 'y1':-600, 'y2':-200, 'z1':200, 'z2':600,
+               'value':700})
+prisms.append({'x1':-600, 'x2':200, 'y1':200, 'y2':600, 'z1':200, 'z2':600,
+               'value':500})
+prisms.append({'x1':400, 'x2':600, 'y1':200, 'y2':600, 'z1':200, 'z2':600,
                'value':1000})
 
 prisms = numpy.array(prisms)
@@ -27,14 +33,14 @@ fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
 dataset = fatiando.vis.plot_prism_mesh(prisms, style='surface', 
                                        label='Density kg/cm^3')
-axes = mlab.axes(dataset, nb_labels=5, extent=[-800,800,-800,800,0,1600])
+axes = mlab.axes(dataset, nb_labels=5, extent=[-800,800,-800,800,0,800])
 mlab.show()
 
 modelfile = open('model.pickle', 'w') 
 pickle.dump(prisms, modelfile)
 modelfile.close()
 
-error = 0.1
+error = 1
 
 pylab.figure(figsize=(16,8))
 pylab.suptitle(r'Synthetic FTG data with %g $E\"otv\"os$ noise' 

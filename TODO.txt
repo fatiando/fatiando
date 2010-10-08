@@ -41,10 +41,16 @@ InterG
     * Test the port to new solvers.py (the problem was in exaggerate)
     
 PGrav
-    * Something wrong with removing neighbors when rearanging
+    * Save and load columns of the Jacobian as needed (once appended, remove the
+      column)
+    * Fix doc for grow
+    * when redistributing need to recalculate neighbors of other seeds because
+      previously taken neighbors may be free now
+    * Separate distances for each seed
+    * Only build columns of the Jacobian as they are needed
+    * Dump and load of Jacobian
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
-    * Aumentar regularizador quando redistribui
     * Put redistribution in a separate function so that I can call it whenever
       I want later
     * Build sensibility in Fortran
@@ -54,6 +60,8 @@ PGrav
     * Make integration test
     * Use equality constraints
     Done:
+    * Aumentar regularizador quando redistribui
+    * Something wrong with removing neighbors when rearanging
     * Redistribute only the farthest
     * Aglutinar uma celula por semente (no minimo)
     * Redistribuir somente na borda
