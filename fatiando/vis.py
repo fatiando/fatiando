@@ -41,17 +41,24 @@ tvtk = None
 
 def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
     """
-    Plot a 2D mesh made of square cells. Each cell is a dictionary as:
-      {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
+    Plot a 2D mesh made of square cells. Each cell is a dictionary as::
+    
+        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
+        
     The pseudo color of the plot is key 'value'.
     
     Parameters:
     
-      mesh: a list of cells describing the square mesh
+        * mesh: a list of cells describing the square mesh
       
-      cmap: color map to use
+        * cmap: color map to use
       
-      vmin, vmax: lower and upper limits for the color scale
+        * vmin, vmax: lower and upper limits for the color scale
+        
+    Returns:
+    
+        * matplitlib.axes element of the plot
+        
     """
     
     xvalues = []

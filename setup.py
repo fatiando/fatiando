@@ -24,6 +24,7 @@ from numpy.distutils.core import setup
 c_dir = os.path.join('src', 'c')
 fortran_dir = os.path.join('src', 'fortran')
 
+# Define the extention modules
 head_diffusionfd = Extension('fatiando.heat._diffusionfd',
                               sources=[os.path.join(fortran_dir, 
                                                     'heat_diffusionfd.f95')])

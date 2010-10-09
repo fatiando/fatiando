@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A simplified 2D Cartesian tomography problem.
-Considers straight (seismic) rays, eg does not consider reflection or refraction
+Very simplified Cartesian travel time tomography example.
+
+Considers straight (seismic) rays, eg does not consider reflection or 
+refraction.
 
 Functions:
   * clear: Erase garbage from previous inversions

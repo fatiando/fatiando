@@ -127,6 +127,7 @@ def extract_matrices(grid):
     Return:
         
       X, Y, V matrices
+      
     """
 
     assert grid['grid'] is True, "Only regular grids supported at the moment"

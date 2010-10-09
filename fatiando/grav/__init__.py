@@ -18,13 +18,22 @@
 A collection of gravimetry direct models and utilities.
 
 Modules:
-  * prism: gravity and gradients for the right rectangular prism, eg Nagy et al.
-          (2000)
-  * io: input and output of gravity related data
-  * synthetic: Create synthetic gravity data from various types of model
-          
+
+* :mod:`fatiando.grav.prism`
+    Gravity and gradients for the right rectangular prism (Nagy *et* *al.*,
+    2000)
+    
+* :mod:`fatiando.grav.io`
+    Input and output of gravity related data
+    
+* :mod:`fatiando.grav.synthetic`
+    Create synthetic gravity data from various types of model
+        
 Functions:
-  * test: run the unit test suite for this package
+
+* :func:`fatiando.grav.test`
+    Run the unit test suite for this package
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
@@ -36,11 +45,14 @@ def test(label='fast', verbose=True):
 
     Parameters:
 
-        label: can be either 'fast' for a smaller and faster test
-               or 'full' for the full test suite
+    * label
+        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for 
+        the full test suite
 
-        verbose: controls if the whole test information is printed
-                 or just the final results
+    * verbose
+        Controls if the whole test information is printed or just the final 
+        results
+        
     """
     
     if label != 'fast' and label != 'full':

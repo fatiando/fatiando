@@ -23,7 +23,7 @@ def snapshots(nodes, times, deltax, deltat, initial, diffusivity):
     pylab.title("Time: %.1f" % (time))
     pylab.plot(initial, x, '-r')
     pylab.grid()
-    pylab.xlim(35, 95)
+    pylab.xlim(15, 95)
     pylab.ylim(x.max(), x.min())
     pylab.xlabel("Temperatura")
     pylab.ylabel("Profundidade")
@@ -47,7 +47,7 @@ def snapshots(nodes, times, deltax, deltat, initial, diffusivity):
         pylab.title("Time: %.1f" % (time))
         pylab.plot(next, x, '-r')
         pylab.grid()
-        pylab.xlim(35, 95)
+        pylab.xlim(15, 95)
         pylab.ylim(x.max(), x.min())
         pylab.xlabel("Temperatura")
         pylab.ylabel("Profundidade")
@@ -66,7 +66,7 @@ def run(nodes, times, deltax, deltat, initial, diffusivity):
     pylab.title("Time: %g" % (deltat*times))
     pylab.plot(temps, x, '-r')
     pylab.grid()
-    pylab.xlim(35, 95)
+    pylab.xlim(15, 95)
     pylab.ylim(x.max(), x.min())
     pylab.xlabel("Temperatura")
     pylab.ylabel("Profundidade")
@@ -77,21 +77,27 @@ def run(nodes, times, deltax, deltat, initial, diffusivity):
 if __name__ == '__main__':
         
     # Define the simulation parameters
-    nodes = 40
+    nodes = 41
     deltax = 1
     deltat = 0.4
-    initial = 40*numpy.ones(nodes)
-    initial[10:30] += 50
     
     # Assume a homogeneous thermal diffusivity
     diffusivity = numpy.ones(nodes)
     
-    # Define the boundary conditions and free surfaces
-    start_bc, end_bc = diffusionfd1d.free_bc()
+    # Constant initial and free boundaries
+#    initial = 40*numpy.ones(nodes)
+#    start_bc, end_bc = diffusionfd1d.free_bc()
     
-    run(nodes, 20, deltax, deltat, initial, diffusivity)
+    # Geothermal gradient initial and fixed boundaries
+    x = numpy.arange(0, deltax*nodes, deltax)
+    initial = 20 + 1.*x
+    start_bc, end_bc = diffusionfd1d.fixed_bc(20, initial[-1])
     
-#    snapshots(nodes, 450, deltax, deltat, initial, diffusivity)
+    initial[10:30] = 90*numpy.ones(20)
+        
+    run(nodes, 80, deltax, deltat, initial, diffusivity)
+    
+#    snapshots(nodes, 200, deltax, deltat, initial, diffusivity)
 
     
 

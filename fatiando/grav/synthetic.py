@@ -18,7 +18,10 @@
 Create synthetic gravity data from various types of model.
 
 Functions:
-  * from_prisms: Create synthetic data from a prism model
+
+* :func:`fatiando.grav.synthetic.from_prisms`
+    Create synthetic data from a prism model.
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -44,36 +47,50 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     """
     Create synthetic gravity data from a prism model.
     
-    Note: to make a profile along x, set y1=y2 and ny=1
+    Note: to make a profile along x, set ``y1=y2`` and ``ny=1``
     
     Parameters:
       
-      prisms: list of dictionaries representing each prism in the model. 
-              Required keys are {'x1':, 'x2':, 'y1':, 'y2':, 'z1':, 'z2':, 
-              'value':density}
-              
-      x1, x2: limits in the x direction of the region where the data will be 
-              computed
-              
-      y1, y2: limits in the y direction of the region where the data will be 
-              computed
-              
-      nx, ny: number of data points in the x and y directions
-      
-      height: height at which the data will be computed (scalar for constant
-              height or 1D array with height at each x,y pair)
-      
-      field: what component of the gravity field to calculate. Can be any one of
-             'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
+    * prisms
+        List of dictionaries representing each prism in the model. 
+        Required keys are 
+        ``{'x1':, 'x2':, 'y1':, 'y2':, 'z1':, 'z2':, 'value':density}``
             
-      grid: distribution of the data along the selected region. Can be either
-            'regular' or 'random'
+    * x1, x2
+        Limits in the x direction of the region where the data will be computed
+            
+    * y1, y2
+        Limits in the y direction of the region where the data will be computed
+            
+    * nx, ny
+        Number of data points in the x and y directions
+    
+    * height
+        Height at which the data will be computed (scalar for constant height or
+        1D array with height at each x,y pair)
+    
+    * field
+        What component of the gravity field to calculate. Can be any one of
+        ``'gz'``, ``'gxx'``, ``'gxy'``, ``'gxz'``, ``'gyy'``, ``'gyz'``, 
+        ``'gzz'``
+          
+    * grid
+        Distribution of the data along the selected region. Can be either
+        ``'regular'`` or ``'random'``
             
     Return:
         
-        dictionary with the data values and coordinates of each point.
-        keys: {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
-               'value':[data1, data2, ...]} 
+    * data        
+        Gravity field data stored in a dictionary.
+        
+    The data dictionary will be such as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...],
+         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
+    
+    ``'grid'`` will be true if calculating on a ``'regular'`` grid.
+    The keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``.
     """
     
     assert grid in ['regular', 'random'], "Invalid grid type '%s'" % (grid)

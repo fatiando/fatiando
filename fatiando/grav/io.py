@@ -15,11 +15,16 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Input and output of gravity field data
+Input and output of gravity field data.
 
 Functions:
-  * dump: save gravity field data to a file
-  * load: load gravity field data from a file
+
+* :func:`fatiando.grav.io.dump`
+    Save gravity field data to a file.
+
+* :func:`fatiando.grav.io.load`
+    Load gravity field data from a file.
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -44,24 +49,34 @@ def dump(fname, data, fmt='ascii'):
     Save gravity field data to a file.
     
     Note: lines that start with # will be considered comments
+    
     Column format:
-      x  y  z  value  error
+    
+    ``x  y  z  value  error``
       
     If the data is a grid, the first line of the file will contain the number
     of points in the x and y directions separated by a space.
+    
     Grids will be stored with x values varying first, then y. 
     
     Parameters:
     
-      fname: either string with file name or file object
-      
-      data: gravity field data stored in a dictionary.
-            keys: {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
-                   'value':[data1, data2, ...], 'error':[error1, error2, ...],
-                   'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
-            the keys 'nx' and 'ny' are only required if 'grid' is True
-                  
-      fmt: file format. For now only supports ASCII
+    * fname
+        Either string with file name or file object
+    
+    * data
+        Gravity field data stored in a dictionary
+              
+    * fmt
+        File format. For now only supports ASCII
+        
+    The data dictionary must be such as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...],
+         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
+    
+    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``
     """
     
     if isinstance(fname, file):
@@ -93,27 +108,38 @@ def dump(fname, data, fmt='ascii'):
 def load(fname, fmt='ascii'):
     """
     Load gravity field data from a file.
+    
     Note: lines that start with # will be considered comments
+    
     Column format:
-      x  y  z  value  error
+    
+    ``x  y  z  value  error``
       
     If the file contains grid data, the first line should contain the number
     of points in the x and y directions separated by a space.
+    
     Grids should be stored with x values varying first, then y. 
     
     Parameters:
     
-      fname: either string with file name or file object
+    * fname
+        Either string with file name or file object
                   
-      fmt: file format. For now only supports ASCII
+    * fmt
+        File format. For now only supports ASCII
       
     Return:
     
-      gravity field data stored in a dictionary.
-        keys: {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
-               'value':[data1, data2, ...], 'error':[error1, error2, ...],
-               'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
-        the keys 'nx' and 'ny' are only given if 'grid' is True
+    * data
+        Gravity field data stored in a dictionary.
+        
+    The data dictionary will be such as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...],
+         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
+    
+    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``        
     """
     
     if isinstance(fname, file):
