@@ -8,3 +8,9 @@
    :undoc-members:
    :show-inheritance:
 
+.. toctree::
+
+    interg2d.rst
+    pgrav3d.rst
+    simpletom.rst
+    solvers.rst

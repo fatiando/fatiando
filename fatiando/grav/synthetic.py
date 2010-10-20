@@ -78,7 +78,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
         Distribution of the data along the selected region. Can be either
         ``'regular'`` or ``'random'``
             
-    Return:
+    Returns:
         
     * data        
         Gravity field data stored in a dictionary.
