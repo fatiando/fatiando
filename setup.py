@@ -14,23 +14,37 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Build extention modules and package Fatiando for release.
+"""
 
 import os
 
 from numpy.distutils.extension import Extension
 from numpy.distutils.core import setup
 
+
 # Define the paths
 c_dir = os.path.join('src', 'c')
+wrap_dir = os.path.join('src', 'wrap')
 fortran_dir = os.path.join('src', 'fortran')
 
 # Define the extention modules
 head_diffusionfd = Extension('fatiando.heat._diffusionfd',
-                              sources=[os.path.join(fortran_dir, 
-                                                    'heat_diffusionfd.f95')])
+                    sources=[os.path.join(fortran_dir, 'heat_diffusionfd.f95')])
+
+grav_prism = Extension('fatiando.grav._prism', 
+                       sources=[os.path.join(c_dir, 'grav_prism.c'),
+                                os.path.join(wrap_dir, 'grav_prism.pyf')])
+
+seismo_traveltime = Extension('fatiando.seismo._traveltime', 
+                    sources=[os.path.join(c_dir, 'seismo_traveltime.c'),
+                             os.path.join(wrap_dir, 'seismo_traveltime.pyf')])
 
 ext_modules = []
 ext_modules.append(head_diffusionfd)
+ext_modules.append(grav_prism)
+ext_modules.append(seismo_traveltime)
 
 
 if __name__ == '__main__':

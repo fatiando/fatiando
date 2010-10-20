@@ -11,5 +11,6 @@
 .. toctree::
 
    io.rst
+   prism.rst
    synthetic.rst
    transform.rst

@@ -103,7 +103,7 @@ def upcontinue(data, height):
         
         for j in xrange(ndata):
             
-            cont_data['value'][i] += 
+            cont_data['value'][i] += 1
         
     
         cont_data['value'][i] *= (cont_data['z'][i] - data['z'][i])

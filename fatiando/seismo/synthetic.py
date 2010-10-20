@@ -15,11 +15,16 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create, load and dump synthetic seismological data.
+Generate synthetic seismological data, such as travel times and seismograms.
 
 Functions:
-  * vel_from_image: create a 2D velocity model from an image file (uses PIL)
-  * shoot_cartesian_straight: shoot straight rays along a 2D velocity model
+
+* :func:`fatiando.seismo.synthetic.vel_from_image`
+    Create a 2D velocity model from an image file (uses PIL)
+
+* :func:`fatiando.seismo.synthetic.shoot_cartesian_straight`
+    Shoot straight rays along a 2D velocity model
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -45,19 +50,24 @@ log.addHandler(fatiando.default_log_handler)
 
 def vel_from_image(fname, vmax, vmin):
     """
-    Create a 2D velocity model from an image file. The image is first converted
-    to gray scale and then set to the desired velocity interval
+    Create a 2D velocity model from an image file. 
+    
+    The image is first converted to gray scale and then set to the desired 
+    velocity interval.
     
     Parameters:
     
-      fname: name of the image file
-      
-      vmax, vmin: value range of the velocities (used to convert the gray scale
-                  to velocity values)
-                  
-    Return:
+    * fname
+        Name of the image file
     
-        2D array-like velocity model
+    * vmax, vmin
+        Value range of the velocities (used to convert the gray scale to 
+        velocity values)
+                  
+    Returns:
+    
+    * 2D array-like velocity model
+    
     """
             
     log.info("Creating velocity model from image file '%s'" % (fname))
@@ -94,31 +104,47 @@ def shoot_cartesian_straight(model, src_n, rec_n, type='circle', rec_span=45.):
     
     Parameters:
         
-        model: 2D array-like (matrix) Cartesian velocity model
+    * model
+        2D array-like (matrix) Cartesian velocity model
+    
+    * src_n
+        Number of ray sources
+    
+    * rec_n
+        Number of receivers
+    
+    * type
+        Source and receiver configuration. Can be any one of:
         
-        src_n: number of ray sources
-        
-        rec_n: number of receivers
-        
-        type: source and receiver configuration. Can be any one of:
-              'circle': random sources and circular array of receivers around 
-                        center of the model
-              'xray': x-ray array. One source and some receivers rotating
-                      around the center of the figure. In this case, src_n is
-                      the number different angles the array is placed in and
-                      rec_n is the number of receivers per source.
-              'rand': both receivers and sources are randomly distributed
-              
-        rec_span: angular spread of the receivers in the xray type configuration
-                  in decimal degrees
+        * ``'circle'``
+            Random sources and circular array of receivers around center of the 
+            model
+            
+        * ``'xray'``
+            X-ray array. One source and some receivers rotating around the 
+            center of the figure. In this case, *src_n* is the number different 
+            angles the array is placed in and *rec_n* is the number of receivers 
+            per source.
+            
+        * ``'rand'``
+            Both receivers and sources are randomly distributed
+          
+    * rec_span
+        Angular spread of the receivers in the xray type configuration in 
+        decimal degrees
                             
     Return:
     
-        dictionay with travel time data. A source and receiver location is given
-        for every travel time.
-        keys: {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
-               'traveltime':[time1, time2, ...], 'error':[0, 0, ...]}
-        Note: 'error' is the standard deviation of each travel time
+    * dictionary with travel time data
+        
+    The data dictionary must be such as::
+         
+        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
+         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+         
+    A source and receiver location is given for every travel time.
+
+    Note: ``'error'`` is the standard deviation of each travel time
     """
     
     types = ['circle', 'xray', 'rand']

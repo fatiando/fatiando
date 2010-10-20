@@ -2,7 +2,6 @@
 Make some synthetic FTG data.
 """
 
-
 import pickle
 
 import pylab

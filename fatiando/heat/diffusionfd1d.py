@@ -18,14 +18,36 @@
 Finite Differences (FD) solvers for the 1D heat diffusion equation.
 
 Functions:
+
+* :func:`fatiando.heat.diffusionfd1d.fixed_bc`
+    Set fixed boundary conditions.
+
+* :func:`fatiando.heat.diffusionfd1d.free_bc`
+    Set free edges (zero derivative) boundary conditions.
+    
+* :func:`fatiando.heat.diffusionfd1d.timestep`
+    Single explicit time step.
+
+* :func:`fatiando.heat.diffusionfd1d.run`
+    Run many timesteps of the simulation.
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Sep-2010'
 
 
+import logging
+
+import fatiando
 from fatiando.heat._diffusionfd import timestep1d as fortran_timestep
    
-    
+
+# Add the default handler (a null handler) to the logger to ensure that
+# it won't print verbose if the program calling them doesn't want it
+log = logging.getLogger('fatiando.heat.diffusionfd1d')       
+log.setLevel(logging.DEBUG)
+log.addHandler(fatiando.default_log_handler)
+
     
 def fixed_bc(start_val, end_val):
     """
@@ -33,13 +55,18 @@ def fixed_bc(start_val, end_val):
     
     Parameters:
       
-      start_val: value to fix at the starting position
+    * start_val
+        Value to fix at the starting position
       
-      end_val: value to fix at the ending position
+    * end_val
+        Value to fix at the ending position
       
     Returns:
     
-      [start_bc, end_bc]: callable boundary conditions to pass to 'run' 
+    * [start_bc, end_bc]
+        Callable boundary conditions to pass to 
+        :func:`fatiando.heat.diffusionfd1d.run`
+         
     """
     
     def start_bc(temps):
@@ -59,7 +86,10 @@ def free_bc():
           
     Returns:
     
-      [start_bc, end_bc]: callable boundary conditions to pass to 'run' 
+    * [start_bc, end_bc]
+        Callable boundary conditions to pass to 
+        :func:`fatiando.heat.diffusionfd1d.run`
+         
     """
     
     def start_bc(temps):
@@ -75,26 +105,39 @@ def free_bc():
     
 def timestep(temp, deltax, deltat, diffusivity, start_bc, end_bc):
     """
-    Run a single time step of the Finite Differences simulation of the 1D heat 
-    diffusion equation
+    Single explicit time step.
+    
+    For the boundary conditions see:
+    
+    :func:`fatiando.heat.diffusionfd1d.free_bc`
+    
+    :func:`fatiando.heat.diffusionfd1d.fixed_bc`
     
     Parameters:
     
-      temp: 1D array-like temperature on each FD node
+    * temp
+        1D array-like temperature on each FD node
       
-      deltax: spacing between the nodes
+    * deltax
+        Spacing between the nodes
       
-      deltat: time step
-      
-      diffusivity: 1D array-like thermal diffusivity on each FD node
-      
-      start_bc: callable boundary condition at the starting point
-      
-      end_bc: callable boundary condition at the ending point
+    * deltat 
+        Time step
+    
+    * diffusivity
+        1D array-like thermal diffusivity on each FD node
+    
+    * start_bc
+        Callable boundary condition at the starting point
+    
+    * end_bc
+        Callable boundary condition at the ending point
             
     Returns:
     
-      temp: 1D array-like temperature on each FD node at the next time
+    * temp
+        1D array-like temperature on each FD node at the next time
+        
     """
     
     temp_tp1 = fortran_timestep(temp, diffusivity, deltat, deltax)
@@ -108,27 +151,42 @@ def timestep(temp, deltax, deltat, diffusivity, start_bc, end_bc):
     
 def run(deltax, deltat, diffusivity, initial, start_bc, end_bc, ntimes):
     """
-    Run the Finite Differences simulation of the 1D heat diffusion equation
+    Run many timesteps of the simulation.
+    
+    For the boundary conditions see:
+    
+    :func:`fatiando.heat.diffusionfd1d.free_bc`
+    
+    :func:`fatiando.heat.diffusionfd1d.fixed_bc`
     
     Parameters:
       
-      deltax: spacing between the nodes
-      
-      deltat: time step
-      
-      diffusivity: 1D array-like thermal diffusivity on each FD node
+    * deltax
+        Spacing between the nodes
     
-      initial: 1D array-like temperature on each FD node
-      
-      start_bc: callable boundary condition at the starting point
-      
-      end_bc: callable boundary condition at the ending point
-      
-      ntimes: number of time steps to run
+    * deltat
+        Time step
+    
+    * diffusivity
+        1D array-like thermal diffusivity on each FD node
+    
+    * initial
+        1D array-like temperature on each FD node
+    
+    * start_bc
+        Callable boundary condition at the starting point
+    
+    * end_bc
+        Callable boundary condition at the ending point
+    
+    * ntimes
+        Number of time steps to run
       
     Returns:
     
-      temps: 1D array-like temperature on each FD node at the end of the run
+    * temps
+        1D array-like temperature on each FD node at the end of the run
+        
     """
     
     next = list(initial)

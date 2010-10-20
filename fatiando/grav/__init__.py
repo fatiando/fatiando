@@ -18,16 +18,20 @@
 A collection of gravimetry direct models and utilities.
 
 Modules:
-
-* :mod:`fatiando.grav.prism`
-    Gravity and gradients for the right rectangular prism (Nagy *et* *al.*,
-    2000)
     
 * :mod:`fatiando.grav.io`
     Input and output of gravity related data
     
+* :mod:`fatiando.grav.prism`
+    Calculate the gravitational potential and its first and second derivatives 
+    for the right rectangular prism using the formulas by Nagy *et* *al.* (2000)
+    
 * :mod:`fatiando.grav.synthetic`
     Create synthetic gravity data from various types of model
+    
+* :mod:`fatiando.grav.transform`
+    Gravity field transformations like upward continuation, derivatives and 
+    total mass.
         
 Functions:
 

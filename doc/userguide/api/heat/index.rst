@@ -8,3 +8,7 @@
    :undoc-members:
    :show-inheritance:
 
+
+.. toctree::
+
+    diffusionfd1d.rst

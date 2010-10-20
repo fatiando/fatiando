@@ -1,4 +1,5 @@
 General
+    * Finish setup.py
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
     * Make tutorial for implementing new inversion
@@ -13,6 +14,7 @@ General
     Done:
     * Move fill_mesh to to mesh.py 
     * Change C code that uses arrays to Fortran
+    * Move building traveltime.c to f2py 
     
 Inversion
     * Unit tests

@@ -7,3 +7,9 @@
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. toctree::
+
+    io.rst
+    synthetic.rst
+    traveltime.rst
