@@ -55,7 +55,7 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
 
-__version__ = '0.1'
+__version__ = '0.0.1'
 
 
 # Create a default NullHandler so that logging is only enabled explicitly

@@ -26,7 +26,7 @@ Functions:
     Set free edges (zero derivative) boundary conditions.
     
 * :func:`fatiando.heat.diffusionfd1d.timestep`
-    Single explicit time step.
+    Perform a single time step.
 
 * :func:`fatiando.heat.diffusionfd1d.run`
     Run many timesteps of the simulation.
@@ -39,7 +39,7 @@ __date__ = 'Created 29-Sep-2010'
 import logging
 
 import fatiando
-from fatiando.heat._diffusionfd import timestep1d as fortran_timestep
+import fatiando.heat._diffusionfd1d as diffusionfd1d_ext
    
 
 # Add the default handler (a null handler) to the logger to ensure that
@@ -105,7 +105,7 @@ def free_bc():
     
 def timestep(temp, deltax, deltat, diffusivity, start_bc, end_bc):
     """
-    Single explicit time step.
+    Perform a single time step.
     
     For the boundary conditions see:
     
@@ -140,7 +140,8 @@ def timestep(temp, deltax, deltat, diffusivity, start_bc, end_bc):
         
     """
     
-    temp_tp1 = fortran_timestep(temp, diffusivity, deltat, deltax)
+    temp_tp1 = diffusionfd1d_ext.timestep_explicit(temp, diffusivity, deltat, 
+                                                   deltax)
         
     start_bc(temp_tp1)
     

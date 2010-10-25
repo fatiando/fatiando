@@ -1,3 +1,9 @@
+"""
+Build the extension modules and documentation and run the test suite.
+
+Run 'scons' to build and 'scons -c' to delete build files. 
+"""
+
 import distutils.sysconfig
 import os
 
@@ -41,8 +47,11 @@ def PhonyTarget(target, action, depends=[], env = None):
     return phony
 
 # DEFINE THE BASE PATHS
-c_path = os.path.join('src', 'c')
-wrap_path = os.path.join('src', 'wrap')
+src_path = 'src'
+c_path = os.path.join(src_path, 'c')
+wrap_path = os.path.join(src_path, 'wrap')
+doc_path = 'doc'
+userguid_path = os.path.join(doc_path, 'userguide')
 
 # Build the extention modules with the setup.py script
 target = 'build_ext'
@@ -54,6 +63,18 @@ env.AlwaysBuild(build_ext)
 Clean(os.path.curdir, os.path.join(wrap_path,'_prismmodule.c'))
 Clean(os.path.curdir, os.path.join(wrap_path,'_traveltimemodule.c'))
 
+
+# Build the documentation
+target = 'build_doc'
+action = 'make -C doc/userguide html'
+build_doc = PhonyTarget(target=target, action=action, depends=[])
+env = DefaultEnvironment()
+
+Depends(build_doc, build_ext)
+
+Clean(os.path.curdir, os.path.join(userguid_path, '_build'))
+
+
 # Make a phony target for the tests (the fast test suite)
 target = 'test'
 action = 'python test.py -v'
@@ -62,5 +83,6 @@ env = DefaultEnvironment()
 env.AlwaysBuild(test)
 
 Clean(os.path.curdir, 'build')
+Clean(os.path.curdir, 'dist')
 Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.pyc'))

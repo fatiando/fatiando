@@ -46,7 +46,7 @@ copyright = u'2010, Leonardo Uieda'
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-
+sys.path.append('../../')
 import fatiando
 
 # The short X.Y version.
