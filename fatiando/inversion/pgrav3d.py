@@ -39,7 +39,13 @@ Functions:
 
 * :func:`fatiando.inversion.pgrav3d.set_bounds`
     Set lower and upper bounds on the density values
+    
+* :func:`fatiando.inversion.pgrav3d.get_seed`
+    Returns as a seed the cell in the mesh that has *point* inside it.
 
+* :func:`fatiando.inversion.pgrav3d.grow`
+    Invert by growing the solution around given seeds.
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -702,7 +708,37 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
 
 
 def get_seed(point, density, mesh):
-    """Returns as a seed the cell in mesh that has point inside it."""
+    """
+    Returns as a seed the cell in the mesh that has *point* inside it.
+    
+    Use this to get the seeds needed by :func:`fatiando.inversion.pgrav3d.grow`
+    
+    **UNITS**: use SI for all units.
+    
+    Parameters:
+    
+    * point
+        ``(x,y,z)`` as coordinates of a point
+        
+    * density
+        The density of the seed
+        
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
+        
+    Returns:
+    
+    * seed
+        A dictionary with the seed properties:
+        ``{'param':index_of_seed, 'density':density, 'cell':cell_in_mesh, 
+        'neighbors':[]}``
+        
+    Raises:
+    
+    * ValueError
+        If *point* is not in the mesh
+    
+    """
     
     x, y, z = point
     
@@ -727,13 +763,21 @@ def get_seed(point, density, mesh):
 
 
 def _dist_to_seed(cell, seed, dx, dy, dz):
-    """Calculate the distance (in number of cells) from cell to seed.
+    """
+    Calculate the distance (in number of cells) from cell to seed.
     
     Parameters:
     
-      cell: dictionary with the cell bounds (x1, x2, y1, y2, z1, z2)
+    *cell
+        Dictionary with the cell bounds (x1, x2, y1, y2, z1, z2)
       
-      seed: 
+    * seed
+        Dictionary with the seed
+        
+    Returns:
+    
+    * distance
+        Distance from *cell* to *seed*
     
     """
                     
@@ -793,13 +837,18 @@ def _add_neighbors(param, neighbors, seeds, mesh):
     
     Parameters:
     
-      param: the index of the parameter in the parameter vector
+    * param
+        The index of the parameter in the parameter vector
       
-      neighbors: list of neighbors to append to
+    * neighbors
+        list of neighbors to append to
       
-      seeds: list of all seeds. Used to check for repeating neighbors
+    * seeds
+        list of all seeds. Used to check for repeating neighbors
       
-      mesh: the model space mesh
+    * mesh
+        the model space mesh
+        
     """
     
     nz, ny, nx = mesh.shape
@@ -1172,32 +1221,43 @@ def _add_neighbors(param, neighbors, seeds, mesh):
 
 def grow(data, mesh, seeds, mmi, power=5):
     """
-    Grow the solution around given 'seeds'.
+    Invert by growing the solution around given seeds.
     
     Parameters:
         
-      data: dictionary with the gravity component data as:
-            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
-            If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.gravity.io
+    * data 
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a profile data dictionary (see bellow)
       
-      mesh: model space discretization mesh (see geometry.prism_mesh function)
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
       
-      seeds: list of seeds (to make a seed, see get_seed function)
+    * seeds
+        list of seeds (to make a seed, see 
+        :func:`fatiando.inversion.pgrav3d.get_seed`)
       
-      mmi: Minimum Moment of Inertia regularization parameter (how compact the
-           solution should be around the seeds). Has to be >= 0
+    * mmi
+        Minimum Moment of Inertia regularization parameter (how compact the
+        solution should be around the seeds). Must to be >= 0
            
-      power: power to which the distances are raised in the MMI weights
+    * power
+        Power to which the distances are raised in the MMI weights
       
-    Return:
+    Returns:
     
-      [estimate, residuals, goals, rmss]:
+    * [estimate, residuals, goals, rmss]:
         estimate = array-like parameter vector estimated by the inversion.
-                   parameters are the density values in the mesh cells.
-                   use fill_mesh function to put the estimate in a mesh so you
-                   can plot and save it.
-        goals = list of goal function value per iteration    
+        residuals = array-like residuals vector.
+        goals = list of goal function value per iteration.
+        rmss = list of RMS value per iteration.
+            
+    Raises:
+    
+    * AttributeError
+        If seeds are too close (less than 2 cells appart)
+        
     """
     
 
@@ -1229,8 +1289,7 @@ def grow(data, mesh, seeds, mmi, power=5):
         # neighbors between the seeds. The conflicts will be resolved later
         _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh)         
         
-    # Resolve the conflicts in the neighbors. If the conflicting seeds have 
-    # different densities, an AttributeError will be raised.
+    # Resolve the conflicts in the neighbors. 
     for i, seed in enumerate(seeds):
         
         for neighbor in seed['neighbors']:

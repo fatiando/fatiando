@@ -8,8 +8,8 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.inversion import pgrav3d
-from fatiando.grav import io
+import fatiando.inversion.pgrav3d as pgrav3d
+import fatiando.grav.io as io
 import fatiando.mesh
 import fatiando.utils
 import fatiando.vis
@@ -43,7 +43,7 @@ synth_file.close()
 
 # Generate a model space mesh
 mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
-                                z1=0, z2=800, nx=32, ny=32, nz=16)
+                                z1=0, z2=800, nx=16, ny=16, nz=8)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
