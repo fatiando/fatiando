@@ -18,23 +18,24 @@
 Perform statistical analysis on inversion results.
 
 Functions:
-  * mean: calculate the mean (per parameter) of several parameter vectors
-  * stddev: calculate the standard deviation (per parameter) of several 
-            parameter vectors
-  * normal: Return the value of the normal distribution with mean and std at 
-            position x
-  * gaussian: Return the value at x of the non-normalized Gaussian function
-            
-TODO:
-  * chisquare: perform the chi square test on a population
-  * outliers: test a population for outliers
-  
+
+* :func:`fatiando.stats.mean`
+    Calculate the mean (per parameter) of several parameter vectors
+
+* :func:`fatiando.stats.stddev`
+    Calculate the standard deviation (per parameter) of several parameter 
+    vectors
+        
+* :func:`fatiando.stats.normal`
+    Normal distribution
+    
+* :func:`fatiando.stats.gaussian`
+    Non-normalized Gaussian function
+         
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
-
-import math
 
 import numpy
 
@@ -45,12 +46,14 @@ def mean(estimates):
     
     Parameters:
     
-      estimates: list of parameter vector estimates. Each estimate should be
-                 an array-like 1D parameter vector.
+    * estimates
+        List of parameter vectors. Each estimate should be array-like 1D.
                  
-    Return:
+    Returns:
     
-      array-like 1D mean parameter vector.
+    * mean
+        array-like 1D mean parameter vector.
+        
     """
     
     mean_estimate = []
@@ -69,12 +72,14 @@ def stddev(estimates):
     
     Parameters:
     
-      estimates: list of parameter vector estimates. Each estimate should be
-                 an array-like 1D parameter vector.
+    * estimates
+        List of parameter vectors. Each estimate should be array-like 1D.
                  
     Return:
     
-      array-like 1D parameter standard deviation vector.
+    * stddev
+        array-like 1D parameter standard deviation vector.
+        
     """       
     
     stddev_estimate = []
@@ -88,13 +93,56 @@ def stddev(estimates):
 
 def normal(x, mean, std):
     """
-    Return the value of the normal distribution with mean and std at position x
+    Normal distribution.
+    
+    .. math::
+    
+        N(x,\\bar{x},\sigma) = \\frac{1}{\sigma\sqrt{2 \pi}} 
+        \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
+    
+    Parameters:
+    
+    * x
+        Value at which to calculate the normal distribution
+        
+    * mean
+        The mean of the distribution :math:`\\bar{x}`
+        
+    * std
+        The standard deviation of the distribution :math:`\sigma`
+        
+    Returns:
+    
+    * normal distribution evaluated at *x*
+    
     """
     
     return numpy.exp(-1*((mean - x)/std)**2)/(std*numpy.sqrt(2*numpy.pi))
 
 
 def gaussian(x, mean, std):
-    """Return the value at x of the non-normalized Gaussian function"""
+    """
+    Non-normalized Gaussian function
+    
+    .. math::
+    
+        G(x,\\bar{x},\sigma) = \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
+    
+    Parameters:
+    
+    * x
+        Value at which to calculate the Gaussian function
+        
+    * mean
+        The mean of the distribution :math:`\\bar{x}`
+        
+    * std
+        The standard deviation of the distribution :math:`\sigma`
+        
+    Returns:
+    
+    * Gaussian function evaluated at *x*
+    
+    """
     
     return numpy.exp(-1*((mean - x)/std)**2)

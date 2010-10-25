@@ -1,0 +1,12 @@
+include LICENSE
+include MANIFEST.in
+include test.py
+include SConstruct
+recursive-include examples *.py
+include examples/simpletom/model.jpg
+recursive-include doc/userguide *.py *.rst 
+recursive-include doc/userguide/_static *
+recursive-include doc/userguide/_templates *
+include doc/userguide/Makefile 
+include doc/userguide/make.bat
+purge doc/userguide/_build

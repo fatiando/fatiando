@@ -32,6 +32,8 @@ def run(args=[]):
             
             verbosity = True
             
+            sys.stderr.write("\nRUNNING TEST SUITE...\n")
+            
         elif arg == '-full':
             
             label = 'full'

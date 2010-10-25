@@ -18,10 +18,19 @@
 Set of misc utility functions.
 
 Functions:
-  * contaminate: Add random noise to a data array
-  * extract_matrices: Extract value and x and y coordinate matrices from grid
-  * get_logger: Get a logger to stderr
-  * set_logfile: Enable logging to a file.
+
+* :func:`fatiando.utils.contaminate`
+    Add random noise to a data array
+
+* :func:`fatiando.utils.extract_matrices`
+    Extract value and x and y coordinate matrices from grid
+
+* :func:`fatiando.utils.get_logger`
+    Get a logger to stderr
+
+* :func:`fatiando.utils.set_logfile`
+    Enable logging to a file.
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 07-Mar-2010'
@@ -34,15 +43,17 @@ import numpy
 
 def get_logger(level=logging.DEBUG):
     """
-    Get a logger to stderr
+    Get a logger to ``stderr``
     
     Parameters:
     
-      level: the logging level. Default: logging.DEBUG. See logging module
+    * level
+        The logging level. Default to ``logging.DEBUG``. See ``logging`` module
       
     Returns:
     
-      the root logger
+    * the root logger
+    
     """
     
     logger = logging.getLogger()
@@ -61,13 +72,16 @@ def set_logfile(fname, level=logging.DEBUG):
     
     Parameters:
     
-      fname: log file name
-      
-      level: the logging level. Default: logging.DEBUG. See logging module
+    * fname 
+        Log file name
+    
+    * level
+        The logging level. Default to ``logging.DEBUG``. See ``logging`` module
       
     Returns:
     
-      the root logger 
+    * the root logger
+     
     """
     
     logger = logging.getLogger()
@@ -81,11 +95,32 @@ def set_logfile(fname, level=logging.DEBUG):
 
 def contaminate(data, stddev, percent=True, return_stddev=False):
     """
-    Contaminate a given data array (1D) with a normally distributed error of
-    standard deviation stddev. If percent=True, then stddev is assumed to be a
-    percentage of the maximum value in data (0 < stddev <= 1).
-    If return_stddev=True, the calculated stddev will be returned with the 
-    contaminated data.
+    Add random noise to a data array.
+    
+    Noise added is normally distributed.
+    
+    Parameters:
+    
+    * data
+        1D array-like data to contaminate
+        
+    * stddev
+        Standard deviation of the Gaussian noise that will be added to *data*
+        
+    * percent
+        If ``True``, will consider *stddev* as a decimal percentage and the 
+        Standard deviation of the Gaussian noise will be this percentage of
+        the maximum absolute value of *data*
+        
+    * return_stddev
+        If ``True``, will return also the standard deviation used to contaminate
+        *data*
+
+    Returns:
+    
+    * [contam_data, stddev if *return_stddev* is ``True``]
+        The contaminated data array        
+        
     """
 
     if percent:
@@ -111,22 +146,28 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
     
 def extract_matrices(grid):
     """
-    Extract value and x and y coordinate matrices from grid. Use to plot with
-    matplotlib. 
+    Extract value and x and y coordinate matrices from a grid dictionary. 
+    
+    Use to plot using matplotlib. 
     
     If the data is not a regular grid, it will be gridded.
     
     Parameters:
     
-      grid: data to contour. Should be a dictionay with the keys:
-            {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...]
-             'value':[data1, data2, ...], 'error':[error1, error2, ...],
-             'grid':True or False, 'nx':points_in_x, 'ny':points_in_y} 
-            the keys 'nx' and 'ny' are only given if 'grid' is True
+    * grid
+        Data grid stored in a dictionary
             
     Return:
         
-      X, Y, V matrices
+    * [X, Y, V]
+        Matrices with the values of x, y and ``value`` at each grid point
+        
+    The data dictionary should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...],
+         'grid':True, 'nx':points_in_x, 'ny':points_in_y}
+               
     """
 
     assert grid['grid'] is True, "Only regular grids supported at the moment"

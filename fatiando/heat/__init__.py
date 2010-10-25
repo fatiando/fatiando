@@ -19,8 +19,14 @@ A collection of geothermal direct models, simulations and utilities.
 
 Modules:
   
+* :mod:`fatiando.heat.diffusionfd1d`
+    Finite Differences (FD) solvers for the 1D heat diffusion equation.
+        
 Functions:
-  * test: run the unit test suite for this package
+
+* :func:`fatiando.heat.test`
+    Run the unit test suite for this package
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -32,11 +38,14 @@ def test(label='fast', verbose=True):
 
     Parameters:
 
-        label: can be either 'fast' for a smaller and faster test
-               or 'full' for the full test suite
+    * label
+        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for 
+        the full test suite
 
-        verbose: controls if the whole test information is printed
-                 or just the final results
+    * verbose
+        Controls if the whole test information is printed or just the final 
+        results
+        
     """
     
     if label != 'fast' and label != 'full':

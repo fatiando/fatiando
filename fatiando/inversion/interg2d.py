@@ -18,11 +18,22 @@
 2D gravity inversion of the relief of an interface using rectangular prisms.
 
 Functions:
-  * clear: Erase garbage from previous inversions
-  * adjustment: Calculate the adjusted data produced by a given estimate
-  * residuals: Calculate the residuals vector of a given estimate
-  * set_bounds: Set bounds on the parameter values (depth of interface)
-  * solve: Solve the inversion problem for a given data set and model space mesh
+
+* :func:`fatiando.inversion.interg2d.clear`
+    Erase garbage from previous inversions
+
+* :func:`fatiando.inversion.interg2d.adjustment`
+    Calculate the adjusted data produced by a given estimate
+
+* :func:`fatiando.inversion.interg2d.residuals`
+    Calculate the residuals vector of a given estimate
+
+* :func:`fatiando.inversion.interg2d.set_bounds`
+    Set bounds on the parameter values (depth of interface)
+
+* :func:`fatiando.inversion.interg2d.solve`
+    Solve the inversion problem for a given data set and model space mesh
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 05-Jul-2010'
@@ -33,7 +44,7 @@ import numpy
 
 import fatiando
 import fatiando.grav.prism
-from fatiando.inversion import solvers
+import fatiando.inversion.solvers as solvers
 import fatiando.inversion.pgrav3d
 
 
@@ -153,10 +164,23 @@ def adjustment(estimate, profile=False):
     
     Parameters:
     
-        estimate: array-like inversion estimate
+    * estimate
+        1D array-like inversion estimate
+    
+    * profile
+        if ``True``, return the adjusted data in a profile data dictionary like 
+        the one provided to the inversion
         
-        profile: if True, return the adjusted data in a profile data structure
-                 like the one provided to the inversion
+    Returns:
+    
+    * adjusted data
+        1D array-like adjusted data or data dictionary
+        
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+    
     """
 
     global _data, _ref_surf, _ref_dens, _ysize, _calculators, _mesh, \
@@ -225,11 +249,14 @@ def residuals(estimate):
     
     Parameters:
     
-      estimate: array-like vector of estimates
+    * estimate
+        Array-like vector of estimates
       
-    Return:
+    Returns:
     
-      array-like vector of residuals
+    * residuals
+        Array-like vector of residuals
+        
     """
     
     global _data_vector
@@ -244,7 +271,18 @@ def residuals(estimate):
 
 
 def set_bounds(vmin, vmax):
-    """Set bounds on the parameter values (depth of interface)"""
+    """
+    Set bounds on the parameter values (depth of interface)
+    
+    Parameters:
+    
+    * vmin
+        Lowest value the parameters can assume
+    
+    * vmax
+        Highest value the parameters can assume
+        
+    """
     
     log.info("Setting bounds on parameter values:")
     log.info("  vmin: %g" % (vmin))
@@ -261,48 +299,67 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
         
     Parameters:    
     
-      data: dictionary with the gravity component data as:
-            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
-            If there is no data for a given component, omit the respective key.
-            Each g*data is a data profile as loaded by fatiando.grav.io
-      
-      mesh: model space discretization mesh (see geometry.line_mesh function)
-      
-      density: density contrast of the basement or interface
-      
-      ref_surf: a reference surface to be used as the top of the prisms
-      
-      initial: initial estimate. If None, will use zero initial estimate
-      
-      damping: Tikhonov order 0 regularization parameter. Must be >= 0
-      
-      smoothness: Tikhonov order 1 regularization parameter. Must be >= 0
-      
-      curvature: Tikhonov order 2 regularization parameter. Must be >= 0
-      
-      sharpness: Total Variation regularization parameter. Must be >= 0
-      
-      beta: small constant used to make Total Variation differentiable. 
-            Must be >= 0. The smaller it is, the sharper the solution but also 
-            the less stable
+    * data
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a profile data dictionary (see bellow)
     
-      max_it: maximum number of iterations 
-        
-      lm_start: initial Marquardt parameter (controls the step size)
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.line_mesh`)
     
-      lm_step: factor by which the Marquardt parameter will be reduced with
-               each successful step
-             
-      max_steps: how many times to try giving a step before exiting
+    * density
+        Density contrast of the basement or interface
+    
+    * ref_surf
+        Reference surface to be used as the top of the prisms
+    
+    * initial
+        1D array-like initial estimate. If ``None``, will use zero
+    
+    * damping
+        Tikhonov order 0 regularization parameter. Must be >= 0
+    
+    * smoothness
+        Tikhonov order 1 regularization parameter. Must be >= 0
+    
+    * curvature
+        Tikhonov order 2 regularization parameter. Must be >= 0
+    
+    * sharpness    
+        Total Variation regularization parameter. Must be >= 0
+    
+    * beta
+        Small constant used to make Total Variation differentiable. 
+        Must be >= 0. The smaller it is, the sharper the solution but also 
+        the less stable
+    
+    * max_it
+        Maximum number of iterations 
       
-    Return:
+    * lm_start
+        Initial Marquardt parameter (ie, step size)
     
-      [estimate, goals]:
+    * lm_step 
+        Factor by which the Marquardt parameter will be reduced with each 
+        successful step
+           
+    * max_steps
+        How many times to try giving a step before exiting
+      
+    Returns:
+    
+    * [estimate, goals]
         estimate = array-like parameter vector estimated by the inversion.
-                   parameters are the depths of the bottom of the prisms in the 
-                   mesh cells. Use fill_mesh function to put the estimate in a 
-                   mesh so you can plot and save it.
         goals = list of goal function value per iteration
+                
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+                  
+    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so 
+    you can plot and save it (using ``pickle``).
     """
     
     log.info("Inversion parameters:")

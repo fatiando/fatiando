@@ -18,12 +18,21 @@
 A collection of seismology direct models, simulations and utilities.
 
 Modules:
-  * traveltime: functions for calculating the travel times of seismic waves
-  * synthetic: synthetic data generation (travel times, seismograms)
-  * io: input and output of seismological data
+
+* :mod:`fatiando.seismo.traveltime`
+    functions for calculating the travel times of seismic waves
+    
+* :mod:`fatiando.seismo.synthetic`
+    Generate synthetic seismological data, such as travel times and seismograms.
+
+* :mod:`fatiando.seismo.io`
+    Input and output of seismological data.
   
 Functions:
-  * test: run the unit test suite for this package
+
+* :func:`fatiando.seismo.test` 
+    Run the unit test suite for this package
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -35,11 +44,14 @@ def test(label='fast', verbose=True):
 
     Parameters:
 
-        label: can be either 'fast' for a smaller and faster test
-               or 'full' for the full test suite
+    * label
+        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for 
+        the full test suite
 
-        verbose: controls if the whole test information is printed
-                 or just the final results
+    * verbose
+        Controls if the whole test information is printed or just the final 
+        results
+        
     """
     
     if label != 'fast' and label != 'full':

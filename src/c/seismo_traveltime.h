@@ -19,8 +19,7 @@
 
 /* **************************************************************************
 
- This module contains a set of functions that calculate the travel times of
- seismic waves.
+ Functions that calculate the travel times of seismic waves.
 
  Author: Leonardo Uieda
  Date: 29 April 2010

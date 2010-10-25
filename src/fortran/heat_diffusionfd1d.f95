@@ -19,12 +19,14 @@
 ! Extention module for fatiando.heat.diffusionfd
 !
 ! Functions:
-!   * timestep1d: Perform a single time step of the 1D diffusion equation
+!
+! * timestep_explicit:
+!     Perform a single explicit time step of the 1D diffusion equation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
-! Perform a single time step of the 1D diffusion equation.
+! Perform a single explicit time step of the 1D diffusion equation.
 ! Parameters:
 !   temp_t: 1D array with the current temperature on the FD nodes
 !   diffusivity: 1D array with the thermal diffusivity on the FD nodes
@@ -33,7 +35,7 @@
 !   deltax: x interval between FD nodes
 ! Return parameter:
 !   temp_tp1: 1D array with the future temperature on the FD nodes
-SUBROUTINE timestep1d(temp_t, diffusivity, nnodes, deltat, deltax, &
+SUBROUTINE timestep_explicit(temp_t, diffusivity, nnodes, deltat, deltax, &
                               temp_tp1)
 
     IMPLICIT NONE

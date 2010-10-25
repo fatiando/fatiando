@@ -14,26 +14,91 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Build extention modules and package Fatiando for release.
+"""
 
 import os
 
 from numpy.distutils.extension import Extension
 from numpy.distutils.core import setup
 
+import fatiando
+
+
 # Define the paths
 c_dir = os.path.join('src', 'c')
-fortran_dir = os.path.join('src', 'fortran')
+wrap_dir = os.path.join('src', 'wrap')
+f_dir = os.path.join('src', 'fortran')
 
-head_diffusionfd = Extension('fatiando.heat._diffusionfd',
-                              sources=[os.path.join(fortran_dir, 
-                                                    'heat_diffusionfd.f95')])
+# Define the extention modules
+head_diffusionfd = Extension('fatiando.heat._diffusionfd1d',
+                    sources=[os.path.join(f_dir, 'heat_diffusionfd1d.f95')])
 
-ext_modules = []
-ext_modules.append(head_diffusionfd)
+grav_prism = Extension('fatiando.grav._prism', 
+                       sources=[os.path.join(c_dir, 'grav_prism.c'),
+                                os.path.join(wrap_dir, 'grav_prism.pyf')])
+
+seismo_traveltime = Extension('fatiando.seismo._traveltime', 
+                    sources=[os.path.join(c_dir, 'seismo_traveltime.c'),
+                             os.path.join(wrap_dir, 'seismo_traveltime.pyf')])
+
+
+# Define the setup tags
+name = 'fatiando'
+fullname = 'Fatiando a Terra'
+description = "Geophysical direct and inverse modeling"
+long_description = \
+"""
+Fatiando a Terra is a software package containing various kinds of geophysical
+modeling utilities for both direct and inverse problems. It serves as a sandbox
+for rapidly prototyping of modeling ideas and algorithms. We hope that one day 
+it will serve as a teaching tool for inverse problems in geophysics. 
+
+Fatiando is being developed by a group of geophysics graduates and 
+undergraduates from the Universidade de Sao Paulo and the Observatorio Nacional 
+in Brazil.
+"""
+version = fatiando.__version__
+author = "Leonardo Uieda, "
+author_email = 'leouieda at gmail.com'
+license = 'GNU LGPL'
+url = 'http://code.google.com/p/fatiando/'
+platforms = "Any"
+scripts = []
+py_modules = []
+packages = ['fatiando',
+            'fatiando.grav',
+            'fatiando.grav.tests',
+            'fatiando.heat',
+            'fatiando.heat.tests',
+            'fatiando.inversion',
+            'fatiando.inversion.tests',
+            'fatiando.seismo',
+            'fatiando.seismo.tests',
+            'fatiando.tests']
+ext_modules = [head_diffusionfd, 
+               grav_prism, 
+               seismo_traveltime]
+data_files = []
+
 
 
 if __name__ == '__main__':
 
-    setup(name='fatiando',
-          ext_modules=ext_modules
+    setup(name=name,
+          fullname=fullname,
+          description=description,
+          long_description=long_description,
+          version=version,
+          author=author,
+          author_email=author_email,
+          license=license,
+          url=url,
+          platforms=platforms,
+          scripts=scripts,
+          py_modules=py_modules,
+          packages=packages,
+          ext_modules=ext_modules,
+          data_files=data_files
          )

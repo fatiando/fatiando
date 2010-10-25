@@ -18,16 +18,24 @@
 A collection of geophysical inverse problem solvers.
 
 Modules:
-  * solvers.py: generic solvers. Used to implement the specific inversions
-  * interg2d.py: 2D gravity inversion for the relief of an interface
-  * pgrav.py: 3D gravity inversion for density
-  * simpletom.py: very simple Cartesian travel time tomography example
-  * climatesignal.py: residual well log temperature inversion for past climate
-                      changes
-  * fullwave1d.py: 1D full waveform seismic inversion (uses finite differences)
+
+* :mod:`fatiando.inversion.solvers`
+    Generic solvers used to implement the specific inversions
+
+* :mod:`fatiando.inversion.interg2d`
+    2D gravity inversion for the relief of an interface
+
+* :mod:`fatiando.inversion.pgrav3d`
+    3D gravity inversion for density
+
+* :mod:`fatiando.inversion.simpletom`
+    Very simplified Cartesian travel time tomography example
 
 Functions:
-  * test: run the unit test suite for this package
+
+* :func:`fatiando.inversion.test`
+    Run the unit test suite for this package.
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
@@ -39,11 +47,14 @@ def test(label='fast', verbose=True):
 
     Parameters:
 
-        label: can be either 'fast' for a smaller and faster test
-               or 'full' for the full test suite
+    * label
+        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for 
+        the full test suite
 
-        verbose: controls if the whole test information is printed
-                 or just the final results
+    * verbose
+        Controls if the whole test information is printed or just the final 
+        results
+        
     """
     
     if label != 'fast' and label != 'full':

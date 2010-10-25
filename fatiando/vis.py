@@ -19,11 +19,22 @@ Collection of plotting functions.
 Uses Matplotlib for 2D and Mayavi2 for 3D.
 
 Functions:
-  * plot_src_rec: plot the locations of seismic sources and receivers in a map
-  * plot_ray_coverage: Plot the rays between sources and receivers in a map
-  * plot_square_mesh: Plot a pcolor map of a 2D mesh made of square cells
-  * residuals_histogram: Plot a histogram of the residual vector
-  * plot_prism_mesh: Plot a 3D prism mesh using Mayavi2
+
+* :func:`fatiando.vis.plot_src_rec`
+    Plot the locations of seismic sources and receivers in a map
+
+* :func:`fatiando.vis.plot_ray_coverage`
+    Plot the rays between sources and receivers in a map
+
+* :func:`fatiando.vis.plot_square_mesh`
+    Plot a pcolor map of a 2D mesh made of square cells
+
+* :func:`fatiando.vis.residuals_histogram`
+    Plot a histogram of the residuals vector
+
+* :func:`fatiando.vis.plot_prism_mesh`
+    Plot a 3D prism mesh
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
@@ -41,17 +52,27 @@ tvtk = None
 
 def plot_square_mesh(mesh, cmap=pylab.cm.jet, vmin=None, vmax=None):
     """
-    Plot a 2D mesh made of square cells. Each cell is a dictionary as:
-      {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
+    Plot a 2D mesh made of square cells. Each cell is a dictionary as::
+    
+        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
+        
     The pseudo color of the plot is key 'value'.
     
     Parameters:
     
-      mesh: a list of cells describing the square mesh
-      
-      cmap: color map to use
-      
-      vmin, vmax: lower and upper limits for the color scale
+    * mesh
+        A list of cells describing the square mesh
+  
+    * cmap
+        Color map to use. See ``pylab.cm``
+  
+    * vmin, vmax
+        Lower and upper limits for the color scale
+        
+    Returns:
+    
+    * ``matplitlib.axes`` element of the plot
+        
     """
     
     xvalues = []
@@ -96,9 +117,16 @@ def residuals_histogram(residuals, nbins=None):
     
     Parameters:
     
-      residuals: 1D array-like vector of residuals
-      
-      nbins: number of bins (default to len(residuals)/8)
+    * residuals
+        1D array-like vector of residuals
+    
+    * nbins
+        Number of bins (default to ``len(residuals)/8``)
+        
+    Returns:
+    
+    * ``matplitlib.axes`` element of the plot
+                
     """
     
     if nbins is None:
@@ -116,11 +144,15 @@ def plot_src_rec(sources, receivers, markersize=9):
     
     Parameters:
           
-        sources: list with the x,y coordinates of each source
-        
-        receivers: list with the x,y coordinates of each receiver
-        
-        markersize: size of the source and receiver markers
+    * sources
+        List with the x,y coordinates of each source
+    
+    * receivers
+        List with the x,y coordinates of each receiver
+    
+    * markersize
+        Size of the source and receiver markers
+    
     """
     
     src_x, src_y = numpy.transpose(sources)
@@ -136,12 +168,19 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
     
     Parameters:
           
-        sources: list with the x,y coordinates of each source
+    * sources
+        List with the x,y coordinates of each source
+    
+    * receivers
+        List with the x,y coordinates of each receiver
+    
+    * linestyle
+        Type of line to display and color. See ``pylab.plot``
         
-        receivers: list with the x,y coordinates of each receiver
-        
-        linestyle: type of line to display and color. See 'pylab.plot'
-                   documentation for more details.
+    Returns:
+    
+    * ``matplitlib.axes`` element of the plot
+                
     """
     
     for src, rec in zip(sources, receivers):
@@ -157,14 +196,19 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
     
     Parameters:
     
-      mesh: 3D array-like prism mesh (see fatiando.geometry.prism_mesh)
-      
-      style: either 'surface' for solid prisms or 'wireframe' for just the 
-             wireframe
-             
-      opacity: decimal percentage of opacity
-             
-      label: name of the scalar 'value' of the mesh cells. 
+    * mesh
+        3D array-like prism mesh (see :func:`fatiando.mesh.prism_mesh`)
+    
+    * style
+        Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the 
+        wireframe
+    
+    * opacity
+        Decimal percentage of opacity
+           
+    * label
+        Name of the scalar ``'value'`` of the mesh cells.
+         
     """
     
     assert style in ['surface', 'wireframe'], "Invalid style '%s'" % (style)
@@ -254,24 +298,33 @@ def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
     
     Parameters:
       
-      mesh: model space discretization mesh (see geometry.line_mesh function)
-            with its 'value' keys set to the bottom of the prisms
-            
-      key: which key os mesh will be used as the y axis
-      
-      style: line and marker style and color (see pylab.plot)
-      
-      linewidth: width of the line plotted
-      
-      fill: if not None, another interface mesh to fill between it and mesh
-      
-      fillcolor: the color of the fill region
-      
-      fillkey: key in the mesh that represents the interface
-      
-      alpha: opacity of the fill region
-      
-      label: label of the line
+    * mesh 
+        Model space discretization mesh (see :func:`fatiando.mesh.line_mesh`)
+          
+    * key 
+        Which key of *mesh* represents the bottom of the prisms
+    
+    * style
+        Line and marker style and color (see ``pylab.plot``)
+    
+    * linewidth
+        Width of the line plotted (see ``pylab.plot``)
+    
+    * fill 
+        If not ``None``, then another mesh to fill between it and *mesh*
+    
+    * fillcolor 
+        The color of the fill region
+    
+    * fillkey
+        Which key of *fill* represents the bottom of the prisms
+    
+    * alpha 
+        Opacity of the fill region
+    
+    * label 
+        Label of the interface line
+                
     """
     
     xs = []

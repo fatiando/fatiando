@@ -1,23 +1,18 @@
 General
+    * Write README
     * Write better (or any at all) docs for the inverse problem theory
     * Make example wikis
     * Make tutorial for implementing new inversion
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
-    Done:
-    * Change C code that uses arrays to Fortran
-    * Move fill_mesh to to mesh.py 
+    * Put examples in docstrings
     
 Inversion
     * Unit tests
     * Sparsity regularization
     * Use the data covariance matrix
     * Test equality constraints
-    Done
-    * Implement equality constraints
-    * Linear solver
-    * Implement log barrier
    
 Stats
     * Unit tests
@@ -30,15 +25,6 @@ InterG
     * Use equality constraints
     * Doesn't work with topography because it has to match the inversion mesh
       So make a function that "interpolates" the topo into the mesh
-    Done:
-    * Function descriptions in the docstring
-    * Make visualizations
-    * Port to the new solvers.py
-    * Make synthetic data generation
-    * IO for inversion results and initial estimate
-    * Use log barrier
-    * Finish example scripts
-    * Test the port to new solvers.py (the problem was in exaggerate)
     
 PGrav
     * Save and load columns of the Jacobian as needed (once appended, remove the
@@ -59,39 +45,20 @@ PGrav
     * IO for initial estimate
     * Make integration test
     * Use equality constraints
-    Done:
-    * Aumentar regularizador quando redistribui
-    * Something wrong with removing neighbors when rearanging
-    * Redistribute only the farthest
-    * Aglutinar uma celula por semente (no minimo)
-    * Redistribuir somente na borda
-    * Restrict common neighbors for seeds 
-    * Port to the new solvers.py
-    * Make visualizations
-    * Implement depth weights
-    * IO for inversion results (pickle the mesh)
-    * Calcular distancia usando casca e nao centro dos prismas
-    * Quando nao adiciona, redistribui massa. Para quando nao redistribiu e nao 
-      adiciona
-    * Colocar potencia da distancia como prarametro
     
 Seismo
 
-    Done:
-    * Module descriptions in the docstring
+
+Heat
+    * Make better example script for diffusionfd1d
+    * Implement implicit FD timestep
+    * Implement diffusion with radiogenic heat
+    * Implement diffusion with radiogenic heat and variable conductivity
     
 Simpletom:
     * Unit tests
     * IO for initial estimate
-    * Use equality constraints
-
-    Done:
-    * Use log barrier
-    * Put versbose in solve and make_mesh
-    * Port to the new solvers.py
-    * Make visualizations
-    * Make synthetic data generatio
-    * IO for inversion results (pickle the mesh)
+    * Test equality constraints
     
 Geometry
     * Discretize a sphere into prisms
@@ -104,12 +71,8 @@ Gravity
     * spherical harmonics
     * reductions
     * terrain correction
-    * continuation
+    * make extention for upward continuation
     * equivalent layer
-    
-    Done:    
-    * Make synthetic data generation
-    * Make io module with load and dump functions
     
 WaveFD:
     * Port to Fortran

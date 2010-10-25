@@ -20,20 +20,45 @@ Geophysical direct and inverse modeling package.
 Includes various direct models, inversion programs,and various utilities for 
 general geophysics tasks.
 
-Packages:
-  * grav: gravimetry, geodesy and gravity gradiometry
-  * seismo: seismology and seismic
-  * heat: geothermology
+Subpackages:
+
+* :mod:`fatiando.grav`
+    Gravimetry, geodesy and gravity gradiometry
+    
+* :mod:`fatiando.heat` 
+    Geothermology modeling
+    
+* :mod:`fatiando.inversion`
+    A collection of geophysical inverse problem solvers.
+    
+* :mod:`fatiando.seismo`
+    Seismology and seismic methods
+        
 Modules:
-  * mesh: mesh generation and handling geometric elements
-  * stats: statistical tests and utilities for inverse problems
-  * utils: miscellaneous utilities
-  * vis: visualization of results in 2D and 3D
+
+* :mod:`fatiando.mesh`
+    Mesh generation and handling of geometric elements
+    
+* :mod:`fatiando.stats`
+    Statistical tests and utilities for inverse problems
+    
+* :mod:`fatiando.utils`
+    Miscellaneous utilities
+
+* :mod:`fatiando.vis`
+    Visualization of results in 2D and 3D
+        
 Functions:
-  * test: run the unit test suite for this package
+
+* :func:`fatiando.test`
+    Run the unit test suite for this package
+        
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
+
+
+__version__ = '0.0.1'
 
 
 # Create a default NullHandler so that logging is only enabled explicitly
@@ -41,6 +66,9 @@ __date__ = 'Created 02-Apr-2010'
 import logging
 
 class NullHandler(logging.Handler):
+    """
+    Default null handler so that logging is only done when explicitly asked for.
+    """
     
     def emit(self, record):
         
@@ -56,11 +84,14 @@ def test(label='fast', verbose=True):
 
     Parameters:
 
-        label: can be either 'fast' for a smaller and faster test
-               or 'full' for the full test suite
+    * label
+        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for
+        the full test suite
 
-        verbose: controls if the whole test information is printed
-                 or just the final results
+    * verbose
+        Controls if the whole test information is printed or just the final 
+        results
+        
     """
     
     if label != 'fast' and label != 'full':

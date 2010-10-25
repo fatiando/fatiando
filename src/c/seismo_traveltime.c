@@ -19,8 +19,7 @@
 
 /* **************************************************************************
 
- This module contains a set of functions that calculate the travel times of
- seismic waves.
+ Functions that calculate the travel times of seismic waves.
 
  Author: Leonardo Uieda
  Date: 29 April 2010
@@ -28,7 +27,7 @@
  **************************************************************************** */
 
 #include <math.h>
-#include "traveltime.h"
+#include "seismo_traveltime.h"
 
 /* Calculate the travel time inside a square cell assuming the ray is a straight
  * line */
@@ -173,5 +172,4 @@ double cartesian_straight(double slowness, double x1, double y1,
                     (crossingy[1] - crossingy[0]));
 
     return distance*slowness;
-
 }

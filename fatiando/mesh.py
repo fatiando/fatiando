@@ -15,16 +15,28 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Tools for manipulating geometric elements and creating model space 
-discretization meshes.
+Tools for creating model space discretization meshes.
 
 Functions:
-  * prism_mesh: Dived a volume into right rectangular prisms
-  * square_mesh: Divide an area into rectangles
-  * line_mesh: Divide a line or region into segments. 
-  * extract_key: Extract the values of key from each of cell of mesh
-  * fill: Fill the 'key' value of each cell of mesh
-  * copy: Make a copy of an n-dimensional mesh
+
+* :func:`fatiando.mesh.prism_mesh`
+    Dived a volume into right rectangular prisms
+
+* :func:`fatiando.mesh.square_mesh`
+    Divide an area into rectangles
+
+* :func:`fatiando.mesh.line_mesh`
+    Divide a line or region into segments. 
+
+* :func:`fatiando.mesh.extract_key`
+    Extract the values of key from each of cell of mesh
+
+* :func:`fatiando.mesh.fill`
+    Fill the 'key' value of each cell of mesh
+
+* :func:`fatiando.mesh.copy` 
+    Make a copy of an n-dimensional mesh
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 13-Sep-2010'
@@ -48,17 +60,25 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
     
     Parameters:
       
-      x1, x2: lower and upper limits of the volume in the x direction
-      
-      y1, y2: lower and upper limits of the volume in the y direction
-      
-      z1, z2: lower and upper limits of the volume in the z direction
-      
-      nx, ny, nz: number of cells in the x, y, and z directions
-          
-    Return:
+    * x1, x2
+        Lower and upper limits of the volume in the x direction
     
-      3D array of cells. Each cell is a dictionary as:
+    * y1, y2
+        Lower and upper limits of the volume in the y direction
+    
+    * z1, z2
+        Lower and upper limits of the volume in the z direction
+    
+    * nx, ny, nz
+        Number of cells in the x, y, and z directions
+          
+    Returns:
+    
+    * mesh
+        3D array of cells. 
+        
+    Each cell is a dictionary as::
+    
         {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 
          'z1':cellz1, 'z2':cellz2}
     """
@@ -114,22 +134,29 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
     """
     Divide an area into rectangles. 
     
-    Note: if the region is in x and z instead of y, simply think of y as z.
+    **NOTE**: if the region is in x and z instead of y, simply think of y as z.
     
     Parameters:
       
-      x1, x2: lower and upper limits of the region in the x direction
-      
-      y1, y2: lower and upper limits of the region in the y direction
-      
-      nx, ny: number of cells in the x and y directions
+    * x1, x2
+        Lower and upper limits of the region in the x direction
+    
+    * y1, y2
+        Lower and upper limits of the region in the y direction
+    
+    * nx, ny
+        Number of cells in the x and y directions
       
     Return:
     
-      2D array of cells. Each cell is a dictionary as:
+    * mesh
+        2D array of cells. 
+        
+    Each cell is a dictionary as::
+    
         {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
         
-      mesh is arranged with x varying with the columns and y with the rows
+    *mesh* is arranged with x varying with the columns and y with the rows
     """
     
     log.info("Building square mesh:")
@@ -173,13 +200,19 @@ def line_mesh(x1, x2, nx):
     
     Parameters:
       
-      x1, x2: lower and upper limits of the region in the x direction
-      
-      nx: number of cells (segments) in the x
+    * x1, x2
+        Lower and upper limits of the region in the x direction
+    
+    * nx
+        Number of cells (segments) in the x
       
     Return:
     
-      1D array of cells. Each cell is a dictionary as:
+    * mesh
+        1D array of cells. 
+        
+    Each cell is a dictionary as::
+    
         {'x1':cellx1, 'x2':cellx2}        
     """
     
@@ -211,13 +244,18 @@ def extract_key(key, mesh):
     
     Parameters:
     
-      key: the key whose value will be extracted
-      
-      mesh: an arbitrary mesh
+    * key
+        the key whose value will be extracted
+    
+    * mesh
+        an arbitrary mesh
       
     Returns:
       
-      ndarray of same shape as mesh filled with the key value of each mesh cell 
+    * key_array
+        ndarray with the same shape as *mesh* filled with the values in *key* of
+        each cell
+        
     """
     
     res = []
@@ -233,17 +271,20 @@ def extract_key(key, mesh):
 
 def fill(estimate, mesh, key='value'):
     """
-    Fill the 'key' value of each cell of mesh with the values in the estimate
-    vector
+    Fill the ``key`` of each cell of a mesh with the values in *estimate*
     
     Parameters:
     
-      estimate: 1D array-like parameter vector with the scalar value of each 
-                cell (arranged as mesh.ravel()) 
-      
-      mesh: a mesh generated by fatiando.mesh
-            
-      key: key in the mesh to fill
+    * estimate
+        1D array-like vector with the scalar value of each cell (arranged as 
+        mesh.ravel())
+    
+    * mesh
+        Mesh to fill
+          
+    * key
+        Key to fill in the *mesh*
+        
     """
         
     for value, cell in zip(estimate, mesh.ravel()):
@@ -254,9 +295,21 @@ def fill(estimate, mesh, key='value'):
 def copy(mesh):
     """
     Make a copy of mesh.
-    Use this instead of numpy.copy or mesh.copy because they don't make copies
-    of the cell dictionaries, so the copied mesh would still refer to the 
-    original's cells.
+    
+    **NOTE**: Use this instead of ``numpy.copy(my_mesh)`` or ``my_mesh.copy()``
+    because they don't make copies of the cell dictionaries, so the copied mesh
+    would still refer to the original's cells.
+    
+    Parameters:
+        
+    * mesh
+        Mesh to copy
+
+    Returns:
+    
+    * copy
+        A copy of mesh
+
     """
     
     copy = [cell.copy() for cell in mesh.ravel()]

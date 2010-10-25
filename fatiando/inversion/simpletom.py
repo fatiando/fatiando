@@ -15,13 +15,25 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A simplified 2D Cartesian tomography problem.
-Considers straight (seismic) rays, eg does not consider reflection or refraction
+Very simplified Cartesian travel time tomography example.
+
+Considers straight (seismic) rays, eg does not consider reflection or 
+refraction.
 
 Functions:
-  * clear: Erase garbage from previous inversions
-  * solve: Solve the tomography problem for a given data set and model mesh
-  * residuals: Calculate the residuals produced by a given estimate
+
+* :func:`fatiando.inversion.simpletom.clear`
+    Erase garbage from previous inversions
+
+* :func:`fatiando.inversion.simpletom.residuals`
+    Calculate the residuals produced by a given estimate
+
+* :func:`fatiando.inversion.simpletom.set_bounds`
+    Set bounds on the velocity values.
+
+* :func:`fatiando.inversion.simpletom.solve`
+    Solve the tomography problem for a given data set and model mesh
+  
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Apr-2010'
@@ -51,6 +63,7 @@ _use_bounds = False
 def clear():
     """
     Erase garbage from previous inversions.
+    
     Only use if changing the data and/or mesh (otherwise it saves time to keep
     the garbage)
     """
@@ -70,13 +83,22 @@ def residuals(data, estimate):
     
     Parameters:
     
-      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
+    * data
+        Travel time data in a dictionary
     
-      estimate: array-like parameter vector produced by the inversion.
+    * estimate
+        1D array-like parameter vector produced by the inversion.
       
-    Return:
+    Returns:
     
-      array-like vector of residuals
+    * residuals
+        Array-like vector of residuals
+      
+    The data dictionary must be such as::
+         
+        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
+         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+         
     """
 
     adjusted = _calc_simpletom_adjustment(1./estimate)
@@ -186,7 +208,18 @@ def _calc_simpletom_adjustment(estimate):
 
 
 def set_bounds(vmin, vmax):
-    """Set bounds on the velocity values"""
+    """
+    Set bounds on the velocity values.
+    
+    Parameters:
+    
+    * vmin
+        Lowest value the velocities can assume
+    
+    * vmax
+        Highest value the velocities can assume
+        
+    """
     
     global _use_bounds
     
@@ -205,48 +238,67 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     """
     Solve the tomography problem for a given data set and model space mesh.
     
-    Note: only uses max_it, lm_start, lm_step and max_steps if using sharpness
-          because otherwise the problem is linear
+    **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also 
+    using *sharpness* or bounds of the parameter values
+    (eg :func:`fatiando.inversion.simpletom.set_bounds`) because otherwise the 
+    problem is linear.
     
     Parameters:
     
-      data: travel time data in a dictionary (as loaded by fatiando.seismo.io)
+    * data
+        Travel time data in a dictionary (see bellow)
       
-      mesh: model space discretization mesh (see geometry.square_mesh function)
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.square_mesh`)
       
-      initial: initial estimate (only used when given sharpness > 0). If None,
-               will use zero initial estimate
-      
-      damping: Tikhonov order 0 regularization parameter. Must be >= 0
-      
-      smoothness: Tikhonov order 1 regularization parameter. Must be >= 0
-      
-      curvature: Tikhonov order 2 regularization parameter. Must be >= 0
-      
-      sharpness: Total Variation regularization parameter. Must be >= 0
-      
-      beta: small constant used to make Total Variation differentiable. 
-            Must be >= 0. The smaller it is, the sharper the solution but also 
-            the less stable
+    * initial 
+        Initial estimate (only used when given *sharpness* > 0). If ``None``,
+        will use zero initial estimate.
     
-      max_it: maximum number of iterations 
-        
-      lm_start: initial Marquardt parameter (controls the step size)
+    * damping
+        Tikhonov order 0 regularization parameter. Must be >= 0
     
-      lm_step: factor by which the Marquardt parameter will be reduced with
-               each successful step
-             
-      max_steps: how many times to try giving a step before exiting
+    * smoothness
+        Tikhonov order 1 regularization parameter. Must be >= 0
+    
+    * curvature
+        Tikhonov order 2 regularization parameter. Must be >= 0
+    
+    * sharpness    
+        Total Variation regularization parameter. Must be >= 0
+    
+    * beta
+        Small constant used to make Total Variation differentiable. 
+        Must be >= 0. The smaller it is, the sharper the solution but also 
+        the less stable
+    
+    * max_it
+        Maximum number of iterations 
+      
+    * lm_start
+        Initial Marquardt parameter (ie, step size)
+    
+    * lm_step 
+        Factor by which the Marquardt parameter will be reduced with each 
+        successful step
+           
+    * max_steps
+        How many times to try giving a step before exiting
       
     Return:
     
-      [estimate, goals]:
+    * [estimate, goals]
         estimate = array-like parameter vector estimated by the inversion.
-                   parameters are the velocity values in the mesh cells.
-                   use fill_mesh function to put the estimate in a mesh so you
-                   can plot and save it.
         goals = list of goal function value per iteration (only one value if not
-                using sharpness)
+        using *sharpness*)
+      
+    The data dictionary must be such as::
+         
+        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
+         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+                
+    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so 
+    you can plot and save it (using ``pickle``).
     """
     
     log.info("Inversion parameters:")

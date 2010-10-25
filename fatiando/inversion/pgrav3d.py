@@ -18,15 +18,28 @@
 3D Gravity inversion using right rectangular prisms.
 
 Functions:
-  * solve: Solve the inverse problem for a given data set and model space mesh
-  * clear: Erase garbage from previous inversions.
-  * extract_data_vector: Put all the gravity field data in a single array.
-  * cal_adjustment: Calculate the adjusted data produced by a given estimate.
-  * residuals: Calculate the residuals produced by a given estimate
-  * use_depth_weights :Use depth weighting in the next inversions
-  * set_bounds: Set lower and upper bounds on the density values
-  * grow: Grow the solution around given 'seeds' 
-  * get_seed: Returns as a seed the cell in mesh that has point inside it
+
+* :func:`fatiando.inversion.pgrav3d.solve`    
+    Solve the inverse problem for the density using a given data set.
+
+* :func:`fatiando.inversion.pgrav3d.clear`
+    Erase garbage from previous inversions.
+
+* :func:`fatiando.inversion.pgrav3d.extract_data_vector`
+    Put all the gravity field data in a single array.
+
+* :func:`fatiando.inversion.pgrav3d.calc_adjustment`
+    Calculate the adjusted data produced by a given estimate.
+
+* :func:`fatiando.inversion.pgrav3d.residuals`
+    Calculate the residuals produced by a given estimate
+
+* :func:`fatiando.inversion.pgrav3d.use_depth_weights`
+    Use depth weighting in the next inversions
+
+* :func:`fatiando.inversion.pgrav3d.set_bounds`
+    Set lower and upper bounds on the density values
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -72,6 +85,7 @@ _calculators = {'gz':fatiando.grav.prism.gz,
 def clear():
     """
     Erase garbage from previous inversions.
+    
     Only use if changing the data and/or mesh (otherwise it saves time to keep
     the garbage)
     """
@@ -95,18 +109,27 @@ def extract_data_vector(data, inplace=False):
     
     Parameters:
     
-      data: dictionary with the gravity component data as:
-            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
-            If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.grav.io
+    * data 
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a profile data dictionary (see bellow)
             
-      inplace: wether or not to erase the values in 'data' as they are put into
-               the array (use to save memory when data set is large)
+    * inplace
+        If ``True`` will erase the values in *data* as they are put into
+        the array (use to save memory when data set is large)
     
-    Return:
+    Returns:
         
-      1D array-like with the data in the following order:
+    * data_vector
+        1D array-like with the data in the following order:
         gz, gxx, gxy, gxz, gyy, gyz, gzz
+        
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+         
     """
     
     data_vector = []
@@ -176,14 +199,25 @@ def residuals(data, estimate):
     
     Parameters:
     
-      data: gravity field data in a dictionary (as loaded by 
-            fatiando.grav.io)
+    * data 
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a profile data dictionary (see bellow)
     
-      estimate: array-like parameter vector produced by the inversion.
+    * estimate
+        1D array-like parameter vector produced by the inversion.
       
     Return:
     
-      array-like vector of residuals
+    * residuals
+        1D array-like vector of residuals
+        
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+         
     """       
 
     adjusted = calc_adjustment(estimate)
@@ -212,13 +246,18 @@ def calc_adjustment(estimate, grid=False):
     
     Parameters:
     
-      estimate: array-like parameter vector produced by the inversion.
-      
-      grid: if True, return a dictionary of grids like the one given to solve
-            function.
-            (grids compatible with load and dump in fatiando.grav.io and the
-             plotters in fatiando.visualization).
-            if False, return a data vector to use in inversion
+    * estimate
+        1D array-like parameter vector produced by the inversion.
+    
+    * grid 
+        if ``True``, return a data dictionary like the one passed to the
+        inversion. If ``False``, return a data vector to use in inversion
+          
+    Returns:
+    
+    * adjusted
+        Adjusted data vector or grid
+        
     """
     
     jacobian = _build_pgrav3d_jacobian(estimate)
@@ -423,20 +462,32 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
     """
     Use depth weighting in the next inversions (Li & Oldenburg, 1998).
     
-    If z0 or power are set to None, they will be automatically calculated.
+    If *z0* or *power* are set to ``None``, they will be automatically 
+    calculated.
     
     Parameters:
     
-      mesh: model space discretization mesh (see geometry.prism_mesh function)
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
     
-      z0: compensation depth
-      
-      power: power of the power law used
-      
-      grid_height: height of the data grid in meters (only needed is z0 and 
-                   power are None)
-      
-      normalize: whether or not to normalize the weights
+    * z0
+        Compensation depth
+    
+    * power
+        Power of the power law used
+    
+    * grid_height
+        Height of the data grid in meters (only needed if *z0* and *power* are 
+        ``None``)
+    
+    * normalize
+        If ``True``, normalize the weights
+    
+    Returns:
+    
+    * [z0, power]
+        Values used for *z0* and *power*
+        
     """
     
     if z0 is None or power is None:
@@ -506,7 +557,18 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
 
 
 def set_bounds(vmin, vmax):
-    """Set lower and upper bounds on the density values"""
+    """
+    Set bounds on the density values.
+    
+    Parameters:
+    
+    * vmin
+        Lowest value the density can assume
+    
+    * vmax
+        Highest value the density can assume
+    
+    """
     
     log.info("Setting bounds on density values:")
     log.info("  vmin: %g" % (vmin))
@@ -519,55 +581,78 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
           sharpness=0, beta=10**(-5), compactness=0, epsilon=10**(-5), 
           max_it=100, lm_start=1, lm_step=10, max_steps=20):    
     """
-    Solve the inverse problem for a given data set and model space mesh.
+    Solve the inverse problem for the density using a given data set.
+        
+    **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also 
+    using *sharpness*, *compactness* or bounds of the parameter values
+    (eg :func:`fatiando.inversion.pgrav3d.set_bounds`) because otherwise the 
+    problem is linear.
     
     Parameters:
     
-      data: dictionary with the gravity component data as:
-            {'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}
-            If there is no data for a given component, omit the respective key.
-            Each g*data is a data grid as loaded by fatiando.grav.io
+    * data 
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a profile data dictionary (see bellow)
       
-      mesh: model space discretization mesh (see geometry.prism_mesh function)
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
       
-      initial: initial estimate (only used with sharpness or compactness). 
-               If None, will use zero initial estimate
-      
-      damping: Tikhonov order 0 regularization parameter. Must be >= 0
-      
-      smoothness: Tikhonov order 1 regularization parameter. Must be >= 0
-      
-      curvature: Tikhonov order 2 regularization parameter. Must be >= 0
-      
-      sharpness: Total Variation regularization parameter. Must be >= 0
-      
-      beta: small constant used to make Total Variation differentiable. 
-            Must be >= 0. The smaller it is, the sharper the solution but also 
-            the less stable
+    * initial
+        Initial estimate (only used with *sharpness* or *compactness*). 
+        If ``None``, will use zero
+    
+    * damping
+        Tikhonov order 0 regularization parameter. Must be >= 0
+    
+    * smoothness
+        Tikhonov order 1 regularization parameter. Must be >= 0
+    
+    * curvature
+        Tikhonov order 2 regularization parameter. Must be >= 0
+    
+    * sharpness    
+        Total Variation regularization parameter. Must be >= 0
+    
+    * beta
+        Small constant used to make Total Variation differentiable. 
+        Must be >= 0. The smaller it is, the sharper the solution but also 
+        the less stable
             
-      compactness: Compact regularization parameter. Must be >= 0
+    * compactness
+        Compact regularization parameter. Must be >= 0
       
-      epsilon: small constant used in Compact regularization to avoid 
-               singularities. Set it small for more compactness, larger for more
-               stability.
+    * epsilon
+        Small constant used in Compact regularization to avoid singularities. 
+        Set it small for more compactness, larger for more stability.
     
-      max_it: maximum number of iterations 
-        
-      lm_start: initial Marquardt parameter (controls the step size)
-    
-      lm_step: factor by which the Marquardt parameter will be reduced with
-               each successful step
-             
-      max_steps: how many times to try giving a step before exiting
+    * max_it
+        Maximum number of iterations 
       
-    Return:
+    * lm_start
+        Initial Marquardt parameter (ie, step size)
     
-      [estimate, goals]:
+    * lm_step 
+        Factor by which the Marquardt parameter will be reduced with each 
+        successful step
+           
+    * max_steps
+        How many times to try giving a step before exiting
+
+    Returns:
+    
+    * [estimate, goals]
         estimate = array-like parameter vector estimated by the inversion.
-                   parameters are the density values in the mesh cells.
-                   use fill_mesh function to put the estimate in a mesh so you
-                   can plot and save it.
         goals = list of goal function value per iteration    
+        
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+         
+    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so 
+    you can plot and save it (using ``pickle``).
     """
 
     for key in data:

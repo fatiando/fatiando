@@ -18,10 +18,13 @@
 Input and output of seismological data
 
 Functions:
-  * dump_traveltime: save travel time data to a file
-  * load_traveltime: load traveltime data from a file
-  * dump_seismogram: save seismogram data to a file
-  * load_seismogram: load seismogram data from a file
+
+* :func:`fatiando.seismo.io.dump_traveltime` 
+    Save travel time data to a file
+
+* :func:`fatiando.seismo.io.load_traveltime` 
+    Load traveltime data from a file
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -43,17 +46,27 @@ log.addHandler(fatiando.default_log_handler)
 def dump_traveltime(fname, data, fmt='ascii'):
     """
     Save travel time data to a file.
+        
+    File columns format::
+    
+      src_x  src_y  rec_x  rec_y  time  error
     
     Parameters:
     
-      fname: either string with file name or file object
+    * fname
+        Either string with file name or file object.
+    
+    * data
+        Travel time data stored in a dictionary.
+                
+    * fmt
+        File format. For now only supports ``ASCII``.
       
-      data: travel time data stored in a dictionary.
-            keys:{'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
-                  'traveltime':[time1, time2, ...], 
-                  'error':[error1, error2, ...]}
-                  
-      fmt: file format. For now only supports ASCII
+    The data dictionary must be such as::
+         
+        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
+         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+         
     """
     
     if isinstance(fname, file):
@@ -81,21 +94,30 @@ def dump_traveltime(fname, data, fmt='ascii'):
 def load_traveltime(fname, fmt='ascii'):
     """
     Load travel time data from a file.
-    Note: lines that start with # will be considered comments
-    Column format:
+    
+    Note: lines that start with ``#`` will be considered comments.
+    
+    File columns format::
+    
       src_x  src_y  rec_x  rec_y  time  error
     
     Parameters:
     
-      fname: either string with file name or file object
-                  
-      fmt: file format. For now only supports ASCII
+    * fname
+        Either string with file name or file object.
+                
+    * fmt
+        File format. For now only supports ``ASCII``.
       
     Return:
     
-      travel time data stored in a dictionary.
-      keys:{'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
-            'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+    * travel time data stored in a dictionary
+            
+    The data dictionary must be such as::
+         
+        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
+         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
+         
     """
     
     if isinstance(fname, file):
