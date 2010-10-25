@@ -29,6 +29,8 @@ __date__ = 'Created 20-Oct-2010'
 
 
 import logging
+import math
+import time
 
 import numpy
 
@@ -54,6 +56,8 @@ def upcontinue(data, height):
         ]^{\\frac{3}{2}}} dx' dy'
                
     For now only supports **grid** data on a plain.
+    
+    *UNITS*: SI for all coordinates, mGal for :math:`g_z`
 
     Parameters:
     
@@ -68,7 +72,7 @@ def upcontinue(data, height):
     
     Returns:
     
-    * cont_data
+    * cont
         Upward continued data stored in a dictionary.
         
     The data dictionary should be as::
@@ -82,36 +86,44 @@ def upcontinue(data, height):
     assert height > 0, "'height' should be positive! Can only upward continue."
     assert data['grid'] is True, ("Sorry, for now only supports grid data. " + 
         "Make sure to set the 'grid' key to 'True' in the data dictionary.")    
+                          
+    start = time.time()
         
     dx = data['x'][1] - data['x'][0]
-    dy = data['y'][1] - data['y'][0]
+    dy = data['y'][data['nx']] - data['y'][0]
     
-    ndata = data['nx']*data['ny']
-    
+    log.info("Upward continuation:")
+    log.info("  data: %d points" % (data['nx']*data['ny']))
+    log.info("  dx: %g m" % (dx))
+    log.info("  dy: %g m" % (dy))
+    log.info("  new height: %g m" % (height))
+        
     # Copy the grid information to the upward continued data dict
-    cont_data = {}
-    cont_data['x'] = numpy.copy(data['x'])
-    cont_data['y'] = numpy.copy(data['y'])
-    cont_data['z'] = data['z'] - height
-    cont_data['value'] = numpy.zeros_like(data['value'])
-    cont_data['error'] = numpy.zeros_like(data['error'])
-    cont_data['grid'] = True
-    cont_data['nx'] = data['nx']
-    cont_data['ny'] = data['ny']
+    cont = {}
+    cont['x'] = numpy.copy(data['x'])
+    cont['y'] = numpy.copy(data['y'])
+    cont['z'] = data['z'] - height
+    cont['value'] = numpy.zeros_like(data['value'])
+    cont['grid'] = True
+    cont['nx'] = data['nx']
+    cont['ny'] = data['ny']
                 
-    for i in xrange(ndata):
+    for i, cont_coords in enumerate(zip(cont['x'], cont['y'], cont['z'])):
         
-        for j in xrange(ndata):
+        x, y, z = cont_coords
+        
+        for j, coords in enumerate(zip(data['x'], data['y'], data['z'])):
             
-            cont_data['value'][i] += 1
+            xl, yl, zl = coords
+            
+            oneover_l = math.pow((x - xl)**2 + (y - yl)**2 + (z - zl)**2, -1.5)
+            
+            cont['value'][i] += data['value'][j]*oneover_l*dx*dy        
+    
+        cont['value'][i] *= abs(z - zl)/(2*numpy.pi)
         
+    end = time.time()
     
-        cont_data['value'][i] *= (cont_data['z'][i] - data['z'][i])
+    log.info("  time: %g s" % (end - start))
     
-    
-    
-    
-    
-    
-    
-    
+    return cont

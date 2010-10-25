@@ -65,7 +65,7 @@ Gravity
     * spherical harmonics
     * reductions
     * terrain correction
-    * continuation
+    * make extention for upward continuation
     * equivalent layer
     
 WaveFD:
