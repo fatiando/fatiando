@@ -48,19 +48,30 @@ mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(pgrav3d.get_seed((-310, -310, 450), 200, mesh))
+seeds.append(pgrav3d.get_seed((-410, -410, 450), 1000, mesh))
 seeds.append(pgrav3d.get_seed((210, -410, 450), 700, mesh))
-seeds.append(pgrav3d.get_seed((10, 410, 450), 500, mesh))
-seeds.append(pgrav3d.get_seed((-310, 410, 450), 500, mesh))
-seeds.append(pgrav3d.get_seed((510, 410, 450), 1000, mesh))
+seeds.append(pgrav3d.get_seed((110, 410, 450), 500, mesh))
+seeds.append(pgrav3d.get_seed((-210, 410, 450), 500, mesh))
 
-# Pickle them for later reference
-seed_file = open("seeds.pickle", 'w')
-pickle.dump(seeds, seed_file)
-seed_file.close()
+# Show the seeds before starting
+seed_mesh = []
+for seed in seeds:
+    seed_cell = mesh.ravel()[seed['param']]
+    seed_cell['value'] = seed['density']
+    seed_mesh.append(seed_cell)
+seed_mesh = numpy.array(seed_mesh)
+fig = mlab.figure()
+fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.camera.pitch(180)
+fig.scene.camera.roll(180)
+fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
+plot = fatiando.vis.plot_prism_mesh(seed_mesh, style='surface', 
+                                    label='Seed Density')
+axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
+mlab.show()
 
 # Inversion parameters
-mmi = 1*10**(2)
+mmi = 1*10**(1)
 power = 5
 
 # Load the Jacobian from a previous run
@@ -71,17 +82,26 @@ power = 5
 # Run the inversion
 estimate, residuals, goals, rmss = pgrav3d.grow(data, mesh, seeds, mmi, power)
 
+adjusted = pgrav3d.calc_adjustment(estimate, grid=True)
+
 fatiando.mesh.fill(estimate, mesh)
+
+# Pickle the Jacobian for later use
+jac_file = open('jacobian.pickle', 'w')
+pickle.dump(pgrav3d._jacobian, jac_file)
+jac_file.close()
+
+del pgrav3d._jacobian
 
 # Save the resulting model
 output = open('result.pickle', 'w')
 pickle.dump(mesh, output)
 output.close()
 
-# Pickle the Jacobian for later use
-jac_file = open('jacobian.pickle', 'w')
-pickle.dump(pgrav3d._jacobian, jac_file)
-jac_file.close()
+# Pickle the seeds for later reference
+seed_file = open("seeds.pickle", 'w')
+pickle.dump(seeds, seed_file)
+seed_file.close()
 
 # Plot the results
 pylab.figure(figsize=(14,6))
@@ -108,7 +128,6 @@ ax.grid()
 pylab.subplot(1,2,2)
 pylab.title("Adjustment: g_zz")
 pylab.axis('scaled')
-adjusted = pgrav3d.calc_adjustment(estimate, grid=True)
 X, Y, Z = fatiando.utils.extract_matrices(data['gzz'])
 ct_data = pylab.contour(X, Y, Z, 5, colors='b')
 ct_data.clabel(fmt='%g')
@@ -123,14 +142,6 @@ pylab.legend(loc='lower right', prop={'size':10}, shadow=True)
 
 pylab.savefig("adjustment.png")
 pylab.show()
-
-# Show the seeds
-seed_mesh = []
-for seed in seeds:
-    seed_cell = mesh.ravel()[seed['param']]
-    seed_cell['value'] = seed['density']
-    seed_mesh.append(seed_cell)
-seed_mesh = numpy.array(seed_mesh)
 
 # Plot the adjusted model plus the skeleton of the synthetic model
 fig = mlab.figure()

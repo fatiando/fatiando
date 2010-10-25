@@ -824,265 +824,265 @@ def _add_neighbors(param, neighbors, seeds, mesh):
             append(neighbor)
 
     # The diagonals            
-    if front is not None and left is not None:
-        
-        neighbor = left + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-    
-    if front is not None and right is not None:
-        
-        neighbor = right + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if back is not None and left is not None:
-        
-        neighbor = left - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if back is not None and right is not None:
-    
-        neighbor = right - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and left is not None:
-        
-        neighbor = above + nx
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and right is not None:
-        
-        neighbor = above - nx
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and front is not None:
-        
-        neighbor = above + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and back is not None:
-        
-        neighbor = above - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and front is not None and left is not None:
-        
-        neighbor = above + nx + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if above is not None and front is not None and right is not None:
-        
-        neighbor = above - nx + 1   
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-
-    if above is not None and back is not None and left is not None:
-        
-        neighbor = above + nx - 1 
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-    
-    if above is not None and back is not None and right is not None:
-        
-        neighbor = above - nx - 1 
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and left is not None:
-        
-        neighbor = bellow + nx
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and right is not None:
-        
-        neighbor = bellow - nx
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and front is not None:
-        
-        neighbor = bellow + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and back is not None:
-        
-        neighbor = bellow - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and front is not None and left is not None:
-        
-        neighbor = bellow + nx + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and front is not None and right is not None:
-        
-        neighbor = bellow - nx + 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-        
-    if bellow is not None and back is not None and left is not None:
-        
-        neighbor =  bellow + nx - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
-            
-    if bellow is not None and back is not None and right is not None:
-        
-        neighbor = bellow - nx - 1
-            
-        # Need to check if neighbor is not in any seed's neighbors and has not
-        # been marked
-        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
-        
-        if True not in is_neighbor and True not in is_marked:
-        
-            append(neighbor)
+#    if front is not None and left is not None:
+#        
+#        neighbor = left + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#    
+#    if front is not None and right is not None:
+#        
+#        neighbor = right + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if back is not None and left is not None:
+#        
+#        neighbor = left - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if back is not None and right is not None:
+#    
+#        neighbor = right - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and left is not None:
+#        
+#        neighbor = above + nx
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and right is not None:
+#        
+#        neighbor = above - nx
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and front is not None:
+#        
+#        neighbor = above + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and back is not None:
+#        
+#        neighbor = above - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and front is not None and left is not None:
+#        
+#        neighbor = above + nx + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if above is not None and front is not None and right is not None:
+#        
+#        neighbor = above - nx + 1   
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#
+#    if above is not None and back is not None and left is not None:
+#        
+#        neighbor = above + nx - 1 
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#    
+#    if above is not None and back is not None and right is not None:
+#        
+#        neighbor = above - nx - 1 
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and left is not None:
+#        
+#        neighbor = bellow + nx
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and right is not None:
+#        
+#        neighbor = bellow - nx
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and front is not None:
+#        
+#        neighbor = bellow + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and back is not None:
+#        
+#        neighbor = bellow - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and front is not None and left is not None:
+#        
+#        neighbor = bellow + nx + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and front is not None and right is not None:
+#        
+#        neighbor = bellow - nx + 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#        
+#    if bellow is not None and back is not None and left is not None:
+#        
+#        neighbor =  bellow + nx - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
+#            
+#    if bellow is not None and back is not None and right is not None:
+#        
+#        neighbor = bellow - nx - 1
+#            
+#        # Need to check if neighbor is not in any seed's neighbors and has not
+#        # been marked
+#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+#        is_marked = [neighbor in seed['marked'] for seed in seeds]
+#        
+#        if True not in is_neighbor and True not in is_marked:
+#        
+#            append(neighbor)
         
 
 def grow(data, mesh, seeds, mmi, power=5):
@@ -1237,6 +1237,8 @@ def grow(data, mesh, seeds, mmi, power=5):
                 
                 goal = rms + reg_goal
                 
+                # Reducing the RMS is mandatory while also looking for the one
+                # that minimizes the total goal the most
                 if rms < rmss[-1]:
                     
                     if best_goal is None or goal < best_goal:
@@ -1258,7 +1260,7 @@ def grow(data, mesh, seeds, mmi, power=5):
                 
                 rmss.append(best_rms)
                 
-                seed['marked'].append(best_neighbor)                
+                seed['marked'].append(best_neighbor)
                     
                 seed['neighbors'].remove(best_neighbor)
                     

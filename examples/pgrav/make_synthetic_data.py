@@ -17,13 +17,11 @@ log = fatiando.utils.get_logger()
 
 prisms = []
 prisms.append({'x1':-600, 'x2':-200, 'y1':-600, 'y2':-200, 'z1':200, 'z2':600,
-               'value':200})
+               'value':1000})
 prisms.append({'x1':000, 'x2':400, 'y1':-600, 'y2':-200, 'z1':200, 'z2':600,
                'value':700})
-prisms.append({'x1':-600, 'x2':200, 'y1':200, 'y2':600, 'z1':200, 'z2':600,
+prisms.append({'x1':-400, 'x2':400, 'y1':200, 'y2':600, 'z1':200, 'z2':600,
                'value':500})
-prisms.append({'x1':400, 'x2':600, 'y1':200, 'y2':600, 'z1':200, 'z2':600,
-               'value':1000})
 
 prisms = numpy.array(prisms)
 
