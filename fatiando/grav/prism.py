@@ -67,7 +67,7 @@ def gz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **mGal**!
     
     Parameters:
     
@@ -99,7 +99,7 @@ def gxx(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     
@@ -131,7 +131,7 @@ def gxy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     
@@ -163,7 +163,7 @@ def gxz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     
@@ -195,7 +195,7 @@ def gyy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     
@@ -227,7 +227,7 @@ def gyz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     
@@ -259,7 +259,7 @@ def gzz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     The coordinate system of the input parameters is to be x -> North, 
     y -> East and z -> **DOWN**.
     
-    NOTE: All input values in **SI** units(!) and output in **mGal**!
+    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
     
     Parameters:
     

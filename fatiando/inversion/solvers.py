@@ -19,17 +19,38 @@ Linear and non-linear generic solvers for inverse problems.
 
 Implemented regularizations:
 
-  * Tikhonov orders 0, 1 and 2: imposes minimum norm (damping), smoothness and 
-      minimum curvature, respectively, of the solution
-  * Total Variation: imposes minimum l1 norm of the model derivatives 
-      (discontinuities)
-  * Compact: imposes minimum area (volume) of the solution (as in Last and Kubic
-      (1983) without parameter freezing. Use log barrier instead)
+* Tikhonov orders 0, 1 and 2
+    Imposes minimum norm (damping), smoothness and minimum curvature, 
+    respectively, on the solution.
+    
+* Total Variation
+    Imposes minimum l1 norm of the model derivatives (ie, discontinuities)
+    
+* Compact
+    Imposes minimum area (or volume) of the solution (as in Last and Kubic
+    (1983) without parameter freezing. To achieve the same effect, use 
+    the specific ``set_bounds`` functions instead)
 
 Functions:
-  * lm: Levemberg-Marquardt solver
-  * set_bounds: Set upper and lower bounds on the parameter values (log barrier)
-  * clear: Reset all globals to their default
+
+* :func:`fatiando.inversion.solvers.clear`
+    Reset all globals to their default.
+
+* :func:`fatiando.inversion.solvers.lm`
+    Levemberg-Marquardt solver
+    
+* :func:`fatiando.inversion.solvers.linear_overdet`
+    Solve a linear over-determined problem.
+    
+* :func:`fatiando.inversion.solvers.linear_underdet`
+    Solve a linear under-determined problem
+
+* :func:`fatiando.inversion.solvers.set_bounds`
+    Set upper and lower bounds on the parameter values (log barrier)
+
+* :func:`fatiando.inversion.solvers.clear`
+    Reset all globals to their default
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 10-Sep-2010'
@@ -77,7 +98,7 @@ _eq_hessian = None
 
 
 def clear():
-    """
+    """    
     Reset all globals to their default.
     """
     
@@ -107,10 +128,20 @@ def _build_jacobian(estimate):
     Build the Jacobian matrix of the mathematical model (geophysical function)
     that we're trying to fit to the data.
     
+    Overwrite this function in the specific solvers.
+    
+    If called as is, will raise a ``NotImplementedError``.
+    
     Parameters:
         
-      estimate: array-like current estimate where the Jacobian will be
-                evaluated                      
+    * estimate
+        1D array-like current estimate where the Jacobian will be evaluated
+        
+    Returns:
+    
+    * jacobian
+        2D array-like Jacobian matrix
+        
     """
     
     raise NotImplementedError(
@@ -121,6 +152,16 @@ def _build_first_deriv_matrix():
     """
     Build the finite differences approximation of the first derivative matrix 
     of the model parameters. 
+    
+    Overwrite this function in the specific solvers.
+    
+    If called as is, will raise a ``NotImplementedError``.
+    
+    Returns:
+    
+    * first_deriv
+        2D array-like finite differences first derivative of model parameters
+        
     """
     
     raise NotImplementedError(
@@ -130,10 +171,21 @@ def _build_first_deriv_matrix():
 def _calc_adjustment(estimate):
     """
     Calculate the adjusted data produced by a given estimate.
+        
+    Overwrite this function in the specific solvers.
+    
+    If called as is, will raise a ``NotImplementedError``.
     
     Parameters:
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
+    Returns:
+    
+    * adjusted_data
+        1D array-like adjusted data vector
+        
     """
     
     raise NotImplementedError(
@@ -146,7 +198,9 @@ def _build_tk_weights(nparams):
     
     Parameters:
     
-      nparams: number of parameters
+    * nparams
+        Number of parameters
+        
     """
     
     global _first_deriv
@@ -248,11 +302,14 @@ def _calc_regularizer_goal(estimate):
     
     Parameters:
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
       
-    Return:
+    Returns:
     
-      goal, msg (string with the individual regularizers information)
+    * [goal, msg]
+        *msg* is a string with the individual regularizers information
+        
     """
     
     goal = 0
@@ -300,7 +357,9 @@ def _sum_tk_hessian(hessian):
     
     Parameters:
     
-      hessian: array-like Hessian matrix
+    * hessian
+        2D array-like Hessian matrix
+        
     """    
     
     global _tk_weights
@@ -318,9 +377,12 @@ def _sum_tv_hessian(hessian, estimate):
     
     Parameters:
     
-      hessian: array-like Hessian matrix
+    * hessian
+        2D array-like Hessian matrix
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
         
     global _first_deriv
@@ -348,9 +410,12 @@ def _sum_compact_hessian(hessian, estimate):
     
     Parameters:
     
-      hessian: array-like Hessian matrix
+    * hessian
+        2D array-like Hessian matrix
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     for i, param in enumerate(estimate):
@@ -364,9 +429,12 @@ def _sum_eq_hessian(hessian):
     
     Parameters:
     
-      hessian: array-like Hessian matrix
+    * hessian
+        2D array-like Hessian matrix
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     assert equality > 0, "'equality' regularization parameter needs to be > 0"
@@ -389,9 +457,12 @@ def _sum_reg_hessians(hessian, estimate):
     
     Parameters:
     
-      hessian: array-like Hessian matrix of the adjustment
+    * hessian
+        2D array-like Hessian matrix
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     if damping > 0 or smoothness > 0 or curvature > 0:
@@ -417,9 +488,12 @@ def _sum_tk_gradient(gradient, estimate):
     
     Parameters:
     
-      gradient: array-like gradient vector
+    * gradient
+        1D array-like gradient vector
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
         
     global _tk_weights
@@ -439,9 +513,12 @@ def _sum_tv_gradient(gradient, estimate):
     
     Parameters:
     
-      gradient: array-like gradient vector
+    * gradient
+        1D array-like gradient vector
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
         
     global _first_deriv, beta, sharpness
@@ -463,9 +540,12 @@ def _sum_compact_gradient(gradient, estimate):
     
     Parameters:
     
-      gradient: array-like gradient vector
+    * gradient
+        1D array-like gradient vector
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     gradient += compactness*estimate/(estimate**2 + epsilon)
@@ -477,9 +557,12 @@ def _sum_eq_gradient(gradient, estimate):
     
     Parameters:
     
-      gradient: array-like gradient vector
+    * gradient
+        1D array-like gradient vector
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     assert equality > 0, "'equality' regularization parameter needs to be > 0"
@@ -504,9 +587,12 @@ def _sum_reg_gradients(gradient, estimate):
     
     Parameters:
     
-      gradient: array-like gradient due to the adjustment
+    * gradient
+        1D array-like gradient vector
         
-      estimate: array-like current estimate
+    * estimate
+        1D array-like current estimate
+        
     """
     
     if damping > 0 or smoothness > 0 or curvature > 0:
@@ -564,7 +650,18 @@ def _revert_log_barrier(correction, prev):
 
 
 def set_bounds(vmin, vmax):
-    """Set upper and lower bounds on the parameter values."""
+    """
+    Set bounds on the parameter values.
+    
+    Parameters:
+    
+    * vmin
+        Lowest value the parameter can assume
+    
+    * vmax
+        Highest value the parameter can assume
+        
+    """
     
     global _lower, _upper, _apply_variable_change, _revert_variable_change
     
@@ -581,27 +678,34 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     
     Parameters:
     
-      data: array-like data vector
-        
-      cov: array-like covariance matrix of the data
+    * data
+        1D array-like data vector
       
-      initial: array-like initial estimate
+    * cov
+        2D array-like covariance matrix of the data
+    
+    * initial
+        1D array-like initial estimate
         
-      lm_start: initial Marquardt parameter (controls the step size)
-        
-      lm_step: factor by which the Marquardt parameter will be reduced with
-               each successful step
-                 
-      max_steps: how many times to try giving a step before exiting
-        
-      max_it: maximum number of iterations
-        
+    * lm_start
+        Initial Marquardt parameter (ie, step size)
+    
+    * lm_step 
+        Factor by which the Marquardt parameter will be reduced with each 
+        successful step
+           
+    * max_steps
+        How many times to try giving a step before exiting
+    
+    * max_it
+        Maximum number of iterations 
+              
     Return:
     
-      [estimate, goals]:
-    
-        estimate: array-like estimated parameter vector
-        goals: list of the goal function value per iteration
+    * [estimate, goals]    
+        estimate = array-like estimated parameter vector
+        goals = list of the goal function value per iteration
+        
     """
     
     total_start = time.time()
@@ -715,17 +819,22 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
 def linear_overdet(data, cov=None):
     """
     Solve a linear over-determined problem.
+    
     Only supports Tikhonov regularization and Equality constraints
     
     Parameters:
     
-      data: array-like data vector
+    * data
+        1D array-like data vector
         
-      cov: array-like covariance matrix of the data
+    * cov
+        2D array-like covariance matrix of the data
         
-    Return:
+    Returns:
     
-      array-like estimated parameter vector
+    * estimate
+        1D array-like estimated parameter vector
+        
     """
     
     log.info("Linear Over-determined Inversion:")
@@ -785,17 +894,22 @@ def linear_underdet(data, cov=None):
     """
     Solve a linear under-determined problem by using prior information in the
     form of regularization.
+    
     Only supports Tikhonov regularization and Equality constraints.
     
     Parameters:
     
-      data: array-like data vector
+    * data
+        1D array-like data vector
         
-      cov: array-like covariance matrix of the data
+    * cov
+        2D array-like covariance matrix of the data
         
-    Return:
+    Returns:
     
-      array-like estimated parameter vector
+    * estimate
+        1D array-like estimated parameter vector
+        
     """
     
     log.info("Linear Under-determined Inversion:")

@@ -52,6 +52,7 @@ c_path = os.path.join(src_path, 'c')
 wrap_path = os.path.join(src_path, 'wrap')
 doc_path = 'doc'
 userguid_path = os.path.join(doc_path, 'userguide')
+examples_path = 'examples'
 
 # Build the extention modules with the setup.py script
 target = 'build_ext'
@@ -82,7 +83,14 @@ test = PhonyTarget(target=target, action=action, depends=[])
 env = DefaultEnvironment()
 env.AlwaysBuild(test)
 
+# Clean up the build
 Clean(os.path.curdir, 'build')
 Clean(os.path.curdir, 'dist')
 Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.pyc'))
+
+# Clean up the example results
+Clean(os.path.curdir, list_ext(examples_path, '.pickle'))
+Clean(os.path.curdir, list_ext(examples_path, '.log'))
+Clean(os.path.curdir, list_ext(examples_path, '.txt'))
+Clean(os.path.curdir, list_ext(examples_path, '.png'))

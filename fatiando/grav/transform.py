@@ -46,7 +46,7 @@ log.addHandler(fatiando.default_log_handler)
 
 def upcontinue(data, height):
     """
-    Upward continue :math:`gz` data using numerical integration of the 
+    Upward continue :math:`g_z` data using numerical integration of the 
     analytical formula:
     
     .. math::
@@ -57,12 +57,12 @@ def upcontinue(data, height):
                
     For now only supports **grid** data on a plain.
     
-    *UNITS*: SI for all coordinates, mGal for :math:`g_z`
+    **UNITS**: SI for all coordinates, mGal for :math:`g_z`
 
     Parameters:
     
     * data
-        :math:`gz` data stored in a dictionary (see bellow for explanation).
+        :math:`g_z(x',y',z_0)` data stored in a dictionary.
         
     * height
         How much higher to move the gravity field (should be POSITIVE!)

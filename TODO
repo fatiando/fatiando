@@ -7,7 +7,6 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
-    * Finish adapting docstrings to Sphinx
     
 Inversion
     * Unit tests

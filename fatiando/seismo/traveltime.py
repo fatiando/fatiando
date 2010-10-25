@@ -47,7 +47,7 @@ def cartesian_straight(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec):
     Calculate the travel time inside a square cell assuming the ray is a 
     straight line.
     
-    NOTE: Don't care about the units as long they are compatible.
+    **NOTE**: Don't care about the units as long they are compatible.
     
     Parameters:
     

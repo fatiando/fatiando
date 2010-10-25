@@ -25,11 +25,14 @@ Subpackages:
 * :mod:`fatiando.grav`
     Gravimetry, geodesy and gravity gradiometry
     
-* :mod:`fatiando.seismo`
-    Seismology and seismic methods
-    
 * :mod:`fatiando.heat` 
     Geothermology modeling
+    
+* :mod:`fatiando.inversion`
+    A collection of geophysical inverse problem solvers.
+    
+* :mod:`fatiando.seismo`
+    Seismology and seismic methods
         
 Modules:
 
