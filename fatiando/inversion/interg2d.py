@@ -358,7 +358,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
         {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
          'value':[data1, data2, ...], 'error':[error1, error2, ...]}
                   
-    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so 
+    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a mesh so 
     you can plot and save it (using ``pickle``).
     """
     

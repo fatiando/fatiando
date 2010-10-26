@@ -47,6 +47,7 @@ import logging
 import numpy
 
 import fatiando
+import fatiando.geometry as geometry
 
 log = logging.getLogger('fatiando.mesh')  
 log.setLevel(logging.DEBUG)
@@ -57,6 +58,10 @@ log.addHandler(fatiando.default_log_handler)
 def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
     """
     Dived a volume into right rectangular prisms.
+    
+    The mesh is arranged as a list of matrices (layers with same z). Each
+    matrix has x varying with the columns and y with the rows. Therefore the
+    shape of the mesh is (*nz*, *ny*, *nx*)
     
     Parameters:
       
@@ -70,21 +75,17 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
         Lower and upper limits of the volume in the z direction
     
     * nx, ny, nz
-        Number of cells in the x, y, and z directions
+        Number of prisms in the x, y, and z directions
           
     Returns:
     
     * mesh
-        3D array of cells. 
+        3D array of prisms. (See :func:`fatiando.geometry.prism`)
         
-    Each cell is a dictionary as::
-    
-        {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 
-         'z1':cellz1, 'z2':cellz2}
     """
     
     log.info("Building prism mesh:")
-    log.info("  Discretization: nx=%d X ny=%d X nz=%d = %d cells" 
+    log.info("  Discretization: nx=%d X ny=%d X nz=%d = %d prisms" 
              % (nx, ny, nz, nx*ny*nz))
     
     dx = float(x2 - x1)/nx
@@ -117,9 +118,8 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
                     
                     break
                 
-                cell = {'x1':cellx1, 'x2':cellx1 + dx, 
-                        'y1':celly1, 'y2':celly1 + dy,
-                        'z1':cellz1, 'z2':cellz1 + dz}
+                cell = geometry.prism(cellx1, cellx1 + dx, celly1, celly1 + dy,
+                                      cellz1, cellz1 + dz)
                 
                 line.append(cell)
                 
@@ -134,6 +134,9 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
     """
     Divide an area into rectangles. 
     
+    The mesh is arranged as a matrix with x varying with the columns and y with 
+    the rows. Therefore the shape of the mesh is (*ny*, *nx*)
+        
     **NOTE**: if the region is in x and z instead of y, simply think of y as z.
     
     Parameters:
@@ -155,8 +158,7 @@ def square_mesh(x1, x2, y1, y2, nx, ny):
     Each cell is a dictionary as::
     
         {'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2}
-        
-    *mesh* is arranged with x varying with the columns and y with the rows
+
     """
     
     log.info("Building square mesh:")

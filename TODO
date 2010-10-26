@@ -1,12 +1,15 @@
 General
     * Write README
-    * Write better (or any at all) docs for the inverse problem theory
+    * Write docs for the inverse problem theory
     * Make example wikis
     * Make tutorial for implementing new inversion
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
+    * High res DFT
+    * Move all prism creation to geometry.prism
+    * Move all grid creation to grid
     
 Inversion
     * Unit tests
@@ -58,6 +61,7 @@ Geometry
     
         
 Gravity
+    * Program tensor invariants
     * Unit tests for existing functions
     * potential and derivatives of a sphere
     * potential and derivatives of a tesseroid

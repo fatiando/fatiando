@@ -15,35 +15,44 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test suite for the fatiando package.
+Unit tests for :mod:`fatiando.grav.transform`
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 29-Mar-2010'
+__date__ = 'Created 26-Oct-2010'
 
 import unittest
 
-# The package tests
-import fatiando.grav.tests
-import fatiando.seismo.tests
-import fatiando.inversion.tests
-import fatiando.heat.tests
-# The module tests
-import fatiando.tests.geometry
+import fatiando.grav.transform as transform
 
 
+class UpContinueTestCase(unittest.TestCase):
+    """Test case for :func:`fatiando.grav.transform.upcontinue`"""
+    
+    label = 'fast'
+
+    def setUp(self):
+        pass
+
+
+    def test_known_values(self):
+        "grav.transform.upcontinue returns correct results"
+        pass
+
+        
+# Return the test suit for this module
+################################################################################
 def suite(label='fast'):
 
     testsuite = unittest.TestSuite()
 
-    testsuite.addTest(fatiando.grav.tests.suite(label))
-    testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inversion.tests.suite(label))
-    testsuite.addTest(fatiando.heat.tests.suite(label))
+    UpContinueTestCase.label = label
+    testsuite.addTest(unittest.makeSuite(UpContinueTestCase, prefix='test'))
     
-    testsuite.addTest(fatiando.tests.geometry.suite(label))
-
     return testsuite
+
+################################################################################
 
 
 if __name__ == '__main__':
+
     unittest.main(defaultTest='suite')
