@@ -52,7 +52,8 @@ __date__ = 'Created 14-Jun-2010'
 
 import time
 import logging
-import bisect
+import math
+import zipfile
 
 import numpy
 
@@ -730,7 +731,7 @@ def get_seed(point, density, mesh):
     
     * seed
         A dictionary with the seed properties:
-        ``{'param':index_of_seed, 'density':density, 'cell':cell_in_mesh, 
+        ``{'index':index_of_seed, 'density':density, 'cell':cell_in_mesh, 
         'neighbors':[]}``
         
     Raises:
@@ -762,78 +763,93 @@ def get_seed(point, density, mesh):
     return seed
 
 
-def _dist_to_seed(cell, seed, dx, dy, dz):
+def _cell_distance(cell, seed):
     """
-    Calculate the distance (in number of cells) from cell to seed.
+    Calculate the distance from cell to seed in number of cells.
     
     Parameters:
     
     *cell
-        Dictionary with the cell bounds (x1, x2, y1, y2, z1, z2)
+        Dictionary describing the cell (see :func:`fatiando.geometry.prism`)
       
     * seed
-        Dictionary with the seed
+        Dictionary describing the seed 
+        (see :func:`fatiando.inversion.pgrav3d.get_seed`)
         
     Returns:
     
     * distance
-        Distance from *cell* to *seed*
     
     """
                     
-    x_distance = abs(cell['x1'] - seed['cell']['x1'])/dx
-    y_distance = abs(cell['y1'] - seed['cell']['y1'])/dy
-    z_distance = abs(cell['z1'] - seed['cell']['z1'])/dz
+    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
+    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
+    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
     
     distance = max([x_distance, y_distance, z_distance])
     
-    return distance   
-    
+    return distance
 
-def _calc_mmi_goal(estimate, mmi, power, seeds):
-    """Calculate the goal function due to MMI regularization"""
+
+def _radial_distance(cell, seed):
+    """
+    Calculate the radial distance from cell to seed in number of cells.
     
-    if mmi == 0:
-        
-        return 0, ''
+    Parameters:
     
-    global _distances
+    *cell
+        Dictionary describing the cell (see :func:`fatiando.geometry.prism`)
+      
+    * seed
+        Dictionary describing the seed 
+        (see :func:`fatiando.inversion.pgrav3d.get_seed`)
+        
+    Returns:
     
-    if _distances is None:
-        
-        _distances = numpy.zeros(_mesh.size)
-        
-        for i, cell in enumerate(_mesh.ravel()):
-                
-            dx = float(cell['x2'] - cell['x1'])
-            dy = float(cell['y2'] - cell['y1'])
-            dz = float(cell['z2'] - cell['z1'])
-            
-            best_distance = None
-            
-            for seed in seeds:
-                
-                distance = _dist_to_seed(cell, seed, dx, dy, dz)
-                
-                if best_distance is None or distance < best_distance:
+    * distance
+    
+    """
                     
-                    best_distance = distance
-                     
-            _distances[i] = best_distance
+    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
+    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
+    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
     
-    weights = (_distances**power)
+    distance = math.sqrt(x_distance**2 + y_distance**2 + z_distance**2)
     
-    weights = weights/(weights.max())
-    
-    goal = mmi*((estimate**2)*weights).sum()
-    
-    msg = ' MMI=%g' % (goal)
-    
-    return goal, msg
+    return distance
 
 
-def _add_neighbors(param, neighbors, seeds, mesh):
-    """Add the neighbors of 'param' in 'mesh' to 'neighbors'.
+def _distance_to_seed(cell, seed):
+    """
+    Calculate the distance from the cell to a seed.
+    
+    This function if meant to be overloaded with one that calculates the 
+    distance in a specific way (ei, _radial_distance or _cell_distance).
+    
+    Raises:
+    
+    * NotImplementedError
+        If called before being overloaded
+        
+    """
+    
+    raise NotImplementedError(
+          "_distance_to_seed was called before being overloaded")
+       
+
+def _calc_compactness(param, seed, mesh):
+    """
+    Calculate the compactness goal function due to *param*.
+    """
+
+    distance = _distance_to_seed(mesh.ravel()[param], seed)
+
+    
+
+
+def _get_neighbors(param, estimate, seeds, mesh):
+    """
+    Add the neighbors of 'param' in 'mesh' to 'neighbors'.
     
     Parameters:
     
@@ -1219,7 +1235,7 @@ def _add_neighbors(param, neighbors, seeds, mesh):
 #            append(neighbor)
         
 
-def grow(data, mesh, seeds, mmi, power=5):
+def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
     """
     Invert by growing the solution around given seeds.
     
@@ -1238,9 +1254,9 @@ def grow(data, mesh, seeds, mmi, power=5):
         list of seeds (to make a seed, see 
         :func:`fatiando.inversion.pgrav3d.get_seed`)
       
-    * mmi
-        Minimum Moment of Inertia regularization parameter (how compact the
-        solution should be around the seeds). Must to be >= 0
+    * compactness
+        How compact the solution should be around the seeds (regularization
+        parameter). Must to be >= 0
            
     * power
         Power to which the distances are raised in the MMI weights
@@ -1258,89 +1274,65 @@ def grow(data, mesh, seeds, mmi, power=5):
     * AttributeError
         If seeds are too close (less than 2 cells appart)
         
-    """
-    
+    """    
 
     for key in data:
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
-    
-    global _mesh, _data, _jacobian, _distances
-
-    _mesh = mesh
-    
-    _data = data
         
-    estimate = numpy.zeros(_mesh.size)
+    # Open the zip file containing the Jacobian columns (or create a new one)    
+    if jacobian_file is None:
+        
+        jacobian_zip = zipfile.ZipFile(jacobian_file, 'w')
+        
+    else:
+        
+        jacobian_zip = zipfile.ZipFile(jacobian_file, 'a')
     
-    # Need to set their densities before so that seeds won't be added as 
-    # neighbors
+    # Initialize the residuals and estimate  
+    residuals = extract_data_vector(data)
+    
+    jacobian = {}
+    
+    estimate = {}
+    
     for seed in seeds:
         
-        estimate[seed['param']] = seed['density']
+        estimate[seed['index']] = seed['density']
         
+        jacobian[seed['index']] = _get_jacobian_column(seed['index'], data, 
+                                                       mesh, jacobian_zip)
+    
+        residuals -= seed['density']*jacobian[seed['index']]
+        
+        _dump_jacobian_column(seed['index'], jacobian[seed['index']])
+    
+        del jacobian[seed['index']]
+        
+    # Initialize the neighbor lists (couldn't do this before because I need the
+    # estimate filled with the seeds not to mark them as neighbors)
     for seed in seeds:
         
-        # To keep track of which cell was appended to which seed and how far it
-        # is from it (used to rearange)
-        seed['marked'] = [seed['param']]
+        new_neighbors = _get_neighbors(seed['index'], estimate, seeds, mesh)
         
-        # Don't send all seeds to _add_neighbors to fool it into allowing common
-        # neighbors between the seeds. The conflicts will be resolved later
-        _add_neighbors(seed['param'], seed['neighbors'], [seed], mesh)         
-        
-    # Resolve the conflicts in the neighbors. 
-    for i, seed in enumerate(seeds):
-        
-        for neighbor in seed['neighbors']:
+        for neighbor in new_neighbors:
             
-            for j, other_seed in enumerate(seeds):
-                
-                if i == j:
-                    
-                    continue
-                
-                if neighbor in other_seed['neighbors']:
-                    
-                    if seed['density'] == other_seed['density']:
-                        
-                        seed['neighbors'].remove(neighbor)
-                        
-                        # Stop checking this neighbor if it was removed. In case
-                        # it appears again in another seed, it will be tested 
-                        # against the one in that stayed in other_seed.
-                        break
-                    
-                    else:
-
-                        raise AttributeError("Seeds %d and %d are too close." 
-                                             % (i, j))
+            jacobian[neighbor] = _get_jacobian_column(neighbor, data, mesh, 
+                                                      jacobian_zip)
+            
+        seed['neighbors'].extend(new_neighbors)
     
-    _build_pgrav3d_jacobian(None)
+    rmss = [(residuals**2).sum()]
     
-    # Uses the Jacobian.T to calculate the effect of a single cell at all data
-    # points. Only do this once to save time. Will revert the transpose before 
-    # returning 
-    _jacobian = _jacobian.T
-    
-    # To report the initial status of the inversion
-    reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
-    
-    residuals = extract_data_vector(data) - numpy.dot(_jacobian.T, estimate)
-    
-    rms = (residuals*residuals).sum()
-    
-    goals = [rms + reg_goal]
-    rmss = [rms]
+    goals = [rmss[-1]]
     
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
     log.info("  data = %d" % (len(residuals)))
-    log.info("  mmi regularization parameter = %g" % (mmi))
+    log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))
-    log.info("  initial RMS = %g" % (rms))
-    log.info("  initial %s" % (msg))
-    log.info("  initial total goal function = %g" % (goals[-1]))
+    log.info("  initial RMS = %g" % (rmss[-1]))
+    log.info("  initial total goal function = %g" % (rmss[-1]))
     
     total_start = time.time()
         
@@ -1353,33 +1345,26 @@ def grow(data, mesh, seeds, mmi, power=5):
         grew = False
             
         # Try to grow each seed by one using the goal function as a criterium
-        # NOTE: The order of the seeds affects the growing (goals[-1] changes
-        # when a seed grows)!    
+        # NOTE: The order of the seeds affects the growing (the goal changes
+        # when a seed grows)!
         for seed_num, seed in enumerate(seeds):
-            
-            # Want to find the neighbor that decreases the goal function the 
-            # most
-            best_goal = None
-            best_neighbor = None
-            best_rms = None
-            # Only used for verbose
-            best_msg = None
-            
+    
             density = seed['density']
+    
+            best_goal = None
+            best_reg = None
+            best_rms = None
+            best_neighbor = None
             
             for neighbor in seed['neighbors']:
                 
-                new_residuals = residuals - density*_jacobian[neighbor]
+                new_residuals = residuals - density*jacobian[neighbor]
                 
-                rms = (new_residuals*new_residuals).sum()
-                
-                estimate[neighbor] = density
+                rms = (new_residuals**2).sum()
     
-                reg_goal, msg = _calc_mmi_goal(estimate, mmi, power, seeds)
-                
-                estimate[neighbor] = 0
-                
-                goal = rms + reg_goal
+                regularizer = _calc_compactness(neighbor, seed, mesh)
+                                
+                goal = rms + regularizer
                 
                 # Reducing the RMS is mandatory while also looking for the one
                 # that minimizes the total goal the most
@@ -1390,7 +1375,7 @@ def grow(data, mesh, seeds, mmi, power=5):
                         best_neighbor = neighbor
                         best_goal = goal
                         best_rms = rms
-                        best_msg = msg
+                        best_reg = regularizer
                  
             if best_neighbor is not None:
                     
@@ -1398,42 +1383,52 @@ def grow(data, mesh, seeds, mmi, power=5):
                 
                 estimate[best_neighbor] = density
                 
-                residuals -= density*_jacobian[best_neighbor]
-                
-                goals.append(best_goal)
-                
-                rmss.append(best_rms)
-                
-                seed['marked'].append(best_neighbor)
-                    
+                residuals -= density*jacobian[best_neighbor]
+                                    
                 seed['neighbors'].remove(best_neighbor)
                     
-                _add_neighbors(best_neighbor, seed['neighbors'], seeds, mesh)
+                new_neighbors = _get_neighbors(best_neighbor, estimate, seeds, 
+                                               mesh)
+        
+                for neighbor in new_neighbors:
+                    
+                    jacobian[neighbor] = _get_jacobian_column(neighbor, data, 
+                                                            mesh, jacobian_zip)
+                    
+                seed['neighbors'].extend(new_neighbors)
+                                                    
+                rmss.append(best_rms)
+                
+                goals.append(best_goal)
                                 
                 log.info(''.join(['    append to seed %d:' % (seed_num + 1),
-                                  ' size=%d' % (len(seed['marked'])),
+                                  ' size=%d' % (len(estimate)),
                                   ' neighbors=%d' % (len(seed['neighbors'])),
-                                  ' RMS=%g' % (best_rms), best_msg, 
+                                  ' RMS=%g' % (best_rms),
+                                  ' CP=%g' % (best_reg),
                                   ' GOAL=%g' % (best_goal)]))
                           
         if not grew:
                                 
             log.warning("    Exited because couldn't grow.")
+            
             break
                                 
         end = time.time()
+        
         log.info("    time: %g s" % (end - start))
-        
-    log.info("  Size of estimate (in number of cells):")
-    
-    for i, seed in enumerate(seeds):
-        
-        log.info("    seed %d: %g" % (i + 1, len(seed['marked'])))
-            
-    _jacobian = _jacobian.T
     
     total_end = time.time()
     
     log.info("  Total inversion time: %g s" % (total_end - total_start))
+    
+    # Fill the estimate with zeros
+    log.info("  Filling estimate with zeros...")
+    
+    for i in xrange(mesh.size):
+        
+        if i not in estimate:
+            
+            estimate[i] = 0.
 
-    return estimate, residuals, goals, rmss
+    return estimate, residuals, rmss, goals

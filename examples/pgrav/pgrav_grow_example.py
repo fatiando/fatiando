@@ -48,10 +48,11 @@ mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(pgrav3d.get_seed((-410, -410, 450), 1000, mesh))
-seeds.append(pgrav3d.get_seed((210, -410, 450), 700, mesh))
-seeds.append(pgrav3d.get_seed((110, 410, 450), 500, mesh))
-seeds.append(pgrav3d.get_seed((-210, 410, 450), 500, mesh))
+#seeds.append(pgrav3d.get_seed((-410, 10, 110), 1000, mesh))
+#seeds.append(pgrav3d.get_seed((-10, 10, 310), 1000, mesh))
+#seeds.append(pgrav3d.get_seed((310, 10, 510), 1000, mesh))
+seeds.append(pgrav3d.get_seed((10, 10, 410), 1000, mesh))
+
 
 # Show the seeds before starting
 seed_mesh = []
@@ -75,9 +76,9 @@ mmi = 1*10**(1)
 power = 5
 
 # Load the Jacobian from a previous run
-#jac_file = open('jacobian.pickle')
-#pgrav3d._jacobian = pickle.load(jac_file)
-#jac_file.close()
+jac_file = open('jacobian.pickle')
+pgrav3d._jacobian = pickle.load(jac_file)
+jac_file.close()
 
 # Run the inversion
 estimate, residuals, goals, rmss = pgrav3d.grow(data, mesh, seeds, mmi, power)
@@ -168,11 +169,11 @@ distances = pgrav3d._distances
 distance_mesh = fatiando.mesh.copy(mesh)
 fatiando.mesh.fill(distances, distance_mesh)
 
-#fig = mlab.figure()
-#fig.scene.background = (0.1, 0.1, 0.1)
-#fig.scene.camera.pitch(180)
-#fig.scene.camera.roll(180)
-#plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
-#axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
+fig = mlab.figure()
+fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.camera.pitch(180)
+fig.scene.camera.roll(180)
+plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
+axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
 
 mlab.show()

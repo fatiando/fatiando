@@ -27,9 +27,9 @@ InterG
       So make a function that "interpolates" the topo into the mesh
     
 PGrav
+    * Keep the mesh ravel() to avoid calling the method
     * Save and load columns of the Jacobian as needed (once appended, remove the
       column)
-    * Fix doc for grow
     * when redistributing need to recalculate neighbors of other seeds because
       previously taken neighbors may be free now
     * Separate distances for each seed
@@ -37,8 +37,6 @@ PGrav
     * Dump and load of Jacobian
     * Testar remover celula quando redistribui
     * Migrar semente para centro de massa
-    * Put redistribution in a separate function so that I can call it whenever
-      I want later
     * Build sensibility in Fortran
     * Allow initial estimate in grow
     * Unit tests
