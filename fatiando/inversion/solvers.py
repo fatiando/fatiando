@@ -813,7 +813,7 @@ def lm(data, cov, initial, lm_start=100, lm_step=10, max_steps=20, max_it=100):
     
     log.info("  Total time: %g s" % (total_finish - total_start))
         
-    return next, goals
+    return next, residuals, goals
 
 
 def linear_overdet(data, cov=None):
@@ -887,7 +887,7 @@ def linear_overdet(data, cov=None):
     
     log.info("  Total time for inversion: %g s" % (total_end - total_start))
     
-    return estimate, [goal]
+    return estimate, residuals, [goal]
     
 
 def linear_underdet(data, cov=None):
@@ -994,4 +994,4 @@ def linear_underdet(data, cov=None):
     
     log.info("  Total time for inversion: %g s" % (total_end - total_start))
     
-    return estimate, [goal]
+    return estimate, residuals, [goal]

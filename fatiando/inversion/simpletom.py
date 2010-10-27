@@ -25,9 +25,6 @@ Functions:
 * :func:`fatiando.inversion.simpletom.clear`
     Erase garbage from previous inversions
 
-* :func:`fatiando.inversion.simpletom.residuals`
-    Calculate the residuals produced by a given estimate
-
 * :func:`fatiando.inversion.simpletom.set_bounds`
     Set bounds on the velocity values.
 
@@ -75,37 +72,6 @@ def clear():
     _sources = None
     _receivers = None
     _use_bounds = False
-
-
-def residuals(data, estimate):
-    """
-    Calculate the residuals produced by a given estimate.
-    
-    Parameters:
-    
-    * data
-        Travel time data in a dictionary
-    
-    * estimate
-        1D array-like parameter vector produced by the inversion.
-      
-    Returns:
-    
-    * residuals
-        Array-like vector of residuals
-      
-    The data dictionary must be such as::
-         
-        {'src':[(x1,y1), (x2,y2), ...], 'rec':[(x1,y1), (x2,y2), ...], 
-         'traveltime':[time1, time2, ...], 'error':[error1, error2, ...]}
-         
-    """
-
-    adjusted = _calc_simpletom_adjustment(1./estimate)
-
-    residuals = numpy.array(data['traveltime']) - adjusted
-    
-    return residuals
 
 
 def _build_simpletom_jacobian(estimate):
@@ -287,10 +253,10 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
       
     Return:
     
-    * [estimate, goals]
+    * [estimate, residuals, goals]
         estimate = array-like parameter vector estimated by the inversion.
-        goals = list of goal function value per iteration (only one value if not
-        using *sharpness*)
+        residuals = array-like residuals vector.
+        goals = list of goal function value per iteration.
       
     The data dictionary must be such as::
          
@@ -337,11 +303,13 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
         
         if ndata >= nparams:
             
-            estimate, goals = solvers.linear_overdet(data_vector, None)
+            estimate, residuals, goals = solvers.linear_overdet(data_vector, 
+                                                                None)
     
         else:
             
-            estimate, goals = solvers.linear_underdet(data_vector, None)
+            estimate, residuals, goals = solvers.linear_underdet(data_vector, 
+                                                                 None)
             
     else:
     
@@ -354,10 +322,11 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
             # Convert the initial velocity model to slowness
             initial = 1./numpy.array(initial)
         
-        estimate, goals = solvers.lm(data_vector, None, initial, lm_start, 
-                                     lm_step, max_steps, max_it)
+        estimate, residuals, goals = solvers.lm(data_vector, None, initial, 
+                                                lm_start, lm_step, max_steps, 
+                                                max_it)
 
     # The inversion outputs a slowness estimate. Convert it to velocity
     estimate = 1./numpy.array(estimate)
 
-    return estimate, goals
+    return estimate, residuals, goals

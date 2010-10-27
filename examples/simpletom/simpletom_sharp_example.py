@@ -46,15 +46,12 @@ lm_start = 100
 simpletom.set_bounds(1., 5.)
 
 # Solve
-estimate, goals = simpletom.solve(data, mesh, initial, damping, smoothness, 
-                                  curvature, sharpness, beta, 
-                                  lm_start=lm_start)
+estimate, residuals, goals = simpletom.solve(data, mesh, initial, damping, 
+                                             smoothness, curvature, sharpness, 
+                                             beta, lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
 fatiando.mesh.fill(estimate, mesh)
-
-# Calculate the residuals
-residuals = simpletom.residuals(data, estimate)
 
 # Contaminate the data with Gaussian noise and re-run the inversion to estimate
 # the error 
@@ -73,9 +70,10 @@ for i in xrange(contam_times):
                                                          percent=False, 
                                                          return_stddev=False)
     
-    new_estimate, new_goal = simpletom.solve(cont_data, mesh, initial, damping, 
-                                             smoothness, curvature, sharpness, 
-                                             beta, lm_start=lm_start)
+    new_results = simpletom.solve(cont_data, mesh, initial, damping, smoothness,
+                                  curvature, sharpness, beta, lm_start=lm_start)
+    
+    new_estimate = new_results[0]
     
     estimates.append(new_estimate)
         

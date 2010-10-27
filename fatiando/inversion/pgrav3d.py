@@ -19,26 +19,20 @@
 
 Functions:
 
-* :func:`fatiando.inversion.pgrav3d.solve`    
-    Solve the inverse problem for the density using a given data set.
-
 * :func:`fatiando.inversion.pgrav3d.clear`
     Erase garbage from previous inversions.
 
 * :func:`fatiando.inversion.pgrav3d.extract_data_vector`
     Put all the gravity field data in a single array.
 
-* :func:`fatiando.inversion.pgrav3d.calc_adjustment`
-    Calculate the adjusted data produced by a given estimate.
-
-* :func:`fatiando.inversion.pgrav3d.residuals`
-    Calculate the residuals produced by a given estimate
-
 * :func:`fatiando.inversion.pgrav3d.use_depth_weights`
     Use depth weighting in the next inversions
 
 * :func:`fatiando.inversion.pgrav3d.set_bounds`
     Set lower and upper bounds on the density values
+    
+* :func:`fatiando.inversion.pgrav3d.solve`    
+    Solve the inverse problem for the density using a given data set.
     
 * :func:`fatiando.inversion.pgrav3d.get_seed`
     Returns as a seed the cell in the mesh that has *point* inside it.
@@ -50,16 +44,20 @@ Functions:
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
 
+
 import time
 import logging
 import math
 import zipfile
+import os
+import StringIO
 
 import numpy
+import pylab
 
 import fatiando
 import fatiando.grav.prism
-from fatiando.inversion import solvers
+import fatiando.inversion.solvers as solvers
         
 log = logging.getLogger('fatiando.inversion.pgrav3d')       
 log.setLevel(logging.DEBUG)
@@ -73,13 +71,12 @@ _depth_weights = None
 # This will hold solvers._build_tk_weights so that I don't loose when it's
 # overwritten with _build_tk_depth_weights
 _solvers_tk_weights = None
-# The distances to the mass elements in the Minimum Moment of Inertia 
-# regularization
-_distances = None
 # Keep the mesh and data global to access them to build the Jacobian and derivs
 _mesh = None
 _data = None
 _data_vector = None
+# The list of supported fields and the calculator function for each one
+supported_fileds = ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 _calculators = {'gz':fatiando.grav.prism.gz,
                 'gxx':fatiando.grav.prism.gxx,
                 'gxy':fatiando.grav.prism.gxy,
@@ -98,7 +95,7 @@ def clear():
     """
     
     global _jacobian, _mesh, _data, _data_vector, \
-           _depth_weights, _solvers_tk_weights, _distances
+           _depth_weights, _solvers_tk_weights
                
     _jacobian = None
     _mesh = None
@@ -106,7 +103,6 @@ def clear():
     _data_vector = None
     _depth_weights = None
     _solvers_tk_weights = None
-    _distances = None
     reload(solvers)
     
 
@@ -139,70 +135,26 @@ def extract_data_vector(data, inplace=False):
          
     """
     
+    global supported_fileds
+    
     data_vector = []
     
-    if 'gz' in data.keys():
+    for field in supported_fileds:
         
-        data_vector.extend(data['gz']['value'])
-        
-        if inplace:
+        if field in data:
             
-            del data['gz']['value']
-        
-    if 'gxx' in data.keys():
-        
-        data_vector.extend(data['gxx']['value'])
-        
-        if inplace:
+            data_vector.extend(data[field]['value'])
             
-            del data['gxx']['value']
-        
-    if 'gxy' in data.keys():
-        
-        data_vector.extend(data['gxy']['value'])
-        
-        if inplace:
-            
-            del data['gxy']['value']
-        
-    if 'gxz' in data.keys():
-        
-        data_vector.extend(data['gxz']['value'])
-        
-        if inplace:
-            
-            del data['gxz']['value']
-        
-    if 'gyy' in data.keys():
-        
-        data_vector.extend(data['gyy']['value'])
-        
-        if inplace:
-            
-            del data['gyy']['value']
-        
-    if 'gyz' in data.keys():
-        
-        data_vector.extend(data['gyz']['value'])
-        
-        if inplace:
-            
-            del data['gyz']['value']
-        
-    if 'gzz' in data.keys():
-        
-        data_vector.extend(data['gzz']['value'])
-        
-        if inplace:
-            
-            del data['gzz']['value']
+            if inplace:
+                
+                del data[field]['value']
         
     return  numpy.array(data_vector)
 
 
-def residuals(data, estimate):
+def adjustment(data, residuals):
     """
-    Calculate the residuals produced by a given estimate.
+    Calculate the adjusted data based on the residuals and the original data.
     
     Parameters:
     
@@ -210,87 +162,53 @@ def residuals(data, estimate):
         Dictionary with the gravity component data as 
         ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
         If there is no data for a given component, omit the respective key.
-        Each g*data is a profile data dictionary (see bellow)
-    
-    * estimate
-        1D array-like parameter vector produced by the inversion.
-      
-    Return:
-    
+        Each g*data is a data dictionary (see bellow)
+        
     * residuals
-        1D array-like vector of residuals
+        1D array-like residuals vector
+        
+    Returns:
+    
+    * adjusted_data
+        Adjusted data in the same format as *data*
         
     The data dictionaries should be as::
     
         {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
          'value':[data1, data2, ...], 'error':[error1, error2, ...]}
          
-    """       
-
-    adjusted = calc_adjustment(estimate)
+    """
     
-    key = data.keys()[0]
+    global supported_fileds
     
-    if 'value' in data[key].keys():
+    reduced = residuals.copy()
+    
+    adjusted = {}
+    
+    for field in supported_fileds:
         
-        data_vector = extract_data_vector(data)
-        
-    else:
-        
-        assert _data_vector is not None, \
-            "Missing 'value' key in %s data" % (key)
+        if field in data:
             
-        data_vector = _data_vector        
-
-    residuals = data_vector - adjusted
+            adjusted[field] = data[field].copy()
+            
+            ndata = len(data[field]['value'])
+            
+            adjusted[field]['value'] = data[field]['value'] - reduced[0:ndata]
     
-    return residuals
+            reduced = reduced[ndata:]
+            
+    return adjusted
 
 
-def calc_adjustment(estimate, grid=False):
+def _calc_adjusted_vector(estimate):
     """
-    Calculate the adjusted data produced by a given estimate.
-    
-    Parameters:
-    
-    * estimate
-        1D array-like parameter vector produced by the inversion.
-    
-    * grid 
-        if ``True``, return a data dictionary like the one passed to the
-        inversion. If ``False``, return a data vector to use in inversion
-          
-    Returns:
-    
-    * adjusted
-        Adjusted data vector or grid
+    Calculate the adjusted data vector produced by a given estimate.    
+    """
         
-    """
-    
     jacobian = _build_pgrav3d_jacobian(estimate)
     
     adjusted = numpy.dot(jacobian, estimate)
-    
-    if grid:
-        
-        adjusted_grid = {}
-                
-        for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
             
-            if field in _data:
-                
-                adjusted_grid[field] = _data[field].copy()
-                
-                ndata = len(_data[field]['x'])
-                          
-                adjusted_grid[field]['value'] = adjusted[:ndata]
-                
-                adjusted_grid[field]['error'] = None       
-                
-                adjusted = adjusted[ndata:]      
-    
-        adjusted = adjusted_grid
-        
     return adjusted
 
 
@@ -300,7 +218,7 @@ def _build_pgrav3d_jacobian(estimate):
     assert _mesh is not None, "Can't build Jacobian. No mesh defined"
     assert _data is not None, "Can't build Jacobian. No data defined"
     
-    global _jacobian
+    global _jacobian, supported_fileds
     
     if _jacobian is None:
         
@@ -309,7 +227,7 @@ def _build_pgrav3d_jacobian(estimate):
         _jacobian = []
         append_row = _jacobian.append
         
-        for field in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']:
+        for field in supported_fileds:
             
             if field in _data:
                 
@@ -649,9 +567,10 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
 
     Returns:
     
-    * [estimate, goals]
+    * [estimate, residuals, goals]
         estimate = array-like parameter vector estimated by the inversion.
-        goals = list of goal function value per iteration    
+        residuals = array-like residuals vector.
+        goals = list of goal function value per iteration.
         
     The data dictionaries should be as::
     
@@ -692,7 +611,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     # Overwrite the needed methods for solvers to work
     solvers._build_jacobian = _build_pgrav3d_jacobian
     solvers._build_first_deriv_matrix = _build_pgrav3d_first_deriv
-    solvers._calc_adjustment = calc_adjustment
+    solvers._calc_adjustment = _calc_adjusted_vector
     
     solvers.damping = damping
     solvers.smoothness = smoothness
@@ -702,10 +621,11 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     solvers.compactness = compactness
     solvers.epsilon = epsilon
     
-    estimate, goals = solvers.lm(_data_vector, None, initial, lm_start, lm_step, 
-                                 max_steps, max_it)
+    estimate, residuals, goals = solvers.lm(_data_vector, None, initial, 
+                                            lm_start, lm_step, max_steps, 
+                                            max_it)
 
-    return estimate, goals
+    return estimate, residuals, goals
 
 
 def get_seed(point, density, mesh):
@@ -750,7 +670,7 @@ def get_seed(point, density, mesh):
         if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
             y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
             
-            seed = {'param':i, 'density':density, 'cell':cell, 'neighbors':[]}
+            seed = {'index':i, 'density':density, 'cell':cell, 'neighbors':[]}
             
             break
         
@@ -761,6 +681,39 @@ def get_seed(point, density, mesh):
     log.info("  seed: %s" % (str(seed)))
 
     return seed
+
+
+def _calc_jac_col(index, data, mesh):
+    """Calculate a column of the Jacobian matrix"""
+            
+    global _calculators, supported_fileds
+    
+    cell = mesh.ravel()[index]
+    
+    x1 = cell['x1']
+    x2 = cell['x2']
+    y1 = cell['y1']
+    y2 = cell['y2']
+    z1 = cell['z1']
+    z2 = cell['z2']
+    
+    column = []
+    
+    # Can't do 'for field in data' because they need to be appended to the
+    # column in a specific order given by 'supported_fields'
+    for field in supported_fileds:
+                    
+        if field in data:
+            
+            coordinates =  zip(data[field]['x'], data[field]['y'], 
+                               data[field]['z'])
+            
+            function = _calculators[field]
+            
+            column.extend([function(1., x1, x2, y1, y2, z1, z2, x, y, z)
+                           for x, y, z in coordinates])
+            
+    return numpy.array(column)
 
 
 def _cell_distance(cell, seed):
@@ -819,53 +772,37 @@ def _radial_distance(cell, seed):
     return distance
 
 
-def _distance_to_seed(cell, seed):
+def _get_reduced_neighbors(param, estimate, seeds, mesh, which=False):
     """
-    Calculate the distance from the cell to a seed.
-    
-    This function if meant to be overloaded with one that calculates the 
-    distance in a specific way (ei, _radial_distance or _cell_distance).
-    
-    Raises:
-    
-    * NotImplementedError
-        If called before being overloaded
-        
-    """
-    
-    raise NotImplementedError(
-          "_distance_to_seed was called before being overloaded")
-       
-
-def _calc_compactness(param, seed, mesh):
-    """
-    Calculate the compactness goal function due to *param*.
-    """
-
-    distance = _distance_to_seed(mesh.ravel()[param], seed)
-
-    
-
-
-def _get_neighbors(param, estimate, seeds, mesh):
-    """
-    Add the neighbors of 'param' in 'mesh' to 'neighbors'.
+    Get the non-diagonal neighbors of *param* in *mesh*.
     
     Parameters:
     
     * param
         The index of the parameter in the parameter vector
       
-    * neighbors
-        list of neighbors to append to
+    * estimate
+        Dictionary with the already appended cells
       
     * seeds
-        list of all seeds. Used to check for repeating neighbors
+        List of all seeds. Used to check for repeating neighbors
       
     * mesh
-        the model space mesh
+        The model space mesh
         
+    * which
+        If ``True``, return also a list informing which neighbors exist.
+        (This is only meant to be used to compute the diagonal neighbors in
+         :func:`fatiando.inversion.pgrav3d._get_full_neighbors`)
+        
+    Returns:
+    
+    * neighbors
+        List with the index of each neighbor in the parameter vector
+    
     """
+    
+    neighbors = []
     
     nz, ny, nx = mesh.shape
     
@@ -882,9 +819,9 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
     
@@ -899,9 +836,9 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
     
@@ -916,9 +853,9 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
     
@@ -933,9 +870,9 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
     
@@ -950,9 +887,9 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
     
@@ -967,275 +904,397 @@ def _get_neighbors(param, estimate, seeds, mesh):
         # Need to check if neighbor is not in any seed's neighbors and has not
         # been marked
         is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-        is_marked = [neighbor in seed['marked'] for seed in seeds]
+        is_marked = neighbor in estimate
         
-        if True not in is_neighbor and True not in is_marked:
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if which:
+                
+        return neighbors, [above, bellow, front, back, left, right]
+    
+    else:
+ 
+        return neighbors
+            
+            
+def _get_full_neighbors(param, estimate, seeds, mesh):
+    """
+    Get all the neighbors of *param* in *mesh*, including the diagonals.
+    
+    Parameters:
+    
+    * param
+        The index of the parameter in the parameter vector
+      
+    * estimate
+        Dictionary with the already appended cells
+      
+    * seeds
+        List of all seeds. Used to check for repeating neighbors
+      
+    * mesh
+        The model space mesh
+        
+    Returns:
+    
+    * neighbors
+        List with the index of each neighbor in the parameter vector
+    
+    """
+    
+    nz, ny, nx = mesh.shape
+    
+    neighbors, which = _get_reduced_neighbors(param, estimate, seeds, mesh, 
+                                              which=True)
+    
+    append = neighbors.append
+    
+    above, bellow, front, back, left, right = which
+
+    # The diagonals
+         
+    if front is not None and left is not None:
+        
+        neighbor = left + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+    
+    if front is not None and right is not None:
+        
+        neighbor = right + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if back is not None and left is not None:
+        
+        neighbor = left - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if back is not None and right is not None:
+    
+        neighbor = right - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and left is not None:
+        
+        neighbor = above + nx
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and right is not None:
+        
+        neighbor = above - nx
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and front is not None:
+        
+        neighbor = above + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and back is not None:
+        
+        neighbor = above - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and front is not None and left is not None:
+        
+        neighbor = above + nx + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if above is not None and front is not None and right is not None:
+        
+        neighbor = above - nx + 1   
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
         
             append(neighbor)
 
-    # The diagonals            
-#    if front is not None and left is not None:
-#        
-#        neighbor = left + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#    
-#    if front is not None and right is not None:
-#        
-#        neighbor = right + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if back is not None and left is not None:
-#        
-#        neighbor = left - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if back is not None and right is not None:
-#    
-#        neighbor = right - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and left is not None:
-#        
-#        neighbor = above + nx
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and right is not None:
-#        
-#        neighbor = above - nx
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and front is not None:
-#        
-#        neighbor = above + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and back is not None:
-#        
-#        neighbor = above - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and front is not None and left is not None:
-#        
-#        neighbor = above + nx + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if above is not None and front is not None and right is not None:
-#        
-#        neighbor = above - nx + 1   
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#
-#    if above is not None and back is not None and left is not None:
-#        
-#        neighbor = above + nx - 1 
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#    
-#    if above is not None and back is not None and right is not None:
-#        
-#        neighbor = above - nx - 1 
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and left is not None:
-#        
-#        neighbor = bellow + nx
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and right is not None:
-#        
-#        neighbor = bellow - nx
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and front is not None:
-#        
-#        neighbor = bellow + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and back is not None:
-#        
-#        neighbor = bellow - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and front is not None and left is not None:
-#        
-#        neighbor = bellow + nx + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and front is not None and right is not None:
-#        
-#        neighbor = bellow - nx + 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#        
-#    if bellow is not None and back is not None and left is not None:
-#        
-#        neighbor =  bellow + nx - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
-#            
-#    if bellow is not None and back is not None and right is not None:
-#        
-#        neighbor = bellow - nx - 1
-#            
-#        # Need to check if neighbor is not in any seed's neighbors and has not
-#        # been marked
-#        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
-#        is_marked = [neighbor in seed['marked'] for seed in seeds]
-#        
-#        if True not in is_neighbor and True not in is_marked:
-#        
-#            append(neighbor)
+    if above is not None and back is not None and left is not None:
         
+        neighbor = above + nx - 1 
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+    
+    if above is not None and back is not None and right is not None:
+        
+        neighbor = above - nx - 1 
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and left is not None:
+        
+        neighbor = bellow + nx
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and right is not None:
+        
+        neighbor = bellow - nx
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and front is not None:
+        
+        neighbor = bellow + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and back is not None:
+        
+        neighbor = bellow - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and front is not None and left is not None:
+        
+        neighbor = bellow + nx + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and front is not None and right is not None:
+        
+        neighbor = bellow - nx + 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+        
+    if bellow is not None and back is not None and left is not None:
+        
+        neighbor =  bellow + nx - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+            
+    if bellow is not None and back is not None and right is not None:
+        
+        neighbor = bellow - nx - 1
+            
+        # Need to check if neighbor is not in any seed's neighbors and has not
+        # been marked
+        is_neighbor = [neighbor in seed['neighbors'] for seed in seeds]
+        is_marked = neighbor in estimate
+        
+        if True not in is_neighbor and not is_marked:
+        
+            append(neighbor)
+ 
+    return neighbors
 
-def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
+
+def _dump_jac_col(index, column, outfile):
+    """
+    Dump a column of the Jacobian matrix to a file in a zip archive.
+    
+    The name of the file will be the *index* of the column.
+    
+    Parameters:
+    
+    * index
+        Integer index of the column in the Jacobian matrix
+        
+    * column
+        1D array-like column to be dumped
+        
+    * outfile
+        Open ZipFile instance with writing privileges (see module ``zipfile``)
+        
+    """
+    
+    fname = str(index)
+    
+    # If getinfo doesn't raise an exception, it's because the file was already
+    # in the archive, so don't add it again
+    try:
+        
+        outfile.getinfo(fname)
+        
+    except KeyError:      
+    
+        stream = StringIO.StringIO()
+        
+        pylab.savetxt(stream, column)
+        
+        outfile.writestr(fname, stream.getvalue())    
+    
+    
+def _get_jac_col(index, data, mesh, infile):
+    """
+    Calculate a column of the Jacobina matrix or load it from a zip archive.
+        
+    Parameters:
+    
+    * index
+        Integer index of the column in the Jacobian matrix
+                
+    * data 
+        Dictionary with the gravity component data as 
+        ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
+        If there is no data for a given component, omit the respective key.
+        Each g*data is a data dictionary
+        
+    * infile
+        Open ZipFile instance with reading privileges (see module ``zipfile``)
+        
+    """
+    
+    fname = str(index)
+        
+    # If getinfo doesn't raise an exception, it's because the file is already 
+    # in the archive
+    try:
+        
+        col_string = infile.read(fname)
+        
+        stream = StringIO.StringIO(col_string)
+
+        column = pylab.loadtxt(stream)
+        
+    except KeyError:
+    
+        column = _calc_jac_col(index, data, mesh)
+        
+    return column
+
+
+def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None, 
+         neighbor_type='reduced', distance_type='cell'):
     """
     Invert by growing the solution around given seeds.
     
@@ -1245,7 +1304,7 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
         Dictionary with the gravity component data as 
         ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
         If there is no data for a given component, omit the respective key.
-        Each g*data is a profile data dictionary (see bellow)
+        Each g*data is a data dictionary (see bellow)
       
     * mesh
         Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
@@ -1274,63 +1333,110 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
     * AttributeError
         If seeds are too close (less than 2 cells appart)
         
+    The data dictionaries should be as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
+         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+        
     """    
 
+    # Initial sanity checks
     for key in data:
         assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
             "Invalid gravity component (data key): %s" % (key)
+            
+    assert neighbor_type in ['full', 'reduced'], \
+        "Invalid neighbor type '%s'" % (neighbor_type)
+    
+    assert distance_type in ['radial', 'cell'], \
+        "Invalid distance type '%s'" % (distance_type) 
+            
+    # Set the neighbor and distance types
+    if distance_type == 'radial':
+        
+        get_distance = _radial_distance
+        
+    elif distance_type == 'cell':
+        
+        get_distance = _cell_distance
+        
+    if neighbor_type == 'full':
+        
+        get_neighbors = _get_full_neighbors
+        
+    elif neighbor_type == 'reduced':
+        
+        get_neighbors = _get_reduced_neighbors
         
     # Open the zip file containing the Jacobian columns (or create a new one)    
     if jacobian_file is None:
         
-        jacobian_zip = zipfile.ZipFile(jacobian_file, 'w')
+        j_zip = None
         
     else:
         
-        jacobian_zip = zipfile.ZipFile(jacobian_file, 'a')
+        if os.path.exists(jacobian_file):
+        
+            j_zip = zipfile.ZipFile(jacobian_file, 'a')
+            
+        else:
+            
+            j_zip = zipfile.ZipFile(jacobian_file, 'w')
     
     # Initialize the residuals and estimate  
     residuals = extract_data_vector(data)
-    
-    jacobian = {}
-    
+        
     estimate = {}
     
     for seed in seeds:
         
         estimate[seed['index']] = seed['density']
         
-        jacobian[seed['index']] = _get_jacobian_column(seed['index'], data, 
-                                                       mesh, jacobian_zip)
+        tmp_jac_col = _get_jac_col(seed['index'], data, mesh, j_zip)
     
-        residuals -= seed['density']*jacobian[seed['index']]
+        residuals -= seed['density']*tmp_jac_col
         
-        _dump_jacobian_column(seed['index'], jacobian[seed['index']])
+        _dump_jac_col(seed['index'], tmp_jac_col, j_zip)
     
-        del jacobian[seed['index']]
+        del tmp_jac_col
         
-    # Initialize the neighbor lists (couldn't do this before because I need the
-    # estimate filled with the seeds not to mark them as neighbors)
+    # Initialize the neighbor and distance lists and the Jacobian matrix
+    # (couldn't do this before because I need the estimate filled with the seeds 
+    # not to mark them as neighbors)
+    
+    jacobian = {}
+    
     for seed in seeds:
         
-        new_neighbors = _get_neighbors(seed['index'], estimate, seeds, mesh)
+        seed['distances'] = []
+        
+        new_neighbors = get_neighbors(seed['index'], estimate, seeds, mesh)
         
         for neighbor in new_neighbors:
             
-            jacobian[neighbor] = _get_jacobian_column(neighbor, data, mesh, 
-                                                      jacobian_zip)
+            jacobian[neighbor] = _get_jac_col(neighbor, data, mesh, j_zip)
+            
+            distance = get_distance(mesh.ravel()[neighbor], seed)            
+            
+            seed['distances'].append(distance)
             
         seed['neighbors'].extend(new_neighbors)
     
     rmss = [(residuals**2).sum()]
     
-    goals = [rmss[-1]]
+    # Since there are only the seeds in the estimate, the compactness 
+    # regularizer is 0
+    regularizer = 0.
+    
+    goals = [rmss[-1] + regularizer]
     
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
     log.info("  data = %d" % (len(residuals)))
     log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))
+    log.info("  neighbor type = %s" % (neighbor_type))
+    log.info("  distance type = %s" % (distance_type))
     log.info("  initial RMS = %g" % (rmss[-1]))
     log.info("  initial total goal function = %g" % (rmss[-1]))
     
@@ -1356,15 +1462,15 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
             best_rms = None
             best_neighbor = None
             
-            for neighbor in seed['neighbors']:
+            for neighbor, distance in zip(seed['neighbors'], seed['distances']):
                 
                 new_residuals = residuals - density*jacobian[neighbor]
                 
                 rms = (new_residuals**2).sum()
     
-                regularizer = _calc_compactness(neighbor, seed, mesh)
+                regularizer_increment = compactness*(distance**power)
                                 
-                goal = rms + regularizer
+                goal = rms + regularizer + regularizer_increment
                 
                 # Reducing the RMS is mandatory while also looking for the one
                 # that minimizes the total goal the most
@@ -1375,7 +1481,7 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
                         best_neighbor = neighbor
                         best_goal = goal
                         best_rms = rms
-                        best_reg = regularizer
+                        best_reg = regularizer + regularizer_increment
                  
             if best_neighbor is not None:
                     
@@ -1384,28 +1490,43 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
                 estimate[best_neighbor] = density
                 
                 residuals -= density*jacobian[best_neighbor]
-                                    
-                seed['neighbors'].remove(best_neighbor)
-                    
-                new_neighbors = _get_neighbors(best_neighbor, estimate, seeds, 
-                                               mesh)
-        
-                for neighbor in new_neighbors:
-                    
-                    jacobian[neighbor] = _get_jacobian_column(neighbor, data, 
-                                                            mesh, jacobian_zip)
-                    
-                seed['neighbors'].extend(new_neighbors)
+                
+                regularizer = best_reg
                                                     
                 rmss.append(best_rms)
                 
                 goals.append(best_goal)
+                
+                # Remove the chosen one from the list of available neighbors and
+                # dump it's Jacobian column to a file to save memory
+                best_index = seed['neighbors'].index(best_neighbor)                
+                seed['neighbors'].pop(best_index)
+                seed['distances'].pop(best_index)
+                
+                _dump_jac_col(best_neighbor, jacobian[best_neighbor], j_zip)
+        
+                del jacobian[best_neighbor]
+                    
+                # Update the neighbors, distances and Jacobian
+                new_neighbors = get_neighbors(best_neighbor, estimate, seeds, 
+                                              mesh)
+        
+                for neighbor in new_neighbors:
+                    
+                    jacobian[neighbor] = _get_jac_col(neighbor, data, mesh, 
+                                                      j_zip)
+                    
+                    distance = get_distance(mesh.ravel()[neighbor], seed)
+                    
+                    seed['distances'].append(distance)
+                    
+                seed['neighbors'].extend(new_neighbors)
                                 
                 log.info(''.join(['    append to seed %d:' % (seed_num + 1),
                                   ' size=%d' % (len(estimate)),
                                   ' neighbors=%d' % (len(seed['neighbors'])),
                                   ' RMS=%g' % (best_rms),
-                                  ' CP=%g' % (best_reg),
+                                  ' COMPACTNESS=%g' % (best_reg),
                                   ' GOAL=%g' % (best_goal)]))
                           
         if not grew:
@@ -1418,17 +1539,30 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None):
         
         log.info("    time: %g s" % (end - start))
     
-    total_end = time.time()
-    
-    log.info("  Total inversion time: %g s" % (total_end - total_start))
+    log.info("  Size of estimate: %d cells" % (len(estimate)))
     
     # Fill the estimate with zeros
     log.info("  Filling estimate with zeros...")
     
-    for i in xrange(mesh.size):
-        
-        if i not in estimate:
+    estimate_vector = numpy.zeros(mesh.size)
+    
+    for i in estimate:
+    
+        estimate_vector[i] = estimate[i]
             
-            estimate[i] = 0.
+    # Finish dumping the Jacobian to a file
+    if j_zip is not None:
+        
+        log.info("  Dumping the Jacobian to file '%s'" % (jacobian_file))
+        
+        for i in jacobian:
+            
+            _dump_jac_col(i, jacobian[i], j_zip)
+            
+        j_zip.close()
+        
+    total_end = time.time()
+    
+    log.info("  Total inversion time: %g s" % (total_end - total_start))
 
-    return estimate, residuals, rmss, goals
+    return estimate_vector, residuals, rmss, goals

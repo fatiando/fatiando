@@ -44,21 +44,21 @@ beta = 10**(-8)
 lm_start = 0.00001
 
 # Solve
-estimate, goals = interg2d.solve(data, mesh, density, ref_surf, initial, 
-                                 damping, smoothness, curvature, sharpness, 
-                                 beta, lm_start=lm_start)
+estimate, residuals, goals = interg2d.solve(data, mesh, density, ref_surf, 
+                                            initial, damping, smoothness, 
+                                            curvature, sharpness, beta, 
+                                            lm_start=lm_start)
 
 # Fill in the mesh with the inversion results
 fatiando.mesh.fill(estimate, mesh, key='z2')
 fatiando.mesh.fill(ref_surf, mesh, key='z1')
 
 # Pickle the result to use later
-resultfile = open("result.pickle", 'w')
+resultfile = open("result-sharp.pickle", 'w')
 pickle.dump(mesh, resultfile)
 resultfile.close()
 
-# Compute the adjusted data and residuals
-residuals = interg2d.residuals(estimate)
+# Compute the adjusted data
 adjusted = interg2d.adjustment(estimate, profile=True)
 
 # Contaminate the data with more noise and re-run to test the stability of the
@@ -79,15 +79,16 @@ for i in xrange(contam_times):
                                                        stddev=error, 
                                                        percent=False)
 
-    new_estimate, new_goals = interg2d.solve(contam, mesh, density, ref_surf, 
-                                             initial, damping, smoothness, 
-                                             curvature, sharpness, beta, 
-                                             lm_start=lm_start)
+    new_results = interg2d.solve(contam, mesh, density, ref_surf, initial, 
+                                 damping, smoothness, curvature, sharpness, 
+                                 beta, lm_start=lm_start)
+    
+    new_estimate = new_results[0]
     
     estimates.append(new_estimate)
 
 # Pickle the estimates to save them for later reference
-resultfile = open("estimates.pickle", 'w')
+resultfile = open("estimates-sharp.pickle", 'w')
 pickle.dump(estimates, resultfile)
 resultfile.close()
     

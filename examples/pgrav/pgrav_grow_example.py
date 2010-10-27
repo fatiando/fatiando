@@ -57,7 +57,7 @@ seeds.append(pgrav3d.get_seed((10, 10, 410), 1000, mesh))
 # Show the seeds before starting
 seed_mesh = []
 for seed in seeds:
-    seed_cell = mesh.ravel()[seed['param']]
+    seed_cell = mesh.ravel()[seed['index']]
     seed_cell['value'] = seed['density']
     seed_mesh.append(seed_cell)
 seed_mesh = numpy.array(seed_mesh)
@@ -72,27 +72,17 @@ axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
 mlab.show()
 
 # Inversion parameters
-mmi = 1*10**(1)
+compactness = 1*10**(2)
 power = 5
 
-# Load the Jacobian from a previous run
-jac_file = open('jacobian.pickle')
-pgrav3d._jacobian = pickle.load(jac_file)
-jac_file.close()
-
 # Run the inversion
-estimate, residuals, goals, rmss = pgrav3d.grow(data, mesh, seeds, mmi, power)
+estimate, residuals, goals, rmss = pgrav3d.grow(data, mesh, seeds, compactness, 
+                                                power, 'jacobian.zip', 
+                                                distance_type='cell')
 
-adjusted = pgrav3d.calc_adjustment(estimate, grid=True)
+adjusted = pgrav3d.adjustment(data, residuals)
 
 fatiando.mesh.fill(estimate, mesh)
-
-# Pickle the Jacobian for later use
-jac_file = open('jacobian.pickle', 'w')
-pickle.dump(pgrav3d._jacobian, jac_file)
-jac_file.close()
-
-del pgrav3d._jacobian
 
 # Save the resulting model
 output = open('result.pickle', 'w')
@@ -146,34 +136,27 @@ pylab.show()
 
 # Plot the adjusted model plus the skeleton of the synthetic model
 fig = mlab.figure()
+
 fig.scene.background = (0.1, 0.1, 0.1)
 fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
 fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 fatiando.vis.plot_prism_mesh(seed_mesh, style='surface', label='Seed Density')
 plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
-#plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
 
 # Plot the neighbours
 for seed in seeds:
+    
     neighbor_mesh = []
+    
     for neighbor in seed['neighbors']:
+        
         neighbor_mesh.append(mesh.ravel()[neighbor])
+        
     neighbor_mesh = numpy.array(neighbor_mesh)
+    
     fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
                                  label='neighbors', opacity=0.0)
-
-# Get the distances and make a mesh with them
-distances = pgrav3d._distances
-distance_mesh = fatiando.mesh.copy(mesh)
-fatiando.mesh.fill(distances, distance_mesh)
-
-fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
-fig.scene.camera.pitch(180)
-fig.scene.camera.roll(180)
-plot = fatiando.vis.plot_prism_mesh(distance_mesh, style='surface', label='Distances')
-axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
 
 mlab.show()

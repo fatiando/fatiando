@@ -25,9 +25,6 @@ Functions:
 * :func:`fatiando.inversion.interg2d.adjustment`
     Calculate the adjusted data produced by a given estimate
 
-* :func:`fatiando.inversion.interg2d.residuals`
-    Calculate the residuals vector of a given estimate
-
 * :func:`fatiando.inversion.interg2d.set_bounds`
     Set bounds on the parameter values (depth of interface)
 
@@ -243,33 +240,6 @@ def adjustment(estimate, profile=False):
     return adjusted
 
 
-def residuals(estimate):
-    """
-    Calculate the residuals vector of a given estimate.
-    
-    Parameters:
-    
-    * estimate
-        Array-like vector of estimates
-      
-    Returns:
-    
-    * residuals
-        Array-like vector of residuals
-        
-    """
-    
-    global _data_vector
-    
-    assert _data_vector is not None, "Can't calculate residuals. No data vector"
-    
-    adjusted = adjustment(estimate, profile=False)
-    
-    residuals = _data_vector - adjusted
-    
-    return residuals
-
-
 def set_bounds(vmin, vmax):
     """
     Set bounds on the parameter values (depth of interface)
@@ -349,8 +319,9 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
       
     Returns:
     
-    * [estimate, goals]
+    * [estimate, residuals, goals]
         estimate = array-like parameter vector estimated by the inversion.
+        residuals = array-like residuals vector.
         goals = list of goal function value per iteration
                 
     The data dictionaries should be as::
@@ -418,7 +389,8 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
         
         initial = (10**(-10))*numpy.ones(mesh.size)
             
-    estimate, goals = solvers.lm(_data_vector, None, initial, lm_start, lm_step, 
-                                 max_steps, max_it)
+    estimate, residuals, goals = solvers.lm(_data_vector, None, initial, 
+                                            lm_start, lm_step, max_steps, 
+                                            max_it)
 
-    return estimate, goals
+    return estimate, residuals, goals
