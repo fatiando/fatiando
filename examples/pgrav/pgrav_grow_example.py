@@ -43,15 +43,18 @@ synth_file.close()
 
 # Generate a model space mesh
 mesh = fatiando.mesh.prism_mesh(x1=-800, x2=800, y1=-800, y2=800,
-                                z1=0, z2=800, nx=16, ny=16, nz=8)
+                                z1=0, z2=800, nx=64, ny=64, nz=32)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-#seeds.append(pgrav3d.get_seed((-410, 10, 110), 1000, mesh))
-#seeds.append(pgrav3d.get_seed((-10, 10, 310), 1000, mesh))
-#seeds.append(pgrav3d.get_seed((310, 10, 510), 1000, mesh))
-seeds.append(pgrav3d.get_seed((10, 10, 410), 1000, mesh))
+seeds.append(pgrav3d.get_seed((-510, 10, 110), 1000, mesh))
+seeds.append(pgrav3d.get_seed((-310, 10, 110), 1000, mesh))
+seeds.append(pgrav3d.get_seed((-110, 10, 310), 1000, mesh))
+seeds.append(pgrav3d.get_seed((110, 10, 310), 1000, mesh))
+seeds.append(pgrav3d.get_seed((310, 10, 510), 1000, mesh))
+seeds.append(pgrav3d.get_seed((510, 10, 510), 1000, mesh))
+#seeds.append(pgrav3d.get_seed((10, 10, 410), 1000, mesh))
 
 
 # Show the seeds before starting
@@ -72,12 +75,13 @@ axes = mlab.axes(plot, nb_labels=9, extent=[-800,800,-800,800,0,800])
 mlab.show()
 
 # Inversion parameters
-compactness = 1*10**(2)
+compactness = 1*10**(0)
 power = 5
 
 # Run the inversion
-estimate, residuals, goals, rmss = pgrav3d.grow(data, mesh, seeds, compactness, 
-                                                power, 'jacobian.zip', 
+estimate, residuals, rmss, goals = pgrav3d.grow(data, mesh, seeds, compactness, 
+                                                power=power, threshold=10**(-5), 
+                                                jacobian_file='jacobian64.zip', 
                                                 distance_type='cell')
 
 adjusted = pgrav3d.adjustment(data, residuals)

@@ -16,14 +16,14 @@ import fatiando.vis
 log = fatiando.utils.get_logger()
 
 prisms = []
-#prisms.append({'x1':-600, 'x2':-200, 'y1':-200, 'y2':200, 'z1':000, 'z2':200,
-#               'value':1000})
-#prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':400,
-#               'value':1000})
-#prisms.append({'x1':200, 'x2':600, 'y1':-200, 'y2':200, 'z1':400, 'z2':600,
-#               'value':1000})
-prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':600,
+prisms.append({'x1':-600, 'x2':-200, 'y1':-200, 'y2':200, 'z1':000, 'z2':200,
                'value':1000})
+prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':400,
+               'value':1000})
+prisms.append({'x1':200, 'x2':600, 'y1':-200, 'y2':200, 'z1':400, 'z2':600,
+               'value':1000})
+#prisms.append({'x1':-200, 'x2':200, 'y1':-200, 'y2':200, 'z1':200, 'z2':600,
+#               'value':1000})
 
 prisms = numpy.array(prisms)
 

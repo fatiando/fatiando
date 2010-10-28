@@ -1269,8 +1269,16 @@ def _get_jac_col(index, data, mesh, infile):
         If there is no data for a given component, omit the respective key.
         Each g*data is a data dictionary
         
+    * mesh
+        Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
+        
     * infile
         Open ZipFile instance with reading privileges (see module ``zipfile``)
+    
+    Returns:
+    
+    * column
+        1D array-like column of the Jacobian matrix
         
     """
     
@@ -1293,8 +1301,8 @@ def _get_jac_col(index, data, mesh, infile):
     return column
 
 
-def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None, 
-         neighbor_type='reduced', distance_type='cell'):
+def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
+         jacobian_file=None, neighbor_type='reduced', distance_type='cell'):
     """
     Invert by growing the solution around given seeds.
     
@@ -1435,6 +1443,7 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None,
     log.info("  data = %d" % (len(residuals)))
     log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))
+    log.info("  threshold = %g" % (threshold))
     log.info("  neighbor type = %s" % (neighbor_type))
     log.info("  distance type = %s" % (distance_type))
     log.info("  initial RMS = %g" % (rmss[-1]))
@@ -1474,7 +1483,7 @@ def grow(data, mesh, seeds, compactness, power=5, jacobian_file=None,
                 
                 # Reducing the RMS is mandatory while also looking for the one
                 # that minimizes the total goal the most
-                if rms < rmss[-1]:
+                if rms < rmss[-1] and abs(rms - rmss[-1])/rmss[-1] >= threshold:
                     
                     if best_goal is None or goal < best_goal:
                     

@@ -56,7 +56,7 @@ def get_logger(level=logging.DEBUG):
     
     """
     
-    logger = logging.getLogger()
+    logger = logging.getLogger('fatiando')
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter())
     logger.addHandler(handler)    
