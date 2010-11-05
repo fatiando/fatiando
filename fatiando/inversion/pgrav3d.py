@@ -48,8 +48,9 @@ __date__ = 'Created 14-Jun-2010'
 import time
 import logging
 import math
-import zipfile
 import os
+import zipfile
+import tarfile
 import StringIO
 
 import numpy
@@ -1326,7 +1327,39 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
         parameter). Must to be >= 0
            
     * power
-        Power to which the distances are raised in the MMI weights
+        Power to which the distances are raised in the *compactness* weights
+        
+    * threshold
+        Minimum decimal percentage reduction of the RMS required to grow
+        
+    * jacobian_file
+        Name of a .zip file used to store the Jacobian matrix. If file already
+        exists, will try to load the Jacobian columns from the file. Otherwise,
+        will create a file and save the Jacobian columns to it.
+        
+    * neighbor_type
+        The neighbors are the available cells around a seed that can be added to
+        the estimate. Can be either:
+    
+        * ``'reduced'``
+            Only use the front, back, left, right, top and bottom neighbors of a
+            cell. Use this to save computation time and memory.
+            
+        * ``'full'``
+            Also use the diagonal neighbors. 
+        
+    * distance_type
+        The distances between a cell and the seeds is used as parameter weights
+        to enforce compactness. Can be either:
+        
+        * ``'radial'``
+            Use the distance from the center of the cell to the center of the 
+            seed. Use this to make the estimated bodies rounder.
+            
+        * ``'cell'``
+            Use the distance in number of cells in the mesh from the cell to the
+            seed. Use this to make the estimated bodies more rectangular. 
+        
       
     Returns:
     
@@ -1446,6 +1479,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
     log.info("  threshold = %g" % (threshold))
     log.info("  neighbor type = %s" % (neighbor_type))
     log.info("  distance type = %s" % (distance_type))
+    log.info("  Jacobian matrix file = %s" % (jacobian_file))
     log.info("  initial RMS = %g" % (rmss[-1]))
     log.info("  initial total goal function = %g" % (rmss[-1]))
     
@@ -1486,6 +1520,9 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
                 if rms < rmss[-1] and abs(rms - rmss[-1])/rmss[-1] >= threshold:
                     
                     if best_goal is None or goal < best_goal:
+#                    if (best_goal is None or 
+#                        (goal < best_goal and   
+#                         goals[-1] - goal/goals[-1] >= -10**(-1))):
                     
                         best_neighbor = neighbor
                         best_goal = goal

@@ -7,6 +7,7 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
+    * Make 3D mesh with topography
     
 Inversion
     * Unit tests
@@ -27,12 +28,13 @@ InterG
       So make a function that "interpolates" the topo into the mesh
     
 PGrav
+    * Separate the Jacobian columns per field when saving and loading
     * Keep the mesh ravel() to avoid calling the method
     * Migrar semente para centro de massa
     * Build sensibility in Fortran
     * Allow initial estimate in grow
-    * Unit tests
     * IO for initial estimate
+    * Unit tests
     * Make integration test
     * Use equality constraints
     
@@ -62,9 +64,4 @@ Gravity
     * reductions
     * terrain correction
     * make extention for upward continuation
-    * equivalent layer
-    
-WaveFD:
-    * Port to Fortran
-    * Get rid of Python interface (put it in seismo.synthetic)
-    
+    * equivalent layer  

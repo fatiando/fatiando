@@ -84,7 +84,7 @@ def set_logfile(fname, level=logging.DEBUG):
      
     """
     
-    logger = logging.getLogger()
+    logger = logging.getLogger('fatiando')
     fhandler = logging.FileHandler(fname, 'w')
     fhandler.setFormatter(logging.Formatter())
     logger.addHandler(fhandler)
