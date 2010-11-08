@@ -20,6 +20,9 @@ log = fatiando.utils.get_logger()
 # Set logging to a file
 fatiando.utils.set_logfile('pgrav_grow_example.log')
 
+# Log a header with the current version info
+log.info(fatiando.utils.header())
+
 # Load the synthetic data
 gzz = io.load('gzz_data.txt')
 #gxx = io.load('gxx_data.txt')

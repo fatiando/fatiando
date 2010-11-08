@@ -15,6 +15,12 @@ import fatiando.vis
 # Get a logger for the script
 log = fatiando.utils.get_logger()
 
+# Set logging to a file
+fatiando.utils.set_logfile('make_synthetic_data.log')
+
+# Log a header with the current version info
+log.info(fatiando.utils.header())
+
 prisms = []
 prisms.append({'x1':600, 'x2':1200, 'y1':200, 'y2':4200, 'z1':100, 'z2':600,
                'value':1300})
