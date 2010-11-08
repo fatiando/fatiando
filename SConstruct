@@ -86,6 +86,7 @@ env.AlwaysBuild(test)
 # Clean up the build
 Clean(os.path.curdir, 'build')
 Clean(os.path.curdir, 'dist')
+Clean(os.path.curdir, 'MANIFEST')
 Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.pyc'))
 

@@ -23,9 +23,14 @@ __date__ = 'Created 10-Sep-2010'
 import unittest
 
 
+import fatiando.grav.tests.transform
+
+
 def suite(label='fast'):
 
     testsuite = unittest.TestSuite()
+    
+    testsuite.addTest(fatiando.grav.tests.transform.suite(label))
     
     return testsuite
 

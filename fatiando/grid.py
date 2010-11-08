@@ -15,35 +15,25 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test suite for the fatiando package.
+Create and operate on grids and profiles.
+
+Functions:
+
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 29-Mar-2010'
-
-import unittest
-
-# The package tests
-import fatiando.grav.tests
-import fatiando.seismo.tests
-import fatiando.inversion.tests
-import fatiando.heat.tests
-# The module tests
-import fatiando.tests.geometry
+__date__ = 'Created 26-Oct-2010'
 
 
-def suite(label='fast'):
+import logging
 
-    testsuite = unittest.TestSuite()
+import numpy
 
-    testsuite.addTest(fatiando.grav.tests.suite(label))
-    testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inversion.tests.suite(label))
-    testsuite.addTest(fatiando.heat.tests.suite(label))
-    
-    testsuite.addTest(fatiando.tests.geometry.suite(label))
-
-    return testsuite
+import fatiando
 
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+# Add the default handler (a null handler) to the logger to ensure that
+# it won't print verbose if the program calling them doesn't want it
+log = logging.getLogger('fatiando.grid')       
+log.setLevel(logging.DEBUG)
+log.addHandler(fatiando.default_log_handler)

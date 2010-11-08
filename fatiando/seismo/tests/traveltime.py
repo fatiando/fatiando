@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Unit tests for the fatiando.seismo.traveltime
+Unit tests for :mod:`fatiando.seismo.traveltime`
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 28-Mar-2010'
@@ -26,7 +26,7 @@ import fatiando.seismo.traveltime
 
 
 class CartesianStraightTestCase(unittest.TestCase):
-    """Test case for the cartesian_straight function"""
+    """Test case for :func:`fatiando.seismo.traveltime.cartesian_straight`"""
     
     label = 'fast'
 
@@ -82,7 +82,7 @@ class CartesianStraightTestCase(unittest.TestCase):
 
 
     def test_known_values(self):
-        "cartesian_straight returns correct results given test data"
+        "seismo.traveltime.cartesian_straight returns correct values"
 
         tnum = 0
         for args, t_known in self.known:

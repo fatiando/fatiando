@@ -1,3 +1,4 @@
 syntax: glob
 
 ./.sconsign.dblite
+./fatiando/csinfo.py
