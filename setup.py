@@ -82,6 +82,13 @@ ext_modules = [head_diffusionfd,
                seismo_traveltime]
 data_files = []
 
+# Write the changeset information to file fatiando/csinfo.py
+pipe = os.popen('hg parents')
+csinfo = pipe.readlines()
+csfile = open(os.path.join('fatiando', 'csinfo.py'), 'w')
+csfile.write("csinfo = ")
+csfile.write(str(csinfo[:-1]))
+csfile.close()
 
 
 if __name__ == '__main__':

@@ -36,6 +36,9 @@ Subpackages:
         
 Modules:
 
+* :mod:`fatiando.csinfo`
+    Information about the current changeset
+
 * :mod:`fatiando.mesh`
     Mesh generation and handling of geometric elements
     
