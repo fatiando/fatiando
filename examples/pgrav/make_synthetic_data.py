@@ -8,18 +8,19 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.grav import synthetic, io
-import fatiando.utils
-import fatiando.vis
+import fatiando.grav.synthetic as synthetic
+import fatiando.grav.io as io
+import fatiando.utils as utils
+import fatiando.vis as vis
 
 # Get a logger for the script
-log = fatiando.utils.get_logger()
+log = utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('make_synthetic_data.log')
+utils.set_logfile('make_synthetic_data.log')
 
 # Log a header with the current version info
-log.info(fatiando.utils.header())
+log.info(utils.header())
 
 prisms = []
 prisms.append({'x1':600, 'x2':1200, 'y1':200, 'y2':4200, 'z1':100, 'z2':600,
@@ -37,8 +38,7 @@ fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
 fig.scene.camera.pitch(180)
 fig.scene.camera.roll(180)
-dataset = fatiando.vis.plot_prism_mesh(prisms, style='surface', 
-                                       label='Density kg/cm^3')
+dataset = vis.plot_prism_mesh(prisms, style='surface', label='Density kg/cm^3')
 axes = mlab.axes(dataset, nb_labels=5, extent=[0,5000,0,5000,0,1000])
 mlab.show()
 
@@ -50,8 +50,8 @@ error_gz = 0.1
 data = synthetic.from_prisms(prisms, x1=0, x2=5000, y1=0, y2=5000, 
                              nx=50, ny=50, height=150, field='gz')
     
-data['value'] = fatiando.utils.contaminate(data['value'], stddev=error_gz, 
-                                           percent=False, return_stddev=False)
+data['value'] = utils.contaminate(data['value'], stddev=error_gz, 
+                                  percent=False, return_stddev=False)
 
 data['error'] = error_gz*numpy.ones(len(data['value']))
 
@@ -60,8 +60,7 @@ io.dump('gz_data.txt', data)
 pylab.figure()
 pylab.axis('scaled')
 pylab.title(r"Synthetic $g_z$ with %g mGal noise" % (error_gz))
-X, Y, V = fatiando.utils.extract_matrices(data)
-pylab.contourf(X, Y, V, 10, cmap=pylab.cm.jet)
+vis.contourf(data, 10)
 cb = pylab.colorbar()
 cb.set_label('mGal')
 pylab.xlim(data['x'].min(), data['x'].max())
@@ -79,10 +78,10 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     data = synthetic.from_prisms(prisms, x1=0, x2=5000, y1=0, y2=5000, 
                                  nx=50, ny=50, height=150, field=field)
     
-    data['value'], error = fatiando.utils.contaminate(data['value'], 
-                                                      stddev=error, 
-                                                      percent=False, 
-                                                      return_stddev=True)
+    data['value'], error = utils.contaminate(data['value'], 
+                                             stddev=error, 
+                                             percent=False, 
+                                             return_stddev=True)
     
     data['error'] = error*numpy.ones(len(data['value']))
 
@@ -91,8 +90,7 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     pylab.subplot(2, 3, i + 1)
     pylab.axis('scaled')
     pylab.title(field)
-    X, Y, V = fatiando.utils.extract_matrices(data)
-    pylab.contourf(X, Y, V, 10, cmap=pylab.cm.jet)
+    vis.contourf(data, 10)
     cb = pylab.colorbar()
     cb.set_label(r'$E\"otv\"os$')
     

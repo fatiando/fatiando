@@ -100,7 +100,7 @@ def dump(fname, data, fmt='ascii'):
     for x, y, z, value, error in zip(data['x'], data['y'], data['z'], 
                                      data['value'], data['error']):
         
-        output.write("%g %g %g %g %g\n" % (x, y, z, value, error))
+        output.write("%f %f %f %f %f\n" % (x, y, z, value, error))
         
     output.close()
     

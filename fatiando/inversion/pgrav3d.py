@@ -1238,21 +1238,23 @@ def _dump_jac_col(index, column, outfile):
         
     """
     
-    fname = str(index)
+    if outfile is not None:
     
-    # If getinfo doesn't raise an exception, it's because the file was already
-    # in the archive, so don't add it again
-    try:
+        fname = str(index)
         
-        outfile.getinfo(fname)
+        # If getinfo doesn't raise an exception, it's because the file was 
+        # already in the archive, so don't add it again
+        try:
+            
+            outfile.getinfo(fname)
+            
+        except KeyError:      
         
-    except KeyError:      
-    
-        stream = StringIO.StringIO()
-        
-        pylab.savetxt(stream, column)
-        
-        outfile.writestr(fname, stream.getvalue())    
+            stream = StringIO.StringIO()
+            
+            pylab.savetxt(stream, column)
+            
+            outfile.writestr(fname, stream.getvalue())    
     
     
 def _get_jac_col(index, data, mesh, infile):
@@ -1283,21 +1285,27 @@ def _get_jac_col(index, data, mesh, infile):
         
     """
     
-    fname = str(index)
+    if infile is None:
         
-    # If getinfo doesn't raise an exception, it's because the file is already 
-    # in the archive
-    try:
-        
-        col_string = infile.read(fname)
-        
-        stream = StringIO.StringIO(col_string)
-
-        column = pylab.loadtxt(stream)
-        
-    except KeyError:
-    
         column = _calc_jac_col(index, data, mesh)
+        
+    else:
+    
+        fname = str(index)
+            
+        # If getinfo doesn't raise an exception, it's because the file is  
+        # already in the archive
+        try:
+            
+            col_string = infile.read(fname)
+            
+            stream = StringIO.StringIO(col_string)
+    
+            column = pylab.loadtxt(stream)
+            
+        except KeyError:
+        
+            column = _calc_jac_col(index, data, mesh)
         
     return column
 

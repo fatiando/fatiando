@@ -82,12 +82,10 @@ for seed in seeds:
 seed_mesh = numpy.array(seed_mesh)
 fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
-fig.scene.camera.pitch(180)
-fig.scene.camera.roll(180)
 fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 plot = fatiando.vis.plot_prism_mesh(seed_mesh, style='surface', 
                                     label='Seed Density')
-axes = mlab.axes(plot, nb_labels=9, extent=[0,5000,0,5000,0,1000])
+axes = mlab.axes(plot, nb_labels=9, extent=[0,5000,0,5000,-1000,0])
 mlab.show()
 
 # Inversion parameters
@@ -177,12 +175,10 @@ pylab.show()
 fig = mlab.figure()
 
 fig.scene.background = (0.1, 0.1, 0.1)
-fig.scene.camera.pitch(180)
-fig.scene.camera.roll(180)
 fatiando.vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 fatiando.vis.plot_prism_mesh(seed_mesh, style='surface', label='Seed Density')
 plot = fatiando.vis.plot_prism_mesh(mesh, style='surface', label='Density')
-axes = mlab.axes(plot, nb_labels=9, extent=[0,5000,0,5000,0,1000])
+axes = mlab.axes(plot, nb_labels=9, extent=[0,5000,0,5000,-1000,0])
 
 # Plot the neighbours
 #for seed in seeds:

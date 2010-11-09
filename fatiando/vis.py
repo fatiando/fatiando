@@ -41,8 +41,10 @@ __date__ = 'Created 01-Sep-2010'
 
 
 import numpy
-
 import pylab
+
+
+import fatiando.utils
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -190,7 +192,8 @@ def plot_ray_coverage(sources, receivers, linestyle='-k'):
     return plot[0]
     
 
-def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
+def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar', 
+                    invz=True):
     """
     Plot a 3D prism mesh using Mayavi2.
     
@@ -208,6 +211,9 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
            
     * label
         Name of the scalar ``'value'`` of the mesh cells.
+        
+    * invz
+        If ``True``, will invert the sign of values in the z-axis
          
     """
     
@@ -233,7 +239,14 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar'):
         
         x1, x2 = cell['x1'], cell['x2']
         y1, y2 = cell['y1'], cell['y2']
-        z1, z2 = cell['z1'], cell['z2']
+        
+        if invz:
+            
+            z1, z2 = -cell['z2'], -cell['z1']
+            
+        else:
+            
+            z1, z2 = cell['z1'], cell['z2']
         
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
@@ -352,3 +365,76 @@ def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
     
     return plot[0]
     
+    
+def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k', 
+            label=None, interp='nn', nx=None, ny=None):
+    """
+    """
+    
+    if data['grid']:
+        
+        X, Y, Z = fatiando.utils.extract_matrices(data)
+        
+    else:
+        
+        if nx is None or ny is None:
+            
+            nx = ny = int(numpy.sqrt(len(data[vkey]))) 
+        
+        dx = (data[xkey].max() - data[xkey].min())/nx
+        dy = (data[ykey].max() - data[ykey].min())/ny
+        
+        xs = numpy.arange(data[xkey].min(), data[xkey].max(), dx, 'f')
+        ys = numpy.arange(data[ykey].min(), data[ykey].max(), dy, 'f')
+        
+        X, Y = numpy.meshgrid(xs, ys)
+        
+        Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
+        
+    ct_data = pylab.contour(X, Y, Z, levels, colors=color)
+    
+    ct_data.clabel(fmt='%g')
+    
+    if label is not None:
+        
+        ct_data.collections[0].set_label(label)
+            
+    pylab.xlim(X.min(), X.max())
+    
+    pylab.ylim(Y.min(), Y.max())
+        
+    return ct_data.levels
+
+
+def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, 
+             interp='nn', nx=None, ny=None):
+    """
+    """
+    
+    if data['grid']:
+        
+        X, Y, Z = fatiando.utils.extract_matrices(data)
+        
+    else:
+        
+        if nx is None or ny is None:
+            
+            nx = ny = int(numpy.sqrt(len(data[vkey]))) 
+        
+        dx = (data[xkey].max() - data[xkey].min())/nx
+        dy = (data[ykey].max() - data[ykey].min())/ny
+                
+        xs = numpy.arange(data[xkey].min(), data[xkey].max(), dx, 'f')
+        ys = numpy.arange(data[ykey].min(), data[ykey].max(), dy, 'f')
+        
+        X, Y = numpy.meshgrid(xs, ys)
+        
+        Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
+        
+    ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap)
+            
+    pylab.xlim(X.min(), X.max())
+    
+    pylab.ylim(Y.min(), Y.max())
+            
+    return ct_data.levels
