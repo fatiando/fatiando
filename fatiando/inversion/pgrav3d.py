@@ -1363,11 +1363,11 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
       
     Returns:
     
-    * [estimate, residuals, goals, rmss]:
+    * [estimate, residuals, goals, misfits]:
         estimate = array-like parameter vector estimated by the inversion.
         residuals = array-like residuals vector.
         goals = list of goal function value per iteration.
-        rmss = list of RMS value per iteration.
+        misfits = list of misfit value per iteration.
             
     Raises:
     
@@ -1463,13 +1463,13 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
             
         seed['neighbors'].extend(new_neighbors)
     
-    rmss = [(residuals**2).sum()]
+    misfits = [(residuals**2).sum()]
     
     # Since there are only the seeds in the estimate, the compactness 
     # regularizer is 0
     regularizer = 0.
     
-    goals = [rmss[-1] + regularizer]
+    goals = [misfits[-1] + regularizer]
     
     log.info("Growing density model:")
     log.info("  parameters = %d" % (mesh.size))
@@ -1480,8 +1480,8 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
     log.info("  neighbor type = %s" % (neighbor_type))
     log.info("  distance type = %s" % (distance_type))
     log.info("  Jacobian matrix file = %s" % (jacobian_file))
-    log.info("  initial RMS = %g" % (rmss[-1]))
-    log.info("  initial total goal function = %g" % (rmss[-1]))
+    log.info("  initial misfit = %g" % (misfits[-1]))
+    log.info("  initial total goal function = %g" % (misfits[-1]))
     
     total_start = time.time()
         
@@ -1502,33 +1502,31 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
     
             best_goal = None
             best_reg = None
-            best_rms = None
+            best_misfit = None
             best_neighbor = None
             
             for neighbor, distance in zip(seed['neighbors'], seed['distances']):
                 
                 new_residuals = residuals - density*jacobian[neighbor]
                 
-                rms = (new_residuals**2).sum()
+                misfit = (new_residuals**2).sum()
     
                 regularizer_increment = compactness*(distance**power)
                                 
-                goal = rms + regularizer + regularizer_increment
+                goal = misfit + regularizer + regularizer_increment
                 
-                # Reducing the RMS is mandatory while also looking for the one
+                # Reducing the misfit is mandatory while also looking for the one
                 # that minimizes the total goal the most
-                if rms < rmss[-1] and abs(rms - rmss[-1])/rmss[-1] >= threshold:
+                if (misfit < misfits[-1] and 
+                    abs(misfit - misfits[-1])/misfits[-1] >= threshold):
                     
                     if best_goal is None or goal < best_goal:
-#                    if (best_goal is None or 
-#                        (goal < best_goal and   
-#                         goals[-1] - goal/goals[-1] >= -10**(-1))):
                     
                         best_neighbor = neighbor
                         best_goal = goal
-                        best_rms = rms
+                        best_misfit = misfit
                         best_reg = regularizer + regularizer_increment
-                 
+                        
             if best_neighbor is not None:
                     
                 grew = True
@@ -1539,7 +1537,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
                 
                 regularizer = best_reg
                                                     
-                rmss.append(best_rms)
+                misfits.append(best_misfit)
                 
                 goals.append(best_goal)
                 
@@ -1571,7 +1569,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
                 log.info(''.join(['    append to seed %d:' % (seed_num + 1),
                                   ' size=%d' % (len(estimate)),
                                   ' neighbors=%d' % (len(seed['neighbors'])),
-                                  ' RMS=%g' % (best_rms),
+                                  ' MISFIT=%g' % (best_misfit),
                                   ' COMPACTNESS=%g' % (best_reg),
                                   ' GOAL=%g' % (best_goal)]))
                           
@@ -1611,4 +1609,4 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
     
     log.info("  Total inversion time: %g s" % (total_end - total_start))
 
-    return estimate_vector, residuals, rmss, goals
+    return estimate_vector, residuals, misfits, goals

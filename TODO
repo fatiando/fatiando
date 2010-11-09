@@ -37,6 +37,8 @@ PGrav
     * Unit tests
     * Make integration test
     * Use equality constraints
+    * Usar topografia no mesh
+    * Norma l1
     
 Seismo
 

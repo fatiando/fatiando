@@ -60,10 +60,10 @@ seeds.append(pgrav3d.get_seed((901, 2201, 301), 1300, mesh))
 seeds.append(pgrav3d.get_seed((901, 2701, 301), 1300, mesh))
 seeds.append(pgrav3d.get_seed((901, 3201, 301), 1300, mesh))
 seeds.append(pgrav3d.get_seed((901, 3701, 301), 1300, mesh))
-seeds.append(pgrav3d.get_seed((3601, 1301, 501), 1000, mesh))
-seeds.append(pgrav3d.get_seed((3301, 1301, 501), 1000, mesh))
-seeds.append(pgrav3d.get_seed((3601, 1601, 501), 1000, mesh))
-seeds.append(pgrav3d.get_seed((3301, 1601, 501), 1000, mesh))
+seeds.append(pgrav3d.get_seed((3701, 1201, 901), 1000, mesh))
+seeds.append(pgrav3d.get_seed((3201, 1201, 901), 1000, mesh))
+seeds.append(pgrav3d.get_seed((3701, 1701, 901), 1000, mesh))
+seeds.append(pgrav3d.get_seed((3201, 1701, 801), 1000, mesh))
 seeds.append(pgrav3d.get_seed((2951, 3951, 301), 1200, mesh))
 seeds.append(pgrav3d.get_seed((2951, 3951, 701), 1200, mesh))
 seeds.append(pgrav3d.get_seed((2001, 2751, 301), 1500, mesh))
@@ -91,14 +91,14 @@ axes = mlab.axes(plot, nb_labels=9, extent=[0,5000,0,5000,0,1000])
 mlab.show()
 
 # Inversion parameters
-compactness = 10**(9)
-power = 3
+compactness = 10**(8)
+power = 2
 
 # Run the inversion
 estimate, residuals, rmss, goals = pgrav3d.grow(data, mesh, seeds, compactness, 
                                                 power=power, threshold=10**(-4), 
                                                 jacobian_file='jacobian50.zip', 
-                                                distance_type='cell')
+                                                distance_type='radial')
 
 adjusted = pgrav3d.adjustment(data, residuals)
 

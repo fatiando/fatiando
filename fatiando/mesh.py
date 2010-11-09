@@ -84,13 +84,14 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
         
     """
     
-    log.info("Building prism mesh:")
-    log.info("  Discretization: nx=%d X ny=%d X nz=%d = %d prisms" 
-             % (nx, ny, nz, nx*ny*nz))
-    
     dx = float(x2 - x1)/nx
     dy = float(y2 - y1)/ny
     dz = float(z2 - z1)/nz
+        
+    log.info("Building prism mesh:")
+    log.info("  Discretization: nx=%d X ny=%d X nz=%d = %d prisms" 
+             % (nx, ny, nz, nx*ny*nz))
+    log.info("  Cell dimensions: dx=%g X dy=%g X dz=%g" % (dx, dy, dz))
     
     mesh = []
     
