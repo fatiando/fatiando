@@ -671,7 +671,10 @@ def get_seed(point, density, mesh):
         if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
             y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
             
-            seed = {'index':i, 'density':density, 'cell':cell, 'neighbors':[]}
+            seed = {'index':i, 'density':density, 'cell':cell.copy(),
+                    'neighbors':[]}
+
+            seed['cell']['value'] = density
             
             break
         
@@ -764,9 +767,12 @@ def _radial_distance(cell, seed):
     
     """
                     
-    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
-    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
-    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
+#    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
+#    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
+#    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
+    x_distance = abs(cell['x1'] - seed['cell']['x1'])
+    y_distance = abs(cell['y1'] - seed['cell']['y1'])
+    z_distance = abs(cell['z1'] - seed['cell']['z1'])
     
     distance = math.sqrt(x_distance**2 + y_distance**2 + z_distance**2)
     

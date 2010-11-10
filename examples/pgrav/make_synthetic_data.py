@@ -36,10 +36,8 @@ prisms = numpy.array(prisms)
 
 fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
-fig.scene.camera.pitch(180)
-fig.scene.camera.roll(180)
 dataset = vis.plot_prism_mesh(prisms, style='surface', label='Density kg/cm^3')
-axes = mlab.axes(dataset, nb_labels=5, extent=[0,5000,0,5000,0,1000])
+axes = mlab.axes(dataset, nb_labels=5, extent=[0,5000,0,5000,-1000,0])
 mlab.show()
 
 modelfile = open('model.pickle', 'w') 
