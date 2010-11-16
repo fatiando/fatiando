@@ -55,7 +55,7 @@ log.addHandler(fatiando.default_log_handler)
 
 
 
-def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz):
+def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
     """
     Dived a volume into right rectangular prisms.
     

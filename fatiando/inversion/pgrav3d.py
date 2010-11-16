@@ -34,6 +34,9 @@ Functions:
 * :func:`fatiando.inversion.pgrav3d.solve`    
     Solve the inverse problem for the density using a given data set.
     
+* :func:`fatiando.inversion.pgrav3d.adjustment`
+    Calculate the adjusted data based on the residuals and the original data.
+    
 * :func:`fatiando.inversion.pgrav3d.get_seed`
     Returns as a seed the cell in the mesh that has *point* inside it.
 
@@ -766,13 +769,22 @@ def _radial_distance(cell, seed):
     * distance
     
     """
-                    
-#    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
-#    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
-#    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
-    x_distance = abs(cell['x1'] - seed['cell']['x1'])
-    y_distance = abs(cell['y1'] - seed['cell']['y1'])
-    z_distance = abs(cell['z1'] - seed['cell']['z1'])
+    
+#    x_distance = abs(cell['x1'] - seed['cell']['x1'])
+#    y_distance = abs(cell['y1'] - seed['cell']['y1'])
+#    z_distance = abs(cell['z1'] - seed['cell']['z1'])
+    
+    cellx = 0.5*(cell['x2'] + cell['x1'])
+    celly = 0.5*(cell['y2'] + cell['y1'])
+    cellz = 0.5*(cell['z2'] + cell['z1'])
+    
+    seedx = 0.5*(seed['cell']['x2'] + seed['cell']['x1'])    
+    seedy = 0.5*(seed['cell']['y2'] + seed['cell']['y1'])    
+    seedz = 0.5*(seed['cell']['z2'] + seed['cell']['z1'])
+    
+    x_distance = abs(cellx - seedx)
+    y_distance = abs(celly - seedy)
+    z_distance = abs(cellz - seedz)    
     
     distance = math.sqrt(x_distance**2 + y_distance**2 + z_distance**2)
     
@@ -1316,7 +1328,55 @@ def _get_jac_col(index, data, mesh, infile):
     return column
 
 
-def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
+def _get_data_weights(data, seeds):
+    """
+    """
+    
+    global supported_fileds
+    
+    weights = []
+    
+    for field in supported_fileds:
+        
+        if field in data:
+            
+            sizex = data[field]['x'].max() - data[field]['x'].min()
+            sizey = data[field]['y'].max() - data[field]['y'].min()
+            
+            size = numpy.sqrt(sizex**2 + sizey**2)
+                        
+            for x, y in zip(data[field]['x'], data[field]['y']):
+                
+                distance = None
+                
+                for seed in seeds:
+                    
+                    xseed = 0.5*(seed['cell']['x2'] + seed['cell']['x1'])
+                    
+                    yseed = 0.5*(seed['cell']['y2'] + seed['cell']['y1'])
+    
+                    dist = numpy.sqrt((x - xseed)**2 + (y - yseed)**2)
+                    
+                    if distance is None or dist < distance:
+                        
+                        distance = dist
+                        
+                # Avoid zero division erros
+                if distance < 10**(-15):
+                    
+                    distance = 10**(-15)
+                    
+                weights.append(size/distance)
+                
+    weights = numpy.array(weights)
+                
+    # Normalize the weights
+    weights = weights/weights.max()
+    
+    return weights                    
+                
+
+def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
          jacobian_file=None, neighbor_type='reduced', distance_type='cell'):
     """
     Invert by growing the solution around given seeds.
@@ -1345,6 +1405,17 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
         
     * threshold
         Minimum decimal percentage reduction of the RMS required to grow
+      
+    * norm
+        What norm of the residuals to use for the misfit. Should be an integer:
+        
+        * ``1``
+            The :math:`l_1` norm of the residuals. Used for robustness against
+            outliers in the data set.
+            
+        * ``2``
+            The :math:`l_2` norm of the residuals. Used for a *Least* *Squares*
+            fit of the data. (DEFAULT)
         
     * jacobian_file
         Name of a .zip file used to store the Jacobian matrix. If file already
@@ -1373,7 +1444,6 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
         * ``'cell'``
             Use the distance in number of cells in the mesh from the cell to the
             seed. Use this to make the estimated bodies more rectangular. 
-        
       
     Returns:
     
@@ -1404,7 +1474,9 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
         "Invalid neighbor type '%s'" % (neighbor_type)
     
     assert distance_type in ['radial', 'cell'], \
-        "Invalid distance type '%s'" % (distance_type) 
+        "Invalid distance type '%s'" % (distance_type)
+        
+    assert norm == 1 or norm == 2, "Invalid norm '%s'." % (str(norm))
             
     # Set the neighbor and distance types
     if distance_type == 'radial':
@@ -1438,9 +1510,25 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
             
             j_zip = zipfile.ZipFile(jacobian_file, 'w')
     
-    # Initialize the residuals and estimate  
+    
+    # Initialize the residuals
     residuals = extract_data_vector(data)
+    
+    # Weight the residuals with the absolute value of the data to prioritize
+    # lower residuals over the extrema of the data
+#    weights =  _get_data_weights(data, seeds)
+    weights = numpy.ones_like(residuals)
+            
+    # Define a lambda function to compute the norm of the residuals
+    if norm == 1:
         
+        calc_norm = lambda r: (weights*numpy.abs(r)).sum()
+        
+    elif norm == 2:
+        
+        calc_norm = lambda r: (weights*(r**2)).sum()
+    
+    # Initialize the estimate          
     estimate = {}
     
     for seed in seeds:
@@ -1477,7 +1565,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
             
         seed['neighbors'].extend(new_neighbors)
     
-    misfits = [(residuals**2).sum()]
+    misfits = [calc_norm(residuals)]
     
     # Since there are only the seeds in the estimate, the compactness 
     # regularizer is 0
@@ -1491,6 +1579,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
     log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))
     log.info("  threshold = %g" % (threshold))
+    log.info("  norm = l%d" % (norm))
     log.info("  neighbor type = %s" % (neighbor_type))
     log.info("  distance type = %s" % (distance_type))
     log.info("  Jacobian matrix file = %s" % (jacobian_file))
@@ -1523,7 +1612,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
                 
                 new_residuals = residuals - density*jacobian[neighbor]
                 
-                misfit = (new_residuals**2).sum()
+                misfit = calc_norm(new_residuals)
     
                 regularizer_increment = compactness*(distance**power)
                                 
@@ -1598,15 +1687,6 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
         log.info("    time: %g s" % (end - start))
     
     log.info("  Size of estimate: %d cells" % (len(estimate)))
-    
-    # Fill the estimate with zeros
-    log.info("  Filling estimate with zeros...")
-    
-    estimate_vector = numpy.zeros(mesh.size)
-    
-    for i in estimate:
-    
-        estimate_vector[i] = estimate[i]
             
     # Finish dumping the Jacobian to a file
     if j_zip is not None:
@@ -1618,6 +1698,17 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4),
             _dump_jac_col(i, jacobian[i], j_zip)
             
         j_zip.close()
+        
+    del jacobian
+    
+    # Fill the estimate with zeros
+    log.info("  Filling estimate with zeros...")
+    
+    estimate_vector = numpy.zeros(mesh.size)
+    
+    for i in estimate:
+    
+        estimate_vector[i] = estimate[i]
         
     total_end = time.time()
     
