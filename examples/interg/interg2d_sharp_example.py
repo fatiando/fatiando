@@ -7,7 +7,7 @@ import pickle
 import numpy
 import pylab
 
-from fatiando.inversion import interg2d
+from fatiando.inv import interg2d
 from fatiando.grav import io
 import fatiando.mesh
 import fatiando.utils

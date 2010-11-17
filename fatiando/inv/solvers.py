@@ -33,22 +33,22 @@ Implemented regularizations:
 
 Functions:
 
-* :func:`fatiando.inversion.solvers.clear`
+* :func:`fatiando.inv.solvers.clear`
     Reset all globals to their default.
 
-* :func:`fatiando.inversion.solvers.lm`
+* :func:`fatiando.inv.solvers.lm`
     Levemberg-Marquardt solver
     
-* :func:`fatiando.inversion.solvers.linear_overdet`
+* :func:`fatiando.inv.solvers.linear_overdet`
     Solve a linear over-determined problem.
     
-* :func:`fatiando.inversion.solvers.linear_underdet`
+* :func:`fatiando.inv.solvers.linear_underdet`
     Solve a linear under-determined problem
 
-* :func:`fatiando.inversion.solvers.set_bounds`
+* :func:`fatiando.inv.solvers.set_bounds`
     Set upper and lower bounds on the parameter values (log barrier)
 
-* :func:`fatiando.inversion.solvers.clear`
+* :func:`fatiando.inv.solvers.clear`
     Reset all globals to their default
     
 """
@@ -66,7 +66,7 @@ import fatiando
 
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.solvers')       
+log = logging.getLogger('fatiando.inv.solvers')       
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 

@@ -19,19 +19,19 @@
 
 Functions:
 
-* :func:`fatiando.inversion.interg2d.clear`
+* :func:`fatiando.inv.interg2d.clear`
     Erase garbage from previous inversions
 
-* :func:`fatiando.inversion.interg2d.adjustment`
+* :func:`fatiando.inv.interg2d.adjustment`
     Calculate the adjusted data produced by a given estimate
 
-* :func:`fatiando.inversion.interg2d.residuals`
+* :func:`fatiando.inv.interg2d.residuals`
     Calculate the residuals vector of a given estimate
 
-* :func:`fatiando.inversion.interg2d.set_bounds`
+* :func:`fatiando.inv.interg2d.set_bounds`
     Set bounds on the parameter values (depth of interface)
 
-* :func:`fatiando.inversion.interg2d.solve`
+* :func:`fatiando.inv.interg2d.solve`
     Solve the inversion problem for a given data set and model space mesh
 
 """
@@ -44,11 +44,11 @@ import numpy
 
 import fatiando
 import fatiando.grav.prism
-import fatiando.inversion.solvers as solvers
-import fatiando.inversion.pgrav3d
+import fatiando.inv.solvers as solvers
+import fatiando.inv.pgrav3d
 
 
-log = logging.getLogger('fatiando.inversion.interg2d')
+log = logging.getLogger('fatiando.inv.interg2d')
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -398,7 +398,7 @@ def solve(data, mesh, density, ref_surf=None, initial=None, damping=0,
 
     _data = data
     
-    _data_vector = fatiando.inversion.pgrav3d.extract_data_vector(data)
+    _data_vector = fatiando.inv.pgrav3d.extract_data_vector(data)
 
     solvers.clear()
     

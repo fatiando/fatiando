@@ -91,7 +91,7 @@ Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.pyc'))
 
 # Clean up the example results
-Clean(os.path.curdir, list_ext(examples_path, '.pickle'))
-Clean(os.path.curdir, list_ext(examples_path, '.log'))
-Clean(os.path.curdir, list_ext(examples_path, '.txt'))
-Clean(os.path.curdir, list_ext(examples_path, '.png'))
+#Clean(os.path.curdir, list_ext(examples_path, '.pickle'))
+#Clean(os.path.curdir, list_ext(examples_path, '.log'))
+#Clean(os.path.curdir, list_ext(examples_path, '.txt'))
+#Clean(os.path.curdir, list_ext(examples_path, '.png'))

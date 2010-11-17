@@ -8,7 +8,7 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.inversion import pgrav3d
+from fatiando.inv import pgrav3d
 from fatiando.grav import io
 import fatiando.mesh
 import fatiando.utils

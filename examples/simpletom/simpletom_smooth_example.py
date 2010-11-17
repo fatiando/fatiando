@@ -9,7 +9,7 @@ import pylab
 import numpy
 
 from fatiando.seismo import io
-from fatiando.inversion import simpletom
+from fatiando.inv import simpletom
 import fatiando.mesh
 import fatiando.utils
 import fatiando.stats

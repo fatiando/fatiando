@@ -28,7 +28,7 @@ Subpackages:
 * :mod:`fatiando.heat` 
     Geothermology modeling
     
-* :mod:`fatiando.inversion`
+* :mod:`fatiando.inv`
     A collection of geophysical inverse problem solvers.
     
 * :mod:`fatiando.seismo`

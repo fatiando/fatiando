@@ -25,7 +25,7 @@ import unittest
 # The package tests
 import fatiando.grav.tests
 import fatiando.seismo.tests
-import fatiando.inversion.tests
+import fatiando.inv.tests
 import fatiando.heat.tests
 # The module tests
 import fatiando.tests.geometry
@@ -37,7 +37,7 @@ def suite(label='fast'):
 
     testsuite.addTest(fatiando.grav.tests.suite(label))
     testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inversion.tests.suite(label))
+    testsuite.addTest(fatiando.inv.tests.suite(label))
     testsuite.addTest(fatiando.heat.tests.suite(label))
     
     testsuite.addTest(fatiando.tests.geometry.suite(label))
