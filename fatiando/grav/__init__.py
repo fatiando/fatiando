@@ -43,6 +43,13 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
 
 
+__all__ = ['io',
+           'prism',
+           'synthetic',
+           'transform']
+
+
+
 def test(label='fast', verbose=True):
     """
     Runs the unit tests for the fatiando.grav package.

@@ -64,6 +64,19 @@ __date__ = 'Created 02-Apr-2010'
 __version__ = '0.0.1'
 
 
+__all__ = ['csinfo', 
+           'geometry', 
+           'grid',
+           'mesh',
+           'stats',
+           'utils',
+           'vis',
+           'grav',
+           'heat',
+           'inv',
+           'seismo']
+
+
 # Create a default NullHandler so that logging is only enabled explicitly
 ################################################################################ 
 import logging
