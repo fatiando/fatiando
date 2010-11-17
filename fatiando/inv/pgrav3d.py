@@ -18,23 +18,23 @@
 3D least-squares gravity inversion using right rectangular prisms.
 
 Functions:
-    
-* :func:`fatiando.inversion.pgrav3d.solve`    
+
+* :func:`fatiando.inv.pgrav3d.solve`    
     Solve the inverse problem for the density using a given data set.
 
-* :func:`fatiando.inversion.pgrav3d.clear`
+* :func:`fatiando.inv.pgrav3d.clear`
     Erase garbage from previous inversions.
 
-* :func:`fatiando.inversion.pgrav3d.extract_data_vector`
+* :func:`fatiando.inv.pgrav3d.extract_data_vector`
     Put all the gravity field data in a single array.
 
-* :func:`fatiando.inversion.pgrav3d.use_depth_weights`
+* :func:`fatiando.inv.pgrav3d.use_depth_weights`
     Use depth weighting in the next inversions
 
-* :func:`fatiando.inversion.pgrav3d.set_bounds`
+* :func:`fatiando.inv.pgrav3d.set_bounds`
     Set lower and upper bounds on the density values
     
-* :func:`fatiando.inversion.pgrav3d.adjustment`
+* :func:`fatiando.inv.pgrav3d.adjustment`
     Calculate the adjusted data based on the residuals and the original data.
         
 """
@@ -49,9 +49,9 @@ import numpy
 
 import fatiando
 import fatiando.grav.prism
-import fatiando.inversion.solvers as solvers
+from fatiando.inv import solvers
         
-log = logging.getLogger('fatiando.inversion.pgrav3d')       
+log = logging.getLogger('fatiando.inv.pgrav3d')       
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -411,7 +411,7 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
     
         log.info("Adjusting depth weighing coefficients:")
         
-        import fatiando.inversion.solvers as local_solver
+        import fatiando.inv.solvers as local_solver
         
         global _mesh
         
@@ -502,7 +502,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
         
     **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also 
     using *sharpness*, *compactness* or bounds of the parameter values
-    (eg :func:`fatiando.inversion.pgrav3d.set_bounds`) because otherwise the 
+    (eg :func:`fatiando.inv.pgrav3d.set_bounds`) because otherwise the 
     problem is linear.
     
     Parameters:
@@ -574,7 +574,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     """
 
     for key in data:
-        assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
+        assert key in supported_fileds, \
             "Invalid gravity component (data key): %s" % (key)
     
     log.info("Inversion parameters:")

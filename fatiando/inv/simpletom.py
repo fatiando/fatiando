@@ -22,13 +22,13 @@ refraction.
 
 Functions:
 
-* :func:`fatiando.inversion.simpletom.clear`
+* :func:`fatiando.inv.simpletom.clear`
     Erase garbage from previous inversions
 
-* :func:`fatiando.inversion.simpletom.set_bounds`
+* :func:`fatiando.inv.simpletom.set_bounds`
     Set bounds on the velocity values.
 
-* :func:`fatiando.inversion.simpletom.solve`
+* :func:`fatiando.inv.simpletom.solve`
     Solve the tomography problem for a given data set and model mesh
   
 """
@@ -42,9 +42,9 @@ import numpy
 
 import fatiando
 from fatiando.seismo import traveltime
-from fatiando.inversion import solvers
+from fatiando.inv import solvers
 
-log = logging.getLogger('fatiando.inversion.simpletom')  
+log = logging.getLogger('fatiando.inv.simpletom')  
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -206,7 +206,7 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     
     **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also 
     using *sharpness* or bounds of the parameter values
-    (eg :func:`fatiando.inversion.simpletom.set_bounds`) because otherwise the 
+    (eg :func:`fatiando.inv.simpletom.set_bounds`) because otherwise the 
     problem is linear.
     
     Parameters:

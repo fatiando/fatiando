@@ -19,13 +19,13 @@
 
 Functions:
     
-* :func:`fatiando.inversion.pgrav3d.adjustment`
+* :func:`fatiando.inv.pgrav3d.adjustment`
     Calculate the adjusted data based on the residuals and the original data.
     
-* :func:`fatiando.inversion.pgrav3d.get_seed`
+* :func:`fatiando.inv.pgrav3d.get_seed`
     Returns as a seed the cell in the mesh that has *point* inside it.
 
-* :func:`fatiando.inversion.pgrav3d.grow`
+* :func:`fatiando.inv.pgrav3d.grow`
     Invert by growing the solution around given seeds.
     
 """
@@ -45,7 +45,7 @@ import pylab
 
 import fatiando
 import fatiando.grav.prism
-import fatiando.inversion.pgrav3d as pgrav3d
+import fatiando.inv.pgrav3d as pgrav3d
         
 log = logging.getLogger('fatiando.inv.gplant')       
 log.setLevel(logging.DEBUG)
@@ -74,7 +74,7 @@ def get_seed(point, density, mesh):
     """
     Returns as a seed the cell in the mesh that has *point* inside it.
     
-    Use this to get the seeds needed by :func:`fatiando.inversion.pgrav3d.grow`
+    Use this to get the seeds needed by :func:`fatiando.inv.gplant.grow`
     
     **UNITS**: use SI for all units.
     
@@ -172,7 +172,7 @@ def _cell_distance(cell, seed):
       
     * seed
         Dictionary describing the seed 
-        (see :func:`fatiando.inversion.pgrav3d.get_seed`)
+        (see :func:`fatiando.inv.gplant.get_seed`)
         
     Returns:
     
@@ -200,7 +200,7 @@ def _radial_distance(cell, seed):
       
     * seed
         Dictionary describing the seed 
-        (see :func:`fatiando.inversion.pgrav3d.get_seed`)
+        (see :func:`fatiando.inv.gplant.get_seed`)
         
     Returns:
     
@@ -240,7 +240,7 @@ def _get_reduced_neighbors(param, estimate, seeds, mesh, which=False):
     * which
         If ``True``, return also a list informing which neighbors exist.
         (This is only meant to be used to compute the diagonal neighbors in
-         :func:`fatiando.inversion.pgrav3d._get_full_neighbors`)
+         :func:`fatiando.inv.gplant._get_full_neighbors`)
         
     Returns:
     
@@ -823,7 +823,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
       
     * seeds
         list of seeds (to make a seed, see 
-        :func:`fatiando.inversion.pgrav3d.get_seed`)
+        :func:`fatiando.inv.gplant.get_seed`)
       
     * compactness
         How compact the solution should be around the seeds (regularization

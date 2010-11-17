@@ -8,7 +8,7 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-from fatiando.inversion import pgrav3d
+from fatiando.inv import pgrav3d
 from fatiando.grav import io
 import fatiando.mesh
 import fatiando.utils
@@ -39,7 +39,7 @@ x1, x2 = 0, 3000
 y1, y2 = 0, 3000
 z1, z2 = 0, 3000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=12, ny=12, nz=12)
+                                nx=6, ny=6, nz=6)
 
 # Inversion parameters
 damping = 0
@@ -47,7 +47,7 @@ smoothness = 10**(-4)
 curvature = 0
 sharpness = 0
 beta = 10**(-5)
-compactness = 10**(-2)
+compactness = 10**(-1)
 epsilon = 10**(-5)
 initial = 500*numpy.ones(mesh.size)
 lm_start = 10**(-5)
@@ -73,7 +73,7 @@ adjusted = pgrav3d.adjustment(data, residuals)
 # Contaminate the data and re-run the inversion to test the stability
 estimates = [estimate]
 error = 2
-contam_times = 0
+contam_times = 5
 
 log.info("Contaminating with %g Eotvos and re-running %d times" 
           % (error, contam_times))

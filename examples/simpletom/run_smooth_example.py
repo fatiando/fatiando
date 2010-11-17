@@ -1,6 +1,6 @@
 """
-Perform a tomography on synthetic travel time data using Total Variation
-regularization for sharpness.
+Perform a tomography on synthetic travel time data using Tikhonov regularization
+for smoothness.
 """
 
 import pickle
@@ -9,8 +9,8 @@ import pylab
 import numpy
 
 from fatiando.seismo import io
-from fatiando.inversion import simpletom    
-import fatiando.mesh                            
+from fatiando.inv import simpletom
+import fatiando.mesh
 import fatiando.utils
 import fatiando.stats
 import fatiando.vis
@@ -35,20 +35,18 @@ mesh = fatiando.mesh.square_mesh(x1=0, x2=model_nx, y1=0, y2=model_ny,
                                      nx=model_nx, ny=model_ny)
 
 # Inversion parameters
-initial = 2.*numpy.ones(mesh.size)
-damping = 1*10**(-3)
+initial = 1.5*numpy.ones(mesh.size)
+damping = 10**(-5)
 smoothness = 0
-curvature = 0
-sharpness = 5*10**(-1)
-beta = 10**(-2)
-lm_start = 100
+curvature = 2*10**(-2)
+lm_start = 0.1
 
 simpletom.set_bounds(1., 5.)
 
 # Solve
 estimate, residuals, goals = simpletom.solve(data, mesh, initial, damping, 
-                                             smoothness, curvature, sharpness, 
-                                             beta, lm_start=lm_start)
+                                             smoothness, curvature, 
+                                             lm_start=lm_start)
 
 # Put the result in the mesh (for plotting)
 fatiando.mesh.fill(estimate, mesh)
@@ -58,7 +56,7 @@ fatiando.mesh.fill(estimate, mesh)
 estimates = [estimate]
 contam_times = 5
 
-log.info("Contaminating data with %g error and re-running %d times" 
+log.info("Contaminating data with %g error and re-running %d time(s)" 
          % (error, contam_times))
 
 for i in xrange(contam_times):
@@ -71,7 +69,7 @@ for i in xrange(contam_times):
                                                          return_stddev=False)
     
     new_results = simpletom.solve(cont_data, mesh, initial, damping, smoothness,
-                                  curvature, sharpness, beta, lm_start=lm_start)
+                                  curvature, lm_start=lm_start)
     
     new_estimate = new_results[0]
     
@@ -84,7 +82,7 @@ fatiando.mesh.fill(stddev_estimate, std_mesh)
 
 # Plot the synthetic model and inversion results
 pylab.figure(figsize=(12,8))
-pylab.suptitle("X-ray simulation: Sharp tomography", fontsize=14)
+pylab.suptitle("X-ray simulation: Smooth tomography", fontsize=14)
 
 vmin = min(estimate.min(), model.min())
 vmax = max(estimate.max(), model.max())
@@ -111,8 +109,7 @@ pylab.subplot(2,2,3)
 pylab.axis('scaled')
 pylab.title("Result Standard Deviation")
 fatiando.vis.plot_square_mesh(std_mesh)
-cb = pylab.colorbar()
-cb.set_label("Velocity")
+pylab.colorbar()
 pylab.xlim(0, model.shape[1])
 pylab.ylim(0, model.shape[0])
 

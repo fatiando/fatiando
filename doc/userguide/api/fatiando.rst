@@ -12,7 +12,7 @@
 
    grav/index.rst
    heat/index.rst
-   inversion/index.rst
+   inv/index.rst
    seismo/index.rst
    geometry.rst
    grid.rst

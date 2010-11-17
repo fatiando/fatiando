@@ -19,24 +19,24 @@ A collection of geophysical inverse problem solvers.
 
 Modules:
 
-* :mod:`fatiando.inversion.solvers`
+* :mod:`fatiando.inv.solvers`
     Generic solvers used to implement the specific inversions
 
-* :mod:`fatiando.inversion.interg2d`
+* :mod:`fatiando.inv.interg2d`
     2D gravity inversion for the relief of an interface
 
-* :mod:`fatiando.inversion.pgrav3d`
+* :mod:`fatiando.inv.pgrav3d`
     3D least-squares gravity inversion using right rectangular prisms
     
-* :mod:`fatiando.inversion.gplant`
+* :mod:`fatiando.inv.gplant`
     3D gravity inversion by growing solutions around seeds
 
-* :mod:`fatiando.inversion.simpletom`
+* :mod:`fatiando.inv.simpletom`
     Very simplified Cartesian travel time tomography example
 
 Functions:
 
-* :func:`fatiando.inversion.test`
+* :func:`fatiando.inv.test`
     Run the unit test suite for this package.
     
 """
@@ -44,9 +44,14 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
 
+__all__ = ['interg2d',
+           'pgrav3d',
+           'simpletom',
+           'solvers']
+
 def test(label='fast', verbose=True):
     """
-    Runs the unit tests for the fatiando.inversion package.
+    Runs the unit tests for the fatiando.inv package.
 
     Parameters:
 
@@ -67,10 +72,10 @@ def test(label='fast', verbose=True):
 
     import unittest
 
-    import fatiando.inversion.tests
+    import fatiando.inv.tests
 
     suite = unittest.TestSuite()
-    suite.addTest(fatiando.inversion.tests.suite(label))
+    suite.addTest(fatiando.inv.tests.suite(label))
 
     if verbose:
         runner = unittest.TextTestRunner(verbosity=2)

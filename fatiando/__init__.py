@@ -28,7 +28,7 @@ Subpackages:
 * :mod:`fatiando.heat` 
     Geothermology modeling
     
-* :mod:`fatiando.inversion`
+* :mod:`fatiando.inv`
     A collection of geophysical inverse problem solvers.
     
 * :mod:`fatiando.seismo`
@@ -62,6 +62,19 @@ __date__ = 'Created 02-Apr-2010'
 
 
 __version__ = '0.0.1'
+
+
+__all__ = ['csinfo', 
+           'geometry', 
+           'grid',
+           'mesh',
+           'stats',
+           'utils',
+           'vis',
+           'grav',
+           'heat',
+           'inv',
+           'seismo']
 
 
 # Create a default NullHandler so that logging is only enabled explicitly

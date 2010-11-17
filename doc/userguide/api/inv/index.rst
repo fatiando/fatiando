@@ -1,9 +1,9 @@
 .. _inversion:
 
-:mod:`fatiando.inversion`
-*************************
+:mod:`fatiando.inv`
+*******************
 
-.. automodule:: fatiando.inversion
+.. automodule:: fatiando.inv
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,5 +1,5 @@
 """
-Invert a gravity profile for the relief of a basin using Smoothness.
+Invert a gravity profile for the relief of a basin using Total Variation.
 """
 
 import pickle
@@ -7,18 +7,17 @@ import pickle
 import numpy
 import pylab
 
-from fatiando.inversion import interg2d
+from fatiando.inv import interg2d
 from fatiando.grav import io
 import fatiando.mesh
 import fatiando.utils
 import fatiando.vis
 
-
 # Get a logger for the script
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile("interg2d_smooth_example.log")
+fatiando.utils.set_logfile("interg2d_sharp_example.log")
 
 # Load up the gravity data and the synthetic model
 data = {}
@@ -38,10 +37,10 @@ initial = 1000*numpy.ones(mesh.size)
 
 # Regularization parameters
 damping = 0
-smoothness = 1*10**(-6)
+smoothness = 0
 curvature = 0
-sharpness = 0
-beta = 0
+sharpness = 3*10**(-3)
+beta = 10**(-8)
 lm_start = 0.00001
 
 # Solve
@@ -55,7 +54,7 @@ fatiando.mesh.fill(estimate, mesh, key='z2')
 fatiando.mesh.fill(ref_surf, mesh, key='z1')
 
 # Pickle the result to use later
-resultfile = open("result-smooth.pickle", 'w')
+resultfile = open("result-sharp.pickle", 'w')
 pickle.dump(mesh, resultfile)
 resultfile.close()
 
@@ -89,14 +88,14 @@ for i in xrange(contam_times):
     estimates.append(new_estimate)
 
 # Pickle the estimates to save them for later reference
-resultfile = open("estimates-smooth.pickle", 'w')
+resultfile = open("estimates-sharp.pickle", 'w')
 pickle.dump(estimates, resultfile)
 resultfile.close()
     
 # Plot the results
 pylab.figure(figsize=(14,8))
 pylab.subplots_adjust(hspace=0.3)
-pylab.suptitle("Smoothness Inversion", fontsize=14)
+pylab.suptitle("Total Variation Inversion", fontsize=14)
 
 # Adjustment X Synthetic data
 pylab.subplot(2,2,1)

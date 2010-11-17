@@ -8,7 +8,7 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-import fatiando.inversion.gplant as gplant
+import fatiando.inv.gplant as gplant
 import fatiando.grav.io as io
 import fatiando.mesh
 import fatiando.utils

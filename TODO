@@ -19,6 +19,7 @@ Mesh
     
 Vis
     * Plot a bounding box around the a prism mesh
+    * Docstrings for contour and contourf
    
 Stats
     * Unit tests

@@ -38,6 +38,12 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
 
+__all__ = ['io',
+           'synthetic',
+           'traveltime',
+           'wavefd'] 
+
+
 def test(label='fast', verbose=True):
     """
     Runs the unit tests for the fatiando.seismo package.
