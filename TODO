@@ -32,19 +32,24 @@ InterG
     * Doesn't work with topography because it has to match the inversion mesh
       So make a function that "interpolates" the topo into the mesh
     
-PGrav
+
+GPlant
     * Separate the Jacobian columns per field when saving and loading
     * Migrar semente para centro de massa
     * Build sensibility in Fortran
-    * Allow initial estimate in grow
+    * Change Jacobian storage from zip to dir
+    * Include option for weighted residuals
+    * Implement adaptative learning
+    * Unit tests
+    * Make integration test
+    
+PGrav
+    * Use depth weights in compact inversion
+    * Build sensibility in Fortran
     * IO for initial estimate
     * Unit tests
     * Make integration test
     * Use equality constraints
-    * Usar topografia no mesh
-    * Change Jacobian storage from zip to dir
-    * Include option for weighted residuals
-    * Implement adaptative learning
     
 Seismo
 

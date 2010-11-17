@@ -17,18 +17,14 @@ import fatiando.vis as vis
 log = utils.get_logger()
 
 # Set logging to a file
-utils.set_logfile('make_data.log')
+utils.set_logfile('shallow_data.log')
 
 # Log a header with the current version info
 log.info(utils.header())
 
 # Make the prism model
 prisms = []
-prisms.append({'x1':600, 'x2':1600, 'y1':1000, 'y2':2000, 'z1':200, 'z2':800,
-               'value':1000})
-prisms.append({'x1':1600, 'x2':2100, 'y1':1200, 'y2':1800, 'z1':300, 'z2':700,
-               'value':1000})
-prisms.append({'x1':2100, 'x2':2400, 'y1':1400, 'y2':1600, 'z1':400, 'z2':600,
+prisms.append({'x1':1000, 'x2':2000, 'y1':1000, 'y2':2000, 'z1':1000, 'z2':2000,
                'value':1000})
 
 prisms = numpy.array(prisms)

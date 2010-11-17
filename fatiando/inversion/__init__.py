@@ -26,7 +26,10 @@ Modules:
     2D gravity inversion for the relief of an interface
 
 * :mod:`fatiando.inversion.pgrav3d`
-    3D gravity inversion for density
+    3D least-squares gravity inversion using right rectangular prisms
+    
+* :mod:`fatiando.inversion.gplant`
+    3D gravity inversion by growing solutions around seeds
 
 * :mod:`fatiando.inversion.simpletom`
     Very simplified Cartesian travel time tomography example

@@ -58,6 +58,7 @@ __date__ = 'Created 10-Sep-2010'
 
 import logging
 import time
+import math
 
 import numpy
 
@@ -645,6 +646,13 @@ def _revert_log_barrier(correction, prev):
     
     corr_reverted = delta/(1. + numpy.exp(-1*(changed + correction))) - \
                     delta/(1. + numpy.exp(-1*changed))
+    
+    # Check for Infs and NaNs caused by prev being too close to _upper or _lower
+    for i in xrange(len(corr_reverted)):
+        
+        if math.isinf(corr_reverted[i]) or math.isnan(corr_reverted[i]):
+            
+            corr_reverted[i] = 0
     
     return corr_reverted
 

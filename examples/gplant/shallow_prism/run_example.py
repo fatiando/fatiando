@@ -1,5 +1,5 @@
 """
-Example script for doing the inversion of synthetic FTG data using grow
+Example script for doing inverting synthetic FTG data GPlant
 """
 
 import pickle
@@ -8,7 +8,7 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-import fatiando.inversion.pgrav3d as pgrav3d
+import fatiando.inversion.gplant as gplant
 import fatiando.grav.io as io
 import fatiando.mesh
 import fatiando.utils
@@ -18,18 +18,18 @@ import fatiando.vis as vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('grow_1body.log')
+fatiando.utils.set_logfile('shallow_example.log')
 
 # Log a header with the current version info
 log.info(fatiando.utils.header())
 
 # Load the synthetic data
 gzz = io.load('gzz_data.txt')
-gxx = io.load('gxx_data.txt')
-gxy = io.load('gxy_data.txt')
-gxz = io.load('gxz_data.txt')
-gyy = io.load('gyy_data.txt')
-gyz = io.load('gyz_data.txt')
+#gxx = io.load('gxx_data.txt')
+#gxy = io.load('gxy_data.txt')
+#gxz = io.load('gxz_data.txt')
+#gyy = io.load('gyy_data.txt')
+#gyz = io.load('gyz_data.txt')
 #gz = io.load('gz_data.txt')
 
 data = {}
@@ -49,15 +49,14 @@ synth_file.close()
 # Generate a model space mesh
 x1, x2 = 0, 3000
 y1, y2 = 0, 3000
-z1, z2 = 0, 2000
+z1, z2 = 0, 3000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=30, ny=30, nz=20)
+                                nx=30, ny=30, nz=30)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(pgrav3d.get_seed((1151, 1501, 501), 1000, mesh))
-#seeds.append(pgrav3d.get_seed((1501, 1501, 1201), 1000, mesh))
+seeds.append(gplant.get_seed((1501, 1501, 1501), 1000, mesh))
 
 
 # Make a mesh for the seeds to plot them
@@ -72,13 +71,13 @@ axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 mlab.show()
 
 # Run the inversion
-results = pgrav3d.grow(data, mesh, seeds, compactness=10**(-8), power=5, 
-                       threshold=10**(-3), norm=2, neighbor_type='reduced',
-                       jacobian_file=None, distance_type='radial')
+results = gplant.grow(data, mesh, seeds, compactness=10**(4), power=3, 
+                      threshold=10**(-3), norm=2, neighbor_type='reduced',
+                      jacobian_file=None, distance_type='cell')
 
 estimate, residuals, misfits, goals = results
 
-adjusted = pgrav3d.adjustment(data, residuals)
+adjusted = gplant.adjustment(data, residuals)
 
 fatiando.mesh.fill(estimate, mesh)
 
