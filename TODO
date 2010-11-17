@@ -43,6 +43,7 @@ GPlant
     * Implement adaptative learning
     * Unit tests
     * Make integration test
+    * Test if the arms always grow in the direction the seeds are too close
     
 PGrav
     * Use depth weights in compact inversion

@@ -896,7 +896,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
 
     # Initial sanity checks
     for key in data:
-        assert key in ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'], \
+        assert key in supported_fileds, \
             "Invalid gravity component (data key): %s" % (key)
             
     assert neighbor_type in ['full', 'reduced'], \
@@ -981,7 +981,11 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
         
         seed['distances'] = []
         
-        new_neighbors = get_neighbors(seed['index'], estimate, seeds, mesh)
+        # Start off with the full set of neighbors so that the seed can start in
+        # any direction and to insure that all neighbors have at least one 
+        # neighbor of their own in the list 
+        new_neighbors = _get_full_neighbors(seed['index'], estimate, seeds, 
+                                            mesh)
         
         for neighbor in new_neighbors:
             
@@ -1037,7 +1041,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
             best_neighbor = None
             
             for neighbor, distance in zip(seed['neighbors'], seed['distances']):
-                
+                                      
                 new_residuals = residuals - density*jacobian[neighbor]
                 
                 misfit = calc_norm(new_residuals)
