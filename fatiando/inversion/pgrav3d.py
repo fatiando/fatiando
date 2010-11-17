@@ -784,7 +784,7 @@ def _radial_distance(cell, seed):
     
     x_distance = abs(cellx - seedx)
     y_distance = abs(celly - seedy)
-    z_distance = abs(cellz - seedz)    
+    z_distance = abs(cellz - seedz)
     
     distance = math.sqrt(x_distance**2 + y_distance**2 + z_distance**2)
     
