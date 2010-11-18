@@ -186,13 +186,11 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
         return cont_data
     
     
-def extract_matrices(grid):
+def extract_matrices(grid, key='value'):
     """
-    Extract value and x and y coordinate matrices from a grid dictionary. 
+    Extract x, y and *key* coordinate matrices from a grid dictionary. 
     
     Use to plot using matplotlib. 
-    
-    If the data is not a regular grid, it will be gridded.
     
     Parameters:
     
@@ -212,12 +210,13 @@ def extract_matrices(grid):
                
     """
 
-    assert grid['grid'] is True, "Only regular grids supported at the moment"
-    assert 'nx' in grid.keys() and 'ny' in grid.keys(), \
+    assert grid['grid'] is True, \
+        "'grid' has to be a regular grid (ie. have it's 'grid' key set to True"
+    assert 'nx' in grid and 'ny' in grid, \
         "Need nx and ny values in the grid (number of points in x and y)"
     
     X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
     Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
-    V = numpy.reshape(grid['value'], (grid['ny'], grid['nx']))
+    V = numpy.reshape(grid[key], (grid['ny'], grid['nx']))
     
     return X, Y, V

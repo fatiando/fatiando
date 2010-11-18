@@ -31,6 +31,9 @@ Functions:
     
 * :func:`fatiando.stats.gaussian`
     Non-normalized Gaussian function
+    
+* :func:`fatiando.stats.gaussian2d`
+    Non-normalized 2D Gaussian function
          
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -146,3 +149,33 @@ def gaussian(x, mean, std):
     """
     
     return numpy.exp(-1*((mean - x)/std)**2)
+
+
+def gaussian2d(x, y, xmean, ymean, cov):
+    """
+    Non-normalized 2D Gaussian function
+        
+    Parameters:
+    
+    * x, y
+        Coordinates at which to calculate the Gaussian function
+        
+    * xmean, ymean
+        Coordinates of the center of the distribution
+        
+    * cov
+        Covariance matrix of the distribution. 2 x 2 array.
+        
+    Returns:
+    
+    * Gaussian function evaluated at *x*, *y*
+    
+    """
+   
+    cov_inv = numpy.linalg.inv(numpy.array(cov))
+
+    value = (cov_inv[0][0]*(x - xmean)**2 + 
+             2*cov_inv[0][1]*(x - xmean)*(y - ymean) +
+             cov_inv[1][1]*(y - ymean)**2)
+    
+    return numpy.exp(-value)

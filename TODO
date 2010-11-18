@@ -7,6 +7,18 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
+       
+        
+Grav
+    * Program tensor invariants
+    * Unit tests for existing functions
+    * potential and derivatives of a sphere
+    * potential and derivatives of a tesseroid
+    * spherical harmonics
+    * reductions
+    * terrain correction
+    * make extention for upward continuation
+    * equivalent layer
     
 Inversion
     * Unit tests
@@ -19,7 +31,7 @@ Mesh
     
 Vis
     * Plot a bounding box around the a prism mesh
-    * Docstrings for contour and contourf
+    * Docstrings for contour, contourf and pcolor
    
 Stats
     * Unit tests
@@ -70,17 +82,6 @@ Simpletom:
 Geometry
     * Discretize a sphere into prisms
     
-        
-Gravity
-    * Program tensor invariants
-    * Unit tests for existing functions
-    * potential and derivatives of a sphere
-    * potential and derivatives of a tesseroid
-    * spherical harmonics
-    * reductions
-    * terrain correction
-    * make extention for upward continuation
-    * equivalent layer
     
 WaveFD:
     * Port to Fortran

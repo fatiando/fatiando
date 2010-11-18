@@ -860,7 +860,8 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
             cell. Use this to save computation time and memory.
             
         * ``'full'``
-            Also use the diagonal neighbors. 
+            Also use the diagonal neighbors. **WARNING** there is no support
+            for full neighbors AND a mesh with topography at the same time. 
         
     * distance_type
         The distances between a cell and the seeds is used as parameter weights
@@ -938,15 +939,10 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
         else:
             
             j_zip = zipfile.ZipFile(jacobian_file, 'w')
-    
-    
+        
     # Initialize the residuals
     residuals = pgrav3d.extract_data_vector(data)
-    
-    # Weight the residuals with the absolute value of the data to prioritize
-    # lower residuals over the extrema of the data
-    weights =  _get_data_weights(data, seeds)
-            
+                
     # Define a lambda function to compute the norm of the residuals
     if norm == 1:
         
@@ -954,7 +950,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
         
     elif norm == 2:
         
-        calc_norm = lambda r: ((r**2)).sum()
+        calc_norm = lambda r: (r**2).sum()
     
     # Initialize the estimate          
     estimate = {}
@@ -971,6 +967,19 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
     
         del tmp_jac_col
         
+    # Also put the None values in mesh in the estimate so that we can know later
+    # that these cells are not to be included. Also take this chance to count
+    # how many non-None parameters there are
+    nparams = mesh.size
+    
+    for i, cell in enumerate(mesh.ravel()):
+        
+        if 'value' in cell and cell['value'] is None:
+            
+            estimate[i] = None
+            
+            nparams -= 1
+        
     # Initialize the neighbor and distance lists and the Jacobian matrix
     # (couldn't do this before because I need the estimate filled with the seeds 
     # not to mark them as neighbors)
@@ -981,11 +990,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
         
         seed['distances'] = []
         
-        # Start off with the full set of neighbors so that the seed can start in
-        # any direction and to insure that all neighbors have at least one 
-        # neighbor of their own in the list 
-        new_neighbors = _get_full_neighbors(seed['index'], estimate, seeds, 
-                                            mesh)
+        new_neighbors = get_neighbors(seed['index'], estimate, seeds, mesh)
         
         for neighbor in new_neighbors:
             
@@ -1006,7 +1011,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
     goals = [misfits[-1] + regularizer]
         
     log.info("Growing density model:")
-    log.info("  parameters = %d" % (mesh.size))
+    log.info("  parameters = %d" % (nparams))
     log.info("  data = %d" % (len(residuals)))
     log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))

@@ -18,7 +18,7 @@ import fatiando.vis as vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('run_example.log')
+fatiando.utils.set_logfile('complex_example.log')
 
 # Log a header with the current version info
 log.info(fatiando.utils.header())
@@ -49,19 +49,32 @@ synth_file.close()
 # Generate a model space mesh
 x1, x2 = 0, 3000
 y1, y2 = 0, 3000
-z1, z2 = 0, 1000
+z1, z2 = 0, 2000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=60, ny=60, nz=20)
+                                nx=30, ny=30, nz=20)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(gplant.get_seed((1601, 1801, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1601, 2201, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1601, 2601, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1201, 401, 501), 1000, mesh))
-seeds.append(gplant.get_seed((701, 401, 501), 1000, mesh))
-#seeds.append(gplant.get_seed((1101, 1001, 301), 1000, mesh))
+# Deep
+seeds.append(gplant.get_seed((1301, 1201, 1601), 1500, mesh))
+seeds.append(gplant.get_seed((1301, 1201, 1301), 1500, mesh))
+seeds.append(gplant.get_seed((1301, 1201, 1001), 1500, mesh))
+# Lower right
+seeds.append(gplant.get_seed((2301, 601, 301), 1000, mesh))
+# Long north-south
+seeds.append(gplant.get_seed((401, 301, 701), 1500, mesh))
+seeds.append(gplant.get_seed((401, 601, 701), 1500, mesh))
+seeds.append(gplant.get_seed((401, 1001, 701), 1500, mesh))
+seeds.append(gplant.get_seed((401, 1301, 701), 1500, mesh))
+seeds.append(gplant.get_seed((401, 1701, 701), 1500, mesh))
+# Long east-west
+seeds.append(gplant.get_seed((601, 2501, 501), -1000, mesh))
+seeds.append(gplant.get_seed((901, 2501, 501), -1000, mesh))
+seeds.append(gplant.get_seed((1201, 2501, 501), -1000, mesh))
+seeds.append(gplant.get_seed((1501, 2501, 501), -1000, mesh))
+seeds.append(gplant.get_seed((1901, 2501, 501), -1000, mesh))
+seeds.append(gplant.get_seed((2201, 2501, 501), -1000, mesh))
 
 
 # Make a mesh for the seeds to plot them
@@ -76,8 +89,8 @@ axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(-8), power=3, 
-                      threshold=10**(-4), norm=2, neighbor_type='reduced',
+results = gplant.grow(data, mesh, seeds, compactness=10**(8), power=3, 
+                      threshold=1*10**(-4), norm=1, neighbor_type='reduced',
                       jacobian_file=None, distance_type='radial')
 
 estimate, residuals, misfits, goals = results
@@ -89,12 +102,12 @@ fatiando.mesh.fill(estimate, mesh)
 log.info("Pickling results")
 
 # Save the resulting model
-output = open('resultl2.pickle', 'w')
+output = open('result.pickle', 'w')
 pickle.dump(mesh, output)
 output.close()
 
 # Pickle the seeds for later reference
-seed_file = open("seedsl2.pickle", 'w')
+seed_file = open("seeds.pickle", 'w')
 pickle.dump(seeds, seed_file)
 seed_file.close()
 
@@ -119,7 +132,7 @@ pylab.legend(loc='upper left', prop={'size':9}, shadow=True)
 ax.set_yscale('log')
 ax.grid()
 
-pylab.savefig('residualsl2.png')
+pylab.savefig('residuals.png')
 
 # Get the adjustment and plot it
 pylab.figure(figsize=(16,8))
@@ -134,9 +147,9 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
         pylab.axis('scaled')    
         levels = vis.contour(data[field], levels=5, color='b', label='Data')
         vis.contour(adjusted[field], levels=levels, color='r', label='Adjusted')
-        pylab.legend(loc='lower right', prop={'size':9}, shadow=True)
+        pylab.legend(loc='lower left', prop={'size':9}, shadow=True)
 
-pylab.savefig("adjustmentl2.png")
+pylab.savefig("adjustment.png")
 
 #pylab.figure()
 #pylab.suptitle("Adjustment", fontsize=14)
@@ -154,6 +167,8 @@ fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
 vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 vis.plot_prism_mesh(seed_mesh, style='surface', label='Seed Density')
+# Plot twice so that I can use threshold to separate the negative and positive
+#vis.plot_prism_mesh(mesh, style='surface', label='Density')
 plot = vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 
