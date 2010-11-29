@@ -44,10 +44,6 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
 
-__all__ = ['interg2d',
-           'pgrav3d',
-           'simpletom',
-           'solvers']
 
 def test(label='fast', verbose=True):
     """

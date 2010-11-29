@@ -17,7 +17,9 @@ import fatiando.vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile("interg2d_sharp_example.log")
+fatiando.utils.set_logfile("sharp_example.log")
+
+log.info(fatiando.utils.header())
 
 # Load up the gravity data and the synthetic model
 data = {}

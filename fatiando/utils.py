@@ -104,6 +104,7 @@ def set_logfile(fname, level=logging.DEBUG):
 def header(comment=''):
     """    
     Generate a header message with the current version and changeset information
+    and current date.
                    
     Parameters:
     

@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A collection of gravimetry direct models and utilities.
+A collection of gravimetry and gravity gradiometry direct models, 
+transformations and utilities.
 
 Modules:
     
@@ -42,11 +43,6 @@ Functions:
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
 
-
-__all__ = ['io',
-           'prism',
-           'synthetic',
-           'transform']
 
 
 
