@@ -15,12 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create and operate on geometric elements.
+Create and operate on data types representing geometric elements.
 
 Functions:
 
 * :func:`fatiando.geometry.prism`
     Create a right rectangular prism.
+    
+* :func:`fatiando.geometry.sphere`
+    Create a sphere.
     
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -59,8 +62,11 @@ def prism(x1, x2, y1, y2, z1, z2, props={}):
     Returns:
     
     * prism
-        Dictionary describing the prism: ``{'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2, 
-        'z1':z1, 'z2':z2, props}``
+        Dictionary representing the prism::
+        
+            {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2, 'z1':z1, 'z2':z2}
+
+    Each key-value pair in *props* is also appended to the dictionary.
     
     Raises:
     
@@ -80,4 +86,48 @@ def prism(x1, x2, y1, y2, z1, z2, props={}):
         prism[key] = props[key]
         
     return prism
-    
+
+
+def sphere(xc, yc, zc, radius, props={}):
+    """
+    Create a sphere.
+
+    **NOTE**: Coordinate system is x -> North, y -> East and z -> Down
+
+    Parameters:
+
+    * xc, yc, zc
+        Coordinates of the center of the sphere
+
+    * radius
+        radius of the sphere
+
+    * props
+        Dictionary with additional properties of the sphere.
+        Ex: ``{'density':1000, 'P_wave_speed':4000}``
+
+    Returns:
+
+    * sphere
+        Dictionary representing the sphere::
+
+            {'xc':xc, 'yc':yc, 'zc':zc, 'radius':radius}
+
+    Each key-value pair in *props* is also appended to the dictionary.
+
+    Raises:
+
+    * AssertionError
+        If *radius* < 0
+
+    """
+
+    assert radius >= 0, "Invalid radius. Must be >= 0"
+
+    sphere = {'xc':xc, 'yc':yc, 'zc':zc, 'radius':radius}
+
+    for key in props:
+
+        sphere[key] = props[key]
+
+    return sphere

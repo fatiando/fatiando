@@ -62,6 +62,7 @@ env = DefaultEnvironment()
 env.AlwaysBuild(build_ext)
 
 Clean(os.path.curdir, os.path.join(wrap_path,'_prismmodule.c'))
+Clean(os.path.curdir, os.path.join(wrap_path,'_spheremodule.c'))
 Clean(os.path.curdir, os.path.join(wrap_path,'_traveltimemodule.c'))
 
 

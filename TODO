@@ -7,6 +7,8 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
+    * Change the synthetic prism models in grav to use the grid module
+    * Change the synthetic prism models in grav to use the geometry module
     
 Inversion
     * Unit tests
@@ -19,7 +21,6 @@ Mesh
     
 Vis
     * Plot a bounding box around the a prism mesh
-    * Docstrings for contour and contourf
    
 Stats
     * Unit tests
@@ -73,13 +74,15 @@ Geometry
 Gravity
     * Program tensor invariants
     * Unit tests for existing functions
-    * potential and derivatives of a sphere
+    * potential and gradients of a sphere
     * potential and derivatives of a tesseroid
     * spherical harmonics
     * reductions
     * terrain correction
     * make extention for upward continuation
     * equivalent layer
+    * Put all constants used into a constants.py module and pass them to the C
+      functions
     
 WaveFD:
     * Port to Fortran

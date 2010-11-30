@@ -39,6 +39,12 @@ Modules:
 * :mod:`fatiando.csinfo`
     Information about the current changeset
 
+* :mod:`fatiando.geometry`
+    Create and operate on data types representing geometric elements
+
+* :mod:`fatiando.grid`
+    Create and operate on data types representing grids and profiles
+
 * :mod:`fatiando.mesh`
     Mesh generation and handling of geometric elements
     

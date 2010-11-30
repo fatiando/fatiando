@@ -12,5 +12,6 @@
 
    io.rst
    prism.rst
+   sphere.rst
    synthetic.rst
    transform.rst

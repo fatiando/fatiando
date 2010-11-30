@@ -20,10 +20,10 @@ Uses Matplotlib for 2D and Mayavi2 for 3D.
 
 Functions:
 
-* :func:`fatiando.vis.plot_src_rec`
+* :func:`fatiando.vis.src_rec`
     Plot the locations of seismic sources and receivers in a map
 
-* :func:`fatiando.vis.plot_ray_coverage`
+* :func:`fatiando.vis.ray_coverage`
     Plot the rays between sources and receivers in a map
 
 * :func:`fatiando.vis.plot_square_mesh`
@@ -34,6 +34,18 @@ Functions:
 
 * :func:`fatiando.vis.plot_prism_mesh`
     Plot a 3D prism mesh
+
+* :func:`fatiando.vis.plot_2d_interface`
+    Plot a 2d prism interface mesh.
+
+* :func:`fatiando.vis.contour`
+    Make a contour plot of data.
+
+* :func:`fatiando.vis.contourf`
+    Make a filled contour plot of data.
+
+* :func:`fatiando.vis.pcolor`
+    Make a pseudo-color plot of data.
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -140,7 +152,7 @@ def residuals_histogram(residuals, nbins=None):
     return plot[0]
     
 
-def plot_src_rec(sources, receivers, markersize=9):
+def src_rec(sources, receivers, markersize=9):
     """
     Plot the locations of seismic sources and receivers in a map.
     
@@ -164,7 +176,7 @@ def plot_src_rec(sources, receivers, markersize=9):
     pylab.plot(rec_x, rec_y, 'b^', ms=int(0.78*markersize), label='Receiver')
         
 
-def plot_ray_coverage(sources, receivers, linestyle='-k'):
+def ray_coverage(sources, receivers, linestyle='-k'):
     """
     Plot the rays between sources and receivers in a map.
     
@@ -369,6 +381,48 @@ def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
 def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k', 
             label=None, interp='nn', nx=None, ny=None):
     """
+    Make a contour plot of data.
+
+    If *data* is not a regular grid, then it will be interpolated to a regular
+    grid before being plotted.
+
+    Parameters:
+
+    * data
+        Data stored in a dictionary. 
+        (see :mod:`fatiando.grid`)
+
+    * levels
+        Number of contours to use or a list with the contour values.
+
+    * xkey
+        Key in *data* with the x coordinates of the points.
+        
+    * ykey
+        Key in *data* with the y coordinates of the points.
+        
+    * vkey
+        Key in *data* with the values to be contoured.
+
+    * color
+        Color of the contour lines.
+
+    * label
+        String with the label of the contour that would show in a legend.
+
+    * interp
+        Interpolation type. Either ``'nn'`` for natural neighbor interpolation
+        or ``'linear'`` for linear interpolation.
+
+    * nx, ny
+        Shape of the interpolated regular grid. Only used if interpolation is
+        necessary. If ``None``, then will default to sqrt(number_of_data)
+
+    Returns:
+
+    * levels
+        List with the values of the contour levels
+        
     """
     
     if data['grid']:
@@ -406,35 +460,156 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
     return ct_data.levels
 
 
-def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, 
+def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
              interp='nn', nx=None, ny=None):
     """
+    Make a filled contour plot of data.
+
+    If *data* is not a regular grid, then it will be interpolated to a regular
+    grid before being plotted.
+
+    Parameters:
+
+    * data
+        Data stored in a dictionary.
+        (see :mod:`fatiando.grid`)
+
+    * levels
+        Number of contours to use or a list with the contour values.
+
+    * xkey
+        Key in *data* with the x coordinates of the points.
+
+    * ykey
+        Key in *data* with the y coordinates of the points.
+
+    * vkey
+        Key in *data* with the values to be contoured.
+
+    * cmap
+        Color map to be used. (see pylab.cm module)
+        
+    * interp
+        Interpolation type. Either ``'nn'`` for natural neighbor interpolation
+        or ``'linear'`` for linear interpolation.
+
+    * nx, ny
+        Shape of the interpolated regular grid. Only used if interpolation is
+        necessary. If ``None``, then will default to sqrt(number_of_data)
+
+    Returns:
+
+    * levels
+        List with the values of the contour levels
+        
     """
-    
+
     if data['grid']:
-        
+
         X, Y, Z = fatiando.utils.extract_matrices(data)
-        
+
     else:
-        
+
         if nx is None or ny is None:
-            
-            nx = ny = int(numpy.sqrt(len(data[vkey]))) 
-        
+
+            nx = ny = int(numpy.sqrt(len(data[vkey])))
+
         dx = (data[xkey].max() - data[xkey].min())/nx
         dy = (data[ykey].max() - data[ykey].min())/ny
-                
+
         xs = numpy.arange(data[xkey].min(), data[xkey].max(), dx, 'f')
         ys = numpy.arange(data[ykey].min(), data[ykey].max(), dy, 'f')
-        
+
         X, Y = numpy.meshgrid(xs, ys)
-        
+
         Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
-        
+
     ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap)
-            
+
     pylab.xlim(X.min(), X.max())
-    
+
     pylab.ylim(Y.min(), Y.max())
-            
+
     return ct_data.levels
+
+    
+def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
+           vmax=None, interp='nn', nx=None, ny=None):
+    """
+    Make a pseudo-color plot of data.
+
+    If *data* is not a regular grid, then it will be interpolated to a regular
+    grid before being plotted.
+
+    Parameters:
+
+    * data
+        Data stored in a dictionary.
+        (see :mod:`fatiando.grid`)
+
+    * levels
+        Number of contours to use or a list with the contour values.
+
+    * xkey
+        Key in *data* with the x coordinates of the points.
+
+    * ykey
+        Key in *data* with the y coordinates of the points.
+
+    * vkey
+        Key in *data* with the values to be contoured.
+
+    * cmap
+        Color map to be used. (see pylab.cm module)
+
+    * vmin, vmax
+        Saturation values of the colorbar.
+
+    * interp
+        Interpolation type. Either ``'nn'`` for natural neighbor interpolation
+        or ``'linear'`` for linear interpolation.
+
+    * nx, ny
+        Shape of the interpolated regular grid. Only used if interpolation is
+        necessary. If ``None``, then will default to sqrt(number_of_data)
+
+    Returns:
+
+    * levels
+        List with the values of the contour levels
+        
+    """
+
+    if data['grid']:
+
+        X, Y, Z = fatiando.utils.extract_matrices(data)
+
+    else:
+
+        if nx is None or ny is None:
+
+            nx = ny = int(numpy.sqrt(len(data[vkey])))
+
+        dx = (data[xkey].max() - data[xkey].min())/nx
+        dy = (data[ykey].max() - data[ykey].min())/ny
+
+        xs = numpy.arange(data[xkey].min(), data[xkey].max(), dx, 'f')
+        ys = numpy.arange(data[ykey].min(), data[ykey].max(), dy, 'f')
+
+        X, Y = numpy.meshgrid(xs, ys)
+
+        Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
+
+    if vmin is None or vmax is None:
+
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap)
+
+    else:
+
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+
+    pylab.xlim(X.min(), X.max())
+
+    pylab.ylim(Y.min(), Y.max())
+
+    return plot

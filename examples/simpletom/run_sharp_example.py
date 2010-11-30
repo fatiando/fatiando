@@ -18,6 +18,8 @@ import fatiando.vis
 # Make a logger for the script
 log = fatiando.utils.get_logger()
 
+log.info(fatiando.utils.header())
+
 # Load the synthetic model for comparison
 modelfile = open("model.pickle")
 model = pickle.load(modelfile)

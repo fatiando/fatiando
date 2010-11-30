@@ -13,6 +13,8 @@ import fatiando.vis
                     
 # Make a logger for the script
 log = fatiando.utils.get_logger()
+
+log.info(fatiando.utils.header())
                
 # Load the image model and convert it to a velocity model
 model = synthetic.vel_from_image('model.jpg', vmax=5., vmin=1.)
@@ -57,7 +59,7 @@ pylab.title("X-ray simulation: Source and receiver locations")
 pylab.pcolor(model, cmap=pylab.cm.jet)
 cb = pylab.colorbar()
 cb.set_label("Velocity")
-fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=10)
+fatiando.vis.src_rec(data['src'], data['rec'], markersize=10)
 pylab.legend(numpoints=1, prop={'size':10}, shadow=True)
 pylab.xlim(-1.2*model.shape[1], 2.2*model.shape[1])
 pylab.ylim(-1.2*model.shape[0], 2.2*model.shape[0])
@@ -68,8 +70,8 @@ pylab.title("X-ray simulation: Ray coverage")
 pylab.pcolor(model, cmap=pylab.cm.jet)
 cb = pylab.colorbar()
 cb.set_label("Velocity")
-fatiando.vis.plot_ray_coverage(data['src'], data['rec'], '-k')
-fatiando.vis.plot_src_rec(data['src'], data['rec'], markersize=10)
+fatiando.vis.ray_coverage(data['src'], data['rec'], '-k')
+fatiando.vis.src_rec(data['src'], data['rec'], markersize=10)
 pylab.legend(numpoints=1, prop={'size':10}, shadow=True)
 pylab.xlim(-1.2*model.shape[1], 2.2*model.shape[1])
 pylab.ylim(-1.2*model.shape[0], 2.2*model.shape[0])
