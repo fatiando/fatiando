@@ -7,31 +7,23 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
-       
-        
-Grav
-    * Program tensor invariants
-    * Unit tests for existing functions
-    * potential and derivatives of a sphere
-    * potential and derivatives of a tesseroid
-    * spherical harmonics
-    * reductions
-    * terrain correction
-    * make extention for upward continuation
-    * equivalent layer
+    * Change the synthetic prism models in grav to use the grid module
+    * Change the synthetic prism models in grav to use the geometry module
+    * Move contaminate from utils to stats
+    * Allow contaminate to receive grids
+    * Make a tool to remove trailing spaces from files
     
-Inversion
+Solvers
     * Unit tests
     * Sparsity regularization
     * Use the data covariance matrix
     * Test equality constraints
+    * Make virtual functions public
     
 Mesh
-    * Make prism mesh with topography
     
 Vis
     * Plot a bounding box around the a prism mesh
-    * Docstrings for contour, contourf and pcolor
    
 Stats
     * Unit tests
@@ -44,7 +36,6 @@ InterG
     * Use equality constraints
     * Doesn't work with topography because it has to match the inversion mesh
       So make a function that "interpolates" the topo into the mesh
-    
 
 GPlant
     * Separate the Jacobian columns per field when saving and loading
@@ -64,12 +55,17 @@ PGrav
     * Unit tests
     * Make integration test
     * Use equality constraints
+    * Optimize memory usage
+    * Use parameter freezing in compact inversion for speed
+    * Check if using data in 2 heights is better
     
 Seismo
 
 
 Heat
     * Make better example script for diffusionfd1d
+    * Implement VBA model
+    * Implement McKenzie model
     * Implement implicit FD timestep
     * Implement diffusion with radiogenic heat
     * Implement diffusion with radiogenic heat and variable conductivity
@@ -82,6 +78,23 @@ Simpletom:
 Geometry
     * Discretize a sphere into prisms
     
+Gravity
+    * Program tensor invariants
+    * Unit tests for existing functions
+    * potential and gradients of a sphere
+    * potential and derivatives of a tesseroid
+    * spherical harmonics
+    * reductions
+    * terrain correction
+    * make extention for upward continuation
+    * equivalent layer
+    * Put all constants used into a constants.py module and pass them to the C
+      functions
+    * Implement derivatives in equivalent layer
+    * Normalize Jacobian so that reg params are in range 0-1
+    * Optimize equivalent layer
+    * Implement equivalent data in equivalent layer (Mendonca)
+    * Implement polynomial equivalent layer
     
 WaveFD:
     * Port to Fortran

@@ -39,8 +39,14 @@ Modules:
 * :mod:`fatiando.csinfo`
     Information about the current changeset
 
+* :mod:`fatiando.geometry`
+    Create and operate on data types representing geometric elements
+
+* :mod:`fatiando.grid`
+    Create and operate on data types representing grids and profiles
+
 * :mod:`fatiando.mesh`
-    Mesh generation and handling of geometric elements
+    Mesh generation
     
 * :mod:`fatiando.stats`
     Statistical tests and utilities for inverse problems
@@ -63,18 +69,6 @@ __date__ = 'Created 02-Apr-2010'
 
 __version__ = '0.0.1'
 
-
-__all__ = ['csinfo', 
-           'geometry', 
-           'grid',
-           'mesh',
-           'stats',
-           'utils',
-           'vis',
-           'grav',
-           'heat',
-           'inv',
-           'seismo']
 
 
 # Create a default NullHandler so that logging is only enabled explicitly

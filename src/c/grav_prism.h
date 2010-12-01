@@ -56,7 +56,7 @@ rectangular prism using the formulas given in Nagy (2000).
 The coordinate system of the input parameters is assumed to be
     x->north, y->east; z->down.
 
-Input values in SI units and returns values in Eotvos!
+Input values in SI units and returns values in mGal!
 
 Parameters:
     * double dens: density of the prism;

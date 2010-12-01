@@ -8,8 +8,11 @@ import pylab
 import fatiando.grav.synthetic as synthetic
 import fatiando.grav.transform as transform
 import fatiando.utils as utils
+import fatiando.vis as vis
+import fatiando.grid
 
 log = utils.get_logger()
+log.info(utils.header())
 
 # Define a prism as the model to generate the gravity data
 prism = {'x1':-100, 'x2':100, 'y1':-100, 'y2':100, 'z1':500, 'z2':700,
@@ -27,13 +30,8 @@ updata_true = synthetic.from_prisms([prism], x1=-500, x2=500, y1=-500, y2=500,
 # Upward continue the data
 updata = transform.upcontinue(data, new_height)
 
-# Extract the matrices in order to plot the data
-X, Y, Zdata = utils.extract_matrices(data)
-X, Y, Zuptrue = utils.extract_matrices(updata_true)
-X, U, Zup = utils.extract_matrices(updata)
-
-# Also plot the difference between the analytical and the upward continued
-Zdiff = abs(100*(Zuptrue - Zup)/Zuptrue)
+# Calculate the difference in a percentage
+diff = fatiando.grid.subtract(updata_true, updata, percent=True)
 
 # Plot the results
 pylab.figure(figsize=(12,8))
@@ -42,7 +40,7 @@ pylab.figure(figsize=(12,8))
 pylab.subplot(2,2,1)
 pylab.axis('scaled')
 pylab.title("Original")
-pylab.pcolor(X, Y, Zdata, cmap=pylab.cm.jet)
+vis.pcolor(data)
 cb = pylab.colorbar()
 cb.set_label("mGal")
 pylab.xlim(X.min(), X.max())
@@ -52,8 +50,7 @@ pylab.ylim(Y.min(), Y.max())
 pylab.subplot(2,2,2)
 pylab.axis('scaled')
 pylab.title("Analytical")
-pylab.pcolor(X, Y, Zuptrue, cmap=pylab.cm.jet, vmin=Zuptrue.min(), 
-             vmax=Zuptrue.max())
+vis.pcolor(updata_true)
 cb = pylab.colorbar()
 cb.set_label("mGal")
 pylab.xlim(X.min(), X.max())
@@ -63,7 +60,7 @@ pylab.ylim(Y.min(), Y.max())
 pylab.subplot(2,2,3)
 pylab.axis('scaled')
 pylab.title("Difference")
-pylab.pcolor(X, Y, Zdiff, cmap=pylab.cm.jet)
+vis.pcolor(diff)
 cb = pylab.colorbar()
 cb.set_label("%")
 pylab.xlim(X.min(), X.max())
@@ -73,8 +70,8 @@ pylab.ylim(Y.min(), Y.max())
 pylab.subplot(2,2,4)
 pylab.axis('scaled')
 pylab.title("Upward continued")
-pylab.pcolor(X, Y, Zup, cmap=pylab.cm.jet, vmin=Zuptrue.min(), 
-             vmax=Zuptrue.max())
+vis.pcolor(updata, vmin=updata_true['value'].min(),
+           vmax=updata_true['value'].max())
 cb = pylab.colorbar()
 cb.set_label("mGal")
 pylab.xlim(X.min(), X.max())

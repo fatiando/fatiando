@@ -28,11 +28,13 @@ __date__ = 'Created 11-Sep-2010'
 
 
 import logging
+import time
 
 import numpy
 
 import fatiando
 import fatiando.grav.prism
+import fatiando.grav.sphere
 
 
 # Add the default handler (a null handler) to the logger to ensure that
@@ -52,9 +54,7 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     Parameters:
       
     * prisms
-        List of dictionaries representing each prism in the model. 
-        Required keys are 
-        ``{'x1':, 'x2':, 'y1':, 'y2':, 'z1':, 'z2':, 'value':density}``
+        List of prisms in the model. (see :func:`fatiando.geometry.prism`)
             
     * x1, x2
         Limits in the x direction of the region where the data will be computed
@@ -189,3 +189,59 @@ def from_prisms(prisms, x1, x2, y1, y2, nx, ny, height, field='gz',
     log.info("  data points = %d" % (len(data['value'])))
     
     return data
+
+
+def from_spheres(spheres, grid, field='gz'):
+    """
+    Create synthetic gravity data from a model made of spheres.
+
+    The ``'value'`` key in *grid* will be filled with the generated gravity data
+    **IN PLACE**!
+
+    Parameters:
+
+    * spheres
+        List of spheres in the model. (see :func:`fatiando.geometry.sphere`)
+
+    * grid
+        A grid data type on which the gravitational effect will be calculated.
+        *grid* MUST have a *z* coordinate set. (see :mod:`fatiando.grid`)
+
+    * field
+        What component of the gravity field to calculate. Can be any one of
+        ``'gz'``, ``'gxx'``, ``'gxy'``, ``'gxz'``, ``'gyy'``, ``'gyz'``,
+        ``'gzz'``
+
+    """
+
+    fields = {'gz':fatiando.grav.sphere.gz,}
+
+    assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
+
+    assert 'x' in grid, "Invalid grid. Missing 'x' key."
+    
+    assert 'y' in grid, "Invalid grid. Missing 'y' key."
+    
+    assert 'z' in grid, "Invalid grid. Missing 'z' key."
+
+    start = time.time()
+    
+    log.info("Generating synthetic %s data a sphere model:" % (field))
+    log.info("  number of spheres = %d" % (len(spheres)))
+    log.info("  data points = %d" % (len(grid['x'])))
+
+    function = fields[field]
+    
+    data = numpy.zeros_like(grid['x'])
+
+    for i, coordinates in enumerate(zip(grid['x'], grid['y'], grid['z'])):
+
+        x, y, z = coordinates
+
+        for sphere in spheres:
+            
+            data[i] += function(sphere['density'], sphere['radius'],
+                                sphere['xc'], sphere['yc'], sphere['zc'], x, y,
+                                z)
+
+    grid['value'] = data
