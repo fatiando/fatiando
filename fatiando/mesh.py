@@ -152,7 +152,7 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
             
             y = y[:-1]
         
-        Y, X = pylab.meshgrid(y, x)
+        X, Y = pylab.meshgrid(x, y)
                 
         # -1 if to transform height into z coordinate
         topo_grid = -1*pylab.griddata(topo['x'], topo['y'], topo['h'], X, Y)
