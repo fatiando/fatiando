@@ -245,4 +245,3 @@ def from_spheres(spheres, grid, field='gz'):
                                 z)
 
     grid['value'] = data
-    grid['error'] = numpy.zeros_like(data)

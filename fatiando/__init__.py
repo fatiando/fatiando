@@ -46,7 +46,7 @@ Modules:
     Create and operate on data types representing grids and profiles
 
 * :mod:`fatiando.mesh`
-    Mesh generation and handling of geometric elements
+    Mesh generation
     
 * :mod:`fatiando.stats`
     Statistical tests and utilities for inverse problems

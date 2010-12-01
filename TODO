@@ -9,12 +9,16 @@ General
     * Put examples in docstrings
     * Change the synthetic prism models in grav to use the grid module
     * Change the synthetic prism models in grav to use the geometry module
+    * Move contaminate from utils to stats
+    * Allow contaminate to receive grids
+    * Make a tool to remove trailing spaces from files
     
-Inversion
+Solvers
     * Unit tests
     * Sparsity regularization
     * Use the data covariance matrix
     * Test equality constraints
+    * Make virtual functions public
     
 Mesh
     * Make prism mesh with topography
@@ -33,7 +37,6 @@ InterG
     * Use equality constraints
     * Doesn't work with topography because it has to match the inversion mesh
       So make a function that "interpolates" the topo into the mesh
-    
 
 GPlant
     * Separate the Jacobian columns per field when saving and loading
@@ -52,12 +55,17 @@ PGrav
     * Unit tests
     * Make integration test
     * Use equality constraints
+    * Optimize memory usage
+    * Use parameter freezing in compact inversion for speed
+    * Check if using data in 2 heights is better
     
 Seismo
 
 
 Heat
     * Make better example script for diffusionfd1d
+    * Implement VBA model
+    * Implement McKenzie model
     * Implement implicit FD timestep
     * Implement diffusion with radiogenic heat
     * Implement diffusion with radiogenic heat and variable conductivity
@@ -70,7 +78,6 @@ Simpletom:
 Geometry
     * Discretize a sphere into prisms
     
-        
 Gravity
     * Program tensor invariants
     * Unit tests for existing functions
@@ -83,6 +90,10 @@ Gravity
     * equivalent layer
     * Put all constants used into a constants.py module and pass them to the C
       functions
+    * Implement derivatives in equivalent layer
+    * Optimize equivalent layer
+    * Implement equivalent data in equivalent layer (Mendonca)
+    * Implement polynomial equivalent layer
     
 WaveFD:
     * Port to Fortran

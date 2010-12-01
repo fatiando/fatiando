@@ -57,7 +57,9 @@ def dump(fname, data, fmt='ascii'):
     If the data is a grid, the first line of the file will contain the number
     of points in the x and y directions separated by a space.
     
-    Grids will be stored with x values varying first, then y. 
+    Grids will be stored with x values varying first, then y.
+
+    If there is no error information in the data, column *error* will be ignored
     
     Parameters:
     
@@ -65,18 +67,11 @@ def dump(fname, data, fmt='ascii'):
         Either string with file name or file object
     
     * data
-        Gravity field data stored in a dictionary
+        Gravity field data stored in a dictionary (see :mod:`fatiando.grid`)
               
     * fmt
         File format. For now only supports ASCII
-        
-    The data dictionary must be such as::
-    
-        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...],
-         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
-    
-    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``
+
     """
     
     if isinstance(fname, file):
@@ -90,17 +85,35 @@ def dump(fname, data, fmt='ascii'):
     log.info("Saving gravity field data to file '%s'" % (output.name))
         
     output.write("# File structure:\n")
-    if data['grid']:        
-        output.write("# nx  ny\n")
-    output.write("# x  y  z  value  error\n")
     
-    if data['grid']:        
+    if data['grid']:
+    
+        output.write("# nx  ny\n")
+
+    if 'error' in data:
+        
+        output.write("# x  y  z  value  error\n")
+
+        columns = zip(data['x'], data['y'], data['z'], data['value'],
+                      data['error'])
+
+    else:
+        
+        output.write("# x  y  z  value\n")
+
+        columns = zip(data['x'], data['y'], data['z'], data['value'])
+        
+    if data['grid']:
+
         output.write("%d %d\n" % (data['nx'], data['ny']))
         
-    for x, y, z, value, error in zip(data['x'], data['y'], data['z'], 
-                                     data['value'], data['error']):
-        
-        output.write("%f %f %f %f %f\n" % (x, y, z, value, error))
+    for values in columns:
+
+        for value in values:
+            
+            output.write("%f " % (value))
+
+        output.write("\n")
         
     output.close()
     
@@ -118,7 +131,9 @@ def load(fname, fmt='ascii'):
     If the file contains grid data, the first line should contain the number
     of points in the x and y directions separated by a space.
     
-    Grids should be stored with x values varying first, then y. 
+    Grids should be stored with x values varying first, then y.
+
+    If there is no error information in the data, column *error* will be ignored
     
     Parameters:
     
@@ -131,15 +146,8 @@ def load(fname, fmt='ascii'):
     Return:
     
     * data
-        Gravity field data stored in a dictionary.
+        Gravity field data stored in a dictionary. (see :mod:`fatiando.grid`)
         
-    The data dictionary will be such as::
-    
-        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...],
-         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
-    
-    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``        
     """
     
     if isinstance(fname, file):
@@ -159,6 +167,7 @@ def load(fname, fmt='ascii'):
     zs = []
     values = []
     errors = []
+    noerror = False
     
     for l, line in enumerate(input):
         
@@ -167,35 +176,60 @@ def load(fname, fmt='ascii'):
             continue
         
         args = line.strip().split(" ")
-        
-        if len(args) != 5:
-            
-            if len(args) == 2 and not values:
-                
-                data['grid'] = True
-                data['nx'] = int(args[0])
-                data['ny'] = int(args[1])
-                
-            else:
-                
-                log.warning("  Wrong number of values in line %d." % (l + 1) + 
-                            " Ignoring it.")
-            
+
+        if len(args) == 2 and not values:
+
+            data['grid'] = True
+            data['nx'] = int(args[0])
+            data['ny'] = int(args[1])
+
             continue
-        
-        x, y, z, value, error = args
-        
-        xs.append(float(x))
-        ys.append(float(y))
-        zs.append(float(z))
-        values.append(float(value))
-        errors.append(float(error))
-        
+
+        elif len(args) == 4:
+
+            if not values:
+
+                noerror = True
+
+            elif not noerror:
+
+                raise IOError("Wrong number of values in line %d." % (l + 1))
+
+            x, y, z, value = args
+            xs.append(float(x))
+            ys.append(float(y))
+            zs.append(float(z))
+            values.append(float(value))
+
+        elif len(args) == 5:
+
+            if not values:
+
+                noerror = False
+
+            elif noerror:
+
+                raise IOError("Wrong number of values in line %d." % (l + 1))
+
+            x, y, z, value, error = args
+            xs.append(float(x))
+            ys.append(float(y))
+            zs.append(float(z))
+            values.append(float(value))
+            errors.append(float(error))
+
+        else:
+
+            raise IOError("Wrong number of values in line %d." % (l + 1))
+
     data['x'] = numpy.array(xs)
     data['y'] = numpy.array(ys)
     data['z'] = numpy.array(zs)
     data['value'] = numpy.array(values)
-    data['error'] = numpy.array(errors)
+
+    if not noerror:
+        
+        data['error'] = numpy.array(errors)
         
     log.info("  data loaded=%d" % (len(data['value'])))
     

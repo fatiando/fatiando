@@ -21,13 +21,16 @@ Functions:
 
 * :func:`fatiando.grid.regular`
     Create an empty regular grid.
-    
+
 * :func:`fatiando.grid.fill`
     Fill a regular grid with the values in a 2D array **IN PLACE**.
 
 * :func:`fatiando.grid.subtract`
     Subtract grid2 from grid1.
-    
+
+* :func:`fatiando.grid.copy`
+    Return a copy of *grid*.
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
@@ -42,7 +45,7 @@ import fatiando
 
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.grid')       
+log = logging.getLogger('fatiando.grid')
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -69,8 +72,8 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
     * grid
         A grid stored in a dictionary such as::
             {'x':[x1, x2, x3, ...], 'y':[y1, y2, y3, ...], 'z':[y1, y2, y3, ...]
-             , 'nx':nx, 'ny':ny, 'grid':True}
-        
+            , 'nx':nx, 'ny':ny, 'grid':True}
+
     """
 
     log.info("Creating regular grid:")
@@ -80,12 +83,14 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
     grid = {'nx':nx, 'ny':ny, 'grid':True}
 
     dx = float(x2 - x1)/(nx - 1)
-    
+
     x_range = numpy.arange(x1, x2, dx)
 
     dy = float(y2 - y1)/(ny - 1)
 
     y_range = numpy.arange(y1, y2, dy)
+
+    log.info("  dx/dy = %g/%g" % (dx, dy))
 
     # Need to make sure that the number of points in the grid is correct because
     # of rounding errors in arange. Sometimes x2 and y2 are included, sometimes
@@ -103,7 +108,7 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
 
     xappend = xs.append
     yappend = ys.append
-    
+
     for y in y_range:
 
         for x in x_range:
@@ -126,7 +131,7 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
 
             assert zarray.shape == (ny, nx), \
                 ("Woops, 'z' doesn't have the right shape. " +
-                 "Should be %d rows X %d columns (ny X nx)." % (ny, nx))
+                "Should be %d rows X %d columns (ny X nx)." % (ny, nx))
 
             zs = zarray.ravel()
 
@@ -134,14 +139,14 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
 
 
     return grid
-    
+
 
 def fill(values, grid, key='value'):
     """
     Fill a regular grid with the values in a 2D array **IN PLACE**.
 
     Parameters:
-    
+
     * values
         2D array with the value to be put into each grid point.
 
@@ -157,9 +162,38 @@ def fill(values, grid, key='value'):
 
     assert varray.shape == (grid['ny'], grid['nx']), \
         ("Woops, 'values' doesn't have the right shape. " +
-         "Should be %d rows X %d columns (ny X nx)." % (grid['ny'], grid['nx']))
+        "Should be %d rows X %d columns (ny X nx)." % (grid['ny'], grid['nx']))
 
     grid[key] = varray.ravel()
+
+
+def copy(grid):
+    """
+    Return a copy of *grid*.
+
+    Parameters:
+
+    * grid
+        Grid stored in a dictionary.
+
+    Returns:
+
+    * copied
+        Copy of *grid*
+
+    """
+
+    copied = {}
+
+    for key in grid:
+
+        copied[key] = numpy.copy(grid[key])
+
+        if copied[key].shape == ():
+
+            copied[key] = copied[key].tolist()
+
+    return copied
 
 
 def subtract(grid1, grid2, key1='value', key2='value', percent=False):
@@ -183,11 +217,11 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
 
     * subgrid
         Grid with the subtraction results stored in key ``'value'``
-        
+
     """
 
     assert key1 in grid1, "%s does not exist in grid1." % (key1)
-    
+
     assert key2 in grid2, "%s does not exist in grid2." % (key2)
 
     assert len(grid1[key1]) == len(grid2[key2]), \
@@ -204,7 +238,7 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
                 "Grid points must coincide! (point %d is off)" % (i)
 
         if not percent:
-            
+
             vappend(grid1[key1][i] - grid2[key2][i])
 
         else:

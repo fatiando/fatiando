@@ -19,7 +19,7 @@
 
 Functions:
 
-* :func:`fatiando.inv.pgrav3d.solve`    
+* :func:`fatiando.inv.pgrav3d.solve`
     Solve the inverse problem for the density using a given data set.
 
 * :func:`fatiando.inv.pgrav3d.clear`
@@ -33,10 +33,10 @@ Functions:
 
 * :func:`fatiando.inv.pgrav3d.set_bounds`
     Set lower and upper bounds on the density values
-    
+
 * :func:`fatiando.inv.pgrav3d.adjustment`
     Calculate the adjusted data based on the residuals and the original data.
-        
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 14-Jun-2010'
@@ -50,8 +50,8 @@ import numpy
 import fatiando
 import fatiando.grav.prism
 from fatiando.inv import solvers
-        
-log = logging.getLogger('fatiando.inv.pgrav3d')       
+
+log = logging.getLogger('fatiando.inv.pgrav3d')
 log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
@@ -81,14 +81,14 @@ _calculators = {'gz':fatiando.grav.prism.gz,
 def clear():
     """
     Erase garbage from previous inversions.
-    
+
     Only use if changing the data and/or mesh (otherwise it saves time to keep
     the garbage)
     """
-    
+
     global _jacobian, _mesh, _data, _data_vector, \
-           _depth_weights, _solvers_tk_weights
-               
+        _depth_weights, _solvers_tk_weights
+
     _jacobian = None
     _mesh = None
     _data = None
@@ -96,228 +96,228 @@ def clear():
     _depth_weights = None
     _solvers_tk_weights = None
     reload(solvers)
-    
+
 
 def extract_data_vector(data, inplace=False):
     """
     Put all the gravity field data in a single array for use in inversion.
-    
+
     Parameters:
-    
-    * data 
-        Dictionary with the gravity component data as 
+
+    * data
+        Dictionary with the gravity component data as
         ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
         If there is no data for a given component, omit the respective key.
         Each g*data is a profile data dictionary (see bellow)
-            
+
     * inplace
         If ``True`` will erase the values in *data* as they are put into
         the array (use to save memory when data set is large)
-    
+
     Returns:
-        
+
     * data_vector
         1D array-like with the data in the following order:
         gz, gxx, gxy, gxz, gyy, gyz, gzz
-        
+
     The data dictionaries should be as::
-    
+
         {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
-         
+        'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+
     """
-    
+
     global supported_fileds
-    
+
     data_vector = []
-    
+
     for field in supported_fileds:
-        
+
         if field in data:
-            
+
             data_vector.extend(data[field]['value'])
-            
+
             if inplace:
-                
+
                 del data[field]['value']
-        
+
     return  numpy.array(data_vector)
 
 
 def adjustment(data, residuals):
     """
     Calculate the adjusted data based on the residuals and the original data.
-    
+
     Parameters:
-    
-    * data 
-        Dictionary with the gravity component data as 
+
+    * data
+        Dictionary with the gravity component data as
         ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
         If there is no data for a given component, omit the respective key.
         Each g*data is a data dictionary (see bellow)
-        
+
     * residuals
         1D array-like residuals vector
-        
+
     Returns:
-    
+
     * adjusted_data
         Adjusted data in the same format as *data*
-        
+
     The data dictionaries should be as::
-    
+
         {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
-         
+        'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+
     """
-    
+
     global supported_fileds
-    
+
     reduced = residuals.copy()
-    
+
     adjusted = {}
-    
+
     for field in supported_fileds:
-        
+
         if field in data:
-            
+
             adjusted[field] = data[field].copy()
-            
+
             ndata = len(data[field]['value'])
-            
+
             adjusted[field]['value'] = data[field]['value'] - reduced[0:ndata]
-    
+
             reduced = reduced[ndata:]
-            
+
     return adjusted
 
 
 def _calc_adjusted_vector(estimate):
     """
-    Calculate the adjusted data vector produced by a given estimate.    
+    Calculate the adjusted data vector produced by a given estimate.
     """
-        
+
     jacobian = _build_pgrav3d_jacobian(estimate)
-    
+
     adjusted = numpy.dot(jacobian, estimate)
-            
+
     return adjusted
 
 
 def _build_pgrav3d_jacobian(estimate):
     """Build the Jacobian matrix of the gravity field"""
-    
+
     assert _mesh is not None, "Can't build Jacobian. No mesh defined"
     assert _data is not None, "Can't build Jacobian. No data defined"
-    
+
     global _jacobian, supported_fileds
-    
+
     if _jacobian is None:
-        
+
         start = time.time()
-        
+
         _jacobian = []
         append_row = _jacobian.append
-        
+
         for field in supported_fileds:
-            
+
             if field in _data:
-                
-                coordinates =  zip(_data[field]['x'], _data[field]['y'], 
-                                   _data[field]['z'])
-                
+
+                coordinates =  zip(_data[field]['x'], _data[field]['y'],
+                                _data[field]['z'])
+
                 function = _calculators[field]
-                
+
                 for x, y, z in coordinates:
-                    
-                    row = [function(1., cell['x1'], cell['x2'], cell['y1'], 
-                                    cell['y2'], cell['z1'], cell['z2'], 
+
+                    row = [function(1., cell['x1'], cell['x2'], cell['y1'],
+                                    cell['y2'], cell['z1'], cell['z2'],
                                     x, y, z)
-                           for cell in _mesh.ravel()]
-                        
+                        for cell in _mesh.ravel()]
+
                     append_row(row)
-                    
+
         _jacobian = numpy.array(_jacobian)
-        
+
         end = time.time()
-        
+
         log.info("  Built Jacobian (sensibility) matrix (%g s)"
-                 % (end - start))
-        
-    return _jacobian                   
+                % (end - start))
+
+    return _jacobian
 
 
 def _build_pgrav3d_first_deriv():
     """
     Build the first derivative finite differences matrix for the model space
     """
-    
+
     assert _mesh is not None, "Can't build first derivative matrix." + \
         "No mesh defined"
-        
+
     nz, ny, nx = _mesh.shape
-                
+
     deriv_num = (nx - 1)*ny*nz + (ny - 1)*nx*nz + (nz - 1)*nx*ny
-            
+
     first_deriv = numpy.zeros((deriv_num, nx*ny*nz))
-    
+
     deriv_i = 0
-    
-    # Derivatives in the x direction        
+
+    # Derivatives in the x direction
     param_i = 0
-    
+
     for k in xrange(nz):
-        
+
         for j in xrange(ny):
-            
-            for i in xrange(nx - 1):                
-                
+
+            for i in xrange(nx - 1):
+
                 first_deriv[deriv_i][param_i] = 1
-                
+
                 first_deriv[deriv_i][param_i + 1] = -1
-                
+
                 deriv_i += 1
-                
+
                 param_i += 1
-            
+
             param_i += 1
-        
-    # Derivatives in the y direction        
+
+    # Derivatives in the y direction
     param_i = 0
-    
+
     for k in xrange(nz):
-    
+
         for j in range(ny - 1):
-            
+
             for i in range(nx):
-        
+
                 first_deriv[deriv_i][param_i] = 1
-                
+
                 first_deriv[deriv_i][param_i + nx] = -1
-                
+
                 deriv_i += 1
-                
+
                 param_i += 1
-                
+
         param_i += nx
-        
-    # Derivatives in the z direction        
+
+    # Derivatives in the z direction
     param_i = 0
-    
+
     for k in xrange(nz - 1):
-    
+
         for j in range(ny):
-            
+
             for i in range(nx):
-        
+
                 first_deriv[deriv_i][param_i] = 1
-                
+
                 first_deriv[deriv_i][param_i + nx*ny] = -1
-                
+
                 deriv_i += 1
-                
+
                 param_i += 1
-    
+
     return first_deriv
 
 
@@ -325,149 +325,149 @@ def _build_tk_depth_weights(nparams):
     """
     Build the Tikhonov weights using depth weighting (Li & Oldenburg, 1998).
     """
-        
+
     weights = _solvers_tk_weights(nparams)
-    
+
     for i, row in enumerate(weights):
-        
+
         row *= _depth_weights[i]*_depth_weights
-        
+
     return weights
 
 
 def _calc_adjusted_depth_weights(coefs):
     """Calculate the adjusted depth weights for a given set of coefficients"""
-    
+
     assert _mesh is not None, \
         "Can't calculate adjusted depth weights without a mesh"
-    
+
     z0, power = coefs
-    
+
     weights = numpy.zeros(_mesh.size)
-    
+
     for i, cell in enumerate(_mesh.ravel()):
-        
+
         depth = 0.5*(cell['z1'] + cell['z2'])
-        
+
         weights[i] = (depth + z0)**(-0.5*power)
-        
+
     return weights
 
 
 def _build_depth_weights_jacobian(estimate):
     """Build the Jacobian of the depth weighing function"""
-    
-    jacobian = []
-    
-    z0, power = estimate
-                    
-    for cell in _mesh.ravel():
-        
-        depth = 0.5*(cell['z1'] + cell['z2'])
-                    
-        z0_deriv = -0.5*power*(z0 + depth)**(-0.5*(power + 2))
-        
-        power_deriv = -0.5*(z0 + depth)**(-0.5*power)
-        
-        jacobian.append([z0_deriv, power_deriv])
-        
-    return numpy.array(jacobian)    
-    
 
-def use_depth_weights(mesh, z0=None, power=None, grid_height=None, 
-                      normalize=True):
+    jacobian = []
+
+    z0, power = estimate
+
+    for cell in _mesh.ravel():
+
+        depth = 0.5*(cell['z1'] + cell['z2'])
+
+        z0_deriv = -0.5*power*(z0 + depth)**(-0.5*(power + 2))
+
+        power_deriv = -0.5*(z0 + depth)**(-0.5*power)
+
+        jacobian.append([z0_deriv, power_deriv])
+
+    return numpy.array(jacobian)
+
+
+def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
+                    normalize=True):
     """
     Use depth weighting in the next inversions (Li & Oldenburg, 1998).
-    
-    If *z0* or *power* are set to ``None``, they will be automatically 
+
+    If *z0* or *power* are set to ``None``, they will be automatically
     calculated.
-    
+
     Parameters:
-    
+
     * mesh
         Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
-    
+
     * z0
         Compensation depth
-    
+
     * power
         Power of the power law used
-    
+
     * grid_height
-        Height of the data grid in meters (only needed if *z0* and *power* are 
+        Height of the data grid in meters (only needed if *z0* and *power* are
         ``None``)
-    
+
     * normalize
         If ``True``, normalize the weights
-    
+
     Returns:
-    
+
     * [z0, power]
         Values used for *z0* and *power*
-        
+
     """
-    
+
     if z0 is None or power is None:
-    
+
         log.info("Adjusting depth weighing coefficients:")
-        
+
         import fatiando.inv.solvers as local_solver
-        
+
         global _mesh
-        
+
         _mesh = mesh
-        
+
         # Make a 'data' array (gzz kernel values)
         kernel_data = []
-        
+
         for cell in mesh.ravel():
-            
+
             x = 0.5*(cell['x1'] + cell['x2'])
             y = 0.5*(cell['y1'] + cell['y2'])
-            
-            kernel = fatiando.grav.prism.gzz(1., cell['x1'], cell['x2'], 
-                                                cell['y1'], cell['y2'], 
-                                                cell['z1'], cell['z2'], 
+
+            kernel = fatiando.grav.prism.gzz(1., cell['x1'], cell['x2'],
+                                                cell['y1'], cell['y2'],
+                                                cell['z1'], cell['z2'],
                                                 x, y, -grid_height)
-            
+
             kernel_data.append(kernel)
-            
+
         local_solver._build_jacobian = _build_depth_weights_jacobian
         local_solver._calc_adjustment = _calc_adjusted_depth_weights
-        
-        coefs, residuals, goals = local_solver.lm(kernel_data, None, 
-                                                  numpy.array([1., 3.]))
-        
+
+        coefs, residuals, goals = local_solver.lm(kernel_data, None,
+                                                numpy.array([1., 3.]))
+
         z0, power = coefs
-        
+
         _mesh = None
-    
+
     log.info("Setting depth weighting:")
     log.info("  z0 = %g" % (z0))
     log.info("  power = %g" % (power))
     log.info("  normalized = %s" % (str(normalize)))
-                  
+
     weights = numpy.zeros(mesh.size)
-    
+
     for i, cell in enumerate(mesh.ravel()):
-        
+
         depth = 0.5*(cell['z1'] + cell['z2'])
-        
+
         weights[i] = (depth + z0)**(-0.25*power)
-        
+
     if normalize:
-        
+
         weights = weights/weights.max()
-        
+
     global _depth_weights
-    
+
     _depth_weights = weights
-        
+
     # Overwrite the default Tikhonov weights builder but not before saing it
     global _solvers_tk_weights
-    
+
     _solvers_tk_weights = solvers._build_tk_weights
-    
+
     solvers._build_tk_weights = _build_tk_depth_weights
 
     return z0, power
@@ -476,107 +476,107 @@ def use_depth_weights(mesh, z0=None, power=None, grid_height=None,
 def set_bounds(vmin, vmax):
     """
     Set bounds on the density values.
-    
+
     Parameters:
-    
+
     * vmin
         Lowest value the density can assume
-    
+
     * vmax
         Highest value the density can assume
-    
+
     """
-    
+
     log.info("Setting bounds on density values:")
     log.info("  vmin: %g" % (vmin))
     log.info("  vmax: %g" % (vmax))
-    
+
     solvers.set_bounds(vmin, vmax)
 
 
-def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0, 
-          sharpness=0, beta=10**(-5), compactness=0, epsilon=10**(-5), 
-          max_it=100, lm_start=1, lm_step=10, max_steps=20):    
+def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
+        sharpness=0, beta=10**(-5), compactness=0, epsilon=10**(-5),
+        max_it=100, lm_start=1, lm_step=10, max_steps=20):
     """
     Solve the inverse problem for the density using a given data set.
-        
-    **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also 
+
+    **NOTE**: only uses *max_it*, *lm_start*, *lm_step* and *max_steps* if also
     using *sharpness*, *compactness* or bounds of the parameter values
-    (eg :func:`fatiando.inv.pgrav3d.set_bounds`) because otherwise the 
+    (eg :func:`fatiando.inv.pgrav3d.set_bounds`) because otherwise the
     problem is linear.
-    
+
     Parameters:
-    
-    * data 
-        Dictionary with the gravity component data as 
+
+    * data
+        Dictionary with the gravity component data as
         ``{'gz':gzdata, 'gxx':gxxdata, 'gxy':gxydata, ...}``
         If there is no data for a given component, omit the respective key.
         Each g*data is a profile data dictionary (see bellow)
-      
+
     * mesh
         Model space discretization mesh (see :func:`fatiando.mesh.prism_mesh`)
-      
+
     * initial
-        Initial estimate (only used with *sharpness* or *compactness*). 
+        Initial estimate (only used with *sharpness* or *compactness*).
         If ``None``, will use zero
-    
+
     * damping
         Tikhonov order 0 regularization parameter. Must be >= 0
-    
+
     * smoothness
         Tikhonov order 1 regularization parameter. Must be >= 0
-    
+
     * curvature
         Tikhonov order 2 regularization parameter. Must be >= 0
-    
-    * sharpness    
+
+    * sharpness
         Total Variation regularization parameter. Must be >= 0
-    
+
     * beta
-        Small constant used to make Total Variation differentiable. 
-        Must be >= 0. The smaller it is, the sharper the solution but also 
+        Small constant used to make Total Variation differentiable.
+        Must be >= 0. The smaller it is, the sharper the solution but also
         the less stable
-            
+
     * compactness
         Compact regularization parameter. Must be >= 0
-      
+
     * epsilon
-        Small constant used in Compact regularization to avoid singularities. 
+        Small constant used in Compact regularization to avoid singularities.
         Set it small for more compactness, larger for more stability.
-    
+
     * max_it
-        Maximum number of iterations 
-      
+        Maximum number of iterations
+
     * lm_start
         Initial Marquardt parameter (ie, step size)
-    
-    * lm_step 
-        Factor by which the Marquardt parameter will be reduced with each 
+
+    * lm_step
+        Factor by which the Marquardt parameter will be reduced with each
         successful step
-           
+
     * max_steps
         How many times to try giving a step before exiting
 
     Returns:
-    
+
     * [estimate, residuals, goals]
         estimate = array-like parameter vector estimated by the inversion.
         residuals = array-like residuals vector.
         goals = list of goal function value per iteration.
-        
+
     The data dictionaries should be as::
-    
+
         {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...]}
-         
-    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so 
+        'value':[data1, data2, ...], 'error':[error1, error2, ...]}
+
+    **NOTE**: Use :func:`fatiando.mesh.fill` to put the estimate in a  mesh so
     you can plot and save it (using ``pickle``).
     """
 
     for key in data:
         assert key in supported_fileds, \
             "Invalid gravity component (data key): %s" % (key)
-    
+
     log.info("Inversion parameters:")
     log.info("  damping     = %g" % (damping))
     log.info("  smoothness  = %g" % (smoothness))
@@ -585,26 +585,26 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     log.info("  beta        = %g" % (beta))
     log.info("  compactness = %g" % (compactness))
     log.info("  epsilon     = %g" % (epsilon))
-    
+
     global _mesh, _data, _data_vector
 
     _mesh = mesh
     _data = data
-        
+
     _data_vector = extract_data_vector(data)
-    
+
     log.info("  parameters = %d" % (mesh.size))
     log.info("  data = %d" % (len(_data_vector)))
 
     if initial is None:
-        
+
         initial = 10**(-7)*numpy.ones(mesh.size)
-                        
+
     # Overwrite the needed methods for solvers to work
     solvers._build_jacobian = _build_pgrav3d_jacobian
     solvers._build_first_deriv_matrix = _build_pgrav3d_first_deriv
     solvers._calc_adjustment = _calc_adjusted_vector
-    
+
     solvers.damping = damping
     solvers.smoothness = smoothness
     solvers.curvature = curvature
@@ -612,9 +612,9 @@ def solve(data, mesh, initial=None, damping=0, smoothness=0, curvature=0,
     solvers.beta = beta
     solvers.compactness = compactness
     solvers.epsilon = epsilon
-    
-    estimate, residuals, goals = solvers.lm(_data_vector, None, initial, 
-                                            lm_start, lm_step, max_steps, 
+
+    estimate, residuals, goals = solvers.lm(_data_vector, None, initial,
+                                            lm_start, lm_step, max_steps,
                                             max_it)
 
     return estimate, residuals, goals

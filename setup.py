@@ -94,7 +94,7 @@ pipe = os.popen('hg parents')
 csinfo = pipe.readlines()
 csfile = open(os.path.join('fatiando', 'csinfo.py'), 'w')
 csfile.write("csinfo = ")
-csfile.write(str(csinfo[:-1]))
+csfile.write(str(csinfo[:-2]))
 csfile.close()
 
 
