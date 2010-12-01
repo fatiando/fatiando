@@ -18,7 +18,7 @@ import fatiando.vis as vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('shallow_example.log')
+fatiando.utils.set_logfile('run_example.log')
 
 # Log a header with the current version info
 log.info(fatiando.utils.header())
@@ -41,6 +41,8 @@ data['gzz'] = gzz
 #data['gyz'] = gyz
 #data['gz'] = gz
 
+topo = io.load_topo('topo.txt')
+
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')
 synthetic = pickle.load(synth_file)
@@ -49,17 +51,17 @@ synth_file.close()
 # Generate a model space mesh
 x1, x2 = 0, 3000
 y1, y2 = 0, 3000
-z1, z2 = 0, 3000
+z1, z2 = -1*topo['h'].max(), 2000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=30, ny=30, nz=30)
+                                nx=30, ny=30, nz=20, topo=topo)
+
+# Just so I can plot it before running the inversion
+fatiando.mesh.fill(numpy.zeros(mesh.size), mesh, fillNone=False)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(gplant.get_seed((1651, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1651, 1651, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1651, 701), 1000, mesh))
+seeds.append(gplant.get_seed((1501, 1501, 201), 1000, mesh))
 
 # Make a mesh for the seeds to plot them
 seed_mesh = numpy.array([seed['cell'] for seed in seeds])
@@ -68,12 +70,15 @@ seed_mesh = numpy.array([seed['cell'] for seed in seeds])
 fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
 vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
-plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
+plot = vis.plot_prism_mesh(mesh, style='surface', label='Mesh', opacity=0.5)
+plot.actor.property.edge_visibility = 1
+plot.actor.property.line_width = 1
+plot = vis.plot_prism_mesh(seed_mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(2), power=3, 
+results = gplant.grow(data, mesh, seeds, compactness=10**(5), power=3, 
                       threshold=10**(-3), norm=2, neighbor_type='reduced',
                       jacobian_file=None, distance_type='cell')
 
@@ -81,17 +86,17 @@ estimate, residuals, misfits, goals = results
 
 adjusted = gplant.adjustment(data, residuals)
 
-fatiando.mesh.fill(estimate, mesh)
+fatiando.mesh.fill(estimate, mesh, fillNone=False)
 
 log.info("Pickling results")
 
 # Save the resulting model
-output = open('result.pickle', 'w')
+output = open('resultl2.pickle', 'w')
 pickle.dump(mesh, output)
 output.close()
 
 # Pickle the seeds for later reference
-seed_file = open("seeds.pickle", 'w')
+seed_file = open("seedsl2.pickle", 'w')
 pickle.dump(seeds, seed_file)
 seed_file.close()
 
@@ -116,8 +121,10 @@ pylab.legend(loc='upper left', prop={'size':9}, shadow=True)
 ax.set_yscale('log')
 ax.grid()
 
-pylab.savefig('residuals.png')
+pylab.savefig('residualsl2.png')
 
+plot.actor.property.edge_visibility = 1
+plot.actor.property.line_width = 1
 # Get the adjustment and plot it
 pylab.figure(figsize=(16,8))
 pylab.suptitle("Adjustment", fontsize=14)
@@ -133,7 +140,7 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
         vis.contour(adjusted[field], levels=levels, color='r', label='Adjusted')
         pylab.legend(loc='lower right', prop={'size':9}, shadow=True)
 
-pylab.savefig("adjustment.png")
+pylab.savefig("adjustmentl2.png")
 
 #pylab.figure()
 #pylab.suptitle("Adjustment", fontsize=14)
@@ -151,21 +158,25 @@ fig = mlab.figure()
 fig.scene.background = (0.1, 0.1, 0.1)
 vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 vis.plot_prism_mesh(seed_mesh, style='surface', label='Seed Density')
+# plot the mesh again so that I can view the topography with opacity
+plot = vis.plot_prism_mesh(mesh, style='surface', label='Mesh', opacity=0.45)
+plot.actor.property.edge_visibility = 1
+plot.actor.property.line_width = 1
 plot = vis.plot_prism_mesh(mesh, style='surface', label='Density')
 axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 
 # Plot the neighbours
-#for seed in seeds:
-#    
-#    neighbor_mesh = []
-#    
-#    for neighbor in seed['neighbors']:
-#        
-#        neighbor_mesh.append(mesh.ravel()[neighbor])
-#        
-#    neighbor_mesh = numpy.array(neighbor_mesh)
-#    
-#    fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
-#                                 label='neighbors', opacity=0.0)
+for seed in seeds:
+    
+    neighbor_mesh = []
+    
+    for neighbor in seed['neighbors']:
+        
+        neighbor_mesh.append(mesh.ravel()[neighbor])
+        
+    neighbor_mesh = numpy.array(neighbor_mesh)
+    
+    fatiando.vis.plot_prism_mesh(neighbor_mesh, style='surface', 
+                                 label='neighbors', opacity=0.0)
 
 mlab.show()

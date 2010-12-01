@@ -18,7 +18,7 @@ import fatiando.vis as vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('shallow_example.log')
+fatiando.utils.set_logfile('deep_example.log')
 
 # Log a header with the current version info
 log.info(fatiando.utils.header())
@@ -56,10 +56,8 @@ mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2,
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(gplant.get_seed((1651, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1651, 1651, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1651, 701), 1000, mesh))
+seeds.append(gplant.get_seed((1501, 1501, 1501), 1000, mesh))
+
 
 # Make a mesh for the seeds to plot them
 seed_mesh = numpy.array([seed['cell'] for seed in seeds])
@@ -73,7 +71,7 @@ axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(2), power=3, 
+results = gplant.grow(data, mesh, seeds, compactness=10**(4), power=3, 
                       threshold=10**(-3), norm=2, neighbor_type='reduced',
                       jacobian_file=None, distance_type='cell')
 

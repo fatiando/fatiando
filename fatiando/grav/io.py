@@ -52,7 +52,7 @@ def dump(fname, data, fmt='ascii'):
     
     Column format:
     
-    ``x  y  z  value  error``
+    ``x  y  z value  error``
       
     If the data is a grid, the first line of the file will contain the number
     of points in the x and y directions separated by a space.
@@ -232,5 +232,154 @@ def load(fname, fmt='ascii'):
         data['error'] = numpy.array(errors)
         
     log.info("  data loaded=%d" % (len(data['value'])))
+    
+    return data
+
+
+def dump_topo(fname, data, fmt='ascii'):
+    """
+    Save topography data to a file.
+    
+    Note: lines that start with # will be considered comments
+    
+    Column format:
+    
+    ``x  y  height``
+      
+    If the data is a grid, the first line of the file will contain the number
+    of points in the x and y directions separated by a space.
+    
+    Grids will be stored with x values varying first, then y. 
+    
+    Parameters:
+    
+    * fname
+        Either string with file name or file object
+    
+    * data
+        Topography data stored in a dictionary
+              
+    * fmt
+        File format. For now only supports ASCII
+        
+    The data dictionary must be such as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'h':[h1, h2, ...],
+         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
+    
+    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``
+    """
+    
+    if isinstance(fname, file):
+        
+        output = fname
+        
+    else:
+        
+        output = open(fname, 'w')
+        
+    log.info("Saving topography data to file '%s'" % (output.name))
+        
+    output.write("# File structure:\n")
+    if data['grid']:        
+        output.write("# nx  ny\n")
+    output.write("# x  y  height\n")
+    
+    if data['grid']:        
+        output.write("%d %d\n" % (data['nx'], data['ny']))
+        
+    for x, y, h in zip(data['x'], data['y'], data['h']):
+        
+        output.write("%f %f %f\n" % (x, y, h))
+        
+    output.close()
+    
+    
+def load_topo(fname, fmt='ascii'):
+    """
+    Load topography data from a file.
+    
+    Note: lines that start with # will be considered comments
+    
+    Column format:
+    
+    ``x  y  height``
+      
+    If the file contains grid data, the first line should contain the number
+    of points in the x and y directions separated by a space.
+    
+    Grids should be stored with x values varying first, then y. 
+    
+    Parameters:
+    
+    * fname
+        Either string with file name or file object
+                  
+    * fmt
+        File format. For now only supports ASCII
+      
+    Return:
+    
+    * data
+        Topography data stored in a dictionary.
+        
+    The data dictionary will be such as::
+    
+        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'h':[h1, h2, ...],
+         'grid':True or False, 'nx':points_in_x, 'ny':points_in_y}
+    
+    the keys ``nx`` and ``ny`` are only required if ``grid`` is ``True``        
+    """
+    
+    if isinstance(fname, file):
+        
+        input = fname
+        
+    else:
+        
+        input = open(fname, 'r')
+        
+    log.info("Loading topography data from file '%s'" % (input.name))
+       
+    data = {'grid':False}
+        
+    xs = []
+    ys = []
+    hs = []
+    
+    for l, line in enumerate(input):
+        
+        if line[0] == '#':
+            
+            continue
+        
+        args = line.strip().split(" ")
+        
+        if len(args) != 3:
+            
+            if len(args) == 2 and not hs:
+                
+                data['grid'] = True
+                data['nx'] = int(args[0])
+                data['ny'] = int(args[1])
+                
+            else:
+                
+                log.warning("  Wrong number of values in line %d." % (l + 1) + 
+                            " Ignoring it.")
+            
+            continue
+        
+        x, y, h = args
+        
+        xs.append(float(x))
+        ys.append(float(y))
+        hs.append(float(h))
+        
+    data['x'] = numpy.array(xs)
+    data['y'] = numpy.array(ys)
+    data['h'] = numpy.array(hs)
+        
+    log.info("  data loaded=%d" % (len(data['h'])))
     
     return data

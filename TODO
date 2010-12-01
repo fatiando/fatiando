@@ -21,7 +21,6 @@ Solvers
     * Make virtual functions public
     
 Mesh
-    * Make prism mesh with topography
     
 Vis
     * Plot a bounding box around the a prism mesh
@@ -47,6 +46,7 @@ GPlant
     * Implement adaptative learning
     * Unit tests
     * Make integration test
+    * Test if the arms always grow in the direction the seeds are too close
     
 PGrav
     * Use depth weights in compact inversion
@@ -91,6 +91,7 @@ Gravity
     * Put all constants used into a constants.py module and pass them to the C
       functions
     * Implement derivatives in equivalent layer
+    * Normalize Jacobian so that reg params are in range 0-1
     * Optimize equivalent layer
     * Implement equivalent data in equivalent layer (Mendonca)
     * Implement polynomial equivalent layer

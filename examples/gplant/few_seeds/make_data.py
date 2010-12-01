@@ -24,7 +24,11 @@ log.info(utils.header())
 
 # Make the prism model
 prisms = []
-prisms.append({'x1':1000, 'x2':2000, 'y1':1000, 'y2':2000, 'z1':400, 'z2':1000,
+prisms.append({'x1':1300, 'x2':2000, 'y1':1600, 'y2':2800, 'z1':200, 'z2':800,
+               'value':1000})
+prisms.append({'x1':1000, 'x2':1300, 'y1':700, 'y2':1900, 'z1':200, 'z2':400,
+               'value':1000})
+prisms.append({'x1':500, 'x2':1500, 'y1':200, 'y2':700, 'z1':200, 'z2':800,
                'value':1000})
 
 prisms = numpy.array(prisms)

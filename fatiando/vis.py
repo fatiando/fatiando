@@ -202,10 +202,10 @@ def ray_coverage(sources, receivers, linestyle='-k'):
         plot = pylab.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
 
     return plot[0]
+    
 
-
-def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
-                    invz=True):
+def plot_prism_mesh(mesh, key='value', style='surface', opacity=1., 
+                    label='scalar', invz=True):
     """
     Plot a 3D prism mesh using Mayavi2.
 
@@ -213,7 +213,11 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
 
     * mesh
         3D array-like prism mesh (see :func:`fatiando.mesh.prism_mesh`)
-
+        
+    * key 
+        Which key of the cell dictionaries in the mesh will be used as scalars.
+        Use ``None`` if you don't want to assign scalar values to the cells.
+    
     * style
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         wireframe
@@ -230,7 +234,8 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
     """
 
     assert style in ['surface', 'wireframe'], "Invalid style '%s'" % (style)
-
+    assert opacity <= 1., "Invalid opacity %g. Must be <= 1." % (opacity)
+    
     global mlab, tvtk
 
     if mlab is None:
@@ -246,9 +251,16 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
     start = 0   # To mark what index in the points the cell starts
     offsets = []
     offset = 0
-
+    mesh_size = 0
+        
     for cell in mesh.ravel():
-
+        
+        if key is not None and cell[key] is None:
+            
+            continue
+        
+        mesh_size += 1
+        
         x1, x2 = cell['x1'], cell['x2']
         y1, y2 = cell['y1'], cell['y2']
 
@@ -261,7 +273,7 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
             z1, z2 = cell['z1'], cell['z2']
 
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
-                    [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
+                       [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
 
         cells.append(8)
         cells.extend([i for i in xrange(start, start + 8)])
@@ -271,30 +283,30 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
         offset += 9
 
     cell_array = tvtk.CellArray()
-    cell_array.set_cells(mesh.size, numpy.array(cells))
-    cell_types = numpy.array([12]*mesh.size, 'i')
-
+    cell_array.set_cells(mesh_size, numpy.array(cells))
+    cell_types = numpy.array([12]*mesh_size, 'i')
+    
     vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
 
     vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
-
-    scalars = []
-
-    for cell in mesh.ravel():
-
-        if 'value' not in cell.keys():
-
-            scalars = numpy.zeros(mesh.size)
-
-            break
-
-        scalars = numpy.append(scalars, cell['value'])
-
-    vtkmesh.cell_data.scalars = scalars
-    vtkmesh.cell_data.scalars.name = label
-
-    dataset = mlab.pipeline.add_dataset(vtkmesh)
-
+    
+    if key is not None:
+        
+        scalars = []
+        
+        for cell in mesh.ravel():
+                       
+            if cell[key] is None:
+                
+                continue
+            
+            scalars = numpy.append(scalars, cell[key])
+            
+        vtkmesh.cell_data.scalars = scalars
+        vtkmesh.cell_data.scalars.name = label
+        
+    dataset = mlab.pipeline.add_dataset(vtkmesh)                       
+        
     if style == 'wireframe':
 
         surf = mlab.pipeline.surface(dataset, vmax=max(scalars),
@@ -309,15 +321,16 @@ def plot_prism_mesh(mesh, style='surface', opacity=1., label='scalar',
         extract.filter.merging = True
         thresh = mlab.pipeline.threshold(extract)
         surf = mlab.pipeline.surface(thresh, vmax=max(scalars),
-                                    vmin=min(scalars))
+                                     vmin=min(scalars))
         surf.actor.property.representation = 'surface'
         surf.actor.property.opacity = opacity
-
+        surf.actor.property.backface_culling = 1
+        
     return surf
 
 
 def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
-                    fillcolor='r', fillkey='value', alpha=1, label=''):
+                      fillcolor='r', fillkey='value', alpha=1, label=''):
     """
     Plot a 2d prism interface mesh.
 
@@ -426,9 +439,9 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
     """
 
     if data['grid']:
-
-        X, Y, Z = fatiando.utils.extract_matrices(data)
-
+        
+        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
+        
     else:
 
         if nx is None or ny is None:
@@ -460,8 +473,8 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
     return ct_data.levels
 
 
-def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
-            interp='nn', nx=None, ny=None):
+def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, 
+             interp='nn', nx=None, ny=None):
     """
     Make a filled contour plot of data.
 
@@ -505,9 +518,9 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
     """
 
     if data['grid']:
-
-        X, Y, Z = fatiando.utils.extract_matrices(data)
-
+        
+        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
+        
     else:
 
         if nx is None or ny is None:
@@ -534,7 +547,7 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
 
 def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
-        vmax=None, interp='nn', nx=None, ny=None):
+           vmax=None, interp='nn', nx=None, ny=None):
     """
     Make a pseudo-color plot of data.
 
@@ -575,15 +588,14 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     Returns:
 
-    * levels
-        List with the values of the contour levels
+    * ``matplitlib.axes`` element of the plot
 
     """
 
     if data['grid']:
-
-        X, Y, Z = fatiando.utils.extract_matrices(data)
-
+        
+        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
+        
     else:
 
         if nx is None or ny is None:

@@ -20,6 +20,12 @@ with it.
 
 Functions:
 
+* :func:`fatiando.grav.eqlayer.generate`
+    Generate an equivalent layer from the given data.
+
+* :func:`fatiando.grav.eqlayer.calculate`
+    Calculate a gravity field cause by *layer* on the grid **IN PLACE**. Used
+    to make the transformations.
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -111,9 +117,32 @@ def _build_first_deriv(layer):
 
 def generate(layer, data, damping=10**(-10), smoothness=10**(-10)):
     """
+    Generate an equivalent layer from the given data.
+
+    Parameters:
+
+    * layer
+        A grid with the position of the sources in the equivalent layer. The
+        density values of the layer will be inserted **IN PLACE** on *layer*.
+        Preferably a regular grid, but not necessary. (see :mod:`fatiando.grid`)
+
+    * data
+        Gravity data stored in a dictionary (see :mod:`fatiando.grid` and
+        :mod:`fatiando.grav.io`)
+
+    * damping
+        How much damping to apply in order to stabilize the solution. Must be a
+        **positive** value!
+
+    * smoothness
+        How much smoothness to apply to the layer in order to stabilize the
+        solution. Must be a **positive** value!
+
     """
 
     log.info("Solving for the mass distribution:")
+    log.info("  damping = %g" % (damping))
+    log.info("  smoothness = %g" % (smoothness))
 
     estimate = numpy.zeros_like(layer['x'])
 
@@ -174,7 +203,7 @@ def generate(layer, data, damping=10**(-10), smoothness=10**(-10)):
 
 def calculate(layer, grid, field='gz'):
     """
-    Calculate a gravity field cause by *layer* on the grid **IN PLACE**
+    Calculate a gravity field cause by *layer* on the *grid* **IN PLACE**
 
     Use this to upward-continue, interpolate and calculate other components as
     well as calculate the adjustment to the original data set.

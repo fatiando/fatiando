@@ -18,7 +18,7 @@ import fatiando.vis as vis
 log = fatiando.utils.get_logger()
 
 # Set logging to a file
-fatiando.utils.set_logfile('shallow_example.log')
+fatiando.utils.set_logfile('run_example.log')
 
 # Log a header with the current version info
 log.info(fatiando.utils.header())
@@ -49,17 +49,20 @@ synth_file.close()
 # Generate a model space mesh
 x1, x2 = 0, 3000
 y1, y2 = 0, 3000
-z1, z2 = 0, 3000
+z1, z2 = 0, 1000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=30, ny=30, nz=30)
+                                nx=60, ny=60, nz=20)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(gplant.get_seed((1651, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1651, 1651, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1351, 701), 1000, mesh))
-seeds.append(gplant.get_seed((1351, 1651, 701), 1000, mesh))
+seeds.append(gplant.get_seed((1601, 1801, 501), 1000, mesh))
+seeds.append(gplant.get_seed((1601, 2201, 501), 1000, mesh))
+seeds.append(gplant.get_seed((1601, 2601, 501), 1000, mesh))
+seeds.append(gplant.get_seed((1201, 401, 501), 1000, mesh))
+seeds.append(gplant.get_seed((701, 401, 501), 1000, mesh))
+#seeds.append(gplant.get_seed((1101, 1001, 301), 1000, mesh))
+
 
 # Make a mesh for the seeds to plot them
 seed_mesh = numpy.array([seed['cell'] for seed in seeds])
@@ -73,9 +76,9 @@ axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(2), power=3, 
-                      threshold=10**(-3), norm=2, neighbor_type='reduced',
-                      jacobian_file=None, distance_type='cell')
+results = gplant.grow(data, mesh, seeds, compactness=10**(-8), power=3, 
+                      threshold=10**(-4), norm=2, neighbor_type='reduced',
+                      jacobian_file=None, distance_type='radial')
 
 estimate, residuals, misfits, goals = results
 
@@ -86,12 +89,12 @@ fatiando.mesh.fill(estimate, mesh)
 log.info("Pickling results")
 
 # Save the resulting model
-output = open('result.pickle', 'w')
+output = open('resultl2.pickle', 'w')
 pickle.dump(mesh, output)
 output.close()
 
 # Pickle the seeds for later reference
-seed_file = open("seeds.pickle", 'w')
+seed_file = open("seedsl2.pickle", 'w')
 pickle.dump(seeds, seed_file)
 seed_file.close()
 
@@ -116,7 +119,7 @@ pylab.legend(loc='upper left', prop={'size':9}, shadow=True)
 ax.set_yscale('log')
 ax.grid()
 
-pylab.savefig('residuals.png')
+pylab.savefig('residualsl2.png')
 
 # Get the adjustment and plot it
 pylab.figure(figsize=(16,8))
@@ -133,7 +136,7 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
         vis.contour(adjusted[field], levels=levels, color='r', label='Adjusted')
         pylab.legend(loc='lower right', prop={'size':9}, shadow=True)
 
-pylab.savefig("adjustment.png")
+pylab.savefig("adjustmentl2.png")
 
 #pylab.figure()
 #pylab.suptitle("Adjustment", fontsize=14)

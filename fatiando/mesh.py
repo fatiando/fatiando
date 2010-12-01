@@ -45,6 +45,7 @@ __date__ = 'Created 13-Sep-2010'
 import logging
 
 import numpy
+import pylab
 
 import fatiando
 import fatiando.geometry as geometry
@@ -76,6 +77,12 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
     
     * nx, ny, nz
         Number of prisms in the x, y, and z directions
+        
+    * topo
+        Topography data in a dictionary (see :func:`fatiando.grav.io.load_topo`)
+        If not ``None``, mesh cells above the topography values will have their
+        'value' keys set to ``None`` so that they won't be plotted by
+        :func:`fatiando.vis.plot_prism_mesh`
           
     Returns:
     
@@ -127,8 +134,38 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
             plane.append(line)
             
         mesh.append(plane)
+        
+    mesh = numpy.array(mesh)
+    
+    if topo is not None:
+        
+        # The coordinates of the centers of the cells
+        x = numpy.arange(x1, x2, dx) + 0.5*dx
+        
+        if len(x) > nx:
             
-    return numpy.array(mesh)
+            x = x[:-1]
+        
+        y = numpy.arange(y1, y2, dy) + 0.5*dy
+        
+        if len(y) > ny:
+            
+            y = y[:-1]
+        
+        X, Y = pylab.meshgrid(x, y)
+                
+        # -1 if to transform height into z coordinate
+        topo_grid = -1*pylab.griddata(topo['x'], topo['y'], topo['h'], X, Y)
+        
+        for layer in mesh:
+            
+            for cell, ztopo in zip(layer.ravel(), topo_grid.ravel()) :
+            
+                if 0.5*(cell['z1'] + cell['z2']) <  ztopo:
+                    
+                    cell['value'] = None            
+            
+    return mesh
         
 
 def square_mesh(x1, x2, y1, y2, nx, ny):
@@ -269,16 +306,16 @@ def extract_key(key, mesh):
         
     res = numpy.reshape(res, mesh.shape)
     
-    return res    
-        
+    return res
+          
 
-def fill(estimate, mesh, key='value'):
+def fill(values, mesh, key='value', fillNone=True):
     """
-    Fill the ``key`` of each cell of a mesh with the values in *estimate*
-    
+    Fill the ``key`` of each cell of a mesh with *values*
+        
     Parameters:
     
-    * estimate
+    * values
         1D array-like vector with the scalar value of each cell (arranged as 
         mesh.ravel())
     
@@ -288,10 +325,18 @@ def fill(estimate, mesh, key='value'):
     * key
         Key to fill in the *mesh*
         
+    * fillNone
+        If ``False``, cells with their *key* already set to ``None`` will not be
+        filled. 
+        
     """
         
-    for value, cell in zip(estimate, mesh.ravel()):
+    for value, cell in zip(values, mesh.ravel()):
         
+        if not fillNone and key in cell and cell[key] is None:
+            
+            continue
+                
         cell[key] = value
     
     
