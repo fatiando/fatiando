@@ -25,21 +25,19 @@ log.info(fatiando.utils.header())
 
 # Load the synthetic data
 gzz = io.load('gzz_data.txt')
-#gxx = io.load('gxx_data.txt')
-#gxy = io.load('gxy_data.txt')
-#gxz = io.load('gxz_data.txt')
-#gyy = io.load('gyy_data.txt')
-#gyz = io.load('gyz_data.txt')
-#gz = io.load('gz_data.txt')
+gxx = io.load('gxx_data.txt')
+gxy = io.load('gxy_data.txt')
+gxz = io.load('gxz_data.txt')
+gyy = io.load('gyy_data.txt')
+gyz = io.load('gyz_data.txt')
 
 data = {}
 data['gzz'] = gzz
-#data['gxx'] = gxx
-#data['gxy'] = gxy
-#data['gxz'] = gxz
-#data['gyy'] = gyy
-#data['gyz'] = gyz
-#data['gz'] = gz
+data['gxx'] = gxx
+data['gxy'] = gxy
+data['gxz'] = gxz
+data['gyy'] = gyy
+data['gyz'] = gyz
 
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')
@@ -56,27 +54,28 @@ mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2,
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 seeds = []
-seeds.append(gplant.get_seed((1601, 1801, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1601, 2201, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1601, 2601, 501), 1000, mesh))
-seeds.append(gplant.get_seed((1201, 401, 501), 1000, mesh))
-seeds.append(gplant.get_seed((701, 401, 501), 1000, mesh))
-#seeds.append(gplant.get_seed((1101, 1001, 301), 1000, mesh))
+#seeds.append(gplant.get_seed((1601, 1601, 501), 1000, mesh))
+#seeds.append(gplant.get_seed((1601, 2001, 501), 1000, mesh))
+#seeds.append(gplant.get_seed((1601, 2401, 501), 1000, mesh))
+#seeds.append(gplant.get_seed((1201, 401, 501), 1000, mesh))
+#seeds.append(gplant.get_seed((701, 401, 501), 1000, mesh))
+seeds.append(gplant.get_seed((1601, 2001, 501), 1000, mesh))
+seeds.append(gplant.get_seed((1001, 501, 501), 1000, mesh))
 
 
 # Make a mesh for the seeds to plot them
 seed_mesh = numpy.array([seed['cell'] for seed in seeds])
 
 # Show the seeds first to confirm that they are right
-fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
-vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
-plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
-axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
-mlab.show()
+#fig = mlab.figure()
+#fig.scene.background = (0.1, 0.1, 0.1)
+#vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
+#plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
+#axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
+#mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(-8), power=3, 
+results = gplant.grow(data, mesh, seeds, compactness=10**(-4), power=3,
                       threshold=10**(-4), norm=2, neighbor_type='reduced',
                       jacobian_file=None, distance_type='radial')
 
