@@ -9,5 +9,26 @@ interface
     double precision intent(out) :: res
   end function sphere_gz
 
+  function sphere_gxx(dens, radius, xc, yc, zc, xp, yp, zp) result (res)
+    intent(c) sphere_gxx
+    intent(c)
+    double precision intent(in) :: dens, radius, xc, yc, zc, xp, yp, zp
+    double precision intent(out) :: res
+  end function sphere_gxx
+
+  function sphere_gyy(dens, radius, xc, yc, zc, xp, yp, zp) result (res)
+    intent(c) sphere_gyy
+    intent(c)
+    double precision intent(in) :: dens, radius, xc, yc, zc, xp, yp, zp
+    double precision intent(out) :: res
+  end function sphere_gyy
+
+  function sphere_gzz(dens, radius, xc, yc, zc, xp, yp, zp) result (res)
+    intent(c) sphere_gzz
+    intent(c)
+    double precision intent(in) :: dens, radius, xc, yc, zc, xp, yp, zp
+    double precision intent(out) :: res
+  end function sphere_gzz
+
 end interface
 end python module _sphere
