@@ -66,7 +66,29 @@ Parameters:
 extern double sphere_gz(double dens, double radius, double xc, double yc,
                         double zc, double xp, double yp, double zp);
 
-                 
+
+/* Calculates the components of the gravity gradient tensor caused by a sphere.
+
+The coordinate system of the input parameters is assumed to be
+    x->north, y->east; z->down.
+
+Input values in SI units and returns values in Eotvos!
+
+Parameters:
+    * double dens: density of the sphere;
+    * double radius: of the sphere;
+    * double xc, yc, zc: coordinates of the center of the sphere;
+    * double xp, yp, zp: coordinates of the point P where the effect will be
+                         calculated;
+*/
+extern double sphere_gxx(double dens, double radius, double xc, double yc,
+                         double zc, double xp, double yp, double zp);
+
+extern double sphere_gyy(double dens, double radius, double xc, double yc,
+                         double zc, double xp, double yp, double zp);
+
+extern double sphere_gyy(double dens, double radius, double xc, double yc,
+                         double zc, double xp, double yp, double zp);
 /* ************************************************************************** */
 
 #endif

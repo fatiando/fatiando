@@ -32,6 +32,7 @@
 
 
 /* Calculates the gz gravity component */
+
 double sphere_gz(double dens, double radius, double xc, double yc, double zc,
                  double xp, double yp, double zp)
 {
@@ -47,6 +48,67 @@ double sphere_gz(double dens, double radius, double xc, double yc, double zc,
     r_sqr = dx*dx + dy*dy + dz*dz;
 
     res = (double)(G*SI2MGAL*mass*dz/pow(r_sqr, 1.5));
+
+    return res;
+}
+
+/* Calculate the gravity gradient tensor components */
+
+double sphere_gxx(double dens, double radius, double xc, double yc, double zc,
+                  double xp, double yp, double zp)
+{
+    /* Variables */
+    double mass, dx, dy, dz, r_sqr, res;
+
+    mass = (double)(dens*4.*3.1415926535897931*radius*radius*radius)/3.;
+
+    dx = xc - xp;
+    dy = yc - yp;
+    dz = zc - zp;
+
+    r_sqr = dx*dx + dy*dy + dz*dz;
+
+    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dx*dx)/pow(r_sqr, 2.5));
+
+    return res;
+}
+
+
+double sphere_gyy(double dens, double radius, double xc, double yc, double zc,
+                  double xp, double yp, double zp)
+{
+    /* Variables */
+    double mass, dx, dy, dz, r_sqr, res;
+
+    mass = (double)(dens*4.*3.1415926535897931*radius*radius*radius)/3.;
+
+    dx = xc - xp;
+    dy = yc - yp;
+    dz = zc - zp;
+
+    r_sqr = dx*dx + dy*dy + dz*dz;
+
+    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dy*dy)/pow(r_sqr, 2.5));
+
+    return res;
+}
+
+
+double sphere_gzz(double dens, double radius, double xc, double yc, double zc,
+                  double xp, double yp, double zp)
+{
+    /* Variables */
+    double mass, dx, dy, dz, r_sqr, res;
+
+    mass = (double)(dens*4.*3.1415926535897931*radius*radius*radius)/3.;
+
+    dx = xc - xp;
+    dy = yc - yp;
+    dz = zc - zp;
+
+    r_sqr = dx*dx + dy*dy + dz*dz;
+
+    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dz*dz)/pow(r_sqr, 2.5));
 
     return res;
 }

@@ -214,7 +214,10 @@ def from_spheres(spheres, grid, field='gz'):
 
     """
 
-    fields = {'gz':fatiando.grav.sphere.gz,}
+    fields = {'gz':fatiando.grav.sphere.gz,
+              'gxx':fatiando.grav.sphere.gxx,
+              'gyy':fatiando.grav.sphere.gyy,
+              'gzz':fatiando.grav.sphere.gzz}
 
     assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
 

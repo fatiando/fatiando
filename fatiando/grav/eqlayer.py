@@ -224,9 +224,16 @@ def calculate(layer, grid, field='gz'):
 
     """
 
+    fields = {'gz':fatiando.grav.sphere.gz,
+              'gxx':fatiando.grav.sphere.gxx,
+              'gyy':fatiando.grav.sphere.gyy,
+              'gzz':fatiando.grav.sphere.gzz}
+
+    assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
+
     layer_it = zip(layer['x'], layer['y'], layer['z'], layer['value'])
 
     grid['value'] = [
-        sum([fatiando.grav.sphere.gz(dens, 1., xc, yc, zc, x, y, z)
+        sum([fields[field](dens, 1., xc, yc, zc, x, y, z)
             for xc, yc, zc, dens in layer_it])
         for x, y, z in zip(grid['x'], grid['y'], grid['z'])]
