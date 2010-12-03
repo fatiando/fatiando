@@ -68,7 +68,7 @@ double sphere_gxx(double dens, double radius, double xc, double yc, double zc,
 
     r_sqr = dx*dx + dy*dy + dz*dz;
 
-    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dx*dx)/pow(r_sqr, 2.5));
+    res = (double)(G*SI2EOTVOS*mass*(3*dx*dx - r_sqr)/pow(r_sqr, 2.5));
 
     return res;
 }
@@ -88,7 +88,7 @@ double sphere_gyy(double dens, double radius, double xc, double yc, double zc,
 
     r_sqr = dx*dx + dy*dy + dz*dz;
 
-    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dy*dy)/pow(r_sqr, 2.5));
+    res = (double)(G*SI2EOTVOS*mass*(3*dy*dy - r_sqr)/pow(r_sqr, 2.5));
 
     return res;
 }
@@ -108,7 +108,7 @@ double sphere_gzz(double dens, double radius, double xc, double yc, double zc,
 
     r_sqr = dx*dx + dy*dy + dz*dz;
 
-    res = (double)(G*SI2EOTVOS*mass*(r_sqr - 3*dz*dz)/pow(r_sqr, 2.5));
+    res = (double)(G*SI2EOTVOS*mass*(3*dz*dz - r_sqr)/pow(r_sqr, 2.5));
 
     return res;
 }

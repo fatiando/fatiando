@@ -231,9 +231,17 @@ def calculate(layer, grid, field='gz'):
 
     assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
 
+    log.info("Calculating %s component of equivalent layer:" % (field))
+
+    start = time.time()
+
     layer_it = zip(layer['x'], layer['y'], layer['z'], layer['value'])
 
     grid['value'] = [
         sum([fields[field](dens, 1., xc, yc, zc, x, y, z)
             for xc, yc, zc, dens in layer_it])
         for x, y, z in zip(grid['x'], grid['y'], grid['z'])]
+
+    end = time.time()
+
+    log.info("  time = %g s" % (end - start))

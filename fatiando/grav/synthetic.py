@@ -21,6 +21,9 @@ Functions:
 
 * :func:`fatiando.grav.synthetic.from_prisms`
     Create synthetic data from a prism model.
+
+* :func:`fatiando.grav.synthetic.from_spheres`
+    Create synthetic gravity data from a model made of spheres.
     
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
