@@ -10,14 +10,14 @@ algorithms.
 We hope that one day it will also serve as a teaching tool for modeling and inverse
 problems in geophysics.
 
-*Fatiando* make heavy use of `Numpy <http://numpy.scipy.org/>`_ for linear algebra
-operations and provides an interface to visualise our data structures using
+*Fatiando* makes heavy use of `Numpy <http://numpy.scipy.org/>`_ for linear algebra
+operations and provides a high level interface to visualise our data structures using
 `Matplotlib <http://matplotlib.sourceforge.net/index.html>`_ for 2D and
 `Mayavi2 <http://code.enthought.com/projects/mayavi>`_ for 3D.
 Optimized code is written in Fortran and C and wrapped to Python using Numpy's
 f2py. 
 
-For the moment, *Fatiando* is still under development and there has not been a
+For the moment, *Fatiando* is still **under** **development** and there has not been a
 release yet. You can checkout our Google Code 
 `project site <http://code.google.com/p/fatiando/>`_ for more information.
 
