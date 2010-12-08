@@ -31,6 +31,9 @@ Functions:
 * :func:`fatiando.grid.copy`
     Return a copy of *grid*.
 
+* :func:`fatiando.grid.cut`
+    Remove a subsection of the grid.
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
@@ -252,5 +255,54 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
         subgrid['nx'] = grid1['nx']
         subgrid['ny'] = grid1['ny']
         subgrid['grid'] = True
+
+    return subgrid
+
+
+def cut(grid, xmin, xmax, ymin, ymax):
+    """
+    Remove a subsection of the grid.
+
+    Parameters:
+
+    * grid
+        Grid stored in a dictionary.
+
+    * xmin, xmax
+        Limits of the subsection in the x direction.
+
+    * ymin, ymax
+        Limits of the subsection in the y direction.
+
+    Returns:
+
+    * subgrid
+        Grid stored in a dictionary.
+
+    """
+
+    subgrid = {}
+
+    for key in grid:
+
+        if isinstance(grid[key], numpy.ndarray):
+
+            subgrid[key] = []
+
+    for i, pos in enumerate(zip(grid['x'], grid['y'])):
+
+        x, y = pos
+
+        if x >= xmin and x <= xmax and y >= ymin and y <= ymax:
+
+            for key in subgrid:
+
+                subgrid[key].append(grid[key][i])
+
+    for key in subgrid:
+
+        subgrid[key] = numpy.array(subgrid[key])
+
+    subgrid['grid'] = False
 
     return subgrid

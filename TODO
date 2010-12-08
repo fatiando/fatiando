@@ -21,6 +21,11 @@ Solvers
     * Make virtual functions public
     
 Mesh
+
+
+Grid
+    * Fix 'grid', 'nx', and 'ny' in grid.cut
+
     
 Vis
     * Plot a bounding box around the a prism mesh
@@ -48,6 +53,7 @@ GPlant
     * Make integration test
     * Test if the arms always grow in the direction the seeds are too close
     * Fix few seeds example
+    * Make synthetic with boa
     
 PGrav
     * Use depth weights in compact inversion
