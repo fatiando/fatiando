@@ -47,7 +47,7 @@ GPlant
     * Unit tests
     * Make integration test
     * Test if the arms always grow in the direction the seeds are too close
-    * Fix complex and few seeds examples
+    * Fix few seeds example
     
 PGrav
     * Use depth weights in compact inversion

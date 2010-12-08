@@ -210,9 +210,9 @@ def _radial_distance(cell, seed):
     
     # This is the same thing as calculating the x, y, z distance between the 
     # center of the cells
-    x_distance = abs(cell['x1'] - seed['cell']['x1'])
-    y_distance = abs(cell['y1'] - seed['cell']['y1'])
-    z_distance = abs(cell['z1'] - seed['cell']['z1'])
+    x_distance = abs(cell['x1'] - seed['cell']['x1'])/(cell['x2'] - cell['x1'])
+    y_distance = abs(cell['y1'] - seed['cell']['y1'])/(cell['y2'] - cell['y1'])
+    z_distance = abs(cell['z1'] - seed['cell']['z1'])/(cell['z2'] - cell['z1'])
     
     distance = math.sqrt(x_distance**2 + y_distance**2 + z_distance**2)
     
