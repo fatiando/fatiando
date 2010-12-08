@@ -33,11 +33,11 @@ gyz = io.load('gyz_data.txt')
 
 data = {}
 data['gzz'] = gzz
-#data['gxx'] = gxx
-#data['gxy'] = gxy
-#data['gxz'] = gxz
-#data['gyy'] = gyy
-#data['gyz'] = gyz
+data['gxx'] = gxx
+data['gxy'] = gxy
+data['gxz'] = gxz
+data['gyy'] = gyy
+data['gyz'] = gyz
 
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')
@@ -49,51 +49,69 @@ x1, x2 = 0, 5000
 y1, y2 = 0, 5000
 z1, z2 = 0, 1000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=50, ny=50, nz=10)
+                                nx=100, ny=100, nz=20)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
 
 seedpoints = []
-seedpoints.append(((901, 401, 301), 700))
-seedpoints.append(((901, 601, 301), 700))
-seedpoints.append(((901, 801, 301), 700))
-seedpoints.append(((901, 1001, 301), 700))
-seedpoints.append(((901, 1201, 301), 700))
-seedpoints.append(((901, 1401, 301), 700))
-seedpoints.append(((901, 1601, 301), 700))
-seedpoints.append(((901, 1801, 301), 700))
-seedpoints.append(((901, 2001, 301), 700))
-seedpoints.append(((901, 2201, 301), 700))
-seedpoints.append(((901, 2401, 301), 700))
-seedpoints.append(((901, 2601, 301), 700))
-seedpoints.append(((901, 2801, 301), 700))
-seedpoints.append(((901, 3001, 301), 700))
-seedpoints.append(((901, 3201, 301), 700))
-seedpoints.append(((901, 3401, 301), 700))
-seedpoints.append(((901, 3601, 301), 700))
-seedpoints.append(((901, 3801, 301), 700))
-seedpoints.append(((901, 4001, 301), 700))
+#seedpoints.append(((901, 401, 301), 1300))
+#seedpoints.append(((901, 601, 301), 1300))
+#seedpoints.append(((901, 801, 301), 1300))
+#seedpoints.append(((901, 1001, 301), 1300))
+#seedpoints.append(((901, 1201, 301), 1300))
+#seedpoints.append(((901, 1401, 301), 1300))
+#seedpoints.append(((901, 1601, 301), 1300))
+#seedpoints.append(((901, 1801, 301), 1300))
+#seedpoints.append(((901, 2001, 301), 1300))
+#seedpoints.append(((901, 2201, 301), 1300))
+#seedpoints.append(((901, 2401, 301), 1300))
+#seedpoints.append(((901, 2601, 301), 1300))
+#seedpoints.append(((901, 2801, 301), 1300))
+#seedpoints.append(((901, 3001, 301), 1300))
+#seedpoints.append(((901, 3201, 301), 1300))
+#seedpoints.append(((901, 3401, 301), 1300))
+#seedpoints.append(((901, 3601, 301), 1300))
+#seedpoints.append(((901, 3801, 301), 1300))
+#seedpoints.append(((901, 4001, 301), 1300))
 seedpoints.append(((3701, 1201, 501), 1000))
 seedpoints.append(((3201, 1201, 501), 1000))
 seedpoints.append(((3701, 1701, 501), 1000))
 seedpoints.append(((3201, 1701, 501), 1000))
-seedpoints.append(((2951, 3951, 301), 900))
-seedpoints.append(((2951, 3951, 701), 900))
-seedpoints.append(((1701, 2751, 301), 800))
-seedpoints.append(((1901, 2751, 301), 800))
-seedpoints.append(((2101, 2751, 301), 800))
-seedpoints.append(((2301, 2751, 301), 800))
-seedpoints.append(((2501, 2751, 301), 800))
-seedpoints.append(((2701, 2751, 301), 800))
-seedpoints.append(((2901, 2751, 301), 800))
-seedpoints.append(((3101, 2751, 301), 800))
-seedpoints.append(((3301, 2751, 301), 800))
-seedpoints.append(((3501, 2751, 301), 800))
-seedpoints.append(((3701, 2751, 301), 800))
-seedpoints.append(((3901, 2751, 301), 800))
-seedpoints.append(((4101, 2751, 301), 800))
-seedpoints.append(((4301, 2751, 301), 800))
+#seedpoints.append(((2951, 3951, 301), 1200))
+#seedpoints.append(((2951, 3951, 701), 1200))
+#seedpoints.append(((1701, 2751, 301), 1500))
+#seedpoints.append(((1901, 2751, 301), 1500))
+#seedpoints.append(((2101, 2751, 301), 1500))
+#seedpoints.append(((2301, 2751, 301), 1500))
+#seedpoints.append(((2501, 2751, 301), 1500))
+#seedpoints.append(((2701, 2751, 301), 1500))
+#seedpoints.append(((2901, 2751, 301), 1500))
+#seedpoints.append(((3101, 2751, 301), 1500))
+#seedpoints.append(((3301, 2751, 301), 1500))
+#seedpoints.append(((3501, 2751, 301), 1500))
+#seedpoints.append(((3701, 2751, 301), 1500))
+#seedpoints.append(((3901, 2751, 301), 1500))
+#seedpoints.append(((4101, 2751, 301), 1500))
+#seedpoints.append(((4301, 2751, 301), 1500))
+seedpoints.append(((901, 701, 301), 1300))
+seedpoints.append(((901, 1201, 301), 1300))
+seedpoints.append(((901, 1701, 301), 1300))
+seedpoints.append(((901, 2201, 301), 1300))
+seedpoints.append(((901, 2701, 301), 1300))
+seedpoints.append(((901, 3201, 301), 1300))
+seedpoints.append(((901, 3701, 301), 1300))
+#seedpoints.append(((3601, 1301, 501), 1000))
+#seedpoints.append(((3301, 1301, 501), 1000))
+#seedpoints.append(((3601, 1601, 501), 1000))
+#seedpoints.append(((3301, 1601, 501), 1000))
+seedpoints.append(((2951, 3951, 301), 1200))
+seedpoints.append(((2951, 3951, 701), 1200))
+seedpoints.append(((2001, 2751, 301), 1500))
+seedpoints.append(((2501, 2751, 301), 1500))
+seedpoints.append(((3001, 2751, 301), 1500))
+seedpoints.append(((3501, 2751, 301), 1500))
+seedpoints.append(((4001, 2751, 301), 1500))
 
 seeds = [gplant.get_seed(point, dens, mesh) for point, dens in seedpoints]
 
@@ -101,16 +119,16 @@ seeds = [gplant.get_seed(point, dens, mesh) for point, dens in seedpoints]
 seed_mesh = numpy.array([seed['cell'] for seed in seeds])
 
 # Show the seeds first to confirm that they are right
-#fig = mlab.figure()
-#fig.scene.background = (0.1, 0.1, 0.1)
-#vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
-#plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
-#axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
-#mlab.show()
+fig = mlab.figure()
+fig.scene.background = (0.1, 0.1, 0.1)
+vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
+plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
+axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
+mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(10), power=7,
-                      threshold=1*10**(-4), norm=2, neighbor_type='reduced',
+results = gplant.grow(data, mesh, seeds, compactness=10**(15), power=5,
+                      threshold=10**(-5), norm=2, neighbor_type='reduced',
                       jacobian_file=None, distance_type='radial')
 
 estimate, residuals, misfits, goals = results
