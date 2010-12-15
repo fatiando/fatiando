@@ -423,9 +423,11 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
     * xkey
         Key in *data* with the x coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.
@@ -505,9 +507,11 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
     * xkey
         Key in *data* with the x coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.
@@ -578,9 +582,11 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     * xkey
         Key in *data* with the x coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
+        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.

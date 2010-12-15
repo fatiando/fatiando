@@ -15,3 +15,4 @@
    sphere.rst
    synthetic.rst
    transform.rst
+   eqlayer.rst

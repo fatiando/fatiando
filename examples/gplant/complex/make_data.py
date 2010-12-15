@@ -8,10 +8,8 @@ import pylab
 import numpy
 from enthought.mayavi import mlab
 
-import fatiando.grav.synthetic as synthetic
-import fatiando.grav.io as io
-import fatiando.utils as utils
-import fatiando.vis as vis
+from fatiando.grav import synthetic, io
+from fatiando import utils, vis, geometry
 
 # Get a logger for the script
 log = utils.get_logger()
@@ -24,14 +22,14 @@ log.info(utils.header())
 
 # Make the prism model
 prisms = []
-prisms.append({'x1':600, 'x2':1200, 'y1':200, 'y2':4200, 'z1':100, 'z2':600,
-'value':1300})
-prisms.append({'x1':3000, 'x2':4000, 'y1':1000, 'y2':2000, 'z1':200, 'z2':800,
-'value':1000})
-prisms.append({'x1':2700, 'x2':3200, 'y1':3700, 'y2':4200, 'z1':0, 'z2':900,
-'value':1200})
-prisms.append({'x1':1500, 'x2':4500, 'y1':2500, 'y2':3000, 'z1':100, 'z2':500,
-'value':1500})
+prisms.append(geometry.prism(x1=600, x2=1200, y1=200, y2=4200, z1=100, z2=600,
+                             props={'value':1300}))
+prisms.append(geometry.prism(x1=3000, x2=4000, y1=1000, y2=2000, z1=200, z2=800,
+                             props={'value':1000}))
+prisms.append(geometry.prism(x1=2700, x2=3200, y1=3700, y2=4200, z1=0, z2=900,
+                             props={'value':1200}))
+prisms.append(geometry.prism(x1=1500, x2=4500, y1=2500, y2=3000, z1=100, z2=500,
+                             props={'value':1500}))
 
 prisms = numpy.array(prisms)
 
@@ -91,16 +89,13 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     data['error'] = error*numpy.ones(len(data['value']))
 
     io.dump('%s_data.txt' % (field), data)
-    
+
     pylab.subplot(2, 3, i + 1)
     pylab.axis('scaled')
     pylab.title(field)
     vis.contourf(data, 10)
     cb = pylab.colorbar()
     cb.set_label(r'$E\"otv\"os$')
-    
-    pylab.xlim(data['x'].min(), data['x'].max())
-    pylab.ylim(data['y'].min(), data['y'].max())
 
 pylab.savefig("data_ftg.png")
 

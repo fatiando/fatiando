@@ -7,11 +7,11 @@ General
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
-    * Change the synthetic prism models in grav to use the grid module
-    * Change the synthetic prism models in grav to use the geometry module
     * Move contaminate from utils to stats
     * Allow contaminate to receive grids
     * Make a tool to remove trailing spaces from files
+    * Move all the subpackage.io to a single fatiando.io module. Need to make a
+      grid and profile data format
     
 Solvers
     * Unit tests
@@ -25,7 +25,8 @@ Mesh
 
 Grid
     * Fix 'grid', 'nx', and 'ny' in grid.cut
-
+    * Move utils.extract_matrices to grid.py
+    * Make random grid
     
 Vis
     * Plot a bounding box around the a prism mesh
@@ -102,6 +103,7 @@ Gravity
     * Optimize equivalent layer
     * Implement equivalent data in equivalent layer (Mendonca)
     * Implement polynomial equivalent layer
+    * Make all synthetic functions receive a grid object
     
 WaveFD:
     * Port to Fortran

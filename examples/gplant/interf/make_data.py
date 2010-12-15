@@ -26,7 +26,7 @@ log.info(utils.header())
 prisms = []
 prisms.append({'x1':1300, 'x2':2000, 'y1':1300, 'y2':2400, 'z1':200, 'z2':800,
                'value':1000})
-prisms.append({'x1':0, 'x2':700, 'y1':0, 'y2':700, 'z1':200, 'z2':800,
+prisms.append({'x1':300, 'x2':1000, 'y1':300, 'y2':1000, 'z1':200, 'z2':800,
                'value':-1500})
 
 prisms = numpy.array(prisms)

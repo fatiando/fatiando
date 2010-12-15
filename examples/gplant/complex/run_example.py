@@ -49,7 +49,7 @@ x1, x2 = 0, 5000
 y1, y2 = 0, 5000
 z1, z2 = 0, 1000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
-                                nx=100, ny=100, nz=20)
+                                nx=50, ny=50, nz=10)
 
 # Set the seeds and save them for later use
 log.info("Getting seeds from mesh:")
@@ -128,7 +128,7 @@ mlab.show()
 
 # Run the inversion
 results = gplant.grow(data, mesh, seeds, compactness=10**(15), power=5,
-                      threshold=10**(-5), norm=2, neighbor_type='reduced',
+                      threshold=5*10**(-4), norm=2, neighbor_type='reduced',
                       jacobian_file=None, distance_type='radial')
 
 estimate, residuals, misfits, goals = results
@@ -139,15 +139,18 @@ fatiando.mesh.fill(estimate, mesh)
 
 log.info("Pickling results")
 
-# Save the resulting model
-output = open('result.pickle', 'w')
+# Save the results
+output = open('mesh.pickle', 'w')
 pickle.dump(mesh, output)
 output.close()
 
-# Pickle the seeds for later reference
 seed_file = open("seeds.pickle", 'w')
 pickle.dump(seeds, seed_file)
 seed_file.close()
+
+res_file = open("results.pickle", 'w')
+pickle.dump(results, res_file)
+res_file.close()
 
 log.info("Plotting")
 
@@ -170,11 +173,11 @@ pylab.legend(loc='upper left', prop={'size':9}, shadow=True)
 ax.set_yscale('log')
 ax.grid()
 
-pylab.savefig('residuals.png')
+pylab.savefig('residuals.pdf')
 
 # Get the adjustment and plot it
 pylab.figure(figsize=(16,8))
-pylab.suptitle("Adjustment", fontsize=14)
+pylab.suptitle(r'Adjustment [$E\"otv\"os$]', fontsize=14)
 
 for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     
@@ -187,7 +190,7 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
         vis.contour(adjusted[field], levels=levels, color='r', label='Adjusted')
         #pylab.legend(loc='lower left', prop={'size':9}, shadow=True)
 
-pylab.savefig("adjustment.png")
+pylab.savefig("adjustment.pdf")
 
 #pylab.figure()
 #pylab.suptitle("Adjustment", fontsize=14)
@@ -196,7 +199,7 @@ pylab.savefig("adjustment.png")
 #levels = vis.contour(data['gz'], levels=5, color='b', label='Data')
 #vis.contour(adjusted['gz'], levels=levels, color='r', label='Adjusted')
 #pylab.legend(loc='lower right', prop={'size':9}, shadow=True)
-#pylab.savefig('adjustment-gz.png')
+#pylab.savefig('adjustment-gz.pdf')
 
 pylab.show()
 
@@ -206,8 +209,6 @@ fig.scene.background = (0.1, 0.1, 0.1)
 vis.plot_prism_mesh(synthetic, style='wireframe', label='Synthetic')
 vis.plot_prism_mesh(seed_mesh, style='surface', label='Seeds')
 plot = vis.plot_prism_mesh(mesh, style='surface', label='Density')
-plot.actor.property.edge_visibility = 1
-plot.actor.property.line_width = 1
 axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
 
 # Plot the neighbours

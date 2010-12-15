@@ -33,19 +33,20 @@ The *Fatiando* *a* *Terra* docs are currently available in HTML format:
         Description of the *Fatiando* *a* *Terra* API
         
     * :ref:`cookbook`
-        Example scripts of common tasks
+        Example scripts of common tasks (**UNDER DEVELOPMENT**)
+        
+    * :ref:`theory`
+        Some theorical background and notation (**UNDER DEVELOPMENT**)
 
 A taste of what's comming
 =========================
 
-This is an example non-linear gravity inversion run using module
+This is an example non-linear gravity inversion using module
 :ref:`InterG2D <inversion_interg2d>`. The inversion was run on synthetic gravity
 data generated using module :ref:`fatiando.grav.synthetic <grav_synthetic>`.
 The graphs where plotted using module :ref:`fatiando.vis <vis>` as an interface
-to `Matplotlib <http://matplotlib.sourceforge.net/index.html>`_.
-Bellow is the script used to generate the data, perform the inversion
-and make the plot.
-
-[`source code <_static/interg_smooth.py>`_]
+to Matplotlib.
+The script used to generate the data, perform the inversion
+and make the plot is avaliable `here <_static/interg_smooth.py>`_.
 
 .. image:: _static/interg_smooth.png

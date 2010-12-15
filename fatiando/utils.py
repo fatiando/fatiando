@@ -187,9 +187,9 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
         return cont_data
     
     
-def extract_matrices(grid, key='value'):
+def extract_matrices(grid, vkey='value'):
     """
-    Extract x, y and *key* coordinate matrices from a grid dictionary. 
+    Extract x, y and value coordinate matrices from a grid dictionary.
     
     Use to plot using matplotlib. 
     
@@ -197,17 +197,16 @@ def extract_matrices(grid, key='value'):
     
     * grid
         Data grid stored in a dictionary
+
+    * vkey
+        The key containg the values of the V matrix
             
     Return:
         
     * [X, Y, V]
-        Matrices with the values of x, y and ``value`` at each grid point
+        Matrices with the values of x, y and *vkey* at each grid point
         
-    The data dictionary should be as::
-    
-        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...],
-         'grid':True, 'nx':points_in_x, 'ny':points_in_y}
+    The data dictionary should be as produced :mod:`fatiando.grid`
                
     """
 
@@ -218,6 +217,6 @@ def extract_matrices(grid, key='value'):
     
     X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
     Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
-    V = numpy.reshape(grid[key], (grid['ny'], grid['nx']))
+    V = numpy.reshape(grid[vkey], (grid['ny'], grid['nx']))
     
     return X, Y, V
