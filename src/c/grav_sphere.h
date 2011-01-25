@@ -87,7 +87,7 @@ extern double sphere_gxx(double dens, double radius, double xc, double yc,
 extern double sphere_gyy(double dens, double radius, double xc, double yc,
                          double zc, double xp, double yp, double zp);
 
-extern double sphere_gyy(double dens, double radius, double xc, double yc,
+extern double sphere_gzz(double dens, double radius, double xc, double yc,
                          double zc, double xp, double yp, double zp);
 /* ************************************************************************** */
 
