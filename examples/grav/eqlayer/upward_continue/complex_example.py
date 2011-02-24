@@ -37,11 +37,11 @@ data['value'] = utils.contaminate(data['value'], stddev=0.2, percent=False)
 log.info("########################################")
 log.info("Generating equivalent layer:")
 
-#layer = grid.regular(-500, 5500, -500, 5500, 30, 30, 1000)
-layer = grid.regular(-500, 5500, -500, 5500, 30, 30, 2000)
+layer = grid.regular(-500, 5500, -500, 5500, 30, 30, 1000)
+#layer = grid.regular(-500, 5500, -500, 5500, 30, 30, 2000)
 
-#residuals = eqlayer.generate(layer, data, damping=10**(-30), smoothness=10**(-22))
-residuals = eqlayer.generate(layer, data, damping=10**(-26), smoothness=0)
+residuals = eqlayer.generate(layer, data, damping=10**(-30), smoothness=10**(-22))
+#residuals = eqlayer.generate(layer, data, damping=10**(-26), smoothness=0)
 
 # Calculate the adjustment
 adjusted = grid.copy(data)

@@ -34,7 +34,7 @@ modelfile.close()
 mesh = fatiando.mesh.line_mesh(0, 5000, 50)
 
 # Define the inversion parameters
-density = -500.
+density = -200.
 ref_surf = numpy.zeros(mesh.size)
 initial = 1000*numpy.ones(mesh.size)
 

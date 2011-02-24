@@ -33,11 +33,11 @@ gyz = io.load('gyz_data.txt')
 
 data = {}
 data['gzz'] = gzz
-data['gxx'] = gxx
-data['gxy'] = gxy
-data['gxz'] = gxz
-data['gyy'] = gyy
-data['gyz'] = gyz
+#data['gxx'] = gxx
+#data['gxy'] = gxy
+#data['gxz'] = gxz
+#data['gyy'] = gyy
+#data['gyz'] = gyz
 
 # Load the synthetic model for comparison
 synth_file = open('model.pickle')

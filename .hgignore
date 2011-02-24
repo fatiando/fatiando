@@ -2,3 +2,7 @@ syntax: glob
 
 ./.sconsign.dblite
 ./fatiando/csinfo.py
+*.pyc
+*.so
+doc/userguide/_build
+build

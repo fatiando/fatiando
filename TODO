@@ -1,7 +1,9 @@
 General
+    * Rename fatiando package to fat (both abreviation and acronym)
     * Write README
     * Write docs for the inverse problem theory
-    * Make example wikis
+    * Make the examples into the cookbook
+    * Make docs describing examples and link in main docs
     * Make tutorial for implementing new inversion
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
@@ -12,6 +14,7 @@ General
     * Make a tool to remove trailing spaces from files
     * Move all the subpackage.io to a single fatiando.io module. Need to make a
       grid and profile data format
+    * Make only one script for the examples and include plots in Hg
     
 Solvers
     * Unit tests
@@ -21,15 +24,17 @@ Solvers
     * Make virtual functions public
     
 Mesh
-
+    * Standardize data structures
 
 Grid
     * Fix 'grid', 'nx', and 'ny' in grid.cut
     * Move utils.extract_matrices to grid.py
     * Make random grid
+    * Standardize data structures and I/O format
     
 Vis
     * Plot a bounding box around the a prism mesh
+    * Get rid of invz argument for plot_prism_mesh because it's not needed if x is north
    
 Stats
     * Unit tests
