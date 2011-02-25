@@ -230,6 +230,8 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
     assert len(grid1[key1]) == len(grid2[key2]), \
         "Grids must have same number of points!"
 
+    # TODO: Check is 'grid' is the same in both
+
     value = []
 
     vappend = value.append
@@ -250,11 +252,13 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
 
     subgrid = {'x':grid1['x'], 'y':grid1['y'], 'value':numpy.array(value)}
 
-    if 'grid' in grid1 and grid1['grid'] and 'grid' in grid2 and grid2['grid']:
+    if 'grid' in grid1 or 'grid' in grid2:
 
-        subgrid['nx'] = grid1['nx']
-        subgrid['ny'] = grid1['ny']
-        subgrid['grid'] = True
+        subgrid['grid'] = grid1['grid']
+
+        if grid1['grid'] and grid2['grid']:
+            subgrid['nx'] = grid1['nx']
+            subgrid['ny'] = grid1['ny']
 
     return subgrid
 
