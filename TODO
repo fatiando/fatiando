@@ -34,7 +34,6 @@ Grid
     
 Vis
     * Plot a bounding box around the a prism mesh
-    * Get rid of invz argument for plot_prism_mesh because it's not needed if x is north
    
 Stats
     * Unit tests
