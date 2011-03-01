@@ -975,7 +975,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
     for i, cell in enumerate(mesh.ravel()):
         
         if 'value' in cell and cell['value'] is None:
-            
+
             estimate[i] = None
             
             nparams -= 1
@@ -1013,6 +1013,7 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
     log.info("Growing density model:")
     log.info("  parameters = %d" % (nparams))
     log.info("  data = %d" % (len(residuals)))
+    log.info("  seeds = %d" % (len(seeds)))
     log.info("  compactness = %g" % (compactness))
     log.info("  power = %g" % (power))
     log.info("  threshold = %g" % (threshold))
@@ -1105,7 +1106,9 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
                     seed['distances'].append(distance)
                     
                 seed['neighbors'].extend(new_neighbors)
-                                
+
+                # TODO: len(estimate) is not the real size of the estimate
+                # because of the Nones
                 log.info(''.join(['    append to seed %d:' % (seed_num + 1),
                                   ' size=%d' % (len(estimate)),
                                   ' neighbors=%d' % (len(seed['neighbors'])),

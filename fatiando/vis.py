@@ -473,7 +473,7 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
         Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
 
-    ct_data = pylab.contour(X, Y, Z, levels, colors=color)
+    ct_data = pylab.contour(X, Y, Z, levels, colors=color, picker=True)
 
     ct_data.clabel(fmt='%g')
 
@@ -554,7 +554,7 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
         Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
 
-    ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap)
+    ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap, picker=True)
 
     pylab.xlim(X.min(), X.max())
 
@@ -633,11 +633,12 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     if vmin is None or vmax is None:
 
-        plot = pylab.pcolor(X, Y, Z, cmap=cmap)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, picker=True)
 
     else:
 
-        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax,
+                            picker=True)
 
     pylab.xlim(X.min(), X.max())
 

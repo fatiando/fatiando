@@ -30,16 +30,25 @@ model.append({'x1':1000, 'x2':2000, 'y1':1000, 'y2':2000, 'z1':1000, 'z2':2000,
                'value':1000})
 model = numpy.array(model)
 
+x1, x2 = 0, 3000
+y1, y2 = 0, 3000
+z1, z2 = 0, 3000
+extent = [x1, x2, y1, y2, -z2, -z1]
+
 # Show the model before calculating to make sure it's right
 fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.background = (1, 1, 1)
 plot = vis.plot_prism_mesh(model, style='surface')
-axes = mlab.axes(plot, nb_labels=5, extent=[0,3000,0,3000,-3000,0])
+axes = mlab.axes(plot, nb_labels=5, extent=extent, color=(0,0,0))
+axes.label_text_property.color = (0,0,0)
+axes.title_text_property.color = (0,0,0)
+axes.axes.label_format = "%-#.0f"
+mlab.outline(color=(0,0,0), extent=extent)
 mlab.show()
 
 # Now calculate all the components of the gradient tensor and contaminate the
 # data with gaussian noise
-error = 1
+error = 0.5
 data = {}
 for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     data[field] = synthetic.from_prisms(model, x1=0, x2=3000, y1=0, y2=3000,
@@ -53,9 +62,6 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
 # PERFORM THE INVERSION
 ################################################################################
 # Generate a prism mesh
-x1, x2 = 0, 3000
-y1, y2 = 0, 3000
-z1, z2 = 0, 3000
 mesh = fatiando.mesh.prism_mesh(x1=x1, x2=x2, y1=y1, y2=y2, z1=z1, z2=z2, 
                                 nx=30, ny=30, nz=30)
 
@@ -69,10 +75,14 @@ seed_mesh = numpy.array([seed['cell'] for seed in seeds])
 
 # Show the seeds first to confirm that they are right
 fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.background = (1, 1, 1)
 vis.plot_prism_mesh(model, style='wireframe', label='Synthetic')
 plot = vis.plot_prism_mesh(seed_mesh, style='surface',label='Density')
-axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
+axes = mlab.axes(plot, nb_labels=5, extent=extent, color=(0,0,0))
+axes.label_text_property.color = (0,0,0)
+axes.title_text_property.color = (0,0,0)
+axes.axes.label_format = "%-#.0f"
+mlab.outline(color=(0,0,0), extent=extent)
 mlab.show()
 
 # Run the inversion
@@ -140,9 +150,13 @@ pylab.show()
 
 # Plot the adjusted model plus the skeleton of the synthetic model
 fig = mlab.figure()
-fig.scene.background = (0.1, 0.1, 0.1)
+fig.scene.background = (1, 1, 1)
 vis.plot_prism_mesh(model, style='wireframe', label='Synthetic')
 vis.plot_prism_mesh(seed_mesh, style='surface', label='Seed Density')
 plot = vis.plot_prism_mesh(mesh, style='surface', label='Density')
-axes = mlab.axes(plot, nb_labels=9, extent=[x1, x2, y1, y2, -z2, -z1])
+axes = mlab.axes(plot, nb_labels=5, extent=extent, color=(0,0,0))
+axes.label_text_property.color = (0,0,0)
+axes.title_text_property.color = (0,0,0)
+axes.axes.label_format = "%-#.0f"
+mlab.outline(color=(0,0,0), extent=extent)
 mlab.show()
