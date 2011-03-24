@@ -405,7 +405,7 @@ def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
 
 
 def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
-            label=None, interp='nn', nx=None, ny=None):
+            label=None, interp='nn', nx=None, ny=None, clabel=True):
     """
     Make a contour plot of data.
 
@@ -423,11 +423,9 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
     * xkey
         Key in *data* with the x coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.
@@ -446,6 +444,9 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
         Shape of the interpolated regular grid. Only used if interpolation is
         necessary. If ``None``, then will default to sqrt(number_of_data)
 
+    * clabel
+        Wether or not to print the numerical value of the contour lines
+
     Returns:
 
     * levels
@@ -453,10 +454,11 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
 
         if nx is None or ny is None:
@@ -475,7 +477,8 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
     ct_data = pylab.contour(X, Y, Z, levels, colors=color, picker=True)
 
-    ct_data.clabel(fmt='%g')
+    if clabel:
+        ct_data.clabel(fmt='%g')
 
     if label is not None:
 
@@ -507,11 +510,9 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
     * xkey
         Key in *data* with the x coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.
@@ -534,14 +535,13 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
-
         if nx is None or ny is None:
-
             nx = ny = int(numpy.sqrt(len(data[vkey])))
 
         dx = (data[xkey].max() - data[xkey].min())/nx
@@ -582,11 +582,9 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     * xkey
         Key in *data* with the x coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * ykey
         Key in *data* with the y coordinates of the points.
-        Ignored if ``data['grid'] is True``
 
     * vkey
         Key in *data* with the values to be contoured.
@@ -611,10 +609,11 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
 
         if nx is None or ny is None:

@@ -36,6 +36,9 @@ Functions:
 
 * :func:`fatiando.mesh.copy` 
     Make a copy of an n-dimensional mesh
+
+* :func:`fatiando.mesh.vfilter`
+    Remove elements within a given value range from a mesh.
     
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -130,14 +133,17 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
         y = numpy.arange(y1, y2, dy) + 0.5*dy
         if len(y) > ny:
             y = y[:-1]
-        X, Y = pylab.meshgrid(x, y)
+        X, Y = numpy.meshgrid(x, y)
         # -1 if to transform height into z coordinate
         topo_grid = -1*pylab.griddata(topo['x'], topo['y'], topo['h'], X, Y)
         topo_grid = topo_grid.ravel()
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
         # bellow a masked topo point (ie, one with no height information)
-        topo_mask = topo_grid.mask
+        if numpy.ma.isMA(topo_grid):
+            topo_mask = topo_grid.mask
+        else:
+            topo_mask = [False]*len(topo_grid)
         for layer in mesh:
             for cell, ztopo, mask in zip(layer.ravel(), topo_grid, topo_mask) :
                 if 0.5*(cell['z1'] + cell['z2']) <  ztopo or mask:
@@ -342,3 +348,33 @@ def copy(mesh):
     copy = numpy.reshape(copy, mesh.shape)
         
     return copy
+
+
+def vfilter(mesh, vmin, vmax, vkey='value'):
+    """
+    Remove elements within a given value range from a mesh.
+
+    Parameters:
+
+    * mesh
+        Mesh to copy
+
+    * vmin
+        Minimum value
+
+    * vmax
+        Maximum value
+
+    * vkey
+        The key of the mesh elements whose value will be used to filter
+
+    Returns:
+
+    * elements
+        1D list of filtered elements
+
+    """
+    filtered = [cell for cell in mesh.ravel() if not cell[vkey] is None and
+                cell[vkey] >= vmin and cell[vkey] <= vmax ]
+    filtered = numpy.array(filtered)
+    return filtered

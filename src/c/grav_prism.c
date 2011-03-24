@@ -37,22 +37,22 @@ double prism_gz(double dens, double x1, double x2, double y1, double y2,
                 double z1, double z2, double xp, double yp, double zp)
 {
     /* Variables */
-    double r,
+    /*double r,
            res,
-           deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
+           deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;*/
 
     /* First thing to do is make P the origin of the coordinate system */
-    deltax1 = x1 - xp;
+    /*deltax1 = x1 - xp;
     deltax2 = x2 - xp;
     deltay1 = y1 - yp;
     deltay2 = y2 - yp;
     deltaz1 = z1 - zp;
     deltaz2 = z2 - zp;
 
-    res = 0;
+    res = 0;*/
 
     /* Evaluate the integration limits */
-    r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz1*deltaz1);
+    /*r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz1*deltaz1);
 
     res += 1*(deltax1*log(deltay1 + r) + deltay1*log(deltax1 + r) -
     		deltaz1*atan2(deltax1*deltay1, deltaz1*r));
@@ -90,7 +90,37 @@ double prism_gz(double dens, double x1, double x2, double y1, double y2,
     r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz2*deltaz2);
 
     res += -1*(deltax2*log(deltay2 + r) + deltay2*log(deltax2 + r) -
-    		deltaz2*atan2(deltax2*deltay2, deltaz2*r));
+    		deltaz2*atan2(deltax2*deltay2, deltaz2*r));*/
+    
+    double x[2], y[2], z[2], kernel, res, r;
+    register int i, j, k;
+
+    /* First thing to do is make P the origin of the coordinate system */
+    x[0] = x1 - xp;
+    x[1] = x2 - xp;
+    y[0] = y1 - yp;
+    y[1] = y2 - yp;
+    z[0] = z1 - zp;
+    z[1] = z2 - zp;
+
+    res = 0;
+
+    /* Evaluate the integration limits */
+    for(k=0; k<=1; k++)
+    {
+        for(j=0; j<=1; j++)
+        {
+            for(i=0; i<=1; i++)
+            {
+                r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k]);
+
+                kernel = x[i]*log(y[j] + r) + y[j]*log(x[i] + r)
+                        - z[k]*atan2(x[i]*y[j], z[k]*r);
+
+                res += pow(-1, i + j + k)*kernel;
+            }
+        }
+    }
 
     /* Now all that is left is to multiply res by the gravitational constant and
        density and convert it to mGal units */

@@ -34,14 +34,16 @@ model.append({'x1':500, 'x2':1500, 'y1':500, 'y2':1500, 'z1':0, 'z2':800,
               'value':600})
 model.append({'x1':300, 'x2':2500, 'y1':1800, 'y2':2700, 'z1':500, 'z2':1000,
               'value':-1000})
-model.append({'x1':2500, 'x2':4500, 'y1':500, 'y2':1500, 'z1':500, 'z2':1000,
+model.append({'x1':4000, 'x2':4500, 'y1':500, 'y2':1500, 'z1':300, 'z2':1000,
+              'value':-1000})
+model.append({'x1':1800, 'x2':3700, 'y1':500, 'y2':1500, 'z1':800, 'z2':1300,
               'value':-1000})
 model.append({'x1':500, 'x2':4500, 'y1':4000, 'y2':4500, 'z1':500, 'z2':1000,
               'value':-1000})
-
 model = numpy.array(model)
 
 extent = [0,5000,0,5000,-1500,0]
+
 # Show the model before calculating to make sure it's right
 fig = mlab.figure()
 fig.scene.background = (1, 1, 1)
@@ -58,7 +60,7 @@ error = 0.5
 data = {}
 for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     data[field] = synthetic.from_prisms(model, x1=0, x2=5000, y1=0, y2=5000,
-                                        nx=30, ny=30, height=150, field=field)
+                                        nx=25, ny=25, height=150, field=field)
     data[field]['value'], error = utils.contaminate(data[field]['value'],
                                                     stddev=error,
                                                     percent=False,
@@ -99,11 +101,11 @@ seeds.append(gplant.get_seed((2500, 3250, 550), 1000, mesh))
 seeds.append(gplant.get_seed((2900, 3250, 550), 1000, mesh))
 seeds.append(gplant.get_seed((3300, 3250, 550), 1000, mesh))
 seeds.append(gplant.get_seed((3700, 3250, 550), 1000, mesh))
-seeds.append(gplant.get_seed((4100, 3250, 550), 1000, mesh))
+seeds.append(gplant.get_seed((4200, 3250, 550), 1000, mesh))
 seeds.append(gplant.get_seed((3300, 2050, 550), 1000, mesh))
 seeds.append(gplant.get_seed((3600, 2050, 550), 1000, mesh))
 seeds.append(gplant.get_seed((3900, 2050, 550), 1000, mesh))
-seeds.append(gplant.get_seed((4200, 2050, 550), 1000, mesh))
+seeds.append(gplant.get_seed((4300, 2050, 550), 1000, mesh))
 seeds.append(gplant.get_seed((1000, 1000, 550), 600, mesh))
 
 # Make a mesh for the seeds to plot them
@@ -122,7 +124,7 @@ mlab.outline(color=(0,0,0), extent=extent)
 mlab.show()
 
 # Run the inversion
-results = gplant.grow(data, mesh, seeds, compactness=10**(18), power=5,
+results = gplant.grow(data, mesh, seeds, compactness=10.**(18), power=7,
                       threshold=1*10**(-4), norm=1, neighbor_type='reduced',
                       jacobian_file=None, distance_type='cell')
 
