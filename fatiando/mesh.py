@@ -53,8 +53,7 @@ import pylab
 import fatiando
 import fatiando.geometry as geometry
 
-log = logging.getLogger('fatiando.mesh')  
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('fatiando.mesh')
 log.addHandler(fatiando.default_log_handler)
 
 

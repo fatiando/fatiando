@@ -55,8 +55,13 @@ __date__ = 'Created 01-Sep-2010'
 import numpy
 import pylab
 
-
+import fatiando
 import fatiando.utils
+
+
+log = logging.getLogger('fatiando.vis')
+log.addHandler(fatiando.default_log_handler)
+
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting

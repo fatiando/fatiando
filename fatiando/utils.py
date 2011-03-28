@@ -48,6 +48,10 @@ import fatiando
 import fatiando.csinfo as csinfo
 
 
+log = logging.getLogger('fatiando.utils')
+log.addHandler(fatiando.default_log_handler)
+
+
 def get_logger(level=logging.DEBUG):
     """
     Get a logger to ``stderr``.

@@ -43,8 +43,7 @@ import fatiando.seismo.traveltime
 
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.seismo.synthetic')       
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('fatiando.seismo.synthetic')
 log.addHandler(fatiando.default_log_handler)
 
 

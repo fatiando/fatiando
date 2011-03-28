@@ -47,8 +47,7 @@ import fatiando
 import fatiando.grav.prism
 import fatiando.inv.pgrav3d as pgrav3d
         
-log = logging.getLogger('fatiando.inv.gplant')       
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('fatiando.inv.gplant')
 log.addHandler(fatiando.default_log_handler)
 
 

@@ -42,9 +42,7 @@ import fatiando.grav.sphere
 import fatiando.grid
 
 log = logging.getLogger('fatiando.grav.eqlayer')
-log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
-
 
 
 def _build_jacobian(data, layer):

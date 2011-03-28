@@ -32,14 +32,8 @@ from fatiando.seismo import wavefd_ext
 import fatiando
 
 
-logger = logging.getLogger('wavefd')       
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('wavefd')
 logger.addHandler(fatiando.default_log_handler)
-
-logger = logging.getLogger('wavesource')       
-logger.setLevel(logging.DEBUG)
-logger.addHandler(fatiando.default_log_handler)
-
 
 
 class SinSQWaveSource():

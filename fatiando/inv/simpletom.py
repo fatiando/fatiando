@@ -44,8 +44,7 @@ import fatiando
 from fatiando.seismo import traveltime
 from fatiando.inv import solvers
 
-log = logging.getLogger('fatiando.inv.simpletom')  
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('fatiando.inv.simpletom')
 log.addHandler(fatiando.default_log_handler)
 
 
