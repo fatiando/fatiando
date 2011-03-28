@@ -51,6 +51,7 @@ Functions:
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
 
+import logging
 
 import numpy
 import pylab
