@@ -72,7 +72,6 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
     vis.contourf(data[field], 10)
     cb = pylab.colorbar()
     cb.set_label(r'$E\"otv\"os$')
-pylab.savefig("ftg_data.png")
 
 # RUN THE INVERSION
 ################################################################################
@@ -188,7 +187,6 @@ pylab.xlabel("Iteration")
 pylab.legend(loc='upper left', prop={'size':9}, shadow=True)
 ax.set_yscale('log')
 ax.grid()
-pylab.savefig('residuals.pdf')
 
 # Get the adjustment and plot it
 pylab.figure(figsize=(16,8))
@@ -201,7 +199,6 @@ for i, field in enumerate(['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']):
         levels = vis.contour(data[field], levels=5, color='b', label='Data')
         vis.contour(adjusted[field], levels=levels, color='r', label='Adjusted')
         pylab.legend(loc='lower left', prop={'size':9}, shadow=True)
-pylab.savefig("adjustment.pdf")
 
 pylab.show()
 
