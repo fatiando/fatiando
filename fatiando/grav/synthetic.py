@@ -21,6 +21,9 @@ Functions:
 
 * :func:`fatiando.grav.synthetic.from_prisms`
     Create synthetic data from a prism model.
+
+* :func:`fatiando.grav.synthetic.from_spheres`
+    Create synthetic gravity data from a model made of spheres.
     
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -39,8 +42,7 @@ import fatiando.grav.sphere
 
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.grav.synthetic')       
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('fatiando.grav.synthetic')
 log.addHandler(fatiando.default_log_handler)
 
 
@@ -214,7 +216,10 @@ def from_spheres(spheres, grid, field='gz'):
 
     """
 
-    fields = {'gz':fatiando.grav.sphere.gz,}
+    fields = {'gz':fatiando.grav.sphere.gz,
+              'gxx':fatiando.grav.sphere.gxx,
+              'gyy':fatiando.grav.sphere.gyy,
+              'gzz':fatiando.grav.sphere.gzz}
 
     assert field in fields.keys(), "Invalid gravity field '%s'" % (field)
 

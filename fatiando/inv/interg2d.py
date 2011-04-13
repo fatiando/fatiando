@@ -46,7 +46,6 @@ import fatiando.inv.pgrav3d
 
 
 log = logging.getLogger('fatiando.inv.interg2d')
-log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
 

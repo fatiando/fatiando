@@ -5,5 +5,6 @@ Contents
 
 .. toctree::
 
-   theory/theory.rst
+   theory/index.rst
    api/index.rst
+   cookbook/index.rst

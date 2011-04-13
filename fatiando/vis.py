@@ -51,12 +51,18 @@ Functions:
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
 
+import logging
 
 import numpy
 import pylab
 
-
+import fatiando
 import fatiando.utils
+
+
+log = logging.getLogger('fatiando.vis')
+log.addHandler(fatiando.default_log_handler)
+
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -205,7 +211,7 @@ def ray_coverage(sources, receivers, linestyle='-k'):
     
 
 def plot_prism_mesh(mesh, key='value', style='surface', opacity=1., 
-                    label='scalar', invz=True):
+                    label='scalar', invz=True, xy2ne=False):
     """
     Plot a 3D prism mesh using Mayavi2.
 
@@ -230,6 +236,10 @@ def plot_prism_mesh(mesh, key='value', style='surface', opacity=1.,
 
     * invz
         If ``True``, will invert the sign of values in the z-axis
+        
+    * xy2ne
+        If ``True``, will change from x,y to North,East. This means exchaging
+        the x and y coordinates so that x is pointing North and y East.
 
     """
 
@@ -260,9 +270,16 @@ def plot_prism_mesh(mesh, key='value', style='surface', opacity=1.,
             continue
         
         mesh_size += 1
-        
-        x1, x2 = cell['x1'], cell['x2']
-        y1, y2 = cell['y1'], cell['y2']
+
+        if xy2ne:
+
+            x1, x2 = cell['y1'], cell['y2']
+            y1, y2 = cell['x1'], cell['x2']
+
+        else:
+            
+            x1, x2 = cell['x1'], cell['x2']
+            y1, y2 = cell['y1'], cell['y2']
 
         if invz:
 
@@ -325,6 +342,8 @@ def plot_prism_mesh(mesh, key='value', style='surface', opacity=1.,
         surf.actor.property.representation = 'surface'
         surf.actor.property.opacity = opacity
         surf.actor.property.backface_culling = 1
+        surf.actor.property.edge_visibility = 1
+        surf.actor.property.line_width = 1
         
     return surf
 
@@ -392,7 +411,7 @@ def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
 
 
 def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
-            label=None, interp='nn', nx=None, ny=None):
+            label=None, interp='nn', nx=None, ny=None, clabel=True):
     """
     Make a contour plot of data.
 
@@ -431,6 +450,9 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
         Shape of the interpolated regular grid. Only used if interpolation is
         necessary. If ``None``, then will default to sqrt(number_of_data)
 
+    * clabel
+        Wether or not to print the numerical value of the contour lines
+
     Returns:
 
     * levels
@@ -438,10 +460,11 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
 
         if nx is None or ny is None:
@@ -458,9 +481,10 @@ def contour(data, levels, xkey='x', ykey='y', vkey='value', color='k',
 
         Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
 
-    ct_data = pylab.contour(X, Y, Z, levels, colors=color)
+    ct_data = pylab.contour(X, Y, Z, levels, colors=color, picker=True)
 
-    ct_data.clabel(fmt='%g')
+    if clabel:
+        ct_data.clabel(fmt='%g')
 
     if label is not None:
 
@@ -517,14 +541,13 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
-
         if nx is None or ny is None:
-
             nx = ny = int(numpy.sqrt(len(data[vkey])))
 
         dx = (data[xkey].max() - data[xkey].min())/nx
@@ -537,7 +560,7 @@ def contourf(data, levels, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet,
 
         Z = pylab.griddata(data[xkey], data[ykey], data[vkey], X, Y, interp)
 
-    ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap)
+    ct_data = pylab.contourf(X, Y, Z, levels, cmap=cmap, picker=True)
 
     pylab.xlim(X.min(), X.max())
 
@@ -592,10 +615,11 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     """
 
-    if data['grid']:
-        
-        X, Y, Z = fatiando.utils.extract_matrices(data, vkey)
-        
+    if data['grid'] and xkey == 'x' and ykey == 'y':
+        nx, ny = data['nx'], data['ny']
+        X = numpy.reshape(data[xkey], (ny, nx))
+        Y = numpy.reshape(data[ykey], (ny, nx))
+        Z = numpy.reshape(data[vkey], (ny, nx))
     else:
 
         if nx is None or ny is None:
@@ -614,11 +638,12 @@ def pcolor(data, xkey='x', ykey='y', vkey='value', cmap=pylab.cm.jet, vmin=None,
 
     if vmin is None or vmax is None:
 
-        plot = pylab.pcolor(X, Y, Z, cmap=cmap)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, picker=True)
 
     else:
 
-        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
+        plot = pylab.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax,
+                            picker=True)
 
     pylab.xlim(X.min(), X.max())
 

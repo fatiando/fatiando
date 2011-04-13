@@ -31,6 +31,9 @@ Functions:
 * :func:`fatiando.grid.copy`
     Return a copy of *grid*.
 
+* :func:`fatiando.grid.cut`
+    Remove a subsection of the grid.
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
@@ -46,7 +49,6 @@ import fatiando
 # Add the default handler (a null handler) to the logger to ensure that
 # it won't print verbose if the program calling them doesn't want it
 log = logging.getLogger('fatiando.grid')
-log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
 
@@ -227,6 +229,8 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
     assert len(grid1[key1]) == len(grid2[key2]), \
         "Grids must have same number of points!"
 
+    # TODO: Check is 'grid' is the same in both
+
     value = []
 
     vappend = value.append
@@ -247,10 +251,61 @@ def subtract(grid1, grid2, key1='value', key2='value', percent=False):
 
     subgrid = {'x':grid1['x'], 'y':grid1['y'], 'value':numpy.array(value)}
 
-    if 'grid' in grid1 and grid1['grid'] and 'grid' in grid2 and grid2['grid']:
+    if 'grid' in grid1 or 'grid' in grid2:
 
-        subgrid['nx'] = grid1['nx']
-        subgrid['ny'] = grid1['ny']
-        subgrid['grid'] = True
+        subgrid['grid'] = grid1['grid']
+
+        if grid1['grid'] and grid2['grid']:
+            subgrid['nx'] = grid1['nx']
+            subgrid['ny'] = grid1['ny']
+
+    return subgrid
+
+
+def cut(grid, xmin, xmax, ymin, ymax):
+    """
+    Remove a subsection of the grid.
+
+    Parameters:
+
+    * grid
+        Grid stored in a dictionary.
+
+    * xmin, xmax
+        Limits of the subsection in the x direction.
+
+    * ymin, ymax
+        Limits of the subsection in the y direction.
+
+    Returns:
+
+    * subgrid
+        Grid stored in a dictionary.
+
+    """
+
+    subgrid = {}
+
+    for key in grid:
+
+        if isinstance(grid[key], numpy.ndarray):
+
+            subgrid[key] = []
+
+    for i, pos in enumerate(zip(grid['x'], grid['y'])):
+
+        x, y = pos
+
+        if x >= xmin and x <= xmax and y >= ymin and y <= ymax:
+
+            for key in subgrid:
+
+                subgrid[key].append(grid[key][i])
+
+    for key in subgrid:
+
+        subgrid[key] = numpy.array(subgrid[key])
+
+    subgrid['grid'] = False
 
     return subgrid

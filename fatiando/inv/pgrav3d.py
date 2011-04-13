@@ -52,7 +52,6 @@ import fatiando.grav.prism
 from fatiando.inv import solvers
 
 log = logging.getLogger('fatiando.inv.pgrav3d')
-log.setLevel(logging.DEBUG)
 log.addHandler(fatiando.default_log_handler)
 
 

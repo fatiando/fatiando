@@ -39,8 +39,14 @@ Functions:
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
+import logging
 
 import numpy
+
+import fatiando
+
+log = logging.getLogger('fatiando.stats')
+log.addHandler(fatiando.default_log_handler)
 
 
 def mean(estimates):

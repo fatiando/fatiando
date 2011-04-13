@@ -1,17 +1,20 @@
 General
+    * Rename fatiando package to fat (both abreviation and acronym)
     * Write README
     * Write docs for the inverse problem theory
-    * Make example wikis
+    * Make the examples into the cookbook
+    * Make docs describing examples and link in main docs
     * Make tutorial for implementing new inversion
     * Make integration tests out of the examples
     * Include references in the modules and functions and make automatic 
       reference generation for scripts
     * Put examples in docstrings
-    * Change the synthetic prism models in grav to use the grid module
-    * Change the synthetic prism models in grav to use the geometry module
     * Move contaminate from utils to stats
     * Allow contaminate to receive grids
     * Make a tool to remove trailing spaces from files
+    * Move all the subpackage.io to a single fatiando.io module. Need to make a
+      grid and profile data format
+    * Make only one script for the examples and include plots in Hg
     
 Solvers
     * Unit tests
@@ -21,6 +24,13 @@ Solvers
     * Make virtual functions public
     
 Mesh
+    * Standardize data structures
+
+Grid
+    * Fix 'grid', 'nx', and 'ny' in grid.cut
+    * Move utils.extract_matrices to grid.py
+    * Make random grid
+    * Standardize data structures and I/O format
     
 Vis
     * Plot a bounding box around the a prism mesh
@@ -47,6 +57,8 @@ GPlant
     * Unit tests
     * Make integration test
     * Test if the arms always grow in the direction the seeds are too close
+    * Fix few seeds example
+    * Make synthetic with boa
     
 PGrav
     * Use depth weights in compact inversion
@@ -95,6 +107,7 @@ Gravity
     * Optimize equivalent layer
     * Implement equivalent data in equivalent layer (Mendonca)
     * Implement polynomial equivalent layer
+    * Make all synthetic functions receive a grid object
     
 WaveFD:
     * Port to Fortran
