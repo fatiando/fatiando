@@ -20,60 +20,47 @@ Functions to calculate the travel times of seismic waves.
 Functions:
 
 * :func:`fatiando.seismo.traveltime.cartesian_straight`
-    Calculate the travel time inside a square cell assuming the ray is a 
-    straight line.
+    Calculate the travel time inside a square cell assuming the ray is a
+    straight line (no refraction or reflection).
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
 
-import logging
+from fatiando.seismo import _traveltime
 
 
-import fatiando
-import fatiando.seismo._traveltime as traveltime_ext
-
-
-# Add the default handler (a null handler) to the logger to ensure that
-# it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.seismo.traveltime')
-log.addHandler(fatiando.default_log_handler)
-
-
-def cartesian_straight(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec):
+def straight2d(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec):
     """
-    Calculate the travel time inside a square cell assuming the ray is a 
-    straight line.
-    
+    Calculate the travel time inside a 2D square cell assuming the ray is a
+    straight line (no refraction or reflection).
+
     **NOTE**: Don't care about the units as long they are compatible.
-    
+
     Parameters:
-    
+
     * slowness
         Slowness of the cell (:math:`slowness = \\frac{1}{velocity}`)
-        
+
     * x1, y1
         Coordinates of the lower-left corner of the cell
-        
+
     * x2, y2
         Coordinates of the upper-right corner of the cell
-        
+
     * x_src, y_src
         Coordinates of the wave source
-        
+
     * x_rec, y_rec
         Coordinates of the receiver
-    
+
     Returns:
-    
+
     * Time the ray spent in the cell in compatible units with *slowness*
-    
+
     """
-    
-    time = traveltime_ext.cartesian_straight(float(slowness), float(x1), 
-                                             float(y1), float(x2), float(y2), 
-                                             float(x_src), float(y_src), 
-                                             float(x_rec), float(y_rec))
-    
-    return time
+
+    return _traveltime.straight2d(float(slowness), float(x1), float(y1),
+                                  float(x2), float(y2), float(x_src),
+                                  float(y_src), float(x_rec), float(y_rec))

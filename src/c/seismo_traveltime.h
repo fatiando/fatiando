@@ -42,8 +42,9 @@
 /* FUNCTION DECLARATIONS */
 /* ************************************************************************** */
 
-/* Calculate the travel time inside a square cell assuming the ray is a straight
-   line
+/* Calculate the travel time inside a 2D square cell assuming the ray is a
+   straight line.
+
  Parameters:
     * double slowness: the slowness of the cell. Must be in units compatible
         with the other parameters!
@@ -52,10 +53,8 @@
     * double x_src, y_src: coordinates of the wave source
     * double x_rec, y_rec: coordinates of the receiver
 */
-extern double cartesian_straight(double slowness, double x1, double y1,
-								 double x2, double y2,
-								 double x_src, double y_src,
-								 double x_rec, double y_rec);
+extern double straight2d(double slowness, double x1, double y1, double x2,
+	double y2, double x_src, double y_src, double x_rec, double y_rec);
 
 /* ************************************************************************** */
 

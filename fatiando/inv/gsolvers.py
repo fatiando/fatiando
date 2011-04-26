@@ -36,17 +36,42 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 25-Apr-2011'
 
 
+import logging
+
+
 import numpy
+from numpy import dot as dot_product
+from numpy.linalg import solve as linsys_solver
 
 
-def marq(data, init, func, jac, lmstart=100, lmstep=10, maxsteps=20, maxit=100,
-         reg_norm=None, reg_grad=None, reg_hess=None):
+import fatiando
+
+log = logging.getLogger('fatiando.inv.gsolvers')
+log.addHandler(fatiando.default_log_handler)
+
+
+def linsolver(data, func, jac, reg_norm=None, reg_grad=None, reg_hess=None):
 
     # Make lambdas that do nothing if no regularization is given
     if reg_norm is None or reg_grad is None or reg_hess is None:
         reg_norm = lambda x: 0
-        reg_grad = lambda x, g: 0
-        reg_hess = lambda x, h: 0
+        reg_grad = lambda x, g: g
+        reg_hess = lambda x, h: h
+    hessian = reg_hess(None, dot_product(jac.T, jac))
+    estimate = linsys_solver(hessian, dot_product(jac.T, data))
+    residuals = data - func(estimate)
+    return {'estimate':estimate, 'residuals':residuals}
+
+
+
+def marq(data, init, func, jac, lmstart=100, lmstep=10, maxsteps=20, maxit=100,
+         tol=10**(-5), reg_norm=None, reg_grad=None, reg_hess=None):
+
+    # Make lambdas that do nothing if no regularization is given
+    if reg_norm is None or reg_grad is None or reg_hess is None:
+        reg_norm = lambda x: 0
+        reg_grad = lambda x, g: g
+        reg_hess = lambda x, h: h
 
     residuals = data - func(init)
     rms = numpy.linalg.norm(residuals)**2
@@ -58,16 +83,15 @@ def marq(data, init, func, jac, lmstart=100, lmstep=10, maxsteps=20, maxit=100,
     for iteration in xrange(maxit):
         prev = next
         jacobian = jac(prev)
-        gradient = reg_grad(prev, -1*numpy.dot(jacobian.T, residuals))
-        hessian = reg_hess(prev, numpy.dot(jacobian.T, jacobian))
+        gradient = reg_grad(prev, -1*dot_product(jacobian.T, residuals))
+        hessian = reg_hess(prev, dot_product(jacobian.T, jacobian))
         # Don't calculate things twice
         hessian_diag = hessian.diagonal()
         gradient *= -1
-        # Enter the Marquardt loop
+        # Enter the Marquardt loop to find the best step size
         stagnation = True
-        for lm_iteration in xrange(max_steps):
-            delta = numpy.linalg.solve(hessian + lm_param*hessian_diag,
-                                       gradient)
+        for lm_iteration in xrange(maxsteps):
+            delta = linsys_solver(hessian + lm_param*hessian_diag, gradient)
             next = prev + delta
             residuals = data - func(next)
             rms = numpy.linalg.norm(residuals)**2
@@ -76,20 +100,21 @@ def marq(data, init, func, jac, lmstart=100, lmstep=10, maxsteps=20, maxit=100,
             if goal < goals[-1]:
                 # Don't let lm_param be smaller than this
                 if lm_param > 10**(-10):
-                    lm_param /= lm_step
+                    lm_param /= lmstep
                 stagnation = False
                 break
             else:
                 # Don't let lm_param be larger than this
                 if lm_param < 10**(10):
-                    lm_param *= lm_step
+                    lm_param *= lmstep
         if stagnation:
             next = prev
+            log.warning("WARNING: convergence tolerance not achieved")
             break
         else:
             goals.append(goal)
             # Check if goal function decreases more than a threshold
-            if abs((goals[-1] - goals[-2])/goals[-2]) <= 10**(-4):
+            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
                 break
     result = {'estimate':next, 'residuals':residuals, 'goal_p_it':goals}
     return result

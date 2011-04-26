@@ -51,13 +51,31 @@ import numpy
 
 
 def damp_norm(damping, estimate):
+    """
+    Calculate the value of the damping regularizing function.
+
+    Parameters:
+
+    * damping:
+        Regularization parameter. Must be >= 0.
+
+    * estimate:
+        1D array with the current estimate (not used)
+
+    Returns:
+
+    * float:
+        value of the damping regularizing function
+
+    """
     return damping*(numpy.linalg.norm(estimate)**2)
 
 def damp_grad(damping, estimate, grad):
     grad += damping*estimate
 
 def damp_hess(damping, hess):
-    for i in xrange(len(hess)):
+    for i in xrange(hess.shape[0]):
         # Use the comma notation for accessing elements to be compatible
         # with Scipy's sparse matrices
         hess[i,i] += damping
+

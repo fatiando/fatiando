@@ -1,7 +1,7 @@
 """
 Build the extension modules and documentation and run the test suite.
 
-Run 'scons' to build and 'scons -c' to delete build files. 
+Run 'scons' to build and 'scons -c' to delete build files.
 """
 
 import distutils.sysconfig
@@ -14,19 +14,19 @@ def list_ext(path, ext):
     files = []
 
     fnames = os.listdir(path)
-    
+
     for fname in fnames:
 
         fname = os.path.join(path, fname)
 
         if os.path.isdir(fname):
-        
+
             files.extend(list_ext(fname, ext))
 
         else:
-        
+
             if os.path.splitext(fname)[-1] == ext:
-            
+
                 files.append(fname)
 
     return files
@@ -43,7 +43,7 @@ def PhonyTarget(target, action, depends=[], env = None):
     phony = env.phony(target = target, source = 'SConstruct')
 
     Depends(phony, depends)
-    
+
     return phony
 
 # DEFINE THE BASE PATHS
@@ -67,22 +67,22 @@ Clean(os.path.curdir, os.path.join(wrap_path,'_traveltimemodule.c'))
 
 
 # Build the documentation
-target = 'build_doc'
-action = 'make -C doc/userguide html'
-build_doc = PhonyTarget(target=target, action=action, depends=[])
-env = DefaultEnvironment()
+#target = 'build_doc'
+#action = 'make -C doc/userguide html'
+#build_doc = PhonyTarget(target=target, action=action, depends=[])
+#env = DefaultEnvironment()
 
-Depends(build_doc, build_ext)
+#Depends(build_doc, build_ext)
 
-Clean(os.path.curdir, os.path.join(userguid_path, '_build'))
+#Clean(os.path.curdir, os.path.join(userguid_path, '_build'))
 
 
 # Make a phony target for the tests (the fast test suite)
-target = 'test'
-action = 'python test.py -v'
-test = PhonyTarget(target=target, action=action, depends=[])
-env = DefaultEnvironment()
-env.AlwaysBuild(test)
+#target = 'test'
+#action = 'python test.py -v'
+#test = PhonyTarget(target=target, action=action, depends=[])
+#env = DefaultEnvironment()
+#env.AlwaysBuild(test)
 
 # Clean up the build
 Clean(os.path.curdir, 'build')
