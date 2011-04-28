@@ -70,12 +70,49 @@ def damp_norm(damping, estimate):
     """
     return damping*(numpy.linalg.norm(estimate)**2)
 
+
 def damp_grad(damping, estimate, grad):
-    grad += damping*estimate
+    return grad + damping*estimate
+
 
 def damp_hess(damping, hess):
-    for i in xrange(hess.shape[0]):
-        # Use the comma notation for accessing elements to be compatible
-        # with Scipy's sparse matrices
-        hess[i,i] += damping
+    return hess + damping*numpy.eye(hess.shape[0])
 
+
+def fdmatrix2d(nx, ny):
+    """
+    Builds a finite-differences matrix for a 2D grid with the given shape.
+    """
+    deriv_num = (nx - 1)*ny + (ny - 1)*nx
+    fdmatrix = numpy.zeros((deriv_num, nx*ny))
+    deriv_i = 0
+    # Derivatives in the x direction
+    param_i = 0
+    for i in xrange(ny):
+        for j in xrange(nx - 1):
+            fdmatrix[deriv_i][param_i] = 1
+            fdmatrix[deriv_i][param_i + 1] = -1
+            deriv_i += 1
+            param_i += 1
+        param_i += 1
+    # Derivatives in the y direction
+    param_i = 0
+    for i in xrange(ny - 1):
+        for j in xrange(nx):
+            fdmatrix[deriv_i][param_i] = 1
+            fdmatrix[deriv_i][param_i + nx] = -1
+            deriv_i += 1
+            param_i += 1
+    return fdmatrix
+
+
+def smooth2d_norm(smoothness, weights, estimate):
+    return smoothness*numpy.dot(numpy.dot(estimate, weights), estimate)
+
+
+def smooth2d_grad(smoothness, weights, estimate, grad):
+    return grad + smoothness*numpy.dot(weights, estimate)
+
+
+def smooth2d_hess(smoothness, weights, hess):
+    return hess + smoothness*weights

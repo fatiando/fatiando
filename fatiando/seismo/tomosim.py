@@ -52,6 +52,22 @@ log = logging.getLogger('fatiando.seismo.tomosim')
 log.addHandler(fatiando.default_log_handler)
 
 
+def passcells(i, srcx, srcy, recx, recy, cells):
+    """
+    Determine through which cells the ray passes.
+    """
+    def ttimes(cells):
+        for cell in cells:
+            x1, x2, y1, y2 = cell['x1'], cell['x2'], cell['y1'], cell['y2']
+            if (x2 < min(srcx, recx) or x1 > max(srcx, recx) or
+                y2 < min(srcy, recy) or y1 > max(srcy, recy)):
+                yield 0
+            else:
+                yield traveltime.straight2d(1., x1, y2, x2, y2, srcx, srcy,
+                                            recx, recy)
+    return numpy.array([[i,j,tt] for j, tt in enumerate(ttimes(cells)) if tt != 0]).T.tolist()
+
+
 def build_jacobian(sources, receivers, cells):
     """
     Build the Jacobian matrix for the inversion.
@@ -78,9 +94,9 @@ def build_jacobian(sources, receivers, cells):
     for i, pair in enumerate(zip(sources, receivers)):
         src, rec = pair
         for j, cell in enumerate(cells):
-            tt = traveltime.straight2d(1., cell['x1'], cell['y1'],
-                                       cell['x2'], cell['y2'], src[0],
-                                       src[1], rec[0], rec[1])
+            tt = traveltime.straight2d(1., cell['x1'], cell['y1'], cell['x2'],
+                                       cell['y2'], src[0], src[1], rec[0],
+                                       rec[1])
             if tt != 0:
                 appendr(i)
                 appendc(j)
@@ -88,11 +104,79 @@ def build_jacobian(sources, receivers, cells):
     return scipy.sparse.csr_matrix((val,(row,col)), (len(sources),len(cells)))
 
 
-def solve(data, mesh, init=None, damp=0, lmstart=100, lmstep=10, maxsteps=20,
-          maxit=100, tol=10**(-5)):
+def solve(data, mesh, damp=0, smooth=0):
     """
     Solve the tomography problem for the velocity values in each cell of a
     discretization mesh.
+
+    Parameters:
+
+    * data
+        Travel time data stored in a dictionary (see
+        :func:`fatiando.seismo.synthetic.shoot_straight2d`)
+
+    * mesh
+        Discretization mesh defining the inversion parameters
+        (see :func:`fatiando.mesh.square_mesh`)
+
+    * damp
+        Damping regularization parameter (how much damping to apply).
+        Must be >= 0
+
+    Return:
+
+    * results in a dictionary:
+        {'estimate' : 1D array with the final estimate,
+         'residuals' : 1D array with the travel time residuals}
+
+    """
+    log.info("TomoSim solver:")
+    log.info("  damping    = %g" % (damp))
+    log.info("  smoothness = %g" % (smooth))
+
+    # Build the jacobian (sensibility) matrix
+    start = time.time()
+    jacobian = build_jacobian(data['src'], data['rec'], mesh.ravel())
+    log.info("  Built Jacobian matrix (%.2f s)" % (time.time() - start))
+
+    def func(p, jacobian=jacobian):
+        "Functional relation between the slowness and the travel-times"
+        return jacobian*p
+
+    fdmatrix = reg.fdmatrix2d(*mesh.shape)
+    tk1weights = numpy.dot(fdmatrix.T, fdmatrix)
+    def reghess(hess, damp=damp, smooth=smooth, tk1weights=tk1weights):
+        "Sum the hessian of the regularizing functions"
+        return reg.damp_hess(damp,
+                    reg.smooth2d_hess(smooth, tk1weights, hess))
+
+    if damp == 0 and smooth == 0:
+        regnorm, reggrad, reghess = None, None, None
+
+    # Configure gsolvers to use sparse matrix operations
+    gsolvers.dot_product = scipy.sparse.csc_matrix.__mul__
+    def linsys_solver(A, x):
+        res = scipy.sparse.linalg.cgs(A, x)
+        if res[1] > 0:
+            log.warning("Conjugate Gradient convergence not achieved")
+        if res[1] < 0:
+            log.error("Conjugate Gradient illegal input or breakdown")
+        return res[0]
+    gsolvers.linsys_solver = linsys_solver
+
+    start = time.time()
+    results = gsolvers.linlsq(data['traveltime'], func, jacobian, None, reghess)
+    log.info("  Time for inversion: %.2f s" % (time.time() - start))
+    # The inversion outputs a slowness estimate. Convert it to velocity
+    results['estimate'] = 1./results['estimate']
+    return results
+
+
+def isolve(data, mesh, init, damp=0, lmstart=100, lmstep=10, maxsteps=20,
+          maxit=100, tol=10**(-5)):
+    """
+    Iteratively solve the tomography problem for the velocity values in each
+    cell of a discretization mesh. Uses the Levemberg-Marquardt algorithm.
 
     Parameters:
 
@@ -134,20 +218,16 @@ def solve(data, mesh, init=None, damp=0, lmstart=100, lmstep=10, maxsteps=20,
         {'estimate' : 1D array with the final estimate,
          'residuals' : 1D array with the travel time residuals,
          'goal_p_it' : 1D array with the value of the goal function per
-                       iteration
-        }
+                       iteration}
 
     """
-
-    log.info("Inversion parameters:")
+    log.info("TomoSim iterative solver:")
     log.info("  damping    = %g" % (damp))
-
-    # Initialize the initial estimate
-    if init is None:
-        init = 10**(-10)*numpy.ones(mesh.size)
-    else:
-        # Convert velocity to slowness so that the inversion is linear
-        init = 1./numpy.array(init)
+    log.info("  lmstart    = %g" % (lmstart))
+    log.info("  lmstep     = %g" % (lmstep))
+    log.info("  maxsteps   = %g" % (maxsteps))
+    log.info("  maxit      = %g" % (maxit))
+    log.info("  tolerance  = %g" % (tol))
 
     # Build the jacobian (sensibility) matrix
     start = time.time()
@@ -166,15 +246,13 @@ def solve(data, mesh, init=None, damp=0, lmstart=100, lmstep=10, maxsteps=20,
         "Calculate the norm of the regularizing functions"
         return reg.damp_norm(damp, p)
 
-    def reggrad(p, grad, damp=damp):
+    def reggrad(grad, p, damp=damp):
         "Sum the gradient of the regularizing functions"
-        reg.damp_grad(damp, p, grad)
-        return grad
+        return reg.damp_grad(damp, p, grad)
 
-    def reghess(p, hess, damp=damp):
+    def reghess(hess, p=None, damp=damp):
         "Sum the hessian of the regularizing functions"
-        reg.damp_hess(damp, hess)
-        return hess
+        return reg.damp_hess(damp, hess)
 
     if damp == 0:
         regnorm, reggrad, reghess = None, None, None
@@ -184,18 +262,17 @@ def solve(data, mesh, init=None, damp=0, lmstart=100, lmstep=10, maxsteps=20,
     def linsys_solver(A, x):
         res = scipy.sparse.linalg.cgs(A, x)
         if res[1] > 0:
-            print "convergence to tolerance not achieved"
+            log.warning("Conjugate Gradient convergence not achieved")
         if res[1] < 0:
-            print "illegal input or breakdown"
+            log.error("Conjugate Gradient illegal input or breakdown")
         return res[0]
     gsolvers.linsys_solver = linsys_solver
 
     start = time.time()
-    #~ results = gsolvers.marq(data['traveltime'], init, func, jac, lmstart,
-                            #~ lmstep, maxsteps, maxit, tol, regnorm, reggrad,
-                            #~ reghess)
-    results = gsolvers.linsolver(data['traveltime'], func, jacobian, regnorm,
-                                 reggrad, reghess)
+    # Convert velocity to slowness so that the inversion is linear
+    results = gsolvers.marq(data['traveltime'], 1./numpy.array(init), func, jac,
+                            lmstart, lmstep, maxsteps, maxit, tol, regnorm,
+                            reggrad, reghess)
     log.info("  Time for inversion: %.2f s" % (time.time() - start))
 
     # The inversion outputs a slowness estimate. Convert it to velocity

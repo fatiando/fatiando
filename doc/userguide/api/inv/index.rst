@@ -14,3 +14,4 @@
     pgrav3d.rst
     simpletom.rst
     solvers.rst
+    gsolvers.rst
