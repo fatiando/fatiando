@@ -1030,9 +1030,9 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
         
     for iteration in xrange(mesh.size - len(seeds)):
         
-        start = time.time()
+        #~ start = time.time()
         
-        log.info("  it %d:" % (iteration + 1))
+        #~ log.info("  it %d:" % (iteration + 1))
         
         grew = False
             
@@ -1111,12 +1111,12 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
 
                 # TODO: len(estimate) is not the real size of the estimate
                 # because of the Nones
-                log.info(''.join(['    append to seed %d:' % (seed_num + 1),
-                                  ' size=%d' % (len(estimate)),
-                                  ' neighbors=%d' % (len(seed['neighbors'])),
-                                  ' MISFIT=%g' % (best_misfit),
-                                  ' COMPACTNESS=%g' % (best_reg),
-                                  ' GOAL=%g' % (best_goal)]))
+                #~ log.info(''.join(['    append to seed %d:' % (seed_num + 1),
+                                  #~ ' size=%d' % (len(estimate)),
+                                  #~ ' neighbors=%d' % (len(seed['neighbors'])),
+                                  #~ ' MISFIT=%g' % (best_misfit),
+                                  #~ ' COMPACTNESS=%g' % (best_reg),
+                                  #~ ' GOAL=%g' % (best_goal)]))
                           
         if not grew:
                                 
@@ -1124,9 +1124,9 @@ def grow(data, mesh, seeds, compactness, power=5, threshold=10**(-4), norm=2,
             
             break
                                 
-        end = time.time()
+        #~ end = time.time()
         
-        log.info("    time: %g s" % (end - start))
+        #~ log.info("    time: %g s" % (end - start))
     
     log.info("  Size of estimate: %d cells" % (len(estimate)))
             
