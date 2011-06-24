@@ -113,3 +113,6 @@ WaveFD:
     * Port to Fortran
     * Get rid of Python interface (put it in seismo.synthetic)
     
+
+Radial3D
+    * Integrate with fatiando
