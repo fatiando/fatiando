@@ -249,12 +249,16 @@ def plot_prism_mesh(mesh, key='value', style='surface', opacity=1.,
     global mlab, tvtk
 
     if mlab is None:
-
-        from enthought.mayavi import mlab
-
+        # Try import like version 3 of mayavi. If fail import like version 4
+        try:
+            from enthought.mayavi import mlab
+        except:
+            from mayavi import mlab
     if tvtk is None:
-
-        from enthought.tvtk.api import tvtk
+        try:
+            from enthought.tvtk.api import tvtk
+        except:
+            from tvtk.api import tvtk
 
     points = []
     cells = []
