@@ -50,6 +50,7 @@ InterG
       So make a function that "interpolates" the topo into the mesh
 
 GPlant
+    * Try growing only 1 seed per iteration
     * Separate the Jacobian columns per field when saving and loading
     * Migrar semente para centro de massa
     * Build sensibility in Fortran
