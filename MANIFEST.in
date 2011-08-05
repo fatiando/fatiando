@@ -1,4 +1,6 @@
-include LICENSE
+include LICENSE.txt
+include README.txt
+include CHANGELOG.txt
 include MANIFEST.in
 include test.py
 include SConstruct

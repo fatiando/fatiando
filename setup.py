@@ -14,10 +14,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Build extention modules and package Fatiando for release.
-"""
-
 import os
 
 from numpy.distutils.extension import Extension
