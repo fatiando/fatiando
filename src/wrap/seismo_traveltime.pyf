@@ -2,12 +2,12 @@
 python module _traveltime
 interface
 
-  function cartesian_straight(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec) result (res)
-    intent(c) cartesian_straight                 
-    intent(c)    
+  function straight2d(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec) result (res)
+    intent(c) straight2d
+    intent(c)
     double precision intent(in) :: slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec
-    double precision intent(out) :: res          
-  end function cartesian_straight 
-                             
+    double precision intent(out) :: res
+  end function straight2d
+
 end interface
 end python module _traveltime

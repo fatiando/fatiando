@@ -29,13 +29,11 @@
 #include <math.h>
 #include "seismo_traveltime.h"
 
-/* Calculate the travel time inside a square cell assuming the ray is a straight
- * line */
-double cartesian_straight(double slowness, double x1, double y1,
-						  double x2, double y2, double x_src, double y_src,
-						  double x_rec, double y_rec)
+/* Calculate the travel time inside a 2D square cell assuming the ray is a
+ * straight line */
+double straight2d(double slowness, double x1, double y1, double x2, double y2,
+                  double x_src, double y_src, double x_rec, double y_rec)
 {
-
     double maxx, maxy, minx, miny;
     double xps[6], yps[6], xp, yp;
     double crossingx[6], crossingy[6];
@@ -48,32 +46,26 @@ double cartesian_straight(double slowness, double x1, double y1,
     maxy = MAX(y_src, y_rec);
     minx = MIN(x_src, x_rec);
     miny = MIN(y_src, y_rec);
-
     /* Check if the cell is with the rectangle with the ray path as a
      * diagonal. If not, then the ray doesn't go through the cell. */
     if(x2 < minx || x1 > maxx || y2 < miny || y1 > maxy)
     {
         return 0;
     }
-
     /* Vertical case */
     if((x_rec - x_src) == 0)
     {
-
         /* Find the places where the ray intersects the cell */
         xps[0] = x_rec;
         xps[1] = x_rec;
         xps[2] = x_rec;
         xps[3] = x_rec;
-
         yps[0] = y_rec;
         yps[1] = y_src;
         yps[2] = y1;
         yps[3] = y2;
-
         crossingsize = 4;
     }
-
     /* Horizontal case */
     else if((y_rec - y_src) == 0)
     {
@@ -82,94 +74,69 @@ double cartesian_straight(double slowness, double x1, double y1,
         xps[1] = x_src;
         xps[2] = x1;
         xps[3] = x2;
-
         yps[0] = y_rec;
         yps[1] = y_rec;
         yps[2] = y_rec;
         yps[3] = y_rec;
-
         crossingsize = 4;
     }
     else
     {
         a_ray = (double)(y_rec - y_src)/(x_rec - x_src);
-
         b_ray = y_src - a_ray*x_src;
-
         /* Find the places where the ray intersects the cell */
         xps[0] = x1;
         xps[1] = x2;
-
         yps[0] = a_ray*x1 + b_ray;
         yps[1] = a_ray*x2 + b_ray;
-
         yps[2] = y1;
         yps[3] = y2;
-
         xps[2] = (double)(y1 - b_ray)/a_ray;
         xps[3] = (double)(y2 - b_ray)/a_ray;
-
-
         /* Add the src and rec locations so that the travel time of a src or rec
          * inside a cell is accounted for */
         xps[4] = x_src;
         xps[5] = x_rec;
         yps[4] = y_src;
         yps[5] = y_rec;
-
         crossingsize = 6;
     }
-
     /* Find out how many points are inside both the cell and the rectangle with
      * the ray path as a diagonal */
     inside = 0;
     for(i=0; i < crossingsize; i++)
     {
-
         xp = xps[i];
         yp = yps[i];
-
         if( (xp <= x2 && xp >= x1 && yp <= y2 && yp >= y1) &&
             (xp <= maxx && xp >= minx && yp <= maxy && yp >= miny))
         {
-
             duplicate = 0;
-
             for(j=0; j < inside; j++)
             {
                 if(crossingx[j] == xp && crossingy[j] == yp)
                 {
                     duplicate = 1;
-
                     break;
                 }
             }
-
             if(!duplicate)
             {
                 crossingx[inside] = xp;
-
                 crossingy[inside] = yp;
-
                 inside++;
             }
         }
     }
-
     if(inside < 2)
     {
         return 0;
     }
-
     if(inside > 2)
     {
         return -1;
     }
-
-    distance = sqrt((crossingx[1] - crossingx[0])*
-    				(crossingx[1] - crossingx[0]) +
-                    (crossingy[1] - crossingy[0])*
-                    (crossingy[1] - crossingy[0]));
-
+    distance = sqrt((crossingx[1]-crossingx[0])*(crossingx[1]-crossingx[0]) +
+                    (crossingy[1]-crossingy[0])*(crossingy[1]-crossingy[0]));
     return distance*slowness;
 }
