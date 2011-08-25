@@ -1,3 +1,16 @@
+* Packages to fix:
+    - mesher
+    - gridder
+    - vis
+    - utils
+    - stats
+    - seismic
+    - eqlayer
+    - prism
+    - sphere
+    - synthetic (get rid of)
+    - transforms
+    - io    
 * MORE UNIT TESTS!!!
 * Change from f2py to ctypes
 * Include mercurial changeset when making a distribution so that install has this information

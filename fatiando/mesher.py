@@ -15,46 +15,20 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Tools for creating model space discretization meshes.
-
-Functions:
-
-* :func:`fatiando.mesh.prism_mesh`
-    Dived a volume into right rectangular prisms
-
-* :func:`fatiando.mesh.square_mesh`
-    Divide an area into rectangles
-
-* :func:`fatiando.mesh.line_mesh`
-    Divide a line or region into segments. 
-
-* :func:`fatiando.mesh.extract_key`
-    Extract the values of key from each of cell of mesh
-
-* :func:`fatiando.mesh.fill`
-    Fill the 'key' value of each cell of mesh
-
-* :func:`fatiando.mesh.copy` 
-    Make a copy of an n-dimensional mesh
-
-* :func:`fatiando.mesh.vfilter`
-    Remove elements within a given value range from a mesh.
-    
+Tools for creating various discretization meshes.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 13-Sep-2010'
-
+__date__ = '13-Sep-2010'
 
 import logging
 
 import numpy
 import pylab
 
-import fatiando
-import fatiando.geometry as geometry
+from fatiando import default_log_handler
 
-log = logging.getLogger('fatiando.mesh')
-log.addHandler(fatiando.default_log_handler)
+log = logging.getLogger('fatiando.mesher')
+log.addHandler(default_log_handler)
 
 
 def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
@@ -66,19 +40,14 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
     shape of the mesh is (*nz*, *ny*, *nx*)
     
     Parameters:
-      
     * x1, x2
         Lower and upper limits of the volume in the x direction
-    
     * y1, y2
         Lower and upper limits of the volume in the y direction
-    
     * z1, z2
         Lower and upper limits of the volume in the z direction
-    
     * nx, ny, nz
         Number of prisms in the x, y, and z directions
-        
     * topo
         Topography data in a dictionary (see :func:`fatiando.grav.io.load_topo`)
         If not ``None``, mesh cells above the topography values will have their
@@ -86,12 +55,10 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
         :func:`fatiando.vis.plot_prism_mesh`
           
     Returns:
-    
     * mesh
         3D array of prisms. (See :func:`fatiando.geometry.prism`)
         
     """
-    
     dx = float(x2 - x1)/nx
     dy = float(y2 - y1)/ny
     dz = float(z2 - z1)/nz
@@ -102,13 +69,11 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
     log.info("  Cell dimensions: dx=%g X dy=%g X dz=%g" % (dx, dy, dz))
     
     mesh = []
-    
     for k, cellz1 in enumerate(numpy.arange(z1, z2, dz)):
         # To ensure that there are the right number of cells. arange 
         # sometimes makes more cells because of floating point rounding
         if k >= nz:
             break
-        
         plane = []
         for j, celly1 in enumerate(numpy.arange(y1, y2, dy)):
             if j >= ny:
@@ -123,7 +88,7 @@ def prism_mesh(x1, x2, y1, y2, z1, z2, nx, ny, nz, topo=None):
             plane.append(line)
         mesh.append(plane)
     mesh = numpy.array(mesh)
-    
+    # Flag prisms over the topography
     if topo is not None:
         # The coordinates of the centers of the cells
         x = numpy.arange(x1, x2, dx) + 0.5*dx
