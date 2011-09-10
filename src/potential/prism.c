@@ -19,9 +19,9 @@
 
 /* **************************************************************************
 
-   This module contains a set of functions that calculate the gravitational
-   potential and its first and second derivatives for the rectangular prism
-   using the formulas in Nagy (2000).
+   Set of functions that calculate:
+   *  the gravitational potential and its first and second derivatives for the
+      right rectangular prism using the formulas in Nagy et al. (2000)
 
    Author: Leonardo Uieda
    Date: 01 March 2010
@@ -29,112 +29,114 @@
    ************************************************************************** */
 
 #include <math.h>
-#include "grav_prism.h"
+
+/* The gravitational constant (m^3*kg^-1*s^-1) */
+#define G 0.00000000006673
+
+/* Conversion factor from SI units to Eotvos: 1 /s**2 = 10**9 Eotvos */
+#define SI2EOTVOS 1000000000.0
+
+/* Conversion factor from SI units to mGal: 1 m/s**2 = 10**5 mGal */
+#define SI2MGAL 100000.0
 
 
-/* Calculates the gz gravity component cause by a prism. */
+/* The following functions calculate the gravitational potential and its first
+and second derivatives caused by a right rectangular prism using the formulas
+given in Nagy et al. (2000).
+
+The coordinate system of the input parameters is assumed to be
+    x->north, y->east; z->down.
+
+Input values in SI units and returns values in:
+* gx, gy, gz = mGal
+* gxx, gxy, gxz, gyy, etc. = Eotvos
+
+Parameters:
+    * double dens: density of the prism;
+    * double x1, x2, y1, ... z2: the borders of the prism;
+    * double *xp, *yp, *zp: coordinates of the computation points
+    * unsigned int n: number of computation points
+    * double *res: vector used to return the calculated effect on the n points
+Returns:
+    * unsigned int: number of points calculated
+*/
+
+
 double prism_gz(double dens, double x1, double x2, double y1, double y2,
-                double z1, double z2, double xp, double yp, double zp)
+                double z1, double z2, double *xp, double *yp, double *zp,
+                unsigned int n, double *res)
 {
-    /* Variables */
-    /*double r,
-           res,
-           deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;*/
-
-    /* First thing to do is make P the origin of the coordinate system */
-    /*deltax1 = x1 - xp;
-    deltax2 = x2 - xp;
-    deltay1 = y1 - yp;
-    deltay2 = y2 - yp;
-    deltaz1 = z1 - zp;
-    deltaz2 = z2 - zp;
-
-    res = 0;*/
-
-    /* Evaluate the integration limits */
-    /*r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz1*deltaz1);
-
-    res += 1*(deltax1*log(deltay1 + r) + deltay1*log(deltax1 + r) -
-    		deltaz1*atan2(deltax1*deltay1, deltaz1*r));
-
-    r = sqrt(deltax2*deltax2 + deltay1*deltay1 + deltaz1*deltaz1);
-
-    res += -1*(deltax2*log(deltay1 + r) + deltay1*log(deltax2 + r) -
-    		deltaz1*atan2(deltax2*deltay1, deltaz1*r));
-
-    r = sqrt(deltax1*deltax1 + deltay2*deltay2 + deltaz1*deltaz1);
-
-    res += -1*(deltax1*log(deltay2 + r) + deltay2*log(deltax1 + r) -
-    		deltaz1*atan2(deltax1*deltay2, deltaz1*r));
-
-    r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz1*deltaz1);
-
-    res += 1*(deltax2*log(deltay2 + r) + deltay2*log(deltax2 + r) -
-    		deltaz1*atan2(deltax2*deltay2, deltaz1*r));
-
-    r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz2*deltaz2);
-
-    res += -1*(deltax1*log(deltay1 + r) + deltay1*log(deltax1 + r) -
-    		deltaz2*atan2(deltax1*deltay1, deltaz2*r));
-
-    r = sqrt(deltax2*deltax2 + deltay1*deltay1 + deltaz2*deltaz2);
-
-    res += 1*(deltax2*log(deltay1 + r) + deltay1*log(deltax2 + r) -
-    		deltaz2*atan2(deltax2*deltay1, deltaz2*r));
-
-    r = sqrt(deltax1*deltax1 + deltay2*deltay2 + deltaz2*deltaz2);
-
-    res += 1*(deltax1*log(deltay2 + r) + deltay2*log(deltax1 + r) -
-    		deltaz2*atan2(deltax1*deltay2, deltaz2*r));
-
-    r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz2*deltaz2);
-
-    res += -1*(deltax2*log(deltay2 + r) + deltay2*log(deltax2 + r) -
-    		deltaz2*atan2(deltax2*deltay2, deltaz2*r));*/
+    double r,
+           deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
+    register unsigned int i;
     
-    double x[2], y[2], z[2], kernel, res, r;
-    register int i, j, k;
-
-    /* First thing to do is make P the origin of the coordinate system */
-    x[0] = x1 - xp;
-    x[1] = x2 - xp;
-    y[0] = y1 - yp;
-    y[1] = y2 - yp;
-    z[0] = z1 - zp;
-    z[1] = z2 - zp;
-
-    res = 0;
-
-    /* Evaluate the integration limits */
-    for(k=0; k<=1; k++)
+    for(i=0; i < n; i++)
     {
-        for(j=0; j<=1; j++)
-        {
-            for(i=0; i<=1; i++)
-            {
-                r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k]);
+        /* First thing to do is make P the origin of the coordinate system */
+        deltax1 = x1 - *xp;
+        deltax2 = x2 - *xp;
+        deltay1 = y1 - *yp;
+        deltay2 = y2 - *yp;
+        deltaz1 = z1 - *zp;
+        deltaz2 = z2 - *zp;
+    
+        *res = 0;
+        
+        /* Evaluate the integration limits */
+        r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz1*deltaz1);
+    
+        *res += 1*(deltax1*log(deltay1 + r) + deltay1*log(deltax1 + r) -
+                deltaz1*atan2(deltax1*deltay1, deltaz1*r));
+    
+        r = sqrt(deltax2*deltax2 + deltay1*deltay1 + deltaz1*deltaz1);
+    
+        *res += -1*(deltax2*log(deltay1 + r) + deltay1*log(deltax2 + r) -
+                deltaz1*atan2(deltax2*deltay1, deltaz1*r));
+    
+        r = sqrt(deltax1*deltax1 + deltay2*deltay2 + deltaz1*deltaz1);
+    
+        *res += -1*(deltax1*log(deltay2 + r) + deltay2*log(deltax1 + r) -
+                deltaz1*atan2(deltax1*deltay2, deltaz1*r));
+    
+        r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz1*deltaz1);
+    
+        *res += 1*(deltax2*log(deltay2 + r) + deltay2*log(deltax2 + r) -
+                deltaz1*atan2(deltax2*deltay2, deltaz1*r));
+    
+        r = sqrt(deltax1*deltax1 + deltay1*deltay1 + deltaz2*deltaz2);
+    
+        *res += -1*(deltax1*log(deltay1 + r) + deltay1*log(deltax1 + r) -
+                deltaz2*atan2(deltax1*deltay1, deltaz2*r));
+    
+        r = sqrt(deltax2*deltax2 + deltay1*deltay1 + deltaz2*deltaz2);
+    
+        *res += 1*(deltax2*log(deltay1 + r) + deltay1*log(deltax2 + r) -
+                deltaz2*atan2(deltax2*deltay1, deltaz2*r));
+    
+        r = sqrt(deltax1*deltax1 + deltay2*deltay2 + deltaz2*deltaz2);
+    
+        *res += 1*(deltax1*log(deltay2 + r) + deltay2*log(deltax1 + r) -
+                deltaz2*atan2(deltax1*deltay2, deltaz2*r));
+    
+        r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz2*deltaz2);
+    
+        *res += -1*(deltax2*log(deltay2 + r) + deltay2*log(deltax2 + r) -
+                deltaz2*atan2(deltax2*deltay2, deltaz2*r));
+                
+        *res *= G*SI2MGAL*dens;
 
-                kernel = x[i]*log(y[j] + r) + y[j]*log(x[i] + r)
-                        - z[k]*atan2(x[i]*y[j], z[k]*r);
-
-                res += pow(-1, i + j + k)*kernel;
-            }
-        }
+        res++;
+        xp++;
+        yp++;
+        zp++;
     }
-
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to mGal units */
-    res *= G*SI2MGAL*dens;
-
-    return res;
+    return i;
 }
 
 
-/* Calculates the gxx gravity gradient tensor component cause by a prism. */
 double prism_gxx(double dens, double x1, double x2, double y1, double y2,
-                double z1, double z2, double xp, double yp, double zp)
+                 double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -182,19 +184,14 @@ double prism_gxx(double dens, double x1, double x2, double y1, double y2,
 
 	res += -1*atan2(deltay2*deltaz2, deltax2*r);
 
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }
 
 
-/* Calculates the gxy gravity gradient tensor component cause by a prism. */
 double prism_gxy(double dens, double x1, double x2, double y1, double y2,
                  double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -241,20 +238,15 @@ double prism_gxy(double dens, double x1, double x2, double y1, double y2,
     r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz2*deltaz2);
 
     res += -1*(-1*log(deltaz2 + r));
-
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
+    
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }
 
 
-/* Calculates the gxz gravity gradient tensor component cause by a prism. */
 double prism_gxz(double dens, double x1, double x2, double y1, double y2,
                  double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -302,19 +294,14 @@ double prism_gxz(double dens, double x1, double x2, double y1, double y2,
 
 	res += -1*(-1*log(deltay2 + r));
 
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }
 
 
-/* Calculates the gyy gravity gradient tensor component cause by a prism. */
 double prism_gyy(double dens, double x1, double x2, double y1, double y2,
                  double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -362,19 +349,14 @@ double prism_gyy(double dens, double x1, double x2, double y1, double y2,
 
 	res += -1*(atan2(deltaz2*deltax2, deltay2*r));
 
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }
 
 
-/* Calculates the gyz gravity gradient tensor component cause by a prism. */
 double prism_gyz(double dens, double x1, double x2, double y1, double y2,
                  double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -421,21 +403,16 @@ double prism_gyz(double dens, double x1, double x2, double y1, double y2,
     r = sqrt(deltax2*deltax2 + deltay2*deltay2 + deltaz2*deltaz2);
 
     res += -1*(-1*log(deltax2 + r));
-
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
+    
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }
 
 
 
-/* Calculates the gzz gravity gradient tensor component cause by a prism. */
 double prism_gzz(double dens, double x1, double x2, double y1, double y2,
                  double z1, double z2, double xp, double yp, double zp)
 {
-    /* Variables */
 	double r,
 		   res,
 		   deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -483,9 +460,6 @@ double prism_gzz(double dens, double x1, double x2, double y1, double y2,
 
     res += -1*(atan2(deltax2*deltay2, deltaz2*r));
 
-    /* Now all that is left is to multiply res by the gravitational constant and
-       density and convert it to Eotvos units */
     res *= G*SI2EOTVOS*dens;
-
     return res;
 }

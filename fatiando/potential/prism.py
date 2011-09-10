@@ -15,32 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Calculate the gravitational potential and its first and second derivatives for 
-the right rectangular prism using the formulas by Nagy *et* *al.* (2000).
-
-Functions:
-
-* :func:`fatiando.grav.prism.gz`
-    Calculates the :math:`g_z` gravity component.
-    
-* :func:`fatiando.grav.prism.gxx`
-    Calculates the :math:`g_{xx}` gravity gradient tensor component.
-    
-* :func:`fatiando.grav.prism.gxy`
-    Calculates the :math:`g_{xy}` gravity gradient tensor component.
-    
-* :func:`fatiando.grav.prism.gxz`
-    Calculates the :math:`g_{xz}` gravity gradient tensor component.
-    
-* :func:`fatiando.grav.prism.gyy`
-    Calculates the :math:`g_{yy}` gravity gradient tensor component.
-    
-* :func:`fatiando.grav.prism.gyz`
-    Calculates the :math:`g_{yz}` gravity gradient tensor component.
-    
-* :func:`fatiando.grav.prism.gzz`
-    Calculates the :math:`g_{zz}` gravity gradient tensor component.
-
+Direct modelling of potential fields using right rectangular prisms.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
