@@ -33,7 +33,6 @@ potential_prism = Extension('fatiando.potential._prism',
 
 extmods = [potential_prism]
 
-
 packages = ['fatiando',
             'fatiando.potential',
             'fatiando.seismic',
@@ -55,7 +54,6 @@ with open(join('fatiando','changeset.py'), 'w') as csmod:
         key = entries[0]
         value = ':'.join(entries[1:])
         csmod.write('%s = "%s"\n' % (key, value))
-
 
 if __name__ == '__main__':
 
