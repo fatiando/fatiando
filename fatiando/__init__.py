@@ -15,16 +15,17 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling. 
+Geophysical direct and inverse modeling.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = '02-Apr-2010'
 __version__ = '0.0.1'
 __all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
            'stats', 'utils']
+from fatiando.revision import __revision__
 
 # Create a default NullHandler so that logging is only enabled explicitly
-################################################################################ 
+################################################################################
 import logging
 class NullHandler(logging.Handler):
     """

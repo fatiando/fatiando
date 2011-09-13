@@ -6,3 +6,5 @@ syntax: glob
 *.so
 doc/userguide/_build
 build
+dist
+MANIFEST

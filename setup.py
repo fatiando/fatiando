@@ -19,7 +19,6 @@ Build extention modules, package and install Fatiando.
 Uses the numpy's extension of distutils to build the f2py extension modules
 """
 from os.path import join
-import subprocess
 from numpy.distutils.core import setup, Extension
 
 import fatiando
@@ -41,19 +40,6 @@ packages = ['fatiando',
 
 with open("README.txt") as f:
     long_description = f.readlines()
-
-# Get the changeset information from Mercurial and save it to module
-# fatiando.changeset
-with open(join('fatiando','changeset.py'), 'w') as csmod:
-    proc = subprocess.Popen('hg parents', shell=True, stdout=subprocess.PIPE)
-    csmod.write('"""\nInformation on the latest changeset packaged\n"""\n')
-    for line in proc.stdout.readlines():
-        entries = [e.strip() for e in line.split(':')]
-        if len(entries) == 1:
-            continue
-        key = entries[0]
-        value = ':'.join(entries[1:])
-        csmod.write('%s = "%s"\n' % (key, value))
 
 if __name__ == '__main__':
 

@@ -1,0 +1,15 @@
+==========================
+potential.prism benchmarks
+==========================
+
+Benchmarks for the potential.prism module:
+
+Compute effect of one point in C but loop over points in Python
+===============================================================
+
+Tue Sep 13 19:07:53 2011
+Changeset used: 312c0195d09a+ tip
+Time to calculate on 1000000 points, 10 times:
+Total time = 35.180000
+Mean = 3.518000
+Std = 0.008718
