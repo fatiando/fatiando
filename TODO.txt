@@ -11,6 +11,7 @@
     - synthetic (get rid of)
     - transforms
     - io
+* Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
 * MORE UNIT TESTS!!!
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
