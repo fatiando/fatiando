@@ -134,7 +134,7 @@ def gaussian(x, mean, std):
     return numpy.exp(-1*((mean - x)/std)**2)
 
 
-def gaussian2d(x, y, xmean, ymean, cov):
+def gaussian2d(x, y, xmean=0, ymean=0, cov=[[1,0],[0,1]]):
     """
     Non-normalized 2D Gaussian function
 

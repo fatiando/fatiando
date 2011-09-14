@@ -127,114 +127,30 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
 
-def subtract(grid1, grid2, key1='value', key2='value', percent=False):
-    """
-    Subtract grid2 from grid1.
-
-    Parameters:
-
-    * grid1, grid2
-        Grids stored in dictionaries. Do not need to be regular, but points must
-        coincide. (see :mod:`fatiando.grid`)
-
-    * key1, key2
-        Keys in grid1 and grid2, respectively, with the values to subtract.
-
-    * percent
-        If ``True``, the difference will be calculated in a percentage of the
-        value in *grid1*.
-
-    Returns:
-
-    * subgrid
-        Grid with the subtraction results stored in key ``'value'``
-
-    """
-
-    assert key1 in grid1, "%s does not exist in grid1." % (key1)
-
-    assert key2 in grid2, "%s does not exist in grid2." % (key2)
-
-    assert len(grid1[key1]) == len(grid2[key2]), \
-        "Grids must have same number of points!"
-
-    # TODO: Check is 'grid' is the same in both
-
-    value = []
-
-    vappend = value.append
-
-    for i, tmp in enumerate(grid1[key1]):
-
-        assert grid1['x'][i] == grid2['x'][i] and \
-                grid1['y'][i] == grid2['y'][i], \
-                "Grid points must coincide! (point %d is off)" % (i)
-
-        if not percent:
-
-            vappend(grid1[key1][i] - grid2[key2][i])
-
-        else:
-
-            vappend(100*abs((grid1[key1][i] - grid2[key2][i])/grid1[key1][i]))
-
-    subgrid = {'x':grid1['x'], 'y':grid1['y'], 'value':numpy.array(value)}
-
-    if 'grid' in grid1 or 'grid' in grid2:
-
-        subgrid['grid'] = grid1['grid']
-
-        if grid1['grid'] and grid2['grid']:
-            subgrid['nx'] = grid1['nx']
-            subgrid['ny'] = grid1['ny']
-
-    return subgrid
-
-
-def cut(grid, xmin, xmax, ymin, ymax):
+def cut(x, y, scalars, xmin, xmax, ymin, ymax):
     """
     Remove a subsection of the grid.
 
     Parameters:
-
-    * grid
-        Grid stored in a dictionary.
-
+    * x, y
+        Arrays with the x and y coordinates of the data points.
+    * scalars
+        List of arrays with the scalar values assigned to the grid points.
     * xmin, xmax
         Limits of the subsection in the x direction.
-
     * ymin, ymax
         Limits of the subsection in the y direction.
-
     Returns:
-
-    * subgrid
-        Grid stored in a dictionary.
+    * [subx, suby, subscalars]
+        Arrays with x and y coordinates and scalar values of the subsection.
 
     """
-
-    subgrid = {}
-
-    for key in grid:
-
-        if isinstance(grid[key], numpy.ndarray):
-
-            subgrid[key] = []
-
-    for i, pos in enumerate(zip(grid['x'], grid['y'])):
-
-        x, y = pos
-
-        if x >= xmin and x <= xmax and y >= ymin and y <= ymax:
-
-            for key in subgrid:
-
-                subgrid[key].append(grid[key][i])
-
-    for key in subgrid:
-
-        subgrid[key] = numpy.array(subgrid[key])
-
-    subgrid['grid'] = False
-
-    return subgrid
+    inside = []
+    for i, coords in enumerate(zip(x, y)):
+        xp, yp = coords
+        if xp >= xmin and xp <= xmax and yp >= ymin and yp <= ymax:
+            inside.append(i)
+    subx = numpy.array([x[i] for i in inside])
+    suby = numpy.array([y[i] for i in inside])
+    subscalars = [[scalar[i] for i in inside] for scalar in scalars]
+    return [subx, suby, subscalars]
