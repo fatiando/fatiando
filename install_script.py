@@ -7,9 +7,9 @@ from os.path import join
 import subprocess
 
 def setrevision():
-    with open(join('fatiando','revision.py'), 'w') as revision:
+    with open(join('fatiando','changeset.py'), 'w') as revision:
         proc = subprocess.Popen('hg id', shell=True, stdout=subprocess.PIPE)
-        revision.write("__revision__ = '%s'" % ("".join(proc.stdout.readlines()).strip()))
+        revision.write("__changeset__ = '%s'" % ("".join(proc.stdout.readlines()).strip()))
 
 def uninstall():
     subprocess.Popen('echo "y" | pip uninstall fatiando', shell=True).wait()

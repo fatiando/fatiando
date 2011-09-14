@@ -49,7 +49,6 @@ def gz(prisms, xp, yp, zp):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
-
     res = numpy.zeros_like(xp)
     for prism in prisms:
         res += _prism.prism_gz(float(prism['density']), float(prism['x1']),

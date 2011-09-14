@@ -22,7 +22,7 @@ __date__ = '02-Apr-2010'
 __version__ = '0.0.1'
 __all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
            'stats', 'utils']
-from fatiando.revision import __revision__
+from fatiando.changeset import __changeset__
 
 # Create a default NullHandler so that logging is only enabled explicitly
 ################################################################################
