@@ -26,15 +26,15 @@ import logging
 import numpy
 import matplotlib.mlab
 
-def regular(x1, x2, y1, y2, nx, ny, z=None):
+def regular(x1, x2, y1, y2, shape, z=None):
     """
-    Create an regular grid. Order of the output grid is x varies first, then y.
+    Create a regular grid. Order of the output grid is x varies first, then y.
 
     Parameters:
     * x1, x2, y1, y2
         Borders of the grid
-    * nx, ny
-        Number of points in the x and y directions, respectively
+    * shape
+        Shape of the regular grid, ie (nx, ny).
     * z
         Optional. z coordinate of the grid points. If given, will return an
         array with the value *z*.
@@ -45,7 +45,9 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
     * [xcoords, ycoords,zcoords]
         If *z* given. Numpy arrays with the x, y, and z coordinates of the grid
         points
+
     """
+    ny, nx = shape
     dx = float(x2 - x1)/float(nx - 1)
     dy = float(y2 - y1)/float(ny - 1)
     x_range = numpy.arange(x1, x2, dx)
@@ -67,6 +69,33 @@ def regular(x1, x2, y1, y2, nx, ny, z=None):
     else:
         return [xcoords, ycoords]
 
+def scatter(x1, x2, y1, y2, n, z=None):
+    """
+    Create an irregular grid with a random scattering of points.
+
+    Parameters:
+    * x1, x2, y1, y2
+        Borders of the grid
+    * n
+        Number of points
+    * z
+        Optional. z coordinate of the points. If given, will return an
+        array with the value *z*.
+
+    Returns:
+    * [xcoords, ycoords]
+        Numpy arrays with the x and y coordinates of the points
+    * [xcoords, ycoords,zcoords]
+        If *z* given. Arrays with the x, y, and z coordinates of the points
+
+    """
+    xcoords = numpy.random.uniform(x1, x2, n)
+    ycoords = numpy.random.uniform(y1, y2, n)
+    if z is not None:
+        zcoords = z*numpy.ones(n)
+        return [xcoords, ycoords, zcoords]
+    else:
+        return [xcoords, ycoords]
 
 def interpolate(x, y, v, shape, algorithm='nn'):
     """
@@ -85,6 +114,7 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     Returns:
     * [X, Y, V]
         Three 2D arrays with the interpolated x, y, and v
+
     """
     if algorithm != 'nn' and algorithm != 'linear':
         raise ValueError, "Invalid interpolation: %s" % (str(algorithm))
@@ -96,62 +126,6 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
-
-
-def fill(values, grid, key='value'):
-    """
-    Fill a regular grid with the values in a 2D array **IN PLACE**.
-
-    Parameters:
-
-    * values
-        2D array with the value to be put into each grid point.
-
-    * grid
-        A regular grid store in a dictionary (see :func:`fatiando.grid.regular`)
-
-    * key
-        The key in the grid dictionary the values will be put into.
-
-    """
-
-    varray = numpy.array(values)
-
-    assert varray.shape == (grid['ny'], grid['nx']), \
-        ("Woops, 'values' doesn't have the right shape. " +
-        "Should be %d rows X %d columns (ny X nx)." % (grid['ny'], grid['nx']))
-
-    grid[key] = varray.ravel()
-
-
-def copy(grid):
-    """
-    Return a copy of *grid*.
-
-    Parameters:
-
-    * grid
-        Grid stored in a dictionary.
-
-    Returns:
-
-    * copied
-        Copy of *grid*
-
-    """
-
-    copied = {}
-
-    for key in grid:
-
-        copied[key] = numpy.copy(grid[key])
-
-        if copied[key].shape == ():
-
-            copied[key] = copied[key].tolist()
-
-    return copied
-
 
 def subtract(grid1, grid2, key1='value', key2='value', percent=False):
     """

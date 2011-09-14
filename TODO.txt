@@ -2,7 +2,6 @@
     - mesher
     - gridder
     - vis
-    - utils
     - stats
     - seismic
     - eqlayer
@@ -35,7 +34,6 @@
 * Implement sparsity regularization
 * Use the data covariance matrix
 * Fix 'grid', 'nx', and 'ny' in grid.cut
-* Make grid.random function to generate non-regular grids
 * Standardize data structures and I/O format
 * vis.bbox function to plot a bounding box in mayavi
 * Implement the Chi squared test for a population
@@ -57,3 +55,4 @@
 
 Done:
 * 14/09/2011: Include mercurial changeset when making a distribution so that install has this information
+* 14/09/2011: Make grid.scatter function to generate irregular grids
