@@ -15,25 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create and operate on data types representing grids and profiles.
-
-Functions:
-
-* :func:`fatiando.grid.regular`
-    Create an empty regular grid.
-
-* :func:`fatiando.grid.fill`
-    Fill a regular grid with the values in a 2D array **IN PLACE**.
-
-* :func:`fatiando.grid.subtract`
-    Subtract grid2 from grid1.
-
-* :func:`fatiando.grid.copy`
-    Return a copy of *grid*.
-
-* :func:`fatiando.grid.cut`
-    Remove a subsection of the grid.
-
+Create and operate on grids and profiles.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
@@ -42,105 +24,78 @@ __date__ = 'Created 26-Oct-2010'
 import logging
 
 import numpy
-
-import fatiando
-
-
-# Add the default handler (a null handler) to the logger to ensure that
-# it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.grid')
-log.addHandler(fatiando.default_log_handler)
-
-
+import matplotlib.mlab
 
 def regular(x1, x2, y1, y2, nx, ny, z=None):
     """
-    Create an empty regular grid.
+    Create an regular grid. Order of the output grid is x varies first, then y.
 
     Parameters:
-
     * x1, x2, y1, y2
         Borders of the grid
-
     * nx, ny
         Number of points in the x and y directions, respectively
-
     * z
-        z coordinate of the grid points. If not None, then either a float or a
-        2D array with the z value in each grid point.
+        Optional. z coordinate of the grid points. If given, will return an
+        array with the value *z*.
 
     Returns:
-
-    * grid
-        A grid stored in a dictionary such as::
-            {'x':[x1, x2, x3, ...], 'y':[y1, y2, y3, ...], 'z':[y1, y2, y3, ...]
-            , 'nx':nx, 'ny':ny, 'grid':True}
-
+    * [xcoords, ycoords]
+        Numpy arrays with the x and y coordinates of the grid points
+    * [xcoords, ycoords,zcoords]
+        If *z* given. Numpy arrays with the x, y, and z coordinates of the grid
+        points
     """
-
-    log.info("Creating regular grid:")
-    log.info("  nx X ny = %d X %d = %d points" % (nx, ny, nx*ny))
-    log.info("  x1/x2/y1/y2 = %g/%g/%g/%g" % (x1, x2, y1, y2))
-
-    grid = {'nx':nx, 'ny':ny, 'grid':True}
-
-    dx = float(x2 - x1)/(nx - 1)
-
+    dx = float(x2 - x1)/float(nx - 1)
+    dy = float(y2 - y1)/float(ny - 1)
     x_range = numpy.arange(x1, x2, dx)
-
-    dy = float(y2 - y1)/(ny - 1)
-
     y_range = numpy.arange(y1, y2, dy)
-
-    log.info("  dx/dy = %g/%g" % (dx, dy))
-
     # Need to make sure that the number of points in the grid is correct because
     # of rounding errors in arange. Sometimes x2 and y2 are included, sometimes
     # not
     if len(x_range) < nx:
-
         x_range = numpy.append(x_range, x2)
-
     if len(y_range) < ny:
-
         y_range = numpy.append(y_range, y2)
+    assert len(x_range) == nx, "Failed! x_range doesn't have nx points"
+    assert len(y_range) == ny, "Failed! y_range doesn't have ny points"
 
-    xs = []
-    ys = []
-
-    xappend = xs.append
-    yappend = ys.append
-
-    for y in y_range:
-
-        for x in x_range:
-
-            xappend(x)
-            yappend(y)
-
-    grid['x'] = numpy.array(xs)
-    grid['y'] = numpy.array(ys)
-
+    xcoords, ycoords = [mat.ravel() for mat in numpy.meshgrid(x_range, y_range)]
     if z is not None:
-
-        if isinstance(z, float) or isinstance(z, int):
-
-            zs = z*numpy.ones(nx*ny)
-
-        else:
-
-            zarray = numpy.array(z)
-
-            assert zarray.shape == (ny, nx), \
-                ("Woops, 'z' doesn't have the right shape. " +
-                "Should be %d rows X %d columns (ny X nx)." % (ny, nx))
-
-            zs = zarray.ravel()
-
-        grid['z'] = zs
+        zcoords = z*numpy.ones_like(xcoords)
+        return [xcoords, ycoords, zcoords]
+    else:
+        return [xcoords, ycoords]
 
 
-    return grid
+def interpolate(x, y, v, shape, algorithm='nn'):
+    """
+    Interpolate data onto a regular grid.
+
+    Parameters:
+    * x, y
+        Arrays with the x and y coordinates of the data points.
+    * v
+        Array with the scalar value assigned to the data points.
+    * shape
+        Shape of the interpolated regular grid, ie (nx, ny).
+    * algorithm
+        Interpolation algorithm. Either ``'nn'`` for natural neighbor interpolation
+        or ``'linear'`` for linear interpolation. (see numpy.griddata)
+    Returns:
+    * [X, Y, V]
+        Three 2D arrays with the interpolated x, y, and v
+    """
+    if algorithm != 'nn' and algorithm != 'linear':
+        raise ValueError, "Invalid interpolation: %s" % (str(algorithm))
+    ny, nx = shape
+    dx = float(x.max() - x.min())/nx
+    dy = float(y.max() - y.min())/ny
+    xs = numpy.arange(x.min(), x.max(), dx, 'f')
+    ys = numpy.arange(y.min(), y.max(), dy, 'f')
+    X, Y = numpy.meshgrid(xs, ys)
+    V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
+    return [X, Y, V]
 
 
 def fill(values, grid, key='value'):

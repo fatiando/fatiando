@@ -30,7 +30,7 @@ Functions:
 
 * :func:`fatiando.utils.set_logfile`
     Enable logging to a file.
-    
+
 * :func:`fatiando.utils.log_header`
     Generate a header message with the current version and changeset information
 
@@ -45,7 +45,7 @@ import time
 import numpy
 
 import fatiando
-import fatiando.csinfo as csinfo
+#import fatiando.csinfo as csinfo
 
 
 log = logging.getLogger('fatiando.utils')
@@ -56,22 +56,22 @@ def get_logger(level=logging.DEBUG):
     """
     Get a logger to ``stderr``.
     (Adds a stream handler to the base logger ``'fatiando'``)
-    
+
     Parameters:
-    
+
     * level
         The logging level. Default to ``logging.DEBUG``. See ``logging`` module
-      
+
     Returns:
-    
+
     * a logger object
-    
+
     """
-    
+
     logger = logging.getLogger('fatiando')
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter())
-    logger.addHandler(handler)    
+    logger.addHandler(handler)
     logger.setLevel(level)
 
     return logger
@@ -81,93 +81,93 @@ def set_logfile(fname, level=logging.DEBUG):
     """
     Enable logging to a file.
     (Adds a file handler to the base logger ``'fatiando'``)
-    
+
     Parameters:
-    
-    * fname 
+
+    * fname
         Log file name
-    
+
     * level
         The logging level. Default to ``logging.DEBUG``. See ``logging`` module
-      
+
     Returns:
-    
+
     * a logger object
-     
+
     """
-    
+
     logger = logging.getLogger('fatiando')
     fhandler = logging.FileHandler(fname, 'w')
     fhandler.setFormatter(logging.Formatter())
     logger.addHandler(fhandler)
     logger.setLevel(level)
-    
+
     return logger
 
 
 def header(comment=''):
-    """    
+    """
     Generate a header message with the current version and changeset information
     and current date.
-                   
+
     Parameters:
-    
+
     * comment
         Character inserted at the beginning of each line. Use this to make a
         message that can be inserted in source code files as comments.
-                
+
     Returns:
-    
+
     * msg
         string with the header message
-                
+
     """
-    
+
     lines = ["%sFatiando a Terra:\n" % (comment),
              "%s  version: %s\n" % (comment, fatiando.__version__),
              "%s  date: %s\n" % (comment, time.asctime()),
-             "%s  version control info:\n" % (comment)             
+             "%s  version control info:\n" % (comment)
             ]
-    
-    for line in csinfo.csinfo:
-        
-        newline = ''.join(['%s    ' % (comment), line])
-        
-        lines.append(newline)
-        
+
+    #for line in csinfo.csinfo:
+        #
+        #newline = ''.join(['%s    ' % (comment), line])
+        #
+        #lines.append(newline)
+
     msg = ''.join(lines)
-    
-    return msg    
-    
+
+    return msg
+
 
 def contaminate(data, stddev, percent=True, return_stddev=False):
     """
     Add random noise to a data array.
-    
+
     Noise added is normally distributed.
-    
+
     Parameters:
-    
+
     * data
         1D array-like data to contaminate
-        
+
     * stddev
         Standard deviation of the Gaussian noise that will be added to *data*
-        
+
     * percent
-        If ``True``, will consider *stddev* as a decimal percentage and the 
+        If ``True``, will consider *stddev* as a decimal percentage and the
         Standard deviation of the Gaussian noise will be this percentage of
         the maximum absolute value of *data*
-        
+
     * return_stddev
         If ``True``, will return also the standard deviation used to contaminate
         *data*
 
     Returns:
-    
+
     * [contam_data, stddev if *return_stddev* is ``True``]
-        The contaminated data array        
-        
+        The contaminated data array
+
     """
 
     if percent:
@@ -177,50 +177,50 @@ def contaminate(data, stddev, percent=True, return_stddev=False):
         stddev = stddev*maximum
 
     cont_data = []
-    
+
     for value in data:
 
         cont_data.append(numpy.random.normal(value, stddev))
 
     if return_stddev:
-        
+
         return [cont_data, stddev]
-    
+
     else:
-        
+
         return cont_data
-    
-    
+
+
 def extract_matrices(grid, vkey='value'):
     """
     Extract x, y and value coordinate matrices from a grid dictionary.
-    
-    Use to plot using matplotlib. 
-    
+
+    Use to plot using matplotlib.
+
     Parameters:
-    
+
     * grid
         Data grid stored in a dictionary
 
     * vkey
         The key containg the values of the V matrix
-            
+
     Return:
-        
+
     * [X, Y, V]
         Matrices with the values of x, y and *vkey* at each grid point
-        
+
     The data dictionary should be as produced :mod:`fatiando.grid`
-               
+
     """
 
     assert grid['grid'] is True, \
         "'grid' has to be a regular grid (ie. have it's 'grid' key set to True"
     assert 'nx' in grid and 'ny' in grid, \
         "Need nx and ny values in the grid (number of points in x and y)"
-    
+
     X = numpy.reshape(grid['x'], (grid['ny'], grid['nx']))
     Y = numpy.reshape(grid['y'], (grid['ny'], grid['nx']))
     V = numpy.reshape(grid[vkey], (grid['ny'], grid['nx']))
-    
+
     return X, Y, V

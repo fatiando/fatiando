@@ -16,27 +16,21 @@
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Direct modelling of potential fields using right rectangular prisms.
+Formulas for gravity: Nagy et al (2000)
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
-
 import logging
 
+import numpy
 
-import fatiando
-import fatiando.potential._prism as prism_ext
-
-
-# Add the default handler (a null handler) to the logger to ensure that
-# it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.grav.prism')
-log.addHandler(fatiando.default_log_handler)
+from fatiando.potential import _prism
 
 
-def gz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gz(prisms, xp, yp, zp):
     """
-    Calculates the :math:`g_z` gravity component.
+    Calculates the :math:`g_z` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -44,25 +38,24 @@ def gz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
+    * prisms
+        List of RightRectangularPrism objects. (see :mod:`fatiando.mesher`)
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
 
     Returns:
-
-    * the :math:`g_z` component calculated at **P**
+    * List with the :math:`g_z` component calculated on *points*
     """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
 
-    res = prism_ext.prism_gz(float(dens), float(x1), float(x2), float(y1),
-                             float(y2), float(z1), float(z2), float(xp),
-                             float(yp), float(zp))
-
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        res += _prism.prism_gz(float(prism['density']), float(prism['x1']),
+                              float(prism['x2']), float(prism['y1']),
+                              float(prism['y2']), float(prism['z1']),
+                              float(prism['z2']), xp, yp, zp)
     return res
 
 

@@ -10,22 +10,17 @@
     - sphere
     - synthetic (get rid of)
     - transforms
-    - io    
+    - io
 * MORE UNIT TESTS!!!
-* Change from f2py to ctypes
-* Include mercurial changeset when making a distribution so that install has this information
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
-* Move the test script to fatiando.modules and run it with "fat test" command
-* Move all unit tests to fatiando.tests package
+* Remove the test script. replace with "fat test" command
 * Make automatic test discovery and run
-* Build extention shared libs using SCons
 * Two types of grid loading: load and stream
 * make grids as iterators
 * make get_column methods in grids that are not streams
 * make export to VTK method in mesh that is independent of tvtk module
 * Convert string VTK file to tvtk structure for plotting with vis mod
 * Make a fatiando.modules package that automatically loads all modules as subcommands
-* Change fatiando package to "package" and use specific name in the setup.py
 * Try to make only numpy a requirement (optional mpl and mayavi if doing scripting)
 * Write README
 * Write docs for the inverse problem theory
@@ -35,7 +30,6 @@
 * Automatic reference generation form fatiando scripts
 * Contaminate generates a grid withh errors. Sum the error using grid.sum function
 * Make grid.sum function that sums specified field in 2 grids
-* Make a tool to remove trailing spaces from files
 * Implement sparsity regularization
 * Use the data covariance matrix
 * Fix 'grid', 'nx', and 'ny' in grid.cut
@@ -55,5 +49,9 @@
 * Implement grav terrain correction
 * Put all constants used into a constants.py module and pass them to the C functions
 * Normalize inversion terms in solvers so that reg params are equivalent to decimal percentages
-* Make all synthetic functions receive a grid object    
+* Make all synthetic functions receive a grid object
 * Integrate Radial3D inversion with fatiando
+
+
+Done:
+* 14/09/2011: Include mercurial changeset when making a distribution so that install has this information

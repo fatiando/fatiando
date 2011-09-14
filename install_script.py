@@ -2,6 +2,7 @@
 Record the revision information, remove an old install, make a source
 distribution and install it.
 """
+import sys
 from os.path import join
 import subprocess
 
@@ -22,8 +23,21 @@ def install():
     dist =join('dist', distfile)
     subprocess.Popen('pip install %s' % (dist), shell=True).wait()
 
+def build_ext():
+    """
+    Build extention modules inplace.
+    """
+    subprocess.Popen('python setup.py build_ext --inplace', shell=True).wait()
+
 if __name__ == '__main__':
     setrevision()
-    uninstall()
-    makedist()
-    install()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'install':
+            uninstall()
+            makedist()
+            install()
+        else:
+            print "Unknown command:", sys.argv[1:]
+            sys.exit()
+    else:
+        build_ext()
