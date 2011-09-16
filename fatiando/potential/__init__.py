@@ -15,80 +15,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A collection of gravimetry and gravity gradiometry direct models,
-transformations and utilities.
-
-Modules:
-
-* :mod:`fatiando.grav.io`
-    Input and output of gravity related data
-
-* :mod:`fatiando.grav.prism`
-    Calculate the gravitational potential and its first and second derivatives
-    for the right rectangular prism using the formulas by Nagy *et* *al.* (2000)
-
-* :mod:`fatiando.grav.sphere`
-    Calculate the gravitational potential and its first and second derivatives
-    for a sphere.
-
-* :mod:`fatiando.grav.synthetic`
-    Create synthetic gravity data from various types of model
-
-* :mod:`fatiando.grav.transform`
-    Gravity field transformations like upward continuation, derivatives and
-    total mass.
-
-* :mod:`fatiando.grav.eqlayer`
-    Calculate an equivalent layer of sources and make gravity field
-    transformations with it.
-
-Functions:
-
-* :func:`fatiando.grav.test`
-    Run the unit test suite for this package
-
+Potential field direct modeling, transformations and utilities.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
 
 
 from fatiando.potential import prism
-
-
-
-def test(label='fast', verbose=True):
-    """
-    Runs the unit tests for the fatiando.grav package.
-
-    Parameters:
-
-    * label
-        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for
-        the full test suite
-
-    * verbose
-        Controls if the whole test information is printed or just the final
-        results
-
-    """
-
-    if label != 'fast' and label != 'full':
-
-        from exceptions import ValueError
-
-        raise ValueError("Test label must be either 'fast' or 'full'")
-
-    import unittest
-
-    import fatiando.grav.tests
-
-    suite = unittest.TestSuite()
-
-    suite.addTest(fatiando.grav.tests.suite(label))
-
-    if verbose:
-        runner = unittest.TextTestRunner(verbosity=2)
-    else:
-        runner = unittest.TextTestRunner(verbosity=0)
-
-    runner.run(suite)

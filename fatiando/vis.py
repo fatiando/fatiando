@@ -22,13 +22,10 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
 
-import logging
-
 import numpy
 from matplotlib import pyplot
 
 import fatiando.gridder
-import fatiando.utils
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -48,7 +45,7 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     * v
         Array with the scalar value assigned to the grid points.
     * shape
-        Shape of the regular grid, ie (nx, ny).
+        Shape of the regular grid, ie (ny, nx).
         If interpolation is not False, then will use *shape* to grid the data.
     * levels
         Number of contours to use or a list with the contour values.
@@ -95,7 +92,7 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     * v
         Array with the scalar value assigned to the grid points.
     * shape
-        Shape of the regular grid, ie (nx, ny).
+        Shape of the regular grid, ie (ny, nx).
         If interpolation is not False, then will use *shape* to grid the data.
     * levels
         Number of contours to use or a list with the contour values.
@@ -135,7 +132,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     * v
         Array with the scalar value assigned to the grid points.
     * shape
-        Shape of the regular grid, ie (nx, ny).
+        Shape of the regular grid, ie (ny, nx).
         If interpolation is not False, then will use *shape* to grid the data.
     * interpolate
         Wether or not to interpolate before trying to plot. If data is not on
@@ -161,6 +158,98 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     pyplot.ylim(Y.min(), Y.max())
     return plot
 
+
+def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
+             invz=True, xy2ne=False):
+    """
+    Plot a 3D right rectangular prisms using Mayavi2.
+
+    Will not plot a value None in *prisms*
+
+    Parameters:
+    * prisms
+        List of prisms (see :func:`fatiando.mesher.prism.Prism3D`)
+    * scalars
+        Array with the scalar value of each prism. Used as the color scale.
+    * label
+        Label used as the scalar type (like 'density' for example)
+    * style
+        Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
+        contour
+    * opacity
+        Decimal percentage of opacity
+    * invz
+        If ``True``, will invert the sign of values in the z-axis so that plot
+        doesn't look upside down. (Because z is assume to grow downward)
+    * xy2ne
+        If ``True``, will change from x,y to North,East. This means exchaging
+        the x and y coordinates so that x is pointing North and y East.
+    Returns:
+    * surface: the last element on the pipeline
+
+    """
+    if style not in ['surface', 'wireframe']:
+        raise ValueError, "Invalid style '%s'" % (style)
+    if opacity > 1. or opacity < 0:
+        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
+        raise ValueError, msg
+    if len(scalars) != len(prisms):
+        raise ValueError, "Need as many scalars as prisms"
+
+    # Do the lazy imports for these slow modules
+    global mlab, tvtk
+    if mlab is None:
+        from enthought.mayavi import mlab
+    if tvtk is None:
+        from enthought.tvtk.api import tvtk
+
+    # VTK parameters
+    points = []
+    cells = []
+    offsets = []
+    offset = 0
+    mesh_size = 0
+    # To mark what index in the points the cell starts
+    start = 0
+    for prism in prisms:
+        if prism is None:
+            continue
+        mesh_size += 1
+        if xy2ne:
+            x1, x2 = prism['y1'], prism['y2']
+            y1, y2 = prism['x1'], prism['x2']
+        else:
+            x1, x2 = prism['x1'], prism['x2']
+            y1, y2 = prism['y1'], prism['y2']
+        if invz:
+            z1, z2 = -prism['z2'], -prism['z1']
+        else:
+            z1, z2 = prism['z1'], prism['z2']
+        points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
+                       [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
+        cells.append(8)
+        cells.extend([i for i in xrange(start, start + 8)])
+        start += 8
+        offsets.append(offset)
+        offset += 9
+    cell_array = tvtk.CellArray()
+    cell_array.set_cells(mesh_size, numpy.array(cells))
+    cell_types = numpy.array([12]*mesh_size, 'i')
+    vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
+    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
+    vtkmesh.cell_data.scalars = numpy.array([s for s in scalars if s is not None])
+    vtkmesh.cell_data.scalars.name = label
+    dataset = mlab.pipeline.add_dataset(vtkmesh)
+    thresh = mlab.pipeline.threshold(dataset)
+    surf = mlab.pipeline.surface(thresh, vmax=max(scalars), vmin=min(scalars))
+    if style == 'wireframe':
+        surf.actor.property.representation = 'wireframe'
+    if style == 'surface':
+        surf.actor.property.representation = 'surface'
+        surf.actor.property.edge_visibility = 1
+    surf.actor.property.opacity = opacity
+    surf.actor.property.backface_culling = 1
+    return surf
 
 #
 #
@@ -304,142 +393,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     #return plot[0]
 #
 #
-#def plot_prism_mesh(mesh, key='value', style='surface', opacity=1.,
-                    #label='scalar', invz=True, xy2ne=False):
-    #"""
-    #Plot a 3D prism mesh using Mayavi2.
 #
-    #Parameters:
-#
-    #* mesh
-        #3D array-like prism mesh (see :func:`fatiando.mesh.prism_mesh`)
-#
-    #* key
-        #Which key of the cell dictionaries in the mesh will be used as scalars.
-        #Use ``None`` if you don't want to assign scalar values to the cells.
-#
-    #* style
-        #Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
-        #wireframe
-#
-    #* opacity
-        #Decimal percentage of opacity
-#
-    #* label
-        #Name of the scalar ``'value'`` of the mesh cells.
-#
-    #* invz
-        #If ``True``, will invert the sign of values in the z-axis
-#
-    #* xy2ne
-        #If ``True``, will change from x,y to North,East. This means exchaging
-        #the x and y coordinates so that x is pointing North and y East.
-#
-    #"""
-#
-    #assert style in ['surface', 'wireframe'], "Invalid style '%s'" % (style)
-    #assert opacity <= 1., "Invalid opacity %g. Must be <= 1." % (opacity)
-#
-    #global mlab, tvtk
-#
-    #if mlab is None:
-#
-        #from enthought.mayavi import mlab
-#
-    #if tvtk is None:
-#
-        #from enthought.tvtk.api import tvtk
-#
-    #points = []
-    #cells = []
-    #start = 0   # To mark what index in the points the cell starts
-    #offsets = []
-    #offset = 0
-    #mesh_size = 0
-#
-    #for cell in mesh.ravel():
-#
-        #if key is not None and cell[key] is None:
-#
-            #continue
-#
-        #mesh_size += 1
-#
-        #if xy2ne:
-#
-            #x1, x2 = cell['y1'], cell['y2']
-            #y1, y2 = cell['x1'], cell['x2']
-#
-        #else:
-#
-            #x1, x2 = cell['x1'], cell['x2']
-            #y1, y2 = cell['y1'], cell['y2']
-#
-        #if invz:
-#
-            #z1, z2 = -cell['z2'], -cell['z1']
-#
-        #else:
-#
-            #z1, z2 = cell['z1'], cell['z2']
-#
-        #points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
-                       #[x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
-#
-        #cells.append(8)
-        #cells.extend([i for i in xrange(start, start + 8)])
-        #start += 8
-#
-        #offsets.append(offset)
-        #offset += 9
-#
-    #cell_array = tvtk.CellArray()
-    #cell_array.set_cells(mesh_size, numpy.array(cells))
-    #cell_types = numpy.array([12]*mesh_size, 'i')
-#
-    #vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
-#
-    #vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
-#
-    #if key is not None:
-#
-        #scalars = []
-#
-        #for cell in mesh.ravel():
-#
-            #if cell[key] is None:
-#
-                #continue
-#
-            #scalars = numpy.append(scalars, cell[key])
-#
-        #vtkmesh.cell_data.scalars = scalars
-        #vtkmesh.cell_data.scalars.name = label
-#
-    #dataset = mlab.pipeline.add_dataset(vtkmesh)
-#
-    #if style == 'wireframe':
-#
-        #surf = mlab.pipeline.surface(dataset, vmax=max(scalars),
-                                    #vmin=min(scalars))
-        #surf.actor.property.representation = 'wireframe'
-        #surf.actor.mapper.scalar_visibility = False
-#
-    #if style == 'surface':
-#
-        #extract = mlab.pipeline.extract_unstructured_grid(dataset)
-        #extract.filter.extent_clipping = True
-        #extract.filter.merging = True
-        #thresh = mlab.pipeline.threshold(extract)
-        #surf = mlab.pipeline.surface(thresh, vmax=max(scalars),
-                                     #vmin=min(scalars))
-        #surf.actor.property.representation = 'surface'
-        #surf.actor.property.opacity = opacity
-        #surf.actor.property.backface_culling = 1
-        #surf.actor.property.edge_visibility = 1
-        #surf.actor.property.line_width = 1
-#
-    #return surf
 #
 #
 #def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,

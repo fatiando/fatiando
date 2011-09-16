@@ -1,5 +1,4 @@
 * Packages to fix:
-    - mesher
     - gridder
     - vis
     - stats
@@ -10,6 +9,7 @@
     - synthetic (get rid of)
     - transforms
     - io
+* Optimize prism mesher
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
 * MORE UNIT TESTS!!!

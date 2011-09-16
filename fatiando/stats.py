@@ -21,8 +21,11 @@ inversion results.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
+from fatiando import logger
+
 import numpy
 
+log = logger.dummy()
 
 def contaminate(data, stddev, percent=False, return_stddev=False):
     """
@@ -47,8 +50,11 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         The contaminated data array
 
     """
+    log.info("Contaminating data with Gaussian noise:")
     if percent:
+        log.info("  noise level = %g percent" % (100*stddev))
         stddev = stddev*max(abs(data))
+    log.info("  noise stddev = %s" % (str(stddev)))
     contam = numpy.array([numpy.random.normal(v, stddev) for v in data])
     if return_stddev:
         return [contam, stddev]

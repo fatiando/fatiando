@@ -15,11 +15,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling.
+Meshing utilities. Generate and operate on varios kinds of meshes.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = '02-Apr-2010'
-__version__ = '0.0.1'
-__all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
-           'stats', 'utils']
-from fatiando.changeset import __changeset__
+__date__ = 'Created 15-Sep-2011'
+
+
+from fatiando.mesher import prism
