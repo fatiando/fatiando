@@ -19,31 +19,3 @@ Test suite for the fatiando package.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Mar-2010'
-
-import unittest
-
-# The package tests
-import fatiando.grav.tests
-import fatiando.seismo.tests
-import fatiando.inv.tests
-import fatiando.heat.tests
-# The module tests
-import fatiando.tests.geometry
-
-
-def suite(label='fast'):
-
-    testsuite = unittest.TestSuite()
-
-    testsuite.addTest(fatiando.grav.tests.suite(label))
-    testsuite.addTest(fatiando.seismo.tests.suite(label))
-    testsuite.addTest(fatiando.inv.tests.suite(label))
-    testsuite.addTest(fatiando.heat.tests.suite(label))
-    
-    testsuite.addTest(fatiando.tests.geometry.suite(label))
-
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
