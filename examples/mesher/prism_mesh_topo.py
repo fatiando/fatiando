@@ -5,7 +5,7 @@ from enthought.mayavi import mlab
 import numpy
 from matplotlib import pyplot
 from fatiando import stats, gridder, logger, vis
-from fatiando.mesher.prism import Mesh3D, flagtopo, mesh3Dtoprisms
+from fatiando.mesher.prism import Mesh3D, flagtopo, mesh2prisms
 
 # Avoid importing mlab twice since it's very slow
 vis.mlab = mlab
@@ -32,5 +32,5 @@ pyplot.show()
 
 log.info("Generating the prism mesh")
 mesh = flagtopo(Mesh3D(x1, x2, y1, y2, -200, 0, (20,40,20)), x, y, height)
-vis.prisms3D(mesh3Dtoprisms(mesh), mesh['cells'])
+vis.prisms3D(mesh2prisms(mesh), mesh['cells'])
 mlab.show()

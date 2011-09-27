@@ -14,5 +14,5 @@ log.info("Example of generating a 3D prism mesh")
 
 mesh = mesher.prism.Mesh3D(-2, 2, -3, 3, 0, 1, (4,4,4))
 
-vis.prisms3D(mesher.prism.mesh3Dtoprisms(mesh), scalars=mesh['cells'])
+vis.prisms3D(mesher.prism.mesh2prisms(mesh), scalars=mesh['cells'])
 mlab.show()

@@ -125,7 +125,7 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
             'dims':(dz,dy,dx), 'cells':[0 for i in xrange(size)]}
     return mesh
 
-def mesh3Dtoprisms(mesh, prop=None):
+def mesh2prisms(mesh, prop=None):
     """
     Converts a Mesh3D to a list of Prism3D objects.
     Returns a generator object that yields one prism at a time.
@@ -259,16 +259,16 @@ def fill_mesh(mesh, values):
     filled['cells'] = [fillprism(p,v) for v, p in zip(values, mesh['cells'])]
     return filled
 
-def extract(key, prisms):
+def extract(prisms, key):
     """
     Extract a list of values of a key from each prism in a list
 
     Parameters:
+    * prisms
+        A list of Prism3D objects.
     * key
         string representing the key whose value will be extracted.
         Should be one of the arguments to the Prism3D function.
-    * prisms
-        A list of Prism3D objects.
     Returns:
     * Array with the extracted values
 
