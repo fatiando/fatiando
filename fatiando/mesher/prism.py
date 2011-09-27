@@ -86,7 +86,7 @@ def Relief3D(ref, dims, nodes):
     """
     x, y, z = nodes
     if len(x) != len(y) != len(z):
-        raise ValueError, "nodes has x,y,z coordinates with different length"
+        raise ValueError, "nodes has x,y,z coordinates with different lengths"
     size = len(x)
     log.info("Generating 3D relief with right rectangular prism:")
     log.info("  number of prisms = %d" % (size))

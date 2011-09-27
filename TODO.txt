@@ -5,7 +5,6 @@
     - eqlayer
     - sphere
     - synthetic (get rid of)
-    - transforms
     - io
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy

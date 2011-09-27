@@ -15,114 +15,68 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Gravity field transformations like upward continuation, derivatives and total
-mass.
-
-Functions:
-
-* :func:`fatiando.grav.transform.upcontinue`
-    Upward continue a gravity field using the analytical formula. 
-    
+Potential field transformations.
+Ex: upward continuation, derivatives and total mass.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 20-Oct-2010'
 
-
-import logging
 import math
 import time
 
 import numpy
 
-import fatiando
+from fatiando import logger, gridder
+from fatiando.potential import _transform
+
+log = logger.dummy()
 
 
-# Add the default handler (a null handler) to the logger to ensure that
-# it won't print verbose if the program calling them doesn't want it
-log = logging.getLogger('fatiando.grav.transform')
-log.addHandler(fatiando.default_log_handler)
-
-
-def upcontinue(data, height):
+def upcontinue(height, gz, nodes, dims):
     """
-    Upward continue :math:`g_z` data using numerical integration of the 
+    Upward continue :math:`g_z` data using numerical integration of the
     analytical formula:
-    
+
     .. math::
-    
+
         g_z(x,y,z) = \\frac{z-z_0}{2\pi}\int_{-\infty}^{\infty}\int_{-\infty}^
         {\infty} g_z(x',y',z_0) \\frac{1}{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
         ]^{\\frac{3}{2}}} dx' dy'
-               
-    For now only supports **grid** data on a plain.
-    
+
+    Data needs to be on a regular grid.
+
     **UNITS**: SI for all coordinates, mGal for :math:`g_z`
 
+    NOTE: be aware of coordinate systems! The *x*, *y*, *z* coordinates are
+    x -> North, y -> East and z -> **DOWN**.
+
     Parameters:
-    
-    * data
-        :math:`g_z(x',y',z_0)` data stored in a dictionary.
-        
     * height
         How much higher to move the gravity field (should be POSITIVE!)
-        
-    NOTE: be aware of coordinate systems! The *x*, *y*, *z* coordinates are 
-    x -> North, y -> East and z -> **DOWN**.
-    
+        Will be summed to the current height of the grid.
+    * gz
+        Gravity values on the grid points
+    * nodes
+        [x, y, z]: List of arrays with x, y, z coordinates of the grid points
+    * dims
+        [dy, dx]: the grid spacing in the y and x directions
+
     Returns:
-    
-    * cont
-        Upward continued data stored in a dictionary.
-        
-    The data dictionary should be as::
-    
-        {'x':[x1, x2, ...], 'y':[y1, y2, ...], 'z':[z1, z2, ...],
-         'value':[data1, data2, ...], 'error':[error1, error2, ...],
-         'grid':True, 'nx':points_in_x, 'ny':points_in_y}
-    
+    * gzcont
+        Upward continued :math:`g_z`
+
     """
-    
-    assert height > 0, "'height' should be positive! Can only upward continue."
-    assert data['grid'] is True, ("Sorry, for now only supports grid data. " + 
-        "Make sure to set the 'grid' key to 'True' in the data dictionary.")    
-                          
-    start = time.time()
-        
-    dx = data['x'][1] - data['x'][0]
-    dy = data['y'][data['nx']] - data['y'][0]
-    
+    dy, dx = dims
+    xs, ys, zs = nodes
+    if len(xs) != len(ys) != len(zs):
+        raise ValueError, "nodes has x,y,z coordinates with different lengths"
+    if height < 0:
+        raise ValueError, "'height' should be positive"
     log.info("Upward continuation:")
-    log.info("  data: %d points" % (data['nx']*data['ny']))
-    log.info("  dx: %g m" % (dx))
-    log.info("  dy: %g m" % (dy))
-    log.info("  new height: %g m" % (height))
-        
-    # Copy the grid information to the upward continued data dict
-    cont = {}
-    cont['x'] = numpy.copy(data['x'])
-    cont['y'] = numpy.copy(data['y'])
-    cont['z'] = data['z'] - height
-    cont['value'] = numpy.zeros_like(data['value'])
-    cont['grid'] = True
-    cont['nx'] = data['nx']
-    cont['ny'] = data['ny']
-                
-    for i, cont_coords in enumerate(zip(cont['x'], cont['y'], cont['z'])):
-        
-        x, y, z = cont_coords
-        
-        for j, coords in enumerate(zip(data['x'], data['y'], data['z'])):
-            
-            xl, yl, zl = coords
-            
-            oneover_l = math.pow((x - xl)**2 + (y - yl)**2 + (z - zl)**2, -1.5)
-            
-            cont['value'][i] += data['value'][j]*oneover_l*dx*dy        
-    
-        cont['value'][i] *= abs(z - zl)/(2*numpy.pi)
-        
+    log.info("  height increment: %g m" % (height))
+    newzs = zs - height
+    start = time.time()
+    gzcont = _transform.upcontinue(xs, ys, zs, newzs, gz, dx, dy)
     end = time.time()
-    
     log.info("  time: %g s" % (end - start))
-    
-    return cont
+    return gzcont

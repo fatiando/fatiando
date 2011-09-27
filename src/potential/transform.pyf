@@ -1,0 +1,18 @@
+! f2py wrapper for extention module fatiando.potential._transform
+python module _transform
+interface
+
+double *xp, double *yp, double *zp, double *newz, double *gz,
+               int n, double dx, double dy, double *gzcont
+
+  subroutine upcontinue(xp, yp, zp, newz, gz, n, dx, dy, gzcont)
+    intent(c) upcontinue
+    intent(c)
+    double precision intent(in) :: dx, dy
+    double precision intent(in), dimension(n) :: xp, yp, zp, newz, gz
+    double precision intent(out), dimension(n) :: gzcont
+    integer intent(hide), depend(xp) :: n=len(xp)
+  end subroutine upcontinue
+
+end interface
+end python module _transform
