@@ -7,14 +7,18 @@ import fatiando
 
 def runbench(n=10000):
     from fatiando.potential import prism
+    from fatiando.mesher.prism import Prism3D
     from numpy import arange, array
+    xp = yp = float(range(n))
+    zp = -1*numpy.ones_like(xp)
+    prisms = [Prism3D(-1,1,-1,1,0,2,{'density':1})]
     start = time.clock()
-    gzz = [prism.gzz(1,-1,1,-1,1,0,2,0,0,-1) for i in xrange(n)]
+    gzz = prism.gzz(xp, yp, zp, prisms)
     elapsed = time.clock() - start
     return elapsed
 
 with open('bench_prism_results.txt', 'a') as res:
-    res.write("\n\nCompute effect of one point in C but loop over points in Python\n")
+    res.write("\n\nLoop over points in C, loop over prisms in Python\n")
     res.write("===============================================================\n\n")
     date = time.asctime()
     res.write("%s\n" % (date))
