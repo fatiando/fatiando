@@ -33,9 +33,13 @@ class GridderRegularTest(unittest.TestCase):
         [(-1,2,-2,2,(5,4)),
          [[-1,0,1,2,-1,0,1,2,-1,0,1,2,-1,0,1,2,-1,0,1,2],
           [-2,-2,-2,-2,-1,-1,-1,-1,0,0,0,0,1,1,1,1,2,2,2,2]]
+        ],
+        [(2.5,3,-5,-1,(5,2),10.2),
+         [[2.5,3,2.5,3,2.5,3,2.5,3,2.5,3],
+          [-5,-5,-4,-4,-3,-3,-2,-2,-1,-1],
+          [10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2,10.2]]
         ]
         ]
-
         self._fails = ()
 
     def test_regular(self):
@@ -46,6 +50,17 @@ class GridderRegularTest(unittest.TestCase):
             failmsg = ("\ntest:%s" % (str(test)) + "\noutput:%s" % (str(output)))
             for ctrue, cout in zip(true, output):
                 self.assertEqual(cout.tolist(), ctrue, msg=failmsg)
+
+class GridderScatterTest(unittest.TestCase):
+    def setUp(self):
+        self._fixtures = [
+        ]
+
+    def test_scatter(self):
+        "gridder.scatter returns correct values"
+        # mock out the random numbers
+        gridder.numpy.random.uniform = range
+
 
 if __name__ == '__main__':
     unittest.main()

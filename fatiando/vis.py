@@ -193,8 +193,6 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
-    if len(scalars) != len(prisms):
-        raise ValueError, "Need as many scalars as prisms"
 
     # Do the lazy imports for these slow modules
     global mlab, tvtk

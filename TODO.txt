@@ -9,7 +9,8 @@
     - synthetic (get rid of)
     - transforms
     - io
-* Optimize prism mesher
+* fix docstrings for potential.prism
+* Adapat mesher.prism functions to handle mesh without Prism3D
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
 * MORE UNIT TESTS!!!

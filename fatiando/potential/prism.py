@@ -39,7 +39,7 @@ def gz(prisms, xp, yp, zp):
 
     Parameters:
     * prisms
-        List of RightRectangularPrism objects. (see :mod:`fatiando.mesher`)
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
@@ -51,10 +51,11 @@ def gz(prisms, xp, yp, zp):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        res += _prism.prism_gz(float(prism['density']), float(prism['x1']),
-                              float(prism['x2']), float(prism['y1']),
-                              float(prism['y2']), float(prism['z1']),
-                              float(prism['z2']), xp, yp, zp)
+        if prism is not None:
+            res += _prism.prism_gz(float(prism['density']), float(prism['x1']),
+                                   float(prism['x2']), float(prism['y1']),
+                                   float(prism['y2']), float(prism['z1']),
+                                   float(prism['z2']), xp, yp, zp)
     return res
 
 

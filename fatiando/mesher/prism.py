@@ -30,7 +30,7 @@ log = logger.dummy()
 _allowed_keys = ('x1', 'x2', 'y1', 'y2', 'z1', 'z2', 'density')
 
 
-def Prism3D(x1, x2, y1, y2, z1, z2, density=0):
+def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
     """
     Create a 3D right rectangular prism.
 
@@ -41,15 +41,17 @@ def Prism3D(x1, x2, y1, y2, z1, z2, density=0):
         West and east borders of the prism
     * z1, z2
         Bottom and top of the prism
-    * density
-        Density value assigned to the prism
+    * props
+        Dictionary with the physical properties assigned to the prism.
+        Ex: props={'density':10, 'susceptibility':10000}
     Returns:
     * prism
         Dictionary describing the prism
 
     """
-    prism = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2, 'z1':z1, 'z2':z2,
-             'density':density}
+    prism = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2, 'z1':z1, 'z2':z2}
+    for prop in props:
+        prism[prop] = props[prop]
     return prism
 
 
@@ -87,10 +89,17 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
     Dived a volume into right rectangular prisms.
 
     The mesh is dictionary with keys:
-    * 'cells': a list of Prism3D
-    * 'shape': (nz,ny,nx).
-    * 'size': nz*ny*nx.
-    * 'volume': (x1,x2,y1,y2,z1,z2).
+    * 'shape'
+        (nz,ny,nx)
+    * 'size'
+        nz*ny*nx
+    * 'dims'
+        (dz, dy, dx): cell size in the z, y and x directions
+    * 'volume'
+        (x1,x2,y1,y2,z1,z2)
+    * 'cells':
+        a list with the physical property value associated with each cell
+        (initialized with zeros)
 
     Parameters:
     * x1, x2
@@ -115,24 +124,36 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
     log.info("  number of prisms = %d" % (size))
     log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))
     mesh = {'shape':shape, 'volume':(x1,x2,y1,y2,z1,z2), 'size':size,
-            'cells':[None]*size}
-    c = 0
-    for k, cellz1 in enumerate(numpy.arange(z1, z2, dz)):
-        # To ensure that there are the right number of cells. arange
-        # sometimes makes more cells because of floating point rounding
-        if k >= nz:
-            break
-        for j, celly1 in enumerate(numpy.arange(y1, y2, dy)):
-            if j >= ny:
-                break
-            for i, cellx1 in enumerate(numpy.arange(x1, x2, dx)):
-                if i >= nx:
-                    break
-                mesh['cells'][c] = Prism3D(cellx1, cellx1 + dx, celly1,
-                                           celly1 + dy, cellz1, cellz1 + dz)
-                c += 1
+            'dims':(dz,dy,dx), 'cells':[0 for i in xrange(size)]}
     return mesh
 
+def mesh3Dtoprisms(mesh, prop='density'):
+    """
+    Converts a Mesh3D to a list of Prism3D objects.
+    Returns a generator object that yields one prism at a time.
+    Usage::
+        >>> mesh = Mesh3D(0,1,0,1,0,1,(1,1,1))
+        >>> for cell in mesh3Dtoprisms(mesh, prop='myprop'):
+        ...     for key in sorted(cell):
+        ...         print "'%s':%s," % (key, str(cell[key])),
+        'myprop':0, 'x1':0.0, 'x2':1.0, 'y1':0.0, 'y2':1.0, 'z1':0.0, 'z2':1.0,
+
+    *prop* is the name physical property that will correspond to mesh['cells']
+
+    """
+    dz, dy, dx = mesh['dims']
+    x1, x2, y1, y2, z1, z2 = mesh['volume']
+    i = 0
+    for cellz1 in numpy.arange(z1, z2, dz):
+        for celly1 in numpy.arange(y1, y2, dy):
+            for cellx1 in numpy.arange(x1, x2, dx):
+                value = mesh['cells'][i]
+                if value is not None:
+                    yield Prism3D(cellx1, cellx1 + dx, celly1, celly1 + dy,
+                                  cellz1, cellz1 + dz, props={prop:value})
+                else:
+                    yield None
+                i += 1
 
 def flagtopo(mesh, x, y, height):
     """
@@ -288,3 +309,10 @@ def vfilter(mesh, vmin, vmax, key):
              p[key] <= vmax]
     filtered = {'size':len(cells), 'cells':cells}
     return filtered
+
+def _test():
+    import doctest
+    doctest.testmod()
+
+if __name__ == '__main__':
+    _test()
