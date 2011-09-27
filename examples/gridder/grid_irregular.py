@@ -10,7 +10,7 @@ log.info(logger.header())
 log.info("Example of generating and plotting irregular grids")
 
 log.info("Calculating...")
-x, y = gridder.scatter(-2, 2, -2, 2, n=200)
+x, y = gridder.scatter((-2, 2, -2, 2), n=200)
 z = stats.gaussian2d(x, y)
 
 log.info("Plotting...")

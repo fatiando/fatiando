@@ -30,13 +30,34 @@ import matplotlib.mlab
 log = logger.dummy()
 
 
-def regular(x1, x2, y1, y2, shape, z=None):
+def spacing(area, shape):
+    """
+    Returns the spacing between grid nodes
+
+    Parameters:
+    * area
+        (x1, x2, y1, y2): Borders of the grid
+    * shape
+        Shape of the regular grid, ie (ny, nx).
+
+    Returns:
+    * [dy, dx]
+        Spacing the y and x directions
+
+    """
+    x1, x2, y1, y2 = area
+    ny, nx = shape
+    dx = float(x2 - x1)/float(nx - 1)
+    dy = float(y2 - y1)/float(ny - 1)
+    return [dy, dx]
+
+def regular(area, shape, z=None):
     """
     Create a regular grid. Order of the output grid is x varies first, then y.
 
     Parameters:
-    * x1, x2, y1, y2
-        Borders of the grid
+    * area
+        (x1, x2, y1, y2): Borders of the grid
     * shape
         Shape of the regular grid, ie (ny, nx).
     * z
@@ -46,15 +67,15 @@ def regular(x1, x2, y1, y2, shape, z=None):
     Returns:
     * [xcoords, ycoords]
         Numpy arrays with the x and y coordinates of the grid points
-    * [xcoords, ycoords,zcoords]
+    * [xcoords, ycoords, zcoords]
         If *z* given. Numpy arrays with the x, y, and z coordinates of the grid
         points
 
     """
     log.info("Generating regular grid:")
     ny, nx = shape
-    dx = float(x2 - x1)/float(nx - 1)
-    dy = float(y2 - y1)/float(ny - 1)
+    x1, x2, y1, y2 = area
+    dy, dx = spacing(area, shape)
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
     log.info("  shape = (ny, nx) = %s" % (str(shape)))
     log.info("  spacing = (dy, dx) = %s" % (str((dy, dx))))
@@ -78,13 +99,13 @@ def regular(x1, x2, y1, y2, shape, z=None):
         return [xcoords, ycoords]
 
 
-def scatter(x1, x2, y1, y2, n, z=None):
+def scatter(area, n, z=None):
     """
     Create an irregular grid with a random scattering of points.
 
     Parameters:
-    * x1, x2, y1, y2
-        Borders of the grid
+    * area
+        (x1, x2, y1, y2): Borders of the grid
     * n
         Number of points
     * z
@@ -98,6 +119,7 @@ def scatter(x1, x2, y1, y2, n, z=None):
         If *z* given. Arrays with the x, y, and z coordinates of the points
 
     """
+    x1, x2, y1, y2 = area
     log.info("Generating irregular grid (scatter):")
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
     log.info("  number of points = n = %s" % (str(n)))

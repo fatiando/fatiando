@@ -28,7 +28,7 @@ import numpy
 from fatiando.potential import _prism
 
 
-def gz(prisms, xp, yp, zp):
+def gz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -38,14 +38,15 @@ def gz(prisms, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
     * List with the :math:`g_z` component calculated on *points*
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"

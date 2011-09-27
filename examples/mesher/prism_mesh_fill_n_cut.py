@@ -17,16 +17,16 @@ def fill(i):
         return 1
     return -1
 scalars = [fill(i) for i in xrange(shape[0]*shape[1]*shape[2])]
-mesh = fill_mesh(Mesh3D(0, 100, 0, 200, 0, 50, shape), scalars)
+mesh = fill_mesh(scalars, Mesh3D(0, 100, 0, 200, 0, 50, shape))
 
-odd = vfilter(mesh2prisms(mesh, prop='density'), -1, 0, 'density')
-even = vfilter(mesh2prisms(mesh, prop='density'), 0, 1, 'density')
+odd = vfilter(-1, 0, 'density', mesh2prisms(mesh, prop='density'))
+even = vfilter(0, 1, 'density', mesh2prisms(mesh, prop='density'))
 
 mlab.figure()
 vis.prisms3D(mesh2prisms(mesh), mesh['cells'])
 
 mlab.figure()
-vis.prisms3D(odd, extract(odd, 'density'), style='wireframe')
-vis.prisms3D(even, extract(even, 'density'))
+vis.prisms3D(odd, extract('density', odd), style='wireframe')
+vis.prisms3D(even, extract('density', even))
 
 mlab.show()

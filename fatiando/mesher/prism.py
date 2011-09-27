@@ -52,8 +52,7 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
         prism[prop] = props[prop]
     return prism
 
-
-def Relief3D(x, y, z, shape, zref):
+def Relief3D(ref, dims, nodes):
     """
     Create a 3D relief discretized using prisms.
     Use to generate:
@@ -61,26 +60,76 @@ def Relief3D(x, y, z, shape, zref):
     * basin model
     * Moho model
 
-    The mesh is dictionary with keys:
-    * 'cells': a list of Prism3D
-    * 'shape': (1,ny,nx).
-    * 'size': ny*nx.
+    The relief is dictionary with keys:
+    * 'nodes'
+        (x,y,z): coordinates of the centers of the top face of each prism
+    * 'dims'
+        (dy, dx): the dimensions of the prisms in the y and x directions
+    * 'ref'
+        Reference level where the bottom of the prisms are placed
+    * 'cells'
+        list with the physical property associated with each prism
 
     Parameters:
-    * x, y, z
-        Arrays with the x, y and z coordinates of the relief. Must be a regular
-        grid!
-    * shape
-        Shape of the regular grid, ie (ny, nx).
-    * zref
+    * ref
         Reference level. Prisms will have: bottom on zref and top on z if
         z > zref; bottom on z and top on zref otherwise.
+    * dims
+        (dy, dx): the dimensions of the prisms in the y and x directions
+    * nodes
+        (x,y,z) where x, y, and z are arrays with the x, y and z coordinates of
+        the center of the top face of each prism
+
     Returns:
-    * mesh
+    * relief
 
     """
-    mesh = {}
+    x, y, z = nodes
+    if len(x) != len(y) != len(z):
+        raise ValueError, "nodes has x,y,z coordinates with different length"
+    size = len(x)
+    log.info("Generating 3D relief with right rectangular prism:")
+    log.info("  number of prisms = %d" % (size))
+    log.info("  reference level = %s" % (str(ref)))
+    relief = {'nodes':nodes, 'ref':ref, 'dims':dims,
+              'cells':[0 for i in xrange(size)]}
+    return relief
 
+def relief2prisms(relief, prop=None):
+    """
+    Converts a Relief3D to a list of Prism3D objects.
+    Returns a generator object that yields one prism at a time.
+
+    Usage::
+
+        >>> from fatiando.gridder import regular
+        >>> nodes = regular((1, 3, 1, 3), (2,2), -1)
+        >>> relief = Relief3D(0.0, (2,2), nodes)
+        >>> for p in relief2prisms(relief, prop='myprop'):
+        ...     print ','.join(["'%s':%s" % (k,str(p[k])) for k in sorted(p)])
+        'myprop':0,'x1':0.0,'x2':2.0,'y1':0.0,'y2':2.0,'z1':-1.0,'z2':0.0
+        'myprop':0,'x1':2.0,'x2':4.0,'y1':0.0,'y2':2.0,'z1':-1.0,'z2':0.0
+        'myprop':0,'x1':0.0,'x2':2.0,'y1':2.0,'y2':4.0,'z1':-1.0,'z2':0.0
+        'myprop':0,'x1':2.0,'x2':4.0,'y1':2.0,'y2':4.0,'z1':-1.0,'z2':0.0
+
+    *prop* is the name physical property of the prisms that will correspond to
+    the values in mesh. Ex: prop='density'
+    If *prop* is None, prisms will not have properties associated with them.
+    """
+    dy, dx = relief['dims']
+    ref = relief['ref']
+    xc, yc, zc = relief['nodes']
+    for i, coords in enumerate(zip(xc, yc, zc)):
+        x, y, z = coords
+        value = relief['cells'][i]
+        if value is not None:
+            props = {}
+            if prop is not None:
+                props[prop] = value
+            yield Prism3D(x - 0.5*dx, x + 0.5*dx, y - 0.5*dy, y + 0.5*dy, z,
+                          ref, props=props)
+        else:
+            yield None
 
 def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
     """
@@ -131,8 +180,9 @@ def mesh2prisms(mesh, prop=None):
     Returns a generator object that yields one prism at a time.
 
     Usage::
+
         >>> mesh = Mesh3D(0,1,0,1,0,1,(1,1,1))
-        >>> for cell in mesh3Dtoprisms(mesh, prop='myprop'):
+        >>> for cell in mesh2prisms(mesh, prop='myprop'):
         ...     for key in sorted(cell):
         ...         print "'%s':%s," % (key, str(cell[key])),
         'myprop':0, 'x1':0.0, 'x2':1.0, 'y1':0.0, 'y2':1.0, 'z1':0.0, 'z2':1.0,
@@ -158,7 +208,7 @@ def mesh2prisms(mesh, prop=None):
                     yield None
                 i += 1
 
-def flagtopo(mesh, x, y, height):
+def flagtopo(x, y, height, mesh):
     """
     Flag prisms from a Mesh3D that are above the topography by setting their
     value to None.
@@ -166,12 +216,12 @@ def flagtopo(mesh, x, y, height):
     The topography height information does not need to be on a regular grid.
 
     Parameters:
-    * mesh
-        A Mesh3D
     * x, y
         Arrays with x and y coordinates of the grid points
     * height
         Array with the height of the topography
+    * mesh
+        A Mesh3D
     Returns:
     * New mesh
 
@@ -210,18 +260,18 @@ def flagtopo(mesh, x, y, height):
             c += 1
     return flagged
 
-def fill_prisms(prisms, values, key):
+def fill_prisms(values, key, prisms):
     """
     Fill the key of each prism with given values
     Will ignore None values in *prisms*
 
     Parameters:
-    * prisms
-        List of Prism3D
     * values
         1D array with the value of each prism
     * key
         Key to fill in the *mesh*
+    * prisms
+        List of Prism3D
     Returns:
     * filled prisms
 
@@ -235,7 +285,7 @@ def fill_prisms(prisms, values, key):
     filled = [fillprism(p,v) for v, p in zip(values, prisms)]
     return filled
 
-def fill_mesh(mesh, values):
+def fill_mesh(values, mesh):
     """
     Fill a Mesh3D with given values
 
@@ -243,10 +293,10 @@ def fill_mesh(mesh, values):
     (see :func:`fatiando.mesher.prism.flagtopo`)
 
     Parameters:
-    * mesh
-        Mesh3D to fill
     * values
         1D array with the value of each prism
+    * mesh
+        Mesh3D to fill
     Returns:
     * filled mesh
 
@@ -259,16 +309,38 @@ def fill_mesh(mesh, values):
     filled['cells'] = [fillprism(p,v) for v, p in zip(values, mesh['cells'])]
     return filled
 
-def extract(prisms, key):
+def fill_relief(values, relief):
+    """
+    Fill a Relief3D with given values
+
+    Parameters:
+    * values
+        1D array with the value of each prism
+    * relief
+        Relief3D to fill
+
+    Returns:
+    * filled relief
+
+    """
+    def fillprism(p, v):
+        if p is None:
+            return None
+        return v
+    filled = relief.copy()
+    filled['cells'] = [fillprism(p,v) for v, p in zip(values, relief['cells'])]
+    return filled
+
+def extract(key, prisms):
     """
     Extract a list of values of a key from each prism in a list
 
     Parameters:
-    * prisms
-        A list of Prism3D objects.
     * key
         string representing the key whose value will be extracted.
         Should be one of the arguments to the Prism3D function.
+    * prisms
+        A list of Prism3D objects.
     Returns:
     * Array with the extracted values
 
@@ -280,7 +352,7 @@ def extract(prisms, key):
     res = numpy.array([getkey(p) for p in prisms])
     return res
 
-def vfilter(prisms, vmin, vmax, key):
+def vfilter(vmin, vmax, key, prisms):
     """
     Return prisms from a list of Prism3D with a key that lies within a given
     range.
