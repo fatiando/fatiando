@@ -27,6 +27,7 @@ import numpy
 
 log = logger.dummy()
 
+
 def contaminate(data, stddev, percent=False, return_stddev=False):
     """
     Add pseudorandom gaussian noise to an array.

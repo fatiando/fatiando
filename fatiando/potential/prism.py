@@ -59,10 +59,9 @@ def gz(xp, yp, zp, prisms):
                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gxx(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gxx(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{xx}` gravity gradient tensor component.
+    Calculates the :math:`g_{xx}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -70,31 +69,30 @@ def gxx(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{xx}` component calculated on *points*
 
-    * the :math:`g_{xx}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gxx(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gxx(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gxy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gxy(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{xy}` gravity gradient tensor component.
+    Calculates the :math:`g_{xy}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -102,31 +100,30 @@ def gxy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{xy}` component calculated on *points*
 
-    * the :math:`g_{xy}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gxy(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gxy(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gxz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gxz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{xz}` gravity gradient tensor component.
+    Calculates the :math:`g_{xz}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -134,31 +131,30 @@ def gxz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{xz}` component calculated on *points*
 
-    * the :math:`g_{xz}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gxz(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gxz(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gyy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gyy(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{yy}` gravity gradient tensor component.
+    Calculates the :math:`g_{yy}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -166,31 +162,30 @@ def gyy(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{yy}` component calculated on *points*
 
-    * the :math:`g_{yy}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gyy(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gyy(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gyz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gyz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{yz}` gravity gradient tensor component.
+    Calculates the :math:`g_{yz}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -198,31 +193,30 @@ def gyz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{yz}` component calculated on *points*
 
-    * the :math:`g_{yz}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gyz(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gyz(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res
 
-
-def gzz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
+def gzz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_{zz}` gravity gradient tensor component.
+    Calculates the :math:`g_{zz}` gravity acceleration component.
 
     The coordinate system of the input parameters is to be x -> North,
     y -> East and z -> **DOWN**.
@@ -230,23 +224,23 @@ def gzz(dens, x1, x2, y1, y2, z1, z2, xp, yp, zp):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
-
-    * dens
-        Density of the prism
-
-    * x1, x2, y1, ... z2
-        Borders of the prism
-
     * xp, yp, zp
-        Coordinates of the point **P** where the field will be calculated
+        Lists with (x,y,z) coordinates of the computation points.
+        Ex: points = [[1,2,3], [2,3,4]]
+    * prisms
+        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
 
     Returns:
+    * List with the :math:`g_{zz}` component calculated on *points*
 
-    * the :math:`g_{zz}` component calculated at **P**
     """
-
-    res = prism_ext.prism_gzz(float(dens), float(x1), float(x2), float(y1),
-                              float(y2), float(z1), float(z2), float(xp),
-                              float(yp), float(zp))
-
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is not None:
+            res += _prism.prism_gzz(float(prism['density']), float(prism['x1']),
+                                    float(prism['x2']), float(prism['y1']),
+                                    float(prism['y2']), float(prism['z1']),
+                                    float(prism['z2']), xp, yp, zp)
     return res

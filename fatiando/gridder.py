@@ -98,7 +98,6 @@ def regular(area, shape, z=None):
     else:
         return [xcoords, ycoords]
 
-
 def scatter(area, n, z=None):
     """
     Create an irregular grid with a random scattering of points.
@@ -132,7 +131,6 @@ def scatter(area, n, z=None):
     else:
         return [xcoords, ycoords]
 
-
 def interpolate(x, y, v, shape, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
@@ -162,7 +160,6 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
-
 
 def cut(x, y, scalars, xmin, xmax, ymin, ymax):
     """

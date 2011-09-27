@@ -1,25 +1,16 @@
 * Packages to fix:
-    - gridder
     - vis
     - stats
     - seismic
     - eqlayer
-    - prism
     - sphere
     - synthetic (get rid of)
     - transforms
     - io
-* fix docstrings for potential.prism
-* Adapat mesher.prism functions to handle mesh without Prism3D
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
-* MORE UNIT TESTS!!!
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
-* Remove the test script. replace with "fat test" command
-* Make automatic test discovery and run
 * Two types of grid loading: load and stream
-* make grids as iterators
-* make get_column methods in grids that are not streams
 * make export to VTK method in mesh that is independent of tvtk module
 * Convert string VTK file to tvtk structure for plotting with vis mod
 * Make a fatiando.modules package that automatically loads all modules as subcommands
@@ -28,14 +19,9 @@
 * Write docs for the inverse problem theory
 * Make the examples into the cookbook
 * Make tutorial for implementing new inversion
-* Make integration tests out of the examples
 * Automatic reference generation form fatiando scripts
-* Contaminate generates a grid withh errors. Sum the error using grid.sum function
-* Make grid.sum function that sums specified field in 2 grids
 * Implement sparsity regularization
 * Use the data covariance matrix
-* Fix 'grid', 'nx', and 'ny' in grid.cut
-* Standardize data structures and I/O format
 * vis.bbox function to plot a bounding box in mayavi
 * Implement the Chi squared test for a population
 * Implement the test for outliers in a population
