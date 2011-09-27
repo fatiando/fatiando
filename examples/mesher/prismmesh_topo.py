@@ -5,7 +5,7 @@ from enthought.mayavi import mlab
 import numpy
 from matplotlib import pyplot
 from fatiando import stats, gridder, logger, vis
-from fatiando.mesher.prism import Mesh3D, flagtopo, extract, fill
+from fatiando.mesher.prism import Mesh3D, flagtopo, mesh3Dtoprisms
 
 # Avoid importing mlab twice since it's very slow
 vis.mlab = mlab
@@ -32,7 +32,5 @@ pyplot.show()
 
 log.info("Generating the prism mesh")
 mesh = flagtopo(Mesh3D(x1, x2, y1, y2, -200, 0, (20,40,20)), x, y, height)
-log.info("Filling mesh with 2.67 density")
-mesh = fill(2670*numpy.ones(mesh['size']), 'density', mesh)
-vis.prisms3D(mesh['cells'], extract('density', mesh), label='Density')
+vis.prisms3D(mesh3Dtoprisms(mesh), mesh['cells'])
 mlab.show()

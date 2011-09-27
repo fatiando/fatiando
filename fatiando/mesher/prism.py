@@ -27,8 +27,6 @@ from fatiando import logger
 
 log = logger.dummy()
 
-_allowed_keys = ('x1', 'x2', 'y1', 'y2', 'z1', 'z2', 'density')
-
 
 def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
     """
@@ -127,10 +125,11 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
             'dims':(dz,dy,dx), 'cells':[0 for i in xrange(size)]}
     return mesh
 
-def mesh3Dtoprisms(mesh, prop='density'):
+def mesh3Dtoprisms(mesh, prop=None):
     """
     Converts a Mesh3D to a list of Prism3D objects.
     Returns a generator object that yields one prism at a time.
+
     Usage::
         >>> mesh = Mesh3D(0,1,0,1,0,1,(1,1,1))
         >>> for cell in mesh3Dtoprisms(mesh, prop='myprop'):
@@ -138,8 +137,9 @@ def mesh3Dtoprisms(mesh, prop='density'):
         ...         print "'%s':%s," % (key, str(cell[key])),
         'myprop':0, 'x1':0.0, 'x2':1.0, 'y1':0.0, 'y2':1.0, 'z1':0.0, 'z2':1.0,
 
-    *prop* is the name physical property that will correspond to mesh['cells']
-
+    *prop* is the name physical property of the prisms that will correspond to
+    the values in mesh. Ex: prop='density'
+    If *prop* is None, prisms will not have properties associated with them.
     """
     dz, dy, dx = mesh['dims']
     x1, x2, y1, y2, z1, z2 = mesh['volume']
@@ -149,47 +149,50 @@ def mesh3Dtoprisms(mesh, prop='density'):
             for cellx1 in numpy.arange(x1, x2, dx):
                 value = mesh['cells'][i]
                 if value is not None:
+                    props = {}
+                    if prop is not None:
+                        props[prop] = value
                     yield Prism3D(cellx1, cellx1 + dx, celly1, celly1 + dy,
-                                  cellz1, cellz1 + dz, props={prop:value})
+                                  cellz1, cellz1 + dz, props=props)
                 else:
                     yield None
                 i += 1
 
 def flagtopo(mesh, x, y, height):
     """
-    Flag prisms from a 3D prism mesh that are above the topography.
+    Flag prisms from a Mesh3D that are above the topography by setting their
+    value to None.
     Also flags prisms outside of the topography grid (not directly under).
     The topography height information does not need to be on a regular grid.
 
-    Flags by replacing Prism3D objects in mesh['cells'] with None.
-
     Parameters:
     * mesh
-        A 3D prism mesh. See :func:`fatiando.mesher.prism_mesh3D`
+        A Mesh3D
     * x, y
         Arrays with x and y coordinates of the grid points
     * height
         Array with the height of the topography
     Returns:
-    * New filtered mesh
+    * New mesh
 
     """
     nz, ny, nx = mesh['shape']
     x1, x2, y1, y2, z1, z2 = mesh['volume']
     size = mesh['size']
-    dx = float(x2 - x1)/nx
-    dy = float(y2 - y1)/ny
-    dz = float(z2 - z1)/nz
+    dz, dy, dx = mesh['dims']
     # The coordinates of the centers of the cells
     xc = numpy.arange(x1, x2, dx) + 0.5*dx
     if len(xc) > nx:
-        x = x[:-1]
+        xc = xc[:-1]
     yc = numpy.arange(y1, y2, dy) + 0.5*dy
     if len(yc) > ny:
-        y = y[:-1]
-    X, Y = numpy.meshgrid(xc, yc)
+        yc = yc[:-1]
+    zc = numpy.arange(z1, z2, dz) + 0.5*dz
+    if len(zc) > nz:
+        zc = zc[:-1]
+    XC, YC = numpy.meshgrid(xc, yc)
     # -1 if to transform height into z coordinate
-    topo = -1*matplotlib.mlab.griddata(x, y, height, X, Y).ravel()
+    topo = -1*matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
     # griddata returns a masked array. If the interpolated point is out of
     # of the data range, mask will be True. Use this to remove all cells
     # bellow a masked topo point (ie, one with no height information)
@@ -198,100 +201,93 @@ def flagtopo(mesh, x, y, height):
     else:
         topo_mask = [False]*len(topo)
     flagged = mesh.copy()
-    flagged['cells'] = [None]*mesh['size']
+    flagged['cells'] = [v for v in mesh['cells']]
     c = 0
-    for layer in numpy.reshape(mesh['cells'], mesh['shape']):
-        for cell, h, mask in zip(layer.ravel(), topo, topo_mask) :
-            if 0.5*(cell['z1'] + cell['z2']) >=  h and not mask:
-                flagged['cells'][c] = cell.copy()
-                c += 1
+    for cellz in zc:
+        for height, masked in zip(topo, topo_mask):
+            if cellz < height or masked:
+                flagged['cells'][c] = None
+            c += 1
     return flagged
 
-
-def fill(values, key, mesh):
+def fill_prisms(prisms, values, key):
     """
-    Fill the ``key`` of each prism of mesh with given values
-
-    Will ignore the value corresponding to a prism flagged as None
-    (see :func:`fatiando.mesher.prism.flagtopo`)
+    Fill the key of each prism with given values
+    Will ignore None values in *prisms*
 
     Parameters:
+    * prisms
+        List of Prism3D
     * values
         1D array with the value of each prism
     * key
         Key to fill in the *mesh*
-    * mesh
-        Mesh to fill
     Returns:
-    * filled mesh
+    * filled prisms
 
     """
-    if key not in _allowed_keys:
-        msg = "Invalid key: %s. Must be one of: %s" % (key, _allowed_keys)
-        raise ValueError, msg
-    def filledprism(p, v):
+    def fillprism(p, v):
         if p is None:
             return None
         fp = p.copy()
         fp[key] = v
         return fp
-    filled = mesh.copy()
-    filled['cells'] = [filledprism(p,v) for v, p in zip(values, mesh['cells'])]
+    filled = [fillprism(p,v) for v, p in zip(values, prisms)]
     return filled
 
-
-def extract(key, mesh):
+def fill_mesh(mesh, values):
     """
-    Extract the values of a key from each prism in the mesh
+    Fill a Mesh3D with given values
+
+    Will ignore the value corresponding to a prism flagged as None
+    (see :func:`fatiando.mesher.prism.flagtopo`)
+
+    Parameters:
+    * mesh
+        Mesh3D to fill
+    * values
+        1D array with the value of each prism
+    Returns:
+    * filled mesh
+
+    """
+    def fillprism(p, v):
+        if p is None:
+            return None
+        return v
+    filled = mesh.copy()
+    filled['cells'] = [fillprism(p,v) for v, p in zip(values, mesh['cells'])]
+    return filled
+
+def extract(key, prisms):
+    """
+    Extract a list of values of a key from each prism in a list
 
     Parameters:
     * key
         string representing the key whose value will be extracted.
         Should be one of the arguments to the Prism3D function.
-    * mesh
-        A Mesh3D.
+    * prisms
+        A list of Prism3D objects.
     Returns:
     * Array with the extracted values
 
     """
-    if key not in _allowed_keys:
-        msg = "Invalid key: %s. Must be one of: %s" % (key, _allowed_keys)
-        raise ValueError, msg
     def getkey(p):
         if p is None:
             return None
         return p[key]
-    res = numpy.array([getkey(p) for p in mesh['cells']])
+    res = numpy.array([getkey(p) for p in prisms])
     return res
 
-
-def copy(mesh):
+def vfilter(prisms, vmin, vmax, key):
     """
-    Make a copy of mesh.
+    Return prisms from a list of Prism3D with a key that lies within a given
+    range.
 
     Parameters:
-    * mesh
-        Mesh to copy
-    Returns:
-    * A copy of mesh
-
-    """
-    copied = mesh.copy()
-    def copyprism(p):
-        if p is None:
-            return None
-        return p.copy()
-    copied['cells'] = [copyprism(p) for p in mesh['cells']]
-    return copied
-
-
-def vfilter(mesh, vmin, vmax, key):
-    """
-    Return prism from mesh with a key that lies within a given range.
-
-    Parameters:
-    * mesh
-        A given mesh, can be any
+    * prisms
+        List of Prism3D objects.
     * vmin
         Minimum value
     * vmax
@@ -299,15 +295,12 @@ def vfilter(mesh, vmin, vmax, key):
     * key
         The key of the prisms whose value will be used to filter
     Returns:
-    * filtered mesh. NOTE: will not have the 'shape' or 'volume' keys!
+    * filtered
+        List of prisms whose *key* falls within the given range
 
     """
-    if key not in _allowed_keys:
-        msg = "Invalid key: %s. Must be one of: %s" % (key, _allowed_keys)
-        raise ValueError, msg
-    cells = [p for p in mesh['cells'] if p is not None and p[key] >= vmin and
-             p[key] <= vmax]
-    filtered = {'size':len(cells), 'cells':cells}
+    filtered = [p for p in prisms if p is not None and p[key] >= vmin and
+                p[key] <= vmax]
     return filtered
 
 def _test():
