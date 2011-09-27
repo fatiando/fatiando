@@ -13,3 +13,13 @@ Time to calculate on 1000000 points, 10 times:
 Total time = 35.180000
 Mean = 3.518000
 Std = 0.008718
+
+Loop over points in C, loop over prisms in Python
+===============================================================
+
+Tue Sep 27 17:45:26 2011
+Changeset used: f1270980d3de+ tip
+Time to calculate on 1000000 points, 10 times:
+Total time = 5.290000
+Mean = 0.529000
+Std = 0.009434

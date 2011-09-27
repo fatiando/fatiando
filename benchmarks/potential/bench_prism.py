@@ -9,7 +9,7 @@ def runbench(n=10000):
     from fatiando.potential import prism
     from fatiando.mesher.prism import Prism3D
     from numpy import arange, array
-    xp = yp = float(range(n))
+    xp = yp = array(range(n), dtype='f')
     zp = -1*numpy.ones_like(xp)
     prisms = [Prism3D(-1,1,-1,1,0,2,{'density':1})]
     start = time.clock()
@@ -22,7 +22,7 @@ with open('bench_prism_results.txt', 'a') as res:
     res.write("===============================================================\n\n")
     date = time.asctime()
     res.write("%s\n" % (date))
-    res.write("Changeset used: %s\n" % (fatiando.__revision__))
+    res.write("Changeset used: %s\n" % (fatiando.__changeset__))
     npoints, ntimes = 1000000, 10
     times = [runbench(n=npoints) for i in xrange(ntimes)]
     res.write("Time to calculate on %d points, %d times:\n" % (npoints,ntimes))
