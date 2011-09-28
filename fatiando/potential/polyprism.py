@@ -53,6 +53,6 @@ def gz(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for p in prisms:
         if p is not None:
-            res += _polyprism.polyprism_gz(p['density'], p['bottom'], p['top'],
+            res += _polyprism.polyprism_gz(p['density'], p['z2'], p['z1'],
                                            p['x'], p['y'], xp, yp, zp)
     return res

@@ -80,7 +80,6 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-
 def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     """
     Make a filled contour plot of the data.
@@ -119,7 +118,6 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-
 def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
            vmax=None):
     """
@@ -157,7 +155,6 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     pyplot.xlim(X.min(), X.max())
     pyplot.ylim(Y.min(), Y.max())
     return plot
-
 
 def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
              invz=True, xy2ne=False):
@@ -248,6 +245,40 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
     surf.actor.property.opacity = opacity
     surf.actor.property.backface_culling = 1
     return surf
+
+def polyprism_contours(prisms, colors=None, labels=None):
+    """
+    Plot 2D contours of PolygonalPrism3D objects on a map.
+
+    Parameters:
+    * prisms
+        List of PolygonalPrism3D
+    * colors
+        List of color and line style strings, one for each prism (as in
+        matplotlib.pyplot.plot)
+    * labels
+        List of labels (strings) associated with the prisms.
+
+    Returns:
+    * lines
+        List of line objects corresponding to the prisms plotted
+
+    """
+    lines = []
+    for i, prism in enumerate(prisms):
+        tmpx = [x for x in prism['x']]
+        tmpx.append(prism['x'][0])
+        tmpy = [y for y in prism['y']]
+        tmpy.append(prism['y'][0])
+        args = [tmpx, tmpy]
+        if colors is not None:
+            args.append(colors[i])
+        kwargs = {}
+        if labels is not None:
+            kwargs['label'] = labels[i]
+        line, = pyplot.plot(*args, **kwargs)
+        lines.append(line)
+    return lines
 
 #
 #

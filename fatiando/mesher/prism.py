@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create and operate on meshes of right rectangular prisms
+Create and operate on meshes of prisms.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = '13-Sep-2010'
@@ -27,6 +27,71 @@ from fatiando import logger
 
 log = logger.dummy()
 
+def PolygonalPrism3D(vertices, z1, z2, props={}):
+    """
+    Create a 3D prism with polygonal crossection.
+
+    Parameters:
+    * vertices
+        List of (x,y) pairs with the coordinates of the vertices. MUST BE
+        CLOCKWISE or will give inverse result.
+    * z1, z2
+        Top and bottom of the prism
+    * props
+        Dictionary with the physical properties assigned to the prism.
+        Ex: props={'density':10, 'susceptibility':10000}
+    Returns:
+    * prism
+        Dictionary describing the prism
+
+    """
+    x, y = numpy.array(vertices).T
+    prism = {'x':x, 'y':y, 'z1':z1, 'z2':z2}
+    for prop in props:
+        prism[prop] = props[prop]
+    return prism
+
+def draw_polygon(area, axes):
+    """
+    """
+    from matplotlib import pyplot
+    # start with an empty line
+    line, = axes.plot([0],[0], 'k')
+    line.figure.canvas.draw()
+    x = []
+    y = []
+    plotx = []
+    ploty = []
+    # Hack because Python 2 doesn't like nonlocal variables that change value.
+    # Lists it doesn't mind.
+    picking = [True]
+    def pick(event):
+        if event.button == 1 and picking[0]:
+            # TODO: Find a way to always plot north on y axis. this would be the
+            # other way around if that is the case.
+            x.append(event.xdata)
+            y.append(event.ydata)
+            plotx.append(event.xdata)
+            ploty.append(event.ydata)
+        if event.button == 3 or event.button == 2 and picking[0]:
+            picking[0] = False
+            axes.set_title("Done")
+            plotx.append(x[0])
+            ploty.append(y[0])
+        line.set_data(plotx, ploty)
+        line.figure.canvas.draw()
+    def erase(event):
+        if event.key == 'e' and picking[0]:
+            x.pop()
+            y.pop()
+            plotx.pop()
+            ploty.pop()
+            line.set_data(plotx, ploty)
+            line.figure.canvas.draw()
+    line.figure.canvas.mpl_connect('button_press_event', pick)
+    line.figure.canvas.mpl_connect('key_press_event', erase)
+    pyplot.show()
+    return numpy.array([x, y]).T
 
 def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
     """
@@ -38,7 +103,7 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
     * y1, y2
         West and east borders of the prism
     * z1, z2
-        Bottom and top of the prism
+        Top and bottom of the prism
     * props
         Dictionary with the physical properties assigned to the prism.
         Ex: props={'density':10, 'susceptibility':10000}
@@ -269,7 +334,7 @@ def fill_prisms(values, key, prisms):
     * values
         1D array with the value of each prism
     * key
-        Key to fill in the *mesh*
+        Key to fill in the prisms
     * prisms
         List of Prism3D
     Returns:
