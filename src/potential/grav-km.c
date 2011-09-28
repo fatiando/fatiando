@@ -73,6 +73,72 @@ double cilin_pol_vertical2 (int N, int M, int *nvertices, double *Xp, double *Yp
 
 }
 
+double integral_aresta_gz (double Xk1, double Xk2, double Yk1, double Yk2, double Z1, double Z2, double Z1_quadrado, double Z2_quadrado) {
+
+	double gzaux, auxk1, auxk2, aux1k1, aux1k2, aux2k1, aux2k2;
+	double Ak1, Ak2, Bk1, Bk2, Ck1, Ck2, Dk1, Dk2, E1k1, E1k2, E2k1, E2k2;
+	double Qk1, Qk2, R1k1, R1k2, R2k1, R2k2, p, p_quadrado;
+
+	gzaux = 0.0;
+
+	p = (Xk1*Yk2) - (Xk2*Yk1);
+	p_quadrado = pow(p, 2);
+	Qk1 = ((Yk2 - Yk1)*Yk1) + ((Xk2 - Xk1)*Xk1);
+	Qk2 = ((Yk2 - Yk1)*Yk2) + ((Xk2 - Xk1)*Xk2);
+
+	Ak1 = pow(Xk1, 2) + pow(Yk1, 2);
+	Ak2 = pow(Xk2, 2) + pow(Yk2, 2);
+	R1k1 = Ak1 + Z1_quadrado;
+	R1k1 = pow(R1k1, 0.5);
+	R1k2 = Ak2 + Z1_quadrado;
+	R1k2 = pow(R1k2, 0.5);
+	R2k1 = Ak1 + Z2_quadrado;
+	R2k1 = pow(R2k1, 0.5);
+	R2k2 = Ak2 + Z2_quadrado;
+	R2k2 = pow(R2k2, 0.5);
+
+	Ak1 = pow(Ak1, 0.5);
+	Ak2 = pow(Ak2, 0.5);
+
+	Bk1 = pow(Qk1, 2) + p_quadrado;
+	Bk1 = pow(Bk1, 0.5);
+	Bk2 = pow(Qk2, 2) + p_quadrado;
+	Bk2 = pow(Bk2, 0.5);
+
+	Ck1 = Qk1*Ak1;
+	Ck2 = Qk2*Ak2;
+
+	Dk1 = Divide_macro(p, 2.0);
+	Dk2 = Dk1;
+	Dk1 *= Divide_macro(Ak1, Bk1);
+	Dk2 *= Divide_macro(Ak2, Bk2);
+
+	E1k1 = R1k1*Bk1;
+	E1k2 = R1k2*Bk2;
+	E2k1 = R2k1*Bk1;
+	E2k2 = R2k2*Bk2;
+
+	auxk1 = Divide_macro(Qk1, p);
+	auxk2 = Divide_macro(Qk2, p);
+	aux1k1 = Divide_macro(Z1, R1k1);
+	aux1k2 = Divide_macro(Z1, R1k2);
+	aux2k1 = Divide_macro(Z2, R2k1);
+	aux2k2 = Divide_macro(Z2, R2k2);
+
+	gzaux += (Z2 - Z1)*(atan(auxk2) - atan(auxk1));
+	gzaux += Z2*(atan(aux2k1*auxk1) - atan(aux2k2*auxk2));
+	gzaux += Z1*(atan(aux1k2*auxk2) - atan(aux1k1*auxk1));
+
+	gzaux += Dk1*(log(Divide_macro2((E1k1 - Ck1), (E1k1 + Ck1))) - log(Divide_macro2((E2k1 - Ck1), (E2k1 + Ck1))));
+	gzaux += Dk2*(log(Divide_macro2((E2k2 - Ck2), (E2k2 + Ck2))) - log(Divide_macro2((E1k2 - Ck2), (E1k2 + Ck2))));
+
+	return gzaux;
+
+}
+
+
+
+
 int paraview (int M, int Q, int nvertices, double teta, double **raio, double *z1, double *z2, double *x0, double *y0, int contador_adaptativo) {
 
 	int i, j, k, l;
@@ -496,68 +562,5 @@ int paraview (int M, int Q, int nvertices, double teta, double **raio, double *z
 	fclose(arquivo);
 
 	return 0;
-
-}
-
-double integral_aresta_gz (double Xk1, double Xk2, double Yk1, double Yk2, double Z1, double Z2, double Z1_quadrado, double Z2_quadrado) {
-
-	double gzaux, auxk1, auxk2, aux1k1, aux1k2, aux2k1, aux2k2;
-	double Ak1, Ak2, Bk1, Bk2, Ck1, Ck2, Dk1, Dk2, E1k1, E1k2, E2k1, E2k2;
-	double Qk1, Qk2, R1k1, R1k2, R2k1, R2k2, p, p_quadrado;
-
-	gzaux = 0.0;
-
-	p = (Xk1*Yk2) - (Xk2*Yk1);
-	p_quadrado = pow(p, 2);
-	Qk1 = ((Yk2 - Yk1)*Yk1) + ((Xk2 - Xk1)*Xk1);
-	Qk2 = ((Yk2 - Yk1)*Yk2) + ((Xk2 - Xk1)*Xk2);
-
-	Ak1 = pow(Xk1, 2) + pow(Yk1, 2);
-	Ak2 = pow(Xk2, 2) + pow(Yk2, 2);
-	R1k1 = Ak1 + Z1_quadrado;
-	R1k1 = pow(R1k1, 0.5);
-	R1k2 = Ak2 + Z1_quadrado;
-	R1k2 = pow(R1k2, 0.5);
-	R2k1 = Ak1 + Z2_quadrado;
-	R2k1 = pow(R2k1, 0.5);
-	R2k2 = Ak2 + Z2_quadrado;
-	R2k2 = pow(R2k2, 0.5);
-
-	Ak1 = pow(Ak1, 0.5);
-	Ak2 = pow(Ak2, 0.5);
-
-	Bk1 = pow(Qk1, 2) + p_quadrado;
-	Bk1 = pow(Bk1, 0.5);
-	Bk2 = pow(Qk2, 2) + p_quadrado;
-	Bk2 = pow(Bk2, 0.5);
-
-	Ck1 = Qk1*Ak1;
-	Ck2 = Qk2*Ak2;
-
-	Dk1 = Divide_macro(p, 2.0);
-	Dk2 = Dk1;
-	Dk1 *= Divide_macro(Ak1, Bk1);
-	Dk2 *= Divide_macro(Ak2, Bk2);
-
-	E1k1 = R1k1*Bk1;
-	E1k2 = R1k2*Bk2;
-	E2k1 = R2k1*Bk1;
-	E2k2 = R2k2*Bk2;
-
-	auxk1 = Divide_macro(Qk1, p);
-	auxk2 = Divide_macro(Qk2, p);
-	aux1k1 = Divide_macro(Z1, R1k1);
-	aux1k2 = Divide_macro(Z1, R1k2);
-	aux2k1 = Divide_macro(Z2, R2k1);
-	aux2k2 = Divide_macro(Z2, R2k2);
-
-	gzaux += (Z2 - Z1)*(atan(auxk2) - atan(auxk1));
-	gzaux += Z2*(atan(aux2k1*auxk1) - atan(aux2k2*auxk2));
-	gzaux += Z1*(atan(aux1k2*auxk2) - atan(aux1k1*auxk1));
-
-	gzaux += Dk1*(log(Divide_macro2((E1k1 - Ck1), (E1k1 + Ck1))) - log(Divide_macro2((E2k1 - Ck1), (E2k1 + Ck1))));
-	gzaux += Dk2*(log(Divide_macro2((E2k2 - Ck2), (E2k2 + Ck2))) - log(Divide_macro2((E1k2 - Ck2), (E1k2 + Ck2))));
-
-	return gzaux;
 
 }
