@@ -13,9 +13,6 @@ area = (-5000, 5000, -5000, 5000)
 # Set up the figure for picking
 fig = pyplot.figure()
 axes = fig.add_subplot(1,1,1)
-pyplot.axis('scaled')
-axes.set_xlim(area[0], area[1])
-axes.set_ylim(area[2], area[3])
 prisms = [PolygonalPrism3D(draw_polygon(area, axes),0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular(area, shape, z=-100)

@@ -55,17 +55,26 @@ def draw_polygon(area, axes):
     """
     """
     from matplotlib import pyplot
+    pyplot.axis('scaled')
+    axes.set_xlim(area[0], area[1])
+    axes.set_ylim(area[2], area[3])
     # start with an empty line
-    line, = axes.plot([0],[0], 'k')
+    line, = axes.plot([0],[0], '-k')
     line.figure.canvas.draw()
     x = []
     y = []
     plotx = []
     ploty = []
+    def set_linestyle():
+        line.set_color('black')
+        line.set_linestyle('-')
+        line.set_marker('.')
     # Hack because Python 2 doesn't like nonlocal variables that change value.
     # Lists it doesn't mind.
     picking = [True]
     def pick(event):
+        if event.inaxes != axes:
+            return 0
         if event.button == 1 and picking[0]:
             # TODO: Find a way to always plot north on y axis. this would be the
             # other way around if that is the case.
@@ -73,6 +82,7 @@ def draw_polygon(area, axes):
             y.append(event.ydata)
             plotx.append(event.xdata)
             ploty.append(event.ydata)
+            set_linestyle()
         if event.button == 3 or event.button == 2 and picking[0]:
             picking[0] = False
             axes.set_title("Done")

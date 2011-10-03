@@ -189,5 +189,5 @@ def cut(x, y, scalars, xmin, xmax, ymin, ymax):
             inside.append(i)
     subx = numpy.array([x[i] for i in inside])
     suby = numpy.array([y[i] for i in inside])
-    subscalars = [[scalar[i] for i in inside] for scalar in scalars]
+    subscalars = [numpy.array([scl[i] for i in inside]) for scl in scalars]
     return [subx, suby, subscalars]
