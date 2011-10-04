@@ -1,12 +1,10 @@
 * Packages to fix:
     - vis
-    - stats
     - seismic
     - eqlayer
     - sphere
     - synthetic (get rid of)
     - io
-* Find a way to make draw_polygon draw multiple polygons
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
