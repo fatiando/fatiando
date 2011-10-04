@@ -21,9 +21,11 @@ inversion results.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
-from fatiando import logger
+import math
 
 import numpy
+
+from fatiando import logger
 
 log = logger.dummy()
 
@@ -141,23 +143,32 @@ def gaussian(x, mean, std):
     return numpy.exp(-1*((mean - x)/std)**2)
 
 
-def gaussian2d(x, y, xmean=0, ymean=0, cov=[[1,0],[0,1]]):
+def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     """
     Non-normalized 2D Gaussian function
 
     Parameters:
     * x, y
         Coordinates at which to calculate the Gaussian function
-    * xmean, ymean
+    * sigma_x, sigma_y
+        Standard deviation in the x and y directions
+    * x0, y0
         Coordinates of the center of the distribution
-    * cov
-        Covariance matrix of the distribution. 2 x 2 array.
+    * angle
+        Rotation angle of the gaussian measure from the x axis (north) growing
+        positive to the east (positive y axis)
     Returns:
     * Gaussian function evaluated at *x*, *y*
 
     """
-    cov_inv = numpy.linalg.inv(numpy.array(cov))
-    value = (cov_inv[0][0]*(x - xmean)**2 +
-             2*cov_inv[0][1]*(x - xmean)*(y - ymean) +
-             cov_inv[1][1]*(y - ymean)**2)
-    return numpy.exp(-value)
+    theta = -1*angle*numpy.pi/180.
+    tmpx = 1./sigma_x**2
+    tmpy = 1./sigma_y**2
+    sintheta = numpy.sin(theta)
+    costheta = numpy.cos(theta)
+    a = tmpx*costheta + tmpy*sintheta**2
+    b = (tmpy - tmpx)*costheta*sintheta
+    c = tmpx*sintheta**2 + tmpy*costheta**2
+    xhat = x - x0
+    yhat = y - y0
+    return numpy.exp(-(a*xhat**2 + 2.*b*xhat*yhat + c*yhat**2))

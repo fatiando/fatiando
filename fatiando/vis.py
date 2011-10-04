@@ -156,6 +156,29 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     pyplot.ylim(Y.min(), Y.max())
     return plot
 
+def square(area, color='-k', width=1, label=None):
+    """
+    Plot a square.
+
+    * area
+        (x1, x2, y1, y2): Borders of the square
+    * color
+        String with the color and line style (as in matplotlib.pyplot.plot)
+    * width
+        Line width
+    * label
+        label associated with the square.
+
+    """
+    x1, x2, y1, y2 = area
+    xs = [x1, x1, x2, x2, x1]
+    ys = [y1, y2, y2, y1, y1]
+    kwargs = {'linewidth':width}
+    if label is not None:
+        kwargs['label'] = label
+    plot, = pyplot.plot(xs, ys, color, **kwargs)
+    return plot
+
 def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
              invz=True, xy2ne=False):
     """

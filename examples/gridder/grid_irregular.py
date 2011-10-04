@@ -11,7 +11,7 @@ log.info("Example of generating and plotting irregular grids")
 
 log.info("Calculating...")
 x, y = gridder.scatter((-2, 2, -2, 2), n=200)
-z = stats.gaussian2d(x, y)
+z = stats.gaussian2d(x, y, 1, 1)
 
 log.info("Plotting...")
 shape = (100,100)

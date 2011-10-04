@@ -1,10 +1,11 @@
 """
-Example of generating a topography and creating a 3D prism model of it
+Example of generating a topography, creating a 3D prism model of it and
+calculating gz
 """
 from enthought.mayavi import mlab
 import numpy
 from matplotlib import pyplot
-from fatiando import stats, gridder, logger, vis
+from fatiando import stats, gridder, logger, vis, potential
 from fatiando.mesher.prism import Relief3D, relief2prisms, fill_relief
 
 # Avoid importing mlab twice since it's very slow
@@ -27,11 +28,26 @@ scalars = [2670 for i in xrange(len(height))]
 nodes = (x, y, -1*height)
 relief = fill_relief(scalars, Relief3D(0,gridder.spacing(area,shape),nodes))
 
+log.info("Calculating gz effect")
+gridarea = (-80, 80, -220, 220)
+xp, yp, zp = gridder.regular(gridarea, shape, z=-200)
+gz = potential.prism.gz(xp, yp, zp, relief2prisms(relief, 'density'))
+
 pyplot.figure()
+pyplot.subplot(1,2,1)
 pyplot.title("Synthetic topography")
 pyplot.axis('scaled')
 vis.pcolor(x, y, height, shape)
 pyplot.colorbar()
+vis.square(gridarea, label='Computation grid')
+pyplot.legend()
+
+pyplot.subplot(1,2,2)
+pyplot.title("Topographic gz effect")
+pyplot.axis('scaled')
+vis.pcolor(xp, yp, gz, shape)
+pyplot.colorbar()
+pyplot.show()
 
 vis.prisms3D(relief2prisms(relief), relief['cells'])
 mlab.show()

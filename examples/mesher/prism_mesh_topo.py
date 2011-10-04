@@ -20,8 +20,8 @@ y1, y2 = -200, 200
 log.info("Generating synthetic topography")
 x, y = gridder.regular((x1, x2, y1, y2), (50,50))
 height = (100 +
-          50*stats.gaussian2d(x, y, -50, -100, cov=[[5000,5000],[5000,30000]]) +
-          80*stats.gaussian2d(x, y, 80, 170, cov=[[5000,0],[0,3000]]))
+          80*stats.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
+          100*stats.gaussian2d(x, y, 50, 100, x0=80, y0=170))
 
 pyplot.figure()
 pyplot.title("Synthetic topography")
