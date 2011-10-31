@@ -233,7 +233,7 @@ def relief2prisms(relief, prop=None):
         else:
             yield None
 
-def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
+def Mesh3D(x1, x2, y1, y2, z1, z2, shape, props=None):
     """
     Dived a volume into right rectangular prisms.
 
@@ -259,6 +259,9 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
         Lower and upper limits of the volume in the z direction
     * shape
         Number of prisms in the x, y, and z directions, ie (nz, ny, nx)
+    * props
+        List with the physical property value assigned to each cell in the
+        mesh. If None, will initiate with a list of zeros.
     Returns:
     * mesh
 
@@ -273,7 +276,11 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape):
     log.info("  number of prisms = %d" % (size))
     log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))
     mesh = {'shape':shape, 'volume':(x1,x2,y1,y2,z1,z2), 'size':size,
-            'dims':(dz,dy,dx), 'cells':[0 for i in xrange(size)]}
+            'dims':(dz,dy,dx)}
+    if props is None:
+        mesh['cells'] = [0 for i in xrange(size)]
+    else:
+        mesh['cells'] = props
     return mesh
 
 def mesh2prisms(mesh, prop=None):
@@ -401,6 +408,8 @@ def fill_mesh(values, mesh):
         Mesh3D to fill
     Returns:
     * filled mesh
+
+    WARNING: Being deprecated. Filling is gonna be suported in Mesh3D 
 
     """
     def fillprism(p, v):
