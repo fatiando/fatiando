@@ -5,6 +5,7 @@
     - sphere
     - synthetic (get rid of)
     - io
+* Make Relief3D and examples match new iterator class of Mesh3D
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy

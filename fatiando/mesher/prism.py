@@ -233,22 +233,50 @@ def relief2prisms(relief, prop=None):
         else:
             yield None
 
-def Mesh3D(x1, x2, y1, y2, z1, z2, shape, props=None):
+class Mesh3D(object):
     """
-    Dived a volume into right rectangular prisms.
+    Generate a 3D regular mesh of right rectangular prisms.
 
-    The mesh is dictionary with keys:
-    * 'shape'
-        (nz,ny,nx)
-    * 'size'
-        nz*ny*nx
-    * 'dims'
-        (dz, dy, dx): cell size in the z, y and x directions
-    * 'volume'
-        (x1,x2,y1,y2,z1,z2)
-    * 'cells':
-        a list with the physical property value associated with each cell
-        (initialized with zeros)
+    Prisms are ordered as follows: first layers (z coordinate), then EW rows (y)
+    and finaly x coordinate.
+
+    Ex: in a mesh with shape (3,3,3) the 15th element (index 14) has z index 1
+    (second layer), y index 1 (second row), and x index 2 (third element in the
+    column).
+
+    Mesh3D can used as list of prisms. It acts as an iteratior (so you can loop
+    over prisms). It also has a __getitem__ method to access individual elements
+    in the mesh. In practice, Mesh3D should be able to be passed to any function
+    that asks for a list of prisms, like :func:`fatiando.potential.prism.gz`.
+
+    Example::
+
+        >>> def show(p):
+        ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
+        >>> mesh = Mesh3D(0,1,0,2,0,3,(1,2,2))
+        >>> for p in mesh:
+        ...     show(p)
+        x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
+        x1 : 0.5 | x2 : 1.0 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
+        x1 : 0.0 | x2 : 0.5 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
+        x1 : 0.5 | x2 : 1.0 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
+        >>> show(mesh[0])
+        x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
+        >>> show(mesh[-1])
+        x1 : 0.5 | x2 : 1.0 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
+
+    Example with physical properties::
+
+        >>> def show(p):
+        ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
+        >>> props = {'density':[2670.0, 1000.0]}
+        >>> mesh = Mesh3D(0,2,0,4,0,3,(1,1,2),props=props)
+        >>> for p in mesh:
+        ...     show(p)
+        density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
+        density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
+
+    Initialization: (x1, x2, y1, y2, z1, z2, shape, props={})
 
     Parameters:
     * x1, x2
@@ -260,62 +288,83 @@ def Mesh3D(x1, x2, y1, y2, z1, z2, shape, props=None):
     * shape
         Number of prisms in the x, y, and z directions, ie (nz, ny, nx)
     * props
-        List with the physical property value assigned to each cell in the
-        mesh. If None, will initiate with a list of zeros.
-    Returns:
-    * mesh
+        Dictionary with the physical properties of each prism in the mesh.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each prism of the mesh.
 
     """
-    log.info("Generating 3D right rectangular prism mesh:")
-    nz, ny, nx = shape
-    size = nx*ny*nz
-    dx = float(x2 - x1)/nx
-    dy = float(y2 - y1)/ny
-    dz = float(z2 - z1)/nz
-    log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
-    log.info("  number of prisms = %d" % (size))
-    log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))
-    mesh = {'shape':shape, 'volume':(x1,x2,y1,y2,z1,z2), 'size':size,
-            'dims':(dz,dy,dx)}
-    if props is None:
-        mesh['cells'] = [0 for i in xrange(size)]
-    else:
-        mesh['cells'] = props
-    return mesh
 
-def mesh2prisms(mesh, prop=None):
-    """
-    Converts a Mesh3D to a list of Prism3D objects.
-    Returns a generator object that yields one prism at a time.
+    def __init__(self, x1, x2, y1, y2, z1, z2, shape, props={}):
+        object.__init__(self)
+        log.info("Generating 3D right rectangular prism mesh:")
+        nz, ny, nx = shape
+        size = int(nx*ny*nz)
+        dx = float(x2 - x1)/nx
+        dy = float(y2 - y1)/ny
+        dz = float(z2 - z1)/nz
+        self.shape = tuple(int(i) for i in shape)
+        self.size = size
+        self.dims = (dx, dy, dz)
+        self.bounds = (x1, x2, y1, y2, z1, z2)
+        self.props = props
+        log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
+        log.info("  number of prisms = %d" % (size))
+        log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))
+        # The index of the current prism in an iteration. Needed when mesh is
+        # used as an iterator
+        self.i = 0
 
-    Usage::
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the cells in the mesh.
 
-        >>> mesh = Mesh3D(0,1,0,1,0,1,(1,1,1))
-        >>> for cell in mesh2prisms(mesh, prop='myprop'):
-        ...     for key in sorted(cell):
-        ...         print "'%s':%s," % (key, str(cell[key])),
-        'myprop':0, 'x1':0.0, 'x2':1.0, 'y1':0.0, 'y2':1.0, 'z1':0.0, 'z2':1.0,
+        Different physical properties of the mesh are stored in a dictionary.
 
-    *prop* is the name physical property of the prisms that will correspond to
-    the values in mesh. Ex: prop='density'
-    If *prop* is None, prisms will not have properties associated with them.
-    """
-    dz, dy, dx = mesh['dims']
-    x1, x2, y1, y2, z1, z2 = mesh['volume']
-    i = 0
-    for cellz1 in numpy.arange(z1, z2, dz):
-        for celly1 in numpy.arange(y1, y2, dy):
-            for cellx1 in numpy.arange(x1, x2, dx):
-                value = mesh['cells'][i]
-                if value is not None:
-                    props = {}
-                    if prop is not None:
-                        props[prop] = value
-                    yield Prism3D(cellx1, cellx1 + dx, celly1, celly1 + dy,
-                                  cellz1, cellz1 + dz, props=props)
-                else:
-                    yield None
-                i += 1
+        Parameters:
+        * prop
+            Name of the physical property.
+        * values
+            List or array with the value of this physical property in each
+            prism of the mesh. For the ordering of prisms in the mesh see the
+            docstring for Mesh3D
+        """
+        self.props[name] = values
+
+    def __getitem__(self, index):
+        """
+        Get the ith prism of the mesh.
+        """
+        if type(index) is not int:
+            raise TypeError, "index must be an integer"
+        if index < 0:
+            index = self.size + index
+        nz, ny, nx = self.shape
+        k = index/(nx*ny)
+        j = (index - k*(nx*ny))/nx
+        i = (index - k*(nx*ny) - j*nx)
+        x1 = self.bounds[0] + self.dims[0]*i
+        x2 = x1 + self.dims[0]
+        y1 = self.bounds[2] + self.dims[1]*j
+        y2 = y1 + self.dims[1]
+        z1 = self.bounds[4] + self.dims[2]*k
+        z2 = z1 + self.dims[2]
+        props = dict([p, self.props[p][index]] for p in self.props)
+        return Prism3D(x1, x2, y1, y2, z1, z2, props=props)
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        """
+        Return the next prism in the mesh.
+        """
+        if self.i >= self.size:
+            raise StopIteration
+        prism = self.__getitem__(self.i)
+        self.i += 1
+        return prism
 
 def flagtopo(x, y, height, mesh):
     """
@@ -409,7 +458,7 @@ def fill_mesh(values, mesh):
     Returns:
     * filled mesh
 
-    WARNING: Being deprecated. Filling is gonna be suported in Mesh3D 
+    WARNING: Being deprecated. Filling is gonna be suported in Mesh3D
 
     """
     def fillprism(p, v):
