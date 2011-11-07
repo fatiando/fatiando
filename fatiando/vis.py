@@ -219,7 +219,10 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
     if mlab is None:
         from enthought.mayavi import mlab
     if tvtk is None:
-        from enthought.tvtk.api import tvtk
+		try:
+			from enthought.tvtk.api import tvtk
+		except ImportError:
+			from tvtk.api import tvtk
 
     # VTK parameters
     points = []
