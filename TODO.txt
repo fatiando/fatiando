@@ -5,6 +5,9 @@
     - sphere
     - synthetic (get rid of)
     - io
+* Consider renaming mesher.prism
+* Rename Mesh3D to PrismMesh3D
+* Fix Mesh3D examples
 * Make Relief3D and examples match new iterator class of Mesh3D
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Make stats functions operate on arrays, not append to lists

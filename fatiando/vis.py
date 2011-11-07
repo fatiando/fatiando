@@ -216,13 +216,17 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
 
     # Do the lazy imports for these slow modules
     global mlab, tvtk
+    # For campatibility with versions of Mayavi2 < 4
     if mlab is None:
-        from enthought.mayavi import mlab
+        try:
+            from mayavi import mlab
+        except ImportError:            
+            from enthought.mayavi import mlab
     if tvtk is None:
 		try:
-			from enthought.tvtk.api import tvtk
-		except ImportError:
 			from tvtk.api import tvtk
+		except ImportError:
+			from enthought.tvtk.api import tvtk
 
     # VTK parameters
     points = []

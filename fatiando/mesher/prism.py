@@ -144,6 +144,7 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
     * props
         Dictionary with the physical properties assigned to the prism.
         Ex: props={'density':10, 'susceptibility':10000}
+        
     Returns:
     * prism
         Dictionary describing the prism

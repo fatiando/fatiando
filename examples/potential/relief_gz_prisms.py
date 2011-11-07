@@ -2,7 +2,10 @@
 Example of generating a topography, creating a 3D prism model of it and
 calculating gz
 """
-from enthought.mayavi import mlab
+try:
+    from mayavi import mlab
+except ImportError:
+    from enthought.mayavi import mlab
 import numpy
 from matplotlib import pyplot
 from fatiando import stats, gridder, logger, vis, potential
