@@ -223,10 +223,10 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
         except ImportError:            
             from enthought.mayavi import mlab
     if tvtk is None:
-		try:
-			from tvtk.api import tvtk
-		except ImportError:
-			from enthought.tvtk.api import tvtk
+        try:
+            from tvtk.api import tvtk
+        except ImportError:
+            from enthought.tvtk.api import tvtk
 
     # VTK parameters
     points = []
@@ -234,12 +234,12 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
     offsets = []
     offset = 0
     mesh_size = 0
+    celldata = []
     # To mark what index in the points the cell starts
     start = 0
-    for prism in prisms:
+    for prism, scalar in zip(prisms, scalars):
         if prism is None:
             continue
-        mesh_size += 1
         if xy2ne:
             x1, x2 = prism['y1'], prism['y2']
             y1, y2 = prism['x1'], prism['x2']
@@ -257,16 +257,18 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
         start += 8
         offsets.append(offset)
         offset += 9
+        celldata.append(scalar)
+        mesh_size += 1
     cell_array = tvtk.CellArray()
     cell_array.set_cells(mesh_size, numpy.array(cells))
     cell_types = numpy.array([12]*mesh_size, 'i')
     vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
-    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
-    vtkmesh.cell_data.scalars = numpy.array([s for s in scalars if s is not None])
+    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)    
+    vtkmesh.cell_data.scalars = numpy.array(celldata)
     vtkmesh.cell_data.scalars.name = label
     dataset = mlab.pipeline.add_dataset(vtkmesh)
     thresh = mlab.pipeline.threshold(dataset)
-    surf = mlab.pipeline.surface(thresh, vmax=max(scalars), vmin=min(scalars))
+    surf = mlab.pipeline.surface(thresh, vmax=max(celldata), vmin=min(celldata))
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':

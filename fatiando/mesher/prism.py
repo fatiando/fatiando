@@ -234,7 +234,7 @@ def relief2prisms(relief, prop=None):
         else:
             yield None
 
-class Mesh3D(object):
+class PrismMesh3D(object):
     """
     Generate a 3D regular mesh of right rectangular prisms.
 
@@ -245,16 +245,17 @@ class Mesh3D(object):
     (second layer), y index 1 (second row), and x index 2 (third element in the
     column).
 
-    Mesh3D can used as list of prisms. It acts as an iteratior (so you can loop
-    over prisms). It also has a __getitem__ method to access individual elements
-    in the mesh. In practice, Mesh3D should be able to be passed to any function
-    that asks for a list of prisms, like :func:`fatiando.potential.prism.gz`.
+    PrismMesh3D can used as list of prisms. It acts as an iteratior (so you can 
+    loop over prisms). It also has a __getitem__ method to access individual 
+    elements in the mesh. In practice, PrismMesh3D should be able to be passed 
+    to any function that asks for a list of prisms, like 
+    :func:`fatiando.potential.prism.gz`.
 
     Example::
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
-        >>> mesh = Mesh3D(0,1,0,2,0,3,(1,2,2))
+        >>> mesh = PrismMesh3D(0,1,0,2,0,3,(1,2,2))
         >>> for p in mesh:
         ...     show(p)
         x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
@@ -271,7 +272,7 @@ class Mesh3D(object):
         >>> def show(p):
         ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
         >>> props = {'density':[2670.0, 1000.0]}
-        >>> mesh = Mesh3D(0,2,0,4,0,3,(1,1,2),props=props)
+        >>> mesh = PrismMesh3D(0,2,0,4,0,3,(1,1,2),props=props)
         >>> for p in mesh:
         ...     show(p)
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
@@ -315,22 +316,11 @@ class Mesh3D(object):
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
-
-    def addprop(self, prop, values):
-        """
-        Add physical property values to the cells in the mesh.
-
-        Different physical properties of the mesh are stored in a dictionary.
-
-        Parameters:
-        * prop
-            Name of the physical property.
-        * values
-            List or array with the value of this physical property in each
-            prism of the mesh. For the ordering of prisms in the mesh see the
-            docstring for Mesh3D
-        """
-        self.props[name] = values
+        # List of masked prisms. Will return None if trying to access them
+        self.mask = []
+        
+    def __len__(self):
+        return self.size
 
     def __getitem__(self, index):
         """
@@ -338,8 +328,11 @@ class Mesh3D(object):
         """
         if type(index) is not int:
             raise TypeError, "index must be an integer"
+        # To walk backwards in the list
         if index < 0:
             index = self.size + index
+        if index in self.mask:
+            return None
         nz, ny, nx = self.shape
         k = index/(nx*ny)
         j = (index - k*(nx*ny))/nx
@@ -367,108 +360,69 @@ class Mesh3D(object):
         self.i += 1
         return prism
 
-def flagtopo(x, y, height, mesh):
-    """
-    Flag prisms from a Mesh3D that are above the topography by setting their
-    value to None.
-    Also flags prisms outside of the topography grid (not directly under).
-    The topography height information does not need to be on a regular grid.
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the cells in the mesh.
 
-    Parameters:
-    * x, y
-        Arrays with x and y coordinates of the grid points
-    * height
-        Array with the height of the topography
-    * mesh
-        A Mesh3D
-    Returns:
-    * New mesh
+        Different physical properties of the mesh are stored in a dictionary.
 
-    """
-    nz, ny, nx = mesh['shape']
-    x1, x2, y1, y2, z1, z2 = mesh['volume']
-    size = mesh['size']
-    dz, dy, dx = mesh['dims']
-    # The coordinates of the centers of the cells
-    xc = numpy.arange(x1, x2, dx) + 0.5*dx
-    if len(xc) > nx:
-        xc = xc[:-1]
-    yc = numpy.arange(y1, y2, dy) + 0.5*dy
-    if len(yc) > ny:
-        yc = yc[:-1]
-    zc = numpy.arange(z1, z2, dz) + 0.5*dz
-    if len(zc) > nz:
-        zc = zc[:-1]
-    XC, YC = numpy.meshgrid(xc, yc)
-    # -1 if to transform height into z coordinate
-    topo = -1*matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
-    # griddata returns a masked array. If the interpolated point is out of
-    # of the data range, mask will be True. Use this to remove all cells
-    # bellow a masked topo point (ie, one with no height information)
-    if numpy.ma.isMA(topo):
-        topo_mask = topo.mask
-    else:
-        topo_mask = [False]*len(topo)
-    flagged = mesh.copy()
-    flagged['cells'] = [v for v in mesh['cells']]
-    c = 0
-    for cellz in zc:
-        for height, masked in zip(topo, topo_mask):
-            if cellz < height or masked:
-                flagged['cells'][c] = None
-            c += 1
-    return flagged
-
-def fill_prisms(values, key, prisms):
-    """
-    Fill the key of each prism with given values
-    Will ignore None values in *prisms*
-
-    Parameters:
-    * values
-        1D array with the value of each prism
-    * key
-        Key to fill in the prisms
-    * prisms
-        List of Prism3D
-    Returns:
-    * filled prisms
-
-    """
-    def fillprism(p, v):
-        if p is None:
-            return None
-        fp = p.copy()
-        fp[key] = v
-        return fp
-    filled = [fillprism(p,v) for v, p in zip(values, prisms)]
-    return filled
-
-def fill_mesh(values, mesh):
-    """
-    Fill a Mesh3D with given values
-
-    Will ignore the value corresponding to a prism flagged as None
-    (see :func:`fatiando.mesher.prism.flagtopo`)
-
-    Parameters:
-    * values
-        1D array with the value of each prism
-    * mesh
-        Mesh3D to fill
-    Returns:
-    * filled mesh
-
-    WARNING: Being deprecated. Filling is gonna be suported in Mesh3D
-
-    """
-    def fillprism(p, v):
-        if p is None:
-            return None
-        return v
-    filled = mesh.copy()
-    filled['cells'] = [fillprism(p,v) for v, p in zip(values, mesh['cells'])]
-    return filled
+        Parameters:
+        * prop
+            Name of the physical property.
+        * values
+            List or array with the value of this physical property in each
+            prism of the mesh. For the ordering of prisms in the mesh see the
+            docstring for Mesh3D
+        """
+        self.props[prop] = values
+        
+    def carvetopo(self, x, y, height):
+        """
+        Mask (remove) prisms from the mesh that are above the topography.
+        
+        Accessing the ith prism will return None if it was masked (above the
+        topography).
+        Also mask prisms outside of the topography grid provided.
+        The topography height information does not need to be on a regular grid,
+        it will be interpolated.
+    
+        Parameters:            
+        * x, y
+            Arrays with x and y coordinates of the grid points
+        * height
+            Array with the height of the topography
+                
+        """
+        nz, ny, nx = self.shape
+        x1, x2, y1, y2, z1, z2 = self.bounds
+        dx, dy, dz = self.dims
+        # The coordinates of the centers of the cells
+        xc = numpy.arange(x1, x2, dx) + 0.5*dx
+        # Sometimes arange returns more due to rounding
+        if len(xc) > nx:
+            xc = xc[:-1]
+        yc = numpy.arange(y1, y2, dy) + 0.5*dy
+        if len(yc) > ny:
+            yc = yc[:-1]
+        zc = numpy.arange(z1, z2, dz) + 0.5*dz
+        if len(zc) > nz:
+            zc = zc[:-1]
+        XC, YC = numpy.meshgrid(xc, yc)
+        # -1 if to transform height into z coordinate
+        topo = -1*matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        # griddata returns a masked array. If the interpolated point is out of
+        # of the data range, mask will be True. Use this to remove all cells
+        # bellow a masked topo point (ie, one with no height information)
+        if numpy.ma.isMA(topo):
+            topo_mask = topo.mask
+        else:
+            topo_mask = [False for i in xrange(len(topo))]
+        c = 0
+        for cellz in zc:
+            for h, masked in zip(topo, topo_mask):
+                if masked or cellz < h:
+                    self.mask.append(c)
+                c += 1
 
 def fill_relief(values, relief):
     """
@@ -539,6 +493,7 @@ def vfilter(vmin, vmax, key, prisms):
 def _test():
     import doctest
     doctest.testmod()
+    print "doctest finished"
 
 if __name__ == '__main__':
     _test()
