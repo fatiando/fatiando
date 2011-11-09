@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Distributions, contaminate data with noise, and statistical analysis of
-inversion results.
+Utility mathematical functions and contaminate data with noise.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -64,41 +63,6 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     else:
         return contam
 
-def mean(estimates):
-    """
-    Calculate the mean (per parameter) of several parameter vectors.
-
-    Parameters:
-    * estimates
-        List of parameter vectors. Each estimate should be array-like 1D.
-    Returns:
-    * mean
-        array-like 1D mean parameter vector.
-
-    """
-    mean_estimate = []
-    for parameter in numpy.transpose(estimates):
-        mean_estimate.append(parameter.mean())
-    return numpy.array(mean_estimate)
-
-def stddev(estimates):
-    """
-    Calculate the standard deviation (per parameter) of several parameter
-    vectors.
-
-    Parameters:
-    * estimates
-        List of parameter vectors. Each estimate should be array-like 1D.
-    Return:
-    * stddev
-        array-like 1D parameter standard deviation vector.
-
-    """
-    stddev_estimate = []
-    for parameter in numpy.transpose(estimates):
-        stddev_estimate.append(parameter.std())
-    return numpy.array(stddev_estimate)
-
 def normal(x, mean, std):
     """
     Normal distribution.
@@ -141,7 +105,6 @@ def gaussian(x, mean, std):
 
     """
     return numpy.exp(-1*((mean - x)/std)**2)
-
 
 def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     """

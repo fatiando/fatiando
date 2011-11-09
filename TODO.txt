@@ -6,10 +6,9 @@
     - synthetic (get rid of)
     - io
 * Consider renaming mesher.prism
-* Fix Mesh3D examples
+* Rename stats to utils. Leave stats for real statistical functions
 * Make Relief3D and examples match new iterator class of Mesh3D
 * Deduce analytical upward continuation for tensor (blakely 168)
-* Make stats functions operate on arrays, not append to lists
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
 * Two types of grid loading: load and stream

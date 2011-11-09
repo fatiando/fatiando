@@ -251,6 +251,9 @@ class PrismMesh3D(object):
     to any function that asks for a list of prisms, like 
     :func:`fatiando.potential.prism.gz`.
 
+    To make the mesh incorporate a topography, use
+    meth:`fatiando.mesher.prism.PrismMesh3D.carvetopo`
+
     Example::
 
         >>> def show(p):
