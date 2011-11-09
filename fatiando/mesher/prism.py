@@ -155,48 +155,65 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
         prism[prop] = props[prop]
     return prism
 
-def Relief3D(ref, dims, nodes):
+class PrismRelief3D():
     """
-    Create a 3D relief discretized using prisms.
+    Generate a 3D model of a relief (topography) using prisms.
+    
     Use to generate:
     * topographic model
     * basin model
     * Moho model
+    * etc
 
-    The relief is dictionary with keys:
-    * 'nodes'
-        (x,y,z): coordinates of the centers of the top face of each prism
-    * 'dims'
-        (dy, dx): the dimensions of the prisms in the y and x directions
-    * 'ref'
-        Reference level where the bottom of the prisms are placed
-    * 'cells'
-        list with the physical property associated with each prism
+    PrismRelief3D can used as list of prisms. It acts as an iteratior (so you
+    can loop over prisms). It also has a __getitem__ method to access individual 
+    elements in the mesh. In practice, PrismRelief3D should be able to be passed 
+    to any function that asks for a list of prisms, like 
+    :func:`fatiando.potential.prism.gz`.
 
     Parameters:
     * ref
-        Reference level. Prisms will have: bottom on zref and top on z if
-        z > zref; bottom on z and top on zref otherwise.
+        Reference level. Prisms will have:
+            * bottom on zref and top on z if z > zref;
+            * bottom on z and top on zref otherwise.
     * dims
         (dy, dx): the dimensions of the prisms in the y and x directions
     * nodes
         (x,y,z) where x, y, and z are arrays with the x, y and z coordinates of
-        the center of the top face of each prism
-
-    Returns:
-    * relief
+        the center of the top face of each prism. x and y should be on a regular
+        grid.
+    * props
+        Dictionary with the physical properties of each prism. 
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each prism of the mesh.
+        WARNING:
+        If a point of the relief is bellow the reference level, the physical
+        property of the corresponding prism will be inverted!
 
     """
-    x, y, z = nodes
-    if len(x) != len(y) != len(z):
-        raise ValueError, "nodes has x,y,z coordinates with different lengths"
-    size = len(x)
-    log.info("Generating 3D relief with right rectangular prism:")
-    log.info("  number of prisms = %d" % (size))
-    log.info("  reference level = %s" % (str(ref)))
-    relief = {'nodes':nodes, 'ref':ref, 'dims':dims,
-              'cells':[0 for i in xrange(size)]}
-    return relief
+
+    def __init__(self, ref, dims, nodes, props={})
+        x, y, z = nodes
+        if len(x) != len(y) != len(z):
+            raise ValueError, "nodes has x,y,z coordinates of different lengths"
+        self.nodes = nodes
+        self.size = len(x)
+        self.ref = ref
+        self.dims = dims
+        self.props = props
+        log.info("Generating 3D relief with right rectangular prisms:")
+        log.info("  number of prisms = %d" % (self.size))
+        log.info("  reference level = %s" % (str(ref)))
+        log.info("  dimensions of prisms = %g x %g" % (dims[0], dims[1]))
+        # The index of the current prism in an iteration. Needed when mesh is
+        # used as an iterator
+        self.i = 0
+
+    def __len__()
+
+    def __iter__(self):
+        
 
 def relief2prisms(relief, prop=None):
     """
