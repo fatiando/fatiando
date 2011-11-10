@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create and operate on meshes of prisms.
+Create and operate on meshes of 3D objects like prisms, polygonal prisms,
+tesseroids, etc.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = '13-Sep-2010'
@@ -193,7 +194,7 @@ class PrismRelief3D():
 
     """
 
-    def __init__(self, ref, dims, nodes, props={})
+    def __init__(self, ref, dims, nodes, props={}):
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError, "nodes has x,y,z coordinates of different lengths"
@@ -210,9 +211,11 @@ class PrismRelief3D():
         # used as an iterator
         self.i = 0
 
-    def __len__()
+    def __len__(self):
+        return self.size
 
     def __iter__(self):
+        pass
         
 
 def relief2prisms(relief, prop=None):
@@ -269,7 +272,7 @@ class PrismMesh3D(object):
     :func:`fatiando.potential.prism.gz`.
 
     To make the mesh incorporate a topography, use
-    meth:`fatiando.mesher.prism.PrismMesh3D.carvetopo`
+    meth:`fatiando.mesher.volume.PrismMesh3D.carvetopo`
 
     Example::
 
@@ -393,6 +396,7 @@ class PrismMesh3D(object):
             List or array with the value of this physical property in each
             prism of the mesh. For the ordering of prisms in the mesh see the
             docstring for Mesh3D
+            
         """
         self.props[prop] = values
         
@@ -444,28 +448,6 @@ class PrismMesh3D(object):
                     self.mask.append(c)
                 c += 1
 
-def fill_relief(values, relief):
-    """
-    Fill a Relief3D with given values
-
-    Parameters:
-    * values
-        1D array with the value of each prism
-    * relief
-        Relief3D to fill
-
-    Returns:
-    * filled relief
-
-    """
-    def fillprism(p, v):
-        if p is None:
-            return None
-        return v
-    filled = relief.copy()
-    filled['cells'] = [fillprism(p,v) for v, p in zip(values, relief['cells'])]
-    return filled
-
 def extract(key, prisms):
     """
     Extract a list of values of a key from each prism in a list
@@ -476,6 +458,7 @@ def extract(key, prisms):
         Should be one of the arguments to the Prism3D function.
     * prisms
         A list of Prism3D objects.
+        
     Returns:
     * Array with the extracted values
 
@@ -501,6 +484,7 @@ def vfilter(vmin, vmax, key, prisms):
         Maximum value
     * key
         The key of the prisms whose value will be used to filter
+        
     Returns:
     * filtered
         List of prisms whose *key* falls within the given range

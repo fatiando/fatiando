@@ -2,10 +2,10 @@
 Example of cutting a grid into a smaller grid
 """
 from matplotlib import pyplot
-from fatiando import gridder, stats, vis
+from fatiando import gridder, utils, vis
 
 x, y = gridder.regular((-10, 10, -10, 10), (100,100))
-z = stats.gaussian2d(x, y, 1, 1)
+z = utils.gaussian2d(x, y, 1, 1)
 subx, suby, subscalar = gridder.cut(x, y, [z], -2, 2, -3, 3)
 
 pyplot.figure()

@@ -4,7 +4,7 @@ Create synthetic data from a prism with polygonal crossection.
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, mesher, gridder, vis, logger
-from fatiando.mesher.prism import PolygonalPrism3D, draw_polygon
+from fatiando.mesher.volume import PolygonalPrism3D, draw_polygon
 
 log = logger.get()
 log.info(logger.header())

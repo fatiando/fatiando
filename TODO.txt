@@ -5,8 +5,8 @@
     - sphere
     - synthetic (get rid of)
     - io
-* Consider renaming mesher.prism
-* Rename stats to utils. Leave stats for real statistical functions
+* vis.bbox function to plot a bounding box in mayavi
+* make vis function for default config in mayavi (white back, axes and outline)
 * Make Relief3D and examples match new iterator class of Mesh3D
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
@@ -23,7 +23,6 @@
 * Automatic reference generation form fatiando scripts
 * Implement sparsity regularization
 * Use the data covariance matrix
-* vis.bbox function to plot a bounding box in mayavi
 * Implement the Chi squared test for a population
 * Implement the test for outliers in a population
 * Implement VBA model for oceanic lithosphere
@@ -39,8 +38,3 @@
 * Normalize inversion terms in solvers so that reg params are equivalent to decimal percentages
 * Make all synthetic functions receive a grid object
 * Integrate Radial3D inversion with fatiando
-
-
-Done:
-* 14/09/2011: Include mercurial changeset when making a distribution so that install has this information
-* 14/09/2011: Make grid.scatter function to generate irregular grids

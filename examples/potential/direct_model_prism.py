@@ -8,7 +8,7 @@ except ImportError:
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, gridder, vis, logger
-from fatiando.mesher.prism import Prism3D, extract
+from fatiando.mesher.volume import Prism3D, extract
 
 log = logger.get()
 log.info(logger.header())

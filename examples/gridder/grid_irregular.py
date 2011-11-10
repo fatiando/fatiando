@@ -3,7 +3,7 @@ Example of manipulating irregular grids.
 """
 from matplotlib import pyplot
 import numpy
-from fatiando import stats, gridder, logger, vis
+from fatiando import utils, gridder, logger, vis
 
 log = logger.get()
 log.info(logger.header())
@@ -11,7 +11,7 @@ log.info("Example of generating and plotting irregular grids")
 
 log.info("Calculating...")
 x, y = gridder.scatter((-2, 2, -2, 2), n=200)
-z = stats.gaussian2d(x, y, 1, 1)
+z = utils.gaussian2d(x, y, 1, 1)
 
 log.info("Plotting...")
 shape = (100,100)

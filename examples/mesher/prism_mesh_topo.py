@@ -6,8 +6,8 @@ try:
 except ImportError:
     from enthought.mayavi import mlab
 from matplotlib import pyplot
-from fatiando import stats, gridder, logger, vis
-from fatiando.mesher.prism import PrismMesh3D
+from fatiando import utils, gridder, logger, vis
+from fatiando.mesher.volume import PrismMesh3D
 
 # Avoid importing mlab twice since it's very slow
 vis.mlab = mlab
@@ -22,8 +22,8 @@ y1, y2 = -200, 200
 log.info("Generating synthetic topography")
 x, y = gridder.regular((x1, x2, y1, y2), (50,50))
 height = (100 +
-          50*stats.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
-          100*stats.gaussian2d(x, y, 50, 100, x0=80, y0=170))
+          50*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
+          100*utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))
 
 pyplot.figure()
 pyplot.title("Synthetic topography")

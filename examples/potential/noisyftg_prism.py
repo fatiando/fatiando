@@ -3,19 +3,19 @@ Create noise-corrupted synthetic data from a right rectangular prism model.
 """
 from matplotlib import pyplot
 import numpy
-from fatiando import potential, mesher, gridder, vis, logger, stats
+from fatiando import potential, mesher, gridder, vis, logger, utils
 
 log = logger.get()
 log.info(logger.header())
 log.info("Example of generating noise-corrupted synthetic FTG data")
 
 log.info("Calculating...")
-prisms = [mesher.prism.Prism3D(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+prisms = [mesher.volume.Prism3D(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
 components = [potential.prism.gxx, potential.prism.gxy, potential.prism.gxz,
               potential.prism.gyy, potential.prism.gyz, potential.prism.gzz]
-ftg = [stats.contaminate(comp(xp, yp, zp, prisms),5.0) for comp in components]
+ftg = [utils.contaminate(comp(xp, yp, zp, prisms),5.0) for comp in components]
 
 log.info("Plotting...")
 pyplot.figure()

@@ -21,4 +21,4 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 15-Sep-2011'
 
 
-from fatiando.mesher import prism
+from fatiando.mesher import volume

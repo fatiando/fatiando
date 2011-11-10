@@ -10,7 +10,7 @@ log.info(logger.header())
 log.info("Example of generating and plotting irregular grids")
 
 log.info("Calculating...")
-prisms = [mesher.prism.Prism3D(-2000,2000,-2000,2000,0,2000,{'density':1000})]
+prisms = [mesher.volume.Prism3D(-2000,2000,-2000,2000,0,2000,{'density':1000})]
 xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), n=500, z=-100)
 gz = potential.prism.gz(xp, yp, zp, prisms)
 

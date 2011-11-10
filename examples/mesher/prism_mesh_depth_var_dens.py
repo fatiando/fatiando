@@ -1,12 +1,12 @@
 """
-Example of generating a prism mesh and extracting a submesh
+Example of generating a prism mesh with depth varying density
 """
 try:
     from mayavi import mlab
 except ImportError:
     from enthought.mayavi import mlab
 from fatiando import logger, vis
-from fatiando.mesher.prism import PrismMesh3D
+from fatiando.mesher.volume import PrismMesh3D
 
 vis.mlab = mlab
 

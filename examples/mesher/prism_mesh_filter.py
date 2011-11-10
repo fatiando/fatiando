@@ -1,15 +1,18 @@
+"""
+Example of generating a prism mesh and filtering elements by density value
+"""
 try:
     from mayavi import mlab
 except ImportError:
     from enthought.mayavi import mlab
 from fatiando import logger, vis
-from fatiando.mesher.prism import PrismMesh3D, vfilter, extract
+from fatiando.mesher.volume import PrismMesh3D, vfilter, extract
 
 vis.mlab = mlab
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of generating a prism mesh and filtering it")
+log.info("Generating prism mesh with alternating density contrast")
 
 shape = (5, 20, 10)
 mesh = PrismMesh3D(0, 100, 0, 200, 0, 50, shape)
