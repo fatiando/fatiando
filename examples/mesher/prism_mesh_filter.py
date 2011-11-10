@@ -23,11 +23,13 @@ def fill(i):
     return -1
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
-log.info("Showing solid ODD prisms and wireframe EVEN")
-mlab.figure()
+# Separate even and odd prisms
 odd = vfilter(-1, 0, 'density', mesh)
 even = vfilter(0, 1, 'density', mesh)
-vis.prisms3D(odd, extract('density', odd))
-vis.prisms3D(even, extract('density', even), style='wireframe')
 
+log.info("Showing solid ODD prisms and wireframe EVEN")
+mlab.figure(bgcolor=(1,1,1))
+vis.prisms3D(odd, extract('density', odd))
+plot = vis.prisms3D(even, extract('density', even), style='wireframe')
+axes = vis.add_axes3d(plot, extent=mesh.bounds)
 mlab.show()

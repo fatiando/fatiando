@@ -178,9 +178,42 @@ def square(area, color='-k', width=1, label=None):
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, color, **kwargs)
     return plot
+    
+def polyprism_contours(prisms, colors=None, labels=None):
+    """
+    Plot 2D contours of PolygonalPrism3D objects on a map.
 
-def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
-             invz=True, xy2ne=False):
+    Parameters:
+    * prisms
+        List of PolygonalPrism3D
+    * colors
+        List of color and line style strings, one for each prism (as in
+        matplotlib.pyplot.plot)
+    * labels
+        List of labels (strings) associated with the prisms.
+
+    Returns:
+    * lines
+        List of line objects corresponding to the prisms plotted
+
+    """
+    lines = []
+    for i, prism in enumerate(prisms):
+        tmpx = [x for x in prism['x']]
+        tmpx.append(prism['x'][0])
+        tmpy = [y for y in prism['y']]
+        tmpy.append(prism['y'][0])
+        args = [tmpx, tmpy]
+        if colors is not None:
+            args.append(colors[i])
+        kwargs = {}
+        if labels is not None:
+            kwargs['label'] = labels[i]
+        line, = pyplot.plot(*args, **kwargs)
+        lines.append(line)
+    return lines
+
+def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
     """
     Plot a 3D right rectangular prisms using Mayavi2.
 
@@ -198,12 +231,10 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
         contour
     * opacity
         Decimal percentage of opacity
-    * invz
-        If ``True``, will invert the sign of values in the z-axis so that plot
-        doesn't look upside down. (Because z is assume to grow downward)
-    * xy2ne
-        If ``True``, will change from x,y to North,East. This means exchaging
-        the x and y coordinates so that x is pointing North and y East.
+    * edges
+        Wether or not to display the edges of the prisms in black lines. Will
+        ignore this is style='wireframe'
+        
     Returns:
     * surface: the last element on the pipeline
 
@@ -240,16 +271,9 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
     for prism, scalar in zip(prisms, scalars):
         if prism is None:
             continue
-        if xy2ne:
-            x1, x2 = prism['y1'], prism['y2']
-            y1, y2 = prism['x1'], prism['x2']
-        else:
-            x1, x2 = prism['x1'], prism['x2']
-            y1, y2 = prism['y1'], prism['y2']
-        if invz:
-            z1, z2 = -prism['z2'], -prism['z1']
-        else:
-            z1, z2 = prism['z1'], prism['z2']
+        x1, x2 = prism['x1'], prism['x2']
+        y1, y2 = prism['y1'], prism['y2']
+        z1, z2 = prism['z1'], prism['z2']
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
@@ -273,45 +297,193 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1,
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':
         surf.actor.property.representation = 'surface'
-        surf.actor.property.edge_visibility = 1
+        if edges:
+            surf.actor.property.edge_visibility = 1
     surf.actor.property.opacity = opacity
     surf.actor.property.backface_culling = 1
     return surf
 
-def polyprism_contours(prisms, colors=None, labels=None):
+def add_axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
+               width=2, fmt="%-#.2f"):
     """
-    Plot 2D contours of PolygonalPrism3D objects on a map.
+    Add an Axes module to a Mayavi2 plot or dataset.
 
     Parameters:
-    * prisms
-        List of PolygonalPrism3D
-    * colors
-        List of color and line style strings, one for each prism (as in
-        matplotlib.pyplot.plot)
-    * labels
-        List of labels (strings) associated with the prisms.
+    * plot
+        Either the plot (as returned by one of the plotting functions of this
+        module) or a TVTK dataset.
+    * nlabels
+        Number of labels on the axes
+    * extent
+        [xmin, xmax, ymin, ymax, zmin, zmax]. Default if the objects extent.
+    * ranges
+        [xmin, xmax, ymin, ymax, zmin, zmax]. What will be display in the axes
+        labels. Default is extent
+    * color
+        RGB of the color of the axes and text
+    * width
+        Line width
+    * fmt
+        Label number format
 
     Returns:
-    * lines
-        List of line objects corresponding to the prisms plotted
+    * axes
+        The axes object in the pipeline
+        
+    """    
+    a = mlab.axes(plot, nb_labels=nlabels, color=color)
+    a.label_text_property.color = color
+    a.title_text_property.color = color
+    if extent is not None:        
+        a.axes.bounds = extent
+    if ranges is not None:
+        a.axes.ranges = ranges
+        a.axes.use_ranges = True
+    a.property.line_width = width
+    a.axes.label_format = fmt
+    a.axes.x_label, a.axes.y_label, a.axes.z_label = "N", "E", "Z"
+    return a
 
+def wall_north(bounds, color=(0,0,0), opacity=0.1):
     """
-    lines = []
-    for i, prism in enumerate(prisms):
-        tmpx = [x for x in prism['x']]
-        tmpx.append(prism['x'][0])
-        tmpy = [y for y in prism['y']]
-        tmpy.append(prism['y'][0])
-        args = [tmpx, tmpy]
-        if colors is not None:
-            args.append(colors[i])
-        kwargs = {}
-        if labels is not None:
-            kwargs['label'] = labels[i]
-        line, = pyplot.plot(*args, **kwargs)
-        lines.append(line)
-    return lines
+    Draw a 3D wall in Mayavi2 on the North side.
 
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([n, n, w, e, b, t], color, opacity)
+    
+def wall_south(bounds, color=(0,0,0), opacity=0.1):
+    """
+    Draw a 3D wall in Mayavi2 on the South side.
+
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([s, s, w, e, b, t], color, opacity)
+    
+def wall_east(bounds, color=(0,0,0), opacity=0.1):
+    """
+    Draw a 3D wall in Mayavi2 on the East side.
+
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([s, n, e, e, b, t], color, opacity)
+    
+def wall_west(bounds, color=(0,0,0), opacity=0.1):
+    """
+    Draw a 3D wall in Mayavi2 on the West side.
+
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([s, n, w, w, b, t], color, opacity)
+    
+def wall_top(bounds, color=(0,0,0), opacity=0.1):
+    """
+    Draw a 3D wall in Mayavi2 on the Top side.
+
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([s, n, w, e, t, t], color, opacity)
+    
+def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
+    """
+    Draw a 3D wall in Mayavi2 on the Bottom side.
+
+    Remember: x->North, y->East and z->Down
+
+    Parameters:
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]
+    * color
+        RGB of the color of the wall
+    * opacity
+        Decimal percentage of opacity
+
+    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
+    get the bounds as 'axes.axes.bounds'
+        
+    """
+    s, n, w, e, t, b = bounds
+    _wall([s, n, w, e, b, b], color, opacity)
+
+def _wall(bounds, color, opacity):
+    """
+    Generate a 3D wall in Mayavi
+    """
+    p = mlab.pipeline.builtin_surface()
+    p.source = 'outline'
+    p.data_source.bounds = bounds
+    p.data_source.generate_faces = 1
+    su = mlab.pipeline.surface(p)
+    su.actor.property.color = color
+    su.actor.property.opacity = opacity
+
+
+    
 #
 #
 #def plot_square_mesh(mesh, cmap=pyplot.cm.jet, vmin=None, vmax=None):

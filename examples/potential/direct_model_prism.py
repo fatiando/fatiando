@@ -29,6 +29,10 @@ pyplot.show()
 
 # Avoid importing mlab twice since it's very slow
 vis.mlab = mlab
-p = vis.prisms3D(prisms, extract('density', prisms))
-mlab.outline(p, color=(1,1,1))
+mlab.figure(bgcolor=(1,1,1))
+plot = vis.prisms3D(prisms, extract('density', prisms))
+mlab.outline(color=(0,0,0))
+axes = vis.add_axes3d(plot)
+vis.wall_bottom(axes.axes.bounds, opacity=0.2)
+vis.wall_north(axes.axes.bounds)
 mlab.show()

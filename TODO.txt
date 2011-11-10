@@ -3,9 +3,6 @@
     - seismic
     - eqlayer
     - sphere    
-* vis.bbox function to plot a bounding box in mayavi
-* make vis function for default config in mayavi (white back, axes and outline)
-* Make Relief3D and examples match new iterator class of Mesh3D
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)

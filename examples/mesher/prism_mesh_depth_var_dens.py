@@ -22,6 +22,7 @@ def fill(i):
     return k
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
-mlab.figure()
-vis.prisms3D(mesh, mesh.props['density'])
+mlab.figure(bgcolor=(1,1,1))
+plot = vis.prisms3D(mesh, mesh.props['density'])
+axes = vis.add_axes3d(plot)
 mlab.show()
