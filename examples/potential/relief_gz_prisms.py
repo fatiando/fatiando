@@ -21,14 +21,13 @@ log.info("Generating synthetic topography")
 area = (-150, 150, -300, 300)
 shape = (100, 50)
 x, y = gridder.regular(area, shape)
-height = (100 +
-          80*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
-          100*utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))
+height = (-80*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
+          200*utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))
 
 log.info("Generating the 3D relief")
 nodes = (x, y, -1*height)
 relief = PrismRelief3D(0, gridder.spacing(area,shape), nodes)
-relief.addprop('density', [2670 for i in xrange(relief.size)])
+relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Calculating gz effect")
 gridarea = (-80, 80, -220, 220)

@@ -183,26 +183,18 @@ class PrismRelief3D():
         (x,y,z) where x, y, and z are arrays with the x, y and z coordinates of
         the center of the top face of each prism. x and y should be on a regular
         grid.
-    * props
-        Dictionary with the physical properties of each prism. 
-        Each key should be the name of a physical property. The corresponding
-        value should be a list with the values of that particular property on
-        each prism of the mesh.
-        WARNING:
-        If a point of the relief is bellow the reference level, the physical
-        property of the corresponding prism will be inverted!
 
     """
 
-    def __init__(self, ref, dims, nodes, props={}):
+    def __init__(self, ref, dims, nodes):
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError, "nodes has x,y,z coordinates of different lengths"
-        self.nodes = nodes
+        self.x, self.y, self.z = x, y, z
         self.size = len(x)
         self.ref = ref
-        self.dims = dims
-        self.props = props
+        self.dy, self.dx = dims
+        self.props = {}
         log.info("Generating 3D relief with right rectangular prisms:")
         log.info("  number of prisms = %d" % (self.size))
         log.info("  reference level = %s" % (str(ref)))
@@ -215,44 +207,60 @@ class PrismRelief3D():
         return self.size
 
     def __iter__(self):
-        pass
+        self.i = 0
+        return self
+
+    def __getitem__(self, index):
+        if type(index) is not int:
+            raise TypeError, "index must be an integer"
+        # To walk backwards in the list
+        if index < 0:
+            index = self.size + index
+        xc, yc, zc = self.x[index], self.y[index], self.z[index]
+        x1 = xc - 0.5*self.dx
+        x2 = xc + 0.5*self.dx
+        y1 = yc - 0.5*self.dy
+        y2 = yc + 0.5*self.dy
+        if zc <= self.ref:
+            z1 = zc
+            z2 = self.ref
+        else:            
+            z1 = self.ref
+            z2 = zc
+        props = dict([p, self.props[p][index]] for p in self.props)
+        return Prism3D(x1, x2, y1, y2, z1, z2, props=props)
         
+    def next(self):
+        """
+        Return the next prism in the relief.
+        """
+        if self.i >= self.size:
+            raise StopIteration
+        prism = self.__getitem__(self.i)
+        self.i += 1
+        return prism
 
-def relief2prisms(relief, prop=None):
-    """
-    Converts a Relief3D to a list of Prism3D objects.
-    Returns a generator object that yields one prism at a time.
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the prisms.
 
-    Usage::
+        WARNING: If a the z value of any point in the relief is bellow the
+        reference level, its corresponding prism will have the physical property
+        value with oposite sign than was assigned to it.
 
-        >>> from fatiando.gridder import regular
-        >>> nodes = regular((1, 3, 1, 3), (2,2), -1)
-        >>> relief = Relief3D(0.0, (2,2), nodes)
-        >>> for p in relief2prisms(relief, prop='myprop'):
-        ...     print ','.join(["'%s':%s" % (k,str(p[k])) for k in sorted(p)])
-        'myprop':0,'x1':0.0,'x2':2.0,'y1':0.0,'y2':2.0,'z1':-1.0,'z2':0.0
-        'myprop':0,'x1':2.0,'x2':4.0,'y1':0.0,'y2':2.0,'z1':-1.0,'z2':0.0
-        'myprop':0,'x1':0.0,'x2':2.0,'y1':2.0,'y2':4.0,'z1':-1.0,'z2':0.0
-        'myprop':0,'x1':2.0,'x2':4.0,'y1':2.0,'y2':4.0,'z1':-1.0,'z2':0.0
-
-    *prop* is the name physical property of the prisms that will correspond to
-    the values in mesh. Ex: prop='density'
-    If *prop* is None, prisms will not have properties associated with them.
-    """
-    dy, dx = relief['dims']
-    ref = relief['ref']
-    xc, yc, zc = relief['nodes']
-    for i, coords in enumerate(zip(xc, yc, zc)):
-        x, y, z = coords
-        value = relief['cells'][i]
-        if value is not None:
-            props = {}
-            if prop is not None:
-                props[prop] = value
-            yield Prism3D(x - 0.5*dx, x + 0.5*dx, y - 0.5*dy, y + 0.5*dy, z,
-                          ref, props=props)
-        else:
-            yield None
+        Parameters:
+        * prop
+            Name of the physical property.
+        * values
+            List or array with the value of this physical property in each
+            prism of the mesh.
+            
+        """
+        def correct(v, i):
+            if self.z[i] > self.ref:
+                return -v
+            return v
+        self.props[prop] = [correct(v, i) for i, v in enumerate(values)]
 
 class PrismMesh3D(object):
     """

@@ -30,8 +30,8 @@ pyplot.colorbar()
 log.info("Generating the 3D relief")
 nodes = (x, y, -1*height) # -1 is to convert height to z coordinate
 reference = 0 # z coordinate of the reference surface
-props = {'density':[2670 for i in xrange(len(height))]}
-relief = PrismRelief3D(reference, gridder.spacing(area, shape), nodes, props)
+relief = PrismRelief3D(reference, gridder.spacing(area, shape), nodes)
+relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Plotting")
 vis.prisms3D(relief, relief.props['density'])

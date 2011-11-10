@@ -2,9 +2,7 @@
     - vis
     - seismic
     - eqlayer
-    - sphere
-    - synthetic (get rid of)
-    - io
+    - sphere    
 * vis.bbox function to plot a bounding box in mayavi
 * make vis function for default config in mayavi (white back, axes and outline)
 * Make Relief3D and examples match new iterator class of Mesh3D
@@ -29,6 +27,8 @@
 * Implement McKenzie model
 * Implement gravity tensor invariants
 * Implement grav of sphere
+* Implement Parker
+* Implement spherical harmonis
 * Make vis mayavi function for sphere
 * Make vis mayavi function for tesseroid
 * Implement grav spherical harmonics
