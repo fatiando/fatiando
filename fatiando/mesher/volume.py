@@ -267,7 +267,9 @@ class PrismMesh3D(object):
     Generate a 3D regular mesh of right rectangular prisms.
 
     Prisms are ordered as follows: first layers (z coordinate), then EW rows (y)
-    and finaly x coordinate.
+    and finaly x coordinate (NS).
+
+    Remember that the coordinate system is x->North, y->East and z->Down
 
     Ex: in a mesh with shape (3,3,3) the 15th element (index 14) has z index 1
     (second layer), y index 1 (second row), and x index 2 (third element in the
@@ -286,7 +288,7 @@ class PrismMesh3D(object):
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
-        >>> mesh = PrismMesh3D(0,1,0,2,0,3,(1,2,2))
+        >>> mesh = PrismMesh3D((0,1,0,2,0,3),(1,2,2))
         >>> for p in mesh:
         ...     show(p)
         x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
@@ -303,21 +305,17 @@ class PrismMesh3D(object):
         >>> def show(p):
         ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
         >>> props = {'density':[2670.0, 1000.0]}
-        >>> mesh = PrismMesh3D(0,2,0,4,0,3,(1,1,2),props=props)
+        >>> mesh = PrismMesh3D((0,2,0,4,0,3),(1,1,2),props=props)
         >>> for p in mesh:
         ...     show(p)
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
         density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
 
-    Initialization: (x1, x2, y1, y2, z1, z2, shape, props={})
+    Initialization: (bounds, shape, props={})
 
     Parameters:
-    * x1, x2
-        Lower and upper limits of the volume in the x direction
-    * y1, y2
-        Lower and upper limits of the volume in the y direction
-    * z1, z2
-        Lower and upper limits of the volume in the z direction
+    * bounds
+        [xmin, xmax, ymin, ymax, zmin, zmax]: boundaries of the mesh.
     * shape
         Number of prisms in the x, y, and z directions, ie (nz, ny, nx)
     * props
@@ -328,18 +326,19 @@ class PrismMesh3D(object):
 
     """
 
-    def __init__(self, x1, x2, y1, y2, z1, z2, shape, props={}):
+    def __init__(self, bounds, shape, props={}):
         object.__init__(self)
         log.info("Generating 3D right rectangular prism mesh:")
         nz, ny, nx = shape
         size = int(nx*ny*nz)
+        x1, x2, y1, y2, z1, z2 = bounds
         dx = float(x2 - x1)/nx
         dy = float(y2 - y1)/ny
         dz = float(z2 - z1)/nz
         self.shape = tuple(int(i) for i in shape)
         self.size = size
         self.dims = (dx, dy, dz)
-        self.bounds = (x1, x2, y1, y2, z1, z2)
+        self.bounds = bounds
         self.props = props
         log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
         log.info("  number of prisms = %d" % (size))
