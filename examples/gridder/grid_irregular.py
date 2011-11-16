@@ -14,7 +14,7 @@ x, y = gridder.scatter((-2, 2, -2, 2), n=200)
 z = utils.gaussian2d(x, y, 1, 1)
 
 log.info("Plotting...")
-shape = (100,100)
+shape = (100, 100)
 pyplot.axis('scaled')
 pyplot.title("Irregular grid")
 pyplot.plot(x, y, '.k', label='Grid points')

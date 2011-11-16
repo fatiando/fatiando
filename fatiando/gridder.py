@@ -153,10 +153,10 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     if algorithm != 'nn' and algorithm != 'linear':
         raise ValueError, "Invalid interpolation: %s" % (str(algorithm))
     ny, nx = shape
-    dx = float(x.max() - x.min())/nx
-    dy = float(y.max() - y.min())/ny
-    xs = numpy.arange(x.min(), x.max(), dx, 'f')
-    ys = numpy.arange(y.min(), y.max(), dy, 'f')
+    dx = float(x.max() - x.min())/(nx - 1)
+    dy = float(y.max() - y.min())/(ny - 1)
+    xs = numpy.arange(x.min(), x.max() + dx, dx, 'f')
+    ys = numpy.arange(y.min(), y.max() + dy, dy, 'f')
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
