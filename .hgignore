@@ -4,6 +4,7 @@ syntax: glob
 *.pyc
 *.so
 doc/userguide/_build
+_*module.c
 build
 dist
 MANIFEST
