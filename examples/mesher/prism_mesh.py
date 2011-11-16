@@ -12,7 +12,7 @@ log = logger.get()
 log.info(logger.header())
 log.info("Example of generating a 3D prism mesh")
 
-mesh = mesher.volume.PrismMesh3D(-2, 2, -3, 3, 0, 1, (4,4,4))
+mesh = mesher.volume.PrismMesh3D((-2, 2, -3, 3, 0, 1), (4,4,4))
 
 mlab.figure(bgcolor=(1,1,1))
 plot = vis.prisms3D(mesh, [0 for i in xrange(mesh.size)])

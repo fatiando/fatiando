@@ -18,6 +18,7 @@ log.info("Example of generating a 3D prism mesh with topography")
 
 x1, x2 = -100, 100
 y1, y2 = -200, 200
+bounds = (x1, x2, y1, y2, -200, 0)
 
 log.info("Generating synthetic topography")
 x, y = gridder.regular((x1, x2, y1, y2), (50,50))
@@ -33,13 +34,13 @@ pyplot.colorbar()
 pyplot.show()
 
 log.info("Generating the prism mesh")
-mesh = PrismMesh3D(x1, x2, y1, y2, -200, 0, (20,40,20))
+mesh = PrismMesh3D(bounds, (20,40,20))
 mesh.carvetopo(x, y, height)
 
 log.info("Plotting")
 mlab.figure(bgcolor=(1,1,1))
 vis.prisms3D(mesh, (0 for i in xrange(mesh.size)))
-outline = mlab.outline(color=(0,0,0), extent=mesh.bounds)
+outline = mlab.outline(color=(0,0,0), extent=bounds)
 vis.add_axes3d(outline)
-vis.wall_north(mesh.bounds)
+vis.wall_north(bounds)
 mlab.show()
