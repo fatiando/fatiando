@@ -15,104 +15,51 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Build extention modules and package Fatiando for release.
+Build extention modules, package and install Fatiando.
+Uses the numpy's extension of distutils to build the f2py extension modules
 """
-
-import os
-
-from numpy.distutils.extension import Extension
-from numpy.distutils.core import setup
+from os.path import join
+from numpy.distutils.core import setup, Extension
 
 import fatiando
 
+# Base paths for extention modules
+potdir = join('src', 'potential')
 
-# Define the paths
-c_dir = os.path.join('src', 'c')
-wrap_dir = os.path.join('src', 'wrap')
-f_dir = os.path.join('src', 'fortran')
+potential_prism = Extension('fatiando.potential._prism',
+                            sources=[join(potdir, 'prism.c'),
+                                     join(potdir, 'prism.pyf')])
+potential_polyprism = Extension('fatiando.potential._polyprism',
+                                sources=[join(potdir, 'polyprism.c'),
+                                         join(potdir, 'polyprism.pyf')])
+potential_transform = Extension('fatiando.potential._transform',
+                                sources=[join(potdir, 'transform.c'),
+                                     join(potdir, 'transform.pyf')])
 
-# Define the extention modules
-heat_diffusionfd = Extension('fatiando.heat._diffusionfd1d',
-                    sources=[os.path.join(f_dir, 'heat_diffusionfd1d.f95')])
+extmods = [potential_prism, potential_polyprism, potential_transform]
 
-grav_prism = Extension('fatiando.grav._prism', 
-                       sources=[os.path.join(c_dir, 'grav_prism.c'),
-                                os.path.join(wrap_dir, 'grav_prism.pyf')])
-
-grav_sphere = Extension('fatiando.grav._sphere',
-                        sources=[os.path.join(c_dir, 'grav_sphere.c'),
-                                 os.path.join(wrap_dir, 'grav_sphere.pyf')])
-                                
-seismo_traveltime = Extension('fatiando.seismo._traveltime', 
-                    sources=[os.path.join(c_dir, 'seismo_traveltime.c'),
-                             os.path.join(wrap_dir, 'seismo_traveltime.pyf')])
-
-ext_mods = [heat_diffusionfd,
-            grav_prism,
-            grav_sphere,
-            seismo_traveltime]
-            
-
-# Define the setup tags
-name = 'fatiando'
-fullname = 'Fatiando a Terra'
-description = "Geophysical direct and inverse modeling"
-long_description = \
-"""
-Fatiando a Terra is a software package containing various kinds of geophysical
-modeling utilities for both direct and inverse problems. It serves as a sandbox
-for rapidly prototyping of modeling ideas and algorithms. We hope that one day 
-it will serve as a teaching tool for inverse problems in geophysics. 
-
-Fatiando is being developed by a group of geophysics graduates and 
-undergraduates from the Universidade de Sao Paulo and the Observatorio Nacional 
-in Brazil.
-"""
-version = fatiando.__version__
-author = "Leonardo Uieda, "
-author_email = 'leouieda at gmail.com'
-license = 'GNU LGPL'
-url = 'http://code.google.com/p/fatiando/'
-platforms = "Any"
-scripts = []
-py_modules = []
 packages = ['fatiando',
-            'fatiando.grav',
-            'fatiando.grav.tests',
-            'fatiando.heat',
-            'fatiando.heat.tests',
-            'fatiando.inv',
-            'fatiando.inv.tests',
-            'fatiando.seismo',
-            'fatiando.seismo.tests',
+            'fatiando.potential',
+            'fatiando.seismic',
+            'fatiando.inversion',
             'fatiando.tests']
-ext_modules = ext_mods
-data_files = []
 
-# Write the changeset information to file fatiando/csinfo.py
-pipe = os.popen('hg parents')
-csinfo = pipe.readlines()
-csfile = open(os.path.join('fatiando', 'csinfo.py'), 'w')
-csfile.write("csinfo = ")
-csfile.write(str(csinfo[:-2]))
-csfile.close()
-
+with open("README.txt") as f:
+    long_description = f.readlines()
 
 if __name__ == '__main__':
 
-    setup(name=name,
-          fullname=fullname,
-          description=description,
+    setup(name='fatiando',
+          fullname="Fatiando a Terra",
+          description="Geophysical direct and inverse modeling",
           long_description=long_description,
-          version=version,
-          author=author,
-          author_email=author_email,
-          license=license,
-          url=url,
-          platforms=platforms,
-          scripts=scripts,
-          py_modules=py_modules,
+          version=fatiando.__version__,
+          author="Leonardo Uieda",
+          author_email='leouieda at gmail.com',
+          license='GNU LGPL',
+          url="www.fatiando.org",
+          platforms="Linux",
+          scripts=[],
           packages=packages,
-          ext_modules=ext_modules,
-          data_files=data_files
+          ext_modules=extmods
          )

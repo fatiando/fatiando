@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test suite for the fatiando package.
+Meshing utilities. Generate and operate on varios kinds of meshes.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 29-Mar-2010'
+__date__ = 'Created 15-Sep-2011'
+
+
+from fatiando.mesher import volume

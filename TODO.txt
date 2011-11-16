@@ -1,0 +1,37 @@
+* Packages to fix:
+    - vis
+    - seismic
+    - eqlayer
+    - sphere    
+* Deduce analytical upward continuation for tensor (blakely 168)
+* Replace all module loggers with logger.dummy
+* Make a fat script that interfaces with all fatiando.modules (like hg or pip)
+* Two types of grid loading: load and stream
+* make export to VTK method in mesh that is independent of tvtk module
+* Convert string VTK file to tvtk structure for plotting with vis mod
+* Make a fatiando.modules package that automatically loads all modules as subcommands
+* Try to make only numpy a requirement (optional mpl and mayavi if doing scripting)
+* Write README
+* Write docs for the inverse problem theory
+* Make the examples into the cookbook
+* Make tutorial for implementing new inversion
+* Automatic reference generation form fatiando scripts
+* Implement sparsity regularization
+* Use the data covariance matrix
+* Implement the Chi squared test for a population
+* Implement the test for outliers in a population
+* Implement VBA model for oceanic lithosphere
+* Implement McKenzie model
+* Implement gravity tensor invariants
+* Implement grav of sphere
+* Implement Parker
+* Implement spherical harmonis
+* Make vis mayavi function for sphere
+* Make vis mayavi function for tesseroid
+* Implement grav spherical harmonics
+* Implement grav reductions
+* Implement grav terrain correction
+* Put all constants used into a constants.py module and pass them to the C functions
+* Normalize inversion terms in solvers so that reg params are equivalent to decimal percentages
+* Make all synthetic functions receive a grid object
+* Integrate Radial3D inversion with fatiando

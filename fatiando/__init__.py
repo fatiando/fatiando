@@ -15,112 +15,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling package. 
-
-Includes various direct models, inversion programs,and various utilities for 
-general geophysics tasks.
-
-Subpackages:
-
-* :mod:`fatiando.grav`
-    Gravimetry, geodesy and gravity gradiometry
-    
-* :mod:`fatiando.heat` 
-    Geothermology modeling
-    
-* :mod:`fatiando.inv`
-    A collection of geophysical inverse problem solvers.
-    
-* :mod:`fatiando.seismo`
-    Seismology and seismic methods
-        
-Modules:
-
-* :mod:`fatiando.csinfo`
-    Information about the current changeset
-
-* :mod:`fatiando.geometry`
-    Create and operate on data types representing geometric elements
-
-* :mod:`fatiando.grid`
-    Create and operate on data types representing grids and profiles
-
-* :mod:`fatiando.mesh`
-    Mesh generation
-    
-* :mod:`fatiando.stats`
-    Statistical tests and utilities for inverse problems
-    
-* :mod:`fatiando.utils`
-    Miscellaneous utilities
-
-* :mod:`fatiando.vis`
-    Visualization of results in 2D and 3D
-        
-Functions:
-
-* :func:`fatiando.test`
-    Run the unit test suite for this package
-        
+Geophysical direct and inverse modeling.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
-
-
+__date__ = '02-Apr-2010'
 __version__ = '0.0.1'
-
-
-
-# Create a default NullHandler so that logging is only enabled explicitly
-################################################################################ 
-import logging
-
-class NullHandler(logging.Handler):
-    """
-    Default null handler so that logging is only done when explicitly asked for.
-    """
-    
-    def emit(self, record):
-        
-        pass
-
-default_log_handler = NullHandler()
-################################################################################
-
-
-def test(label='fast', verbose=True):
-    """
-    Runs the unit tests for the fatiando package.
-
-    Parameters:
-
-    * label
-        Can be either ``'fast'`` for a smaller and faster test or ``'full'`` for
-        the full test suite
-
-    * verbose
-        Controls if the whole test information is printed or just the final 
-        results
-        
-    """
-    
-    if label != 'fast' and label != 'full':
-        
-        from exceptions import ValueError
-        
-        raise ValueError("Test label must be either 'fast' or 'full'")
-
-    import unittest
-
-    import fatiando.tests
-
-    suite = unittest.TestSuite()
-    
-    suite.addTest(fatiando.tests.suite(label))
-
-    if verbose:
-        runner = unittest.TextTestRunner(verbosity=2)
-    else:
-        runner = unittest.TextTestRunner(verbosity=0)
-
-    runner.run(suite)
+__all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
+           'utils', 'logger']
+from fatiando.changeset import __changeset__

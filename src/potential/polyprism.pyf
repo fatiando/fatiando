@@ -1,0 +1,17 @@
+! f2py wrapper for extention module fatiando.potential._polyprism
+python module _polyprism
+interface
+
+  subroutine polyprism_gz(dens, z1, z2, x, y, nvertices, xp, yp, zp, n, res)
+    intent(c) polyprism_gz
+    intent(c)
+    double precision intent(in) :: dens, z1, z2
+    double precision intent(in), dimension(nvertices) :: x, y
+    double precision intent(in), dimension(n) :: xp, yp, zp
+    double precision intent(out), dimension(n) :: res
+    integer intent(hide), depend(xp) :: n=len(xp)
+    integer intent(hide), depend(x) :: nvertices=len(x)
+  end subroutine polyprism_gz
+
+end interface
+end python module _polyprism
