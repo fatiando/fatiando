@@ -213,7 +213,8 @@ def polyprism_contours(prisms, colors=None, labels=None):
         lines.append(line)
     return lines
 
-def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
+def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
+             vmin=None, vmax=None):
     """
     Plot a 3D right rectangular prisms using Mayavi2.
 
@@ -234,6 +235,9 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
     * edges
         Wether or not to display the edges of the prisms in black lines. Will
         ignore this is style='wireframe'
+    * vmin, vmax
+        Min and max values for the color scale of the scalars. If *None* will
+        default to min(scalars) or max(scalars).
         
     Returns:
     * surface: the last element on the pipeline
@@ -269,7 +273,7 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
     # To mark what index in the points the cell starts
     start = 0
     for prism, scalar in zip(prisms, scalars):
-        if prism is None:
+        if prism is None or scalar is None:
             continue
         x1, x2 = prism['x1'], prism['x2']
         y1, y2 = prism['y1'], prism['y2']
@@ -292,7 +296,11 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
     vtkmesh.cell_data.scalars.name = label
     dataset = mlab.pipeline.add_dataset(vtkmesh)
     thresh = mlab.pipeline.threshold(dataset)
-    surf = mlab.pipeline.surface(thresh, vmax=max(celldata), vmin=min(celldata))
+    if vmin is None:
+        vmin = min(celldata)
+    if vmax is None:
+        vmax = max(celldata)
+    surf = mlab.pipeline.surface(thresh, vmax=vmax, vmin=vmin)
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':

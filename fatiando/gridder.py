@@ -79,6 +79,7 @@ def regular(area, shape, z=None):
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
     log.info("  shape = (ny, nx) = %s" % (str(shape)))
     log.info("  spacing = (dy, dx) = %s" % (str((dy, dx))))
+    log.info("  points = nx*ny = %d" % (nx*ny))
     x_range = numpy.arange(x1, x2, dx)
     y_range = numpy.arange(y1, y2, dy)
     # Need to make sure that the number of points in the grid is correct because
