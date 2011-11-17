@@ -3,7 +3,6 @@
     - seismic
     - eqlayer
     - sphere
-* Add vmin and vmax arguments to vis.prisms3D
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)

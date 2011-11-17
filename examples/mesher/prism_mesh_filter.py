@@ -30,7 +30,8 @@ even = vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
 mlab.figure(bgcolor=(1,1,1))
-vis.prisms3D(odd, extract('density', odd))
-plot = vis.prisms3D(even, extract('density', even), style='wireframe')
+vis.prisms3D(odd, extract('density', odd), vmin=-1, vmax=1)
+plot = vis.prisms3D(even, extract('density', even), style='wireframe', vmin=-1,
+                    vmax=1)
 vis.add_axes3d(plot, extent=bounds)
 mlab.show()
