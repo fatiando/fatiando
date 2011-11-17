@@ -53,10 +53,9 @@ def gz(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gz(float(prism['density']), float(prism['x1']),
-                                   float(prism['x2']), float(prism['y1']),
-                                   float(prism['y2']), float(prism['z1']),
-                                   float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gz(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gxx(xp, yp, zp, prisms):
@@ -84,10 +83,9 @@ def gxx(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gxx(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gxx(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gxy(xp, yp, zp, prisms):
@@ -115,10 +113,9 @@ def gxy(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gxy(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gxy(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gxz(xp, yp, zp, prisms):
@@ -146,10 +143,9 @@ def gxz(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gxz(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gxz(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gyy(xp, yp, zp, prisms):
@@ -177,10 +173,9 @@ def gyy(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gyy(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gyy(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gyz(xp, yp, zp, prisms):
@@ -208,10 +203,9 @@ def gyz(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gyz(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gyz(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res
 
 def gzz(xp, yp, zp, prisms):
@@ -239,8 +233,7 @@ def gzz(xp, yp, zp, prisms):
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None:
-            res += _prism.prism_gzz(float(prism['density']), float(prism['x1']),
-                                    float(prism['x2']), float(prism['y1']),
-                                    float(prism['y2']), float(prism['z1']),
-                                    float(prism['z2']), xp, yp, zp)
+            res += _prism.prism_gzz(float(prism['density']), prism['x1'],
+                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
+                xp, yp, zp)
     return res

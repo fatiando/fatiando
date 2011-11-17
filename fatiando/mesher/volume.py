@@ -151,7 +151,8 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
         Dictionary describing the prism
 
     """
-    prism = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2, 'z1':z1, 'z2':z2}
+    prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
+             'z1':float(z1), 'z2':float(z2)}
     for prop in props:
         prism[prop] = props[prop]
     return prism
@@ -340,6 +341,7 @@ class PrismMesh3D(object):
         self.dims = (dx, dy, dz)
         self.bounds = bounds
         self.props = props
+        log.info("  bounds = (x1, x2, y1, y2, z1, z2) = %s" % (str(bounds)))
         log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
         log.info("  number of prisms = %d" % (size))
         log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))

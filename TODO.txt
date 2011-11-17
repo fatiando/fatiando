@@ -4,9 +4,6 @@
     - eqlayer
     - sphere
 * Add vmin and vmax arguments to vis.prisms3D
-* Move all float conversions from potential.prism to Prism3D
-* Make gridder print number of points
-* Make PrismMesh3D print bounds
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
