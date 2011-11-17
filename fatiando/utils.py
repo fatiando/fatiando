@@ -28,6 +28,70 @@ from fatiando import logger
 
 log = logger.dummy()
 
+  
+class SparseList(object):
+    """
+    Store only non-zero elements on an immutable list.
+
+    Can iterate over and access elements just like if it were a list.
+
+    Parameters:
+    * size
+        Size of the list.
+
+    Example::
+
+        >>> l = SparseList(5)
+        >>> l[3] = 42.0
+        >>> print len(l)
+        5
+        >>> print l[1], l[3]
+        0.0 42.0
+        >>> for i in l:
+        ...     print i
+        0.0
+        0.0
+        0.0
+        42.0
+        0.0
+        
+    """
+
+    def __init__(self, size):
+        self.size = size
+        self.i = 0
+        self.elements = {}
+
+    def __str__(self):
+        return str(self.elements)
+
+    def __len__(self):
+        return self.size
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def __getitem__(self, index):
+        if index < 0:
+            index = self.size + index
+        if index >= self.size or index < 0:
+            raise IndexError('index out of range')
+        if index not in self.elements:
+            return 0.0
+        return self.elements[index]
+
+    def __setitem__(self, key, value):
+        if key >= self.size:
+            raise IndexError('index out of range')
+        self.elements[key] = value
+        
+    def next(self):
+        if self.i == self.size:
+            raise StopIteration()
+        res = self.__getitem__(self.i)
+        self.i += 1
+        return res
 
 def contaminate(data, stddev, percent=False, return_stddev=False):
     """
@@ -135,3 +199,11 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     xhat = x - x0
     yhat = y - y0
     return numpy.exp(-(a*xhat**2 + 2.*b*xhat*yhat + c*yhat**2))
+
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()
