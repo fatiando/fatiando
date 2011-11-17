@@ -269,7 +269,7 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True):
     # To mark what index in the points the cell starts
     start = 0
     for prism, scalar in zip(prisms, scalars):
-        if prism is None:
+        if prism is None or scalar is None:
             continue
         x1, x2 = prism['x1'], prism['x2']
         y1, y2 = prism['y1'], prism['y2']
