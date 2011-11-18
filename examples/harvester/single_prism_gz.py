@@ -20,7 +20,7 @@ extent = (0, 10000, 0, 10000, 0, 6000)
 model = [Prism3D(4000, 6000, 2000, 8000, 2000, 4000, props={'density':800})]
 
 mlab.figure(bgcolor=(1,1,1))
-vis.prisms3D(model, extract('density', model))
+vis.prisms3D(model, extract('density', model), vmin=0)
 outline = mlab.outline(color=(0,0,0), extent=extent)
 vis.add_axes3d(outline)
 vis.wall_bottom(extent)
@@ -49,7 +49,7 @@ log.info("\nThird make a prism mesh:")
 mesh = PrismMesh3D(extent, (30, 50, 50))
 
 mlab.figure(bgcolor=(1,1,1))
-vis.prisms3D(mesh, (0 for i in xrange(mesh.size)))
+vis.prisms3D(mesh, (0 for i in xrange(mesh.size)), vmin=0)
 outline = mlab.outline(color=(0,0,0), extent=extent)
 vis.add_axes3d(outline)
 mlab.show()
@@ -59,8 +59,9 @@ rawseeds = [((5000, 5000, 3000), {'density':800})]
 seeds = harvester.sow(mesh, rawseeds)
 
 mlab.figure(bgcolor=(1,1,1))
-vis.prisms3D(model, extract('density', model), opacity=0.3)
-vis.prisms3D((mesh[s] for s, p in seeds), (p['density'] for s, p in seeds))
+vis.prisms3D(model, extract('density', model), opacity=0.3, vmin=0)
+vis.prisms3D((mesh[s] for s, p in seeds), (p['density'] for s, p in seeds),
+             vmin=0)
 outline = mlab.outline(color=(0,0,0), extent=extent)
 vis.add_axes3d(outline)
 vis.wall_bottom(extent)
@@ -86,7 +87,7 @@ pyplot.show()
 
 mlab.figure(bgcolor=(1,1,1))
 vis.prisms3D(model, extract('density', model), style='wireframe')
-vis.prisms3D(density_model, extract('density', density_model))
+vis.prisms3D(density_model, extract('density', density_model), vmin=0)
 outline = mlab.outline(color=(0,0,0), extent=extent)
 vis.add_axes3d(outline)
 vis.wall_bottom(extent)

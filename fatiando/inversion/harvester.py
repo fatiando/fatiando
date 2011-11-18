@@ -20,11 +20,13 @@
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 17-Nov-2010'
 
+import time
 
 import numpy
 
-from fatiando import potential
+from fatiando import potential, utils, logger
 
+log = logger.dummy()
 
 class DataModule(object):
     """
@@ -79,7 +81,7 @@ class DataModule(object):
             Array with the residuals
             
         """
-        raise NotImplementedError("Method 'residuals' was not implemented")
+        raise NotImplementedError("'residuals' was not implemented")
 
     def cleanup(self, neighbor):
         """
@@ -156,7 +158,7 @@ class PotentialModule(DataModule):
             c = mesh[n]
             self.effect[n] = self.calc_effect(prop, c['x1'], c['x2'], c['y1'],
                 c['y2'], c['z1'], c['z2'], self.x, self.y, self.z)  
-        return self.res - self.effect[n]
+        return self.res - self.effect[n]    
         
     def cleanup(self, neighbor):
         """
@@ -278,18 +280,86 @@ def sow(mesh, rawseeds):
         raise ValueError, ' '.join([msg1, msg2])    
     return seeds
 
+def find_neighbors(neighbor, mesh, full=False):
+    """
+    Return all neighbors of neighbor, even if marked already.
+    """
+    return []
+
+def free(estimate, neighbors):
+    """
+    Remove neighbors that are marked from the list.
+    """
+    return []
+
+def compact(estimate, mesh, neighbors):
+    """
+    Remove neighbors that don't satisfy the compactness criterion.
+    """
+    return []
+
+    
+    
 def grow(seeds, mesh, dmods, compact=0, thresh=0.0001):
     """
     Yield one accretion at a time
     """
-    pass
+    # Define the goal and regularizing functions    
+    def regularizer(est, mesh, n, mu=compact, seeds=seeds):
+        pass
+    def goalfunc(est, mesh=mesh, dmods=dmods, n):
+        """
+        Calculate the goal function for the estimate including the neighbor.
+        """
+        mft = sum(dm.misfit(dm.residuals(mesh, estimate, neighbor)) for dm in dmods)
+    
+    # Initialize the estimate with SparseLists
+    estimate = {}
+    for s, props in seeds:
+        for p in props:
+            if p not in estimate:
+                estimate[p] = utils.SparseList(mesh.size)
+    # Include the seeds in the estimate
+    goal = 0
+    for seed in seeds:
+        goal = 0
+        for dm in dmods:
+            goal += dm.misfit(dm.residuals(mesh, estimate, seed))
+            dm.cleanup(seed)
+        s, props = seed
+        for p in props:
+            estimate[p][s] = props[p]
+    # Find the neighboring prisms of the seeds
+    neighbors = []
+    for seed in seeds:
+        neighbors.extend(find_neighbors(seed, mesh, full=True))
+    neighbors = free(estimate, neighbors)
+    # Spit out a changeset
+    yield {'estimate':estimate, 'neighbors':neighbors, 'goal':goal,
+           'dmods':dmods}
+    # Perform the accretions until goal changes are bellow thresh. The maximum
+    # number of accretions is the whole mesh minus seeds.
+    for iteration in xrange(mesh.size - len(seeds)):
+        
+        goals = [goalfunc(estimate, n) for n in neighbors]
+        bestgoal = 
+                
+        
 
 def harvest(seeds, mesh, dmods, compact=0, thresh=0.0001):
     """
     Perform all accretions. Return mesh with special props in it.
     special props don't store 0s, return 0 if try to access element not in dict
     """
-    
-    return estimate
+    tstart = time.clock()
+    for i, changeset in enumerate(grow(seeds, mesh, dmods, compact, thresh)):
+        continue
+    tfinish = time.clock() - tstart
+    #log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
+    log.info("Total time for inversion: %s" % (str(tfinish)))
+    log.info("Total number of accretions: %d" % (i + 1))
+    #log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i + 1)))
+    log.info("Final goal function value: %g" % (changeset['goal']))
+    return changeset['estimate']  
 
 
