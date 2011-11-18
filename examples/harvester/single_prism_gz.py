@@ -71,20 +71,22 @@ seeds = harvester.sow(mesh, rawseeds)
     
 log.info("\nFith harvest the results:")
 gzmod = harvester.GzModule(x, y, z, gz)
-reg = harvester.ConcentrationRegularizer(10**(-4), seeds, mesh)
+reg = harvester.ConcentrationRegularizer(seeds, mesh, 10**(-2), 1.)
 def meh(i,j,k):
     return True
 #harvester.is_eligible = meh
 
-result = harvester.harvest(seeds, mesh, [gzmod], reg, tol=0.01)
+result, goals = harvester.harvest(seeds, mesh, [gzmod], reg, tol=0.01)
 estimate = result['estimate']
 for prop in estimate:
     mesh.addprop(prop, estimate[prop])
 density_model = vfilter(1, 2000, 'density', mesh)
 
 #import numpy
-#for chset in harvester.grow(seeds, mesh, [gzmod], reg, tol=0.1):    
+#goals = []
+#for chset in harvester.grow(seeds, mesh, [gzmod], reg, tol=0.1, thresh=10**(-5)):    
     #estimate = chset['estimate']
+    #goals.append(chset['goal'])
     #for prop in estimate:
         #mesh.addprop(prop, estimate[prop])
     #density_model = vfilter(1, 2000, 'density', mesh)
@@ -97,7 +99,7 @@ density_model = vfilter(1, 2000, 'density', mesh)
     #mlab.show()
 
 pyplot.figure()
-pyplot.subplot(2,1,1)
+pyplot.subplot(2,2,1)
 pyplot.title("Adjustment")
 pyplot.axis('scaled')
 levels = vis.contourf(y, x, gz, shape, 12)
@@ -105,13 +107,16 @@ pyplot.colorbar()
 vis.contour(y, x, gzmod.predicted(), shape, 12)
 pyplot.xlabel('East (km)')
 pyplot.ylabel('North (km)')
-pyplot.subplot(2,1,2)
+pyplot.subplot(2,2,2)
 pyplot.title("Residuals")
 pyplot.axis('scaled')
 vis.pcolor(y, x, gzmod.res, shape)
 pyplot.colorbar()
 pyplot.xlabel('East (km)')
 pyplot.ylabel('North (km)')
+pyplot.subplot(2,1,2)
+pyplot.title("Goal function X iteration")
+pyplot.plot(goals, '.-k')
 pyplot.show()
 
 mlab.figure(bgcolor=(1,1,1))

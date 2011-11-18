@@ -21,12 +21,14 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 17-Nov-2010'
 
 import time
+import math
 
 import numpy
 
 from fatiando import potential, utils, logger
 
 log = logger.dummy()
+
 
 class DataModule(object):
     """
@@ -239,21 +241,33 @@ class ConcentrationRegularizer(object):
         
     """
 
-    def __init__(self, mu, seeds, mesh):
+    def __init__(self, seeds, mesh, mu=10**(-4), power=3, weight=True):
         self.mu = mu
+        self.power = power
         self.seeds = seeds
         self.mesh = mesh
         self.reg = 0
+        self.dists = {}
         self.weight = 1.
+        if weight:
+            nz, ny, nx = mesh.shape
+            dx, dy, dz = mesh.dims
+            self.weight = 1./(max([nx*dx, ny*dy, nz*dz])**power)
 
-    def __call__(self, estimate, neighbor, s):
+    def calc_dist(self, cell1, cell2):
+        """
+        Calculate the distance between 2 cells
+        """
+        dx = abs(cell1['x1'] - cell2['x1'])
+        dy = abs(cell1['y1'] - cell2['y1'])
+        dz = abs(cell1['z1'] - cell2['z1'])        
+        return math.sqrt(dx**2 + dy**2 + dx**2)
+
+    def __call__(self, neighbor, s):
         """
         Evaluate the regularizer with the neighbor included in the estimate.
 
         Parameters:
-        * estimate
-            The current estimate. Usually a dict with physical properties
-            represented as :class:`fatiando.utils.SparseList`
         * neighbor
             [n, props]
             n is the index of the neighbor in the mesh.
@@ -268,8 +282,20 @@ class ConcentrationRegularizer(object):
             regularizing parameter mu
             
         """
-        return 0
-        
+        n = neighbor[0]
+        if n not in self.dists:
+            self.dists[n] = self.calc_dist(self.mesh[n],
+                                           self.mesh[self.seeds[s][0]])
+        return self.reg + self.weight*self.mu*(self.dists[n]**self.power)
+
+    def cleanup(self, neighbor):
+        """
+        Clean up things after adding the neighbor to the estimate.
+        """
+        n = neighbor[0]
+        self.reg += self.weight*self.mu*(self.dists[n]**self.power)
+        del self.dists[n]
+                
 def loadseeds(fname, prop):
     """
     Load a set of seed locations and physical properties from a file.
@@ -523,7 +549,7 @@ def choose_best(s, neighbors, goalfunc, goal, mesh, estimate, dmods, thresh,
     # Need the index i to know what neighbor we're talking about
     eligible = [(i, r) for i, r in enumerate(res) if is_eligible(r, tol, dmods)]
     # Calculate the goal functions
-    goals = [(i, goalfunc(estimate, r, neighbors[i], s)) for i, r in eligible]
+    goals = [(i, goalfunc(r, neighbors[i], s)) for i, r in eligible]
     # Keep only the ones that decrease the goal function
     decreased = [(i, g) for i, g in goals
                  if g < goal and abs(g - goal)/goal >= thresh]
@@ -542,11 +568,11 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
     def misfit(residuals, dmods=dmods):
         return sum(dm.misfit(res) for dm, res in zip(dmods, residuals))
     if regularizer is None:  
-        def goalfunc(estimate, residuals, neighbor, s, mesh=mesh):
+        def goalfunc(residuals, neighbor, s, mesh=mesh):
             return misfit(residuals)
     else:
-        def goalfunc(estimate, residuals, neighbor, s, mesh=mesh):
-            return misfit(residuals) + regularizer(estimate, neighbor, s)    
+        def goalfunc(residuals, neighbor, s, mesh=mesh):
+            return misfit(residuals) + regularizer(neighbor, s)    
     # Initialize the estimate with SparseLists
     estimate = {}
     for s, props in seeds:
@@ -577,8 +603,8 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
     for iteration in xrange(mesh.size - len(seeds)):
         onegrew = False
         for s, neighbors in enumerate(neighborhood):
-            chosen = choose_best(seed, neighbors, goalfunc, goal, mesh,
-                                 estimate, dmods, thresh, tol)
+            chosen = choose_best(s, neighbors, goalfunc, goal, mesh, estimate,
+                                 dmods, thresh, tol)
             if chosen is not None:                
                 onegrew = True
                 j, goal = chosen
@@ -596,6 +622,8 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
                 # Clean up after adding the neighbor
                 for dm in dmods:
                     dm.cleanup(best)
+                if regularizer is not None:
+                    regularizer.cleanup(best)
                 # Spit out a changeset
                 yield {'estimate':estimate, 'neighborhood':neighborhood,
                        'goal':goal, 'dmods':dmods}
@@ -610,11 +638,10 @@ def harvest(seeds, mesh, dmods, compactness=0, thresh=0.0001, tol=0.01):
     """
     tstart = time.clock()
     grower = grow(seeds, mesh, dmods, compactness, thresh, tol)
-    for i, chset in enumerate(grower):
-        continue
+    goals = [chset['goal'] for i, chset in enumerate(grower)]
     tfinish = time.clock() - tstart
     log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
     log.info("Total number of accretions: %d" % (i))
     if i > 0:
         log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i)))
-    return chset
+    return chset, goals
