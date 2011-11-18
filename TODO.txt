@@ -3,6 +3,7 @@
     - seismic
     - eqlayer
     - sphere
+* HARVESTER: Investigate what happens if there is a tie for lowest goal function
 * Optimize harvester.sow so that it doesn't look through the whole mesh for the seed
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy

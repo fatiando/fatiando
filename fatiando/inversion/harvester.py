@@ -38,11 +38,19 @@ class DataModule(object):
         * 1 -> l1 norm
         * 2 -> l2 norm
         * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
             
     """
 
-    def __init__(self, norm=2):
+    def __init__(self, obs, norm=2, weight=True):
         self.norm = norm
+        self.res = numpy.array(obs)
+        self.obs = obs
+        self.weight = 1.
+        if weight:
+            self.weight = 1./self.misfit(self.res)
 
     def misfit(self, residuals):
         """
@@ -59,7 +67,7 @@ class DataModule(object):
             The data misfit
             
         """
-        return numpy.linalg.norm(residuals, self.norm)
+        return self.weight*numpy.linalg.norm(residuals, self.norm)
 
     def residuals(self, mesh, estimate, neighbor):
         """
@@ -112,16 +120,17 @@ class PotentialModule(DataModule):
         * 1 -> l1 norm
         * 2 -> l2 norm
         * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2):
-        DataModule.__init__(self, norm)
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, obs, norm, weight)
         self.x = x
         self.y = y
         self.z = z
-        self.res = numpy.array(obs)
-        self.obs = obs
         self.effect = {}
 
     def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
@@ -203,13 +212,63 @@ class GzModule(PotentialModule):
         * 1 -> l1 norm
         * 2 -> l2 norm
         * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2):
-        PotentialModule.__init__(self, x, y, z, obs, norm)
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        PotentialModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
+
+class ConcentrationRegularizer(object):
+    """
+    The mass concentration regularizer.
+    Use it to force the estimated bodies to concentrate around the seeds.
+
+    Parameters:
+    * mu
+        The regularing parameter. Controls the tradeoff between fitting the data
+        and regularization.
+    * seeds
+        List of seeds as output by :func:`fatiando.inversion.harvester.sow`
+    * mesh
+        A 3D mesh. See :mod:`fatiando.mesher.volume`       
+        
+    """
+
+    def __init__(self, mu, seeds, mesh):
+        self.mu = mu
+        self.seeds = seeds
+        self.mesh = mesh
+        self.reg = 0
+        self.weight = 1.
+
+    def __call__(self, estimate, neighbor, s):
+        """
+        Evaluate the regularizer with the neighbor included in the estimate.
+
+        Parameters:
+        * estimate
+            The current estimate. Usually a dict with physical properties
+            represented as :class:`fatiando.utils.SparseList`
+        * neighbor
+            [n, props]
+            n is the index of the neighbor in the mesh.
+            props is a dictionary with the physical properties of the neighbor
+        * s
+            Index of the seed which the neighbor is neighboring prism of.
+            Ex: first seed: s=0; second: s=1; etc
+
+        Returns:
+        * float
+            The value of the regularing function already multiplied by the
+            regularizing parameter mu
+            
+        """
+        return 0
         
 def loadseeds(fname, prop):
     """
@@ -280,39 +339,206 @@ def sow(mesh, rawseeds):
         raise ValueError, ' '.join([msg1, msg2])    
     return seeds
 
+def _full_neighbors(allpossible, mesh, props):
+    """
+    Return the diagonal neighbors.
+    """
+    above, bellow, front, back, left, right = allpossible
+    nz, ny, nx = mesh.shape
+    neighbors = []
+    append = neighbors.append
+    if front is not None and left is not None:        
+        append(left + 1)    
+    if front is not None and right is not None:        
+        append(right + 1)
+    if back is not None and left is not None:
+        append(left - 1)
+    if back is not None and right is not None:
+        append(right - 1)
+    if above is not None and left is not None:
+        append(above + nx)
+    if above is not None and right is not None:
+        append(above - nx)
+    if above is not None and front is not None:
+        append(above + 1)
+    if above is not None and back is not None:
+        append(above - 1)
+    if above is not None and front is not None and left is not None:
+        append(above + nx + 1)
+    if above is not None and front is not None and right is not None:
+        append(above - nx + 1)
+    if above is not None and back is not None and left is not None:
+        append(above + nx - 1)
+    if above is not None and back is not None and right is not None:
+        append(above - nx - 1)
+    if bellow is not None and left is not None:
+        append(bellow + nx)
+    if bellow is not None and right is not None:
+        append(bellow - nx)
+    if bellow is not None and front is not None:
+        append(bellow + 1)
+    if bellow is not None and back is not None:
+        append(bellow - 1)
+    if bellow is not None and front is not None and left is not None:
+        append(bellow + nx + 1)
+    if bellow is not None and front is not None and right is not None:
+        append(bellow - nx + 1)
+    if bellow is not None and back is not None and left is not None:
+        append(bellow + nx - 1)
+    if bellow is not None and back is not None and right is not None:
+        append(bellow - nx - 1)
+    return [(i, props) for i in neighbors]
+    
 def find_neighbors(neighbor, mesh, full=False):
     """
-    Return all neighbors of neighbor, even if marked already.
-    """
-    return []
+    Return neighboring prisms of neighbor (that share a face).
 
-def free(estimate, neighbors):
-    """
-    Remove neighbors that are marked from the list.
-    """
-    return []
+    Parameters:
+    * neighbor
+        [n, props]
+        n is the index of the neighbor in the mesh.
+        props is a dictionary with the physical properties of the neighbor
+    * mesh
+        A 3D mesh. See :mod:`fatiando.mesher.volume`
+    * full
+        If True, return also the prisms on the diagonal
 
-def compact(estimate, mesh, neighbors):
+    Returns:
+    * list
+        List with the neighbors (in the same format as parameter *neighbor*)
+    
+    """
+    nz, ny, nx = mesh.shape 
+    n, props = neighbor
+    above, bellow, front, back, left, right = [None]*6
+    # The guy above
+    tmp = n - nx*ny    
+    if tmp > 0:        
+        above = tmp
+    # The guy bellow
+    tmp = n + nx*ny
+    if tmp < mesh.size:
+        bellow = tmp    
+    # The guy in front
+    tmp = n + 1
+    if n%nx < nx - 1:
+        front = tmp
+    # The guy in the back
+    tmp = n - 1
+    if n%nx != 0:
+        back = tmp
+    # The guy to the left
+    tmp = n + nx
+    if n%(nx*ny) < nx*(ny - 1):
+        left = tmp
+    # The guy to the right
+    tmp = n - nx
+    if n%(nx*ny) >= nx:
+        right = tmp
+    allpossible = [above, bellow, front, back, left, right]
+    neighbors = [(i, props) for i in allpossible if i is not None]
+    if full:
+        neighbors.extend(_full_neighbors(allpossible, mesh, props))
+    return neighbors
+
+def in_estimate(estimate, neighbor):
+    """
+    Check if the neighbor is already set (not 0) in any of the physical
+    properties of the estimate.
+    """
+    n, props = neighbor
+    for p in props:
+        if estimate[p][n] != 0:
+            return True
+    return False    
+   
+def free_neighbors(estimate, neighbors):
+    """
+    Remove neighbors that have their physical properties already set on the
+    estimate.
+    """    
+    return [n for n in neighbors if not in_estimate(estimate, n)]
+
+def in_tha_hood(neighborhood, neighbor):
+    """
+    Check if a neighbor is already in the neighborhood with the same physical
+    properties.
+    """
+    n, props = neighbor
+    for neighbors in neighborhood:
+        for tmp in neighbors:
+            if n == tmp[0]:
+                for p in props:
+                    if p in tmp[1]:
+                        return True
+    return False
+
+def not_neighbors(neighborhood, neighbors):
+    """
+    Remove the neighbors that are already in the neighborhood.
+    """
+    return [n for n in neighbors if not in_tha_hood(neighborhood, n)]
+
+def compact_neighbors(estimate, mesh, neighbors):
     """
     Remove neighbors that don't satisfy the compactness criterion.
     """
-    return []
+    return neighbors
 
-    
-    
-def grow(seeds, mesh, dmods, compact=0, thresh=0.0001):
+def is_eligible(residuals, tol, dmods):
+    """
+    Check is a neighbor is eligible for accretion based on the residuals it
+    produces.
+    The criterion is that the predicted data must not be larger than the
+    observed data in absolute value.
+    """
+    for dm, res in zip(dmods, residuals):
+        diff = abs(dm.obs) - abs(dm.obs - res)
+        if True in [abs(d) >= tol for d in diff if d < 0]:
+            return False
+    return True
+
+def choose_best(s, neighbors, goalfunc, goal, mesh, estimate, dmods, thresh,
+                tol):
+    """
+    Find which of the neighbors is the best one for the accretion.
+
+    Returns:
+    * [j, goal]
+        j is the index in the neighbor list of the best. goal is the goal
+        function value resulting from adding the best to the estimate.
+        
+    """
+    # Calculate the residuals of all data modules for each neighbor
+    res = [[dm.residuals(mesh, estimate, n) for dm in dmods] for n in neighbors]
+    # Choose the ones that are eligible for accretion based on their residuals
+    # Need the index i to know what neighbor we're talking about
+    eligible = [(i, r) for i, r in enumerate(res) if is_eligible(r, tol, dmods)]
+    # Calculate the goal functions
+    goals = [(i, goalfunc(estimate, r, neighbors[i], s)) for i, r in eligible]
+    # Keep only the ones that decrease the goal function
+    decreased = [(i, g) for i, g in goals
+                 if g < goal and abs(g - goal)/goal >= thresh]
+    if decreased:
+        #TODO: what if there is a tie?
+        # Choose the best neighbor (decreases the goal function most)
+        j, goal = decreased[numpy.argmin([g for i, g in decreased])]
+        return j, goal
+    return None
+
+def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
     """
     Yield one accretion at a time
     """
-    # Define the goal and regularizing functions    
-    def regularizer(est, mesh, n, mu=compact, seeds=seeds):
-        pass
-    def goalfunc(est, mesh=mesh, dmods=dmods, n):
-        """
-        Calculate the goal function for the estimate including the neighbor.
-        """
-        mft = sum(dm.misfit(dm.residuals(mesh, estimate, neighbor)) for dm in dmods)
-    
+    # Define the goal function
+    def misfit(residuals, dmods=dmods):
+        return sum(dm.misfit(res) for dm, res in zip(dmods, residuals))
+    if regularizer is None:  
+        def goalfunc(estimate, residuals, neighbor, s, mesh=mesh):
+            return misfit(residuals)
+    else:
+        def goalfunc(estimate, residuals, neighbor, s, mesh=mesh):
+            return misfit(residuals) + regularizer(estimate, neighbor, s)    
     # Initialize the estimate with SparseLists
     estimate = {}
     for s, props in seeds:
@@ -330,36 +556,57 @@ def grow(seeds, mesh, dmods, compact=0, thresh=0.0001):
         for p in props:
             estimate[p][s] = props[p]
     # Find the neighboring prisms of the seeds
-    neighbors = []
-    for seed in seeds:
-        neighbors.extend(find_neighbors(seed, mesh, full=True))
-    neighbors = free(estimate, neighbors)
+    neighborhood = []
+    for s in seeds:
+        neighborhood.append(not_neighbors(neighborhood,
+                                free_neighbors(estimate,
+                                    find_neighbors(s, mesh, full=True))))
     # Spit out a changeset
-    yield {'estimate':estimate, 'neighbors':neighbors, 'goal':goal,
+    yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
            'dmods':dmods}
-    # Perform the accretions until goal changes are bellow thresh. The maximum
-    # number of accretions is the whole mesh minus seeds.
+    # Perform the accretions. The maximum number of accretions is the whole mesh
+    # minus seeds. The goal function starts with the total misfit of the seeds.
     for iteration in xrange(mesh.size - len(seeds)):
-        
-        goals = [goalfunc(estimate, n) for n in neighbors]
-        bestgoal = 
-                
-        
+        onegrew = False
+        for s, neighbors in enumerate(neighborhood):
+            chosen = choose_best(seed, neighbors, goalfunc, goal, mesh,
+                                 estimate, dmods, thresh, tol)
+            if chosen is not None:                
+                onegrew = True
+                j, goal = chosen
+                best = neighbors[j]
+                nbest, pbest = best
+                # Add it to the estimate
+                for p in pbest:
+                    estimate[p][nbest] = pbest[p]                
+                # Find its neighbors and append them
+                neighbors.pop(j)
+                neighbors.extend(compact_neighbors(estimate, mesh,
+                                    not_neighbors(neighborhood,
+                                        free_neighbors(estimate, 
+                                            find_neighbors(best, mesh)))))
+                # Clean up after adding the neighbor
+                for dm in dmods:
+                    dm.cleanup(best)
+                # Spit out a changeset
+                yield {'estimate':estimate, 'neighborhood':neighborhood,
+                       'goal':goal, 'dmods':dmods}
+        if not onegrew:
+            break
+    log.info("Final goal function value: %g" % (goal))    
 
-def harvest(seeds, mesh, dmods, compact=0, thresh=0.0001):
+def harvest(seeds, mesh, dmods, compactness=0, thresh=0.0001, tol=0.01):
     """
     Perform all accretions. Return mesh with special props in it.
     special props don't store 0s, return 0 if try to access element not in dict
     """
     tstart = time.clock()
-    for i, changeset in enumerate(grow(seeds, mesh, dmods, compact, thresh)):
+    grower = grow(seeds, mesh, dmods, compactness, thresh, tol)
+    for i, chset in enumerate(grower):
         continue
     tfinish = time.clock() - tstart
     #log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
     log.info("Total time for inversion: %s" % (str(tfinish)))
-    log.info("Total number of accretions: %d" % (i + 1))
-    #log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i + 1)))
-    log.info("Final goal function value: %g" % (changeset['goal']))
-    return changeset['estimate']  
-
-
+    log.info("Total number of accretions: %d" % (i))
+    #log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i)))
+    return chset['estimate']
