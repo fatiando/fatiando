@@ -93,6 +93,31 @@ class SparseList(object):
         self.i += 1
         return res
 
+def sec2hms(seconds):
+    """
+    Convert seconds into a string with hours, minutes and seconds.
+
+    Parameters:
+    * seconds
+        Time in seconds
+
+    Returns:
+    * string
+        String in the format '%dh %dm %2.5fs'
+
+    Example::
+    
+        >>> print sec2hms(62.2)
+        0h 1m 2.20000s
+        >>> print sec2hms(3862.12345678)
+        1h 4m 22.12346s
+    
+    """
+    h = int(seconds/3600)
+    m = int((seconds - h*3600)/60)
+    s = seconds - h*3600 - m*60
+    return '%dh %dm %2.5fs' % (h, m, s)
+
 def contaminate(data, stddev, percent=False, return_stddev=False):
     """
     Add pseudorandom gaussian noise to an array.
