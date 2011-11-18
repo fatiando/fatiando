@@ -479,11 +479,19 @@ def not_neighbors(neighborhood, neighbors):
     """
     return [n for n in neighbors if not in_tha_hood(neighborhood, n)]
 
+def is_compact(estimate, mesh, neighbor):
+    """
+    Check if this neighbor satifies the compactness criterion.
+    """
+    around = find_neighbors(neighbor, mesh, full=True)
+    free = free_neighbors(estimate, around)
+    return len(around) - len(free) >= 4
+    
 def compact_neighbors(estimate, mesh, neighbors):
     """
     Remove neighbors that don't satisfy the compactness criterion.
     """
-    return neighbors
+    return [n for n in neighbors if is_compact(estimate, mesh, n)]
 
 def is_eligible(residuals, tol, dmods):
     """
@@ -560,7 +568,7 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
     for s in seeds:
         neighborhood.append(not_neighbors(neighborhood,
                                 free_neighbors(estimate,
-                                    find_neighbors(s, mesh, full=True))))
+                                    find_neighbors(s, mesh, full=False))))
     # Spit out a changeset
     yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
            'dmods':dmods}
@@ -605,8 +613,8 @@ def harvest(seeds, mesh, dmods, compactness=0, thresh=0.0001, tol=0.01):
     for i, chset in enumerate(grower):
         continue
     tfinish = time.clock() - tstart
-    #log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
-    log.info("Total time for inversion: %s" % (str(tfinish)))
+    log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
     log.info("Total number of accretions: %d" % (i))
-    #log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i)))
-    return chset['estimate']
+    if i > 0:
+        log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i)))
+    return chset
