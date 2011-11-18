@@ -3,6 +3,8 @@
     - seismic
     - eqlayer
     - sphere
+* Try choosing goal value in the midle (not min or max)
+* Growing to the sides isn't compact. Why?
 * Check is neighbors arent None (masked)
 * HARVESTER: Investigate what happens if there is a tie for lowest goal function
 * Optimize harvester.sow so that it doesn't look through the whole mesh for the seed

@@ -415,7 +415,7 @@ def _full_neighbors(allpossible, mesh, props):
         append(bellow - nx - 1)
     return [(i, props) for i in neighbors]
     
-def find_neighbors(neighbor, mesh, full=False):
+def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
     """
     Return neighboring prisms of neighbor (that share a face).
 
@@ -439,11 +439,11 @@ def find_neighbors(neighbor, mesh, full=False):
     above, bellow, front, back, left, right = [None]*6
     # The guy above
     tmp = n - nx*ny    
-    if tmp > 0:        
+    if tmp > 0 and up:        
         above = tmp
     # The guy bellow
     tmp = n + nx*ny
-    if tmp < mesh.size:
+    if tmp < mesh.size and down:
         bellow = tmp    
     # The guy in front
     tmp = n + 1
@@ -511,7 +511,7 @@ def is_compact(estimate, mesh, neighbor):
     """
     around = find_neighbors(neighbor, mesh, full=True)
     free = free_neighbors(estimate, around)
-    return len(around) - len(free) >= 4
+    return len(around) - len(free) >= 3
     
 def compact_neighbors(estimate, mesh, neighbors):
     """
@@ -532,6 +532,8 @@ def is_eligible(residuals, tol, dmods):
             return False
     return True
 
+    
+    
 def choose_best(s, neighbors, goalfunc, goal, mesh, estimate, dmods, thresh,
                 tol):
     """
@@ -594,7 +596,7 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
     for s in seeds:
         neighborhood.append(not_neighbors(neighborhood,
                                 free_neighbors(estimate,
-                                    find_neighbors(s, mesh, full=False))))
+                                    find_neighbors(s, mesh, full=False, up=False, down=False))))
     # Spit out a changeset
     yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
            'dmods':dmods}
@@ -618,7 +620,7 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
                 neighbors.extend(compact_neighbors(estimate, mesh,
                                     not_neighbors(neighborhood,
                                         free_neighbors(estimate, 
-                                            find_neighbors(best, mesh)))))
+                                            find_neighbors(best, mesh, up=False, down=False)))))
                 # Clean up after adding the neighbor
                 for dm in dmods:
                     dm.cleanup(best)

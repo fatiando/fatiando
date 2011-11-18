@@ -54,8 +54,16 @@ mesh = PrismMesh3D(extent, (15, 25, 25))
 #mlab.show()
 
 log.info("\nFourth sow the seeds:")
-rawseeds = [((5000, 5000, 3000), {'density':800})]
+#rawseeds = [((5000, 5000, 3000), {'density':800})]
+rawseeds = [((5000, 5000, 2100), {'density':800}),
+            ((5000, 5000, 2500), {'density':800}),
+            ((5000, 5000, 3000), {'density':800}),
+            ((5000, 5000, 3500), {'density':800}),
+            ((5000, 5000, 3900), {'density':800})]
 #rawseeds = [((5000, 3000, 3000), {'density':800}),
+            #((5000, 4000, 3000), {'density':800}),
+            #((5000, 5000, 3000), {'density':800}),
+            #((5000, 6000, 3000), {'density':800}),
             #((5000, 7000, 3000), {'density':800})]
 seeds = harvester.sow(mesh, rawseeds)
 
@@ -71,7 +79,7 @@ seeds = harvester.sow(mesh, rawseeds)
     
 log.info("\nFith harvest the results:")
 gzmod = harvester.GzModule(x, y, z, gz)
-reg = harvester.ConcentrationRegularizer(seeds, mesh, 10**(-2), 1.)
+reg = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
 def meh(i,j,k):
     return True
 #harvester.is_eligible = meh
@@ -84,7 +92,7 @@ density_model = vfilter(1, 2000, 'density', mesh)
 
 #import numpy
 #goals = []
-#for chset in harvester.grow(seeds, mesh, [gzmod], reg, tol=0.1, thresh=10**(-5)):    
+#for chset in harvester.grow(seeds, mesh, [gzmod], reg, tol=0.01, thresh=10**(-4)):    
     #estimate = chset['estimate']
     #goals.append(chset['goal'])
     #for prop in estimate:
