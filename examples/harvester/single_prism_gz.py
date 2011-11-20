@@ -78,34 +78,36 @@ seeds = harvester.sow(mesh, rawseeds)
 #mlab.show()
     
 log.info("\nFith harvest the results:")
-gzmod = harvester.PrismGzModule(x, y, z, gz, use_shape=True)
-regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
-jury = harvester.standard_jury(regul, thresh=0.000000000000001, tol=0.01)
+
 def meh(i,j,k):
     return True
 #harvester.is_eligible = meh
 
-#results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
-#estimate = results['estimate']
-#for prop in estimate:
-    #mesh.addprop(prop, estimate[prop])
-#density_model = vfilter(1, 2000, 'density', mesh)
+gzmod = harvester.PrismGzModule(x, y, z, gz, use_shape=True)
+regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
+jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.01)
 
-import numpy
-goals = []
-for chset in harvester.grow(seeds, mesh, [gzmod], jury):    
-    estimate = chset['estimate']
-    goals.append(chset['goal'])
-    for prop in estimate:
-        mesh.addprop(prop, estimate[prop])
-    density_model = vfilter(1, 2000, 'density', mesh)
-    neighbors = [mesh[n] for nei in chset['neighborhood'] for n, p in nei]
-    mlab.figure(bgcolor=(1,1,1))
-    vis.prisms3D(model, extract('density', model), style='wireframe', vmin=0)
-    vis.prisms3D(neighbors, numpy.zeros_like(neighbors), style='wireframe')
-    vis.prisms3D(density_model, extract('density', density_model), vmin=0)
-    outline = mlab.outline(color=(0,0,0), extent=extent)
-    mlab.show()
+results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
+estimate = results['estimate']
+for prop in estimate:
+    mesh.addprop(prop, estimate[prop])
+density_model = vfilter(1, 2000, 'density', mesh)
+
+#import numpy
+#goals = []
+#for chset in harvester.grow(seeds, mesh, [gzmod], jury):    
+    #estimate = chset['estimate']
+    #goals.append(chset['goal'])
+    #for prop in estimate:
+        #mesh.addprop(prop, estimate[prop])
+    #density_model = vfilter(1, 2000, 'density', mesh)
+    #neighbors = [mesh[n] for nei in chset['neighborhood'] for n, p in nei]
+    #mlab.figure(bgcolor=(1,1,1))
+    #vis.prisms3D(model, extract('density', model), style='wireframe', vmin=0)
+    #vis.prisms3D(neighbors, numpy.zeros_like(neighbors), style='wireframe')
+    #vis.prisms3D(density_model, extract('density', density_model), vmin=0)
+    #outline = mlab.outline(color=(0,0,0), extent=extent)
+    #mlab.show()
 
 pyplot.figure()
 pyplot.subplot(2,2,1)

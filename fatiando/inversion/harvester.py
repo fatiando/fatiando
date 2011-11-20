@@ -69,8 +69,8 @@ class DataModule(object):
 			self.residuals = self._shape_of_anomaly
 			weight = False
         self.weight = 1.
-        if weight:
-            self.weight = 1./self.misfit(self.res)
+        #if weight:
+            #self.weight = 1./self.misfit(self.obs)
 
     def misfit(self, residuals):
         """
@@ -267,7 +267,7 @@ class ConcentrationRegularizer(object):
         s = seed[0]
         if n not in self.dists:
             self.dists[n] = self.calc_dist(self.mesh[n],
-                                           self.mesh[self.seeds[s][0]])
+                                           self.mesh[s])
         return self.reg + self.weight*self.mu*(self.dists[n]**self.power)
 
     def cleanup(self, neighbor):
@@ -491,9 +491,9 @@ def is_compact(estimate, mesh, neighbor):
     """
     Check if this neighbor satifies the compactness criterion.
     """
-    around = find_neighbors(neighbor, mesh, full=False)
+    around = find_neighbors(neighbor, mesh, full=True)
     free = free_neighbors(estimate, around)
-    return len(around) - len(free) >= 2
+    return len(around) - len(free) >= 5
     
 def is_eligible(residuals, tol, dmods):
     """
@@ -508,37 +508,36 @@ def is_eligible(residuals, tol, dmods):
     return True
 
 def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
-	"""
-	Creates a standard neighbor chooser based on data misfit and regularization.
-	"""
-	if regularizer is None:
-		regularizer = lambda neighbor, s: 0.0
-		
-	def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
-			 tol=tol, regularizer=regularizer):
-		# Filter the neighbors that fulfill the compactness criterion
-		left = [(i, n) for i, n in enumerate(neighbors)
-				if is_compact(estimate, mesh, n)]
-		# Calculate the residuals of all data modules for each neighbor left
-		res = dict((i, [dm.tmp_residuals(n, mesh) for dm in datamods])
-				   for i, n in left)
-		# Filter the eligible for accretion based on their residuals
-		left = [(i, n) for i, n in left if is_eligible(res[i], tol, datamods)]
-		misfits = (sum(dm.misfit(r) for dm, r in zip(datamods, res[i]))
-				   for i, n in left)
-		reg = (regularizer(n, seed) for i, n in left)
-		# Calculate the goal functions
-		goals = ((l[0], m + r) for m, r, l in zip(misfits, reg, left))
-		# Keep only the ones that decrease the goal function
-		decreased = [(i, g) for i, g in goals
-					 if g < goal and abs(g - goal)/goal >= thresh]
-		if decreased:
-			#TODO: what if there is a tie?
-			# Choose the best neighbor (decreases the goal function most)
-			best = decreased[numpy.argmin([g for i, g in decreased])]
-			return best
-		return None
-	return jury
+    """
+    Creates a standard neighbor chooser based on data misfit and regularization.
+    """
+    if regularizer is None:
+        regularizer = lambda neighbor, s: 0.0        
+    def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
+             tol=tol, regularizer=regularizer):
+        # Filter the neighbors that fulfill the compactness criterion
+        left = [(i, n) for i, n in enumerate(neighbors)
+                if is_compact(estimate, mesh, n)]
+        # Calculate the residuals of all data modules for each neighbor left
+        res = dict((i, [dm.tmp_residuals(n, mesh) for dm in datamods])
+                   for i, n in left)
+        # Filter the eligible for accretion based on their residuals
+        left = [(i, n) for i, n in left if is_eligible(res[i], tol, datamods)]
+        misfits = (sum(dm.misfit(r) for dm, r in zip(datamods, res[i]))
+                   for i, n in left)
+        reg = (regularizer(n, seed) for i, n in left)
+        # Calculate the goal functions
+        goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
+        # Keep only the ones that decrease the goal function
+        decreased = [(i, g) for i, g in goals
+                     if g < goal and abs(g - goal)/goal >= thresh]
+        if not decreased:
+            return None
+        #TODO: what if there is a tie?
+        # Choose the best neighbor (decreases the goal function most)
+        best = decreased[numpy.argmin([g for i, g in decreased])]
+        return best
+    return jury
 
 def grow(seeds, mesh, datamods, jury):
     """
@@ -557,12 +556,27 @@ def grow(seeds, mesh, datamods, jury):
             estimate[p][s] = props[p]
         for dm in datamods:
 			dm.update(seed, mesh)
-	# Find the neighboring prisms of the seeds
+    # Find the neighbors of the seeds
+    seedhood = []
+    for seed in seeds:        
+        seedhood.append(not_neighbors(seedhood,
+                            free_neighbors(estimate, 
+                                find_neighbors(seed, mesh, full=False))))
+	# Add the neighbors of the seeds to the estimate and start the neighborhoods
     neighborhood = []
-    for s in seeds:
-        neighborhood.append(not_neighbors(neighborhood,
-                                free_neighbors(estimate,
-                                    find_neighbors(s, mesh, full=True))))
+    for seedneighbors in seedhood:
+        neighbors = []
+        neighborhood.append(neighbors)
+        for i, neighbor in enumerate(seedneighbors):
+            n, props = neighbor
+            for p in props:
+                estimate[p][n] = props[p]
+            for dm in datamods:
+                dm.update(neighbor, mesh)
+            neighbors.extend(not_neighbors(neighborhood,
+                                not_neighbors(seedhood,
+                                    free_neighbors(estimate, 
+                                        find_neighbors(neighbor, mesh)))))
 	# Calculate the initial goal function
     goal = sum(dm.misfit(dm.residuals(dm.predicted)) for dm in datamods)
     # Spit out a changeset
@@ -582,6 +596,8 @@ def grow(seeds, mesh, datamods, jury):
                 # Add it to the estimate
                 for p in pbest:
                     estimate[p][nbest] = pbest[p]
+                for dm in datamods:
+                    dm.update(best, mesh)
                 # Update the neighbors of this neighborhood
                 neighbors.pop(j)
                 neighbors.extend(not_neighbors(neighborhood,
@@ -589,7 +605,7 @@ def grow(seeds, mesh, datamods, jury):
 										find_neighbors(best, mesh))))
                 # Spit out a changeset
                 yield {'estimate':estimate, 'neighborhood':neighborhood,
-                       'datamods':goal, 'dmods':datamods}
+                       'goal':goal, 'datamods':datamods}
         if not onegrew:
             break 
 
@@ -602,7 +618,7 @@ def harvest(seeds, mesh, datamods, jury):
     grower = grow(seeds, mesh, datamods, jury)
     goals = [chset['goal'] for i, chset in enumerate(grower)]
     tfinish = time.clock() - tstart
-    log.info("Final goal function value: %g" % (goal))   
+    log.info("Final goal function value: %g" % (goals[-1]))   
     log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
     log.info("Total number of accretions: %d" % (i))
     if i > 0:
