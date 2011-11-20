@@ -64,6 +64,8 @@ class DataModule(object):
         self.effect = {}
         self.predicted = numpy.zeros_like(self.obs)
         self.l2obs = numpy.linalg.norm(obs, 2)**2
+        self.absobs = abs(obs)
+        self.obsmax = self.absobs.max()
         self.weight = 1.
         if weight:
             self.weight = 1./numpy.linalg.norm(obs, norm)
@@ -661,7 +663,7 @@ def is_eligible(predicted, tol, dmods):
     observed data in absolute value.
     """
     for dm, p in zip(dmods, predicted):
-        if True in [abs(d) >= tol for d in (dm.obs - p)/dm.obs if d < 0]:
+        if True in [d < -tol for d in (dm.absobs - abs(p))/dm.obsmax]:
             return False
     return True
 

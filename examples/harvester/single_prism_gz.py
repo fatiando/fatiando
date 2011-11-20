@@ -33,7 +33,7 @@ shape = (50,50)
 x, y, z = gridder.regular(extent[0:4], shape, z=-1)
 #gz = utils.contaminate(potential.prism.gz(x, y, z, model), 0.1)
 #gz = potential.prism.gz(x, y, z, model)
-gz = potential.prism.gxz(x, y, z, model)
+gz = potential.prism.gyz(x, y, z, model)
 
 #pyplot.figure()
 #pyplot.axis('scaled')
@@ -47,7 +47,7 @@ gz = potential.prism.gxz(x, y, z, model)
 
 log.info("\nThird make a prism mesh:")
 #mesh = PrismMesh3D(extent, (20, 25, 25))
-mesh = PrismMesh3D(extent, (15, 10, 10))
+mesh = PrismMesh3D(extent, (18, 10, 10))
 
 #mlab.figure(bgcolor=(1,1,1))
 #vis.prisms3D(mesh, (0 for i in xrange(mesh.size)), vmin=0)
@@ -81,10 +81,10 @@ seeds = harvester.sow(mesh, rawseeds)
     
 log.info("\nFith harvest the results:")
 #gzmod = harvester.PrismGzModule(x, y, z, gz)
-gzmod = harvester.PrismGxzModule(x, y, z, gz, weight=False)
+gzmod = harvester.PrismGyzModule(x, y, z, gz)
 regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-1), 3.)
 #jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.1)
-jury = harvester.shape_jury(regul, thresh=0.00001, tol=0.2)
+jury = harvester.shape_jury(regul, thresh=0.0001, tol=0.05)
 
 results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
 estimate = results['estimate']
