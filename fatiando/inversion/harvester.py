@@ -63,11 +63,6 @@ class DataModule(object):
         self.z = z
         self.effect = {}
         self.predicted = numpy.zeros_like(self.obs)
-        self.residuals = self._standard_residuals
-        if use_shape:
-			self.norm_obs = self.obs/self.obs.max()
-			self.residuals = self._shape_of_anomaly
-			weight = False
         self.weight = 1.
         #if weight:
             #self.weight = 1./self.misfit(self.obs)
@@ -95,9 +90,9 @@ class DataModule(object):
         """
         raise NotImplementedError("Method 'calc_col' was not implemented")
 		
-    def tmp_residuals(self, neighbor, mesh):
+    def new_predicted(self, neighbor, mesh):
         """
-        Calculate the residuals vector due to adding the neighbor to the
+        Calculate the predicted data vector due to adding the neighbor to the
         estimate.
         
         Parameters:
@@ -110,20 +105,20 @@ class DataModule(object):
         
         Returns:
         * array
-            Array with the residuals
+            Array with the predicted data
                     
         """
         n, props = neighbor
         if self.prop not in props:
-            return self.residuals(self.predicted)
+            return self.predicted
         if n not in self.effect:
             c = mesh[n]
             self.effect[n] = self.calc_effect(float(props[self.prop]),
                 c['x1'], c['x2'], c['y1'], c['y2'], c['z1'], c['z2'],
                 self.x, self.y, self.z)
-        return self.residuals(self.predicted + self.effect[n])
+        return self.predicted + self.effect[n]
 
-    def _standard_residuals(self, predicted):
+    def residuals(self, predicted):
         """
         Calculate the residuals vector.
 
@@ -138,7 +133,7 @@ class DataModule(object):
         """
         return self.obs - predicted
         
-    def _shape_of_anomaly(self, predicted):
+    def shape_of_anomaly(self, predicted):
         """
         Calculate the shape-of-anomaly residuals vector.
 
@@ -151,7 +146,8 @@ class DataModule(object):
             Array with the residuals
             
         """
-        return self.norm_obs - predicted/predicted.max()
+        scale = sum(self.obs*predicted)/sum(self.obs**2)
+        return scale*self.obs - predicted
         
     def update(self, neighbor, mesh):
         """
@@ -495,36 +491,37 @@ def is_compact(estimate, mesh, neighbor):
     free = free_neighbors(estimate, around)
     return len(around) - len(free) >= 5
     
-def is_eligible(residuals, tol, dmods):
+def is_eligible(predicted, tol, dmods):
     """
     Check is a neighbor is eligible for accretion based on the residuals it
     produces.
     The criterion is that the predicted data must not be larger than the
     observed data in absolute value.
     """
-    for dm, res in zip(dmods, residuals):
-        if True in [abs(d) >= tol for d in res/dm.obs if d < 0]:
+    for dm, p in zip(dmods, predicted):
+        if True in [abs(d) >= tol for d in (dm.obs - p)/dm.obs if d < 0]:
             return False
     return True
 
 def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
     """
-    Creates a standard neighbor chooser based on data misfit and regularization.
+    Creates a standard jury function (neighbor chooser) based on regular data
+    misfit and regularization.
     """
     if regularizer is None:
         regularizer = lambda neighbor, s: 0.0        
     def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
              tol=tol, regularizer=regularizer):
-        # Filter the neighbors that fulfill the compactness criterion
+        # Filter the ones that don't satisfy the compactness criterion
         left = [(i, n) for i, n in enumerate(neighbors)
                 if is_compact(estimate, mesh, n)]
-        # Calculate the residuals of all data modules for each neighbor left
-        res = dict((i, [dm.tmp_residuals(n, mesh) for dm in datamods])
-                   for i, n in left)
-        # Filter the eligible for accretion based on their residuals
-        left = [(i, n) for i, n in left if is_eligible(res[i], tol, datamods)]
-        misfits = (sum(dm.misfit(r) for dm, r in zip(datamods, res[i]))
-                   for i, n in left)
+        # Calculate the predicted data of the ones that are left
+        pred = dict((i, [dm.new_predicted(n, mesh) for dm in datamods])
+                    for i, n in left)
+        # Filter the eligible for accretion based on their predicted data
+        left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
+        misfits = (sum(dm.misfit(dm.residuals(p))
+                       for dm, p in zip(datamods, pred[i])) for i, n in left)
         reg = (regularizer(n, seed) for i, n in left)
         # Calculate the goal functions
         goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
@@ -536,6 +533,42 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
         #TODO: what if there is a tie?
         # Choose the best neighbor (decreases the goal function most)
         best = decreased[numpy.argmin([g for i, g in decreased])]
+        return best
+    return jury
+
+def shape_jury(regularizer=None, thresh=0.0001, tol=0.01):
+    """
+    Creates a jury function (neighbor chooser) based on shape-of-anomaly data
+    misfit and regularization.
+    """
+    if regularizer is None:
+        regularizer = lambda neighbor, s: 0.0        
+    def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
+             tol=tol, regularizer=regularizer):
+        # Filter the ones that don't satisfy the compactness criterion
+        left = [(i, n) for i, n in enumerate(neighbors)
+                if is_compact(estimate, mesh, n)]
+        # Calculate the predicted data of the ones that are left
+        pred = dict((i, [dm.new_predicted(n, mesh) for dm in datamods])
+                    for i, n in left)
+        # Filter the eligible for accretion based on their predicted data
+        left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
+        misfits = (sum(dm.misfit(dm.residuals(p))
+                       for dm, p in zip(datamods, pred[i])) for i, n in left)
+        reg = (regularizer(n, seed) for i, n in left)
+        # Calculate the goal functions
+        goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
+        # Keep only the ones that decrease the goal function
+        decreased = [(i, g) for i, g in goals
+                     if g < goal and abs(g - goal)/goal >= thresh]
+        if not decreased:
+            return None
+        # Choose based on the shape-of-anomaly criterion
+        soa = [sum(dm.misfit(dm.shape_of_anomaly(p))
+                   for dm, p in zip(datamods, pred[i])) for i, g in decreased]
+        #TODO: what if there is a tie?
+        # Choose the best neighbor (decreases the goal function most)
+        best = decreased[numpy.argmin(soa)]
         return best
     return jury
 
