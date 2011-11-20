@@ -55,7 +55,7 @@ class DataModule(object):
     
     """
 
-    def __init__(self, x, y, z, obs, norm, weight, use_shape):
+    def __init__(self, x, y, z, obs, norm, weight):
         self.norm = norm
         self.obs = obs
         self.x = x
@@ -63,26 +63,10 @@ class DataModule(object):
         self.z = z
         self.effect = {}
         self.predicted = numpy.zeros_like(self.obs)
+        self.l2obs = numpy.linalg.norm(obs, 2)**2
         self.weight = 1.
-        #if weight:
-            #self.weight = 1./self.misfit(self.obs)
-
-    def misfit(self, residuals):
-        """
-        Return the data misfit given a residual vector.
-        
-        Uses the prespecified norm.
-
-        Parameters:
-        * residuals
-            Array with the residuals calculated on each data point
-
-        Returns:
-        * float
-            The data misfit
-            
-        """
-        return self.weight*numpy.linalg.norm(residuals, self.norm)        
+        if weight:
+            self.weight = 1./numpy.linalg.norm(obs, norm)
 
     def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
         """
@@ -132,22 +116,38 @@ class DataModule(object):
            
         """
         return self.obs - predicted
+
+    def misfit(self, predicted):
+        """
+        Return the data misfit given a predicted data vector.
+        
+        Uses the prespecified norm.
+
+        Parameters:
+        * predicted
+            Array with the predicted data calculated on each data point
+
+        Returns:
+        * float
+            The data misfit
+            
+        """
+        return self.weight*numpy.linalg.norm(self.obs - predicted, self.norm)
         
     def shape_of_anomaly(self, predicted):
         """
-        Calculate the shape-of-anomaly residuals vector.
+        Calculate the shape-of-anomaly criterion.
 
         Parameters:
         * predicted
 			Array with the predicted data
 
         Returns:
-        * array
-            Array with the residuals
+        * float
             
         """
-        scale = sum(self.obs*predicted)/sum(self.obs**2)
-        return scale*self.obs - predicted
+        scale = sum(self.obs*predicted)/self.l2obs
+        return numpy.linalg.norm(scale*self.obs - predicted, 2)
         
     def update(self, neighbor, mesh):
         """
@@ -196,8 +196,8 @@ class PrismGzModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True, use_shape=False):
-        DataModule.__init__(self, x, y, z, obs, norm, weight, use_shape)
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
 
@@ -520,8 +520,8 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
                     for i, n in left)
         # Filter the eligible for accretion based on their predicted data
         left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
-        misfits = (sum(dm.misfit(dm.residuals(p))
-                       for dm, p in zip(datamods, pred[i])) for i, n in left)
+        misfits = (sum(dm.misfit(p) for dm, p in zip(datamods, pred[i]))
+                   for i, n in left)
         reg = (regularizer(n, seed) for i, n in left)
         # Calculate the goal functions
         goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
@@ -553,8 +553,8 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01):
                     for i, n in left)
         # Filter the eligible for accretion based on their predicted data
         left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
-        misfits = (sum(dm.misfit(dm.residuals(p))
-                       for dm, p in zip(datamods, pred[i])) for i, n in left)
+        misfits = (sum(dm.misfit(p) for dm, p in zip(datamods, pred[i]))
+                   for i, n in left)
         reg = (regularizer(n, seed) for i, n in left)
         # Calculate the goal functions
         goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
@@ -564,8 +564,8 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01):
         if not decreased:
             return None
         # Choose based on the shape-of-anomaly criterion
-        soa = [sum(dm.misfit(dm.shape_of_anomaly(p))
-                   for dm, p in zip(datamods, pred[i])) for i, g in decreased]
+        soa = [sum(dm.shape_of_anomaly(p) for dm, p in zip(datamods, pred[i]))
+               for i, g in decreased]
         #TODO: what if there is a tie?
         # Choose the best neighbor (decreases the goal function most)
         best = decreased[numpy.argmin(soa)]
@@ -611,7 +611,7 @@ def grow(seeds, mesh, datamods, jury):
                                     free_neighbors(estimate, 
                                         find_neighbors(neighbor, mesh)))))
 	# Calculate the initial goal function
-    goal = sum(dm.misfit(dm.residuals(dm.predicted)) for dm in datamods)
+    goal = sum(dm.misfit(dm.predicted) for dm in datamods)
     # Spit out a changeset
     yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
            'datamods':datamods}

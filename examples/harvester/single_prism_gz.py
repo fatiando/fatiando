@@ -46,7 +46,7 @@ gz = potential.prism.gz(x, y, z, model)
 
 log.info("\nThird make a prism mesh:")
 #mesh = PrismMesh3D(extent, (15, 25, 25))
-mesh = PrismMesh3D(extent, (6, 10, 10))
+mesh = PrismMesh3D(extent, (15, 10, 10))
 
 #mlab.figure(bgcolor=(1,1,1))
 #vis.prisms3D(mesh, (0 for i in xrange(mesh.size)), vmin=0)
@@ -79,15 +79,10 @@ seeds = harvester.sow(mesh, rawseeds)
 #mlab.show()
     
 log.info("\nFith harvest the results:")
-
-def meh(i,j,k):
-    return True
-#harvester.is_eligible = meh
-
-gzmod = harvester.PrismGzModule(x, y, z, gz, use_shape=True)
+gzmod = harvester.PrismGzModule(x, y, z, gz)
 regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
-#jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.01)
-jury = harvester.shape_jury(regul, thresh=0.0001, tol=0.01)
+#jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.1)
+jury = harvester.shape_jury(regul, thresh=0.0001, tol=0.1)
 
 results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
 estimate = results['estimate']
@@ -111,7 +106,7 @@ density_model = vfilter(1, 2000, 'density', mesh)
     #outline = mlab.outline(color=(0,0,0), extent=extent)
     #mlab.show()
 
-pyplot.figure()
+pyplot.figure(figsize=(14,8))
 pyplot.subplot(2,2,1)
 pyplot.title("Adjustment")
 pyplot.axis('scaled')
