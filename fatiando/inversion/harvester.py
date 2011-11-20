@@ -200,6 +200,168 @@ class PrismGzModule(DataModule):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
+        
+class PrismGxxModule(DataModule):
+    """
+    Data module for the gxx component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gxx
+        
+class PrismGxyModule(DataModule):
+    """
+    Data module for the gxy component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gxy
+        
+class PrismGxzModule(DataModule):
+    """
+    Data module for the gxz component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gxz
+        
+class PrismGyyModule(DataModule):
+    """
+    Data module for the gyy component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gyy
+        
+class PrismGyzModule(DataModule):
+    """
+    Data module for the gyz component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gyz
+        
+class PrismGzzModule(DataModule):
+    """
+    Data module for the gzz component of the gravity gradient tensor.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component.
+    * norm
+        Order of the norm of the residual vector to use (Default: 2). Can be:
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+        * etc
+    * weight
+        Wether of not to use a weighing factor for this data type. The weight
+        if the norm of the observed data.
+    
+    """
+
+    def __init__(self, x, y, z, obs, norm=2, weight=True):
+        DataModule.__init__(self, x, y, z, obs, norm, weight)
+        self.prop = 'density'
+        self.calc_effect = potential._prism.prism_gzz
 
 class ConcentrationRegularizer(object):
     """
