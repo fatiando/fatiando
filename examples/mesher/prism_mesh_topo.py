@@ -1,16 +1,9 @@
 """
 Example of generating a 3D prism mesh with topography
 """
-try:
-    from mayavi import mlab
-except ImportError:
-    from enthought.mayavi import mlab
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis
 from fatiando.mesher.volume import PrismMesh3D
-
-# Avoid importing mlab twice since it's very slow
-vis.mlab = mlab
 
 log = logger.get()
 log.info(logger.header())
@@ -38,9 +31,9 @@ mesh = PrismMesh3D(bounds, (20,40,20))
 mesh.carvetopo(x, y, height)
 
 log.info("Plotting")
-mlab.figure(bgcolor=(1,1,1))
+vis.mayavi_figure()
 vis.prisms3D(mesh, (0 for i in xrange(mesh.size)))
-outline = mlab.outline(color=(0,0,0), extent=bounds)
+outline = vis.add_outline3d(extent=bounds)
 vis.add_axes3d(outline)
 vis.wall_north(bounds)
-mlab.show()
+vis.mlab.show()

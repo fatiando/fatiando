@@ -1,10 +1,6 @@
 """
 Create synthetic data from a right rectangular prism model.
 """
-try:
-    from mayavi import mlab
-except ImportError:
-    from enthought.mayavi import mlab
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, gridder, vis, logger
@@ -27,12 +23,10 @@ vis.pcolor(xp, yp, gz, shape)
 pyplot.colorbar()
 pyplot.show()
 
-# Avoid importing mlab twice since it's very slow
-vis.mlab = mlab
-mlab.figure(bgcolor=(1,1,1))
+vis.mayavi_figure()
 plot = vis.prisms3D(prisms, extract('density', prisms))
-mlab.outline(color=(0,0,0))
+vis.add_outline3d()
 axes = vis.add_axes3d(plot)
 vis.wall_bottom(axes.axes.bounds, opacity=0.2)
 vis.wall_north(axes.axes.bounds)
-mlab.show()
+vis.mlab.show()

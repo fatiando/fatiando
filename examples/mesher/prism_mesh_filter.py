@@ -1,14 +1,8 @@
 """
 Example of generating a prism mesh and filtering elements by density value
 """
-try:
-    from mayavi import mlab
-except ImportError:
-    from enthought.mayavi import mlab
 from fatiando import logger, vis
 from fatiando.mesher.volume import PrismMesh3D, vfilter, extract
-
-vis.mlab = mlab
 
 log = logger.get()
 log.info(logger.header())
@@ -29,9 +23,9 @@ odd = vfilter(-1, 0, 'density', mesh)
 even = vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
-mlab.figure(bgcolor=(1,1,1))
+vis.mayavi_figure()
 vis.prisms3D(odd, extract('density', odd), vmin=-1, vmax=1)
 plot = vis.prisms3D(even, extract('density', even), style='wireframe', vmin=-1,
                     vmax=1)
 vis.add_axes3d(plot, extent=bounds)
-mlab.show()
+vis.mlab.show()

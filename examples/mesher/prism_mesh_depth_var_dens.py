@@ -1,14 +1,8 @@
 """
 Example of generating a prism mesh with depth varying density
 """
-try:
-    from mayavi import mlab
-except ImportError:
-    from enthought.mayavi import mlab
 from fatiando import logger, vis
 from fatiando.mesher.volume import PrismMesh3D
-
-vis.mlab = mlab
 
 log = logger.get()
 log.info(logger.header())
@@ -22,7 +16,7 @@ def fill(i):
     return k
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
-mlab.figure(bgcolor=(1,1,1))
+vis.mayavi_figure()
 plot = vis.prisms3D(mesh, mesh.props['density'])
 axes = vis.add_axes3d(plot)
-mlab.show()
+vis.mlab.show()
