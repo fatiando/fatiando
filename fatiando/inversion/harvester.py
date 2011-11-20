@@ -647,13 +647,13 @@ def not_neighbors(neighborhood, neighbors):
     """
     return [n for n in neighbors if not in_tha_hood(neighborhood, n)]
 
-def is_compact(estimate, mesh, neighbor):
+def is_compact(estimate, mesh, neighbor, compact):
     """
     Check if this neighbor satifies the compactness criterion.
     """
     around = find_neighbors(neighbor, mesh, full=True)
     free = free_neighbors(estimate, around)
-    return len(around) - len(free) >= 5
+    return len(around) - len(free) >= compact
     
 def is_eligible(predicted, tol, dmods):
     """
@@ -700,18 +700,20 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
         return best
     return jury
 
-def shape_jury(regularizer=None, thresh=0.0001, tol=0.01):
+def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
     """
     Creates a jury function (neighbor chooser) based on shape-of-anomaly data
     misfit and regularization.
     """
     if regularizer is None:
         regularizer = lambda neighbor, s: 0.0        
-    def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
-             tol=tol, regularizer=regularizer):
+    def jury(seed, neighbors, estimate, datamods, goal, mesh, it, nseeds,
+             compact=compact, thresh=thresh, tol=tol, regularizer=regularizer):
+        if it < compact*nseeds:
+            compact = 1
         # Filter the ones that don't satisfy the compactness criterion
         left = [(i, n) for i, n in enumerate(neighbors)
-                if is_compact(estimate, mesh, n)]
+                if is_compact(estimate, mesh, n, compact)]
         # Calculate the predicted data of the ones that are left
         pred = dict((i, [dm.new_predicted(n, mesh) for dm in datamods])
                     for i, n in left)
@@ -754,26 +756,11 @@ def grow(seeds, mesh, datamods, jury):
         for dm in datamods:
 			dm.update(seed, mesh)
     # Find the neighbors of the seeds
-    seedhood = []
-    for seed in seeds:        
-        seedhood.append(not_neighbors(seedhood,
-                            free_neighbors(estimate, 
-                                find_neighbors(seed, mesh, full=False))))
-	# Add the neighbors of the seeds to the estimate and start the neighborhoods
     neighborhood = []
-    for seedneighbors in seedhood:
-        neighbors = []
-        neighborhood.append(neighbors)
-        for i, neighbor in enumerate(seedneighbors):
-            n, props = neighbor
-            for p in props:
-                estimate[p][n] = props[p]
-            for dm in datamods:
-                dm.update(neighbor, mesh)
-            neighbors.extend(not_neighbors(neighborhood,
-                                not_neighbors(seedhood,
-                                    free_neighbors(estimate, 
-                                        find_neighbors(neighbor, mesh)))))
+    for seed in seeds:        
+        neighborhood.append(not_neighbors(neighborhood,
+                                free_neighbors(estimate, 
+                                    find_neighbors(seed, mesh))))
 	# Calculate the initial goal function
     goal = sum(dm.misfit(dm.predicted) for dm in datamods)
     # Spit out a changeset
@@ -781,10 +768,12 @@ def grow(seeds, mesh, datamods, jury):
            'datamods':datamods}
     # Perform the accretions. The maximum number of accretions is the whole mesh
     # minus seeds. The goal function starts with the total misfit of the seeds.
-    for iteration in xrange(mesh.size - len(seeds)):
+    nseeds = len(seeds)
+    for iteration in xrange(mesh.size - nseeds):
         onegrew = False
         for seed, neighbors in zip(seeds, neighborhood):
-            chosen = jury(seed, neighbors, estimate, datamods, goal, mesh)
+            chosen = jury(seed, neighbors, estimate, datamods, goal, mesh,
+                          iteration, nseeds)
             if chosen is not None:                
                 onegrew = True
                 j, goal = chosen

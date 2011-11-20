@@ -4,7 +4,6 @@
     - eqlayer
     - sphere
 * Store neighbors so that don't re-calculate every time (change neighbor to dict and store index props and neighbors)
-* Make compacity requirements increase as a function of nseeds*iteration
 * Try choosing goal value in the midle (not min or max)
 * Speedup shape-of-anomaly
 * Find a way to not include neighbors of seeds and still have the compactness criterion
