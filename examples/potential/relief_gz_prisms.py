@@ -2,17 +2,9 @@
 Example of generating a topography, creating a 3D prism model of it and
 calculating gz
 """
-try:
-    from mayavi import mlab
-except ImportError:
-    from enthought.mayavi import mlab
-import numpy
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis, potential
 from fatiando.mesher.volume import PrismRelief3D
-
-# Avoid importing mlab twice since it's very slow
-vis.mlab = mlab
 
 log = logger.get()
 log.info(logger.header())
@@ -43,7 +35,6 @@ vis.pcolor(x, y, height, shape)
 pyplot.colorbar()
 vis.square(gridarea, label='Computation grid')
 pyplot.legend()
-
 pyplot.subplot(1,2,2)
 pyplot.title("Topographic gz effect")
 pyplot.axis('scaled')
@@ -51,10 +42,10 @@ vis.pcolor(xp, yp, gz, shape)
 pyplot.colorbar()
 pyplot.show()
 
-mlab.figure(bgcolor=(1,1,1))
+vis.mayavi_figure()
 plot = vis.prisms3D(relief, relief.props['density'])
-mlab.outline(color=(0,0,0))
+vis.add_outline3d()
 axes = vis.add_axes3d(plot)
 vis.wall_bottom(axes.axes.bounds, opacity=0.2)
 vis.wall_north(axes.axes.bounds)
-mlab.show()
+vis.mlab.show()
