@@ -29,12 +29,18 @@ from fatiando import potential, utils, logger
 
 log = logger.dummy()
 
-
+                
 class DataModule(object):
     """
-    Mother of all data modules.
+    Mother class for data modules
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
 
     Parameters:
+    * x, y, z
+        Arrays with the x, y, and z coordinates of the data points.
+    * obs
+        Array with the observed values of the component of the potential field.
     * norm
         Order of the norm of the residual vector to use (Default: 2). Can be:
         * 1 -> l1 norm
@@ -43,13 +49,25 @@ class DataModule(object):
     * weight
         Wether of not to use a weighing factor for this data type. The weight
         if the norm of the observed data.
-            
+    * use_shape
+		Wether to use the Shape-of-Anomaly criterion instead of regular
+		residuals
+    
     """
 
-    def __init__(self, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm, weight, use_shape):
         self.norm = norm
-        self.res = numpy.array(obs)
         self.obs = obs
+        self.x = x
+        self.y = y
+        self.z = z
+        self.effect = {}
+        self.predicted = numpy.zeros_like(self.obs)
+        self.residuals = self._standard_residuals
+        if use_shape:
+			self.norm_obs = self.obs/self.obs.max()
+			self.residuals = self._shape_of_anomaly
+			weight = False
         self.weight = 1.
         if weight:
             self.weight = 1./self.misfit(self.res)
@@ -69,136 +87,98 @@ class DataModule(object):
             The data misfit
             
         """
-        return self.weight*numpy.linalg.norm(residuals, self.norm)
-
-    def residuals(self, mesh, estimate, neighbor):
-        """
-        Calculate the residuals vector due to adding a neighbor to the estimate.
-
-        Parameters:
-        * mesh
-            A 3D mesh. See :mod:`fatiando.mesher.volume`
-        * estimate
-            Dictionary with the physical properties of the current estimate
-            without the neighbor
-        * neighbor
-            [n, props]
-            n is the index of the neighbor in the mesh.
-            props is a dictionary with the physical properties of the neighbor
-
-        Returns:
-        * array
-            Array with the residuals
-            
-        """
-        raise NotImplementedError("'residuals' was not implemented")
-
-    def cleanup(self, neighbor):
-        """
-        Delete unnecessary things after neighbor has been added to the estimate.
-
-        Parameters:
-        * neighbor
-            [n, props]
-            n is the index of the neighbor in the mesh.
-            props is a dictionary with the physical properties of the neighbor
-        
-        """
-        pass
-                
-class PotentialModule(DataModule):
-    """
-    Mother class for potential field data modules
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component of the potential field.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
-        DataModule.__init__(self, obs, norm, weight)
-        self.x = x
-        self.y = y
-        self.z = z
-        self.effect = {}
+        return self.weight*numpy.linalg.norm(residuals, self.norm)        
 
     def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
         """
         Calculate the effect of the cell with a physical property prop.
         """
-        raise NotImplementedError("Method 'calc_col' was not implemented")        
-
-    def residuals(self, mesh, estimate, neighbor):
+        raise NotImplementedError("Method 'calc_col' was not implemented")
+		
+    def tmp_residuals(self, neighbor, mesh):
         """
-        Calculate the residuals vector due to adding a neighbor to the estimate.
-
+        Calculate the residuals vector due to adding the neighbor to the
+        estimate.
+        
         Parameters:
-        * mesh
-            A 3D mesh. See :mod:`fatiando.mesher.volume`
-        * estimate
-            Dictionary with the physical properties of the current estimate
-            without the neighbor. *IGNORED*
         * neighbor
             [n, props]
             n is the index of the neighbor in the mesh.
             props is a dictionary with the physical properties of the neighbor
+        * mesh
+            A 3D mesh. See :mod:`fatiando.mesher.volume`
+        
+        Returns:
+        * array
+            Array with the residuals
+                    
+        """
+        n, props = neighbor
+        if self.prop not in props:
+            return self.residuals(self.predicted)
+        if n not in self.effect:
+            c = mesh[n]
+            self.effect[n] = self.calc_effect(float(props[self.prop]),
+                c['x1'], c['x2'], c['y1'], c['y2'], c['z1'], c['z2'],
+                self.x, self.y, self.z)
+        return self.residuals(self.predicted + self.effect[n])
+
+    def _standard_residuals(self, predicted):
+        """
+        Calculate the residuals vector.
+
+        Parameters:
+        * predicted
+			Array with the predicted data
+
+        Returns:
+        * array
+            Array with the residuals
+           
+        """
+        return self.obs - predicted
+        
+    def _shape_of_anomaly(self, predicted):
+        """
+        Calculate the shape-of-anomaly residuals vector.
+
+        Parameters:
+        * predicted
+			Array with the predicted data
 
         Returns:
         * array
             Array with the residuals
             
         """
-        n, props = neighbor
-        if self.prop not in props:
-            return self.res
-        prop = float(props[self.prop])
-        if n not in self.effect:
-            c = mesh[n]
-            self.effect[n] = self.calc_effect(prop, c['x1'], c['x2'], c['y1'],
-                c['y2'], c['z1'], c['z2'], self.x, self.y, self.z)  
-        return self.res - self.effect[n]    
+        return self.norm_obs - predicted/predicted.max()
         
-    def cleanup(self, neighbor):
+    def update(self, neighbor, mesh):
         """
-        Delete unnecessary things after neighbor has been added to the estimate.
-
+        Update the predicted data vector and delete unnecessary things after
+        neighbor has been added to the estimate.
+    
         Parameters:
         * neighbor
             [n, props]
             n is the index of the neighbor in the mesh.
             props is a dictionary with the physical properties of the neighbor
+        * mesh
+            A 3D mesh. See :mod:`fatiando.mesher.volume`
             
         """
-        self.res = self.res - self.effect[neighbor[0]]
-        del self.effect[neighbor[0]]
-
-    def predicted(self):
-        """
-        The predicted data at the end of an inversion process.
-        Calculated by:
-            pred = obs - residuals
-
-        Returns:
-        * array
-            Array of predicted data.
-            
-        """
-        return self.obs - self.res
+        n, props = neighbor
+        if self.prop not in props:
+            pass
+        if n not in self.effect:
+            c = mesh[n]
+            self.effect[n] = self.calc_effect(float(props[self.prop]),
+                c['x1'], c['x2'], c['y1'], c['y2'], c['z1'], c['z2'],
+                self.x, self.y, self.z)
+        self.predicted += self.effect[n]
+        del self.effect[n]
         
-class GzModule(PotentialModule):
+class PrismGzModule(DataModule):
     """
     Data module for the vertical component of the gravitational attraction (gz).
 
@@ -220,8 +200,8 @@ class GzModule(PotentialModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
-        PotentialModule.__init__(self, x, y, z, obs, norm, weight)
+    def __init__(self, x, y, z, obs, norm=2, weight=True, use_shape=False):
+        DataModule.__init__(self, x, y, z, obs, norm, weight, use_shape)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
 
@@ -263,7 +243,7 @@ class ConcentrationRegularizer(object):
         dz = abs(cell1['z1'] - cell2['z1'])        
         return math.sqrt(dx**2 + dy**2 + dx**2)
 
-    def __call__(self, neighbor, s):
+    def __call__(self, neighbor, seed):
         """
         Evaluate the regularizer with the neighbor included in the estimate.
 
@@ -272,9 +252,10 @@ class ConcentrationRegularizer(object):
             [n, props]
             n is the index of the neighbor in the mesh.
             props is a dictionary with the physical properties of the neighbor
-        * s
-            Index of the seed which the neighbor is neighboring prism of.
-            Ex: first seed: s=0; second: s=1; etc
+        * seed
+            [s, props]
+            s is the index of the seed in the mesh.
+            props is a dictionary with the physical properties of the seed
 
         Returns:
         * float
@@ -283,6 +264,7 @@ class ConcentrationRegularizer(object):
             
         """
         n = neighbor[0]
+        s = seed[0]
         if n not in self.dists:
             self.dists[n] = self.calc_dist(self.mesh[n],
                                            self.mesh[self.seeds[s][0]])
@@ -439,11 +421,11 @@ def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
     above, bellow, front, back, left, right = [None]*6
     # The guy above
     tmp = n - nx*ny    
-    if tmp > 0 and up:        
+    if up and tmp > 0:        
         above = tmp
     # The guy bellow
     tmp = n + nx*ny
-    if tmp < mesh.size and down:
+    if down and tmp < mesh.size:
         bellow = tmp    
     # The guy in front
     tmp = n + 1
@@ -509,16 +491,10 @@ def is_compact(estimate, mesh, neighbor):
     """
     Check if this neighbor satifies the compactness criterion.
     """
-    around = find_neighbors(neighbor, mesh, full=True)
+    around = find_neighbors(neighbor, mesh, full=False)
     free = free_neighbors(estimate, around)
-    return len(around) - len(free) >= 3
+    return len(around) - len(free) >= 2
     
-def compact_neighbors(estimate, mesh, neighbors):
-    """
-    Remove neighbors that don't satisfy the compactness criterion.
-    """
-    return [n for n in neighbors if is_compact(estimate, mesh, n)]
-
 def is_eligible(residuals, tol, dmods):
     """
     Check is a neighbor is eligible for accretion based on the residuals it
@@ -527,54 +503,47 @@ def is_eligible(residuals, tol, dmods):
     observed data in absolute value.
     """
     for dm, res in zip(dmods, residuals):
-        diff = abs(dm.obs) - abs(dm.obs - res)
-        if True in [abs(d) >= tol for d in diff if d < 0]:
+        if True in [abs(d) >= tol for d in res/dm.obs if d < 0]:
             return False
     return True
 
-    
-    
-def choose_best(s, neighbors, goalfunc, goal, mesh, estimate, dmods, thresh,
-                tol):
-    """
-    Find which of the neighbors is the best one for the accretion.
+def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
+	"""
+	Creates a standard neighbor chooser based on data misfit and regularization.
+	"""
+	if regularizer is None:
+		regularizer = lambda neighbor, s: 0.0
+		
+	def jury(seed, neighbors, estimate, datamods, goal, mesh, thresh=thresh,
+			 tol=tol, regularizer=regularizer):
+		# Filter the neighbors that fulfill the compactness criterion
+		left = [(i, n) for i, n in enumerate(neighbors)
+				if is_compact(estimate, mesh, n)]
+		# Calculate the residuals of all data modules for each neighbor left
+		res = dict((i, [dm.tmp_residuals(n, mesh) for dm in datamods])
+				   for i, n in left)
+		# Filter the eligible for accretion based on their residuals
+		left = [(i, n) for i, n in left if is_eligible(res[i], tol, datamods)]
+		misfits = (sum(dm.misfit(r) for dm, r in zip(datamods, res[i]))
+				   for i, n in left)
+		reg = (regularizer(n, seed) for i, n in left)
+		# Calculate the goal functions
+		goals = ((l[0], m + r) for m, r, l in zip(misfits, reg, left))
+		# Keep only the ones that decrease the goal function
+		decreased = [(i, g) for i, g in goals
+					 if g < goal and abs(g - goal)/goal >= thresh]
+		if decreased:
+			#TODO: what if there is a tie?
+			# Choose the best neighbor (decreases the goal function most)
+			best = decreased[numpy.argmin([g for i, g in decreased])]
+			return best
+		return None
+	return jury
 
-    Returns:
-    * [j, goal]
-        j is the index in the neighbor list of the best. goal is the goal
-        function value resulting from adding the best to the estimate.
-        
-    """
-    # Calculate the residuals of all data modules for each neighbor
-    res = [[dm.residuals(mesh, estimate, n) for dm in dmods] for n in neighbors]
-    # Choose the ones that are eligible for accretion based on their residuals
-    # Need the index i to know what neighbor we're talking about
-    eligible = [(i, r) for i, r in enumerate(res) if is_eligible(r, tol, dmods)]
-    # Calculate the goal functions
-    goals = [(i, goalfunc(r, neighbors[i], s)) for i, r in eligible]
-    # Keep only the ones that decrease the goal function
-    decreased = [(i, g) for i, g in goals
-                 if g < goal and abs(g - goal)/goal >= thresh]
-    if decreased:
-        #TODO: what if there is a tie?
-        # Choose the best neighbor (decreases the goal function most)
-        j, goal = decreased[numpy.argmin([g for i, g in decreased])]
-        return j, goal
-    return None
-
-def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
+def grow(seeds, mesh, datamods, jury):
     """
     Yield one accretion at a time
     """
-    # Define the goal function
-    def misfit(residuals, dmods=dmods):
-        return sum(dm.misfit(res) for dm, res in zip(dmods, residuals))
-    if regularizer is None:  
-        def goalfunc(residuals, neighbor, s, mesh=mesh):
-            return misfit(residuals)
-    else:
-        def goalfunc(residuals, neighbor, s, mesh=mesh):
-            return misfit(residuals) + regularizer(neighbor, s)    
     # Initialize the estimate with SparseLists
     estimate = {}
     for s, props in seeds:
@@ -582,31 +551,29 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
             if p not in estimate:
                 estimate[p] = utils.SparseList(mesh.size)
     # Include the seeds in the estimate
-    goal = 0
     for seed in seeds:
-        goal = 0
-        for dm in dmods:
-            goal += dm.misfit(dm.residuals(mesh, estimate, seed))
-            dm.cleanup(seed)
         s, props = seed
         for p in props:
             estimate[p][s] = props[p]
-    # Find the neighboring prisms of the seeds
+        for dm in datamods:
+			dm.update(seed, mesh)
+	# Find the neighboring prisms of the seeds
     neighborhood = []
     for s in seeds:
         neighborhood.append(not_neighbors(neighborhood,
                                 free_neighbors(estimate,
-                                    find_neighbors(s, mesh, full=False, up=False, down=False))))
+                                    find_neighbors(s, mesh, full=True))))
+	# Calculate the initial goal function
+    goal = sum(dm.misfit(dm.residuals(dm.predicted)) for dm in datamods)
     # Spit out a changeset
     yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
-           'dmods':dmods}
+           'datamods':datamods}
     # Perform the accretions. The maximum number of accretions is the whole mesh
     # minus seeds. The goal function starts with the total misfit of the seeds.
     for iteration in xrange(mesh.size - len(seeds)):
         onegrew = False
-        for s, neighbors in enumerate(neighborhood):
-            chosen = choose_best(s, neighbors, goalfunc, goal, mesh, estimate,
-                                 dmods, thresh, tol)
+        for seed, neighbors in zip(seeds, neighborhood):
+            chosen = jury(seed, neighbors, estimate, datamods, goal, mesh)
             if chosen is not None:                
                 onegrew = True
                 j, goal = chosen
@@ -614,34 +581,28 @@ def grow(seeds, mesh, dmods, regularizer=None, thresh=0.0001, tol=0.01):
                 nbest, pbest = best
                 # Add it to the estimate
                 for p in pbest:
-                    estimate[p][nbest] = pbest[p]                
-                # Find its neighbors and append them
+                    estimate[p][nbest] = pbest[p]
+                # Update the neighbors of this neighborhood
                 neighbors.pop(j)
-                neighbors.extend(compact_neighbors(estimate, mesh,
-                                    not_neighbors(neighborhood,
-                                        free_neighbors(estimate, 
-                                            find_neighbors(best, mesh, up=False, down=False)))))
-                # Clean up after adding the neighbor
-                for dm in dmods:
-                    dm.cleanup(best)
-                if regularizer is not None:
-                    regularizer.cleanup(best)
+                neighbors.extend(not_neighbors(neighborhood,
+									free_neighbors(estimate, 
+										find_neighbors(best, mesh))))
                 # Spit out a changeset
                 yield {'estimate':estimate, 'neighborhood':neighborhood,
-                       'goal':goal, 'dmods':dmods}
+                       'datamods':goal, 'dmods':datamods}
         if not onegrew:
-            break
-    log.info("Final goal function value: %g" % (goal))    
+            break 
 
-def harvest(seeds, mesh, dmods, compactness=0, thresh=0.0001, tol=0.01):
+def harvest(seeds, mesh, datamods, jury):
     """
     Perform all accretions. Return mesh with special props in it.
     special props don't store 0s, return 0 if try to access element not in dict
     """
     tstart = time.clock()
-    grower = grow(seeds, mesh, dmods, compactness, thresh, tol)
+    grower = grow(seeds, mesh, datamods, jury)
     goals = [chset['goal'] for i, chset in enumerate(grower)]
     tfinish = time.clock() - tstart
+    log.info("Final goal function value: %g" % (goal))   
     log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
     log.info("Total number of accretions: %d" % (i))
     if i > 0:

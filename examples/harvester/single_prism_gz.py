@@ -54,12 +54,12 @@ mesh = PrismMesh3D(extent, (15, 25, 25))
 #mlab.show()
 
 log.info("\nFourth sow the seeds:")
-#rawseeds = [((5000, 5000, 3000), {'density':800})]
-rawseeds = [((5000, 5000, 2100), {'density':800}),
-            ((5000, 5000, 2500), {'density':800}),
-            ((5000, 5000, 3000), {'density':800}),
-            ((5000, 5000, 3500), {'density':800}),
-            ((5000, 5000, 3900), {'density':800})]
+rawseeds = [((5000, 5000, 3000), {'density':800})]
+#rawseeds = [((5000, 5000, 2100), {'density':800}),
+            #((5000, 5000, 2500), {'density':800}),
+            #((5000, 5000, 3000), {'density':800}),
+            #((5000, 5000, 3500), {'density':800}),
+            #((5000, 5000, 3900), {'density':800})]
 #rawseeds = [((5000, 3000, 3000), {'density':800}),
             #((5000, 4000, 3000), {'density':800}),
             #((5000, 5000, 3000), {'density':800}),
@@ -78,33 +78,34 @@ seeds = harvester.sow(mesh, rawseeds)
 #mlab.show()
     
 log.info("\nFith harvest the results:")
-gzmod = harvester.GzModule(x, y, z, gz)
-reg = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
+gzmod = harvester.PrismGzModule(x, y, z, gz, use_shape=True)
+regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-2), 1.)
+jury = harvester.standard_jury(regul, thresh=0.000000000000001, tol=0.01)
 def meh(i,j,k):
     return True
 #harvester.is_eligible = meh
 
-result, goals = harvester.harvest(seeds, mesh, [gzmod], reg, tol=0.01)
-estimate = result['estimate']
-for prop in estimate:
-    mesh.addprop(prop, estimate[prop])
-density_model = vfilter(1, 2000, 'density', mesh)
+#results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
+#estimate = results['estimate']
+#for prop in estimate:
+    #mesh.addprop(prop, estimate[prop])
+#density_model = vfilter(1, 2000, 'density', mesh)
 
-#import numpy
-#goals = []
-#for chset in harvester.grow(seeds, mesh, [gzmod], reg, tol=0.01, thresh=10**(-4)):    
-    #estimate = chset['estimate']
-    #goals.append(chset['goal'])
-    #for prop in estimate:
-        #mesh.addprop(prop, estimate[prop])
-    #density_model = vfilter(1, 2000, 'density', mesh)
-    #neighbors = [mesh[n] for nei in chset['neighborhood'] for n, p in nei]
-    #mlab.figure(bgcolor=(1,1,1))
-    #vis.prisms3D(model, extract('density', model), style='wireframe', vmin=0)
-    #vis.prisms3D(neighbors, numpy.zeros_like(neighbors), style='wireframe')
-    #vis.prisms3D(density_model, extract('density', density_model), vmin=0)
-    #outline = mlab.outline(color=(0,0,0), extent=extent)
-    #mlab.show()
+import numpy
+goals = []
+for chset in harvester.grow(seeds, mesh, [gzmod], jury):    
+    estimate = chset['estimate']
+    goals.append(chset['goal'])
+    for prop in estimate:
+        mesh.addprop(prop, estimate[prop])
+    density_model = vfilter(1, 2000, 'density', mesh)
+    neighbors = [mesh[n] for nei in chset['neighborhood'] for n, p in nei]
+    mlab.figure(bgcolor=(1,1,1))
+    vis.prisms3D(model, extract('density', model), style='wireframe', vmin=0)
+    vis.prisms3D(neighbors, numpy.zeros_like(neighbors), style='wireframe')
+    vis.prisms3D(density_model, extract('density', density_model), vmin=0)
+    outline = mlab.outline(color=(0,0,0), extent=extent)
+    mlab.show()
 
 pyplot.figure()
 pyplot.subplot(2,2,1)
@@ -112,13 +113,13 @@ pyplot.title("Adjustment")
 pyplot.axis('scaled')
 levels = vis.contourf(y, x, gz, shape, 12)
 pyplot.colorbar()
-vis.contour(y, x, gzmod.predicted(), shape, 12)
+vis.contour(y, x, gzmod.predicted, shape, 12)
 pyplot.xlabel('East (km)')
 pyplot.ylabel('North (km)')
 pyplot.subplot(2,2,2)
 pyplot.title("Residuals")
 pyplot.axis('scaled')
-vis.pcolor(y, x, gzmod.res, shape)
+vis.pcolor(y, x, gzmod.residuals(gzmod.predicted), shape)
 pyplot.colorbar()
 pyplot.xlabel('East (km)')
 pyplot.ylabel('North (km)')
