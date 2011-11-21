@@ -213,6 +213,30 @@ def polyprism_contours(prisms, colors=None, labels=None):
         lines.append(line)
     return lines
 
+def _lazy_import_mlab():
+    """
+    Do the lazy import of mlab
+    """
+    global mlab
+    # For campatibility with versions of Mayavi2 < 4
+    if mlab is None:
+        try:
+            from mayavi import mlab
+        except ImportError:            
+            from enthought.mayavi import mlab
+
+def _lazy_import_tvtk():
+    """
+    Do the lazy import of tvtk
+    """
+    global tvtk
+    # For campatibility with versions of Mayavi2 < 4
+    if tvtk is None:
+        try:
+            from tvtk.api import tvtk
+        except ImportError:
+            from enthought.tvtk.api import tvtk
+
 def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
              vmin=None, vmax=None):
     """
@@ -249,20 +273,10 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
 
-    # Do the lazy imports for these slow modules
-    global mlab, tvtk
-    # For campatibility with versions of Mayavi2 < 4
-    if mlab is None:
-        try:
-            from mayavi import mlab
-        except ImportError:            
-            from enthought.mayavi import mlab
-    if tvtk is None:
-        try:
-            from tvtk.api import tvtk
-        except ImportError:
-            from enthought.tvtk.api import tvtk
-
+    # mlab and tvtk are really slow to import
+    _lazy_import_mlab()
+    _lazy_import_tvtk()
+    
     # VTK parameters
     points = []
     cells = []
@@ -311,6 +325,45 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
     surf.actor.property.backface_culling = 1
     return surf
 
+def mayavi_figure():
+    """
+    Create a default figure in Mayavi with white background and z pointing down
+
+    Return:
+    * fig
+        The Mayavi figure object
+        
+    """
+    _lazy_import_mlab()
+    fig = mlab.figure(bgcolor=(1, 1, 1))
+    fig.scene.camera.view_up = numpy.array([0., 0., -1.])
+    fig.scene.camera.elevation(60.)
+    fig.scene.camera.azimuth(180.)
+    return fig
+
+def add_outline3d(extent=None, color=(0,0,0), width=2):
+    """
+    Create a default outline in Mayavi.
+
+    Parameters:
+    * extent
+        [xmin, xmax, ymin, ymax, zmin, zmax]. Default if the objects extent.
+    * color
+        RGB of the color of the axes and text
+    * width
+        Line width
+        
+    Returns:
+    * outline
+        Mayavi outline instace in the pipeline
+        
+    """
+    _lazy_import_mlab()
+    outline = mlab.outline(color=color, line_width=width)
+    if extent is not None:
+        outline.bounds = extent
+    return outline
+    
 def add_axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
                width=2, fmt="%-#.2f"):
     """
@@ -338,7 +391,8 @@ def add_axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     * axes
         The axes object in the pipeline
         
-    """    
+    """
+    _lazy_import_mlab()
     a = mlab.axes(plot, nb_labels=nlabels, color=color)
     a.label_text_property.color = color
     a.title_text_property.color = color
@@ -482,6 +536,7 @@ def _wall(bounds, color, opacity):
     """
     Generate a 3D wall in Mayavi
     """
+    _lazy_import_mlab()
     p = mlab.pipeline.builtin_surface()
     p.source = 'outline'
     p.data_source.bounds = bounds
