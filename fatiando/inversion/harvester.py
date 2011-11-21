@@ -401,7 +401,7 @@ class ConcentrationRegularizer(object):
         dx = abs(cell1['x1'] - cell2['x1'])
         dy = abs(cell1['y1'] - cell2['y1'])
         dz = abs(cell1['z1'] - cell2['z1'])        
-        return math.sqrt(dx**2 + dy**2 + dx**2)
+        return math.sqrt(dx**2 + dy**2 + dz**2)
 
     def __call__(self, neighbor, seed):
         """
@@ -424,13 +424,12 @@ class ConcentrationRegularizer(object):
             
         """
         n = neighbor['index']
-        s = seed['index']
         if n not in self.dists:
-            self.dists[n] = self.calc_dist(self.mesh[n],
-                                           self.mesh[s])
+            s = seed['index']
+            self.dists[n] = self.calc_dist(self.mesh[n], self.mesh[s])
         return self.reg + self.weight*self.mu*(self.dists[n]**self.power)
 
-    def cleanup(self, neighbor):
+    def update(self, neighbor):
         """
         Clean up things after adding the neighbor to the estimate.
         """
@@ -661,8 +660,6 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
     Creates a standard jury function (neighbor chooser) based on regular data
     misfit and regularization.
     """
-    if regularizer is None:
-        regularizer = lambda neighbor, s: 0.0        
     def jury(seed, neighbors, estimate, datamods, misfit, mesh, it, nseeds,
              thresh=thresh, tol=tol, regularizer=regularizer):
         left = [(i, n) for i, n in enumerate(neighbors)]
@@ -680,10 +677,15 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
         if not decreased:
             return None
         # Calculate the goal functions
-        goals = [(i, m + regularizer(neighbors[i], seed)) for i, m in decreased]
+        if regularizer is not None:
+            goals = [m + regularizer(neighbors[i], seed) for i, m in decreased]
+        else:
+            goals = [m for i, m in decreased]
         #TODO: what if there is a tie?
         # Choose the best neighbor (decreases the goal function most)
-        best = decreased[numpy.argmin([g for i, g in goals])]
+        best = decreased[numpy.argmin(goals)]
+        if regularizer is not None:
+            regularizer.update(neighbors[best[0]])
         return best
     return jury
 
@@ -691,11 +693,11 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
     """
     Creates a jury function (neighbor chooser) based on shape-of-anomaly data
     misfit, algorithmic compactness, and regularization.
-    """
-    if regularizer is None:
-        regularizer = lambda neighbor, s: 0.0        
+    """    
     def jury(seed, neighbors, estimate, datamods, goal, mesh, it, nseeds,
              compact=compact, thresh=thresh, tol=tol, regularizer=regularizer):
+        # Make the compactness criterion vary with iteration so that the first
+        # neighbors are eligible (they only have the seed as neighbor)
         if it < compact*nseeds:
             compact = 1
         # Filter the ones that don't satisfy the compactness criterion
@@ -706,11 +708,14 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
                     for i, n in left)
         # Filter the eligible for accretion based on their predicted data
         left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
-        misfits = (sum(dm.misfit(p) for dm, p in zip(datamods, pred[i]))
-                   for i, n in left)
-        reg = (regularizer(n, seed) for i, n in left)
-        # Calculate the goal functions
-        goals = [(l[0], m + r) for m, r, l in zip(misfits, reg, left)]
+        misfits = [(i, sum(dm.misfit(p) for dm, p in zip(datamods, pred[i])))
+                   for i, n in left]
+        # Calculate the goal function
+        if regularizer is not None:
+            reg = (regularizer(n, seed) for i, n in left)
+            goals = [(m[0], m[1] + r) for m, r in zip(misfits, reg)]
+        else:
+            goals = misfits
         # Keep only the ones that decrease the goal function
         decreased = [(i, g) for i, g in goals
                      if g < goal and abs(g - goal)/goal >= thresh]
@@ -722,6 +727,8 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
         #TODO: what if there is a tie?
         # Choose the best neighbor (decreases the goal function most)
         best = decreased[numpy.argmin(soa)]
+        if regularizer is not None:
+            regularizer.update(neighbors[best[0]])
         return best
     return jury
 
