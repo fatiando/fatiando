@@ -1,0 +1,54 @@
+         6701489 function calls (6625055 primitive calls) in 493.509 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001  493.509  493.509 <string>:1(<module>)
+        4    0.000    0.000    0.000    0.000 __init__.py:1122(info)
+        4    0.000    0.000    0.000    0.000 __init__.py:1310(getEffectiveLevel)
+        4    0.000    0.000    0.000    0.000 __init__.py:1324(isEnabledFor)
+      379    0.002    0.000    0.017    0.000 fromnumeric.py:32(_wrapit)
+      379    0.003    0.000    0.021    0.000 fromnumeric.py:739(argmin)
+    76993    0.620    0.000    1.884    0.000 harvester.py:122(misfit)
+    76434    1.479    0.000   52.981    0.001 harvester.py:139(shape_of_anomaly)
+      380    0.015    0.000    0.015    0.000 harvester.py:154(update)
+     1079    0.010    0.000    0.011    0.000 harvester.py:508(find_neighbors)
+  2138102    1.455    0.000    2.100    0.000 harvester.py:600(in_estimate)
+    82527    0.509    0.000    2.609    0.000 harvester.py:611(free_neighbors)
+     1373    0.020    0.000    0.020    0.000 harvester.py:618(in_tha_hood)
+      380    0.001    0.000    0.020    0.000 harvester.py:632(not_neighbors)
+    82147    0.054    0.000    2.669    0.000 harvester.py:638(is_compact)
+    76992  431.378    0.006  431.999    0.006 harvester.py:646(is_eligible)
+      380    0.521    0.001  493.397    1.298 harvester.py:697(jury)
+    77372    0.072    0.000    2.721    0.000 harvester.py:707(<genexpr>)
+   153984    0.068    0.000    1.951    0.000 harvester.py:711(<genexpr>)
+   152868    0.077    0.000   53.059    0.000 harvester.py:725(<genexpr>)
+      381    0.058    0.000  493.507    1.295 harvester.py:735(grow)
+        2    0.000    0.000    0.000    0.000 harvester.py:761(<genexpr>)
+    76992    2.639    0.000    2.649    0.000 harvester.py:79(new_predicted)
+        1    0.001    0.001  493.508  493.508 harvester.py:796(harvest)
+   153427    1.496    0.000    2.624    0.000 linalg.py:1839(norm)
+   153806    0.106    0.000    0.291    0.000 numeric.py:216(asarray)
+        1    0.000    0.000    0.000    0.000 utils.py:60(__init__)
+  2138102    0.645    0.000    0.645    0.000 utils.py:75(__getitem__)
+      380    0.001    0.000    0.001    0.000 utils.py:84(__setitem__)
+        2    0.000    0.000    0.000    0.000 utils.py:96(sec2hms)
+      691    0.002    0.000    0.002    0.000 volume.py:134(Prism3D)
+      691    0.008    0.000    0.010    0.000 volume.py:357(__getitem__)
+      691    0.000    0.000    0.000    0.000 volume.py:378(<genexpr>)
+   153426    0.546    0.000    0.546    0.000 {abs}
+      379    0.000    0.000    0.000    0.000 {getattr}
+   164295    0.010    0.000    0.010    0.000 {len}
+    13981    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+      379    0.004    0.000    0.004    0.000 {method 'argmin' of 'numpy.ndarray' objects}
+   153427    0.042    0.000    0.042    0.000 {method 'conj' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+      379    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
+      379    0.001    0.000    0.001    0.000 {method 'pop' of 'list' objects}
+   153427    0.807    0.000    0.807    0.000 {method 'sum' of 'numpy.ndarray' objects}
+   153806    0.186    0.000    0.186    0.000 {numpy.core.multiarray.array}
+229861/153427   50.482    0.000   55.350    0.000 {sum}
+        2    0.000    0.000    0.000    0.000 {time.clock}
+   230798    0.192    0.000    0.192    0.000 {zip}
+
+
