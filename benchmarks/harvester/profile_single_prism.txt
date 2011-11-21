@@ -1,53 +1,57 @@
-         7936232 function calls in 6.488 seconds
+         392045335 function calls in 1303.734 seconds
 
    Ordered by: standard name
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    0.000    0.000    6.488    6.488 <string>:1(<module>)
-     3021    0.002    0.000    0.105    0.000 fromnumeric.py:1348(sum)
-       35    0.000    0.000    0.001    0.000 fromnumeric.py:32(_wrapit)
-       35    0.000    0.000    0.001    0.000 fromnumeric.py:739(argmin)
-     1511    0.012    0.000    0.037    0.000 harvester.py:123(misfit)
-     1510    0.025    0.000    0.057    0.000 harvester.py:140(shape_of_anomaly)
-       36    0.003    0.000    0.003    0.000 harvester.py:155(update)
-      167    0.001    0.000    0.002    0.000 harvester.py:509(find_neighbors)
-    49486    0.033    0.000    0.047    0.000 harvester.py:601(in_estimate)
-     1931    0.011    0.000    0.057    0.000 harvester.py:612(free_neighbors)
-      168    0.000    0.000    0.000    0.000 harvester.py:619(in_tha_hood)
-       36    0.000    0.000    0.001    0.000 harvester.py:633(not_neighbors)
-     1895    0.001    0.000    0.058    0.000 harvester.py:639(is_compact)
-     1556    2.285    0.001    5.951    0.004 harvester.py:647(is_eligible)
-  3890112    2.785    0.000    3.131    0.000 harvester.py:655(<genexpr>)
-       36    0.010    0.000    6.481    0.180 harvester.py:700(jury)
-     1628    0.001    0.000    0.354    0.000 harvester.py:710(<genexpr>)
-     3020    0.001    0.000    0.038    0.000 harvester.py:714(<genexpr>)
-     3020    0.001    0.000    0.058    0.000 harvester.py:728(<genexpr>)
-       37    0.001    0.000    6.488    0.175 harvester.py:738(grow)
+        1    0.002    0.002 1303.734 1303.734 <string>:1(<module>)
+        4    0.000    0.000    0.000    0.000 __init__.py:1122(info)
+        4    0.000    0.000    0.000    0.000 __init__.py:1310(getEffectiveLevel)
+        4    0.000    0.000    0.000    0.000 __init__.py:1324(isEnabledFor)
+   153427    0.613    0.000   12.731    0.000 fromnumeric.py:1348(sum)
+      379    0.004    0.000    0.031    0.000 fromnumeric.py:32(_wrapit)
+      379    0.007    0.000    0.038    0.000 fromnumeric.py:739(argmin)
+    76993    1.212    0.000    4.054    0.000 harvester.py:123(misfit)
+    76434    2.654    0.000    6.231    0.000 harvester.py:140(shape_of_anomaly)
+      380    0.022    0.000    0.022    0.000 harvester.py:155(update)
+     1079    0.031    0.000    0.044    0.000 harvester.py:509(find_neighbors)
+  2138102    6.541    0.000    9.594    0.000 harvester.py:601(in_estimate)
+    82527    2.922    0.000   12.516    0.000 harvester.py:612(free_neighbors)
+     1373    0.031    0.000    0.031    0.000 harvester.py:619(in_tha_hood)
+      380    0.003    0.000    0.034    0.000 harvester.py:633(not_neighbors)
+    82147    0.411    0.000   13.074    0.000 harvester.py:639(is_compact)
+    76992  383.985    0.005 1270.555    0.017 harvester.py:647(is_eligible)
+192556992  631.012    0.000  841.798    0.000 harvester.py:655(<genexpr>)
+      380    1.460    0.004 1303.515    3.430 harvester.py:700(jury)
+    77372    0.281    0.000    5.258    0.000 harvester.py:710(<genexpr>)
+   153984    0.322    0.000    4.376    0.000 harvester.py:714(<genexpr>)
+   152868    0.329    0.000    6.560    0.000 harvester.py:728(<genexpr>)
+      381    0.096    0.000 1303.731    3.422 harvester.py:738(grow)
         2    0.000    0.000    0.000    0.000 harvester.py:764(<genexpr>)
-        1    0.000    0.000    6.488    6.488 harvester.py:799(harvest)
-     1592    0.351    0.000    0.352    0.000 harvester.py:80(new_predicted)
-     3021    0.028    0.000    0.049    0.000 linalg.py:1839(norm)
-     3056    0.002    0.000    0.005    0.000 numeric.py:216(asarray)
+        1    0.001    0.001 1303.732 1303.732 harvester.py:799(harvest)
+    76992    4.955    0.000    4.978    0.000 harvester.py:80(new_predicted)
+   153427    3.126    0.000    5.676    0.000 linalg.py:1839(norm)
+   153806    0.467    0.000    0.890    0.000 numeric.py:216(asarray)
         1    0.000    0.000    0.000    0.000 utils.py:60(__init__)
-    49486    0.014    0.000    0.014    0.000 utils.py:75(__getitem__)
-       36    0.000    0.000    0.000    0.000 utils.py:84(__setitem__)
-      119    0.000    0.000    0.000    0.000 volume.py:134(Prism3D)
-      119    0.001    0.000    0.001    0.000 volume.py:357(__getitem__)
-      119    0.000    0.000    0.000    0.000 volume.py:378(<genexpr>)
-  3890067    0.346    0.000    0.346    0.000 {abs}
-       35    0.000    0.000    0.000    0.000 {getattr}
-     3021    0.000    0.000    0.000    0.000 {isinstance}
-     3791    0.000    0.000    0.000    0.000 {len}
-     2621    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
-       35    0.000    0.000    0.000    0.000 {method 'argmin' of 'numpy.ndarray' objects}
-     3021    0.001    0.000    0.001    0.000 {method 'conj' of 'numpy.ndarray' objects}
+  2138102    3.052    0.000    3.052    0.000 utils.py:75(__getitem__)
+      380    0.001    0.000    0.001    0.000 utils.py:84(__setitem__)
+        2    0.000    0.000    0.000    0.000 utils.py:96(sec2hms)
+      691    0.005    0.000    0.005    0.000 volume.py:134(Prism3D)
+      691    0.017    0.000    0.022    0.000 volume.py:357(__getitem__)
+      691    0.001    0.000    0.001    0.000 volume.py:378(<genexpr>)
+192556434  210.871    0.000  210.871    0.000 {abs}
+      379    0.001    0.000    0.001    0.000 {getattr}
+   153427    0.176    0.000    0.176    0.000 {isinstance}
+   164295    0.164    0.000    0.164    0.000 {len}
+    13981    0.013    0.000    0.013    0.000 {method 'append' of 'list' objects}
+      379    0.007    0.000    0.007    0.000 {method 'argmin' of 'numpy.ndarray' objects}
+   153427    0.207    0.000    0.207    0.000 {method 'conj' of 'numpy.ndarray' objects}
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
-       35    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
-       35    0.000    0.000    0.000    0.000 {method 'pop' of 'list' objects}
-     4531    0.022    0.000    0.022    0.000 {method 'sum' of 'numpy.ndarray' objects}
-     3056    0.004    0.000    0.004    0.000 {numpy.core.multiarray.array}
-     3021    0.006    0.000    0.102    0.000 {sum}
-        1    0.000    0.000    0.000    0.000 {time.clock}
-     6168    0.536    0.000    0.536    0.000 {zip}
+      379    0.001    0.000    0.001    0.000 {method 'extend' of 'list' objects}
+      379    0.001    0.000    0.001    0.000 {method 'pop' of 'list' objects}
+   229861    2.217    0.000    2.217    0.000 {method 'sum' of 'numpy.ndarray' objects}
+   153806    0.423    0.000    0.423    0.000 {numpy.core.multiarray.array}
+   153427    1.006    0.000   11.942    0.000 {sum}
+        2    0.000    0.000    0.000    0.000 {time.clock}
+   307790   45.088    0.000   45.088    0.000 {zip}
 
 

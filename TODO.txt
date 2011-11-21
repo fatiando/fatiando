@@ -3,6 +3,9 @@
     - seismic
     - eqlayer
     - sphere
+* Test robustness
+* Synthetics long in each direction and slab
+* Optimize is_eligible. Making a generator didn't work.
 * Resolve duplicates in seeds
 * Try choosing goal value in the midle (not min or max)
 * Speedup shape-of-anomaly
