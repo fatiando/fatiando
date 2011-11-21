@@ -24,6 +24,7 @@ import time
 import math
 
 import numpy
+sum = numpy.sum
 
 from fatiando import potential, utils, logger
 
@@ -64,7 +65,7 @@ class DataModule(object):
         self.effect = {}
         self.predicted = numpy.zeros_like(self.obs)
         self.l2obs = numpy.linalg.norm(obs, 2)**2
-        self.absobs = abs(obs)
+        self.absobs = numpy.abs(obs)
         self.obsmax = self.absobs.max()
         self.weight = 1.
         if weight:
@@ -148,7 +149,7 @@ class DataModule(object):
         * float
             
         """
-        scale = sum(self.obs*predicted)/self.l2obs
+        scale = (self.obs*predicted).sum()/self.l2obs
         return numpy.linalg.norm(scale*self.obs - predicted, 2)
         
     def update(self, neighbor, mesh):
@@ -650,9 +651,11 @@ def is_eligible(predicted, tol, dmods):
     The criterion is that the predicted data must not be larger than the
     observed data in absolute value.
     """
-    for dm, p in zip(dmods, predicted):
-        if True in [d < -tol for d in (dm.absobs - abs(p))/dm.obsmax]:
-            return False
+    for dm, pred in zip(dmods, predicted):
+        diffs = ((o - abs(p))/dm.obsmax for o, p in zip(dm.absobs, pred))
+        for d in diffs:
+            if d < -tol:
+                return False
     return True
 
 def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
