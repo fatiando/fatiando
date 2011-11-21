@@ -94,7 +94,7 @@ class DataModule(object):
             Array with the predicted data
                     
         """
-        n, props = neighbor
+        n, props = neighbor['index'], neighbor['props']
         if self.prop not in props:
             return self.predicted
         if n not in self.effect:
@@ -165,7 +165,7 @@ class DataModule(object):
             A 3D mesh. See :mod:`fatiando.mesher.volume`
             
         """
-        n, props = neighbor
+        n, props = neighbor['index'], neighbor['props']
         if self.prop not in props:
             pass
         if n not in self.effect:
@@ -423,8 +423,8 @@ class ConcentrationRegularizer(object):
             regularizing parameter mu
             
         """
-        n = neighbor[0]
-        s = seed[0]
+        n = neighbor['index']
+        s = seed['index']
         if n not in self.dists:
             self.dists[n] = self.calc_dist(self.mesh[n],
                                            self.mesh[s])
@@ -434,7 +434,7 @@ class ConcentrationRegularizer(object):
         """
         Clean up things after adding the neighbor to the estimate.
         """
-        n = neighbor[0]
+        n = neighbor['index']
         self.reg += self.weight*self.mu*(self.dists[n]**self.power)
         del self.dists[n]
                 
@@ -479,8 +479,7 @@ def sow(mesh, rawseeds):
 
     Returns:
     * list
-        A list the index of each seed in the mesh and their physical properties,
-        as required by :func:`fatiando.inversion.harvester.harvest`
+        A list seeds as required by :func:`fatiando.inversion.harvester.harvest`
         
     """
     seeds = []
@@ -490,72 +489,22 @@ def sow(mesh, rawseeds):
         for s, cell in enumerate(mesh):
             if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
                 y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
-                append((s, props))
+                append({'index':s, 'props':props})
                 break
     # Search for duplicates
     duplicates = []
     for i in xrange(len(seeds)):
-        si, pi = seeds[i]
-        for j in xrange(i+1, len(seeds)):
-            sj, pj = seeds[j]
+        si, pi = seeds[i]['index'], seeds[i]['props']
+        for j in xrange(i + 1, len(seeds)):
+            sj, pj = seeds[j]['index'], seeds[j]['props']
             if si == sj and True in [p in pi for p in pj]:
-                duplicates.append((i,j))
+                duplicates.append((i, j))
     if duplicates:
         guilty = ', '.join(['%d and %d' % (i, j) for i, j in duplicates])
         msg1 = "Can't have seeds with same location and physical properties!"
         msg2 = "Guilty seeds: %s" % (guilty)
         raise ValueError, ' '.join([msg1, msg2])    
     return seeds
-
-def _full_neighbors(allpossible, mesh, props):
-    """
-    Return the diagonal neighbors.
-    """
-    above, bellow, front, back, left, right = allpossible
-    nz, ny, nx = mesh.shape
-    neighbors = []
-    append = neighbors.append
-    if front is not None and left is not None:        
-        append(left + 1)    
-    if front is not None and right is not None:        
-        append(right + 1)
-    if back is not None and left is not None:
-        append(left - 1)
-    if back is not None and right is not None:
-        append(right - 1)
-    if above is not None and left is not None:
-        append(above + nx)
-    if above is not None and right is not None:
-        append(above - nx)
-    if above is not None and front is not None:
-        append(above + 1)
-    if above is not None and back is not None:
-        append(above - 1)
-    if above is not None and front is not None and left is not None:
-        append(above + nx + 1)
-    if above is not None and front is not None and right is not None:
-        append(above - nx + 1)
-    if above is not None and back is not None and left is not None:
-        append(above + nx - 1)
-    if above is not None and back is not None and right is not None:
-        append(above - nx - 1)
-    if bellow is not None and left is not None:
-        append(bellow + nx)
-    if bellow is not None and right is not None:
-        append(bellow - nx)
-    if bellow is not None and front is not None:
-        append(bellow + 1)
-    if bellow is not None and back is not None:
-        append(bellow - 1)
-    if bellow is not None and front is not None and left is not None:
-        append(bellow + nx + 1)
-    if bellow is not None and front is not None and right is not None:
-        append(bellow - nx + 1)
-    if bellow is not None and back is not None and left is not None:
-        append(bellow + nx - 1)
-    if bellow is not None and back is not None and right is not None:
-        append(bellow - nx - 1)
-    return [(i, props) for i in neighbors]
     
 def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
     """
@@ -563,9 +512,9 @@ def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
 
     Parameters:
     * neighbor
-        [n, props]
-        n is the index of the neighbor in the mesh.
-        props is a dictionary with the physical properties of the neighbor
+        Dictionary with keys:
+        'index': the index of the neighbor in the mesh.
+        'props': a dictionary with the physical properties of the neighbor
     * mesh
         A 3D mesh. See :mod:`fatiando.mesher.volume`
     * full
@@ -577,7 +526,7 @@ def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
     
     """
     nz, ny, nx = mesh.shape 
-    n, props = neighbor
+    n, props = neighbor['index'], neighbor['props']
     above, bellow, front, back, left, right = [None]*6
     # The guy above
     tmp = n - nx*ny    
@@ -603,19 +552,59 @@ def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
     tmp = n - nx
     if n%(nx*ny) >= nx:
         right = tmp
-    allpossible = [above, bellow, front, back, left, right]
-    neighbors = [(i, props) for i in allpossible if i is not None]
+    indexes = [above, bellow, front, back, left, right]
+    # The diagonal neighbors
     if full:
-        neighbors.extend(_full_neighbors(allpossible, mesh, props))
-    return neighbors
+        append = indexes.append
+        if front is not None and left is not None:        
+            append(left + 1)    
+        if front is not None and right is not None:        
+            append(right + 1)
+        if back is not None and left is not None:
+            append(left - 1)
+        if back is not None and right is not None:
+            append(right - 1)
+        if above is not None and left is not None:
+            append(above + nx)
+        if above is not None and right is not None:
+            append(above - nx)
+        if above is not None and front is not None:
+            append(above + 1)
+        if above is not None and back is not None:
+            append(above - 1)
+        if above is not None and front is not None and left is not None:
+            append(above + nx + 1)
+        if above is not None and front is not None and right is not None:
+            append(above - nx + 1)
+        if above is not None and back is not None and left is not None:
+            append(above + nx - 1)
+        if above is not None and back is not None and right is not None:
+            append(above - nx - 1)
+        if bellow is not None and left is not None:
+            append(bellow + nx)
+        if bellow is not None and right is not None:
+            append(bellow - nx)
+        if bellow is not None and front is not None:
+            append(bellow + 1)
+        if bellow is not None and back is not None:
+            append(bellow - 1)
+        if bellow is not None and front is not None and left is not None:
+            append(bellow + nx + 1)
+        if bellow is not None and front is not None and right is not None:
+            append(bellow - nx + 1)
+        if bellow is not None and back is not None and left is not None:
+            append(bellow + nx - 1)
+        if bellow is not None and back is not None and right is not None:
+            append(bellow - nx - 1)
+    return [{'index':i, 'props':props} for i in indexes if i is not None]
 
 def in_estimate(estimate, neighbor):
     """
     Check if the neighbor is already set (not 0) in any of the physical
     properties of the estimate.
     """
-    n, props = neighbor
-    for p in props:
+    n = neighbor['index']
+    for p in neighbor['props']:
         if estimate[p][n] != 0:
             return True
     return False    
@@ -632,12 +621,12 @@ def in_tha_hood(neighborhood, neighbor):
     Check if a neighbor is already in the neighborhood with the same physical
     properties.
     """
-    n, props = neighbor
+    n, props = neighbor['index'], neighbor['props']
     for neighbors in neighborhood:
         for tmp in neighbors:
-            if n == tmp[0]:
+            if n == tmp['index']:
                 for p in props:
-                    if p in tmp[1]:
+                    if p in tmp['props']:
                         return True
     return False
 
@@ -651,7 +640,7 @@ def is_compact(estimate, mesh, neighbor, compact):
     """
     Check if this neighbor satifies the compactness criterion.
     """
-    around = find_neighbors(neighbor, mesh, full=True)
+    around = neighbor['neighbors']
     free = free_neighbors(estimate, around)
     return len(around) - len(free) >= compact
     
@@ -744,23 +733,25 @@ def grow(seeds, mesh, datamods, jury):
     """
     # Initialize the estimate with SparseLists
     estimate = {}
-    for s, props in seeds:
-        for p in props:
+    for seed in seeds:
+        for p in seed['props']:
             if p not in estimate:
                 estimate[p] = utils.SparseList(mesh.size)
     # Include the seeds in the estimate
     for seed in seeds:
-        s, props = seed
-        for p in props:
-            estimate[p][s] = props[p]
+        for p in seed['props']:
+            estimate[p][seed['index']] = seed['props'][p]
         for dm in datamods:
 			dm.update(seed, mesh)
     # Find the neighbors of the seeds
     neighborhood = []
-    for seed in seeds:        
-        neighborhood.append(not_neighbors(neighborhood,
-                                free_neighbors(estimate, 
-                                    find_neighbors(seed, mesh))))
+    for seed in seeds:
+        neighbors = not_neighbors(neighborhood,
+                        free_neighbors(estimate, 
+                            find_neighbors(seed, mesh)))
+        for n in neighbors:
+            n['neighbors'] = find_neighbors(n, mesh, full=True)
+        neighborhood.append(neighbors)
 	# Calculate the initial goal function
     goal = sum(dm.misfit(dm.predicted) for dm in datamods)
     # Spit out a changeset
@@ -778,17 +769,19 @@ def grow(seeds, mesh, datamods, jury):
                 onegrew = True
                 j, goal = chosen
                 best = neighbors[j]
-                nbest, pbest = best
                 # Add it to the estimate
-                for p in pbest:
-                    estimate[p][nbest] = pbest[p]
+                for p in best['props']:
+                    estimate[p][best['index']] = best['props'][p]
                 for dm in datamods:
                     dm.update(best, mesh)
                 # Update the neighbors of this neighborhood
                 neighbors.pop(j)
-                neighbors.extend(not_neighbors(neighborhood,
-									free_neighbors(estimate, 
-										find_neighbors(best, mesh))))
+                newneighbors = not_neighbors(neighborhood,
+									free_neighbors(estimate,
+                                        find_neighbors(best, mesh)))
+                for n in newneighbors:
+                    n['neighbors'] = find_neighbors(n, mesh, full=True)
+                neighbors.extend(newneighbors)
                 # Spit out a changeset
                 yield {'estimate':estimate, 'neighborhood':neighborhood,
                        'goal':goal, 'datamods':datamods}

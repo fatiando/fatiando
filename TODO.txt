@@ -3,6 +3,7 @@
     - seismic
     - eqlayer
     - sphere
+* Resolve duplicates in seeds
 * Store neighbors so that don't re-calculate every time (change neighbor to dict and store index props and neighbors)
 * Try choosing goal value in the midle (not min or max)
 * Speedup shape-of-anomaly

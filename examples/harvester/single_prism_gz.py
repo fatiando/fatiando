@@ -26,8 +26,8 @@ shape = (50,50)
 #x, y, z = gridder.scatter(extent[0:4], 200, z=-1)
 x, y, z = gridder.regular(extent[0:4], shape, z=-1)
 #gz = utils.contaminate(potential.prism.gz(x, y, z, model), 0.1)
-#gz = potential.prism.gz(x, y, z, model)
-gz = utils.contaminate(potential.prism.gzz(x, y, z, model), 1)
+gz = potential.prism.gxx(x, y, z, model)
+#gz = utils.contaminate(potential.prism.gxx(x, y, z, model), 1)
 
 #pyplot.figure()
 #pyplot.axis('scaled')
@@ -76,10 +76,10 @@ seeds = harvester.sow(mesh, rawseeds)
     
 log.info("\nFith harvest the results:")
 #gzmod = harvester.PrismGzModule(x, y, z, gz)
-gzmod = harvester.PrismGzzModule(x, y, z, gz)
+gzmod = harvester.PrismGxxModule(x, y, z, gz)
 regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-1), 3.)
 #jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.1)
-jury = harvester.shape_jury(regul, thresh=0.0001, tol=0.05)
+jury = harvester.shape_jury(regul, thresh=0.00001, tol=0.1, compact=5)
 
 results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
 estimate = results['estimate']
@@ -95,7 +95,7 @@ density_model = vfilter(1, 2000, 'density', mesh)
     #for prop in estimate:
         #mesh.addprop(prop, estimate[prop])
     #density_model = vfilter(1, 2000, 'density', mesh)
-    #neighbors = [mesh[n] for nei in chset['neighborhood'] for n, p in nei]
+    #neighbors = [mesh[n['index']] for nei in chset['neighborhood'] for n in nei]
     #vis.mayavi_figure()
     #vis.prisms3D(model, extract('density', model), style='wireframe', vmin=0)
     #vis.prisms3D(neighbors, numpy.zeros_like(neighbors), style='wireframe')
