@@ -40,8 +40,8 @@ gz = potential.prism.gxx(x, y, z, model)
 #pyplot.show()
 
 log.info("\nThird make a prism mesh:")
-#mesh = PrismMesh3D(extent, (20, 25, 25))
-mesh = PrismMesh3D(extent, (15, 10, 10))
+mesh = PrismMesh3D(extent, (30, 50, 50))
+#mesh = PrismMesh3D(extent, (15, 10, 10))
 #mesh = PrismMesh3D(extent, (10, 10, 10))
 
 #mlab.figure(bgcolor=(1,1,1))
@@ -64,22 +64,22 @@ rawseeds = [((5000, 5000, 3000), {'density':800})]
             #((5000, 7000, 3000), {'density':800})]
 seeds = harvester.sow(mesh, rawseeds)
 
-#mlab.figure(bgcolor=(1,1,1))
+#vis.mayavi_figure()
 #vis.prisms3D(model, extract('density', model), opacity=0.3, vmin=0)
-#vis.prisms3D((mesh[s] for s, p in seeds), (p['density'] for s, p in seeds),
-             #vmin=0)
-#outline = mlab.outline(color=(0,0,0), extent=extent)
-#vis.add_axes3d(outline)
+#seedmesh = (mesh[int(s)] for s in extract('index', seeds))
+#seedprops = (p['density'] for p in extract('props', seeds))
+#vis.prisms3D(seedmesh, seedprops, vmin=0)
+#vis.add_axes3d(vis.add_outline3d(extent=extent))
 #vis.wall_bottom(extent)
 #vis.wall_north(extent)
-#mlab.show()
+#vis.mlab.show()
     
 log.info("\nFith harvest the results:")
 #gzmod = harvester.PrismGzModule(x, y, z, gz)
 gzmod = harvester.PrismGxxModule(x, y, z, gz)
-regul = harvester.ConcentrationRegularizer(seeds, mesh, 0*10**(-1), 3.)
-#jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.1)
-jury = harvester.shape_jury(regul, thresh=0.00001, tol=0.1, compact=5)
+regul = harvester.ConcentrationRegularizer(seeds, mesh, 1*10**(5), 3.)
+jury = harvester.standard_jury(regul, thresh=0.0001, tol=0.1)
+#jury = harvester.shape_jury(None, thresh=0.000001, tol=0.1, compact=3)
 
 results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
 estimate = results['estimate']
