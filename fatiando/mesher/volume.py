@@ -498,6 +498,24 @@ def vfilter(vmin, vmax, key, prisms):
                 p[key] <= vmax]
     return filtered
 
+def center(cell):
+    """
+    Return the coordinates of the center of a given cell.
+
+    Paremters:
+    * cell
+        A cell (like Prism3D)
+
+    Returns:
+    * tuple
+        (xc, yc, zc) coordinates
+        
+    """
+    xc = 0.5*(cell['x1'] + cell['x2'])
+    yc = 0.5*(cell['y1'] + cell['y2'])
+    zc = 0.5*(cell['z1'] + cell['z2'])
+    return (xc, yc, zc)
+    
 def _test():
     import doctest
     doctest.testmod()
