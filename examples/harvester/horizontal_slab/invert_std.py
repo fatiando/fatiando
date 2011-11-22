@@ -4,7 +4,7 @@ from fatiando.mesher.volume import Prism3D, PrismMesh3D, extract, vfilter
 from fatiando.inversion import harvester
 
 log = logger.get()
-
+log.info("Generate synthetic model and data:")
 extent = (0, 10000, 0, 10000, 0, 10000)
 model = [Prism3D(3500, 6500, 1500, 8500, 1500, 6500, props={'density':800})]
 
@@ -29,18 +29,15 @@ pyplot.xlabel('East (km)')
 pyplot.ylabel('North (km)')
 pyplot.show()
 
-log.info("\nThird make a prism mesh:")
+log.info("Harvest the results:")
 #mesh = PrismMesh3D(extent, (25, 25, 25))
 mesh = PrismMesh3D(extent, (10, 10, 10))
-
-
-log.info("\nFourth sow the seeds:")
 rawseeds = [((5000, 5000, 2500), {'density':800})]
 seeds = harvester.sow(mesh, rawseeds)
 
 vis.mayavi_figure()
 vis.prisms3D(model, extract('density', model), opacity=0.3, vmin=0)
-seedmesh = (mesh[int(s)] for s in extract('index', seeds))
+seedmesh = (mesh[s] for s in extract('index', seeds))
 seedprops = (p['density'] for p in extract('props', seeds))
 vis.prisms3D(seedmesh, seedprops, vmin=0)
 vis.add_axes3d(vis.add_outline3d(extent=extent))
@@ -48,7 +45,6 @@ vis.wall_bottom(extent)
 vis.wall_north(extent)
 vis.mlab.show()
     
-log.info("\nFith harvest the results:")
 gzmod = harvester.PrismGzModule(x, y, z, gz)
 regul = harvester.ConcentrationRegularizer(seeds, mesh, 1*10.**(1), 3.)
 jury = harvester.standard_jury(regul, thresh=0.001)

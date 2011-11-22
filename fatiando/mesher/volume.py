@@ -212,8 +212,6 @@ class PrismRelief3D():
         return self
 
     def __getitem__(self, index):
-        if type(index) is not int:
-            raise TypeError, "index must be an integer"
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
@@ -358,8 +356,6 @@ class PrismMesh3D(object):
         """
         Get the ith prism of the mesh.
         """
-        if type(index) is not int:
-            raise TypeError, "index must be an integer"
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
@@ -476,8 +472,7 @@ def extract(key, prisms):
         if p is None:
             return None
         return p[key]
-    res = numpy.array([getkey(p) for p in prisms])
-    return res
+    return [getkey(p) for p in prisms]
 
 def vfilter(vmin, vmax, key, prisms):
     """
