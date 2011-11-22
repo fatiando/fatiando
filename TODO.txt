@@ -3,6 +3,7 @@
     - seismic
     - eqlayer
     - sphere
+* Try Rene's donut and notch fill
 * Test robustness
 * Synthetics long in each direction and slab
 * Optimize is_eligible. Making a generator didn't work.

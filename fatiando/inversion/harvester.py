@@ -149,7 +149,7 @@ class DataModule(object):
         * float
             
         """
-        scale = (self.obs*predicted).sum()/self.l2obs
+        scale = numpy.sum(self.obs*predicted)/self.l2obs
         return numpy.linalg.norm(scale*self.obs - predicted, 2)
         
     def update(self, neighbor, mesh):
@@ -393,7 +393,7 @@ class ConcentrationRegularizer(object):
         if weight:
             nz, ny, nx = mesh.shape
             dx, dy, dz = mesh.dims
-            self.weight = 1./(max([nx*dx, ny*dy, nz*dz])**power)
+            self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.)**power)
 
     def calc_dist(self, cell1, cell2):
         """
@@ -652,10 +652,8 @@ def is_eligible(predicted, tol, dmods):
     observed data in absolute value.
     """
     for dm, pred in zip(dmods, predicted):
-        diffs = ((o - abs(p))/dm.obsmax for o, p in zip(dm.absobs, pred))
-        for d in diffs:
-            if d < -tol:
-                return False
+        if True in (d < -tol for d in (dm.absobs - abs(pred))/dm.obsmax):
+            return False
     return True
 
 def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
@@ -692,17 +690,18 @@ def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
         return best
     return jury
 
-def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
+def shape_jury(regularizer=None, thresh=0.0001, maxcmp=4, tol=0.01):
     """
     Creates a jury function (neighbor chooser) based on shape-of-anomaly data
     misfit, algorithmic compactness, and regularization.
     """    
     def jury(seed, neighbors, estimate, datamods, goal, mesh, it, nseeds,
-             compact=compact, thresh=thresh, tol=tol, regularizer=regularizer):
+             maxcmp=maxcmp, thresh=thresh, tol=tol, regularizer=regularizer):
         # Make the compactness criterion vary with iteration so that the first
         # neighbors are eligible (they only have the seed as neighbor)
-        if it < compact*nseeds:
-            compact = 1
+        compact = 1 + it/nseeds
+        if compact > maxcmp:
+            compact = maxcmp
         # Filter the ones that don't satisfy the compactness criterion
         left = [(i, n) for i, n in enumerate(neighbors)
                 if is_compact(estimate, mesh, n, compact)]
@@ -710,7 +709,7 @@ def shape_jury(regularizer=None, thresh=0.0001, tol=0.01, compact=5):
         pred = dict((i, [dm.new_predicted(n, mesh) for dm in datamods])
                     for i, n in left)
         # Filter the eligible for accretion based on their predicted data
-        left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
+        #left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
         misfits = [(i, sum(dm.misfit(p) for dm, p in zip(datamods, pred[i])))
                    for i, n in left]
         # Calculate the goal function
