@@ -325,7 +325,7 @@ class PrismMesh3D(object):
 
     """
 
-    def __init__(self, bounds, shape, props={}):
+    def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         log.info("Generating 3D right rectangular prism mesh:")
         nz, ny, nx = shape
@@ -338,7 +338,10 @@ class PrismMesh3D(object):
         self.size = size
         self.dims = (dx, dy, dz)
         self.bounds = bounds
-        self.props = props
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
         log.info("  bounds = (x1, x2, y1, y2, z1, z2) = %s" % (str(bounds)))
         log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
         log.info("  number of prisms = %d" % (size))
