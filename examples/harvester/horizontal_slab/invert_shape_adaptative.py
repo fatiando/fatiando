@@ -87,7 +87,7 @@ vis.mlab.show()
 
 # SECOND ITERATION
 log.info("\nSECOND ITERATION:")
-mesh = PrismMesh3D(extent, (30, 30, 30))
+mesh = PrismMesh3D(extent, (20, 20, 20))
 rawseeds = [(center(c), {'density':800}) for c in density_model]
 seeds = harvester.sow(mesh, rawseeds)
 

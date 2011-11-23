@@ -67,9 +67,7 @@ class DataModule(object):
         self.l2obs = numpy.linalg.norm(obs, 2)**2
         self.absobs = numpy.abs(obs)
         self.obsmax = self.absobs.max()
-        self.weight = 1.
-        if weight:
-            self.weight = 1./numpy.linalg.norm(obs, norm)
+        self.weight = weight/numpy.linalg.norm(obs, norm)
 
     def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
         """
@@ -194,12 +192,12 @@ class PrismGzModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
@@ -221,12 +219,12 @@ class PrismGxxModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxx
@@ -248,12 +246,12 @@ class PrismGxyModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxy
@@ -275,12 +273,12 @@ class PrismGxzModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxz
@@ -302,12 +300,12 @@ class PrismGyyModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gyy
@@ -329,12 +327,12 @@ class PrismGyzModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gyz
@@ -356,12 +354,12 @@ class PrismGzzModule(DataModule):
         * 2 -> l2 norm
         * etc
     * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
+        The relative weight of this data module. Should be a positive number
+        from 1 to 0.
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=True):
+    def __init__(self, x, y, z, obs, norm=2, weight=1.):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gzz
@@ -372,13 +370,15 @@ class ConcentrationRegularizer(object):
     Use it to force the estimated bodies to concentrate around the seeds.
 
     Parameters:
-    * mu
-        The regularing parameter. Controls the tradeoff between fitting the data
-        and regularization.
     * seeds
         List of seeds as output by :func:`fatiando.inversion.harvester.sow`
     * mesh
-        A 3D mesh. See :mod:`fatiando.mesher.volume`       
+        A 3D mesh. See :mod:`fatiando.mesher.volume`   
+    * mu
+        The regularing parameter. Controls the tradeoff between fitting the data
+        and regularization.
+    * power
+        Power to which the distances are raised. Usually between 3 and 7.
         
     """
 
