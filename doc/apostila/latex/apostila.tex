@@ -1,0 +1,72 @@
+\documentclass[12pt,fullpage,a4paper,titlepage,oneside]{report}
+
+% Para fazer o contador de figuras ser por documento
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+% Para portugues
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{setspace} % For doublespacing
+\usepackage{booktabs} % for making better tables
+\usepackage{graphicx} % For inserting figures
+% \usepackage[draft]{graphicx} % Rascunho
+\usepackage{amssymb,amsmath} % Mathematical Symbols and fonts
+\usepackage{natbib}
+
+
+% Make the fancy header
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{} % delete current header and footer
+\rhead{\bfseries\thepage}
+\lhead{\bfseries\leftmark}
+\cfoot{}
+\addtolength{\headheight}{15.5pt} % space for the rule
+\fancypagestyle{plain}{
+    \fancyfoot{} 
+    \renewcommand{\headrulewidth}{0pt} % and the line
+    \rhead{\bfseries\thepage}
+    \lhead{}
+}
+
+% Get rid of "Chapter 1" in the chapters. Put only the "1. Intro"
+\makeatletter
+\renewcommand*\@makechapterhead[1]{%
+%   \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \ifnum \c@secnumdepth >\m@ne
+        \huge\bfseries \thechapter.\hspace{0.5cm}
+    \fi
+    \interlinepenalty\@M
+    \Huge \bfseries #1\par\nobreak
+    \vskip 40\p@
+  }}
+\makeatother
+
+\title{TÓPICOS DE INVERSÃO EM GEOFÍSICA}
+\author{Vanderlei Coelho de Oliveira Junior\\[0.5cm]Leonardo Uieda}
+\date{\vfill 2011}
+
+\begin{document}
+    \maketitle
+    \doublespacing
+    \pagenumbering{roman}
+    %\pagestyle{plain}
+    \input{prefacio.tex}
+    \tableofcontents
+    \newpage
+    %\pagestyle{headings}
+    \pagenumbering{arabic}
+    \input{introducao.tex}
+    \input{prob_inverso.tex}
+    \input{regularizacao.tex}
+    \input{prob_inverso_naolinear.tex}
+    \input{outros_metodos.tex}
+    \input{referencias.tex}
+\end{document}
