@@ -1,0 +1,53 @@
+Diário
+======
+
+Dia 1:
+    Teórica:
+        * Conceito de sistema físico
+        * Dados e parâmetros
+        * Formulação do problema direto
+        * O problema direto em notação matricial
+        * Vetor de resíduos
+    Prática:
+        * Identificar dados e parâmetros (discretização)
+        * Estabelecer o problema direto
+        * Formular vetores
+Dia 2:
+    Teórica:
+        * Formulação matemática do problema inverso
+        * Estimador de Mínimos Quadrados
+        * Matriz de sensibilidade
+    Prática:
+        * Formular matrizes envolvidas (nos lineares)
+        * Rodar exemplos lineares comportados
+        * Fazer exemplos comportados ficarem mal-postos
+Dia 3:
+    Teórica:
+        * Problemas mal-postos
+        * Estabilidade (e espaço nulo?)
+        * Regularização de Tikhonov
+        * Vínculo de igualdade
+    Prática:
+        * Lineares comportados que ficaram mal-postos
+        * Mickey
+        * Sinal climático
+Dia 4:
+    Teórica:
+        * Problemas inversos não-lineares
+        * Métodos gradiente
+        * Métodos heurísticos
+        * Mínimos locais
+    Prática:
+        * Graben 2D com grav
+        * Triângulo com grav
+        * Tentar inverter dados de graben com triangulo e vice-versa
+        * Epicentro
+        * Relevo de bacia
+Dia 5:
+    Teórica:
+        * Casos mais reais (estado da arte)
+        * Compacidade
+        * Radial3D
+        * Sementes
+    Prática:
+        * Compacidade
