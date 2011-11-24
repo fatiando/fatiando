@@ -237,8 +237,8 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
-             vmin=None, vmax=None):
+def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
+             edges=True, vmin=None, vmax=None):
     """
     Plot a 3D right rectangular prisms using Mayavi2.
 
@@ -309,12 +309,11 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
     vtkmesh.cell_data.scalars = numpy.array(celldata)
     vtkmesh.cell_data.scalars.name = label
     dataset = mlab.pipeline.add_dataset(vtkmesh)
-    thresh = mlab.pipeline.threshold(dataset)
     if vmin is None:
-        vmin = min(celldata)
+        vmin = min(vtkmesh.cell_data.scalars)
     if vmax is None:
-        vmax = max(celldata)
-    surf = mlab.pipeline.surface(thresh, vmax=vmax, vmin=vmin)
+        vmax = max(vtkmesh.cell_data.scalars)
+    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin)
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':

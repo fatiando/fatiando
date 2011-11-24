@@ -3,6 +3,7 @@
     - seismic
     - eqlayer
     - sphere
+* Make conversion function for TVTK and VTK in mesher.volume
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)

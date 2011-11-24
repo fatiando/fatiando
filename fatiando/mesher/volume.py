@@ -28,6 +28,95 @@ from fatiando import logger
 
 log = logger.dummy()
 
+# For lazy imports of TVTK, since it's very slow to import
+tvtk = None
+
+
+def _lazy_import_tvtk():
+    """
+    Do the lazy import of tvtk
+    """
+    global tvtk
+    # For campatibility with versions of Mayavi2 < 4
+    if tvtk is None:
+        try:
+            from tvtk.api import tvtk
+        except ImportError:
+            from enthought.tvtk.api import tvtk
+
+def prism2tvtk(prisms, scalars=None):
+    """
+    Convert a list of Prism3D to TVTK data sets.
+
+    This way they can be plotted on Mayavi using the mlab interface.
+
+    Parameters:
+    * prisms
+        List of Prism3D
+    * scalars
+        Name of the scalar physical property of the prism that will be plotted.
+        If None, will use zeros.
+
+    Returns:
+    * data_src
+        A TVTK data source.
+            
+    """
+    pass
+    
+def prism2vtk(prisms, scalars=None):
+    """
+    Convert a list of Prism3D to VTK format.
+
+    Parameters:
+    * prisms
+        List of Prism3D
+    * scalars
+        Name of the scalar physical property of the prism that will be plotted.
+        If None, will use zeros.
+
+    Returns:
+    * vtk
+        A dictionary key:value pairs corresponding to VTK fields.
+            
+    """
+    pass
+
+def dump_vtk(vtk):
+    """
+    Dump a vtk source
+    """
+    pass
+    
+def load_vtk():
+    pass
+    
+def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
+    """
+    Create a 3D right rectangular prism.
+
+    Parameters:
+    * x1, x2
+        South and north borders of the prism
+    * y1, y2
+        West and east borders of the prism
+    * z1, z2
+        Top and bottom of the prism
+    * props
+        Dictionary with the physical properties assigned to the prism.
+        Ex: props={'density':10, 'susceptibility':10000}
+        
+    Returns:
+    * prism
+        Dictionary describing the prism
+
+    """
+    prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
+             'z1':float(z1), 'z2':float(z2)}
+    for prop in props:
+        prism[prop] = props[prop]
+    return prism
+
 def PolygonalPrism3D(vertices, z1, z2, props={}):
     """
     Create a 3D prism with polygonal crossection.
@@ -130,32 +219,6 @@ def draw_polygon(area, axes):
     line.figure.canvas.mpl_connect('key_press_event', erase)
     pyplot.show()
     return numpy.array([x, y]).T
-
-def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
-    """
-    Create a 3D right rectangular prism.
-
-    Parameters:
-    * x1, x2
-        South and north borders of the prism
-    * y1, y2
-        West and east borders of the prism
-    * z1, z2
-        Top and bottom of the prism
-    * props
-        Dictionary with the physical properties assigned to the prism.
-        Ex: props={'density':10, 'susceptibility':10000}
-        
-    Returns:
-    * prism
-        Dictionary describing the prism
-
-    """
-    prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
-             'z1':float(z1), 'z2':float(z2)}
-    for prop in props:
-        prism[prop] = props[prop]
-    return prism
 
 class PrismRelief3D():
     """
@@ -455,6 +518,25 @@ class PrismMesh3D(object):
                 if masked or cellz < h:
                     self.mask.append(c)
                 c += 1
+
+    def dump(self, fname, fmt='vtk'):
+        """
+        Dump the mesh to a file.
+
+        File formats:
+        * vtk
+            Save the mesh as VTK UnstructuredGrid
+        * ubc
+            Save the mesh in the format required by UBC-GIF program MeshTools3D
+
+        Parameters:
+        * fname
+            File name or open file object.
+        * fmt
+            File format
+            
+        """
+        pass
 
 def extract(key, prisms):
     """
