@@ -14,8 +14,16 @@
 \usepackage{booktabs} % for making better tables
 \usepackage{graphicx} % For inserting figures
 % \usepackage[draft]{graphicx} % Rascunho
-\usepackage{amssymb,amsmath} % Mathematical Symbols and fonts
 \usepackage{natbib}
+
+\usepackage{amssymb,amsmath} % Mathematical Symbols and fonts
+% Define vector commands
+\providecommand{\abs}[1]{\lvert#1\rvert}
+\providecommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\est}[1]{\tilde{#1}}
+\newcommand{\vect}[1]{\bar{#1}}
+\newcommand{\mat}[1]{\bar{\bar{#1}}}
+
 
 \usepackage[a4paper]{geometry}
 \geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
@@ -51,9 +59,10 @@
   }}
 \makeatother
 
-\title{TÓPICOS DE INVERSÃO EM GEOFÍSICA}
-\author{Vanderlei Coelho de Oliveira Junior\\[0.5cm]Leonardo Uieda}
-\date{\vfill 2011}
+\title{\bf TÓPICOS DE \\[0.8cm] INVERSÃO EM GEOFÍSICA \vspace{1cm}}
+\author{Vanderlei Coelho de Oliveira Junior\\[0.3cm]Leonardo Uieda}
+%\author{Vanderlei Coelho de Oliveira Junior \and Leonardo Uieda}
+\date{\vfill Versão 0.1\\[0.5cm] 2011}
 
 \begin{document}
     \maketitle
@@ -68,6 +77,7 @@
     \input{introducao.tex}
     \input{prob_inverso.tex}
     \input{regularizacao.tex}
-    \input{outros_metodos.tex}
+    \input{procedimentos_praticos.tex}
+    \input{leitura.tex}
     \input{referencias.tex}
 \end{document}

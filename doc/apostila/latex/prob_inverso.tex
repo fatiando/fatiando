@@ -1,6 +1,146 @@
 \chapter{Formulação matemática do problema inverso}
 
-Meh
+Dado um conjunto de $N$ observações, feitas em diferentes posições, tempos, etc.,
+definimos um {\it vetor de dados observados}
+
+\begin{equation}
+\vect{d}^{\thinspace o} =
+    \begin{bmatrix}
+    d_1^{\thinspace o} \\
+    d_2^{\thinspace o} \\
+    \vdots \\
+    d_N^{\thinspace o}
+    \end{bmatrix},
+\end{equation}
+
+\noindent onde $d_i^{\thinspace o}$, $i = 1, 2, 3, \dotsc, N$, é o dado
+observado na $i$-ésima posição, tempo, etc.
+De forma análoga, definimos um {\it vetor de dados preditos}
+
+\begin{equation}
+\vect{d}^{\thinspace p} =
+    \begin{bmatrix}
+    d_1^{\thinspace p} \\
+    d_2^{\thinspace p} \\
+    \vdots \\
+    d_N^{\thinspace p}
+    \end{bmatrix},
+\end{equation}
+
+\noindent onde $d_i^{\thinspace p}$, $i = 1, 2, 3, \dotsc, N$, é o dado predito
+calculado na mesma posição, tempo, etc., que o $i$-ésimo dado observado.
+Continuando no espírito de definição de vetores, definimos também um vetor que
+agrupa todos os $M$ parâmetros, denominado {\it vetor de parâmetros}
+
+\begin{equation}
+\vect{p} =
+    \begin{bmatrix}
+    p_1 \\
+    p_2 \\
+    \vdots \\
+    p_M
+    \end{bmatrix},
+\end{equation}
+
+\noindent onde $p_j$, $j = 1, 2, 3, \dotsc, M$, é o $j$-ésimo parâmetro.
+\\
+\indent Como vimos no Capítulo \ref{chap:intro}, os dados preditos são descritos
+por uma função dos parâmetros, ou seja,
+
+\[
+d^{\thinspace p}_i = f_i(\vect{p})\thinspace.
+\]
+
+\noindent Desta forma, podemos dizer que o vetor de dados preditos é uma função
+dos parâmetros
+
+\begin{equation}
+\vect{d}^{\thinspace p}= \vect{f}(\vect{p}) =
+    \begin{bmatrix}
+    f_1(\vect{p}) \\
+    f_2(\vect{p}) \\
+    \vdots \\
+    f_N(\vect{p})
+    \end{bmatrix}.
+\end{equation}
+
+\indent O problema inverso consiste em encontrar um vetor de parâmetros $\vect{p}$
+que produza dados preditos o mais próximo possível dos dados observados.
+Para determinar a ``proximidade'' entre os dados observados e os dados preditos,
+é necessário quantificar a distância entre eles.
+Isto é feito em termos da norma do {\it vetor de resíduos}
+
+\begin{equation}
+\vect{r} = \vect{d}^{\thinspace o} - \vect{f}(\vect{p}),
+\end{equation}
+
+\noindent onde
+\\
+\indent Como norma do vetor de resíduos utiliza-se, usualmente, o quadrado da
+norma Euclidiana (também conhecida como norma $\ell_2$ ou norma quadrática)
+
+\begin{equation}
+\norm{\vect{r}}_2^2 =
+    \sum\limits_{i=1}^N \left[d^{\thinspace o} - f_i(\vect{p})\right]^2 \, .
+\end{equation}
+
+\noindent Esta norma do vetor de resíduos $\vect{r}$ é também uma função escalar
+dos parâmetros. Assim sendo, definimos uma função $\phi(\vect{p})$, chamada de
+{\it função do ajuste}, como
+
+\begin{equation}
+\phi(\vect{p}) = \norm{\vect{r}}_2^2 =
+    \sum\limits_{i=1}^N \left[d^{\thinspace o} - f_i(\vect{p})\right]^2 \, .
+\label{eq:ajuste_sum}
+\end{equation}
+
+\indent Lembramos que o quadrado da norma Euclidiana de um vetor é igual ao
+produto escalar do vetor com ele mesmo, ou seja,
+
+\begin{equation}
+\norm{\vect{r}}_2^2 = \vect{r} \cdot \vect{r} =
+    r_1r_1 + r_2r_2 + \dotsb + r_Nr_N \thinspace .
+\label{eq:dotprod}
+\end{equation}
+
+\noindent Como o vetor $\vect{r}$ é um {\it vetor coluna} (matriz com uma
+coluna), podemos escrever o produto escalar da equação \ref{eq:dotprod} como
+
+\begin{equation}
+\vect{r} \cdot \vect{r} = \vect{r}^T \vect{r} =
+    \begin{bmatrix}
+        r_1 & r_2 & \hdots & r_N
+    \end{bmatrix}
+    \begin{bmatrix}
+        r_1 \\ r_2 \\ \vdots \\ r_N
+    \end{bmatrix} .
+\label{eq:vectdotprod}
+\end{equation}
+
+\noindent Dessa forma podemos reescrever a função do ajuste (equação
+\ref{eq:ajuste_sum}) como
+
+\begin{equation}
+\phi(\vect{p}) = \vect{r}^T \vect{r} =
+    \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]^T
+    \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right] .
+\label{eq:ajuste}
+\end{equation}
+
+\indent Neste ponto é importante resaltar o seguinte conceito:
+
+\begin{quotation}
+{\tt A {\bf função do ajuste} é uma função escalar que
+quantifica a dis\-tân\-cia entre os dados observados e os dados preditos para um
+de\-ter\-mi\-na\-do vetor de parâmetros $\vect{p}$.}
+\end{quotation}
+
+\indent Perante este conceito, o problema inverso consiste em determinar um
+vetor $\est{p}$ que minimiza a função do ajuste $\phi(\vect{p})$. 
+Matematicamente, isso equivale a encontrar o vetor $\est{p}$ tal que o gradiente
+da função $\phi(\vect{p})$ avaliado em $\est{p}$ seja igual ao vetor nulo.
+
+
 
 \section{Problemas lineares}
 
