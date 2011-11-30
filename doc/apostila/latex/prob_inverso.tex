@@ -40,6 +40,7 @@ agrupa todos os $M$ parâmetros, denominado {\it vetor de parâmetros}
     \vdots \\
     p_M
     \end{bmatrix},
+\label{eq:param_vect}
 \end{equation}
 
 \noindent em que $p_j$, $j = 1, 2, 3, \dotsc, M$, é o $j$-ésimo parâmetro.
@@ -139,10 +140,10 @@ de\-ter\-mi\-na\-do vetor de parâmetros $\vect{p}$.}
 \end{quote}
 
 \indent Perante este conceito, o problema inverso consiste em determinar um
-vetor $\est{p}$ que minimiza a função do ajuste $\phi(\vect{p})$. 
-Matematicamente, isso equivale a encontrar o vetor $\est{p}$ tal que o gradiente
-da função $\phi(\vect{p})$ avaliado em $\est{p}$ seja igual ao vetor nulo.
-Em outras palavras, o vetor $\est{p}$ é um {\it ponto extremo} da função
+vetor $\opt{p}$ que minimiza a função do ajuste $\phi(\vect{p})$. 
+Matematicamente, isso equivale a encontrar o vetor $\opt{p}$ tal que o gradiente
+da função $\phi(\vect{p})$ avaliado em $\opt{p}$ seja igual ao vetor nulo.
+Em outras palavras, o vetor $\opt{p}$ é um {\it ponto extremo} da função
 $\phi(\vect{p})$.
 \\
 \indent O gradiente da função $\phi(\vect{p})$, avaliado em um $\vect{p}$ qualquer,
@@ -299,7 +300,7 @@ o comportamento do o gradiente de $\phi(\vect{p})$.
 Nas próximas seções analisaremos os casos em que a função $f$ é linear e
 não-linear em relação aos parâmetros.
 Essa análise nos permitirá compreender a influência da função $f$ na busca pelo
-vetor de parâmetros $\est{p}$ que minimiza a função $\phi(\vect{p})$.
+vetor de parâmetros $\opt{p}$ que minimiza a função $\phi(\vect{p})$.
 
 \input{latex/prob_inverso_linear.tex}
 \input{latex/prob_inverso_naolinear.tex}

@@ -33,12 +33,12 @@ Substituindo a expressão acima no gradiente da função do ajuste (equação
     \mat{G}\vect{p} - \vect{b} \right).
 \end{equation}
 
-\indent Seja $\est{p}$ o vetor que minimiza a função $\phi(\vect{p})$, o
-gradiente desta função avaliado em $\est{p}$ é igual ao vetor nulo.
+\indent Seja $\opt{p}$ o vetor que minimiza a função $\phi(\vect{p})$, o
+gradiente desta função avaliado em $\opt{p}$ é igual ao vetor nulo.
 Isto nos leva ao sistema de equações
 
 \begin{equation}
-\mat{G}^T\mat{G}\est{p} = \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right).
+\mat{G}^T\mat{G}\opt{p} = \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right).
 \label{eq:sistema_normal}
 \end{equation}
 
@@ -46,7 +46,7 @@ Isto nos leva ao sistema de equações
 solução para este sistema é
 
 \begin{equation}
-\est{p} = (\mat{G}^T\mat{G})^{-1} \mat{G}^T
+\opt{p} = (\mat{G}^T\mat{G})^{-1} \mat{G}^T
     \left(\vect{d}^{\thinspace o} - \vect{b} \right),
 \label{eq:estimador_mq}
 \end{equation}
@@ -54,6 +54,6 @@ solução para este sistema é
 \noindent que é conhecido como {\it estimador de mínimos quadrados}.
 \\
 \indent As equações \ref{eq:sistema_normal} e \ref{eq:estimador_mq} mostram que 
-o vetor $\est{p}$ que minimiza a função $\phi(\vect{p})$ pode ser
+o vetor $\opt{p}$ que minimiza a função $\phi(\vect{p})$ pode ser
 obtido diretamente a partir da matriz $\mat{G}$ e dos vetores $\vect{b}$ e
 $\vect{d}^{\thinspace o}$. Isto caracteriza um {\it problema inverso linear}.

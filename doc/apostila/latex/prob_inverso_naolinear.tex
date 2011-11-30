@@ -1,3 +1,187 @@
 \section{Problemas não-lineares}
 
-meh
+Nesta seção analisaremos o caso em que a função $f_i(\vect{p})$
+(equação \ref{eq:fi}) não é uma combinação linear dos parâmetros.
+Neste caso, a derivada de $f_i(\vect{p})$ em relação aos parâmetros também será
+uma função dos parâmetros.
+Logo, dependendo das características da função $f_i(\vect{p})$, o gradiente da
+função do ajuste $\phi(\vect{p})$ pode ser nulo para mais de um valor de
+$\vect{p}$.
+Em outras palavras, a função $\phi(\vect{p})$ pode possuir
+vários pontos extremos além daquele em que esta função seja mínima.
+Por esta razão, o cálculo do vetor $\opt{p}$ que minimiza a função do ajuste deve
+ser feito de forma iterativa.
+Isto difere do problema inverso linear e caracteriza um {\it problema inverso
+não-linear}.
+\\
+\indent A busca pelo vetor $\opt{p}$ que minimiza uma determinada função faz
+parte de uma área da matemática conhecida como {\it otimização}, dentro da qual
+existem diversos métodos (KELLEY, 1999).
+O procedimento padrão para realizar esta busca de forma iterativa é começar com
+uma determinada aproximação inicial $\vect{p}_0$ e calcular uma correção
+$\Delta\vect{p}$.
+Esta correção é então aplicada à aproximação inicial dando origem a um novo vetor
+$\vect{p}_1$.
+Este novo vetor serve como aproximação inicial para o cálculo de um segundo
+vetor $\vect{p}_2$, e assim sucessivamente.
+O processo termina quando é encontrado um vetor $\est{p}$ que seja próximo ao
+vetor $\opt{p}$ que minimiza a função em questão.
+Em geral, não se tem garantia de que o vetor $\est{p}$ seja igual ao vetor
+$\opt{p}$.
+\\
+\indent Dentre os vários métodos existentes, apresentaremos a seguir aquele
+conhecido como método de Gauss-Newton.
+O procedimento para calcular a correção $\Delta\vect{p}$ começa com a
+expansão em série de Taylor da função a ser minimizada, neste caso $\phi(\vect{p})$.
+A expansão é feita até segunda ordem e em torno da aproximação inicial $\vect{p}_0$
+(ver Apêndice \ref{chap:opmat})
+
+\begin{equation}
+\vect{p} =  \vect{p}_0 + \Delta\vect{p} \thinspace ,
+\end{equation}
+
+\begin{equation}
+\phi(\vect{p}_0 + \Delta\vect{p}) \approx \phi(\vect{p}_0) +
+    \vect{\nabla}\phi(\vect{p}_0)^T\Delta\vect{p} +
+    \dfrac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
+= \psi(\vect{p}) \thinspace ,
+\label{eq:taylor}
+\end{equation}
+
+\noindent sendo $\vect{\nabla}\phi(\vect{p}_0)$ o vetor gradiente  e
+$\mat{\nabla}\phi(\vect{p}_0)$ a {\it matriz Hessiana} da função $\phi(\vect{p})$,
+calculados em $\vect{p}_0$.
+\\
+\indent A função $\psi(\vect{p})$ (equação \ref{eq:taylor}) é uma aproximação
+de segunda ordem para a função $\phi(\vect{p})$ em torno do ponto $\vect{p}_0$.
+Tal como no {\it problema inverso linear}, desejamos encontrar um ponto $\est{p}$
+que minimiza a função $\psi(\vect{p})$, ou seja, onde seu gradiente é nulo.
+O gradiente de $\psi(\vect{p})$ é dado por (ver Apêndice \ref{chap:opmat})
+
+\begin{equation}
+\vect{\nabla}\psi(\vect{p}) = \vect{\nabla}\left[
+    \phi(\vect{p}_0) +
+    \vect{\nabla}\phi(\vect{p}_0)^T\Delta\vect{p} +
+    \dfrac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
+    \right] =
+    \vect{\nabla}\phi(\vect{p}_0) + \mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
+    \thinspace .
+\end{equation}
+
+\noindent Logo, o incremento $\Delta\vect{p} = \est{p} - \vect{p}_0$, que leva
+da aproximação inicial ao ponto $\est{p}$ onde o gradiente de $\psi(\vect{p})$ é
+nulo, é a solução do sistema de equações
+
+\begin{equation}
+     \mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p} = -\vect{\nabla}\phi(\vect{p}_0)
+    \thinspace .
+\label{eq:sistema_normal_nlin}
+\end{equation}
+
+\indent O cálculo do vetor gradiente de $\phi(\vect{p})$ foi feito anteriormente
+(equação \ref{eq:gradphi}), restando então o cálculo da matriz Hessiana
+$\mat{\nabla}\phi(\vect{p})$.
+Para tanto, deriva-se o $i$-ésimo elemento do vetor gradiente
+(equações \ref{eq:gradphi_partial} e \ref{eq:del_phi_del_pi_simple}) em relação
+ao $j$-ésimo elemento do vetor de parâmetros $p_j$ (equação \ref{eq:param_vect})
+
+\begin{equation}
+\begin{split}
+\dfrac{\partial}{\partial p_j}\left(\dfrac{\partial \phi(\vect{p})}{\partial p_i}\right)
+&=
+\dfrac{\partial}{\partial p_j}\left(
+    -2\dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}^T
+    \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+    \right)
+\\[0.5cm]
+&=
+\underbrace{
+\left( -2\dfrac{\partial^2 \vect{f}(\vect{p})}{\partial p_j \partial p_i}^T
+\left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+\right)}_{\text{escalar}} +
+\underbrace{
+\left( 2 \dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}^T
+    \dfrac{\partial\vect{f}(\vect{p})}{\partial p_j} \right)}_{\text{escalar}} .
+\end{split}
+\label{eq:hessian_ij_exact}
+\end{equation}
+
+\indent Esta equação \ref{eq:hessian_ij_exact} representa o $j$-ésimo elemento
+da $i$-ésima linha da matriz Hessiana (ver Apêndice \ref{chap:opmat}).
+No método de Gauss-Newton, o termo envolvendo as segundas derivadas de
+$\vect{f}(\vect{p})$ é negligenciado.
+Desta forma a equação \ref{eq:hessian_ij_exact} pode ser aproximada por
+
+\begin{equation}
+\dfrac{\partial}{\partial p_j}\left(\dfrac{\partial \phi(\vect{p})}{\partial p_i}\right)
+\approx 2 \dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}^T
+    \dfrac{\partial\vect{f}(\vect{p})}{\partial p_j} \thinspace .
+\label{eq:hessian_ij_approx}
+\end{equation}
+
+\noindent Sendo assim, matriz Hessiana avaliada em $\vect{p}_0$ é dada por
+
+\begin{equation*}
+\mat{\nabla}\phi(\vect{p}_0) \approx
+    2
+    \begin{bmatrix}
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1} &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2} &
+    \ldots &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}
+    \vspace{0.3cm}\\
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1} &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2} &
+    \ldots &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}
+    \\
+    \vdots & \vdots & \ddots & \vdots
+    \\
+    \dfrac{\partial\vect{f}(\vect{p}_0}{\partial p_M}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1} &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2} &
+    \ldots &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}^T\dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}
+    \end{bmatrix} ,
+\end{equation*}
+
+\noindent ou
+
+\begin{equation}
+\mat{\nabla}\phi(\vect{p}_0) \approx
+    2
+    \begin{bmatrix}
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1}^T \vspace{0.3cm}\\
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2}^T \\
+    \vdots \\
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}^T
+    \end{bmatrix}
+    \begin{bmatrix}
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_1} &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_2} &
+    \ldots &
+    \dfrac{\partial\vect{f}(\vect{p}_0)}{\partial p_M}
+    \end{bmatrix}
+    =
+    \mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) \thinspace ,
+\label{eq:hessian_approx}
+\end{equation}
+
+\noindent em que $\mat{G}(\vect{p}_0)$ é a {\it matriz de sensibilidade}
+(equação \ref{eq:jacobian}) avaliada em $\vect{p}_0$.
+\\
+\indent A partir das equações \ref{eq:gradphi} e \ref{eq:hessian_approx}, o
+sistema de equações \ref{eq:sistema_normal_nlin} pode ser escrito como
+
+\begin{equation}
+    \mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0)\Delta\vect{p} =
+        -\mat{G}(\vect{p}_0)^T \left[
+            \vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0) \right]
+    \thinspace ,
+\label{eq:sistema_normal_gaussnewton}
+\end{equation}
+
+\noindent em que
+\\
+\indent A equação \ref{eq:sistema_normal_gaussnewton} descreve o cálculo da correção
+$\Delta\vect{p}$ em uma determinada iteração do método Gauss-Newton.
+
