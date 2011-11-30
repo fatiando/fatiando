@@ -11,12 +11,13 @@
 \usepackage[T1]{fontenc}
 
 \usepackage{setspace} % For doublespacing
-\usepackage{booktabs} % for making better tables
-\usepackage{graphicx} % For inserting figures
+%\usepackage{booktabs} % for making better tables
+\usepackage[pdftex]{graphicx} % For inserting figures
 % \usepackage[draft]{graphicx} % Rascunho
-\usepackage{natbib}
+\usepackage{natbib} % For better bibliography
 
-\usepackage{amssymb,amsmath} % Mathematical Symbols and fonts
+% Mathematical Symbols and fonts
+\usepackage{amssymb,amsmath} 
 % Define vector commands
 \providecommand{\abs}[1]{\lvert#1\rvert}
 \providecommand{\norm}[1]{\lVert#1\rVert}
@@ -24,7 +25,7 @@
 \newcommand{\vect}[1]{\bar{#1}}
 \newcommand{\mat}[1]{\bar{\bar{#1}}}
 
-
+% Fix the margins so that they are bit smaller
 \usepackage[a4paper]{geometry}
 \geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
 
@@ -46,23 +47,28 @@
 }
 
 % Get rid of "Chapter 1" in the chapters. Put only the "1. Intro"
-\makeatletter
-\renewcommand*\@makechapterhead[1]{%
-%   \vspace*{50\p@}%
-  {\parindent \z@ \raggedright \normalfont
-    \ifnum \c@secnumdepth >\m@ne
-        \huge\bfseries \thechapter.\hspace{0.5cm}
-    \fi
-    \interlinepenalty\@M
-    \Huge \bfseries #1\par\nobreak
-    \vskip 40\p@
-  }}
-\makeatother
+%\makeatletter
+%\renewcommand*\@makechapterhead[1]{
+  %{\parindent \z@ \raggedright \normalfont
+    %\ifnum \c@secnumdepth >\m@ne
+        %\huge\bfseries \thechapter.\hspace{0.5cm}
+    %\fi
+    %\interlinepenalty\@M
+    %\Huge \bfseries #1\par\nobreak
+    %\vskip 40\p@
+  %}}
+%\makeatother
 
+% Information
 \title{\bf TÓPICOS DE \\[0.8cm] INVERSÃO EM GEOFÍSICA \vspace{1cm}}
 \author{Vanderlei Coelho de Oliveira Junior\\[0.3cm]Leonardo Uieda}
-%\author{Vanderlei Coelho de Oliveira Junior \and Leonardo Uieda}
 \date{\vfill Versão 0.1\\[0.5cm] 2011}
+
+% For pdf hyperlinks
+\usepackage[pdftex]{hyperref}
+\hypersetup{colorlinks=true}
+\hypersetup{pdftitle={Tópicos de inversão em geofísica}}
+\hypersetup{pdfauthor={Vanderlei Coelho de Oliveira Junior \& Leonardo Uieda}}
 
 \begin{document}
     \maketitle
@@ -80,4 +86,6 @@
     \input{procedimentos_praticos.tex}
     \input{leitura.tex}
     \input{referencias.tex}
+    \appendix
+    \input{apendice.tex}
 \end{document}

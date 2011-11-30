@@ -1,7 +1,7 @@
 NAME=apostila
 
 all:
-	cd latex; latex ${NAME}.tex; dvips ${NAME}.dvi; ps2pdf ${NAME}.ps
+	cd latex; pdflatex ${NAME}.tex
 
 clean:
 	cd latex; rm *.log *.toc *.dvi *.ps *.pdf
