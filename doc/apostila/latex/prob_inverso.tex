@@ -13,7 +13,7 @@ de\-fi\-ni\-mos um {\it vetor de dados observados}
     \end{bmatrix},
 \end{equation}
 
-\noindent onde $d_i^{\thinspace o}$, $i = 1, 2, 3, \dotsc, N$, é o dado
+\noindent em que $d_i^{\thinspace o}$, $i = 1, 2, 3, \dotsc, N$, é o dado
 observado na $i$-ésima posição, tempo, etc.
 De forma análoga, definimos um {\it vetor de dados preditos}
 
@@ -27,7 +27,7 @@ De forma análoga, definimos um {\it vetor de dados preditos}
     \end{bmatrix},
 \end{equation}
 
-\noindent onde $d_i^{\thinspace p}$, $i = 1, 2, 3, \dotsc, N$, é o dado predito
+\noindent em que $d_i^{\thinspace p}$, $i = 1, 2, 3, \dotsc, N$, é o dado predito
 calculado na mesma posição, tempo, etc., que o $i$-ésimo dado observado.
 Continuando no espírito de definição de vetores, definimos também um vetor que
 agrupa todos os $M$ parâmetros, denominado {\it vetor de parâmetros}
@@ -42,7 +42,7 @@ agrupa todos os $M$ parâmetros, denominado {\it vetor de parâmetros}
     \end{bmatrix},
 \end{equation}
 
-\noindent onde $p_j$, $j = 1, 2, 3, \dotsc, M$, é o $j$-ésimo parâmetro.
+\noindent em que $p_j$, $j = 1, 2, 3, \dotsc, M$, é o $j$-ésimo parâmetro.
 \\
 \indent Como vimos no Capítulo \ref{chap:intro}, os dados preditos são descritos
 por uma função dos parâmetros, ou seja,
@@ -62,6 +62,7 @@ dos parâmetros
     \vdots \\
     f_N(\vect{p})
     \end{bmatrix}.
+\label{eq:dados_preditos}
 \end{equation}
 
 \indent O problema inverso consiste em encontrar um vetor de parâmetros $\vect{p}$
@@ -74,7 +75,8 @@ Isto é feito em termos da norma do {\it vetor de resíduos}
 \vect{r} = \vect{d}^{\thinspace o} - \vect{f}(\vect{p}),
 \end{equation}
 
-\noindent onde
+\noindent em que $\vect{d}^{\thinspace o}$ é o vetor de {\it dados observados}
+e $\vect{f}(\vect{p})$ é o vetor de {\it dados preditos}.
 \\
 \indent Como norma do vetor de resíduos utiliza-se, usualmente, o quadrado da
 norma Euclidiana (também conhecida como norma $\ell_2$ ou norma quadrática)
@@ -109,7 +111,7 @@ coluna), podemos escrever o produto escalar da equação \ref{eq:dotprod} como
 \begin{equation}
 \vect{r} \cdot \vect{r} = \vect{r}^T \vect{r} =
     \begin{bmatrix}
-        r_1 & r_2 & \hdots & r_N
+        r_1 & r_2 & \ldots & r_N
     \end{bmatrix}
     \begin{bmatrix}
         r_1 \\ r_2 \\ \vdots \\ r_N
@@ -127,13 +129,13 @@ coluna), podemos escrever o produto escalar da equação \ref{eq:dotprod} como
 \label{eq:ajuste}
 \end{equation}
 
-\indent Neste ponto é importante resaltar o seguinte conceito:
+\indent Neste ponto é importante ressaltar o seguinte conceito:
 
-\begin{quotation}
+\begin{quote}
 {\tt A {\bf função do ajuste} é uma função escalar que
 quantifica a dis\-tân\-cia entre os dados observados e os dados preditos para um
 de\-ter\-mi\-na\-do vetor de parâmetros $\vect{p}$.}
-\end{quotation}
+\end{quote}
 
 \indent Perante este conceito, o problema inverso consiste em determinar um
 vetor $\est{p}$ que minimiza a função do ajuste $\phi(\vect{p})$. 
@@ -141,7 +143,162 @@ Matematicamente, isso equivale a encontrar o vetor $\est{p}$ tal que o gradiente
 da função $\phi(\vect{p})$ avaliado em $\est{p}$ seja igual ao vetor nulo.
 Em outras palavras, o vetor $\est{p}$ é um {\it ponto extremo} da função
 $\phi(\vect{p})$.
+\\
+\indent O gradiente da função $\phi(\vect{p})$, avaliado em um $\vect{p}$ qualquer,
+é um vetor $M$-dimensional definido como (ver Apêndice \ref{chap:opmat})
 
+\begin{equation}
+\vect{\nabla} \phi(\vect{p}) =
+    \begin{bmatrix}
+        \dfrac{\partial \phi(\vect{p})}{\partial p_1} \vspace{0.3cm}\\
+        \dfrac{\partial \phi(\vect{p})}{\partial p_2}\\
+        \vdots \\
+        \dfrac{\partial \phi(\vect{p})}{\partial p_M}
+    \end{bmatrix} ,
+\label{eq:gradphi_partial}
+\end{equation} 
+
+\noindent em que $\vect{\nabla}$ é o operador gradiente (Apêndice \ref{chap:opmat}).
+Substituindo a equação \ref{eq:ajuste}, a expressão para o $i$-ésimo elemento do
+vetor gradiente é
+
+\begin{equation}
+\begin{split}
+\dfrac{\partial \phi(\vect{p})}{\partial p_i} &=
+    \dfrac{\partial}{\partial p_i}\left\{
+        \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]^T
+        \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+    \right\} \\[0.5cm]
+    &= 
+    \underbrace{
+    \left\{-\dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}^T
+            \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+    \right\}}_{\text{escalar}}
+    +
+    \underbrace{
+    \left\{-\left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]^T            
+            \dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}
+    \right\}}_{\text{escalar}}
+\end{split} .
+\label{eq:del_phi_del_pi}
+\end{equation}
+
+\indent Lembrando que o transposto de um escalar é igual a ele mesmo, podemos
+tomar o transposto do segundo termo da equação \ref{eq:del_phi_del_pi},
+obtendo
+
+\begin{equation}
+\dfrac{\partial \phi(\vect{p})}{\partial p_i} = 
+    -2\dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}^T
+    \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right],
+\label{eq:del_phi_del_pi_simple}
+\end{equation}
+
+\noindent em que $\dfrac{\partial\vect{f}(\vect{p})}{\partial p_i}$ é um vetor
+$N$-dimensional (ver Apêndice \ref{chap:opmat}) dado por
+
+\begin{equation}
+\dfrac{\partial\vect{f}(\vect{p})}{\partial p_i} =
+    \begin{bmatrix}
+        \dfrac{\partial f_1(\vect{p})}{\partial p_i} \vspace{0.3cm}\\
+        \dfrac{\partial f_2(\vect{p})}{\partial p_i}\\
+        \vdots \\
+        \dfrac{\partial f_N(\vect{p})}{\partial p_i}
+    \end{bmatrix}.
+\label{eq:del_f_del_pi}
+\end{equation}
+
+\indent Substituindo as equações \ref{eq:del_phi_del_pi_simple} e
+\ref{eq:del_f_del_pi} na expressão do gradiente (equação \ref{eq:gradphi_partial})
+obtemos
+
+\begin{equation}
+\begin{split}
+\vect{\nabla} \phi(\vect{p}) &=
+        \begin{bmatrix}
+            -2\dfrac{\partial\vect{f}(\vect{p})}{\partial p_1}^T
+                \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+                \vspace{0.3cm} \\
+            -2\dfrac{\partial\vect{f}(\vect{p})}{\partial p_2}^T
+                \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]\\
+            \vdots \\
+            -2\dfrac{\partial\vect{f}(\vect{p})}{\partial p_M}^T
+                \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right]
+        \end{bmatrix}
+    \\[0.5cm] &=
+        -2
+        \begin{bmatrix}
+            \dfrac{\partial\vect{f}(\vect{p})}{\partial p_1}^T\vspace{0.3cm} \\
+            \dfrac{\partial\vect{f}(\vect{p})}{\partial p_2}^T \\
+            \vdots \\
+            \dfrac{\partial\vect{f}(\vect{p})}{\partial p_M}^T
+        \end{bmatrix}
+        \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right].
+\end{split}
+\label{eq:gradphi_partial_f}
+\end{equation}
+
+\noindent Por fim, o gradiente da função do ajuste $\phi(\vect{p})$ pode ser
+escrito como
+
+\begin{equation}
+\vect{\nabla} \phi(\vect{p}) = -2\mat{G}(\vect{p})^T
+    \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p})\right].
+\label{eq:gradphi}
+\end{equation}
+
+\noindent em que 
+
+\begin{equation}
+\mat{G}(\vect{p}) = 
+\begin{bmatrix}
+    \dfrac{\partial\vect{f}(\vect{p})}{\partial p_1} &
+    \dfrac{\partial\vect{f}(\vect{p})}{\partial p_2} &
+    \ldots &
+    \dfrac{\partial\vect{f}(\vect{p})}{\partial p_M}
+\end{bmatrix}
+=
+\begin{bmatrix}
+    \dfrac{\partial f_1(\vect{p})}{\partial p_1} &
+        \dfrac{\partial f_1(\vect{p})}{\partial p_2} &
+        \ldots &
+        \dfrac{\partial f_1(\vect{p})}{\partial p_M}
+    \vspace{0.3cm}\\
+    \dfrac{\partial f_2(\vect{p})}{\partial p_1} &
+        \dfrac{\partial f_2(\vect{p})}{\partial p_2} &
+        \ldots & 
+        \dfrac{\partial f_2(\vect{p})}{\partial p_M}
+    \\
+    \vdots & \vdots & \ddots & \vdots
+    \\
+    \dfrac{\partial f_N(\vect{p})}{\partial p_1} &
+        \dfrac{\partial f_N(\vect{p})}{\partial p_2} &
+        \ldots & 
+        \dfrac{\partial f_N(\vect{p})}{\partial p_M}        
+\end{bmatrix}.
+\label{eq:jacobian}
+\end{equation}
+
+\noindent A matriz $\mat{G}(\vect{p})$ de dimensão $N \times M$ é a
+{\it matriz Jacobiana} de $\vect{f}(\vect{p})$.
+
+\begin{quote}
+{\tt Em problemas inversos, essa matriz $\mat{G}$ é comumente denominada
+{\bf matriz de sensibilidade}, uma vez que o $i$-ésimo elemento de sua $j$-ésima
+coluna expressa a sensibilidade do $i$-ésimo dado pre\-di\-to em re\-la\-ção à variações
+do $j$-ésimo parâmetro.}
+\end{quote}
+
+\indent As equações \ref{eq:gradphi} e \ref{eq:jacobian} mostram que o gradiente
+da função do ajuste $\phi(\vect{p})$ depende do vetor de dados preditos
+$\vect{f}(\vect{p})$ (equação \ref{eq:dados_preditos}) e sua derivada em relação
+aos parâmetros $\vect{p}$.
+Sendo assim, a função $f$ que relaciona os parâmetros aos dados preditos determina
+o comportamento do o gradiente de $\phi(\vect{p})$.
+Nas próximas seções analisaremos os casos em que a função $f$ é linear e
+não-linear em relação aos parâmetros.
+Essa análise nos permitirá compreender a influência da função $f$ na busca pelo
+vetor de parâmetros $\est{p}$ que minimiza a função $\phi(\vect{p})$.
 
 \section{Problemas lineares}
 
