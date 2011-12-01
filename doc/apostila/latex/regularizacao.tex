@@ -61,7 +61,7 @@ Para vincular uma função regularizadora ao ajuste dos dados, formamos a
 {\it função objetivo}
 
 \begin{equation}
-\Gamma(\vect{p}) = \phi(\vect{p}) + \mu\theta(\vect{p}) \thinspace ,
+\Omega(\vect{p}) = \phi(\vect{p}) + \mu\theta(\vect{p}) \thinspace ,
 \label{eq:objetivo}
 \end{equation}
 
@@ -110,17 +110,66 @@ Assim sendo, iniciaremos expandindo a função objetivo (equação
 \ref{eq:objetivo}) em série de Taylor até segunda ordem
 
 \begin{equation}
-meh
+\Omega(\vect{p}_0 + \Delta\vect{p}) \approx \Omega(\vect{p}_0) +
+    \vect{\nabla}\Omega(\vect{p}_0)^T\Delta\vect{p} +
+    \frac{1}{2}\Delta\vect{p}^T\mat{\nabla}\Omega(\vect{p}_0)\Delta\vect{p}
+    \thinspace ,
+\label{eq:objetivo_taylor}
 \end{equation}
 
+\noindent sendo o vetor gradiente $\vect{\nabla}\Omega(\vect{p}_0)$ e a matriz
+Hessiana $\mat{\nabla}\Omega(\vect{p}_0)$ de $\Omega(\vect{p})$ dados por
 
+\begin{equation}
+\vect{\nabla}\Omega(\vect{p}_0) = \vect{\nabla}\phi(\vect{p}_0) +
+    \mu\vect{\nabla}\theta(\vect{p}_0) \thinspace
+\label{eq:grad_objetivo}
+\end{equation}
 
+\noindent e
 
+\begin{equation}
+\mat{\nabla}\Omega(\vect{p}_0) = \mat{\nabla}\phi(\vect{p}_0) +
+    \mu\mat{\nabla}\theta(\vect{p}_0) \thinspace ,
+\label{eq:hessian_objetivo}
+\end{equation}
 
+\noindent em que $\mu$ é o parâmetro de regularização,
+$\vect{\nabla}\phi(\vect{p}_0)$ e $\mat{\nabla}\phi(\vect{p}_0)$
+são o gradiente e a Hessiana da função do ajuste (equações \ref{eq:gradphi} e
+\ref{eq:hessian_approx}) e
+$\vect{\nabla}\theta(\vect{p}_0)$ e $\mat{\nabla}\theta(\vect{p}_0)$ são o
+gradiente e a Hessiana da função regularizadora, todos avaliados em $\vect{p}_0$.
+\\
+\indent Seguindo a dedução feita para o problema inverso não-linear (Seção
+\ref{sec:nao-linear}), a correção $\Delta\vect{p}$ em uma determinada iteração
+do método Gauss-Newton é
 
+\begin{equation}
+\mat{\nabla}\Omega(\vect{p}_0)\Delta\vect{p} = -\vect{\nabla}\Omega(\vect{p}_0)
+    \thinspace .
+\label{eq:sistema_normal_objetivo}
+\end{equation}
 
+\noindent Substituindo o gradiente e a Hessiana da função do ajuste (equações
+\ref{eq:gradphi} e \ref{eq:hessian_approx}) obtemos
 
+\begin{equation}
+\left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
+      \frac{1}{2}\mu\mat{\nabla}\theta(\vect{p}_0)\right]\Delta\vect{p} =
+\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
+\frac{1}{2}\mu\vect{\nabla}\theta(\vect{p}_0)
+    \thinspace .
+\label{eq:sistema_normal_regul}
+\end{equation}
 
+\indent A equação \ref{eq:sistema_normal_regul} é a equação normal para o
+{\it problema inverso regularizado}.\footnote{Tente obter a equação normal para
+o caso em que $\vect{f}(\vect{p})$ é linear.}
+A seguir, apresentaremos diferentes funções regularizadoras comumente encontradas
+em problemas inversos na geofísica.
+Também mostraremos como fica a equação \ref{eq:sistema_normal_regul} para cada
+um dos casos.
 
 \input{latex/norma_minima.tex}
 \input{latex/suavidade.tex}

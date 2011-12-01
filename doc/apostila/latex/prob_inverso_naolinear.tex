@@ -44,7 +44,7 @@ A expansão é feita até segunda ordem e em torno da aproximação inicial $\ve
 \begin{equation}
 \phi(\vect{p}_0 + \Delta\vect{p}) \approx \phi(\vect{p}_0) +
     \vect{\nabla}\phi(\vect{p}_0)^T\Delta\vect{p} +
-    \dfrac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
+    \frac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
 = \psi(\vect{p}) \thinspace ,
 \label{eq:taylor}
 \end{equation}
@@ -63,7 +63,7 @@ O gradiente de $\psi(\vect{p})$ é dado por (ver Apêndice \ref{chap:opmat})
 \vect{\nabla}\psi(\vect{p}) = \vect{\nabla}\left[
     \phi(\vect{p}_0) +
     \vect{\nabla}\phi(\vect{p}_0)^T\Delta\vect{p} +
-    \dfrac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
+    \frac{1}{2}\Delta\vect{p}^T\mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
     \right] =
     \vect{\nabla}\phi(\vect{p}_0) + \mat{\nabla}\phi(\vect{p}_0)\Delta\vect{p}
     \thinspace .
@@ -178,7 +178,7 @@ sistema de equações \ref{eq:sistema_normal_nlin} pode ser escrito como
 
 \begin{equation}
     \mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0)\Delta\vect{p} =
-        -\mat{G}(\vect{p}_0)^T \left[
+        \mat{G}(\vect{p}_0)^T \left[
             \vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0) \right]
     \thinspace ,
 \label{eq:sistema_normal_gaussnewton}
@@ -192,7 +192,8 @@ correção $\Delta\vect{p}$ em uma determinada iteração do método Gauss-Newto
 Para o caso em que a função $f_i(\vect{p})$ é uma combinação linear dos
 parâmetros (equação \ref{eq:comb_linear}), a equação
 \ref{eq:sistema_normal_gaussnewton} se reduz ao sistema
-normal do {\it problema inverso linear} (equação \ref{eq:sistema_normal}).
+normal do {\it problema inverso linear} (equação \ref{eq:sistema_normal})
+\footnote{Dica: Lembre que nos casos lineares $\vect{f}(\vect{p})=\mat{G}\vect{p}+\vect{b}$.}.
 Isto mostra que a solução do problema inverso linear é um {\it caso particular}
 da solução do {\it problema inverso não-linear} pelo método Gauss-Newton.
 Outra observação importante é a semelhança entre as equações
