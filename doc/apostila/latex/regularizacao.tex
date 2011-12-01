@@ -1,13 +1,43 @@
 \chapter{Regularização}
 
-\section{Norma mínima}
+As equações \ref{eq:sistema_normal} do problema inverso linear e
+\ref{eq:sistema_normal_nlin} do problema inverso não-linear são
+{\it equações normais}.
+Estas equações são sistemas lineares cuja matriz é quadrada.
+Para que a solução de uma equação normal seja única, é necessário que esta
+matriz tenha {\it posto completo}.
+Uma condição para que uma matriz tenha posto completo é que todas as suas colunas
+(ou linhas) sejam {\it linearmente independentes}.
+Esta condição é equivalente a dizer que a matriz possua determinante diferente de
+zero.
+\\
+\indent Em problemas geofísicos, é comum que a matriz do sistema normal possua
+determinante próximo de zero. Ou seja, para fins práticos pode-se considerar que
+a matriz {\it não} tenha posto completo.
+Isto faz com que o problema inverso geofísico seja um problema {\it mal posto}.
+
+\begin{quote}
+{\tt Um problema {\bf mal-posto} apresenta, principalmente, {\it instabilidade}
+e {\it falta de unicidade} da solução.}
+\end{quote}
+
+\indent A instabilidade é definida como
+
+\begin{quote}
+{\tt A {\bf instabilidade} é a alta variabilidade dos parâmetros perante
+peque\-nas variações nos dados.}
+\end{quote}
+
+\noindent Por exemplo, seja um conjunto de dados preditos A e outro conjunto de
+dados preditos ligeiramente diferentes B.
+Se o problema inverso apresenta instabilidade, os pa\-râ\-me\-tros que produzem os
+dados preditos A são consideravelmente diferentes daqueles que produzem os dados
+preditos B.
+
 meh
 
-\section{Suavidade}
-meh
-\section{Vínculo de igualdade}
-meh
-\section{Variação total}
-meh
-\section{Compacidade}
-meh
+\input{latex/norma_minima.tex}
+\input{latex/suavidade.tex}
+\input{latex/vinculo_igualdade.tex}
+\input{latex/variacao_total.tex}
+\input{latex/compacidade.tex}
