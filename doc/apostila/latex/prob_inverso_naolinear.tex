@@ -180,8 +180,18 @@ sistema de equações \ref{eq:sistema_normal_nlin} pode ser escrito como
 \label{eq:sistema_normal_gaussnewton}
 \end{equation}
 
-\noindent em que
+\noindent em que $\vect{d}^{\thinspace o}$ é o vetor de dados observados e
+$\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em $\vect{p}_0$.
 \\
-\indent A equação \ref{eq:sistema_normal_gaussnewton} descreve o cálculo da correção
-$\Delta\vect{p}$ em uma determinada iteração do método Gauss-Newton.
+\indent A equação \ref{eq:sistema_normal_gaussnewton} descreve o cálculo da
+correção $\Delta\vect{p}$ em uma determinada iteração do método Gauss-Newton.
+Para o caso em que a função $f_i(\vect{p})$ é uma combinação linear dos
+parâmetros (equação \ref{eq:comb_linear}), a equação
+\ref{eq:sistema_normal_gaussnewton} se reduz ao sistema
+normal do {\it problema inverso linear} (equação \ref{eq:sistema_normal}).
+Isto mostra que a solução do problema inverso linear é um {\it caso particular}
+da solução do {\it problema inverso não-linear} pelo método Gauss-Newton.
+Outra observação importante é a semelhança entre as equações
+\ref{eq:sistema_normal} e \ref{eq:sistema_normal_gaussnewton}, o que evidencia
+que um problema inverso não-linear é uma sucessão de problemas inversos lineares.
 
