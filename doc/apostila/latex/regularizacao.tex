@@ -33,8 +33,94 @@ dados preditos ligeiramente diferentes B.
 Se o problema inverso apresenta instabilidade, os pa\-râ\-me\-tros que produzem os
 dados preditos A são consideravelmente diferentes daqueles que produzem os dados
 preditos B.
+\\
+\indent A falta de unicidade é definida como
 
+\begin{quote}
+{\tt A {\bf falta de unicidade} é a existência de vários conjuntos de parâme\-tros
+que produzem os mesmos dados preditos.}
+\end{quote}
+
+\noindent Em outras palavras, os dados observados podem ser explicados por vários
+conjuntos de parâmetros diferentes. Em termos práticos, existem vários vetores
+de parâmetros diferentes que minimizam a função do ajuste
+(equação \ref{eq:ajuste}).
+\\
+\indent A {\it regularização} é um procedimento matemático que contorna os
+problemas de ins\-tabilidade e falta de unicidade em problemas inversos mal-postos.
+Esse procedimento equivale a impor restrições aos parâmetros a serem estimados.
+Desta forma, em um {\it problema inverso regularizado} buscamos estimar um
+conjunto de parâmetros que ajustam os dados observados e satisfaçam
+determinadas restrições.
+Estas restrições introduzem informações {\it a priori} no problema inverso.
+As informações podem ser de natureza geológica ou meramente matemática.
+Em geral, a introdução de informações a priori é feita por meio de {\it funções
+regularizadoras}.
+Estas funções são funções escalares que dependem dos parâmetros.
+Para vincular uma função regularizadora ao ajuste dos dados, formamos a
+{\it função objetivo}
+
+\begin{equation}
+\Gamma(\vect{p}) = \phi(\vect{p}) + \mu\theta(\vect{p}) \thinspace ,
+\label{eq:objetivo}
+\end{equation}
+
+\noindent em que $\phi(\vect{p})$ é a função do ajuste (equação \ref{eq:ajuste}),
+$\theta(\vect{p})$ é uma função regularizadora e $\mu$ é um escalar positivo
+denominado {\it parâmetro de regularização}.
+Desta forma, o {\it problema inverso regularizado} é definido como estimar um
+vetor de parâmetros $\opt{p}$ que {\it minimiza a função objetivo}.
+\\
+\indent Neste ponto é importante ressaltar que
+
+\begin{quote}
+{\tt O {\bf parâmetro de regularização} $\mu$ controla a importância relativa
+en\-tre o ajuste aos dados observados e a concordância com a infor\-ma\-ção
+a priori.}
+\end{quote}
+
+\noindent O valor de $\mu$ é definido pelo usuário da inversão e por isso é
+importante compreender sua influência no resultado obtido (parâmetros estimados).
+Valores altos de $\mu$ tornam o problema inverso bem posto e fazem com que os
+parâmetros estimados satisfaçam quase completamente as informações a priori.
+Porém, isto geralmente faz com que haja um desajuste entre os dados observados e
+preditos.
+Por outro lado, valores baixos de $\mu$ fazem com que os parâmetros estimados
+ajustem os dados observados. No entanto, a estimativa poderá ser não-única e/ou
+instável, dependendo de quanto o problema inverso for mal-posto.
+Idealmente, deve-se encontrar um valor de $\mu$ que proporcione um bom ajuste e
+satisfaça as informações a priori o suficiente para estabilizar a solução.
+Procedimentos práticos para determinação do valor de $\mu$ serão discutidos no
+Capítulo \ref{chap:proc_praticos}.
+\\
+\indent No problema inverso regularizado, a linearidade não depende apenas da
+função $f_i(\vect{p})$ (equação \ref{eq:fi}) que relaciona os parâmetros aos
+dados preditos, mas também da função regularizadora.
+Nesse caso, para que o problema inverso seja linear, é necessário que tanto
+$f_i(\vect{p})$ como o {\it gradiente da função regularizadora} sejam
+combinações lineares dos parâmetros.
+Se ao menos uma destas funções for não-linear, o problema inverso deverá ser
+resolvido como um problema inverso não-linear.
+\\
+\indent Como foi observado anteriormente (Seção \ref{sec:nao-linear}), o
+problema inverso linear é um caso particular do problema inverso não-linear.
+Por esta razão, a formulação geral para o problema inverso regularizado
+será feita seguindo os procedimentos adotados para o problema inverso não-linear.
+Assim sendo, iniciaremos expandindo a função objetivo (equação
+\ref{eq:objetivo}) em série de Taylor até segunda ordem
+
+\begin{equation}
 meh
+\end{equation}
+
+
+
+
+
+
+
+
+
 
 \input{latex/norma_minima.tex}
 \input{latex/suavidade.tex}
