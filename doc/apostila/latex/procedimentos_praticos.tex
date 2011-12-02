@@ -1,2 +1,77 @@
 \chapter{Procedimentos práticos}
 \label{chap:proc_praticos}
+
+Durante a solução de problemas inversos nos deparamos com diversos obstáculos:
+
+\begin{itemize}
+\item Qual a influência que os ruídos aleatórios presentes nos dados exercem sobre o resultado?
+\item Por que a inversão não foi capaz de ajustar os dados observados?
+\item Como determinar uma valor adequado para o parâmetro de regularização?
+\item Como analisar a estabilidade da solução?
+\end{itemize}
+
+\noindent Neste capítulo descreveremos alguns procedimentos práticos para abordar
+estas questões.
+
+\section{Ajustar os dados observados}
+
+em situações reais, nem sempre é possível ajustar os dados observados
+isso pode acontecer, basicamente, por três razões:
+
+i) Os dados observados sempre contêm ruído;
+ii) A função escolhida para descrever a relação entre os parâmetros e os dados preditos não é
+capaz de descrever o sistema físico de forma satisfatória e
+iii) Regularização.
+
+em situações reais, os dados observados sempre contem algum tipo de ruído e este é
+impossível de ser removido completamente
+na maioria das vezes, a função escolhida para descrever a relação entre os parâmetros e os
+dados preditos descreve o sistema físico de maneira aproximada, mas não descreve o ruído,
+uma vez que este é, geralmente, de caráter aleatório
+sendo assim, a presença de ruído contribui para que os parâmetros estimados no problema
+inverso não ajustem perfeitamente os dados observados
+há situações em que a função escolhida para descrever a relação entre os parâmetros e os
+dados preditos não representa o sistema físico de maneira satisfatória
+nesse caso, mesmo se os dados observados não contivessem ruído (situação impossível em
+condições reais), não seria possível estimar parâmetros que ajustassem perfeitamente os
+dados observados
+o fato de uma determinada relação funcional não ser capaz de ajustar os dados observados
+significa que a hipótese escolhida para representar o sistema físico não é válida e, portanto, é
+um resultado tão importante quanto encontrar uma hipótese que descreva o sistema físico de
+forma satisfatória.
+
+
+\section{Determinar um valor para o parâmetro de regularização}
+
+ressaltar que: se apertar o mi, regulariza(caso a função regularizadora seja certa) e desajusta
+os dados; se afroxa mi, ajusta o dado (caso f seja certa) e deixa o problema cagada
+
+uma vez definida a informação a priori a ser introduzida no problema e, consequentemente,
+a função regularizadora a ser utilizada, é necessário estabelecer o valor do parâmetro de
+regularização que torna o problema inverso bem-posto.
+embora exista alguns métodos para escolha do parâmetro de regularização (ASTER;
+BORCHERS; THURBER, 2005), ainda não há uma maneira de determinar um valor ótimo
+Sendo assim, vamos apresentar um procedimento prático que geralmente é empregado em
+situações reais. Este procedimento consiste em escolher o menor parâmetro de regularização
+possível para que o problema inverso seja bem-posto e está exemplificado abaixo:
+Seja um conjunto de N dados observados.
+
+1) gerar um vetor de valores aleatórios com elementos definidos por realizações de uma
+variável aleatória com distribuição de probabilidade Gaussiana, média nula e desvio padrão
+igual ao nível de ruído dos dados (que é uma informação a priori).
+2) gerar um vetor de dados observados perturbados a partir da soma entre o vetor de valores
+aleatórios e o vetor de dados observados originais
+3) repetir as etapas 1 e 2 para gerar um conjunto de Q vetores de dados observados
+perturbados diferentes
+4) estabelecer um valor pequeno para o parâmetro de regularização mi (Equação 26)
+5) estimar Q vetores de parâmetros diferentes, sendo um para cada vetor de dados observados
+perturbados
+6) utilizando o conjunto de Q vetores de parâmetros estimados, calcular a média e o desvio
+padrão de cada parâmetro
+7) se nenhum parâmetro apresentar um desvio padrão maior que um valor pré estabelecido,
+considere que o valor do parâmetro de regularização mi é adequado e o problema inverso está
+bem regularizado
+8) se ao menos um dos parâmetros apresentar um desvio padrão maior que um valor pré
+estabelecido, considere que o valor do parâmetro de regularização mi não é adequado e o
+problema inverso não está bem regularizado. Nesse caso, aumente o valor do parâmetro de
+regularização mi e repita as etapas 5 a 8.
