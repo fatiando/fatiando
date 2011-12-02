@@ -1,10 +1,10 @@
 \chapter{Procedimentos práticos}
 \label{chap:proc_praticos}
 
-Durante a solução de problemas inversos nos deparamos com diversos obstáculos:
+Durante a solução de problemas inversos nos deparamos com diversos obstáculos, 
+como:
 
 \begin{itemize}
-\item Qual a influência que os ruídos aleatórios presentes nos dados exercem sobre o resultado?
 \item Por que a inversão não foi capaz de ajustar os dados observados?
 \item Como determinar uma valor adequado para o parâmetro de regularização?
 \item Como analisar a estabilidade da solução?
@@ -15,63 +15,100 @@ estas questões.
 
 \section{Ajustar os dados observados}
 
-em situações reais, nem sempre é possível ajustar os dados observados
-isso pode acontecer, basicamente, por três razões:
+Em situações reais, nem sempre é possível ajustar perfeitamente os dados observados.
+Isso pode acontecer por três principais razões:
 
-i) Os dados observados sempre contêm ruído;
-ii) A função escolhida para descrever a relação entre os parâmetros e os dados preditos não é
-capaz de descrever o sistema físico de forma satisfatória e
-iii) Regularização.
+\begin{enumerate}
+\item Os dados observados contêm ruído;
+\item A função $f_i(\vect{p})$ escolhida para descrever a relação entre os
+parâmetros e os dados preditos não é capaz de descrever o sistema físico
+de forma satisfatória;
+\item Excesso de regularização;
+\end{enumerate}
 
-em situações reais, os dados observados sempre contem algum tipo de ruído e este é
-impossível de ser removido completamente
-na maioria das vezes, a função escolhida para descrever a relação entre os parâmetros e os
-dados preditos descreve o sistema físico de maneira aproximada, mas não descreve o ruído,
-uma vez que este é, geralmente, de caráter aleatório
-sendo assim, a presença de ruído contribui para que os parâmetros estimados no problema
-inverso não ajustem perfeitamente os dados observados
-há situações em que a função escolhida para descrever a relação entre os parâmetros e os
-dados preditos não representa o sistema físico de maneira satisfatória
-nesse caso, mesmo se os dados observados não contivessem ruído (situação impossível em
-condições reais), não seria possível estimar parâmetros que ajustassem perfeitamente os
-dados observados
-o fato de uma determinada relação funcional não ser capaz de ajustar os dados observados
-significa que a hipótese escolhida para representar o sistema físico não é válida e, portanto, é
-um resultado tão importante quanto encontrar uma hipótese que descreva o sistema físico de
-forma satisfatória.
-
+\indent O primeiro caso é esperado pois observações sempre contem algum tipo de
+ruído.
+Embora existam técnicas para a atenuação de ruído, é impossível que ele seja
+removido completamente.
+Além disso, ruídos de caráter aleatório não são descritos pela relação funcional
+entre os parâmetros e os dados preditos (equação \ref{eq:fi}).
+Sendo assim, não ajustar perfeitamente os dados observados é aceitável, desde que
+o desajuste esteja dentro do nível de ruído estimado dos dados.
+\\
+\indent Já no segundo caso, a função escolhida para descrever a relação entre os
+pa\-râ\-me\-tros e os dados preditos não representa o sistema físico de forma adequada.
+Nesse caso, mesmo se os dados observados fossem isentos de ruído (situação
+impossível em condições reais), não seria possível estimar parâmetros que
+ajustassem os dados observados. 
+Isso é um indício de que a hipótese escolhida para representar o sistema físico
+não é válida.
+É crucial ressaltar que este é um resultado tão importante quanto encontrar uma
+hipótese que descreva o sistema físico de forma satisfatória.
+Este tipo de resultado nos permite descartar hipóteses (i.e., cenários geológicos)
+{\it com base nos dados geofísicos}.
+\\
+\indent O terceiro caso, em que há excesso de regularização, é devido a utilização
+de valores demasiado elevados do {\it parâmetro de regularização} $\mu$
+(equação \ref{eq:objetivo}).
+Valores elevados de $\mu$ dão excessiva importância para a informação a priori
+(i.e., regularização), o que causa um desajuste dos dados.
+Já valores baixos de $\mu$ priorizam o ajuste dos dados e negligenciam a informação
+a priori, o que faz com que haja um bom ajuste dos dados porém tornam o problema
+inverso instável. Na Seção \ref{sec:valor_mu} trataremos da escolha de uma
+valor adequado para $mu$.
 
 \section{Determinar um valor para o parâmetro de regularização}
+\label{sec:valor_mu}
 
-ressaltar que: se apertar o mi, regulariza(caso a função regularizadora seja certa) e desajusta
-os dados; se afroxa mi, ajusta o dado (caso f seja certa) e deixa o problema cagada
+O valor do parâmetro de regularização $\mu$ (equação \ref{eq:objetivo}) {\bf não}
+pode ser determinado para um caso geral.
+O valor de $\mu$ pode ser diferente para cada dado observado e cada parametrização
+utilizada.
+Além disto, pode ser desejável impor algum tipo de restrição mais fortemente
+que outros. Por exemplo, se utilizarmos ambas as funções regularizadoras de
+suavidade e igualdade, podemos desejar que a igualdade seja imposta mais que a
+suavidade. No entanto, há procedimentos que permitem encontrar valores de $\mu$
+que sejam considerados adequados. 
+\\
+\indent Um valor adequado de $\mu$ deve proporcionar um equilíbrio entre
+a estabilidade da solução e o ajuste dos dados observados.
+Embora existam alguns métodos para escolha automática do parâmetro de regularização
+(ASTER; BORCHERS; THURBER, 2005), ainda não há uma maneira de determinar um valor ótimo.
+Além disso, estes métodos automáticos são aplicáveis somente a problemas inversos
+que utilizam uma única função regularizadora.
+Sendo assim, apresentamos a seguir um procedimento prático que consiste em escolher o
+menor valor possível para o parâmetro de regularização para que o problema
+inverso seja bem-posto (i.e., com solução única e estável).
+\\
+\indent Seja um conjunto de $N$ dados observados e $M$ parâmetros,
+o procedimento prático segue as seguintes etapas:
 
-uma vez definida a informação a priori a ser introduzida no problema e, consequentemente,
-a função regularizadora a ser utilizada, é necessário estabelecer o valor do parâmetro de
-regularização que torna o problema inverso bem-posto.
-embora exista alguns métodos para escolha do parâmetro de regularização (ASTER;
-BORCHERS; THURBER, 2005), ainda não há uma maneira de determinar um valor ótimo
-Sendo assim, vamos apresentar um procedimento prático que geralmente é empregado em
-situações reais. Este procedimento consiste em escolher o menor parâmetro de regularização
-possível para que o problema inverso seja bem-posto e está exemplificado abaixo:
-Seja um conjunto de N dados observados.
+\begin{enumerate}
+\item Gerar um vetor $\vect{e}$ de $N$ valores aleatórios.
+Cada valor deve ser a realização de uma variável aleatória com distribuição
+Gaussiana de média zero e desvio padrão igual ao nível de ruído assumido
+para os dados;
+\item Gerar um vetor $\vect{d}\thinspace'$ de {\it dados observados perturbados} a partir
+da soma do vetor de valores aleatórios $\vect{e}$ e o vetor de dados observados
+$\vect{d}^{\thinspace 0}$
+\[
+\vect{d}\thinspace' = \vect{d}^{\thinspace 0} + \vect{e} \thinspace ;
+\]
+\item Repetir as etapas 1 e 2 para gerar um conjunto de $Q$ vetores de dados
+observados perturbados diferentes;
+\item Estabelecer um valor pequeno para o parâmetro de regularização $\mu$;
+\item Utilizar este valor de $\mu$ em $Q$ inversões para estimar $Q$ vetores de
+parâmetros diferentes. Cada vetor de parâmetros corresponde a um dos vetores de
+dados observados perturbados;
+\item Calcular o desvio padrão dos $Q$ valores obtidos para o $j$-ésimo parâmetro;
+\item Repetir a etapa 6 para cada um dos $M$ parâmetros;
+\item Se ao menos um dos $M$ parâmetros apresentar um desvio padrão maior que um
+valor máximo preestabelecido, considere que o valor de $\mu$ não é adequado.
+Nesse caso, aumente ligeiramente o valor de $\mu$ e repita as etapas 5-7;
+\item Se nenhum dos $M$ parâmetros apresentar um desvio padrão maior que um
+valor máximo preestabelecido, considere que o valor de $\mu$ é adequado e o
+problema inverso está bem regularizado;
+\end{enumerate}
 
-1) gerar um vetor de valores aleatórios com elementos definidos por realizações de uma
-variável aleatória com distribuição de probabilidade Gaussiana, média nula e desvio padrão
-igual ao nível de ruído dos dados (que é uma informação a priori).
-2) gerar um vetor de dados observados perturbados a partir da soma entre o vetor de valores
-aleatórios e o vetor de dados observados originais
-3) repetir as etapas 1 e 2 para gerar um conjunto de Q vetores de dados observados
-perturbados diferentes
-4) estabelecer um valor pequeno para o parâmetro de regularização mi (Equação 26)
-5) estimar Q vetores de parâmetros diferentes, sendo um para cada vetor de dados observados
-perturbados
-6) utilizando o conjunto de Q vetores de parâmetros estimados, calcular a média e o desvio
-padrão de cada parâmetro
-7) se nenhum parâmetro apresentar um desvio padrão maior que um valor pré estabelecido,
-considere que o valor do parâmetro de regularização mi é adequado e o problema inverso está
-bem regularizado
-8) se ao menos um dos parâmetros apresentar um desvio padrão maior que um valor pré
-estabelecido, considere que o valor do parâmetro de regularização mi não é adequado e o
-problema inverso não está bem regularizado. Nesse caso, aumente o valor do parâmetro de
-regularização mi e repita as etapas 5 a 8.
+\noindent As etapas 1-3 e 5-8 acima são o procedimento adotado para a
+{\it análise da estabilidade} da solução.
