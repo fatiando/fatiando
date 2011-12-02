@@ -10,23 +10,23 @@ De forma similar a equação \ref{eq:dotprod}, a função regularizadora de norm
 mínima tem a seguinte forma
 
 \begin{equation}
-\theta(\vect{p}) = \vect{p}^T\vect{p} \thinspace .
+\theta^{NM}(\vect{p}) = \vect{p}^T\vect{p} \thinspace .
 \label{eq:norma_minima}
 \end{equation}
 
-\indent O vetor gradiente $\vect{\nabla}\theta(\vect{p})$ e a matriz Hessiana
-$\mat{\nabla}\theta(\vect{p})$ (ver Apêndice \ref{chap:opmat}) desta função
+\indent O vetor gradiente $\vect{\nabla}\theta^{NM}(\vect{p})$ e a matriz Hessiana
+$\mat{\nabla}\theta^{NM}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) desta função
 são, respectivamente,
 
 \begin{equation}
-\vect{\nabla}\theta(\vect{p}) = 2\vect{p}
+\vect{\nabla}\theta^{NM}(\vect{p}) = 2\vect{p}
 \label{eq:grad_norma_minima}
 \end{equation}
 
 \noindent e
 
 \begin{equation}
-\mat{\nabla}\theta(\vect{p}) = 2\mat{I} \thinspace ,
+\mat{\nabla}\theta^{NM}(\vect{p}) = 2\mat{I} \thinspace ,
 \label{eq:hessian_norma_minima}
 \end{equation}
 
@@ -39,7 +39,7 @@ Note que o gradiente da função regularizadora de norma mínima é uma
 os dados preditos aos parâmetros também é {\it linear} (equação \ref{eq:comb_linear}),
 a equação normal do {\it problema inverso linear regularizado},
 para o caso da regularização de norma mínima\footnote{
-Onde foi parar o termo $\vect{\nabla}\theta(\vect{p}_0)$? Dica: Mostre que, se o
+Onde foi parar o termo $\vect{\nabla}\theta^{NM}(\vect{p}_0)$? Dica: Mostre que, se o
 problema inverso é linear, a estimativa $\opt{p}$ não depende da aproximação
 inicial $\vect{p}_0$.}, é
 

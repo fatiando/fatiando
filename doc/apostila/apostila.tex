@@ -14,7 +14,7 @@
 %\usepackage{booktabs} % for making better tables
 \usepackage[pdftex]{graphicx} % For inserting figures
 % \usepackage[draft]{graphicx} % Rascunho
-\usepackage{natbib} % For better bibliography
+\usepackage[round,sort]{natbib} % For better bibliography
 
 % Mathematical Symbols and fonts
 \usepackage{amssymb,amsmath} 
@@ -55,8 +55,11 @@
 % For pdf hyperlinks
 \usepackage[pdftex]{hyperref}
 \hypersetup{colorlinks=true}
+\hypersetup{citecolor=blue}
 \hypersetup{pdftitle={Tópicos de inversão em geofísica}}
 \hypersetup{pdfauthor={Vanderlei Coelho de Oliveira Junior \& Leonardo Uieda}}
+% For making a print without color links
+%\hypersetup{linkcolor=black,citecolor=black,filecolor=black,urlcolor=black}
 
 \begin{document}
     \maketitle
@@ -73,7 +76,18 @@
     \input{latex/regularizacao.tex}
     \input{latex/procedimentos_praticos.tex}
     \input{latex/leitura.tex}
-    \input{latex/referencias.tex}
+    %\input{latex/referencias.tex}
+    %\bibliographystyle{plainnat}
+    %\bibliographystyle{amsplain}
+    %\bibliographystyle{alpha}
+    %\bibliographystyle{amsalpha}
+    \onehalfspacing
+    \bibliographystyle{seg}
+    \clearpage
+    \phantomsection % For hyperref to work
+    \addcontentsline{toc}{chapter}{Referências}
+    \bibliography{apostila}
     \appendix
     \input{latex/apendice.tex}
 \end{document}
+

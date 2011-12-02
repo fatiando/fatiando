@@ -1,4 +1,5 @@
-\section{Suavidade (Tikhonov de order 1)}
+\section{Suavidade (Tikhonov de ordem 1)}
+\label{sec:smoothness}
 
 Em certas situações é desejável que a distribuição dos parâmetros seja ``suave''.
 Existem diversas interpretações para esta restrição, porém a mais comum é que
@@ -11,7 +12,7 @@ mínima.
 suavidade tem a seguinte forma
 
 \begin{equation}
-\theta(\vect{p}) = \vect{q}^T\vect{q} \thinspace ,
+\theta^{SV}(\vect{p}) = \vect{q}^T\vect{q} \thinspace ,
 \end{equation}
 
 \noindent em que $\vect{q}$ é um vetor com as diferêncas entre os parâmetros
@@ -20,6 +21,7 @@ finitas para a derivada espacial dos parâmetros e pode ser escrito como
 
 \begin{equation}
 \vect{q} = \mat{R}\thinspace\vect{p} \thinspace ,
+\label{eq:vetor_diferencas}
 \end{equation}
 
 \noindent em que $\mat{R}$ é uma matriz de diferenças finitas.
@@ -30,7 +32,7 @@ retangulares justapostos com larguras fixas. Os parâmetros a serem estimados
 seriam então as 7 espessuras dos prismas (Figura \ref{fig:basin-smoothness}).
 Impor suavidade ao relevo da bacia é equivalente a minimizar as diferenças
 $p_1 - p_2$, $p_2 - p_3$, $p_3 - p_4$, $p_4 - p_5$, $p_5 - p_6$ e $p_6 - p_7$.
-Neste caso, o vetor $\vect{q}$ das diferêncas entre os parâmetros espacialmente
+Neste caso, o vetor $\vect{q}$ das diferenças entre os parâmetros espacialmente
 adjacentes é dado por
 
 \begin{equation}
@@ -71,22 +73,22 @@ adjacentes é dado por
 parâmetros
 
 \begin{equation}
-\theta(\vect{p}) = \vect{p}^T \mat{R}^T \mat{R}\thinspace\vect{p} \thinspace .
+\theta^{SV}(\vect{p}) = \vect{p}^T \mat{R}^T \mat{R}\thinspace\vect{p} \thinspace .
 \label{eq:suavidade}
 \end{equation}
 
-\noindent O vetor gradiente $\vect{\nabla}\theta(\vect{p})$ e a matriz Hessiana
-$\mat{\nabla}\theta(\vect{p})$ (ver Apêndice \ref{chap:opmat}) desta função
+\noindent O vetor gradiente $\vect{\nabla}\theta^{SV}(\vect{p})$ e a matriz Hessiana
+$\mat{\nabla}\theta^{SV}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) desta função
 são, respectivamente,
 
 \begin{equation}
-\vect{\nabla}\theta(\vect{p}) = 2\mat{R}^T \mat{R}\thinspace\vect{p}
+\vect{\nabla}\theta^{SV}(\vect{p}) = 2\mat{R}^T \mat{R}\thinspace\vect{p}
 \end{equation}
 
 \noindent e
 
 \begin{equation}
-\mat{\nabla}\theta(\vect{p}) = 2\mat{R}^T \mat{R} \thinspace .
+\mat{\nabla}\theta^{SV}(\vect{p}) = 2\mat{R}^T \mat{R} \thinspace .
 \end{equation}
 
 \indent O gradiente da função regularizadora de norma mínima é uma

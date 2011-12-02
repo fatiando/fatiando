@@ -7,7 +7,7 @@ próximo possível dos valores conhecidos (e preestabelecidos).
 Para tanto, utilizamos a {\it função regularizadora de igualdade}
 
 \begin{equation}
-\theta(\vect{p}) =
+\theta^{IG}(\vect{p}) =
     \left(\vect{p} - \vect{p}^{\thinspace a}\right)^T \mat{A}
         \left(\vect{p} - \vect{p}^{\thinspace a} \right)
     \thinspace ,
@@ -48,19 +48,19 @@ $\mat{A}$ serão
 \]
 
 
-\indent O vetor gradiente $\vect{\nabla}\theta(\vect{p})$ e a matriz Hessiana
-$\mat{\nabla}\theta(\vect{p})$ (ver Apêndice \ref{chap:opmat}) da função
+\indent O vetor gradiente $\vect{\nabla}\theta^{IG}(\vect{p})$ e a matriz Hessiana
+$\mat{\nabla}\theta^{IG}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) da função
 regularizadora de igualdade são, respectivamente,
 
 \begin{equation}
-\vect{\nabla}\theta(\vect{p}) = 2\mat{A}
+\vect{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}
     \left(\vect{p} - \vect{p}^{\thinspace a} \right)
 \end{equation}
 
 \noindent e
 
 \begin{equation}
-\mat{\nabla}\theta(\vect{p}) = 2\mat{A} \thinspace .
+\mat{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A} \thinspace .
 \end{equation}
 
 \indent Para o caso em que a $f_i(\vect{p})$ que relaciona

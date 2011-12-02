@@ -1,4 +1,35 @@
 \section{Variação total}
 
-meh
-bla
+Ao contrário do que vimos na Seção \ref{sec:smoothness}, há situações em que é
+desejável que hajam algumas {\it discontinuidades} entre parâmetros espacialmente
+adjacentes. Nestes casos, podemos utilizar a função regularizadora de
+{\it variação total}
+
+\begin{equation}
+\theta^{VT}(\vect{p}) = \sum\limits_{k=1}^L |q_k| \thinspace ,
+\end{equation}
+
+\noindent em que $q_k$ é o $k$-ésimo elemento do vetor de diferenças $\vect{q}$
+(equação \ref{eq:vetor_diferencas}) e $L$ é o número de elementos em $\vect{q}$.
+Como esta função não é diferenciável para valores de $q_k = 0$, podemos
+aproximá-la por
+
+\begin{equation}
+\theta^{VT}(\vect{p}) \approx \theta^{VT}_\beta(\vect{p}) =
+    \sum\limits_{k=1}^L \sqrt{q_k^2 + \beta} \thinspace ,
+\end{equation}
+
+\noindent sendo $\beta$ um escalar positivo pequeno.
+\\
+\indent O vetor gradiente $\vect{\nabla}\theta^{VT}_\beta(\vect{p})$ e a matriz
+Hessiana $\mat{\nabla}\theta^{VT}_\beta(\vect{p})$ desta função
+\citep{martins_etal2011} são, respectivamente,
+\begin{equation}
+\vect{\nabla}\theta^{VT}_\beta(\vect{p}) = 2\mat{R}^T \mat{R}\thinspace\vect{p}
+\end{equation}
+
+\noindent e
+
+\begin{equation}
+\mat{\nabla}\theta^{VT}_\beta(\vect{p}) = 2\mat{R}^T \mat{R} \thinspace .
+\end{equation}
