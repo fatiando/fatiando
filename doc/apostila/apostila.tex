@@ -17,7 +17,8 @@
 \usepackage[round,sort]{natbib} % For better bibliography
 
 % Mathematical Symbols and fonts
-\usepackage{amssymb,amsmath} 
+\usepackage{cancel} % for canceling terms in equations
+\usepackage{amssymb,amsmath}
 % Define vector commands
 \providecommand{\abs}[1]{\lvert#1\rvert}
 \providecommand{\norm}[1]{\lVert#1\rVert}
@@ -25,6 +26,10 @@
 \newcommand{\est}[1]{\hat{#1}}
 \newcommand{\vect}[1]{\bar{#1}}
 \newcommand{\mat}[1]{\bar{\bar{#1}}}
+% To define new theorems
+\usepackage{amsthm}
+\newtheorem{define}{Definição}
+\newtheorem{example}{Exemplo}[chapter]
 
 % Fix the margins so that they are bit smaller
 \usepackage[a4paper]{geometry}

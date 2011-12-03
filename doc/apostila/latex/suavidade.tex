@@ -25,8 +25,9 @@ finitas para a derivada espacial dos parâmetros e pode ser escrito como
 \end{equation}
 
 \noindent em que $\mat{R}$ é uma matriz de diferenças finitas.
-\\
-\indent Por exemplo, seja o problema inverso de estimar o relevo de uma bacia
+
+\begin{example}
+Seja o problema inverso de estimar o relevo de uma bacia
 sedimentar. Uma possível parametrização seria discretizar a bacia em 7 prismas
 retangulares justapostos com larguras fixas. Os parâmetros a serem estimados
 seriam então as 7 espessuras dos prismas (Figura \ref{fig:basin-smoothness}).
@@ -67,6 +68,8 @@ adjacentes é dado por
     $p_5 - p_6$ e $p_6 - p_7$.}
     \label{fig:basin-smoothness}
 \end{figure}
+
+\end{example}
 
 \indent A {\it função regularizadora de suavidade} (também conhecida como
 {\it Tikhonov de ordem um}) pode ser escrita como função dos

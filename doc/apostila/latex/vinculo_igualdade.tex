@@ -8,7 +8,7 @@ Para tanto, utilizamos a {\it função regularizadora de igualdade}
 
 \begin{equation}
 \theta^{IG}(\vect{p}) =
-    \left(\vect{p} - \vect{p}^{\thinspace a}\right)^T \mat{A}
+    \left(\vect{p} - \vect{p}^{\thinspace a}\right)^T \mat{A}^T\mat{A}
         \left(\vect{p} - \vect{p}^{\thinspace a} \right)
     \thinspace ,
 \label{eq:igualdade}
@@ -22,8 +22,9 @@ parâmetros.
 O $j$-ésimo elemento da diagonal de $\mat{A}$ é 1 (um) caso
 haja um valor conhecido (preestabelecido) para $j$-ésimo parâmetro, ou 0 (zero)
 caso contrário.
-\\
-\indent Por exemplo, digamos que em um determinado problema inverso a função
+
+\begin{example}
+Digamos que em um determinado problema inverso a função
 $f_i(\vect{p})$ depende de três parâmetros. Além disso, desejamos que o segundo
 parâmetro $p_2$ seja o mais próximo possível do valor $26$.
 Podemos então usar a função regularizadora de igualdade para impor essa restrição.
@@ -46,21 +47,21 @@ $\mat{A}$ serão
     0 & 0 & 0
     \end{bmatrix} .
 \]
-
+\end{example}
 
 \indent O vetor gradiente $\vect{\nabla}\theta^{IG}(\vect{p})$ e a matriz Hessiana
 $\mat{\nabla}\theta^{IG}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) da função
 regularizadora de igualdade são, respectivamente,
 
 \begin{equation}
-\vect{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}
+\vect{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}^T\mat{A}
     \left(\vect{p} - \vect{p}^{\thinspace a} \right)
 \end{equation}
 
 \noindent e
 
 \begin{equation}
-\mat{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A} \thinspace .
+\mat{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}^T\mat{A} \thinspace .
 \end{equation}
 
 \indent Para o caso em que a função $f_i(\vect{p})$ que relaciona
@@ -69,9 +70,9 @@ a equação normal do {\it problema inverso linear regularizado},
 para o caso da regularização de igualdade, é
 
 \begin{equation}
-\left(\mat{G}^T\mat{G} + \mu\mat{A}\right)\opt{p} =
+\left(\mat{G}^T\mat{G} + \mu\mat{A}^T\mat{A}\right)\opt{p} =
     \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right) +
-    \mu\mat{A}\vect{p}^{\thinspace a} ,
+    \mu\mat{A}^T\mat{A}\vect{p}^{\thinspace a} ,
 \end{equation}
 
 \noindent em que $\mu$ é o parâmetro de regularização, $\vect{d}^{\thinspace o}$
@@ -86,9 +87,9 @@ igualdade, é
 
 \begin{equation}
 \left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
-      \mu\mat{A}\right]\Delta\vect{p} =
+      \mu\mat{A}^T\mat{A}\right]\Delta\vect{p} =
 \mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
-\mu\mat{A}\left[\vect{p}_0 - \vect{p}^{\thinspace a}\right]
+\mu\mat{A}^T\mat{A}\left[\vect{p}_0 - \vect{p}^{\thinspace a}\right]
     \thinspace .
 \end{equation}
 
