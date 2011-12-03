@@ -196,6 +196,7 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
     \vect{a}_j^T
     \thinspace .
     \end{split}
+    \label{eq:deriv_xTAT}
     \end{equation}
 \end{example}
 
@@ -267,6 +268,7 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
         2(\mat{A}\vect{u}_j^M)^T(\mat{A}\vect{x}) =
         2(\vect{u}_j^M)^T \mat{A}^T\mat{A}\thinspace\vect{x}
     \thinspace .
+    \label{eq:deriv_xTATAx}
     \end{equation}    
 \end{example}
 
@@ -292,11 +294,11 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
     \dfrac{\partial f(\vect{x})}{\partial x_1} \vspace{0.3cm}\\
     \dfrac{\partial f(\vect{x})}{\partial x_2} \vspace{0.3cm}\\
     \vdots \vspace{0.3cm}\\
-    \dfrac{\partial f(\vect{x})}{\partial x_N}
+    \dfrac{\partial f(\vect{x})}{\partial x_M}
     \end{bmatrix}
     =
     \begin{bmatrix}
-    a_1 \\ a_2 \\ \vdots \\ a_N
+    a_1 \\ a_2 \\ \vdots \\ a_M
     \end{bmatrix}
     = \vect{a}
     \thinspace .
@@ -307,24 +309,94 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
     Para o caso
 
     \begin{equation}
-    f(\vect{x}) = \vect{a}^T\vect{x} = \vect{x}^T\vect{a},
+    f(\vect{x}) = \vect{x}^T\mat{A}^T\mat{A}\vect{x},
     \end{equation}
     
-    \noindent o gradiente de $f(\vect{x})$ é (ver equação \ref{eq:deriv_aTx})
+    \noindent o gradiente de $f(\vect{x})$ é (ver equação \ref{eq:deriv_xTATAx})
     
     \begin{equation}
-    \vect{\nabla}f(\vect{x}) =
-    \begin{bmatrix}
-    \dfrac{\partial f(\vect{x})}{\partial x_1} \vspace{0.3cm}\\
-    \dfrac{\partial f(\vect{x})}{\partial x_2} \vspace{0.3cm}\\
-    \vdots \vspace{0.3cm}\\
-    \dfrac{\partial f(\vect{x})}{\partial x_N}
-    \end{bmatrix}
-    =
-    \begin{bmatrix}
-    a_1 \\ a_2 \\ \vdots \\ a_N
-    \end{bmatrix}
-    = \vect{a}
-    \thinspace .
+        \vect{\nabla}f(\vect{x}) =
+        \begin{bmatrix}
+        \dfrac{\partial f(\vect{x})}{\partial x_1} \vspace{0.3cm}\\
+        \dfrac{\partial f(\vect{x})}{\partial x_2} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \dfrac{\partial f(\vect{x})}{\partial x_M}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        2(\vect{u}_1^M)^T \mat{A}^T\mat{A}\thinspace\vect{x} \vspace{0.3cm}\\
+        2(\vect{u}_2^M)^T \mat{A}^T\mat{A}\thinspace\vect{x} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        2(\vect{u}_M^M)^T \mat{A}^T\mat{A}\thinspace\vect{x}
+        \end{bmatrix}
+        =
+        2
+        \underbrace{
+        \begin{bmatrix}
+        (\vect{u}_1^M)^T  \vspace{0.3cm}\\
+        (\vect{u}_2^M)^T \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        (\vect{u}_M^M)^T
+        \end{bmatrix}}_{\mat{I}}
+        \mat{A}^T\mat{A}\thinspace\vect{x}
+        =
+        2\mat{A}^T\mat{A}\thinspace\vect{x} 
+        \thinspace .
+    \label{eq:grad_xTATAx}
+    \end{equation}
+\end{example}
+
+\section{Hessianas}
+
+A seguir demonstramos como calcular $\mat{\nabla}f(\vect{x})$
+para diversos casos.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{x}^T\mat{A}^T\mat{A}\vect{x},
+    \end{equation}
+    
+    \noindent a Hessiana de $f(\vect{x})$ é (ver equação \ref{eq:grad_xTATAx})
+    
+    \begin{equation}
+        \mat{\nabla}f(\vect{x}) =
+        \vect{\nabla}[\vect{\nabla}f(\vect{x})]^T =
+        \vect{\nabla}\left(2\mat{A}^T\mat{A}\thinspace\vect{x}\right)^T =
+        2\vect{\nabla}\Big(\vect{x}^T\underbrace{\mat{A}^T\mat{A}}_{\mat{B}^T}\Big) =
+        2\vect{\nabla}\left(\vect{x}^T\mat{B}^T\right).
+    \end{equation}
+
+    \noindent Sendo $\vect{b}_j$ a $j$-ésima coluna de $\mat{B}$, segue que
+    (ver equação \ref{eq:deriv_xTAT})
+        
+    \begin{equation}
+        \vect{\nabla}\left(\vect{x}^T\mat{B}^T\right) = 
+        \begin{bmatrix}
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_1} \vspace{0.3cm}\\
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_2} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_M}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        \vect{b}_1^T \vspace{0.3cm}\\
+        \vect{b}_2^T \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \vect{b}_M^T
+        \end{bmatrix}
+        =
+        \mat{B}^T
+        \thinspace .
+    \end{equation}
+
+    \noindent Logo,
+    
+    \begin{equation}
+        \mat{\nabla}f(\vect{x}) =
+        2\mat{B}^T = 2\mat{A}^T\mat{A}
+        \thinspace .
     \end{equation}
 \end{example}
