@@ -400,3 +400,245 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
         \thinspace .
     \end{equation}
 \end{example}
+
+\section{Expansão em série de Taylor}
+
+A seguir demonstramos como calcular a expansão em série de Taylor de
+$f(\vect{x})$ até a primeira e segunda ordem.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
+A expansão será feita em torno de um ponto $\vect{x}_0$ tal que
+
+\begin{equation}
+\vect{x} = \vect{x}_0 + \Delta\vect{x} \thinspace .
+\end{equation}
+
+\subsection{Até primeira ordem}
+
+A expansão em série de Taylor de $f(\vect{x})$ até a primeira ordem é
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) &\approx
+    f(\vect{x}_0) +
+    \dfrac{\partial f}{\partial x_1}(\vect{x}_0) \Delta x_1 + 
+    \dfrac{\partial f}{\partial x_2}(\vect{x}_0) \Delta x_2 +
+    \dotsb + 
+    \dfrac{\partial f}{\partial x_M}(\vect{x}_0) \Delta x_M
+\\[0.3cm] &\approx
+    f(\vect{x}_0) +
+    \underbrace{
+    \begin{bmatrix}
+    \dfrac{\partial f}{\partial x_1}(\vect{x}_0) &
+    \dfrac{\partial f}{\partial x_2}(\vect{x}_0) &
+    \ldots &
+    \dfrac{\partial f}{\partial x_M}(\vect{x}_0)
+    \end{bmatrix}}_{\vect{\nabla}f(\vect{x}_0)^T}
+    \underbrace{
+    \begin{bmatrix}
+    \Delta x_1 \\ \Delta x_2 \\ \vdots \\ \Delta x_M
+    \end{bmatrix}}_{\Delta\vect{x}}
+\\[0.3cm]
+&\approx f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T \Delta\vect{x}
+\thinspace .
+\end{split}
+\label{eq:taylor_order1}
+\end{equation}
+
+\subsection{Até segunda ordem}
+
+Baseado na equação \ref{eq:taylor_order1}, a expansão em série de Taylor de
+$f(\vect{x})$ até a segunda ordem é
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2}\Delta x_1 +
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}\Delta x_M 
+\\[0.5cm]
+&+
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2}\Delta x_1 +
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2}\Delta x_M
+\\
+&+ \dotsb
+\\
+&+
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M}\Delta x_1 +
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2}\Delta x_M
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Transformando as multiplicações de $\Delta x_j$ do lado direito em
+um produto escalar com o vetor $\Delta\vect{x}$ obtemos
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+\ldots &
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+\end{bmatrix}
+\Delta\vect{x}
+\\[0.5cm]
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+\ldots &
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+\end{bmatrix}
+\Delta\vect{x}
+\\
+&+ \dotsb
+\\
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+\ldots &
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}
+\Delta\vect{x}
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Em seguida, colocamos $\Delta x_j$ em evidência
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta x_1
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta x_2
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\\
+&+ \dotsb
+\\
+&+ \dfrac{1}{2}\Delta x_M
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Agora, transformamos a multiplicação de $\Delta x_j$ a esquerda
+em um produto escalar com o vetor $\Delta\vect{x}$
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta\vect{x}^T
+\begin{bmatrix}
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+    \end{bmatrix}
+    \Delta\vect{x}
+    \\[0.5cm]
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+    \end{bmatrix}
+    \Delta\vect{x}
+    \\[0.5cm]
+    \vdots
+    \\[0.5cm]
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+    \end{bmatrix}
+    \Delta\vect{x}
+\end{bmatrix}
+\end{split}
+\thinspace .
+\end{equation}
+
+\noindent Colocando $\Delta\vect{x}$ em evidência e lembrando da equação
+\ref{eq:ophess} obtemos
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta\vect{x}^T
+\underbrace{
+\begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+    \\[0.5cm]
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+    \\
+    \vdots & \vdots & \ddots & \vdots
+    \\
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}}_{\mat{\nabla}f(\vect{x}_0)}
+\Delta\vect{x}
+\end{split}
+\thinspace .
+\end{equation}
+
+\noindent Finalmente, a expansão de $f(\vect{x})$ em série de Taylor até
+segunda ordem é
+
+\begin{equation}
+f(\vect{x}) \approx
+    f(\vect{x}_0) +
+    \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x} +
+    \Delta\vect{x}^T\mat{\nabla}f(\vect{x}_0)\Delta\vect{x}
+\thinspace .
+\end{equation}
