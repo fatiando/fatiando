@@ -1,6 +1,6 @@
 NAME=apostila
 
-${NAME}.pdf: ${NAME}.tex ${NAME}.bib latex/*.tex
+${NAME}.pdf: ${NAME}.tex ${NAME}.bib latex/*.tex figs/*.pdf
 	pdflatex ${NAME}
 	bibtex ${NAME}
 	pdflatex ${NAME}
