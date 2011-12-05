@@ -68,7 +68,7 @@ dos parâmetros
 \end{equation}
 
 \indent O problema inverso consiste em encontrar um vetor de parâmetros $\vect{p}$
-que produza dados preditos o mais próximo possível dos dados observados.
+que produza os dados preditos mais próximos possívies dos dados observados.
 Para determinar a ``proximidade'' entre os dados observados e os dados preditos,
 é necessário quantificar a distância entre eles.
 Isto é feito em termos da norma do {\it vetor de resíduos}
@@ -80,22 +80,24 @@ Isto é feito em termos da norma do {\it vetor de resíduos}
 \noindent em que $\vect{d}^{\thinspace o}$ é o vetor de {\it dados observados}
 e $\vect{f}(\vect{p})$ é o vetor de {\it dados preditos}.
 \\
-\indent Como norma do vetor de resíduos utiliza-se, usualmente, o quadrado da
+\indent Para quantificar a distância entre os dados observados e os dados
+preditos utiliza-se, usualmente, o quadrado da
 norma quadrática (também conhecida como norma $\ell_2$ ou norma Euclidiana)
+do vetor de resíduos
 
 \begin{equation}
 \norm{\vect{r}}_2^2 =
-    \sum\limits_{i=1}^N \left[d^{\thinspace o} - f_i(\vect{p})\right]^2 \, .
+    \sum\limits_{i=1}^N \left[d^{\thinspace o}_i - f_i(\vect{p})\right]^2 \, .
 \label{eq:norma_l2}
 \end{equation}
 
-\noindent Esta norma do vetor de resíduos $\vect{r}$ é também uma função escalar
+\noindent Esta equação é também uma função escalar
 dos parâmetros. Assim sendo, definimos uma função $\phi(\vect{p})$, chamada de
 {\it função do ajuste}, como
 
 \begin{equation}
 \phi(\vect{p}) = \norm{\vect{r}}_2^2 =
-    \sum\limits_{i=1}^N \left[d^{\thinspace o} - f_i(\vect{p})\right]^2 \, .
+    \sum\limits_{i=1}^N \left[d^{\thinspace o}_i - f_i(\vect{p})\right]^2 \, .
 \label{eq:ajuste_sum}
 \end{equation}
 
@@ -144,7 +146,7 @@ de\-ter\-mi\-na\-do vetor de parâmetros $\vect{p}$.}
 vetor $\opt{p}$ que minimiza a função do ajuste $\phi(\vect{p})$. 
 Matematicamente, isso equivale a encontrar o vetor $\opt{p}$ tal que o gradiente
 da função $\phi(\vect{p})$ avaliado em $\opt{p}$ seja igual ao vetor nulo.
-Em outras palavras, o vetor $\opt{p}$ é um {\it ponto extremo} da função
+Este vetor $\opt{p}$ é um {\it ponto extremo} da função
 $\phi(\vect{p})$.
 \\
 \indent O gradiente da função $\phi(\vect{p})$, avaliado em um $\vect{p}$ qualquer,
@@ -162,7 +164,7 @@ $\phi(\vect{p})$.
 \end{equation} 
 
 \noindent em que $\vect{\nabla}$ é o operador gradiente (Apêndice \ref{chap:opmat}).
-Substituindo a equação \ref{eq:ajuste}, a expressão para o $i$-ésimo elemento do
+A partir da equação \ref{eq:ajuste}, a expressão para o $i$-ésimo elemento do
 vetor gradiente é
 
 \begin{equation}
@@ -187,8 +189,8 @@ vetor gradiente é
 \end{equation}
 
 \indent Lembrando que o transposto de um escalar é igual a ele mesmo, podemos
-tomar o transposto do segundo termo da equação \ref{eq:del_phi_del_pi},
-obtendo
+tomar o transposto do segundo termo do lado direito da equação
+\ref{eq:del_phi_del_pi}, obtendo
 
 \begin{equation}
 \dfrac{\partial \phi(\vect{p})}{\partial p_i} = 
@@ -297,8 +299,8 @@ da função do ajuste $\phi(\vect{p})$ depende do vetor de dados preditos
 $\vect{f}(\vect{p})$ (equação \ref{eq:dados_preditos}) e sua derivada em relação
 aos parâmetros $\vect{p}$.
 Sendo assim, a função $f$ que relaciona os parâmetros aos dados preditos determina
-o comportamento do o gradiente de $\phi(\vect{p})$.
-Nas próximas seções analisaremos os casos em que a função $f$ é linear e
+o comportamento do gradiente de $\phi(\vect{p})$.
+Nas próximas seções analisaremos os casos em que a função $f$ é linear ou
 não-linear em relação aos parâmetros.
 Essa análise nos permitirá compreender a influência da função $f$ na busca pelo
 vetor de parâmetros $\opt{p}$ que minimiza a função $\phi(\vect{p})$.

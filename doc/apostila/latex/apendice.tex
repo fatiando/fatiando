@@ -152,6 +152,7 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
     \vect{a}_j = \mat{A}\thinspace\vect{u}_j^M
     \thinspace .
     \end{split}
+    \label{eq:deriv_Ax}
     \end{equation}
 \end{example}
 
@@ -193,7 +194,7 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
         \cancelto{0}{\dfrac{\partial x_M\thinspace\vect{a}_M^T}{\partial x_j}}
     \\[0.3cm]
     &=
-    \vect{a}_j^T
+    \vect{a}_j^T = (\vect{u}_j^M)^T \mat{A}^T
     \thinspace .
     \end{split}
     \label{eq:deriv_xTAT}
@@ -217,14 +218,14 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
 \end{example}
 
 \begin{example}
-    Para o caso\footnote{O transposto de um escalar é igual a ele mesmo.}
+    Para o caso
 
     \begin{equation}
     f(\vect{x}) = \vect{a}^T\vect{x} = \vect{x}^T\vect{a},
     \end{equation}
     
     \noindent a derivada de $f(\vect{x})$ em relação
-    a $x_j$ é
+    a $x_j$ é \footnote{O transposto de um escalar é igual a ele mesmo.}
     
     \begin{equation}
     \dfrac{\partial f(\vect{x})}{\partial x_j} =
@@ -246,7 +247,7 @@ Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})
     \end{equation}
     
     \noindent a derivada de $f(\vect{x})$ em relação
-    a $x_j$ é
+    a $x_j$ é (ver equação \ref{eq:deriv_Ax})
     
     \begin{equation}
     \begin{split}
@@ -280,13 +281,14 @@ para diversos casos.
 Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
 
 \begin{example}
-    Para o caso\footnote{O transposto de um escalar é igual a ele mesmo.}
+    Para o caso
 
     \begin{equation}
     f(\vect{x}) = \vect{a}^T\vect{x} = \vect{x}^T\vect{a},
     \end{equation}
     
     \noindent o gradiente de $f(\vect{x})$ é (ver equação \ref{eq:deriv_aTx})
+    \footnote{O transposto de um escalar é igual a ele mesmo.}
     
     \begin{equation}
     \vect{\nabla}f(\vect{x}) =
@@ -639,6 +641,6 @@ segunda ordem é
 f(\vect{x}) \approx
     f(\vect{x}_0) +
     \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x} +
-    \Delta\vect{x}^T\mat{\nabla}f(\vect{x}_0)\Delta\vect{x}
+    \dfrac{1}{2}\Delta\vect{x}^T\mat{\nabla}f(\vect{x}_0)\Delta\vect{x}
 \thinspace .
 \end{equation}

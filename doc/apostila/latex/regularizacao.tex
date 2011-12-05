@@ -1,14 +1,14 @@
 \chapter{Regularização}
 
 As equações \ref{eq:sistema_normal} do problema inverso linear e
-\ref{eq:sistema_normal_nlin} do problema inverso não-linear são
+\ref{eq:sistema_normal_gaussnewton} do problema inverso não-linear são
 {\it equações normais}.
 Estas equações são sistemas lineares cuja matriz é quadrada.
 Para que a solução de uma equação normal seja única, é necessário que esta
 matriz tenha {\it posto completo}.
 Uma condição para que uma matriz tenha posto completo é que todas as suas colunas
 (ou linhas) sejam {\it linearmente independentes}.
-Esta condição é equivalente a dizer que a matriz possua determinante diferente de
+Esta condição é equivalente a dizer que a matriz possui determinante diferente de
 zero.
 \\
 \indent Em problemas geofísicos, é comum que a matriz do sistema normal possua
@@ -20,8 +20,6 @@ Isto faz com que o problema inverso geofísico seja um problema {\it mal posto}.
 {\tt Um problema {\bf mal-posto} apresenta, principalmente, {\it instabilidade}
 e {\it falta de unicidade} da solução.}
 \end{quote}
-
-\indent A instabilidade é definida como
 
 \begin{quote}
 {\tt A {\bf instabilidade} é a alta variabilidade dos parâmetros perante
@@ -36,14 +34,13 @@ dados preditos A são consideravelmente diferentes daqueles que produzem os dado
 preditos B.
 \end{example}
 
-\indent A falta de unicidade é definida como
-
 \begin{quote}
 {\tt A {\bf falta de unicidade} é a existência de vários conjuntos de parâme\-tros
 que produzem os mesmos dados preditos.}
 \end{quote}
 
-\noindent Em outras palavras, os dados observados podem ser explicados por vários
+\noindent Se o problema inverso apresenta falta de unicidade,
+os dados observados podem ser explicados por vários
 conjuntos de parâmetros diferentes. Em termos práticos, existem vários vetores
 de parâmetros diferentes que minimizam a função do ajuste
 (equação \ref{eq:ajuste}).
@@ -51,7 +48,7 @@ de parâmetros diferentes que minimizam a função do ajuste
 \indent Os problemas inversos encontrados na geofísica são, em geral, mal-postos.
 Os principais motivos para isto são: a presença de ruído nos dados observados; e,
 principalmente, a própria natureza do problema inverso.
-Ou seja, mesmo se fôssemos capazes de obter dados completamente isentos de ruído, ainda
+Neste último caso, mesmo se fôssemos capazes de obter dados completamente isentos de ruído, ainda
 teríamos diversas combinações de parâmetros capazes de explicar os dados
 observados (i.e., falta de unicidade).
 Por este motivo, quando nos deparamos com problemas inversos na geofísica,
@@ -66,9 +63,8 @@ determinadas restrições.
 Estas restrições introduzem informações {\it a priori} no problema inverso.
 As informações podem ser de natureza geológica ou meramente matemática.
 Em geral, a introdução de informações a priori é feita por meio de {\it funções
-regularizadoras}.
-Estas funções são funções escalares que dependem dos parâmetros.
-Para vincular uma função regularizadora ao ajuste dos dados, formamos a
+regularizadoras}, que são funções escalares que dependem dos parâmetros.
+Para incorporar informação a priori ao ajuste dos dados, formamos a
 {\it função objetivo}
 
 \begin{equation}
@@ -166,17 +162,16 @@ do método Gauss-Newton é
 \ref{eq:gradphi} e \ref{eq:hessian_approx}) obtemos
 
 \begin{equation}
-\left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
-      \frac{1}{2}\mu\mat{\nabla}\theta(\vect{p}_0)\right]\Delta\vect{p} =
-\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
-\frac{1}{2}\mu\vect{\nabla}\theta(\vect{p}_0)
+\left[2\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
+      \mu\mat{\nabla}\theta(\vect{p}_0)\right]\Delta\vect{p} =
+2\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
+\mu\vect{\nabla}\theta(\vect{p}_0)
     \thinspace .
 \label{eq:sistema_normal_regul}
 \end{equation}
 
-\indent A equação \ref{eq:sistema_normal_regul} é a equação normal para o
-{\it problema inverso regularizado}.\footnote{Tente obter a equação normal para
-o caso em que $\vect{f}(\vect{p})$ é linear.}
+\indent Esta é a equação para o {\it problema inverso regularizado}.
+\footnote{Tente obter a equação normal para o caso em que $\vect{f}(\vect{p})$ é linear.}
 A seguir, apresentaremos diferentes funções regularizadoras comumente encontradas
 em problemas inversos na geofísica.
 Também mostraremos como fica a equação \ref{eq:sistema_normal_regul} para cada

@@ -17,9 +17,9 @@
 """
 Geophysical direct and inverse modeling.
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = '02-Apr-2010'
 __version__ = '0.0.1'
+
 __all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
            'utils', 'logger']
 from fatiando.changeset import __changeset__

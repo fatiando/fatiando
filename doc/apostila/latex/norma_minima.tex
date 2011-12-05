@@ -38,10 +38,7 @@ Note que o gradiente da função regularizadora de norma mínima é uma
 \indent Para o caso em que a função $f_i(\vect{p})$ que relaciona
 os dados preditos aos parâmetros também é {\it linear} (equação \ref{eq:comb_linear}),
 a equação normal do {\it problema inverso linear regularizado},
-para o caso da regularização de norma mínima\footnote{
-Onde foi parar o termo $\vect{\nabla}\theta^{NM}(\vect{p}_0)$? Dica: Mostre que, se o
-problema inverso é linear, a estimativa $\opt{p}$ não depende da aproximação
-inicial $\vect{p}_0$.}, é
+para o caso da regularização de norma mínima, é
 
 \begin{equation}
 \left(\mat{G}^T\mat{G} + \mu\mat{I}\right)\opt{p} =
@@ -53,6 +50,10 @@ inicial $\vect{p}_0$.}, é
 é o vetor de dados observados, $\mat{G}$ é a matriz de sensibilidade, $\vect{b}$
 é um vetor de constantes (equação \ref{eq:f_igual_Gp}) e $\opt{p}$ é a solução
 de norma mínima para o problema inverso linear.
+\footnote{
+Onde foi parar o termo $\vect{\nabla}\theta^{NM}(\vect{p}_0)$? Dica: Mostre que, se o
+problema inverso é linear, a estimativa $\opt{p}$ não depende da aproximação
+inicial $\vect{p}_0$.}
 \\
 \indent Já para o caso em que $f_i(\vect{p})$ é {\it não-linear}, o problema
 inverso torna-se também não-linear. Assim sendo, a equação normal do
@@ -69,5 +70,4 @@ norma mínima, é
 \end{equation}
 
 \noindent em que $\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em
-$\vect{p}_0$ e $\Delta\vect{p}$ é a correção a ser aplicada a $\vect{p}_0$
-que leva à solução de norma mínima.
+$\vect{p}_0$ e $\Delta\vect{p}$ é a correção a ser aplicada a $\vect{p}_0$.

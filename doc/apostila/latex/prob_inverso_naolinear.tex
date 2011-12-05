@@ -17,7 +17,7 @@ não-linear}.
 \\
 \indent A busca pelo vetor $\opt{p}$ que minimiza uma determinada função faz
 parte de uma área da matemática conhecida como {\it otimização}, dentro da qual
-existem diversos métodos \citep{kelley1999}.
+existem diversos métodos \citep{kelley}.
 O procedimento padrão para realizar esta busca de forma iterativa é começar com
 uma determinada aproximação inicial $\vect{p}_0$ e calcular uma correção
 $\Delta\vect{p}$.
@@ -79,9 +79,6 @@ nulo, é a solução do sistema de equações
 \label{eq:sistema_normal_nlin}
 \end{equation}
 
-\noindent Este sistema de equações é o {\it sistema de equações normais} do
-{\it problema inverso não-linear}.
-\\
 \indent O cálculo do vetor gradiente de $\phi(\vect{p})$ foi feito anteriormente
 (equação \ref{eq:gradphi}), restando então o cálculo da matriz Hessiana
 $\mat{\nabla}\phi(\vect{p})$.
@@ -186,13 +183,15 @@ sistema de equações \ref{eq:sistema_normal_nlin} pode ser escrito como
 
 \noindent em que $\vect{d}^{\thinspace o}$ é o vetor de dados observados e
 $\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em $\vect{p}_0$.
+Este sistema de equações é o {\it sistema de equações normais} do
+{\it problema inverso não-linear}.
 \\
 \indent A equação \ref{eq:sistema_normal_gaussnewton} descreve o cálculo da
 correção $\Delta\vect{p}$ em uma determinada iteração do método Gauss-Newton.
 Para o caso em que a função $f_i(\vect{p})$ é uma combinação linear dos
 parâmetros (equação \ref{eq:comb_linear}), a equação
-\ref{eq:sistema_normal_gaussnewton} se reduz ao sistema
-normal do {\it problema inverso linear} (equação \ref{eq:sistema_normal})
+\ref{eq:sistema_normal_gaussnewton} se reduz ao sistema de equações
+normais do {\it problema inverso linear} (equação \ref{eq:sistema_normal})
 \footnote{Dica: Lembre que nos casos lineares $\vect{f}(\vect{p})=\mat{G}\vect{p}+\vect{b}$.}.
 Isto mostra que a solução do problema inverso linear é um {\it caso particular}
 da solução do {\it problema inverso não-linear} pelo método Gauss-Newton.

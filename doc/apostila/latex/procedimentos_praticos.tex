@@ -6,7 +6,7 @@ como:
 
 \begin{itemize}
 \item Por que a inversão não foi capaz de ajustar os dados observados?
-\item Como determinar uma valor adequado para o parâmetro de regularização?
+\item Como determinar um valor adequado para o parâmetro de regularização?
 \item Como analisar a estabilidade da solução?
 \end{itemize}
 
@@ -26,7 +26,7 @@ de forma satisfatória;
 \item Excesso de regularização;
 \end{enumerate}
 
-\indent O primeiro caso é esperado pois observações sempre contem algum tipo de
+\indent O primeiro caso é esperado pois observações sempre contêm algum tipo de
 ruído.
 Embora existam técnicas para a atenuação de ruído, é impossível que ele seja
 removido completamente.
@@ -53,9 +53,9 @@ de valores demasiado elevados do {\it parâmetro de regularização} $\mu$
 Valores elevados de $\mu$ dão excessiva importância para a informação a priori
 (i.e., regularização), o que causa um desajuste dos dados.
 Já valores baixos de $\mu$ priorizam o ajuste dos dados e negligenciam a informação
-a priori, o que faz com que haja um bom ajuste dos dados porém tornam o problema
-inverso instável. Na Seção \ref{sec:valor_mu} trataremos da escolha de uma
-valor adequado para $mu$.
+a priori. Neste caso, embora haja um bom ajuste dos dados, o problema 
+inverso se torna instável. Na Seção \ref{sec:valor_mu} trataremos da escolha de uma
+valor adequado para $\mu$.
 
 \section{Determinar um valor para o parâmetro de regularização}
 \label{sec:valor_mu}
@@ -64,9 +64,12 @@ O valor do parâmetro de regularização $\mu$ (equação \ref{eq:objetivo}) {\b
 pode ser determinado para um caso geral.
 O valor de $\mu$ pode ser diferente para cada dado observado e cada parametrização
 utilizada.
-Além disto, pode ser desejável impor algum tipo de restrição mais fortemente
-que outros. Por exemplo, se utilizarmos ambas as funções regularizadoras de
-suavidade e igualdade, podemos desejar que a igualdade seja imposta mais que a
+Além disto, no caso em que haja mais de um função regularizadora, pode ser
+desejável impor alguma delas mais fortemente que as outras.
+Por exemplo, se utilizarmos ambas as funções regularizadoras de
+suavidade e igualdade (equações \ref{eq:suavidade} e \ref{eq:igualdade},
+respectivamente),
+podemos desejar que a igualdade seja imposta mais que a
 suavidade. No entanto, há procedimentos que permitem encontrar valores de $\mu$
 que sejam considerados adequados. 
 \\
@@ -86,7 +89,7 @@ o procedimento prático segue as seguintes etapas:
 \begin{enumerate}
 \item Gerar um vetor $\vect{e}$ de $N$ valores aleatórios.
 Cada valor deve ser a realização de uma variável aleatória com distribuição
-Gaussiana de média zero e desvio padrão igual ao nível de ruído assumido
+Gaussiana de média zero e desvio padrão igual ao nível de ruído estabelecido
 para os dados;
 \item Gerar um vetor $\vect{d}\thinspace'$ de {\it dados observados perturbados} a partir
 da soma do vetor de valores aleatórios $\vect{e}$ e o vetor de dados observados

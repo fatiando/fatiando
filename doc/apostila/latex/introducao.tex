@@ -11,16 +11,86 @@ determinada grandeza física que, supostamente, seja causada pelo sistema físic
 
 \begin{itemize}
     \item{Propagação de ondas elásticas: sísmica (Figura \ref{fig:system-seismic})}
-    \item{Gravitação: gravimetria (Figura \ref{fig:system-grav})}
+    \item{Teoria do potencial: gravimetria (Figura \ref{fig:system-grav}) e magnetometria}
     \item{Difusão de correntes elétricas: SEV (Figura \ref{fig:system-sev})}
 \end{itemize}
 
-\begin{figure}
+\indent Uma vez que não conhecemos o sistema físico, a única coisa que temos são as
+observações (dados observados). Contudo, embora o sistema físico seja
+desconhecido, alguma informação adicional (em geral proporcionada pela geologia)
+nos fornece um conjunto de hipóteses (Figuras \ref{fig:hipotese-seismic},
+\ref{fig:hipotese-grav} e \ref{fig:hipotese-sev}).
+
+
+\indent Isso nos leva a seguinte pergunta: como testar se as observações podem ser
+explicadas por uma determinada hipótese? Para responder esta pergunta,
+precisamos ser capazes de calcular os dados preditos pela hipótese em questão.
+Matematicamente, isso significa que precisamos encontrar uma função que
+relaciona a hipótese aos dados preditos.
+
+\begin{figure*}[!htb]
+  \centering
+    \includegraphics[scale=1]{figs/hipotese-preditos}
+  \label{fig:hipotese-preditos}
+\end{figure*}
+
+\indent Uma função é descrita em termos de parâmetros.
+Portanto, calcular os dados preditos por uma determinada hipótese significa
+encontrar uma função $f$ tal que:
+
+\[
+\text{dados preditos} = f(\text{hipótese}).
+\]
+
+\noindent Para tanto, é preciso descrever a hipótese em termos de parâmetros
+(Figuras \ref{fig:params-seismic}, \ref{fig:params-grav}, \ref{fig:params-sev}),
+isto é:
+
+\[
+\text{dados preditos} = f(\text{parâmetros}).
+\]
+
+\indent O raciocínio desenvolvido acima nos permite definir um importante conceito:
+
+\begin{quote}
+{\tt Estabelecer a relação funcional entre parâmetros (que des\-cre\-vem uma hipótese)
+e dados preditos é o que se co\-nhe\-ce como {\bf pro\-ble\-ma direto}.}
+\end{quote}
+
+\indent Nesse sentido, dado um conjunto de parâmetros, é possível calcular os dados
+preditos. Isso nos permite testar se uma hipótese é capaz de explicar os dados
+observados. Esse teste é feito por meio da comparação entre os dados observados
+e os dados preditos por uma determinada hipótese. Se os dados preditos
+reproduzem os dados observados, pode-se dizer que a hipótese explica os dados
+observados e, portanto, é válida. Nesse contexto, é possível definir os
+seguintes conceitos importantes:
+
+\begin{quote}
+{\tt Fornecer os parâmetros e comparar os respectivos dados pre\-di\-tos com os dados
+observados é o que se conhece como {\bf mo\-de\-la\-gem direta}.}
+\end{quote}
+
+e
+
+\begin{quote}
+{\tt Estimar os parâmetros automaticamente, de forma que os dados pre\-di\-tos sejam os
+mais próximos possíveis aos dados observados, é conhecido como {\bf problema inverso}.}
+\end{quote}
+
+\begin{figure*}[!htb]
+    \centering
+    \includegraphics[scale=0.8]{figs/setinhas}
+    \label{fig:setinhas}
+\end{figure*}
+
+% FIGURES
+\begin{figure}[b]
     \centering
     \includegraphics[scale=1]{figs/system-seismic}
     \caption{Exemplo de sistema físico que caracteriza uma aquisição sísmica.
-        Neste caso o sistema envolve ondas sísmicas que se propagam em meios com
-        diferentes velocidades. A grandeza física que podemos observar (medir)
+        Neste caso o sistema envolve ondas sísmicas (representadas pelos raios)
+        que se propagam em meios com velocidades V1, V2, V3 e V4.
+        A grandeza física que podemos observar (medir)
         é o deslocamento dos sismômetros $u$ (neste caso somente na vertical).
         Estas observações são tipicamente dispostas em um sismograma.}
     \label{fig:system-seismic}
@@ -50,118 +120,62 @@ determinada grandeza física que, supostamente, seja causada pelo sistema físic
     \label{fig:system-sev}
 \end{figure}
 
-\indent Uma vez que não conhecemos o sistema físico, a única coisa que temos são as
-observações (dados observados). Contudo, embora o sistema físico seja
-desconhecido, alguma informação adicional (em geral proporcionada pela geologia)
-nos fornece um conjunto de hipóteses.
-\\
-{\bf Exemplos de hipóteses (sem dados observados e nem dados preditos)}
-
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/hipotese-seismic}
-    \caption{}
+    \caption{Exemplo de hipótese que descreve o sistema físico referente a uma
+    aquisição sísmica. Modelo de duas camadas plano-paralelas, homogêneas e
+    isotrópicas.}
     \label{fig:hipotese-seismic}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/hipotese-grav}
-    \caption{}
+    \caption{Exemplo de hipótese que descreve o sistema físico referente a uma
+    levantamento gravimétrico.
+    Modelo de um corpo elipsoidal homogêno.}
     \label{fig:hipotese-grav}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/hipotese-sev}
-    \caption{}
+    \caption{Exemplo de hipótese que descreve o sistema físico referente a uma
+    sondagem elétrica vertical.
+    Modelo de três camadas plano-paralelas, homogêneas e isotrópicas.}
     \label{fig:hipotese-sev}
 \end{figure}
-
-\indent Isso nos leva a seguinte pergunta: como testar se as observações podem ser
-explicadas por uma determinada hipótese? Para responder esta pergunta,
-precisamos ser capazes de calcular os dados preditos pela hipótese em questão.
-Matematicamente, isso significa que precisamos encontrar uma função que
-relaciona a hipótese aos dados preditos.
-
-\begin{figure}[!htb]
-  \centering
-    \includegraphics[scale=1]{figs/hipotese-preditos}
-  %\caption{}
-  \label{fig:hipotese-preditos}
-\end{figure}
-
-Uma função é descrita em termos de parâmetros:
-\\
-Exemplos de funções
-\\
-\indent Portanto, calcular os dados preditos por uma determinada hipótese significa
-encontrar uma função $f$ tal que:
-
-\[
-\text{dados preditos} = f(\text{hipótese}).
-\]
-
-\indent Para tanto, é preciso descrever a hipótese em termos de parâmetros
-(parametrização), isto é:
-
-\[
-\text{dados preditos} = f(\text{parâmetros}).
-\]
-
-{\bf Exemplos de parametrização das hipóteses}
 
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/params-seismic}
-    \caption{}
+    \caption{Exemplo de parametrização da hipótese na Figura
+    \ref{fig:hipotese-seismic}. Neste caso, a hipótese é descrita em termos
+    dos parâmetros $h_1$, V1 e V2. Esta hipótese produz o dado predito
+    representado pela linha pontilhada vermelha.}
     \label{fig:params-seismic}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/params-grav}
-    \caption{}
+    \caption{Exemplo de parametrização da hipótese na Figura
+    \ref{fig:hipotese-grav}. Neste caso, a hipótese é descrita em termos
+    dos parâmetros $\Delta\rho_1,\ \Delta\rho_2, \dotsc,\ \Delta\rho_M$ que
+    representam os constrastes de densidade de cada célula.
+    Esta hipótese produz o dado predito
+    representado pela linha pontilhada vermelha.}
     \label{fig:params-grav}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[scale=1]{figs/params-sev}
-    \caption{}
+    \caption{Exemplo de parametrização da hipótese na Figura
+    \ref{fig:hipotese-sev}. Neste caso, a hipótese é descrita em termos
+    dos parâmetros $h_1$, $\rho_1$, $h_2$, $\rho_2$ e $\rho_3$.
+    Esta hipótese produz o dado predito
+    representado pela linha pontilhada vermelha.}
     \label{fig:params-sev}
-\end{figure}
-
-\indent O raciocínio desenvolvido acima nos permite definir um importante conceito:
-
-\begin{quote}
-{\tt Estabelecer a relação funcional entre parâmetros (que des\-cre\-vem uma hipótese)
-e dados preditos é o que se co\-nhe\-ce como {\bf pro\-ble\-ma direto}.}
-\end{quote}
-
-\indent Nesse sentido, dado um conjunto de parâmetros, é possível calcular os dados
-preditos e isso nos permite testar se uma hipótese é capaz de explicar os dados
-observados. Esse teste é feito por meio da comparação entre os dados observados
-e os dados preditos por uma determinada hipótese. Se os dados preditos
-reproduzem os dados observados, pode-se dizer que a hipótese explica os dados
-observados e, portanto, é válida. Nesse contexto, é possível podemos definir os
-seguintes conceitos importantes:
-
-\begin{quote}
-{\tt Fornecer os parâmetros e comparar os respectivos dados pre\-di\-tos com os dados
-observados é o que se conhece como {\bf mo\-de\-la\-gem direta}.}
-\end{quote}
-
-e
-
-\begin{quote}
-{\tt Estimar os parâmetros automaticamente, de forma que os dados pre\-di\-tos sejam os
-mais próximos possíveis aos dados observados, é conhecido como {\bf problema inverso}.}
-\end{quote}
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[scale=0.8]{figs/setinhas}
-    \caption{}
-    \label{fig:setinhas}
 \end{figure}

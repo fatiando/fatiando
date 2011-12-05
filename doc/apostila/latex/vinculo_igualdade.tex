@@ -14,8 +14,9 @@ Para tanto, utilizamos a {\it função regularizadora de igualdade}
 \label{eq:igualdade}
 \end{equation}
 
-\noindent em que $\vect{p}^{\thinspace a}$ é um vetor cujo $j$-ésimo elemento é
-ou o valor conhecido (preestabelecido) do $j$-ésimo parâmetro, ou zero caso não
+\noindent em que $\vect{p}^{\thinspace a}$ é um vetor cujo $j$-ésimo elemento é:
+o valor conhecido (preestabelecido) do $j$-ésimo parâmetro; ou zero
+\footnote{Na prática, pode-se utilizar qualquer valor.} caso não
 haja um valor conhecido do $j$-ésimo parâmetro. A matriz $\mat{A}$ é uma matriz
 diagonal quadrada de dimensão $M \times M$, lembrando que $M$ é o número de
 parâmetros.
@@ -78,7 +79,7 @@ para o caso da regularização de igualdade, é
 \noindent em que $\mu$ é o parâmetro de regularização, $\vect{d}^{\thinspace o}$
 é o vetor de dados observados, $\mat{G}$ é a matriz de sensibilidade, $\vect{b}$
 é um vetor de constantes (equação \ref{eq:f_igual_Gp}) e $\opt{p}$ é a solução
-do problema inverso linear com vínculos de igualdade.
+do problema inverso linear com regularização de igualdade.
 \\
 \indent Já para o caso em que $f_i(\vect{p})$ é {\it não-linear}, o problema
 inverso torna-se também não-linear. Assim sendo, a equação normal do
