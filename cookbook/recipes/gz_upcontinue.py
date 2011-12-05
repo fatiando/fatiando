@@ -1,5 +1,5 @@
 """
-Example of how to upward continue gravity data using the analytical formula
+Upcontinue gz data.
 """
 from matplotlib import pyplot
 from fatiando import gridder, potential, vis, logger, utils
@@ -15,7 +15,7 @@ prisms = [Prism3D(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
           Prism3D(-1000,1000,-1000,1000,0,2000,{'density':-800}),
           Prism3D(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
-shape = (100, 100)
+shape = (25, 25)
 xp, yp, zp = gridder.regular(area, shape, z=-height)
 gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.5)
 

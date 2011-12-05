@@ -1,5 +1,5 @@
 """
-Example of manipulating irregular grids.
+Generate and plot irregular grids.
 """
 from matplotlib import pyplot
 import numpy

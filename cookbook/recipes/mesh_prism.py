@@ -1,5 +1,5 @@
 """
-Example of how to generate a regular mesh of 3D prisms and plot it in Mayavi2
+Making a 3D prism mesh.
 """
 from fatiando import mesher, logger, vis
 

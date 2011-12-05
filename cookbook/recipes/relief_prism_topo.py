@@ -1,3 +1,4 @@
+"""Topographic model using prisms"""
 import numpy
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis

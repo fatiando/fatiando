@@ -1,5 +1,5 @@
 """
-Creat synthetic data on an irregular grid using a prism model.
+Generate synthetic gz data on an irregular grid.
 """
 from matplotlib import pyplot
 import numpy

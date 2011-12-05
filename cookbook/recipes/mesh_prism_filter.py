@@ -1,5 +1,5 @@
 """
-Example of generating a prism mesh and filtering elements by density value
+Filter values from a 3D prism mesh.
 """
 from fatiando import logger, vis
 from fatiando.mesher.volume import PrismMesh3D, vfilter, extract

@@ -1,5 +1,5 @@
 """
-Example of generating a 3D prism mesh with topography
+Making a 3D prism mesh with topography.
 """
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis

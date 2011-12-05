@@ -1,6 +1,5 @@
 """
-Example of generating a topography, creating a 3D prism model of it and
-calculating gz
+Calculating gz cause by a topographic model using prisms
 """
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis, potential
@@ -11,7 +10,7 @@ log.info(logger.header())
 
 log.info("Generating synthetic topography")
 area = (-150, 150, -300, 300)
-shape = (100, 50)
+shape = (30, 15)
 x, y = gridder.regular(area, shape)
 height = (-80*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
           200*utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))

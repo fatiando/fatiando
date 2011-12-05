@@ -1,5 +1,5 @@
 """
-Create noise-corrupted synthetic data from a right rectangular prism model.
+Generate noise-corrupted synthetic gz data from a prism model.
 """
 from matplotlib import pyplot
 import numpy

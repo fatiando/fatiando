@@ -1,5 +1,5 @@
 """
-Example of generating a prism mesh with depth varying density
+Making a 3D prism mesh with depth-varying density.
 """
 from fatiando import logger, vis
 from fatiando.mesher.volume import PrismMesh3D
