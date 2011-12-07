@@ -3,7 +3,14 @@
     - seismic
     - eqlayer
     - sphere
+* Remove threshold filter from vis.prisms3D
+* Make grid.rotate function
+* Make grid.profile function to extract a profile from a grid
+* Make grid.dump function that recieves a list of channels (columns)
+* Make grid.load function to wrap numpy.loadtxt(..., unpack=True). make it print comments in the file to log
 * Make conversion function for TVTK and VTK in mesher.volume
+* Make mesher.volume.dump_prisms function with support for ASCII and VTK formats
+* Make PrismMesh3D.dump and .load functions with support for pickle and UBC formats
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
