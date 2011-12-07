@@ -10,86 +10,71 @@ log = logger.get()
 log.info(__doc__)
 
 log.info("First make the synthetic model:\n")
-extent = (0, 10000, 0, 10000, 0, 10000)
-model = [Prism3D(3500, 6500, 1500, 8500, 1500, 6500, props={'density':800})]
+extent = (0, 6000, 0, 6000, 0, 6000)
+model = [Prism3D(2500, 3500, 1000, 5000, 1000, 2000, props={'density':800})]
 
-#mlab.figure(bgcolor=(1,1,1))
+#vis.mayavi_figure()
 #vis.prisms3D(model, extract('density', model), vmin=0)
-#outline = mlab.outline(color=(0,0,0), extent=extent)
-#vis.add_axes3d(outline)
+#vis.add_axes3d(vis.add_outline3d(extent=extent))
 #vis.wall_bottom(extent)
 #vis.wall_north(extent)
-#mlab.show()
+#vis.mlab.show()
 
 log.info("\nSecond calculate the synthetic data:")
-shape = (50,50)
+shape = (25, 25)
 #x, y, z = gridder.scatter(extent[0:4], 200, z=-1)
 x, y, z = gridder.regular(extent[0:4], shape, z=-1)
-gz = utils.contaminate(potential.prism.gz(x, y, z, model), 0.1)
-#gz = potential.prism.gz(x, y, z, model)
-#gz = utils.contaminate(potential.prism.gxx(x, y, z, model), 1)
+gzz = utils.contaminate(potential.prism.gzz(x, y, z, model), 2)
+#gxx = utils.contaminate(potential.prism.gxx(x, y, z, model), 2)
 
 #pyplot.figure()
 #pyplot.axis('scaled')
-#pyplot.title('Synthetic gz data')
-#levels = vis.contourf(y, x, gz, shape, 10)
-#vis.contour(y, x, gz, shape, levels)
+#pyplot.title('Synthetic data')
+#levels = vis.contourf(y, x, gzz, shape, 10)
+#vis.contour(y, x, gzz, shape, levels)
 #pyplot.plot(y, x, 'xk')
 #pyplot.xlabel('East (km)')
 #pyplot.ylabel('North (km)')
 #pyplot.show()
 
 log.info("\nThird make a prism mesh:")
-#mesh = PrismMesh3D(extent, (30, 50, 50))
-#mesh = PrismMesh3D(extent, (25, 25, 25))
-mesh = PrismMesh3D(extent, (10, 10, 10))
-#mesh = PrismMesh3D(extent, (5, 5, 5))
-
-#mlab.figure(bgcolor=(1,1,1))
-#vis.prisms3D(mesh, (0 for i in xrange(mesh.size)), vmin=0)
-#outline = mlab.outline(color=(0,0,0), extent=extent)
-#vis.add_axes3d(outline)
-#mlab.show()
+#mesh = PrismMesh3D(extent, (60, 60, 60))
+mesh = PrismMesh3D(extent, (30, 30, 30))
+#mesh = PrismMesh3D(extent, (15, 15, 15))
 
 log.info("\nFourth sow the seeds:")
-rawseeds = [((5000, 5000, 2500), {'density':800})]
-#rawseeds = [((5000, 3000, 3000), {'density':800}),
-            #((5000, 5000, 3000), {'density':800}),
-            #((5000, 7000, 3000), {'density':800})]
-#rawseeds = [((5000, 3000, 3000), {'density':800}),
-            #((5000, 4000, 3000), {'density':800}),
-            #((5000, 5000, 3000), {'density':800}),
-            #((5000, 6000, 3000), {'density':800}),
-            #((5000, 7000, 3000), {'density':800})]
+rawseeds = [((3000, 3000, 1100), {'density':800})]
 seeds = harvester.sow(mesh, rawseeds)
 
 #vis.mayavi_figure()
 #vis.prisms3D(model, extract('density', model), opacity=0.3, vmin=0)
 #seedmesh = (mesh[int(s)] for s in extract('index', seeds))
 #seedprops = (p['density'] for p in extract('props', seeds))
-#vis.prisms3D(seedmesh, seedprops, vmin=0)
+#vis.prisms3D(seedmesh, seedprops, vmiorn=0)
 #vis.add_axes3d(vis.add_outline3d(extent=extent))
 #vis.wall_bottom(extent)
 #vis.wall_north(extent)
 #vis.mlab.show()
     
 log.info("\nFith harvest the results:")
-gzmod = harvester.PrismGzModule(x, y, z, gz)
-#gzmod = harvester.PrismGxxModule(x, y, z, gz)
-#regul = harvester.ConcentrationRegularizer(seeds, mesh, 1*10.**(1), 3.)
-#jury = harvester.standard_jury(regul, thresh=0.001, tol=0.01)
-regul = harvester.ConcentrationRegularizer(seeds, mesh, 5*10.**(-2), 3.)
-jury = harvester.shape_jury(regul, thresh=0.001, maxcmp=4, tol=0.01)
+datamods = [harvester.PrismGzzModule(x, y, z, gzz)]
+#datamods = [harvester.PrismGzzModule(x, y, z, gzz),
+#harvester.PrismGxxModule(x, y, z, gxx)]
+#regul = harvester.ConcentrationRegularizer(seeds, mesh, 1*10.**(10), 5.)
+#jury = harvester.standard_jury(regul, thresh=0.0001)
+regul = harvester.ConcentrationRegularizer(seeds, mesh, 3*10.**(-3), 1.)
+jury = harvester.shape_jury(regul, thresh=0.0001, maxcmp=4)
 
-results, goals = harvester.harvest(seeds, mesh, [gzmod], jury)
+results, goals = harvester.harvest(seeds, mesh, datamods, jury)
 estimate = results['estimate']
 for prop in estimate:
     mesh.addprop(prop, estimate[prop])
 density_model = vfilter(1, 2000, 'density', mesh)
 
-#import numpy
+import numpy
+
 #goals = []
-#for chset in harvester.grow(seeds, mesh, [gzmod], jury):    
+#for chset in harvester.grow(seeds, mesh, datamods, jury):    
     #estimate = chset['estimate']
     #goals.append(chset['goal'])
     #for prop in estimate:
@@ -103,25 +88,27 @@ density_model = vfilter(1, 2000, 'density', mesh)
     #vis.add_axes3d(vis.add_outline3d(extent=extent))
     #vis.mlab.show()
 
-pyplot.figure(figsize=(14,8))
-pyplot.subplot(2,2,1)
-pyplot.title("Adjustment")
-pyplot.axis('scaled')
-levels = vis.contourf(y, x, gz, shape, 10)
-pyplot.colorbar()
-vis.contour(y, x, gzmod.predicted, shape, levels)
-pyplot.xlabel('East (km)')
-pyplot.ylabel('North (km)')
-pyplot.subplot(2,2,2)
-pyplot.title("Residuals")
-pyplot.axis('scaled')
-vis.pcolor(y, x, gzmod.residuals(gzmod.predicted), shape)
-pyplot.colorbar()
-pyplot.xlabel('East (km)')
-pyplot.ylabel('North (km)')
-pyplot.subplot(2,1,2)
+for dm in datamods:
+    pyplot.figure(figsize=(14,8))
+    pyplot.subplot(1,2,1)
+    pyplot.title("Adjustment")
+    pyplot.axis('scaled')
+    levels = vis.contour(y, x, dm.obs, shape, 8, color='b')
+    vis.contour(y, x, dm.predicted, shape, levels, color='r')
+    pyplot.xlabel('East (km)')
+    pyplot.ylabel('North (km)')
+    pyplot.subplot(1,2,2)
+    pyplot.title("Residuals")
+    pyplot.axis('scaled')
+    vis.pcolor(y, x, dm.residuals(dm.predicted), shape)
+    pyplot.colorbar()
+    pyplot.xlabel('East (km)')
+    pyplot.ylabel('North (km)')
+pyplot.figure()
 pyplot.title("Goal function X iteration")
 pyplot.plot(goals, '.-k')
+pyplot.plot(regul.timeline, '.-g')
+pyplot.plot(numpy.array(goals) - numpy.array(regul.timeline), '.-r')
 pyplot.show()
 
 vis.mayavi_figure()

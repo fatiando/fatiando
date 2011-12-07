@@ -67,7 +67,10 @@ class DataModule(object):
         self.l2obs = numpy.linalg.norm(obs, 2)**2
         self.absobs = numpy.abs(obs)
         self.obsmax = self.absobs.max()
-        self.weight = weight/numpy.linalg.norm(obs, norm)
+        if weight is None:
+            self.weight = 1./numpy.linalg.norm(obs, norm)
+        else:
+            self.weight = weight
 
     def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
         """
@@ -197,7 +200,7 @@ class PrismGzModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gz
@@ -224,7 +227,7 @@ class PrismGxxModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxx
@@ -251,7 +254,7 @@ class PrismGxyModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxy
@@ -278,7 +281,7 @@ class PrismGxzModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gxz
@@ -305,7 +308,7 @@ class PrismGyyModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gyy
@@ -332,7 +335,7 @@ class PrismGyzModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gyz
@@ -359,7 +362,7 @@ class PrismGzzModule(DataModule):
     
     """
 
-    def __init__(self, x, y, z, obs, norm=2, weight=1.):
+    def __init__(self, x, y, z, obs, norm=2, weight=None):
         DataModule.__init__(self, x, y, z, obs, norm, weight)
         self.prop = 'density'
         self.calc_effect = potential._prism.prism_gzz
@@ -388,12 +391,15 @@ class ConcentrationRegularizer(object):
         self.seeds = seeds
         self.mesh = mesh
         self.reg = 0
+        self.timeline = [0.]
+        self.record = self.timeline.append
         self.dists = {}
         self.weight = 1.
         if weight:
             nz, ny, nx = mesh.shape
             dx, dy, dz = mesh.dims
-            self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.)**power)
+            #self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.)**power)
+            self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
 
     def calc_dist(self, cell1, cell2):
         """
@@ -436,6 +442,7 @@ class ConcentrationRegularizer(object):
         """
         n = neighbor['index']
         self.reg += self.weight*self.mu*(self.dists[n]**self.power)
+        self.record(self.reg)
         del self.dists[n]
                 
 def loadseeds(fname, prop):
@@ -723,6 +730,8 @@ def shape_jury(regularizer=None, thresh=0.0001, maxcmp=4, tol=0.01):
                      if g < goal and abs(g - goal)/goal >= thresh]
         if not decreased:
             return None
+        # Find any holes
+        #hole = find_holes(
         # Choose based on the shape-of-anomaly criterion
         soa = [sum(dm.shape_of_anomaly(p) for dm, p in zip(datamods, pred[i]))
                for i, g in decreased]
