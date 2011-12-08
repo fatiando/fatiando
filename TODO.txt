@@ -12,6 +12,8 @@
 * Make mesher.volume.dump_prisms function with support for ASCII and VTK formats
 * Make PrismMesh3D.dump and .load functions with support for pickle and UBC formats
 * Try Rene's donut and notch fill
+* Try using deque from collections module to speedup neighbor list append and pop
+* Try using the itertools module
 * Test robustness
 * Synthetics long in each direction
 * Optimize is_eligible. Making a generator didn't work.
