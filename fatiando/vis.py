@@ -43,8 +43,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`fatiando.vis.wall_top`
 * :func:`fatiando.vis.wall_bottom`
 
-Function specifications
-^^^^^^^^^^^^^^^^^^^^^^^
+----
    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'

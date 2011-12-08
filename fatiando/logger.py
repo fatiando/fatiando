@@ -17,14 +17,18 @@
 """
 Logging utilities for fatiando.
 
+This module is basically a wrapper around Pythons ``logging`` module.
+
 Use it in your script::
 
     from fatiando import logger
     # Get a logger to stderr
     log = logger.get()
     log.info("This is an info msg printed to stderr")
-    logger.tofile('mylog.txt')
+    log.dedug("This is a debug msg printed to stderr")
+    logger.tofile('mylogfile.log')
     log.warning('Warning printed to both stderr and log file')
+    log.warning('and this is an Error message.')
     # Log a header with useful provenance information
     log.info(logger.header())
 
@@ -39,6 +43,7 @@ wants to log::
     def myfunc(...):
         log.info("From myfunc. Only logs if a script calls logger.get")
 
+----
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
@@ -66,9 +71,12 @@ def get(level=logging.DEBUG):
     (Adds a stream handler to the base logger ``'fatiando'``)
 
     Parameters:
+    
     * level
         The logging level. Default to ``logging.DEBUG``. See ``logging`` module
+        
     Returns:
+    
     * a logger object
 
     """
@@ -89,11 +97,14 @@ def tofile(fname, level=logging.DEBUG):
     (Adds a file handler to the base logger ``'fatiando'``)
 
     Parameters:
+    
     * fname
         Log file name
     * level
         The logging level. Default to ``logging.DEBUG``. See ``logging`` module
+        
     Returns:
+    
     * a logger object
 
     """
@@ -107,7 +118,9 @@ def tofile(fname, level=logging.DEBUG):
 def dummy():
     """
     Get a logger for use inside a module.
+    
     Returns:
+    
     * logger
         A logger with a NullHandler so that it only prints when
         :func:`fatiando.logger.get` or :func:`fatiando.logger.tofile` are called
@@ -123,10 +136,13 @@ def header(comment=''):
     and date.
 
     Parameters:
+    
     * comment
         Character inserted at the beginning of each line. Use this to make a
         message that can be inserted in source code files as comments.
+        
     Returns:
+    
     * msg
         string with the header message
 

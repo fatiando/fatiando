@@ -15,7 +15,27 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utility mathematical functions and contaminate data with noise.
+Miscellaneous utility functions and classes.
+
+Mathematical functions
+^^^^^^^^^^^^^^^^^^^^^^
+
+* :func:`fatiando.utils.normal`
+* :func:`fatiando.utils.gaussian`
+* :func:`fatiando.utils.gaussian2d`
+
+Others
+^^^^^^
+
+* :func:`fatiando.utils.sec2hms`
+    Convert seconds to hours, minutes, and seconds
+* :func:`fatiando.utils.contaminate`
+    Contaminate a vector with pseudo-random Gaussian noise
+* :class:`fatiando.utils.SparseList`
+    Store only non-zero elements on an immutable list
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -36,6 +56,7 @@ class SparseList(object):
     Can iterate over and access elements just like if it were a list.
 
     Parameters:
+    
     * size
         Size of the list.
 
@@ -98,12 +119,14 @@ def sec2hms(seconds):
     Convert seconds into a string with hours, minutes and seconds.
 
     Parameters:
+    
     * seconds
         Time in seconds
 
     Returns:
+    
     * string
-        String in the format '%dh %dm %2.5fs'
+        String in the format ``'%dh %dm %2.5fs'``
 
     Example::
     
@@ -125,6 +148,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     Noise added is normally distributed.
 
     Parameters:
+    
     * data
         1D array-like data to contaminate
     * stddev
@@ -136,7 +160,9 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     * return_stddev
         If ``True``, will return also the standard deviation used to contaminate
         *data*
+        
     Returns:
+    
     * [contam_data, stddev if *return_stddev* is ``True``]
         The contaminated data array
 
@@ -162,13 +188,16 @@ def normal(x, mean, std):
         \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
 
     Parameters:
+    
     * x
         Value at which to calculate the normal distribution
     * mean
         The mean of the distribution :math:`\\bar{x}`
     * std
         The standard deviation of the distribution :math:`\sigma`
+        
     Returns:
+    
     * normal distribution evaluated at *x*
 
     """
@@ -183,13 +212,16 @@ def gaussian(x, mean, std):
         G(x,\\bar{x},\sigma) = \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
 
     Parameters:
+    
     * x
         Value at which to calculate the Gaussian function
     * mean
         The mean of the distribution :math:`\\bar{x}`
     * std
         The standard deviation of the distribution :math:`\sigma`
+        
     Returns:
+    
     * Gaussian function evaluated at *x*
 
     """
@@ -200,6 +232,7 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     Non-normalized 2D Gaussian function
 
     Parameters:
+    
     * x, y
         Coordinates at which to calculate the Gaussian function
     * sigma_x, sigma_y
@@ -209,7 +242,9 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     * angle
         Rotation angle of the gaussian measure from the x axis (north) growing
         positive to the east (positive y axis)
+        
     Returns:
+    
     * Gaussian function evaluated at *x*, *y*
 
     """

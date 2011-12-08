@@ -3,7 +3,7 @@
     - seismic
     - eqlayer
     - sphere
-* Remove threshold filter from vis.prisms3D
+* Generalize mesher.volume.vfilter and extract to any volume element
 * Make grid.rotate function
 * Make grid.profile function to extract a profile from a grid
 * Make grid.dump function that recieves a list of channels (columns)

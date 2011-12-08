@@ -15,7 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Meshing utilities. Generate and operate on varios kinds of meshes.
+Generate and operate on varios kinds of meshes.
+
+**Volumetric meshes**:
+
+    * Right rectangular prism
+    * Right polygonal prism
+    * Tesseroid
+    
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 15-Sep-2011'

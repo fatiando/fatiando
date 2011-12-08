@@ -17,7 +17,28 @@
 """
 Create and operate on grids and profiles.
 
-To save or load a grid use numpy.loadtxt and numpy.savetxt with unpack=True
+Grid generation
+^^^^^^^^^^^^^^^
+
+* :func:`fatiando.gridder.regular`
+* :func:`fatiando.gridder.scatter`
+
+Grid I/O
+^^^^^^^^
+
+Grid operations
+^^^^^^^^^^^^^^^
+
+* :func:`fatiando.gridder.cut`
+* :func:`fatiando.gridder.interpolate`
+
+Misc
+^^^^
+
+* :func:`fatiando.gridder.spacing`
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
@@ -30,44 +51,25 @@ import matplotlib.mlab
 log = logger.dummy()
 
 
-def spacing(area, shape):
-    """
-    Returns the spacing between grid nodes
-
-    Parameters:
-    * area
-        (x1, x2, y1, y2): Borders of the grid
-    * shape
-        Shape of the regular grid, ie (ny, nx).
-
-    Returns:
-    * [dy, dx]
-        Spacing the y and x directions
-
-    """
-    x1, x2, y1, y2 = area
-    ny, nx = shape
-    dx = float(x2 - x1)/float(nx - 1)
-    dy = float(y2 - y1)/float(ny - 1)
-    return [dy, dx]
-
 def regular(area, shape, z=None):
     """
     Create a regular grid. Order of the output grid is x varies first, then y.
 
     Parameters:
+    
     * area
-        (x1, x2, y1, y2): Borders of the grid
+        ``(x1, x2, y1, y2)``: Borders of the grid
     * shape
-        Shape of the regular grid, ie (ny, nx).
+        Shape of the regular grid, ie ``(ny, nx)``.
     * z
         Optional. z coordinate of the grid points. If given, will return an
         array with the value *z*.
 
     Returns:
-    * [xcoords, ycoords]
+    
+    * ``[xcoords, ycoords]``
         Numpy arrays with the x and y coordinates of the grid points
-    * [xcoords, ycoords, zcoords]
+    * ``[xcoords, ycoords, zcoords]``
         If *z* given. Numpy arrays with the x, y, and z coordinates of the grid
         points
 
@@ -104,8 +106,9 @@ def scatter(area, n, z=None):
     Create an irregular grid with a random scattering of points.
 
     Parameters:
+    
     * area
-        (x1, x2, y1, y2): Borders of the grid
+        ``(x1, x2, y1, y2)``: Borders of the grid
     * n
         Number of points
     * z
@@ -113,9 +116,10 @@ def scatter(area, n, z=None):
         array with the value *z*.
 
     Returns:
-    * [xcoords, ycoords]
+    
+    * ``[xcoords, ycoords]``
         Numpy arrays with the x and y coordinates of the points
-    * [xcoords, ycoords,zcoords]
+    * ``[xcoords, ycoords, zcoords]``
         If *z* given. Arrays with the x, y, and z coordinates of the points
 
     """
@@ -132,11 +136,35 @@ def scatter(area, n, z=None):
     else:
         return [xcoords, ycoords]
 
+def spacing(area, shape):
+    """
+    Returns the spacing between grid nodes
+
+    Parameters:
+    
+    * area
+        ``(x1, x2, y1, y2)``: Borders of the grid
+    * shape
+        Shape of the regular grid, ie ``(ny, nx)``.
+
+    Returns:
+    
+    * ``[dy, dx]``
+        Spacing the y and x directions
+
+    """
+    x1, x2, y1, y2 = area
+    ny, nx = shape
+    dx = float(x2 - x1)/float(nx - 1)
+    dy = float(y2 - y1)/float(ny - 1)
+    return [dy, dx]
+
 def interpolate(x, y, v, shape, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 
     Parameters:
+    
     * x, y
         Arrays with the x and y coordinates of the data points.
     * v
@@ -146,8 +174,10 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     * algorithm
         Interpolation algorithm. Either ``'nn'`` for natural neighbor interpolation
         or ``'linear'`` for linear interpolation. (see numpy.griddata)
+        
     Returns:
-    * [X, Y, V]
+    
+    * ``[X, Y, V]``
         Three 2D arrays with the interpolated x, y, and v
 
     """
@@ -162,27 +192,28 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
 
-def cut(x, y, scalars, xmin, xmax, ymin, ymax):
+def cut(x, y, scalars, area):
     """
     Remove a subsection of the grid.
 
     Parameters:
+    
     * x, y
         Arrays with the x and y coordinates of the data points.
     * scalars
         List of arrays with the scalar values assigned to the grid points.
-    * xmin, xmax
-        Limits of the subsection in the x direction.
-    * ymin, ymax
-        Limits of the subsection in the y direction.
+    * area
+        ``(x1, x2, y1, y2)``: Borders of the subsection
+        
     Returns:
-    * [subx, suby, subscalars]
+    
+    * ``[subx, suby, subscalars]``
         Arrays with x and y coordinates and scalar values of the subsection.
 
     """
+    xmin, xmax, ymin, ymax = area
     log.info("Cutting grid:")
-    log.info("  area = xmin, xmax, ymin, ymax = %s" % (str((xmin, xmax, ymin,
-                                                            ymax))))
+    log.info("  area = xmin, xmax, ymin, ymax = %s" % (str(area)))
     inside = []
     for i, coords in enumerate(zip(x, y)):
         xp, yp = coords
