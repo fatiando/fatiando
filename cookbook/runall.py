@@ -1,4 +1,4 @@
-# Copyright 2010 The Fatiando a Terra Development Team
+# Copyright 2011 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,11 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling.
+Run all the recipes
 """
-__date__ = '02-Apr-2010'
-__version__ = '0.0.1'
+import os
+from subprocess import call
+import re
 
-__all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
-           'utils', 'logger']
-from fatiando.changeset import __changeset__
+basedir = 'recipes'
+isrec = re.compile("\.py$", re.IGNORECASE).search
+recipes = [os.path.sep.join([basedir, f]) for f in os.listdir(basedir) if isrec(f)]
+for rec in recipes:
+    print '\nRUNNING: %s' % (rec)
+    call(['python', rec])

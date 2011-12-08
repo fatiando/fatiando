@@ -1,0 +1,73 @@
+\section{Norma mínima (Tikhonov de ordem 0)}
+
+A função regularizadora mais comumente usada é a chamada {\it norma mínima}
+(também conhecida como {\it ridge regression} ou {\it Tikhonov de ordem zero}).
+Como seu nome sugere, esta função é utilizada para incorporar a informação de
+que o vetor de parâmetros deve ter a norma quadrática ($\ell_2$ ou Euclidiana)
+mínima.
+Isto é, os parâmetros devem ser assumir valores mais próximos possíveis a zero.
+De forma similar a equação \ref{eq:dotprod}, a função regularizadora de norma
+mínima tem a seguinte forma
+
+\begin{equation}
+\theta^{NM}(\vect{p}) = \vect{p}^T\vect{p} \thinspace .
+\label{eq:norma_minima}
+\end{equation}
+
+\indent O vetor gradiente $\vect{\nabla}\theta^{NM}(\vect{p})$ e a matriz Hessiana
+$\mat{\nabla}\theta^{NM}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) desta função
+são, respectivamente,
+
+\begin{equation}
+\vect{\nabla}\theta^{NM}(\vect{p}) = 2\mat{I}\vect{p}
+\label{eq:grad_norma_minima}
+\end{equation}
+
+\noindent e
+
+\begin{equation}
+\mat{\nabla}\theta^{NM}(\vect{p}) = 2\mat{I} \thinspace ,
+\label{eq:hessian_norma_minima}
+\end{equation}
+
+\noindent em que $\mat{I}$ é a matriz identidade de dimensão $M \times M$,
+lembrando que $M$ é o número de parâmetros.
+Note que o gradiente da função regularizadora de norma mínima é uma
+{\it combinação linear dos parâmetros}.
+\\
+\indent Para o caso em que a função $f_i(\vect{p})$ que relaciona
+os dados preditos aos parâmetros também é {\it linear} (equação \ref{eq:comb_linear}),
+a equação normal do {\it problema inverso linear regularizado},
+para o caso da regularização de norma mínima, é
+
+\begin{equation}
+\left(\mat{G}^T\mat{G} + \mu\mat{I}\right)\opt{p} =
+    \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right) ,
+\label{eq:sistema_normal_norma_min_linear}
+\end{equation}
+
+\noindent em que $\mu$ é o parâmetro de regularização, $\vect{d}^{\thinspace o}$
+é o vetor de dados observados, $\mat{G}$ é a matriz de sensibilidade, $\vect{b}$
+é um vetor de constantes (equação \ref{eq:f_igual_Gp}) e $\opt{p}$ é a solução
+de norma mínima para o problema inverso linear.
+\footnote{
+Onde foi parar o termo $\vect{\nabla}\theta^{NM}(\vect{p}_0)$? Dica: Mostre que, se o
+problema inverso é linear, a estimativa $\opt{p}$ não depende da aproximação
+inicial $\vect{p}_0$.}
+\\
+\indent Já para o caso em que $f_i(\vect{p})$ é {\it não-linear}, o problema
+inverso torna-se também não-linear. Assim sendo, a equação normal do
+{\it problema inverso não-linear regularizado}, para o caso da regularização de
+norma mínima, é
+
+\begin{equation}
+\left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
+      \mu\mat{I}\right]\Delta\vect{p} =
+\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
+\mu\vect{p}_0
+    \thinspace .
+\label{eq:sistema_normal_norma_min_naolinear}
+\end{equation}
+
+\noindent em que $\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em
+$\vect{p}_0$ e $\Delta\vect{p}$ é a correção a ser aplicada a $\vect{p}_0$.

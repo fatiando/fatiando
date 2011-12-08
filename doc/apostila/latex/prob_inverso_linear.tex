@@ -1,0 +1,61 @@
+\section{Problemas lineares}
+
+Se a função $f_i(\vect{p})$ (equação \ref{eq:fi}), que relaciona o vetor de
+parâmetros $\vect{p}$ ao $i$-ésimo dado predito, for uma combinação linear dos
+parâmetros, ela terá a seguinte forma
+
+\begin{equation}
+f_i(\vect{p}) = g_{i1}p_1 + g_{i2}p_2 + \dotsb + g_{iM}p_M + b_i \thinspace ,
+\label{eq:comb_linear}
+\end{equation}
+
+\noindent em que $g_{ij}$, $j = 1, 2, \cdots, M$, e $b_i$ são constantes.
+Portanto, a derivada de $f_i(\vect{p})$ em relação ao $j$-ésimo parâmetro
+$p_j$ é dada por
+
+\begin{equation}
+\dfrac{\partial f_i(\vect{p})}{\partial p_j} = g_{ij} \thinspace ,
+\end{equation}
+
+\noindent que não depende dos parâmetros. Para um conjunto de $N$ dados, o vetor
+de dados preditos tem a seguinte forma
+
+\begin{equation}
+\vect{f}(\vect{p}) = \mat{G}\vect{p} + \vect{b} \thinspace ,
+\label{eq:f_igual_Gp}
+\end{equation}
+
+\noindent sendo $\mat{G}$ a matriz de sensibilidade (equação \ref{eq:jacobian})
+e $\vect{b}$ um vetor de constantes.
+Substituindo a expressão acima no gradiente da função do ajuste (equação
+\ref{eq:gradphi}), chegamos a
+
+\begin{equation}
+\vect{\nabla}\phi(\vect{p}) = -2\mat{G}^T \left(\vect{d}^{\thinspace o} -
+    \mat{G}\vect{p} - \vect{b} \right).
+\end{equation}
+
+\indent Seja $\opt{p}$ o vetor que minimiza a função $\phi(\vect{p})$, o
+gradiente desta função avaliado em $\opt{p}$ é igual ao vetor nulo.
+Isto nos leva ao sistema de equações
+
+\begin{equation}
+\mat{G}^T\mat{G}\opt{p} = \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right).
+\label{eq:sistema_normal}
+\end{equation}
+
+\noindent Este sistema é conhecido como {\it sistema de equações normais}. A
+solução para este sistema é
+
+\begin{equation}
+\opt{p} = (\mat{G}^T\mat{G})^{-1} \mat{G}^T
+    \left(\vect{d}^{\thinspace o} - \vect{b} \right),
+\label{eq:estimador_mq}
+\end{equation}
+
+\noindent que é conhecido como {\it estimador de mínimos quadrados}.
+\\
+\indent As equações \ref{eq:sistema_normal} e \ref{eq:estimador_mq} mostram que 
+o vetor $\opt{p}$ que minimiza a função $\phi(\vect{p})$ pode ser
+obtido diretamente a partir da matriz $\mat{G}$ e dos vetores $\vect{b}$ e
+$\vect{d}^{\thinspace o}$. Isto caracteriza um {\it problema inverso linear}.

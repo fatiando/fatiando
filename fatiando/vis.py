@@ -15,9 +15,36 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Easy plotting of grids and 3D meshes.
-Uses Matplotlib for 2D and Mayavi2 for 3D.
+Provides wrappers for `matplotlib` and `mayavi2` functions for easier plotting
+of grids, 3D meshes, etc.
+
 Grids are automatically reshaped and interpolated if desired or necessary.
+
+2D plotting
+^^^^^^^^^^^
+
+* :func:`fatiando.vis.contour`
+* :func:`fatiando.vis.contourf`
+* :func:`fatiando.vis.pcolor`
+* :func:`fatiando.vis.square`
+* :func:`fatiando.vis.polyprism_contours`
+
+3D plotting
+^^^^^^^^^^^
+
+* :func:`fatiando.vis.mayavi_figure`
+* :func:`fatiando.vis.prisms3D`
+* :func:`fatiando.vis.add_outline3d`
+* :func:`fatiando.vis.add_axes3d`
+* :func:`fatiando.vis.wall_north`
+* :func:`fatiando.vis.wall_south`
+* :func:`fatiando.vis.wall_east`
+* :func:`fatiando.vis.wall_west`
+* :func:`fatiando.vis.wall_top`
+* :func:`fatiando.vis.wall_bottom`
+
+----
+   
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Sep-2010'
@@ -39,6 +66,7 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     Make a contour plot of the data.
 
     Parameters:
+
     * x, y
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
@@ -60,8 +88,10 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         Wether or not to print the numerical value of the contour lines
 
     Returns:
+
     * levels
         List with the values of the contour levels
+
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
@@ -85,6 +115,7 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     Make a filled contour plot of the data.
 
     Parameters:
+
     * x, y
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
@@ -102,8 +133,10 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
         Color map to be used. (see pyplot.cm module)
 
     Returns:
+
     * levels
         List with the values of the contour levels
+
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
@@ -124,6 +157,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     Make a pseudo-color plot of the data.
 
     Parameters:
+
     * x, y
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
@@ -141,7 +175,9 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
         Saturation values of the colorbar.
 
     Returns:
+
     * ``matplitlib.axes`` element of the plot
+
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
@@ -159,6 +195,8 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
 def square(area, color='-k', width=1, label=None):
     """
     Plot a square.
+
+    Parameters:
 
     * area
         (x1, x2, y1, y2): Borders of the square
@@ -178,12 +216,13 @@ def square(area, color='-k', width=1, label=None):
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, color, **kwargs)
     return plot
-    
+
 def polyprism_contours(prisms, colors=None, labels=None):
     """
     Plot 2D contours of PolygonalPrism3D objects on a map.
 
     Parameters:
+
     * prisms
         List of PolygonalPrism3D
     * colors
@@ -193,6 +232,7 @@ def polyprism_contours(prisms, colors=None, labels=None):
         List of labels (strings) associated with the prisms.
 
     Returns:
+
     * lines
         List of line objects corresponding to the prisms plotted
 
@@ -222,7 +262,7 @@ def _lazy_import_mlab():
     if mlab is None:
         try:
             from mayavi import mlab
-        except ImportError:            
+        except ImportError:
             from enthought.mayavi import mlab
 
 def _lazy_import_tvtk():
@@ -237,14 +277,15 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
-             vmin=None, vmax=None):
+def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
+             edges=True, vmin=None, vmax=None):
     """
     Plot a 3D right rectangular prisms using Mayavi2.
 
     Will not plot a value None in *prisms*
 
     Parameters:
+    
     * prisms
         List of prisms (see :func:`fatiando.mesher.prism.Prism3D`)
     * scalars
@@ -262,8 +303,9 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
     * vmin, vmax
         Min and max values for the color scale of the scalars. If *None* will
         default to min(scalars) or max(scalars).
-        
+
     Returns:
+    
     * surface: the last element on the pipeline
 
     """
@@ -276,7 +318,7 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
-    
+
     # VTK parameters
     points = []
     cells = []
@@ -305,16 +347,15 @@ def prisms3D(prisms, scalars, label='', style='surface', opacity=1, edges=True,
     cell_array.set_cells(mesh_size, numpy.array(cells))
     cell_types = numpy.array([12]*mesh_size, 'i')
     vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
-    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)    
+    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
     vtkmesh.cell_data.scalars = numpy.array(celldata)
     vtkmesh.cell_data.scalars.name = label
     dataset = mlab.pipeline.add_dataset(vtkmesh)
-    thresh = mlab.pipeline.threshold(dataset)
     if vmin is None:
-        vmin = min(celldata)
+        vmin = min(vtkmesh.cell_data.scalars)
     if vmax is None:
-        vmax = max(celldata)
-    surf = mlab.pipeline.surface(thresh, vmax=vmax, vmin=vmin)
+        vmax = max(vtkmesh.cell_data.scalars)
+    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin)
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':
@@ -330,9 +371,10 @@ def mayavi_figure():
     Create a default figure in Mayavi with white background and z pointing down
 
     Return:
+    
     * fig
         The Mayavi figure object
-        
+
     """
     _lazy_import_mlab()
     fig = mlab.figure(bgcolor=(1, 1, 1))
@@ -346,37 +388,40 @@ def add_outline3d(extent=None, color=(0,0,0), width=2):
     Create a default outline in Mayavi.
 
     Parameters:
+    
     * extent
-        [xmin, xmax, ymin, ymax, zmin, zmax]. Default if the objects extent.
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``. Default if the objects extent.
     * color
         RGB of the color of the axes and text
     * width
         Line width
-        
+
     Returns:
+    
     * outline
         Mayavi outline instace in the pipeline
-        
+
     """
     _lazy_import_mlab()
     outline = mlab.outline(color=color, line_width=width)
     if extent is not None:
         outline.bounds = extent
     return outline
-    
+
 def add_axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
                width=2, fmt="%-#.2f"):
     """
     Add an Axes module to a Mayavi2 plot or dataset.
 
     Parameters:
+    
     * plot
         Either the plot (as returned by one of the plotting functions of this
         module) or a TVTK dataset.
     * nlabels
         Number of labels on the axes
     * extent
-        [xmin, xmax, ymin, ymax, zmin, zmax]. Default if the objects extent.
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``. Default if the objects extent.
     * ranges
         [xmin, xmax, ymin, ymax, zmin, zmax]. What will be display in the axes
         labels. Default is extent
@@ -388,15 +433,16 @@ def add_axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
         Label number format
 
     Returns:
+    
     * axes
         The axes object in the pipeline
-        
+
     """
     _lazy_import_mlab()
     a = mlab.axes(plot, nb_labels=nlabels, color=color)
     a.label_text_property.color = color
     a.title_text_property.color = color
-    if extent is not None:        
+    if extent is not None:
         a.axes.bounds = extent
     if ranges is not None:
         a.axes.ranges = ranges
@@ -413,8 +459,9 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -422,11 +469,11 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([n, n, w, e, b, t], color, opacity)
-    
+
 def wall_south(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the South side.
@@ -434,8 +481,9 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -443,11 +491,11 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([s, s, w, e, b, t], color, opacity)
-    
+
 def wall_east(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the East side.
@@ -455,8 +503,9 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -464,11 +513,11 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([s, n, e, e, b, t], color, opacity)
-    
+
 def wall_west(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the West side.
@@ -476,8 +525,9 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -485,11 +535,11 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([s, n, w, w, b, t], color, opacity)
-    
+
 def wall_top(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the Top side.
@@ -497,8 +547,9 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -506,11 +557,11 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([s, n, w, e, t, t], color, opacity)
-    
+
 def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the Bottom side.
@@ -518,8 +569,9 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
     Remember: x->North, y->East and z->Down
 
     Parameters:
+    
     * bounds
-        [xmin, xmax, ymin, ymax, zmin, zmax]
+        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
     * color
         RGB of the color of the wall
     * opacity
@@ -527,7 +579,7 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
 
     Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
     get the bounds as 'axes.axes.bounds'
-        
+
     """
     s, n, w, e, t, b = bounds
     _wall([s, n, w, e, b, b], color, opacity)
@@ -546,7 +598,7 @@ def _wall(bounds, color, opacity):
     su.actor.property.opacity = opacity
 
 
-    
+
 #
 #
 #def plot_square_mesh(mesh, cmap=pyplot.cm.jet, vmin=None, vmax=None):

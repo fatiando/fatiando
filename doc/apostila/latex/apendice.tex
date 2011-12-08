@@ -1,0 +1,646 @@
+\chapter{Operações com matrizes}
+\label{chap:opmat}
+
+A seguir, demonstraremos como fazer algumas operações matemáticas com matrizes e
+vetores.
+Mas antes, algumas definições.
+
+\section{Definições}
+
+\begin{define}
+    Um vetor $\vect{x}$ de $M$ elementos é uma matriz de uma coluna e $M$ linhas
+
+    \begin{equation}
+    \vect{x} =
+    \begin{bmatrix}
+    x_1 \\ x_2 \\ \vdots \\ x_M
+    \end{bmatrix}
+    \end{equation}
+\end{define}
+
+\begin{define}
+    Dado um conjunto de $N$ funções $f_1(\vect{x}),\ f_2(\vect{x}),\dotsc,\ f_N(\vect{x})$,
+    o vetor de funções $\vect{f}(\vect{x})$ é dado por
+
+    \begin{equation}
+    \vect{f}(\vect{x}) =
+    \begin{bmatrix}
+    f_1(\vect{x}) \\ f_2(\vect{x}) \\ \vdots \\ f_N(\vect{x})
+    \end{bmatrix}
+    \end{equation}
+\end{define}
+
+\begin{define}
+    A derivada do vetor $\vect{f}(\vect{x})$ de $N$ elementos em relação ao
+    $i$-ésimo elemento de $\vect{x}$, $x_i$, é
+
+    \begin{equation}
+    \dfrac{\partial \vect{f}(\vect{x})}{\partial x_i} =
+    \begin{bmatrix}
+    \dfrac{\partial f_1(\vect{x})}{\partial x_i} \vspace{0.3cm}\\
+    \dfrac{\partial f_2(\vect{x})}{\partial x_i} \vspace{0.3cm}\\
+    \vdots \vspace{0.3cm}\\
+    \dfrac{\partial f_N(\vect{x})}{\partial x_i} \vspace{0.3cm}\\
+    \end{bmatrix}
+    \end{equation}
+\end{define}
+
+\begin{define}
+    O vetor $\vect{u}_i^N$ de $N$ elementos possui todos seus elementos
+    iguais a zero, exceto o $i$-ésimo elemento que é igual a $1$
+
+    \begin{equation}
+    \vect{u}_i^N =
+    \begin{bmatrix}
+    u_1 \\ \vdots \\ u_{i-1} \\ u_i \\ u_{i+1} \\ \vdots \\ u_N
+    \end{bmatrix}=
+    \begin{bmatrix}
+    0 \\ \vdots \\ 0 \\ 1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}
+    \label{eq:ui}
+    \end{equation}
+\end{define}
+
+\begin{define}
+    O operador gradiente $\vect{\nabla}$ em relação ao vetor $\vect{x}$ de $N$
+    elementos é igual a
+
+    \begin{equation}
+    \vect{\nabla} =
+    \begin{bmatrix}
+    \dfrac{\partial}{\partial x_1} \vspace{0.3cm}\\
+    \dfrac{\partial}{\partial x_2} \vspace{0.3cm}\\ \vdots \vspace{0.3cm}\\
+    \dfrac{\partial}{\partial x_N}
+    \end{bmatrix}
+    \label{eq:opgrad}
+    \end{equation}
+\end{define}
+
+\begin{define}
+    O operador Hessiana $\mat{\nabla}$ em relação ao vetor $\vect{x}$ de $N$
+    elementos é igual a
+
+    \begin{equation}
+    \mat{\nabla} = \vect{\nabla}\vect{\nabla}^T =
+    \begin{bmatrix}
+    \dfrac{\partial^2}{\partial x_1^2} &
+    \dfrac{\partial^2}{\partial x_2 \partial x_1} &
+    \ldots &
+    \dfrac{\partial^2}{\partial x_N \partial x_1}
+    \vspace{0.3cm}\\
+    \dfrac{\partial^2}{\partial x_1 \partial x_2} &
+    \dfrac{\partial^2}{\partial x_2^2} &
+    \ldots &
+    \dfrac{\partial^2}{\partial x_N \partial x_2}
+    \vspace{0.3cm}\\
+    \vdots & \vdots & \ddots & \vdots
+    \vspace{0.3cm}\\
+    \dfrac{\partial^2}{\partial x_1 \partial x_N} &
+    \dfrac{\partial^2}{\partial x_2 \partial x_N} &
+    \ldots &
+    \dfrac{\partial^2}{\partial x_N^2}
+    \end{bmatrix}
+    \label{eq:ophess}
+    \end{equation}
+\end{define}
+
+\section{Derivadas}
+
+A seguir demonstramos como calcular $\frac{\partial f(\vect{x})}{\partial x_j}$
+e $\frac{\partial \vect{f}(\vect{x})}{\partial x_j}$ para diversos casos.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos e $\vect{f}(\vect{x})$
+é um vetor de $N$ elementos.
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    \vect{f}(\vect{x}) = \mat{A} \vect{x} ,
+    \end{equation}
+
+    \noindent em que $\mat{A}$ é uma matriz de dimensão $N \times M$.
+    \\
+    \indent
+    Seja $\vect{a}_j$ a $j$-ésima coluna de $\mat{A}$, podemos escrever a matriz
+    $\mat{A}$ em relação a suas $M$ colunas
+
+    \begin{equation}
+    \mat{A} =
+        \begin{bmatrix}
+        \vect{a}_1 & \ldots & \vect{a}_j & \ldots & \vect{a}_M
+        \end{bmatrix} ,
+    \end{equation}
+
+    \noindent e então
+
+    \begin{equation}
+    \vect{f}(\vect{x}) = x_1\vect{a}_1 + \dotsb + x_j\thinspace\vect{a}_j +
+    \dotsb + x_M\vect{a}_M \thinspace .
+    \end{equation}
+
+    \indent Neste caso, a derivada de  $\vect{f}(\vect{x})$ em relação
+    a $x_j$ é
+    
+    \begin{equation}
+    \begin{split}
+    \dfrac{\partial \vect{f}(\vect{x})}{\partial x_j} &=
+        \cancelto{0}{\dfrac{\partial x_1\vect{a}_1}{\partial x_j}} + \dotsb +
+        \dfrac{\partial x_j\thinspace\vect{a}_j}{\partial x_j} + \dotsb +
+        \cancelto{0}{\dfrac{\partial x_M\thinspace\vect{a}_M}{\partial x_j}}
+    \\[0.3cm]
+    &=
+    \vect{a}_j = \mat{A}\thinspace\vect{u}_j^M
+    \thinspace .
+    \end{split}
+    \label{eq:deriv_Ax}
+    \end{equation}
+\end{example}
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    \vect{f}(\vect{x}) = \vect{x}^T\mat{A}^T  ,
+    \end{equation}
+
+    \noindent em que $\mat{A}$ é uma matriz de dimensão $N \times M$.
+    \\
+    \indent
+    Seja $\vect{a}_j$ a $j$-ésima coluna de $\mat{A}$, podemos escrever a matriz
+    $\mat{A}^T$ em relação as $M$ colunas de $\mat{A}$
+
+    \begin{equation}
+    \mat{A}^T =
+        \begin{bmatrix}
+        \vect{a}_1^T \\ \vdots \\ \vect{a}_j^T \\ \vdots \\ \vect{a}_M^T
+        \end{bmatrix} ,
+    \end{equation}
+
+    \noindent e então
+
+    \begin{equation}
+    \vect{f}(\vect{x}) = x_1\vect{a}_1^T + \dotsb + x_j\thinspace\vect{a}_j^T +
+    \dotsb + x_M\vect{a}_M^T \thinspace .
+    \end{equation}
+
+    \indent Neste caso, a derivada de  $\vect{f}(\vect{x})$ em relação
+    a $x_j$ é
+    
+    \begin{equation}
+    \begin{split}
+    \dfrac{\partial \vect{f}(\vect{x})}{\partial x_j} &=
+        \cancelto{0}{\dfrac{\partial x_1\vect{a}_1^T}{\partial x_j}} + \dotsb +
+        \dfrac{\partial x_j\thinspace\vect{a}_j^T}{\partial x_j} + \dotsb +
+        \cancelto{0}{\dfrac{\partial x_M\thinspace\vect{a}_M^T}{\partial x_j}}
+    \\[0.3cm]
+    &=
+    \vect{a}_j^T = (\vect{u}_j^M)^T \mat{A}^T
+    \thinspace .
+    \end{split}
+    \label{eq:deriv_xTAT}
+    \end{equation}
+\end{example}
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    \vect{f}(\vect{x}) = \vect{x} ,
+    \end{equation}
+    
+    \noindent a derivada de  $\vect{f}(\vect{x})$ em relação
+    a $x_j$ é
+    
+    \begin{equation}
+    \dfrac{\partial \vect{f}(\vect{x})}{\partial x_j} = \vect{u}_j^M
+    \thinspace .
+    \end{equation}
+\end{example}
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{a}^T\vect{x} = \vect{x}^T\vect{a},
+    \end{equation}
+    
+    \noindent a derivada de $f(\vect{x})$ em relação
+    a $x_j$ é \footnote{O transposto de um escalar é igual a ele mesmo.}
+    
+    \begin{equation}
+    \dfrac{\partial f(\vect{x})}{\partial x_j} =
+        \cancelto{0}{\dfrac{\partial x_1a_1}{\partial x_j}} + \dotsb +
+        \dfrac{\partial x_ja_j}{\partial x_j} + \dotsb +
+        \cancelto{0}{\dfrac{\partial x_M a_M}{\partial x_j}}
+        = a_j = \vect{a}^T \vect{u}_j^M
+    \thinspace .
+    \label{eq:deriv_aTx}
+    \end{equation}
+\end{example}
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{x}^T\mat{A}^T\mat{A}\vect{x} =
+        (\mat{A}\vect{x})^T(\mat{A}\vect{x}),
+    \end{equation}
+    
+    \noindent a derivada de $f(\vect{x})$ em relação
+    a $x_j$ é (ver equação \ref{eq:deriv_Ax})
+    
+    \begin{equation}
+    \begin{split}
+    \dfrac{\partial f(\vect{x})}{\partial x_j} &=
+        \left[\dfrac{\partial(\mat{A}\vect{x})}{\partial x_j}\right]^T(\mat{A}\vect{x}) +
+        (\mat{A}\vect{x})^T\left[\dfrac{\partial(\mat{A}\vect{x})}{\partial x_j}\right]
+    \\[0.3cm]
+    &=
+    \underbrace{(\mat{A}\vect{u}_j^M)^T(\mat{A}\vect{x})}_{\text{escalar}} + 
+    \underbrace{(\mat{A}\vect{x})^T(\mat{A}\vect{u}_j^M)}_{\text{escalar}}
+    \thinspace .
+    \end{split}
+    \end{equation}
+
+    \noindent Como o transposto de um escalar é igual a ele mesmo
+
+    \begin{equation}
+    \dfrac{\partial f(\vect{x})}{\partial x_j} =
+        2(\mat{A}\vect{u}_j^M)^T(\mat{A}\vect{x}) =
+        2(\vect{u}_j^M)^T \mat{A}^T\mat{A}\thinspace\vect{x}
+    \thinspace .
+    \label{eq:deriv_xTATAx}
+    \end{equation}    
+\end{example}
+
+
+\section{Gradientes}
+
+A seguir demonstramos como calcular $\vect{\nabla}f(\vect{x})$
+para diversos casos.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{a}^T\vect{x} = \vect{x}^T\vect{a},
+    \end{equation}
+    
+    \noindent o gradiente de $f(\vect{x})$ é (ver equação \ref{eq:deriv_aTx})
+    \footnote{O transposto de um escalar é igual a ele mesmo.}
+    
+    \begin{equation}
+    \vect{\nabla}f(\vect{x}) =
+    \begin{bmatrix}
+    \dfrac{\partial f(\vect{x})}{\partial x_1} \vspace{0.3cm}\\
+    \dfrac{\partial f(\vect{x})}{\partial x_2} \vspace{0.3cm}\\
+    \vdots \vspace{0.3cm}\\
+    \dfrac{\partial f(\vect{x})}{\partial x_M}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    a_1 \\ a_2 \\ \vdots \\ a_M
+    \end{bmatrix}
+    = \vect{a}
+    \thinspace .
+    \end{equation}
+\end{example}
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{x}^T\mat{A}^T\mat{A}\vect{x},
+    \end{equation}
+    
+    \noindent o gradiente de $f(\vect{x})$ é (ver equação \ref{eq:deriv_xTATAx})
+    
+    \begin{equation}
+        \vect{\nabla}f(\vect{x}) =
+        \begin{bmatrix}
+        \dfrac{\partial f(\vect{x})}{\partial x_1} \vspace{0.3cm}\\
+        \dfrac{\partial f(\vect{x})}{\partial x_2} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \dfrac{\partial f(\vect{x})}{\partial x_M}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        2(\vect{u}_1^M)^T \mat{A}^T\mat{A}\thinspace\vect{x} \vspace{0.3cm}\\
+        2(\vect{u}_2^M)^T \mat{A}^T\mat{A}\thinspace\vect{x} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        2(\vect{u}_M^M)^T \mat{A}^T\mat{A}\thinspace\vect{x}
+        \end{bmatrix}
+        =
+        2
+        \underbrace{
+        \begin{bmatrix}
+        (\vect{u}_1^M)^T  \vspace{0.3cm}\\
+        (\vect{u}_2^M)^T \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        (\vect{u}_M^M)^T
+        \end{bmatrix}}_{\mat{I}}
+        \mat{A}^T\mat{A}\thinspace\vect{x}
+        =
+        2\mat{A}^T\mat{A}\thinspace\vect{x} 
+        \thinspace .
+    \label{eq:grad_xTATAx}
+    \end{equation}
+\end{example}
+
+\section{Hessianas}
+
+A seguir demonstramos como calcular $\mat{\nabla}f(\vect{x})$
+para diversos casos.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
+
+\begin{example}
+    Para o caso
+
+    \begin{equation}
+    f(\vect{x}) = \vect{x}^T\mat{A}^T\mat{A}\vect{x},
+    \end{equation}
+    
+    \noindent a Hessiana de $f(\vect{x})$ é (ver equação \ref{eq:grad_xTATAx})
+    
+    \begin{equation}
+        \mat{\nabla}f(\vect{x}) =
+        \vect{\nabla}[\vect{\nabla}f(\vect{x})]^T =
+        \vect{\nabla}\left(2\mat{A}^T\mat{A}\thinspace\vect{x}\right)^T =
+        2\vect{\nabla}\Big(\vect{x}^T\underbrace{\mat{A}^T\mat{A}}_{\mat{B}^T}\Big) =
+        2\vect{\nabla}\left(\vect{x}^T\mat{B}^T\right).
+    \end{equation}
+
+    \noindent Sendo $\vect{b}_j$ a $j$-ésima coluna de $\mat{B}$, segue que
+    (ver equação \ref{eq:deriv_xTAT})
+        
+    \begin{equation}
+        \vect{\nabla}\left(\vect{x}^T\mat{B}^T\right) = 
+        \begin{bmatrix}
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_1} \vspace{0.3cm}\\
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_2} \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \dfrac{\partial \left(\vect{x}^T\mat{B}^T\right)}{\partial x_M}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        \vect{b}_1^T \vspace{0.3cm}\\
+        \vect{b}_2^T \vspace{0.3cm}\\
+        \vdots \vspace{0.3cm}\\
+        \vect{b}_M^T
+        \end{bmatrix}
+        =
+        \mat{B}^T
+        \thinspace .
+    \end{equation}
+
+    \noindent Logo,
+    
+    \begin{equation}
+        \mat{\nabla}f(\vect{x}) =
+        2\mat{B}^T = 2\mat{A}^T\mat{A}
+        \thinspace .
+    \end{equation}
+\end{example}
+
+\section{Expansão em série de Taylor}
+
+A seguir demonstramos como calcular a expansão em série de Taylor de
+$f(\vect{x})$ até a primeira e segunda ordem.
+Em todos os casos, $\vect{x}$ é um vetor de $M$ elementos.
+A expansão será feita em torno de um ponto $\vect{x}_0$ tal que
+
+\begin{equation}
+\vect{x} = \vect{x}_0 + \Delta\vect{x} \thinspace .
+\end{equation}
+
+\subsection{Até primeira ordem}
+
+A expansão em série de Taylor de $f(\vect{x})$ até a primeira ordem é
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) &\approx
+    f(\vect{x}_0) +
+    \dfrac{\partial f}{\partial x_1}(\vect{x}_0) \Delta x_1 + 
+    \dfrac{\partial f}{\partial x_2}(\vect{x}_0) \Delta x_2 +
+    \dotsb + 
+    \dfrac{\partial f}{\partial x_M}(\vect{x}_0) \Delta x_M
+\\[0.3cm] &\approx
+    f(\vect{x}_0) +
+    \underbrace{
+    \begin{bmatrix}
+    \dfrac{\partial f}{\partial x_1}(\vect{x}_0) &
+    \dfrac{\partial f}{\partial x_2}(\vect{x}_0) &
+    \ldots &
+    \dfrac{\partial f}{\partial x_M}(\vect{x}_0)
+    \end{bmatrix}}_{\vect{\nabla}f(\vect{x}_0)^T}
+    \underbrace{
+    \begin{bmatrix}
+    \Delta x_1 \\ \Delta x_2 \\ \vdots \\ \Delta x_M
+    \end{bmatrix}}_{\Delta\vect{x}}
+\\
+&\approx f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T \Delta\vect{x}
+\thinspace .
+\end{split}
+\label{eq:taylor_order1}
+\end{equation}
+
+\subsection{Até segunda ordem}
+
+Baseado na equação \ref{eq:taylor_order1}, a expansão em série de Taylor de
+$f(\vect{x})$ até a segunda ordem é
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2}\Delta x_1 +
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}\Delta x_M 
+\\[0.5cm]
+&+
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2}\Delta x_1 +
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2}\Delta x_M
+\\
+&+ \dotsb
+\\
+&+
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M}\Delta x_1 +
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M}\Delta x_2 +
+\dotsb +
+\dfrac{1}{2}\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2}\Delta x_M
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Transformando as multiplicações de $\Delta x_j$ do lado direito em
+um produto escalar com o vetor $\Delta\vect{x}$ obtemos
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+\ldots &
+\Delta x_1\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+\end{bmatrix}
+\Delta\vect{x}
+\\[0.5cm]
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+\ldots &
+\Delta x_2\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+\end{bmatrix}
+\Delta\vect{x}
+\\
+&+ \dotsb
+\\
+&+ \dfrac{1}{2}
+\begin{bmatrix}
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+\ldots &
+\Delta x_M\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}
+\Delta\vect{x}
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Em seguida, colocamos $\Delta x_j$ em evidência
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta x_1
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta x_2
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\\
+&+ \dotsb
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta x_M
+\underbrace{
+\begin{bmatrix}
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+\ldots &
+\dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}
+\Delta\vect{x}}_{\text{escalar}}
+\thinspace .
+\end{split}
+\end{equation}
+
+\noindent Agora, transformamos a multiplicação de $\Delta x_j$ a esquerda
+em um produto escalar com o vetor $\Delta\vect{x}$
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta\vect{x}^T
+\begin{bmatrix}
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+    \end{bmatrix}
+    \Delta\vect{x}
+    \\[0.5cm]
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+    \end{bmatrix}
+    \Delta\vect{x}
+    \\
+    \vdots
+    \\
+    \begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+    \end{bmatrix}
+    \Delta\vect{x}
+\end{bmatrix}
+\end{split}
+\thinspace .
+\end{equation}
+
+\noindent Colocando $\Delta\vect{x}$ em evidência e lembrando da equação
+\ref{eq:ophess} obtemos
+
+\begin{equation}
+\begin{split}
+f(\vect{x}) \approx
+&f(\vect{x}_0) + \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x}\
+\\[0.5cm]
+&+ \dfrac{1}{2}\Delta\vect{x}^T
+\underbrace{
+\begin{bmatrix}
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1^2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_1} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_1}
+    \\[0.5cm]
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_2} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2^2} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M\partial x_2} &
+    \\
+    \vdots & \vdots & \ddots & \vdots
+    \\
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_1\partial x_M} &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_2\partial x_M} &
+    \ldots &
+    \dfrac{\partial^2 f(\vect{x}_0)}{\partial x_M^2} &
+\end{bmatrix}}_{\mat{\nabla}f(\vect{x}_0)}
+\Delta\vect{x}
+\end{split}
+\thinspace .
+\end{equation}
+
+\noindent Finalmente, a expansão de $f(\vect{x})$ em série de Taylor até
+segunda ordem é
+
+\begin{equation}
+f(\vect{x}) \approx
+    f(\vect{x}_0) +
+    \vect{\nabla}f(\vect{x}_0)^T\Delta\vect{x} +
+    \dfrac{1}{2}\Delta\vect{x}^T\mat{\nabla}f(\vect{x}_0)\Delta\vect{x}
+\thinspace .
+\end{equation}

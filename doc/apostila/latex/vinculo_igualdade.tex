@@ -1,0 +1,99 @@
+\section{Igualdade}
+
+Há casos em que se conhece um valor aproximado de um ou mais parâmetros.
+Esta informação pode ser proveniente de furos de sondagem, afloramentos, etc.
+Nestes casos, é desejável que o valor estimado para estes parâmetros seja o mais
+próximo possível dos valores conhecidos (e preestabelecidos).
+Para tanto, utilizamos a {\it função regularizadora de igualdade}
+
+\begin{equation}
+\theta^{IG}(\vect{p}) =
+    \left(\vect{p} - \vect{p}^{\thinspace a}\right)^T \mat{A}^T\mat{A}
+        \left(\vect{p} - \vect{p}^{\thinspace a} \right)
+    \thinspace ,
+\label{eq:igualdade}
+\end{equation}
+
+\noindent em que $\vect{p}^{\thinspace a}$ é um vetor cujo $j$-ésimo elemento é:
+o valor conhecido (preestabelecido) do $j$-ésimo parâmetro; ou zero
+\footnote{Na prática, pode-se utilizar qualquer valor.} caso não
+haja um valor conhecido do $j$-ésimo parâmetro. A matriz $\mat{A}$ é uma matriz
+diagonal quadrada de dimensão $M \times M$, lembrando que $M$ é o número de
+parâmetros.
+O $j$-ésimo elemento da diagonal de $\mat{A}$ é 1 (um) caso
+haja um valor conhecido (preestabelecido) para $j$-ésimo parâmetro, ou 0 (zero)
+caso contrário.
+
+\begin{example}
+Digamos que em um determinado problema inverso a função
+$f_i(\vect{p})$ depende de três parâmetros. Além disso, desejamos que o segundo
+parâmetro $p_2$ seja o mais próximo possível do valor $26$.
+Podemos então usar a função regularizadora de igualdade para impor essa restrição.
+Neste caso, os vetores $\vect{p}$ e $\vect{p}^{\thinspace a}$ e a matriz
+$\mat{A}$ serão
+
+\[
+\vect{p} =
+    \begin{bmatrix}
+    p_1 \\ p_2 \\ p3
+    \end{bmatrix} , \quad
+\vect{p}^{\thinspace a} =
+    \begin{bmatrix}
+    0 \\ 26 \\ 0
+    \end{bmatrix} \quad \text{e} \quad
+\mat{A} = 
+    \begin{bmatrix}
+    0 & 0 & 0 \\
+    0 & 1 & 0 \\
+    0 & 0 & 0
+    \end{bmatrix} .
+\]
+\end{example}
+
+\indent O vetor gradiente $\vect{\nabla}\theta^{IG}(\vect{p})$ e a matriz Hessiana
+$\mat{\nabla}\theta^{IG}(\vect{p})$ (ver Apêndice \ref{chap:opmat}) da função
+regularizadora de igualdade são, respectivamente,
+
+\begin{equation}
+\vect{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}^T\mat{A}
+    \left(\vect{p} - \vect{p}^{\thinspace a} \right)
+\end{equation}
+
+\noindent e
+
+\begin{equation}
+\mat{\nabla}\theta^{IG}(\vect{p}) = 2\mat{A}^T\mat{A} \thinspace .
+\end{equation}
+
+\indent Para o caso em que a função $f_i(\vect{p})$ que relaciona
+os dados preditos aos parâmetros também é {\it linear} (equação \ref{eq:comb_linear}),
+a equação normal do {\it problema inverso linear regularizado},
+para o caso da regularização de igualdade, é
+
+\begin{equation}
+\left(\mat{G}^T\mat{G} + \mu\mat{A}^T\mat{A}\right)\opt{p} =
+    \mat{G}^T\left(\vect{d}^{\thinspace o} - \vect{b} \right) +
+    \mu\mat{A}^T\mat{A}\vect{p}^{\thinspace a} ,
+\end{equation}
+
+\noindent em que $\mu$ é o parâmetro de regularização, $\vect{d}^{\thinspace o}$
+é o vetor de dados observados, $\mat{G}$ é a matriz de sensibilidade, $\vect{b}$
+é um vetor de constantes (equação \ref{eq:f_igual_Gp}) e $\opt{p}$ é a solução
+do problema inverso linear com regularização de igualdade.
+\\
+\indent Já para o caso em que $f_i(\vect{p})$ é {\it não-linear}, o problema
+inverso torna-se também não-linear. Assim sendo, a equação normal do
+{\it problema inverso não-linear regularizado}, para o caso da regularização de
+igualdade, é
+
+\begin{equation}
+\left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
+      \mu\mat{A}^T\mat{A}\right]\Delta\vect{p} =
+\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
+\mu\mat{A}^T\mat{A}\left[\vect{p}_0 - \vect{p}^{\thinspace a}\right]
+    \thinspace .
+\end{equation}
+
+\noindent em que $\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em
+$\vect{p}_0$ e $\Delta\vect{p}$ é a correção a ser aplicada a $\vect{p}_0$.
+

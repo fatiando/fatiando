@@ -1,0 +1,85 @@
+\section{Variação total}
+
+Ao contrário do que vimos na Seção \ref{sec:smoothness}, há situações em que é
+desejável que hajam algumas {\it descontinuidades} entre parâmetros espacialmente
+adjacentes. Nestes casos, podemos utilizar a função regularizadora de
+{\it variação total}
+
+\begin{equation}
+\theta^{VT}(\vect{p}) = \sum\limits_{k=1}^L |v_k| \thinspace ,
+\end{equation}
+
+\noindent em que $v_k$, $k=1,2,\dotsc,L$, é o $k$-ésimo elemento do vetor de
+diferenças $\vect{v}$ (equação \ref{eq:vetor_diferencas}).
+Como esta função não é diferenciável para valores de $v_k = 0$, podemos
+aproximá-la por
+
+\begin{equation}
+\theta^{VT}(\vect{p}) \approx \theta^{VT}_\beta(\vect{p}) =
+    \sum\limits_{k=1}^L \sqrt{v_k^2 + \beta} \thinspace ,
+\end{equation}
+
+\noindent sendo $\beta$ um escalar positivo pequeno.
+\\
+\indent O vetor gradiente $\vect{\nabla}\theta^{VT}_\beta(\vect{p})$ e a matriz
+Hessiana $\mat{\nabla}\theta^{VT}_\beta(\vect{p})$ desta função
+são, respectivamente, \citep{martins_etal2011}
+
+\begin{equation}
+\vect{\nabla}\theta^{VT}_\beta(\vect{p}) = \mat{R}^T \vect{q}(\vect{p})
+\label{eq:grad_tv}
+\end{equation}
+
+\noindent e
+
+\begin{equation}
+\mat{\nabla}\theta^{VT}_\beta(\vect{p}) = \mat{R}^T \mat{Q}(\vect{p})\mat{R}
+\thinspace ,
+\label{eq:hessian_tv}
+\end{equation}
+
+\noindent
+sendo $\mat{R}$ uma matriz de diferenças finitas
+(equação \ref{eq:vetor_diferencas}).
+O vetor $\vect{q}(\vect{p})$ e a matriz $\mat{Q}(\vect{p})$ são, respectivamente,
+
+\begin{equation}
+\vect{q}(\vect{p}) =
+    \begin{bmatrix}
+    \dfrac{v_1}{\sqrt{v_1^2 + \beta}} \vspace{0.3cm}\\
+    \dfrac{v_2}{\sqrt{v_2^2 + \beta}} \\
+    \vdots \\ \dfrac{v_L}{\sqrt{v_L^2 + \beta}}
+    \end{bmatrix} \thinspace
+\end{equation}
+
+\noindent e
+
+\begin{equation}
+\mat{Q}(\vect{p}) =
+    \begin{bmatrix}
+    \dfrac{\beta}{(v_1^2 + \beta)^{\frac{3}{2}}} & 0 & \ldots & 0 \vspace{0.3cm}\\
+    0 & \dfrac{\beta}{(v_2^2 + \beta)^{\frac{3}{2}}} & \ldots & 0 \\
+    \vdots & \vdots & \ddots & \vdots \\
+    0 & 0 & \ldots & \dfrac{\beta}{(v_L^2 + \beta)^{\frac{3}{2}}}
+    \end{bmatrix} \thinspace .
+\end{equation}
+
+\indent Como o gradiente e a Hessiana da função regularizadora de variação
+total (equações \ref{eq:grad_tv} e \ref{eq:hessian_tv}) não são combinações
+lineares dos parâmetros, a utilização desta função regularizadora torna o
+problema inverso {\it não-linear}. Assim sendo, a equação normal do
+{\it problema inverso não-linear regularizado}, para o caso da regularização de
+variação total, é
+
+\begin{equation}
+\left[\mat{G}(\vect{p}_0)^T\mat{G}(\vect{p}_0) +
+      \mu\mat{R}^T \mat{Q}(\vect{p}_0)\mat{R}\right]\Delta\vect{p} =
+\mat{G}(\vect{p}_0)^T \left[\vect{d}^{\thinspace o} - \vect{f}(\vect{p}_0)\right] -
+\mu\mat{R}^T \vect{q}(\vect{p}_0)
+    \thinspace .
+\end{equation}
+
+\noindent em que $\vect{f}(\vect{p}_0)$ é o vetor de dados preditos avaliado em
+$\vect{p}_0$ e $\Delta\vect{p}$ é a correção a ser aplicada a $\vect{p}_0$.
+
+

@@ -1,0 +1,97 @@
+\documentclass[12pt,fullpage,a4paper,titlepage,oneside]{report}
+
+% Para fazer o contador de figuras ser por documento
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+% Para portugues
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{setspace} % For doublespacing
+%\usepackage{booktabs} % for making better tables
+\usepackage[pdftex]{graphicx} % For inserting figures
+% \usepackage[draft]{graphicx} % Rascunho
+\usepackage[round,sort]{natbib} % For better bibliography
+
+% Mathematical Symbols and fonts
+\usepackage{cancel} % for canceling terms in equations
+\usepackage{amssymb,amsmath}
+% Define vector commands
+\providecommand{\abs}[1]{\lvert#1\rvert}
+\providecommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\opt}[1]{\tilde{#1}}
+\newcommand{\est}[1]{\hat{#1}}
+\newcommand{\vect}[1]{\bar{#1}}
+\newcommand{\mat}[1]{\bar{\bar{#1}}}
+% To define new theorems
+\usepackage{amsthm}
+\newtheorem{define}{Definição}
+\newtheorem{example}{Exemplo}[chapter]
+
+% Fix the margins so that they are bit smaller
+\usepackage[a4paper]{geometry}
+\geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=2.5cm}
+
+% Make the fancy header
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{} % delete current header and footer
+\rhead{\bfseries\thepage}
+\lhead{\bfseries\leftmark}
+\cfoot{}
+\addtolength{\headheight}{15.5pt} % space for the rule
+\fancypagestyle{plain}{
+    \fancyfoot{} 
+    \renewcommand{\headrulewidth}{0pt} % and the line
+    \rhead{\bfseries\thepage}
+    \lhead{}
+}
+
+% Information
+\title{\bf TÓPICOS DE \\[0.8cm] INVERSÃO EM GEOFÍSICA \vspace{1cm}}
+\author{Vanderlei Coelho de Oliveira Junior\\[0.3cm]Leonardo Uieda}
+\date{\vfill Versão 1.0\\[0.5cm] 2011}
+
+% For pdf hyperlinks
+\usepackage[pdftex]{hyperref}
+\hypersetup{colorlinks=true}
+\hypersetup{citecolor=blue}
+\hypersetup{pdftitle={Tópicos de inversão em geofísica}}
+\hypersetup{pdfauthor={Vanderlei Coelho de Oliveira Junior \& Leonardo Uieda}}
+% For making a print without color links
+%\hypersetup{linkcolor=black,citecolor=black,filecolor=black,urlcolor=black}
+
+\begin{document}
+    \maketitle
+    \newpage
+    \input{latex/copyright.tex}
+    \pagenumbering{roman}
+    \doublespacing
+    %\input{latex/prefacio.tex}
+    \tableofcontents
+    \newpage
+    \pagenumbering{arabic}
+    \input{latex/introducao.tex}
+    \input{latex/prob_inverso.tex}
+    \input{latex/regularizacao.tex}
+    \input{latex/procedimentos_praticos.tex}
+    \input{latex/leitura.tex}
+    \onehalfspacing
+    %\bibliographystyle{plainnat}
+    %\bibliographystyle{amsplain}
+    %\bibliographystyle{alpha}
+    %\bibliographystyle{amsalpha}
+    \bibliographystyle{seg}
+    \clearpage
+    \phantomsection % For hyperref to work
+    \addcontentsline{toc}{chapter}{Referências Bibliográficas}
+    \bibliography{apostila}
+    \appendix
+    \input{latex/apendice.tex}
+\end{document}
+

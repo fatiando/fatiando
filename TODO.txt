@@ -3,6 +3,14 @@
     - seismic
     - eqlayer
     - sphere
+* Generalize mesher.volume.vfilter and extract to any volume element
+* Make grid.rotate function
+* Make grid.profile function to extract a profile from a grid
+* Make grid.dump function that recieves a list of channels (columns)
+* Make grid.load function to wrap numpy.loadtxt(..., unpack=True). make it print comments in the file to log
+* Make conversion function for TVTK and VTK in mesher.volume
+* Make mesher.volume.dump_prisms function with support for ASCII and VTK formats
+* Make PrismMesh3D.dump and .load functions with support for pickle and UBC formats
 * Try Rene's donut and notch fill
 * Test robustness
 * Synthetics long in each direction
