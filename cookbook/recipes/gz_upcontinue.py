@@ -37,8 +37,10 @@ pyplot.colorbar()
 pyplot.figure()
 pyplot.title("Continued + true")
 pyplot.axis('scaled')
-levels = vis.contour(xp, yp, gzcont, shape, 12, color='b', label='continued')
-vis.contour(xp, yp, gztrue, shape, levels, color='r', label='true')
+levels = vis.contour(xp, yp, gzcont, shape, 12, color='b', label='continued',
+    style='dashed')
+vis.contour(xp, yp, gztrue, shape, levels, color='r', label='true',
+    style='solid')
 pyplot.legend()
 
 pyplot.show()

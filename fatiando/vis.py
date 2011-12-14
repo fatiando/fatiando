@@ -61,7 +61,7 @@ tvtk = None
 
 
 def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
-            clabel=True):
+            clabel=True, style='solid', linewidth=1.0):
     """
     Make a contour plot of the data.
 
@@ -86,13 +86,20 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         String with the label of the contour that would show in a legend.
     * clabel
         Wether or not to print the numerical value of the contour lines
-
+    * style
+        The style of the contour lines. Can be ``'dashed'``, ``'solid'`` or
+        ``'mixed'`` (solid lines for positive contours and dashed for negative)
+    * linewidth
+        Width of the contour lines
+        
     Returns:
 
     * levels
         List with the values of the contour levels
 
     """
+    if style not in ['solid', 'dashed', 'mixed']:
+        raise ValueError, "Invalid contour style %s" % (style)
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interpolate:
@@ -106,6 +113,11 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         ct_data.clabel(fmt='%g')
     if label is not None:
         ct_data.collections[0].set_label(label)
+    if style != 'mixed':
+        for c in ct_data.collections:
+            c.set_linestyle(style)
+    for c in ct_data.collections:
+        c.set_linewidth(linewidth)
     pyplot.xlim(X.min(), X.max())
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
