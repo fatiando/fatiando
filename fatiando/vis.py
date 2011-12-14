@@ -378,9 +378,14 @@ def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
     surf.actor.property.backface_culling = 1
     return surf
 
-def mayavi_figure():
+def mayavi_figure(size=None):
     """
     Create a default figure in Mayavi with white background and z pointing down
+
+    Parameters:
+
+    * size
+        The size of the figure. If ``None`` will use the default size.
 
     Return:
     
@@ -389,7 +394,10 @@ def mayavi_figure():
 
     """
     _lazy_import_mlab()
-    fig = mlab.figure(bgcolor=(1, 1, 1))
+    if size is None:
+        fig = mlab.figure(bgcolor=(1, 1, 1))
+    else:
+        fig = mlab.figure(bgcolor=(1, 1, 1), size=size)
     fig.scene.camera.view_up = numpy.array([0., 0., -1.])
     fig.scene.camera.elevation(60.)
     fig.scene.camera.azimuth(180.)
