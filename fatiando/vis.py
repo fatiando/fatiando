@@ -290,7 +290,7 @@ def _lazy_import_tvtk():
             from enthought.tvtk.api import tvtk
 
 def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
-             edges=True, vmin=None, vmax=None):
+             edges=True, vmin=None, vmax=None, cmap='blue-red'):
     """
     Plot a 3D right rectangular prisms using Mayavi2.
 
@@ -315,6 +315,9 @@ def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
     * vmin, vmax
         Min and max values for the color scale of the scalars. If *None* will
         default to min(scalars) or max(scalars).
+    * cmap
+        Color map to use for the scalar values. See the 'Colors and Legends'
+        menu on the Mayavi2 GUI for valid color maps.
 
     Returns:
     
@@ -367,7 +370,7 @@ def prisms3D(prisms, scalars, label='scalars', style='surface', opacity=1,
         vmin = min(vtkmesh.cell_data.scalars)
     if vmax is None:
         vmax = max(vtkmesh.cell_data.scalars)
-    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin)
+    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, colormap=cmap)
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':
