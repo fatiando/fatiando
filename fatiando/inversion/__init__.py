@@ -20,3 +20,4 @@ A collection of geophysical inverse problem solvers.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
+from fatiando.inversion import harvester

@@ -11,6 +11,18 @@
 * Make conversion function for TVTK and VTK in mesher.volume
 * Make mesher.volume.dump_prisms function with support for ASCII and VTK formats
 * Make PrismMesh3D.dump and .load functions with support for pickle and UBC formats
+* Try Rene's donut and notch fill
+* Try using deque from collections module to speedup neighbor list append and pop
+* Try using the itertools module
+* Test robustness
+* Synthetics long in each direction
+* Optimize is_eligible. Making a generator didn't work.
+* Resolve duplicates in seeds
+* Try choosing goal value in the midle (not min or max)
+* Speedup shape-of-anomaly
+* Check is neighbors arent None (masked)
+* HARVESTER: Investigate what happens if there is a tie for lowest goal function
+* Optimize harvester.sow so that it doesn't look through the whole mesh for the seed
 * Deduce analytical upward continuation for tensor (blakely 168)
 * Replace all module loggers with logger.dummy
 * Make a fat script that interfaces with all fatiando.modules (like hg or pip)
