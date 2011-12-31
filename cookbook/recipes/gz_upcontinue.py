@@ -32,7 +32,7 @@ pyplot.figure()
 pyplot.title("Original")
 pyplot.axis('scaled')
 vis.contourf(xp, yp, gz, shape, 15)
-pyplot.colorbar()
+vis.contour(xp, yp, gz, shape, 15)
 
 pyplot.figure()
 pyplot.title("Continued + true")
