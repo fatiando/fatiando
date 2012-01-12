@@ -62,9 +62,9 @@ Returns:
 */
 
 
-int prism_gz(double dens, double x1, double x2, double y1, double y2,
-             double z1, double z2, double *xp, double *yp, double *zp,
-             unsigned int n, double *res)
+unsigned int prism_gz(double dens, double x1, double x2, double y1, double y2,
+                      double z1, double z2, double *xp, double *yp, double *zp,
+                      unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -114,9 +114,9 @@ int prism_gz(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gxx(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gxx(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -158,9 +158,9 @@ int prism_gxx(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gxy(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gxy(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -202,9 +202,9 @@ int prism_gxy(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gxz(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gxz(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -246,9 +246,9 @@ int prism_gxz(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gyy(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gyy(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -290,9 +290,9 @@ int prism_gyy(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gyz(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gyz(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;
@@ -334,9 +334,9 @@ int prism_gyz(double dens, double x1, double x2, double y1, double y2,
     return i;
 }
 
-int prism_gzz(double dens, double x1, double x2, double y1, double y2,
-              double z1, double z2, double *xp, double *yp, double *zp,
-              unsigned int n, double *res)
+unsigned int prism_gzz(double dens, double x1, double x2, double y1, double y2,
+                       double z1, double z2, double *xp, double *yp, double *zp,
+                       unsigned int n, double *res)
 {
     double r,
            deltax1, deltax2, deltay1, deltay2, deltaz1, deltaz2;

@@ -3,6 +3,9 @@
     - seismic
     - eqlayer
     - sphere
+* Rename mesher.volume to mesher.threed
+* Make vis into a package and separate things
+* Make ui package and put all picking like volume.draw_polygon there
 * Generalize mesher.volume.vfilter and extract to any volume element
 * Make grid.rotate function
 * Make grid.profile function to extract a profile from a grid

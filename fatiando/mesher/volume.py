@@ -18,8 +18,8 @@
 Create and operate on meshes of 3D objects like prisms, polygonal prisms,
 tesseroids, etc.
 
-Volume elements
-^^^^^^^^^^^^^^^
+Elements
+^^^^^^^^
 
 * :func:`fatiando.mesher.volume.Prism3D`
 * :func:`fatiando.mesher.volume.PolygonalPrism3D`

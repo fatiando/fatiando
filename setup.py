@@ -29,6 +29,9 @@ potdir = join('src', 'potential')
 potential_prism = Extension('fatiando.potential._prism',
                             sources=[join(potdir, 'prism.c'),
                                      join(potdir, 'prism.pyf')])
+potential_talwani = Extension('fatiando.potential._talwani',
+                            sources=[join(potdir, 'talwani.c'),
+                                     join(potdir, 'talwani.pyf')])
 potential_polyprism = Extension('fatiando.potential._polyprism',
                                 sources=[join(potdir, 'polyprism.c'),
                                          join(potdir, 'polyprism.pyf')])
@@ -36,7 +39,10 @@ potential_transform = Extension('fatiando.potential._transform',
                                 sources=[join(potdir, 'transform.c'),
                                      join(potdir, 'transform.pyf')])
 
-extmods = [potential_prism, potential_polyprism, potential_transform]
+extmods = [potential_prism,
+           potential_talwani,
+           potential_polyprism,
+           potential_transform]
 
 packages = ['fatiando',
             'fatiando.potential',

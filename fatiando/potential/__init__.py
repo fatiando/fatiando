@@ -21,4 +21,4 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 16-Mar-2010'
 
 
-from fatiando.potential import prism, polyprism, transform
+from fatiando.potential import prism, polyprism, transform, talwani

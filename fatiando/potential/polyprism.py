@@ -21,11 +21,12 @@ crossection. Uses forumla of Plouff (1976)
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 28-Sep-2011'
 
-import logging
-
 import numpy
 
 from fatiando.potential import _polyprism
+from fatiando import logger
+
+log = logger.dummy()
 
 
 def gz(xp, yp, zp, prisms):
@@ -38,14 +39,15 @@ def gz(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
+    
     * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
+        Lists with x, y, and z coordinates of the computation points.
     * prisms
-        List of PolygonalPrism3D objects. (see :mod:`fatiando.mesher.polyprism`)
+        List of PolygonalPrism3D objects. (see :mod:`fatiando.mesher.3d`)
 
     Returns:
-    * List with the :math:`g_z` component calculated on *points*
+    
+    * List with the :math:`g_z` component calculated on the computation points.
 
     """
     if xp.shape != yp.shape != zp.shape:
