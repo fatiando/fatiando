@@ -17,23 +17,19 @@
 """
 Create and operate on grids and profiles.
 
-Grid generation
-^^^^^^^^^^^^^^^
+**Grid generation**
 
 * :func:`fatiando.gridder.regular`
 * :func:`fatiando.gridder.scatter`
 
-Grid I/O
-^^^^^^^^
+**Grid I/O**
 
-Grid operations
-^^^^^^^^^^^^^^^
+**Grid operations**
 
 * :func:`fatiando.gridder.cut`
 * :func:`fatiando.gridder.interpolate`
 
-Misc
-^^^^
+**Misc**
 
 * :func:`fatiando.gridder.spacing`
 

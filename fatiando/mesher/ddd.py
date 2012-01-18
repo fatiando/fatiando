@@ -18,25 +18,22 @@
 Create and operate on meshes of 3D objects like prisms, polygonal prisms,
 tesseroids, etc.
 
-Elements
-^^^^^^^^
+**Elements**
 
-* :func:`fatiando.mesher.volume.Prism3D`
-* :func:`fatiando.mesher.volume.PolygonalPrism3D`
+* :func:`fatiando.mesher.ddd.Prism`
+* :func:`fatiando.mesher.ddd.PolygonalPrism`
 
-Meshes
-^^^^^^
+**Meshes**
 
-* :class:`fatiando.mesher.volume.PrismMesh3D`
-* :class:`fatiando.mesher.volume.PrismRelief3D`
+* :class:`fatiando.mesher.ddd.PrismMesh`
+* :class:`fatiando.mesher.ddd.PrismRelief`
 
-Utility functions
-^^^^^^^^^^^^^^^^^
+**Utility functions**
 
-* :func:`fatiando.mesher.volume.draw_polygon`
-* :func:`fatiando.mesher.volume.extract`
-* :func:`fatiando.mesher.volume.filter`
-* :func:`fatiando.mesher.volume.center`
+* :func:`fatiando.mesher.ddd.draw_polygon`
+* :func:`fatiando.mesher.ddd.extract`
+* :func:`fatiando.mesher.ddd.filter`
+* :func:`fatiando.mesher.ddd.center`
 
 ----
 
@@ -67,7 +64,7 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
     
-def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
+def Prism(x1, x2, y1, y2, z1, z2, props={}):
     """
     Create a 3D right rectangular prism.
 
@@ -95,7 +92,7 @@ def Prism3D(x1, x2, y1, y2, z1, z2, props={}):
         prism[prop] = props[prop]
     return prism
 
-def PolygonalPrism3D(vertices, z1, z2, props={}):
+def PolygonalPrism(vertices, z1, z2, props={}):
     """
     Create a 3D prism with polygonal crossection.
 
@@ -122,7 +119,7 @@ def PolygonalPrism3D(vertices, z1, z2, props={}):
         prism[prop] = props[prop]
     return prism
     
-class PrismRelief3D():
+class PrismRelief():
     """
     Generate a 3D model of a relief (topography) using prisms.
     
@@ -132,10 +129,10 @@ class PrismRelief3D():
     * Moho model
     * etc
 
-    PrismRelief3D can used as list of prisms. It acts as an iteratior (so you
+    PrismRelief can used as list of prisms. It acts as an iteratior (so you
     can loop over prisms). It also has a ``__getitem__`` method to access
     individual elements in the mesh.
-    In practice, PrismRelief3D should be able to be passed to any function that
+    In practice, PrismRelief should be able to be passed to any function that
     asks for a list of prisms, like :func:`fatiando.potential.prism.gz`.
 
     Parameters:
@@ -193,7 +190,7 @@ class PrismRelief3D():
             z1 = self.ref
             z2 = zc
         props = dict([p, self.props[p][index]] for p in self.props)
-        return Prism3D(x1, x2, y1, y2, z1, z2, props=props)
+        return Prism(x1, x2, y1, y2, z1, z2, props=props)
         
     def next(self):
         if self.i >= self.size:
@@ -225,7 +222,7 @@ class PrismRelief3D():
             return v
         self.props[prop] = [correct(v, i) for i, v in enumerate(values)]
 
-class PrismMesh3D(object):
+class PrismMesh(object):
     """
     Generate a 3D regular mesh of right rectangular prisms.
 
@@ -238,20 +235,20 @@ class PrismMesh3D(object):
     1 (second layer), y index 1 (second row), and x index 2 (third element in
     the column).
 
-    PrismMesh3D can used as list of prisms. It acts as an iteratior (so you can 
+    PrismMesh can used as list of prisms. It acts as an iteratior (so you can 
     loop over prisms). It also has a ``__getitem__`` method to access individual 
-    elements in the mesh. In practice, PrismMesh3D should be able to be passed 
+    elements in the mesh. In practice, PrismMesh should be able to be passed 
     to any function that asks for a list of prisms, like 
     :func:`fatiando.potential.prism.gz`.
 
     To make the mesh incorporate a topography, use
-    meth:`fatiando.mesher.volume.PrismMesh3D.carvetopo`
+    meth:`fatiando.mesher.ddd.PrismMesh.carvetopo`
 
     Example::
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
-        >>> mesh = PrismMesh3D((0,1,0,2,0,3),(1,2,2))
+        >>> mesh = PrismMesh((0,1,0,2,0,3),(1,2,2))
         >>> for p in mesh:
         ...     show(p)
         x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
@@ -268,7 +265,7 @@ class PrismMesh3D(object):
         >>> def show(p):
         ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
         >>> props = {'density':[2670.0, 1000.0]}
-        >>> mesh = PrismMesh3D((0,2,0,4,0,3),(1,1,2),props=props)
+        >>> mesh = PrismMesh((0,2,0,4,0,3),(1,1,2),props=props)
         >>> for p in mesh:
         ...     show(p)
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
@@ -337,7 +334,7 @@ class PrismMesh3D(object):
         z1 = self.bounds[4] + self.dims[2]*k
         z2 = z1 + self.dims[2]
         props = dict([p, self.props[p][index]] for p in self.props)
-        return Prism3D(x1, x2, y1, y2, z1, z2, props=props)
+        return Prism(x1, x2, y1, y2, z1, z2, props=props)
 
     def __iter__(self):
         self.i = 0
@@ -363,7 +360,7 @@ class PrismMesh3D(object):
         * values
             List or array with the value of this physical property in each
             prism of the mesh. For the ordering of prisms in the mesh see the
-            docstring for Mesh3D
+            docstring for PrismMesh
             
         """
         self.props[prop] = values
@@ -531,10 +528,10 @@ def extract(key, prisms):
     
     * key
         string representing the key whose value will be extracted.
-        Should be one of the arguments to :func:`fatiando.mesher.volume.Prism3D`
+        Should be one of the arguments to :func:`fatiando.mesher.ddd.Prism`
         
     * prisms
-        A list of :func:`fatiando.mesher.volume.Prism3D` objects.
+        A list of :func:`fatiando.mesher.ddd.Prism` objects.
         
     Returns:
     
@@ -549,13 +546,13 @@ def extract(key, prisms):
 
 def vfilter(vmin, vmax, key, prisms):
     """
-    Return prisms from a list of Prism3D with a key that lies within a given
+    Return prisms from a list of Prism with a key that lies within a given
     range.
 
     Parameters:
     
     * prisms
-        List of :func:`fatiando.mesher.volume.Prism3D`
+        List of :func:`fatiando.mesher.ddd.Prism`
     * vmin
         Minimum value
     * vmax
@@ -580,7 +577,7 @@ def center(cell):
     Paremters:
     
     * cell
-        A cell (like :func:`fatiando.mesher.volume.Prism3D`)
+        A cell (like :func:`fatiando.mesher.ddd.Prism`)
 
     Returns:
     

@@ -3,7 +3,7 @@ Upcontinue gz data.
 """
 from matplotlib import pyplot
 from fatiando import gridder, potential, vis, logger, utils
-from fatiando.mesher.volume import Prism3D
+from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
@@ -11,9 +11,9 @@ log.info("Example of upward continuation using the analytical formula")
 
 height = 100
 log.info("Generating synthetic data at %g m:" % (height))
-prisms = [Prism3D(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
-          Prism3D(-1000,1000,-1000,1000,0,2000,{'density':-800}),
-          Prism3D(1000,3000,2000,3000,0,1000,{'density':500})]
+prisms = [Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
+          Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
+          Prism(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
 shape = (25, 25)
 xp, yp, zp = gridder.regular(area, shape, z=-height)

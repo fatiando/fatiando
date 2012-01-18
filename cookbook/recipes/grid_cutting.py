@@ -7,7 +7,7 @@ from fatiando import gridder, utils, vis
 x, y = gridder.regular((-10, 10, -10, 10), (100,100))
 z = utils.gaussian2d(x, y, 1, 1)
 subarea = [-2, 2, -3, 3]
-subx, suby, subscalar = gridder.cut(x, y, [z], *subarea)
+subx, suby, subscalar = gridder.cut(x, y, [z], subarea)
 
 pyplot.figure()
 pyplot.title("Whole grid")

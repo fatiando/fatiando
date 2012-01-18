@@ -20,8 +20,7 @@ of grids, 3D meshes, etc.
 
 Grids are automatically reshaped and interpolated if desired or necessary.
 
-2D plotting
-^^^^^^^^^^^
+**2D plotting**
 
 * :func:`fatiando.vis.contour`
 * :func:`fatiando.vis.contourf`
@@ -29,8 +28,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`fatiando.vis.square`
 * :func:`fatiando.vis.polyprism_contours`
 
-3D plotting
-^^^^^^^^^^^
+**3D plotting**
 
 * :func:`fatiando.vis.mayavi_figure`
 * :func:`fatiando.vis.prisms3D`

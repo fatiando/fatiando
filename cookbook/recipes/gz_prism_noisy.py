@@ -2,15 +2,15 @@
 Generate noise-corrupted synthetic gz data from a prism model.
 """
 from matplotlib import pyplot
-import numpy
-from fatiando import potential, mesher, gridder, vis, logger, utils
+from fatiando import potential, gridder, vis, logger, utils
+from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
 log.info("Example of generating noise-corrupted synthetic data using prisms")
 
 log.info("Calculating...")
-prisms = [mesher.volume.Prism3D(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+prisms = [Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-100)
 gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.05,

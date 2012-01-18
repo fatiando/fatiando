@@ -2,15 +2,15 @@
 Generate noise-corrupted gravity gradient tensor data from a prism model.
 """
 from matplotlib import pyplot
-import numpy
-from fatiando import potential, mesher, gridder, vis, logger, utils
+from fatiando import potential, gridder, vis, logger, utils
+from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
 log.info("Example of generating noise-corrupted synthetic FTG data")
 
-log.info("Calculating...")
-prisms = [mesher.volume.Prism3D(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+log.info("Calculating...")                
+prisms = [Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
 components = [potential.prism.gxx, potential.prism.gxy, potential.prism.gxz,

@@ -3,7 +3,7 @@ Making a 3D prism mesh with topography.
 """
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis
-from fatiando.mesher.volume import PrismMesh3D
+from fatiando.mesher.ddd import PrismMesh
 
 log = logger.get()
 log.info(logger.header())
@@ -27,7 +27,7 @@ pyplot.colorbar()
 pyplot.show()
 
 log.info("Generating the prism mesh")
-mesh = PrismMesh3D(bounds, (20,40,20))
+mesh = PrismMesh(bounds, (20,40,20))
 mesh.carvetopo(x, y, height)
 
 log.info("Plotting")

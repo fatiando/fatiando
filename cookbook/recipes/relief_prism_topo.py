@@ -2,7 +2,7 @@
 import numpy
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis
-from fatiando.mesher.volume import PrismRelief3D
+from fatiando.mesher.ddd import PrismRelief
 
 log = logger.get()
 log.info(logger.header())
@@ -24,7 +24,7 @@ pyplot.colorbar()
 log.info("Generating the 3D relief")
 nodes = (x, y, -1*height) # -1 is to convert height to z coordinate
 reference = 0 # z coordinate of the reference surface
-relief = PrismRelief3D(reference, gridder.spacing(area, shape), nodes)
+relief = PrismRelief(reference, gridder.spacing(area, shape), nodes)
 relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Plotting")

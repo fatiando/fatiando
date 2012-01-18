@@ -4,15 +4,15 @@ Generate synthetic gz data from a prism model.
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, gridder, vis, logger
-from fatiando.mesher.volume import Prism3D, extract
+from fatiando.mesher.ddd import Prism, extract
 
 log = logger.get()
 log.info(logger.header())
 log.info("Example of direct modelling using right rectangular prisms")
 
-prisms = [Prism3D(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
-          Prism3D(-1000,1000,-1000,1000,0,2000,{'density':-1000}),
-          Prism3D(2000,4000,3000,4000,0,2000,{'density':1000})]
+prisms = [Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
+          Prism(-1000,1000,-1000,1000,0,2000,{'density':-1000}),
+          Prism(2000,4000,3000,4000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-100)
 gz = potential.prism.gz(xp, yp, zp, prisms)

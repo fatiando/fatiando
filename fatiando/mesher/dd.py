@@ -15,19 +15,17 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Create and operate on meshes of 2D objects like polygons, squares, and triangles
+Create and operate on 2D meshes and objects like polygons, squares, and
+triangles.
 
-Elements
-^^^^^^^^
+**Elements**
 
-* :func:`fatiando.mesher.twod.Polygon`
+* :func:`fatiando.mesher.dd.Polygon`
 
-Meshes
-^^^^^^
+**Meshes**
 
 
-Utility functions
-^^^^^^^^^^^^^^^^^
+**Utility functions**
 
 
 ----

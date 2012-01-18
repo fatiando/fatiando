@@ -4,8 +4,8 @@
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, vis, logger
-from fatiando.mesher.volume import draw_polygon
-from fatiando.mesher.twod import Polygon
+from fatiando.mesher.ddd import draw_polygon
+from fatiando.mesher.dd import Polygon
 
 log = logger.get()
 log.info(logger.header())

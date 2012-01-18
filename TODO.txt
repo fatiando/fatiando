@@ -3,7 +3,9 @@
     - seismic
     - eqlayer
     - sphere
-* Rename mesher.volume to mesher.threed
+* Fix cross-references for mesher.volume (now mesher.ddd)
+* Replace the runall script in cookbook by something that imports the recipes.
+  This way it is possible to catch the exceptions and know what recipe failed!
 * Make vis into a package and separate things
 * Make ui package and put all picking like volume.draw_polygon there
 * Generalize mesher.volume.vfilter and extract to any volume element

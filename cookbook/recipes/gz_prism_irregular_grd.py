@@ -3,14 +3,15 @@ Generate synthetic gz data on an irregular grid.
 """
 from matplotlib import pyplot
 import numpy
-from fatiando import potential, mesher, gridder, logger, vis
+from fatiando import potential, gridder, logger, vis
+from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
 log.info("Example of generating and plotting irregular grids")
 
 log.info("Calculating...")
-prisms = [mesher.volume.Prism3D(-2000,2000,-2000,2000,0,2000,{'density':1000})]
+prisms = [Prism(-2000,2000,-2000,2000,0,2000,{'density':1000})]
 xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), n=500, z=-100)
 gz = potential.prism.gz(xp, yp, zp, prisms)
 

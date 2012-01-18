@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geophysical direct and inverse modeling.
+Package ``fatiando`` contains tools for geophysical direct and inverse modeling
+as well as data processing, gridding, and visualization.
 """
 __date__ = '02-Apr-2010'
 __version__ = '0.0.1'

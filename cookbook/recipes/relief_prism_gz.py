@@ -3,7 +3,7 @@ Calculating gz cause by a topographic model using prisms
 """
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis, potential
-from fatiando.mesher.volume import PrismRelief3D
+from fatiando.mesher.ddd import PrismRelief
 
 log = logger.get()
 log.info(logger.header())
@@ -17,7 +17,7 @@ height = (-80*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
 
 log.info("Generating the 3D relief")
 nodes = (x, y, -1*height)
-relief = PrismRelief3D(0, gridder.spacing(area,shape), nodes)
+relief = PrismRelief(0, gridder.spacing(area,shape), nodes)
 relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Calculating gz effect")
