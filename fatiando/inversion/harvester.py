@@ -494,7 +494,8 @@ def sow(mesh, rawseeds):
     for point, props in rawseeds:
         x, y, z = point
         for s, cell in enumerate(mesh):
-            if (x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
+            if (cell is not None and
+                x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
                 y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
                 append({'index':s, 'props':props})
                 break
