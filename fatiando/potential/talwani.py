@@ -60,7 +60,7 @@ def gz(xp, zp, polygons):
     * xp, zp
         Arrays with x and z coordinates of the computation points.        
     * polygons
-        List of :func:`fatiando.mesher.twod.Polygon` objects.
+        List of :func:`fatiando.mesher.dd.Polygon` objects.
         The y coordinate of the polygons is used as z! 
 
     Returns:
