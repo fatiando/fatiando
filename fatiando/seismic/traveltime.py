@@ -36,7 +36,7 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def straight_ray_2d(cells, srcs, recs):
+def straight_ray_2d(cells, prop, srcs, recs):
     """
     Calculate the travel times inside a list of 2D square cells between
     source and receiver pairs assuming the rays are straight lines
@@ -50,8 +50,10 @@ def straight_ray_2d(cells, srcs, recs):
 
     * cells
         List of square cells (:func:`fatiando.mesher.dd.Square` or
-        :class:`fatiando.mesher.dd.SquareMesh`). Cells must have a
-        ``'slowness'`` prop (i.e., 1/velocity)
+        :class:`fatiando.mesher.dd.SquareMesh`)
+    * prop
+        String with which physical property of the cells to use as velocity.
+        Normaly one would choose ``'vp'`` or ``'vs'``
     * srcs
         List with [x, y] coordinate pairs of the wave sources.
     * recs
@@ -67,18 +69,18 @@ def straight_ray_2d(cells, srcs, recs):
         >>> # The medium is homogeneous and can be
         >>> # represented by a single Square
         >>> from fatiando.mesher.dd import Square
-        >>> cells = [Square([0, 10, 0, 10], {'slowness':1})]
+        >>> cells = [Square([0, 10, 0, 10], {'vp':2})]
         >>> src = (5, 0)
         >>> srcs = [src, src, src]
         >>> recs = [(0, 0), (5, 10), (10, 0)]
-        >>> print straight_ray_2d(cells, srcs, recs)
-        [  5.  10.   5.]
+        >>> print straight_ray_2d(cells, 'vp', srcs, recs)
+        [ 2.5  5.   2.5]
 
     Returns:
 
     * times
         Array with the total times each ray took to get from a source to a
-        receiver (in compatible units with *slowness*)
+        receiver (in compatible units with *prop*)
 
     """
     if len(srcs) != len(recs):
@@ -88,7 +90,7 @@ def straight_ray_2d(cells, srcs, recs):
     times = numpy.zeros_like(x_src)
     for c in cells:
         if c is not None:
-            times += _traveltime.straight_ray_2d(float(c['slowness']),
+            times += _traveltime.straight_ray_2d(float(1./c[prop]),
                 float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
                 x_src, y_src, x_rec, y_rec)
     return times
