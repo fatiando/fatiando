@@ -271,8 +271,6 @@ class PrismMesh(object):
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
         density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
 
-    Initialization: ``(bounds, shape, props={})``
-
     Parameters:
     
     * bounds
@@ -307,7 +305,7 @@ class PrismMesh(object):
         log.info("  bounds = (x1, x2, y1, y2, z1, z2) = %s" % (str(bounds)))
         log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
         log.info("  number of prisms = %d" % (size))
-        log.info("  prism dimensions = (dz, dy, dx) = %s" % (str((dz, dy, dx))))
+        log.info("  prism dimensions = (dx, dy, dz) = %s" % (str(self.dims)))
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0

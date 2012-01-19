@@ -26,6 +26,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`fatiando.vis.contourf`
 * :func:`fatiando.vis.pcolor`
 * :func:`fatiando.vis.square`
+* :func:`fatiando.vis.squaremesh`
 * :func:`fatiando.vis.polyprism_contours`
 
 **3D plotting**
@@ -200,6 +201,37 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)
     pyplot.xlim(X.min(), X.max())
     pyplot.ylim(Y.min(), Y.max())
+    return plot
+
+def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
+    """
+    Make a pseudo-color plot of a mesh of squares
+    
+    Parameters:
+
+    * mesh
+        A :func:`fatiando.mesher.dd.SquareMesh` or other compatible mesh
+        (a compatible mesh must implement the methods ``_get_xs`` and
+         ``_get_ys``)
+    * scalars
+        Array with the scalar value assigned to each square in the mesh
+    * cmap
+        Color map to be used. (see pyplot.cm module)
+    * vmin, vmax
+        Saturation values of the colorbar.
+
+    Returns:
+
+    * ``matplitlib.axes`` element of the plot
+
+    """
+    xs = mesh._get_xs()
+    ys = mesh._get_ys()
+    X, Y = numpy.meshgrid(xs, ys)
+    V = numpy.reshape(scalars, mesh.shape)
+    plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)
+    pyplot.xlim(xs.min(), xs.max())
+    pyplot.ylim(ys.min(), ys.max())
     return plot
 
 def square(area, color='-k', width=1, label=None):
