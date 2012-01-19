@@ -1,4 +1,6 @@
-* Include doctests in all modules and run them all in test.py
+* Finish implementing srtomo
+* Make example in docstring of inversion.gradient.newton
+* Run doctests in test.py
 * Replace the runall script in cookbook by something that imports the recipes.
   This way it is possible to catch the exceptions and know what recipe failed!
 * Make vis into a package and separate things

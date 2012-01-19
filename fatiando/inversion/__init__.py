@@ -15,8 +15,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-A collection of geophysical inverse problem solvers.
+A collection of geophysical inverse problem solvers and regularizing functions.
+
+All solvers use :class:`fatiando.inversion.datamodule.DataModule` and
+:class:`fatiando.inversion.regularizer.Regularizer` classes to know how to
+calculate things like misfit functions, gradients and Hessians.
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
+from fatiando.inversion import gradient

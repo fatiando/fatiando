@@ -32,9 +32,10 @@ __date__ = 'Created 19-Jan-2012'
 
 import numpy
 
-from fatiando import logger
+from fatiando import logger, inversion
 
 log = logger.dummy()
+
 
     
 def _test():
