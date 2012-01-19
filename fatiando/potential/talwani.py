@@ -18,18 +18,16 @@
 Calculate the gravitational attraction of a 2D body with polygonal vertical
 cross-section using the formula of Talwani et al. (1959)
 
-Use the :func:`fatiando.mesher.twod.Polygon` object.
+Use the :func:`fatiando.mesher.dd.Polygon` object.
 
 **Remember**, the vertices must be given clockwise!
 If not, the result will have an inverted sign. 
 
-Components
-^^^^^^^^^^
+**Components**
 
 * :func:`fatiando.potential.talwani.gz`
 
-References
-^^^^^^^^^^
+**References**
 
 Talwani, M., J. L. Worzel, and M. Landisman (1959), Rapid Gravity Computations
     for Two-Dimensional Bodies with Application to the Mendocino Submarine

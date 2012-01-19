@@ -1,9 +1,4 @@
-* Packages to fix:
-    - vis
-    - seismic
-    - eqlayer
-    - sphere
-* Fix cross-references for mesher.volume (now mesher.ddd)
+* Include doctests in all modules and run them all in test.py
 * Replace the runall script in cookbook by something that imports the recipes.
   This way it is possible to catch the exceptions and know what recipe failed!
 * Make vis into a package and separate things

@@ -15,8 +15,30 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Direct modelling of potential fields using right rectangular prisms.
-Formulas for gravity: Nagy et al (2000)
+Calculate the potential fields and derivatives of the 3D right rectangular prism 
+using the forumla of Nagy et al. (2000)
+
+**Gravity**
+
+* :func:`fatiando.potential.prism.gz`
+* :func:`fatiando.potential.prism.gxx`
+* :func:`fatiando.potential.prism.gxy`
+* :func:`fatiando.potential.prism.gxz`
+* :func:`fatiando.potential.prism.gyy`
+* :func:`fatiando.potential.prism.gyz`
+* :func:`fatiando.potential.prism.gzz`
+
+**Magnetic**
+
+
+**References**
+
+Nagy, D., G. Papp, and J. Benedek, 2000, The gravitational potential and its
+    derivatives for the prism: Journal of Geodesy, 74, 552--560,
+    doi: 10.1007/s001900000116.
+    
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
@@ -38,13 +60,15 @@ def gz(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_z` component calculated on *points*
 
     """
@@ -68,13 +92,15 @@ def gxx(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{xx}` component calculated on *points*
 
     """
@@ -98,13 +124,15 @@ def gxy(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{xy}` component calculated on *points*
 
     """
@@ -128,13 +156,15 @@ def gxz(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{xz}` component calculated on *points*
 
     """
@@ -158,13 +188,15 @@ def gyy(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{yy}` component calculated on *points*
 
     """
@@ -188,13 +220,15 @@ def gyz(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{yz}` component calculated on *points*
 
     """
@@ -218,13 +252,15 @@ def gzz(xp, yp, zp, prisms):
     **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
+    
     * xp, yp, zp
         Lists with (x,y,z) coordinates of the computation points.
         Ex: points = [[1,2,3], [2,3,4]]
     * prisms
-        List of Prism3D objects. (see :mod:`fatiando.mesher.prism`)
+        List of :func:`fatiando.mesher.ddd.Prism` objects.
 
     Returns:
+    
     * List with the :math:`g_{zz}` component calculated on *points*
 
     """

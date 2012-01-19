@@ -9,25 +9,25 @@ log = logger.get()
 log.info(logger.header())
 log.info("Example of upward continuation using the analytical formula")
 
-height = 100
-log.info("Generating synthetic data at %g m:" % (height))
+log.info("Generating synthetic data")
 prisms = [Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
           Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
           Prism(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
 shape = (25, 25)
-xp, yp, zp = gridder.regular(area, shape, z=-height)
+z0 = -100
+xp, yp, zp = gridder.regular(area, shape, z=z0)
 gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.5)
 
-step = 2000
-log.info("Upward continuing to %g m" % (height + step))
-nodes = (xp, yp, zp)
-dims = gridder.spacing(area,shape)
-gzcont = potential.transform.upcontinue(step, gz, nodes, dims)
+# Now do the upward continuation using the analytical formula
+height = 2000
+dims = gridder.spacing(area, shape)
+gzcont = potential.transform.upcontinue(gz, z0, height, xp, yp, dims)
 
 log.info("Computing true values at new height")
-gztrue = potential.prism.gz(xp, yp, zp - step, prisms)
+gztrue = potential.prism.gz(xp, yp, zp - height, prisms)
 
+log.info("Plotting")
 pyplot.figure()
 pyplot.title("Original")
 pyplot.axis('scaled')

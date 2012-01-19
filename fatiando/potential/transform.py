@@ -15,8 +15,16 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Potential field transformations.
-Ex: upward continuation, derivatives and total mass.
+Potential field transformations, like upward continuation, derivatives and
+total mass.
+
+**Transformations**
+
+* :func:`fatiando.potential.transform.upcontinue`
+
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 20-Oct-2010'
@@ -32,7 +40,7 @@ from fatiando.potential import _transform
 log = logger.dummy()
 
 
-def upcontinue(height, gz, nodes, dims):
+def upcontinue(gz, z0, height, xp, yp, dims):
     """
     Upward continue :math:`g_z` data using numerical integration of the
     analytical formula:
@@ -43,7 +51,7 @@ def upcontinue(height, gz, nodes, dims):
         {\infty} g_z(x',y',z_0) \\frac{1}{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
         ]^{\\frac{3}{2}}} dx' dy'
 
-    Data needs to be on a regular grid.
+    **Data needs to be on a regular grid.**
 
     **UNITS**: SI for all coordinates, mGal for :math:`g_z`
 
@@ -51,32 +59,39 @@ def upcontinue(height, gz, nodes, dims):
     x -> North, y -> East and z -> **DOWN**.
 
     Parameters:
+    
+    * gz
+        Array with the gravity values on the grid points
+    * z0
+        Original z coordinate of the observations
+        (Remember: z is positive downward!)
     * height
         How much higher to move the gravity field (should be POSITIVE!)
-        Will be summed to the current height of the grid.
-    * gz
-        Gravity values on the grid points
-    * nodes
-        [x, y, z]: List of arrays with x, y, z coordinates of the grid points
+        Will be subtracted from z0 to obtain the new z coordinate of the
+        continued observations.
+    * xp, yp
+        Arrays with the x and y coordinates of the grid points
     * dims
         [dy, dx]: the grid spacing in the y and x directions
 
     Returns:
+    
     * gzcont
-        Upward continued :math:`g_z`
+        Array with the upward continued :math:`g_z`
 
     """
     dy, dx = dims
-    xs, ys, zs = nodes
-    if len(xs) != len(ys) != len(zs):
-        raise ValueError, "nodes has x,y,z coordinates with different lengths"
+    if len(xp) != len(yp):
+        raise ValueError, "xp and yp arrays must have same lengths"
     if height < 0:
         raise ValueError, "'height' should be positive"
+    newz = z0 - height
     log.info("Upward continuation:")
+    log.info("  original z coordinate: %g m" % (z0))
     log.info("  height increment: %g m" % (height))
-    newzs = zs - height
+    log.info("  new z coordinate: %g m" % (newz))
     start = time.time()
-    gzcont = _transform.upcontinue(xs, ys, zs, newzs, gz, dx, dy)
+    gzcont = _transform.upcontinue(gz, z0, newz, xp, yp, dx, dy)
     end = time.time()
     log.info("  time: %g s" % (end - start))
     return gzcont

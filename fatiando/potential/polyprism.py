@@ -16,7 +16,20 @@
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Calculate the potential fields and derivatives of the 3D prism with polygonal
-crossection. Uses forumla of Plouff (1976)
+crossection using the forumla of Plouff (1976).
+
+**Gravity**
+
+* :func:`fatiando.potential.polyprism.gz`
+
+**References**
+
+Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4),
+    727-741.
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 28-Sep-2011'
@@ -43,7 +56,7 @@ def gz(xp, yp, zp, prisms):
     * xp, yp, zp
         Lists with x, y, and z coordinates of the computation points.
     * prisms
-        List of PolygonalPrism3D objects. (see :mod:`fatiando.mesher.3d`)
+        List of :func:`fatiando.mesher.ddd.PolygonalPrism` objects.
 
     Returns:
     
