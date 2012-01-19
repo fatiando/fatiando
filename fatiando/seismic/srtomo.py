@@ -37,6 +37,7 @@ from fatiando import logger, inversion
 log = logger.dummy()
 
 
+
     
 def _test():
     import doctest

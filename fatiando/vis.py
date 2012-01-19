@@ -22,6 +22,8 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 **2D plotting**
 
+* :func:`fatiando.vis.points`
+* :func:`fatiando.vis.paths`
 * :func:`fatiando.vis.contour`
 * :func:`fatiando.vis.contourf`
 * :func:`fatiando.vis.pcolor`
@@ -58,6 +60,56 @@ import fatiando.gridder
 mlab = None
 tvtk = None
 
+
+def points(pts, style='.k', size=10, label=None):
+    """
+    Plot a list of points.
+
+    Parameters:
+
+    * pts
+        List of (x, y) pairs with the coordinates of the points
+    * style
+        String with the color and line style (as in matplotlib.pyplot.plot)
+    * size
+        Size of the plotted points
+    * label
+        If not None, then the string that will show in the legend
+
+    Returns:
+    
+    * ``matplitlib.axes`` element of the plot
+    
+    """
+    x, y = numpy.array(pts).T
+    kwargs = {}
+    if label is not None:
+        kwargs['label'] = label
+    return pyplot.plot(x, y, style, markersize=size, **kwargs)
+    
+def paths(pts1, pts2, style='-k', linewidth=1, label=None):
+    """
+    Plot paths between the two sets of points.
+
+    Parameters:
+
+    * pts1
+        List of (x, y) pairs with the coordinates of the points
+    * pts2
+        List of (x, y) pairs with the coordinates of the points
+    * style
+        String with the color and line style (as in matplotlib.pyplot.plot)
+    * linewidth
+        The width of the lines representing the paths
+    * label
+        If not None, then the string that will show in the legend
+    
+    """
+    kwargs = {'linewidth':linewidth}
+    if label is not None:
+        kwargs['label'] = label
+    for p1, p2 in zip(pts1, pts2):
+        pyplot.plot([p1[0], p2[0]], [p1[1], p2[1]], style, **kwargs)
 
 def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
             clabel=True, style='solid', linewidth=1.0):
@@ -657,150 +709,6 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
-#
-#
-#def plot_square_mesh(mesh, cmap=pyplot.cm.jet, vmin=None, vmax=None):
-    #"""
-    #Plot a 2D mesh made of square cells. Each cell is a dictionary as::
-#
-        #{'x1':cellx1, 'x2':cellx2, 'y1':celly1, 'y2':celly2, 'value':value}
-#
-    #The pseudo color of the plot is key 'value'.
-#
-    #Parameters:
-#
-    #* mesh
-        #A list of cells describing the square mesh
-#
-    #* cmap
-        #Color map to use. See ``pyplot.cm``
-#
-    #* vmin, vmax
-        #Lower and upper limits for the color scale
-#
-    #Returns:
-#
-    #* ``matplitlib.axes`` element of the plot
-#
-    #"""
-#
-    #xvalues = []
-    #for cell in mesh[0]:
-#
-        #xvalues.append(cell['x1'])
-#
-    #xvalues.append(mesh[0][-1]['x2'])
-#
-    #yvalues = []
-#
-    #for line in mesh:
-#
-        #yvalues.append(line[0]['y1'])
-#
-    #yvalues.append(mesh[-1][0]['y2'])
-#
-    #X, Y = numpy.meshgrid(xvalues, yvalues)
-#
-    #Z = numpy.zeros_like(X)
-#
-    #for i, line in enumerate(mesh):
-#
-        #for j, cell in enumerate(line):
-#
-            #Z[i][j] = cell['value']
-#
-    #if vmin is None and vmax is None:
-#
-        #plot = pyplot.pcolor(X, Y, Z, cmap=cmap)
-#
-    #else:
-#
-        #plot = pyplot.pcolor(X, Y, Z, cmap=cmap, vmin=vmin, vmax=vmax)
-#
-    #return plot
-#
-#
-#def residuals_histogram(residuals, nbins=None):
-    #"""
-    #Plot a histogram of the residual vector.
-#
-    #Parameters:
-#
-    #* residuals
-        #1D array-like vector of residuals
-#
-    #* nbins
-        #Number of bins (default to ``len(residuals)/8``)
-#
-    #Returns:
-#
-    #* ``matplitlib.axes`` element of the plot
-#
-    #"""
-#
-    #if nbins is None:
-#
-        #nbins = len(residuals)/8
-#
-    #plot = pyplot.hist(residuals, bins=nbins, facecolor='gray')
-#
-    #return plot[0]
-#
-#
-#def src_rec(sources, receivers, markersize=9):
-    #"""
-    #Plot the locations of seismic sources and receivers in a map.
-#
-    #Parameters:
-#
-    #* sources
-        #List with the x,y coordinates of each source
-#
-    #* receivers
-        #List with the x,y coordinates of each receiver
-#
-    #* markersize
-        #Size of the source and receiver markers
-#
-    #"""
-#
-    #src_x, src_y = numpy.transpose(sources)
-    #rec_x, rec_y = numpy.transpose(receivers)
-#
-    #pyplot.plot(src_x, src_y, 'r*', ms=markersize, label='Source')
-    #pyplot.plot(rec_x, rec_y, 'b^', ms=int(0.78*markersize), label='Receiver')
-#
-#
-#def ray_coverage(sources, receivers, linestyle='-k'):
-    #"""
-    #Plot the rays between sources and receivers in a map.
-#
-    #Parameters:
-#
-    #* sources
-        #List with the x,y coordinates of each source
-#
-    #* receivers
-        #List with the x,y coordinates of each receiver
-#
-    #* linestyle
-        #Type of line to display and color. See ``pyplot.plot``
-#
-    #Returns:
-#
-    #* ``matplitlib.axes`` element of the plot
-#
-    #"""
-#
-    #for src, rec in zip(sources, receivers):
-#
-        #plot = pyplot.plot([src[0], rec[0]], [src[1], rec[1]], linestyle)
-#
-    #return plot[0]
-#
-#
-#
 #
 #
 #def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,

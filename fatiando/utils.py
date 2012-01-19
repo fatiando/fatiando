@@ -24,6 +24,13 @@ Mathematical functions
 * :func:`fatiando.utils.gaussian`
 * :func:`fatiando.utils.gaussian2d`
 
+Point scatter generation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*:func:`fatiando.utils.random_points`
+*:func:`fatiando.utils.circular_points`
+*:func:`fatiando.utils.connect_points`
+
 Others
 ^^^^^^
 
@@ -259,6 +266,88 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     xhat = x - x0
     yhat = y - y0
     return numpy.exp(-(a*xhat**2 + 2.*b*xhat*yhat + c*yhat**2))
+
+def random_points(area, n):
+    """
+    Generate a set of n random points.
+ 
+    Parameters:
+
+    * area
+        [x1, x2, y1, y2]: area inside of which the points are contained
+    * n
+        Number of points
+
+    Result:
+
+    * points
+        List of (x, y) coordinates of the points
+        
+    """
+    x1, x2, y1, y2 = area
+    xs = numpy.random.uniform(x1, x2, n)
+    ys = numpy.random.uniform(y1, y2, n)
+    return numpy.array([xs, ys]).T
+
+def circular_points(area, n, random=False):
+    """
+    Generate a set of n points positioned in a circular array.
+    
+    The diameter of the circle is equal to the smallest dimension of the area
+ 
+    Parameters:
+
+    * area
+        [x1, x2, y1, y2]: area inside of which the points are contained
+    * n
+        Number of points
+    * random
+        If True, positions of the points on the circle will be chosen at random
+
+    Result:
+
+    * points
+        List of (x, y) coordinates of the points
+        
+    """
+    x1, x2, y1, y2 = area
+    radius = 0.5*min(x2 - x1, y2 - y1)
+    if random:
+        angles = numpy.random.uniform(0, 2*math.pi, n)
+    else:
+        angles = numpy.arange(0., 2.*math.pi, 2.*math.pi/float(n))
+    xs = 0.5*(x1 + x2) + radius*numpy.cos(angles)
+    ys = 0.5*(y1 + y2) + radius*numpy.sin(angles)
+    return numpy.array([xs, ys]).T
+
+def connect_points(pts1, pts2):
+    """
+    Connects each point in the first list with all points in the second.
+    If the first list has N points and the second has M, the result are 2 lists
+    with N*M points each, representing the connections.
+
+    Parameters:
+
+    * pts1
+        List of (x, y) coordinates of the points.
+    * pts2
+        List of (x, y) coordinates of the points.
+
+    Returns:
+
+    * [connect1, connect2]
+        2 lists with the connected points
+        
+    """
+    connect1 = []
+    append1 = connect1.append
+    connect2 = []
+    append2 = connect2.append
+    for p1 in pts1:
+        for p2 in pts2:
+            append1(p1)
+            append2(p2)
+    return [connect1, connect2]
 
 def _test():
     import doctest
