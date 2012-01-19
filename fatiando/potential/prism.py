@@ -273,3 +273,11 @@ def gzz(xp, yp, zp, prisms):
                 prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
                 xp, yp, zp)
     return res
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

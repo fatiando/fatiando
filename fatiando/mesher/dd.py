@@ -21,9 +21,11 @@ triangles.
 **Elements**
 
 * :func:`fatiando.mesher.dd.Polygon`
+* :func:`fatiando.mesher.dd.Square`
 
 **Meshes**
 
+* :class:`fatiando.mesher.dd.SquareMesh`
 
 **Utility functions**
 
@@ -65,3 +67,66 @@ def Polygon(vertices, props):
     for prop in props:
         poly[prop] = props[prop]
     return poly
+
+def Square(bounds, props):
+    """
+    Create a square object.
+
+    Example::
+
+        >>> sq = Square([0, 1, 2, 4], {'density':750})
+        >>> for k in sorted(sq):
+        ...     print k, '=', sq[k]
+        density = 750
+        x1 = 0
+        x2 = 1
+        y1 = 2
+        y2 = 4
+        
+
+    Parameters:
+
+    * bounds
+        ``[x1, x2, y1, y2]``: coordinates of the top right and bottom left
+        corners of the square       
+    * props
+        Dictionary with the physical properties assigned to the square.
+        Ex: ``props={'density':10, 'slowness':10000}``
+
+    Returns:
+
+    * Square object
+    
+    """
+    x1, x2, y1, y2 = bounds
+    square = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2}
+    for prop in props:
+        square[prop] = props[prop]
+    return square
+
+class SquareMesh(object):
+    """
+    Create a mesh of squares.
+
+    
+    """
+
+    def __init__(self, bounds, shape, props={}):
+        pass
+    
+
+    def addprop(self):
+        pass
+
+    def img2prop(self):
+        pass
+
+    
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

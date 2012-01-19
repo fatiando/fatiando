@@ -1,4 +1,4 @@
-# Copyright 2010 The Fatiando a Terra Development Team
+# Copyright 2012 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,10 +15,27 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Various tools for seismic and seismology, like direct modeling, inversion
-(tomography), epicenter determination, etc.
+Estimate the epicenter of a seismic event considering various approximations.
+
+**Flat Earth**
+
+* :func:`fatiando.seismic.epicenter.flat_homogeneous`
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
+__date__ = 'Created 19-Jan-2012'
 
-from fatiando.seismic import epicenter, traveltime, srtomo
+import numpy
+
+from fatiando import logger
+
+log = logger.dummy()
+
+
+def flat_homogeneous(stations, ttresiduals):
+    """
+    Estimate the epicenter of an event based on 
+    """
+    pass

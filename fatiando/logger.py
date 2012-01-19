@@ -153,3 +153,11 @@ def header(comment=''):
              "%s  changeset: %s\n" % (comment, fatiando.__changeset__)
             ]
     return ''.join(lines)
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

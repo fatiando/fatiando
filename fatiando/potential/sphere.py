@@ -191,3 +191,11 @@ def gzz(dens, radius, xc, yc, zc, xp, yp, zp):
                                 float(zp))
 
     return res
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

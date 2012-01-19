@@ -25,6 +25,7 @@ import fatiando
 
 # Base paths for extention modules
 potdir = join('src', 'potential')
+seisdir = join('src', 'seismic')
 
 potential_prism = Extension('fatiando.potential._prism',
                             sources=[join(potdir, 'prism.c'),
@@ -37,14 +38,19 @@ potential_polyprism = Extension('fatiando.potential._polyprism',
                                          join(potdir, 'polyprism.pyf')])
 potential_transform = Extension('fatiando.potential._transform',
                                 sources=[join(potdir, 'transform.c'),
-                                     join(potdir, 'transform.pyf')])
+                                         join(potdir, 'transform.pyf')])
+seismic_traveltime = Extension('fatiando.seismic._traveltime',
+                                sources=[join(seisdir, 'traveltime.c'),
+                                         join(seisdir, 'traveltime.pyf')])
 
 extmods = [potential_prism,
            potential_talwani,
            potential_polyprism,
-           potential_transform]
+           potential_transform,
+           seismic_traveltime]
 
 packages = ['fatiando',
+            'fatiando.mesher',
             'fatiando.potential',
             'fatiando.seismic',
             'fatiando.inversion',

@@ -95,3 +95,11 @@ def upcontinue(gz, z0, height, xp, yp, dims):
     end = time.time()
     log.info("  time: %g s" % (end - start))
     return gzcont
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

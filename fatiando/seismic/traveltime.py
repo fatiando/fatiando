@@ -15,52 +15,89 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Functions to calculate the travel times of seismic waves.
+Direct modeling of seismic wave travel times.
 
-Functions:
+**Straight rays**
 
-* :func:`fatiando.seismo.traveltime.cartesian_straight`
-    Calculate the travel time inside a square cell assuming the ray is a
-    straight line (no refraction or reflection).
+* :func:`fatiando.seismic.traveltime.straight_ray_2d`
+
+----
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
 
-from fatiando.seismo import _traveltime
+import numpy
+
+from fatiando.seismic import _traveltime
+from fatiando import logger
+
+log = logger.dummy()
 
 
-def straight2d(slowness, x1, y1, x2, y2, x_src, y_src, x_rec, y_rec):
+def straight_ray_2d(cells, srcs, recs):
     """
-    Calculate the travel time inside a 2D square cell assuming the ray is a
-    straight line (no refraction or reflection).
+    Calculate the travel times inside a list of 2D square cells between
+    source and receiver pairs assuming the rays are straight lines
+    (no refraction or reflection).
 
     **NOTE**: Don't care about the units as long they are compatible.
 
+    For a homogeneous model, *cells* can be a list with only one big cell.
+
     Parameters:
 
-    * slowness
-        Slowness of the cell (:math:`slowness = \\frac{1}{velocity}`)
+    * cells
+        List of square cells (:func:`fatiando.mesher.dd.Square` or
+        :class:`fatiando.mesher.dd.SquareMesh`). Cells must have a
+        ``'slowness'`` prop (i.e., 1/velocity)
+    * srcs
+        List with [x, y] coordinate pairs of the wave sources.
+    * recs
+        List with [x, y] coordinate pairs of the receivers sources
+    
+    *srcs* and *recs* are lists of source-receiver pairs. Each source in *srcs*
+    is associated with the corresponding receiver in *recs* for a given travel
+    time.
 
-    * x1, y1
-        Coordinates of the lower-left corner of the cell
+    For example::
 
-    * x2, y2
-        Coordinates of the upper-right corner of the cell
-
-    * x_src, y_src
-        Coordinates of the wave source
-
-    * x_rec, y_rec
-        Coordinates of the receiver
+        >>> # One source was recorded at 3 receivers.
+        >>> # The medium is homogeneous and can be
+        >>> # represented by a single Square
+        >>> from fatiando.mesher.dd import Square
+        >>> cells = [Square([0, 10, 0, 10], {'slowness':1})]
+        >>> src = (5, 0)
+        >>> srcs = [src, src, src]
+        >>> recs = [(0, 0), (5, 10), (10, 0)]
+        >>> print straight_ray_2d(cells, srcs, recs)
+        [  5.  10.   5.]
 
     Returns:
 
-    * Time the ray spent in the cell in compatible units with *slowness*
+    * times
+        Array with the total times each ray took to get from a source to a
+        receiver (in compatible units with *slowness*)
 
     """
+    if len(srcs) != len(recs):
+        raise ValueError, "srcs and recs must have the same length"
+    x_src, y_src = numpy.array(srcs, dtype='f').T
+    x_rec, y_rec = numpy.array(recs, dtype='f').T
+    times = numpy.zeros_like(x_src)
+    for c in cells:
+        if c is not None:
+            times += _traveltime.straight_ray_2d(float(c['slowness']),
+                float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
+                x_src, y_src, x_rec, y_rec)
+    return times
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
 
-    return _traveltime.straight2d(float(slowness), float(x1), float(y1),
-                                  float(x2), float(y2), float(x_src),
-                                  float(y_src), float(x_rec), float(y_rec))
+if __name__ == '__main__':
+    _test()
+

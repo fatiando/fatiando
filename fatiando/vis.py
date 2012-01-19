@@ -617,8 +617,14 @@ def _wall(bounds, color, opacity):
     su = mlab.pipeline.surface(p)
     su.actor.property.color = color
     su.actor.property.opacity = opacity
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
 
-
+if __name__ == '__main__':
+    _test()
 
 #
 #

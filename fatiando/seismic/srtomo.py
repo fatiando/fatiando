@@ -15,10 +15,32 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Various tools for seismic and seismology, like direct modeling, inversion
-(tomography), epicenter determination, etc.
+Straight-ray 2D travel time tomography (i.e. does not consider reflection or
+refraction)
+
+Examples::
+
+    some code
+    
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
+__date__ = 'Created 19-Jan-2012'
 
-from fatiando.seismic import epicenter, traveltime, srtomo
+
+import numpy
+
+from fatiando import logger
+
+log = logger.dummy()
+
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()
