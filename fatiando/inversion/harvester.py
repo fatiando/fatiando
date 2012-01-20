@@ -22,6 +22,7 @@ __date__ = 'Created 17-Nov-2010'
 
 import time
 import math
+import bisect
 
 import numpy
 sum = numpy.sum
@@ -489,16 +490,33 @@ def sow(mesh, rawseeds):
         A list seeds as required by :func:`fatiando.inversion.harvester.harvest`
         
     """
+    log.info("Sowing seeds in the mesh:")
+    tstart = time.clock()
     seeds = []
     append = seeds.append
+    # This is a quick hack to get the xs, ys, and zs.
+    # TODO: make PrismMesh have get_xs, etc, methods
+    x1, x2, y1, y2, z1, z2 = mesh.bounds
+    dx, dy, dz = mesh.dims
+    nz, ny, nx = mesh.shape
+    xs = numpy.arange(x1, x2, dx)
+    ys = numpy.arange(y1, y2, dy)
+    zs = numpy.arange(z1, z2, dz)
     for point, props in rawseeds:
         x, y, z = point
-        for s, cell in enumerate(mesh):
-            if (cell is not None and
-                x >= cell['x1'] and x <= cell['x2'] and y >= cell['y1'] and  
-                y <= cell['y2'] and z >= cell['z1'] and z <= cell['z2']):
+        found = False
+        if x <= x2 and x >= x1 and y <= y2 and y >= y1 and z <= z2 and z >= z1:
+            # -1 because bisect gives the index z would have. I want to know
+            # what index z comes after
+            k = bisect.bisect_left(zs, z) - 1
+            j = bisect.bisect_left(ys, y) - 1
+            i = bisect.bisect_left(xs, x) - 1
+            s = i + j*nx + k*nx*ny
+            if mesh[s] is not None:
+                found = True
                 append({'index':s, 'props':props})
-                break
+        if not found:
+            raise ValueError, "Couldn't find seed at location %s" % (str(point))
     # Search for duplicates
     duplicates = []
     for i in xrange(len(seeds)):
@@ -511,7 +529,10 @@ def sow(mesh, rawseeds):
         guilty = ', '.join(['%d and %d' % (i, j) for i, j in duplicates])
         msg1 = "Can't have seeds with same location and physical properties!"
         msg2 = "Guilty seeds: %s" % (guilty)
-        raise ValueError, ' '.join([msg1, msg2])    
+        raise ValueError, ' '.join([msg1, msg2])
+    log.info("  found %d seeds" % (len(seeds)))
+    tfinish = time.clock() - tstart
+    log.info("  time: %s" % (utils.sec2hms(tfinish)))
     return seeds
     
 def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
