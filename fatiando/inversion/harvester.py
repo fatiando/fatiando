@@ -625,7 +625,10 @@ def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
             append(bellow + nx - 1)
         if bellow is not None and back is not None and right is not None:
             append(bellow - nx - 1)
-    return [{'index':i, 'props':props} for i in indexes if i is not None]
+    # Filter out the ones that do not exist or are masked
+    neighbors = [{'index':i, 'props':props} for i in indexes if i is not None
+                 and mesh[i] is not None]
+    return neighbors
 
 def in_estimate(estimate, neighbor):
     """
