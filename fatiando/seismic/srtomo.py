@@ -130,7 +130,7 @@ def _slow2vel(slowness, tol=10**(-5)):
     else:
         return 1./float(slowness)
 
-def smooth(ttimes, srcs, recs, mesh, damping=0.001):
+def smooth(ttimes, srcs, recs, mesh, damping=0.):
     """
     Perform a tomography with smoothing regularization.
 
@@ -167,8 +167,11 @@ def smooth(ttimes, srcs, recs, mesh, damping=0.001):
     log.info("  damping: %g" % (damping))
     iterator = inversion.gradient.newton(dms, initial, regs, tol=0.001)
     start = time.time()
-    for i, chset in enumerate(iterator):
-        continue
+    try:
+        for i, chset in enumerate(iterator):
+            continue
+    except SingularMatrix:
+        log.error("Oops, the Hessian is a singular matrix")
     stop = time.time()
     log.info("  number of iterations: %d" % (i))
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))

@@ -64,7 +64,7 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
     
-def Prism(x1, x2, y1, y2, z1, z2, props={}):
+def Prism(x1, x2, y1, y2, z1, z2, props=None):
     """
     Create a 3D right rectangular prism.
 
@@ -88,11 +88,12 @@ def Prism(x1, x2, y1, y2, z1, z2, props={}):
     """
     prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
              'z1':float(z1), 'z2':float(z2)}
-    for prop in props:
-        prism[prop] = props[prop]
+    if props is not None:
+        for prop in props:
+            prism[prop] = props[prop]
     return prism
 
-def PolygonalPrism(vertices, z1, z2, props={}):
+def PolygonalPrism(vertices, z1, z2, props=None):
     """
     Create a 3D prism with polygonal crossection.
 
@@ -115,8 +116,9 @@ def PolygonalPrism(vertices, z1, z2, props={}):
     """
     x, y = numpy.array(vertices).T
     prism = {'x':x, 'y':y, 'z1':z1, 'z2':z2}
-    for prop in props:
-        prism[prop] = props[prop]
+    if props is not None:
+        for prop in props:
+            prism[prop] = props[prop]
     return prism
     
 class PrismRelief():

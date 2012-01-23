@@ -165,7 +165,7 @@ class SquareMesh(object):
         
     """
 
-    def __init__(self, bounds, shape, props={}):
+    def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         log.info("Generating 2D regular square mesh:")
         ny, nx = shape
@@ -177,7 +177,13 @@ class SquareMesh(object):
         self.shape = tuple(int(i) for i in shape)
         self.size = size
         self.dims = (dx, dy)
-        self.props = props
+        # props has to be None, not {} by default because {} would be permanent
+        # for all instaces of the class (like a class variable) and changes
+        # to one instace would lead to changes in another (and a huge mess)
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
         log.info("  bounds = (x1, x2, y1, y2) = %s" % (str(bounds)))
         log.info("  shape = (ny, nx) = %s" % (str(shape)))
         log.info("  number of squares = %d" % (size))
