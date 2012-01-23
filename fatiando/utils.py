@@ -315,7 +315,8 @@ def circular_points(area, n, random=False):
     if random:
         angles = numpy.random.uniform(0, 2*math.pi, n)
     else:
-        angles = numpy.arange(0., 2.*math.pi, 2.*math.pi/float(n))
+        da = 2.*math.pi/float(n)
+        angles = numpy.arange(0., 2.*math.pi, da)
     xs = 0.5*(x1 + x2) + radius*numpy.cos(angles)
     ys = 0.5*(y1 + y2) + radius*numpy.sin(angles)
     return numpy.array([xs, ys]).T

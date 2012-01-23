@@ -269,7 +269,7 @@ class SquareMesh(object):
         # Invert the color scale
         model = numpy.max(imagearray) - imagearray
         # Normalize
-        model = model/numpy.max(imagearray)
+        model = model/numpy.max(numpy.abs(imagearray))
         # Put it in the interval [vmin,vmax]
         model = model*(vmax - vmin) + vmin
         # Convert the model to a list so that I can reverse it (otherwise the
@@ -295,14 +295,24 @@ class SquareMesh(object):
         """
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
-        return numpy.arange(x1, x2 + dx, dx, 'f')
+        ny, nx = self.shape
+        xs = numpy.arange(x1, x2, dx, 'f')
+        if len(xs) > nx:
+            return xs[0:-1]
+        else:
+            return xs
         
     def _get_ys(self):
         """
         """
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
-        return numpy.arange(y1, y2 + dy, dy, 'f')
+        ny, nx = self.shape
+        ys = numpy.arange(y1, y2, dy, 'f')
+        if len(ys) > ny:
+            return ys[0:-1]
+        else:
+            return ys
             
 def _test():
     import doctest

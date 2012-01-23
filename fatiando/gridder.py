@@ -183,7 +183,11 @@ def interpolate(x, y, v, shape, algorithm='nn'):
     dx = float(x.max() - x.min())/(nx - 1)
     dy = float(y.max() - y.min())/(ny - 1)
     xs = numpy.arange(x.min(), x.max() + dx, dx, 'f')
+    if len(xs) > nx:
+        xs = xs[0:-1]
     ys = numpy.arange(y.min(), y.max() + dy, dy, 'f')
+    if len(ys) > ny:
+        ys = ys[0:-1]
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]

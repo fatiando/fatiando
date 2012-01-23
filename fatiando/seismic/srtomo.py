@@ -121,8 +121,59 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p=None):
         return hessian + 2.*self.hessian
 
+def _slow2vel(slowness):
+    """
+    Safely convert slowness to velocity. 0 slowness is mapped to 0 velocity.
+    """
+    if slowness == 0.:
+        return 0
+    else:
+        return 1./float(slowness)
 
+def smooth(ttimes, srcs, recs, mesh, damping=0.001):
+    """
+    Perform a tomography with smoothing regularization.
 
+    Parameters:
+
+    * ttimes
+        Array with the travel-times of the straight seismic rays.
+    * srcs
+        Array with the (x, y) positions of the sources.
+    * recs
+        Array with the (x, y) positions of the receivers.
+    * mesh
+        The mesh where the inversion (tomography) will take place.
+        Typically a :class:`fatiando.mesher.dd.SquareMesh`
+    * damping
+        Damping regularizing parameter (i.e., how much damping to apply).
+        Must be a positive scalar.
+
+    Returns:
+
+    * [estimate, residuals]
+        Arrays with the estimated velocity and residual vector, respectively
+        
+    """
+    if len(ttimes) != len(srcs) != len(recs):
+        msg = "Must have same number of travel-times, sources and receivers"
+        raise ValueError, msg
+    if damping < 0:
+        raise ValueError, "Damping must be positive"        
+    regs = [inversion.regularizer.Damping(damping)]
+    dms = [TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)]
+    initial = numpy.zeros(mesh.size, dtype='f')
+    log.info("Running smooth straight-ray 2D travel-time tomography (SrTomo):")
+    log.info("  damping: %g" % (damping))
+    iterator = inversion.gradient.newton(dms, initial, regs, tol=0.001)
+    start = time.time()
+    for i, chset in enumerate(iterator):
+        continue
+    stop = time.time()
+    log.info("  number of iterations: %d" % (i))
+    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
+    log.info("  final goal function: %g" % (chset['goals'][-1]))
+    return [_slow2vel(s) for s in chset['estimate']], chset['residuals'][0]
     
 def _test():
     import doctest

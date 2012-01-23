@@ -87,7 +87,7 @@ def newton(dms, initial, regs=[], step=1, maxit=100, tol=10**(-5)):
         * ``p`` is the current parameter vector.
         * ``misfits`` list with data-misfit function values per iteration
         * ``goals`` list with goal function values per iteration
-        * ``dms`` are the data modules at this iteration
+        * ``residuals`` list with the residual vectors at this iteration
     
     """
     if len(dms) == 0:
@@ -116,13 +116,13 @@ def newton(dms, initial, regs=[], step=1, maxit=100, tol=10**(-5)):
         misfits.append(misfit)
         goals.append(goal)
         
-        yield {'estimate':p, 'misfits':misfits, 'goals':goals, 'dms':dms}
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
 
         # Check if goal function decreases more than a threshold
         if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
             break
-        
-    
+            
 def _test():
     import doctest
     doctest.testmod()

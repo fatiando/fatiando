@@ -165,8 +165,6 @@ class Damping(Regularizer):
     def sum_hessian(self, hessian, p):
         return hessian + (self.mu*2.)*numpy.identity(len(p))
         
-        
-    
 def _test():
     import doctest
     doctest.testmod()
