@@ -121,12 +121,12 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p=None):
         return hessian + 2.*self.hessian
 
-def _slow2vel(slowness):
+def _slow2vel(slowness, tol=10**(-8)):
     """
     Safely convert slowness to velocity. 0 slowness is mapped to 0 velocity.
     """
-    if slowness == 0.:
-        return 0
+    if slowness <= tol and slowness >= -tol:
+        return 0.
     else:
         return 1./float(slowness)
 
@@ -173,6 +173,7 @@ def smooth(ttimes, srcs, recs, mesh, damping=0.001):
     log.info("  number of iterations: %d" % (i))
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
+    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return [_slow2vel(s) for s in chset['estimate']], chset['residuals'][0]
     
 def _test():

@@ -263,8 +263,8 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
 
     * mesh
         A :func:`fatiando.mesher.dd.SquareMesh` or other compatible mesh
-        (a compatible mesh must implement the methods ``_get_xs`` and
-        ``_get_ys``)
+        (a compatible mesh must implement the methods ``get_xs`` and
+        ``get_ys``)
     * scalars
         Array with the scalar value assigned to each square in the mesh
     * cmap
@@ -277,8 +277,8 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     * ``matplitlib.axes`` element of the plot
 
     """
-    xs = mesh._get_xs()
-    ys = mesh._get_ys()
+    xs = mesh.get_xs()
+    ys = mesh.get_ys()
     X, Y = numpy.meshgrid(xs, ys)
     V = numpy.reshape(scalars, mesh.shape)
     plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)

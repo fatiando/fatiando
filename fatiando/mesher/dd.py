@@ -290,27 +290,43 @@ class SquareMesh(object):
             log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
         self.props[prop] = model.ravel()
 
-    def _get_xs(self):
+    def get_xs(self):
         """
+        Get a list of the x coordinates of the corners of the cells in the
+        mesh.
+
+        If the mesh has nx cells, get_xs() will return nx + 1 values.
         """
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
         ny, nx = self.shape
-        xs = numpy.arange(x1, x2, dx, 'f')
-        if len(xs) > nx:
+        xs = numpy.arange(x1, x2 + dx, dx, 'f')
+        if len(xs) == nx + 2:
             return xs[0:-1]
+        elif len(xs) == nx:
+            xs = xs.tolist()
+            xs.append(x2)
+            return numpy.array(xs)
         else:
             return xs
         
-    def _get_ys(self):
+    def get_ys(self):
         """
+        Get a list of the y coordinates of the corners of the cells in the
+        mesh.
+
+        If the mesh has ny cells, get_ys() will return ny + 1 values.
         """
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
         ny, nx = self.shape
         ys = numpy.arange(y1, y2, dy, 'f')
-        if len(ys) > ny:
+        if len(ys) == ny + 2:
             return ys[0:-1]
+        elif len(ys) == ny:
+            ys = ys.tolist()
+            ys.append(y2)
+            return numpy.array(ys)
         else:
             return ys
             
