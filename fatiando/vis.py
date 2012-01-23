@@ -61,6 +61,21 @@ mlab = None
 tvtk = None
 
 
+def set_area(area):
+    """
+    Set the area of a Matplolib plot using xlim and ylim.
+
+    Parameters:
+
+    * area
+        [x1, x2, y1, y2]: coordinates of the top right and bottom left
+        corners of the area
+         
+    """
+    x1, x2, y1, y2 = area
+    pyplot.xlim(x1, x2)
+    pyplot.ylim(y1, y2)
+    
 def points(pts, style='.k', size=10, label=None):
     """
     Plot a list of points.

@@ -26,7 +26,7 @@ ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                            0.01, percent=True)
 
 mesh = SquareMesh(area, shape)
-estimate, residuals = srtomo.smooth(ttimes, srcs, recs, mesh, damping=0.1)
+estimate, residuals = srtomo.smooth(ttimes, srcs, recs, mesh, damping=0.01)
 
 pyplot.figure()
 pyplot.title('Vp synthetic model of the Earth')
