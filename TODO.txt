@@ -1,5 +1,4 @@
 * There seems to be a bottleneck in PrismMesh element look up. Profile and try to seedup
-* Finish implementing srtomo
 * Make example in docstring of inversion.gradient.newton
 * Run doctests in test.py
 * Replace the runall script in cookbook by something that imports the recipes.

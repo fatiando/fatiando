@@ -19,14 +19,15 @@ model = SquareMesh(area, shape)
 model.img2prop(imgfile, 5, 10, 'vp')
 
 log.info("Generating synthetic travel-time data")
-src_loc = utils.random_points(area, 30)
-rec_loc = utils.circular_points(area, 10)
+src_loc = utils.random_points(area, 50)
+rec_loc = utils.circular_points(area, 50)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
-ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
-                           0.01, percent=True)
+ttimes = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
+#ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
+                           #0.01, percent=True)
 
 mesh = SquareMesh(area, shape)
-estimate, residuals = srtomo.smooth(ttimes, srcs, recs, mesh, damping=1.)
+estimate, residuals = srtomo.smooth(ttimes, srcs, recs, mesh, damping=0.1)
 
 pyplot.figure()
 pyplot.title('Vp synthetic model of the Earth')

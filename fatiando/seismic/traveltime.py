@@ -90,7 +90,7 @@ def straight_ray_2d(cells, prop, srcs, recs):
     times = numpy.zeros_like(x_src)
     for c in cells:
         if c is not None:
-            times += _traveltime.straight_ray_2d(float(1./c[prop]),
+            times += _traveltime.straight_ray_2d(float(c[prop]),
                 float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
                 x_src, y_src, x_rec, y_rec)
     return times

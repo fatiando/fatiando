@@ -35,7 +35,7 @@
 
  Parameters:
  * 
-    * double slowness: the slowness of the cell. Must be in units compatible
+    * double velocity: the velocity of the cell. Must be in units compatible
         with the other parameters!
     * double x1, y1: coordinates of the lower-left corner of the cell
     * double x2, y2: coordinates of the upper-right corner of the cell
@@ -45,11 +45,11 @@
     * double *times: array to return the computed times for each source-receiver
                      pair
 */
-unsigned int straight_ray_2d(double slowness, double x1, double y1, double x2,
+unsigned int straight_ray_2d(double velocity, double x1, double y1, double x2,
     double y2, double *x_src, double *y_src, double *x_rec, double *y_rec,
     unsigned int n, double *times)
 {
-    double maxx, maxy, minx, miny;
+    double maxx, maxy, minx, miny, distance;
     double xps[6], yps[6], xp, yp;
     double crossingx[6], crossingy[6];
     double a_ray, b_ray;
@@ -161,10 +161,11 @@ unsigned int straight_ray_2d(double slowness, double x1, double y1, double x2,
         }
         else
         {
-            *times = slowness*sqrt((crossingx[1] - crossingx[0])*
-                                   (crossingx[1] - crossingx[0]) +
-                                   (crossingy[1] - crossingy[0])*
-                                   (crossingy[1] - crossingy[0]));
+            distance = sqrt((crossingx[1] - crossingx[0])*
+                            (crossingx[1] - crossingx[0]) +
+                            (crossingy[1] - crossingy[0])*
+                            (crossingy[1] - crossingy[0]));
+            *times = (double)distance/velocity;
         }
     }
     return l;

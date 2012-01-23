@@ -121,7 +121,7 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p=None):
         return hessian + 2.*self.hessian
 
-def _slow2vel(slowness, tol=10**(-8)):
+def _slow2vel(slowness, tol=10**(-5)):
     """
     Safely convert slowness to velocity. 0 slowness is mapped to 0 velocity.
     """
