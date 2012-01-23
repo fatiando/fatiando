@@ -14,13 +14,13 @@ log.info(__doc__)
 
 imgfile = path.join(path.dirname(path.abspath(__file__)), 'fat-logo.png')
 area = (0, 5, 0, 5)
-shape = (50, 50)
+shape = (30, 30)
 model = SquareMesh(area, shape)
 model.img2prop(imgfile, 5, 10, 'vp')
 
 log.info("Generating synthetic travel-time data")
 src_loc = utils.random_points(area, 150)
-rec_loc = utils.circular_points(area, 50, random=True)
+rec_loc = utils.circular_points(area, 100, random=True)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
 ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                            0.01, percent=True)

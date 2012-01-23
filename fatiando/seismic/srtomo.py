@@ -15,13 +15,44 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Straight-ray 2D travel time tomography (i.e. does not consider reflection or
-refraction)
+SrTomo: Straight-ray 2D travel-time tomography (i.e., does not consider
+reflection or refraction)
 
-Examples::
+**Solvers**
 
-    some code
-    
+* :func:`fatiando.seismic.srtomo.smooth`
+* :func:`fatiando.seismic.srtomo.sharp`
+
+**Data Modules**
+
+* :class:`fatiando.seismic.srtomo.TravelTimeStraightRay2D`
+
+**Examples**
+
+Using simple synthetic data::
+
+    >>> # One source was recorded at 3 receivers.
+    >>> # The medium has 2 velocities: 2 and 5
+    >>> from fatiando.mesher.dd import Square, SquareMesh
+    >>> model = [Square([0, 10, 0, 5], {'vp':2}),
+    ...          Square([0, 10, 5, 10], {'vp':5})]
+    >>> src = (5, 0)
+    >>> srcs = [src, src, src]
+    >>> recs = [(0, 0), (5, 10), (10, 0)]
+    >>> # Calculate the synthetic travel-times
+    >>> from fatiando.seismic.traveltime import straight_ray_2d
+    >>> ttimes = straight_ray_2d(model, 'vp', srcs, recs)
+    >>> print ttimes
+    [ 2.5  3.5  2.5]
+    >>> # Run the tomography to calculate the 2 velocities
+    >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
+    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh)
+    >>> for v in estimate:
+    ...     print '%.2f' % (v),
+    2.00 5.00
+    >>> for v in residuals:
+    ...     print '%.2f' % (v),
+    0.00 -0.00 0.00
 
 ----
 
@@ -37,7 +68,6 @@ import scipy.sparse.linalg
 from fatiando import logger, inversion, utils
 from fatiando.seismic import _traveltime
 log = logger.dummy()
-
 
 
 class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
@@ -177,7 +207,9 @@ def smooth(ttimes, srcs, recs, mesh, damping=0.):
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
-    return [_slow2vel(s) for s in chset['estimate']], chset['residuals'][0]
+    velocity = [_slow2vel(s) for s in chset['estimate']]
+    residuals = chset['residuals'][0]
+    return velocity, residuals
     
 def _test():
     import doctest
