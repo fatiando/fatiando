@@ -44,7 +44,6 @@ class DataModule(object):
     things like:
 
     * Predicted data
-    * Residual vector
     * Data-misfit function
     * Gradient of the data-misfit function
     * Hessian of the data-misfit function
@@ -86,9 +85,9 @@ class DataModule(object):
         """
         pass
 
-    def get_residuals(self, p):
+    def get_predicted(self, p):
         """
-        Returns the residual vector for a given parameter vector
+        Returns the predicted data vector for a given parameter vector.
 
         Parameters:
 
@@ -97,13 +96,13 @@ class DataModule(object):
 
         Returns:
 
-        * res
-            Array with the calculated residual vector
+        * pred
+            Array with the calculated predicted data vector
             
         """
         pass
 
-    def sum_gradient(self, gradient, p):
+    def sum_gradient(self, gradient, p=None, residuals=None):
         """
         Sums the gradient vector of this data module to *gradient* and returns
         the result.
@@ -114,6 +113,12 @@ class DataModule(object):
             Array with the old gradient vector
         * p
             Array with the parameter vector
+        * residuals
+            Array with the residuals evaluated for parameter vector *p*
+            
+        Solvers for linear problems will use ``p = None`` and
+        ``residuals = None`` so that the class knows how to calculate gradients
+        more efficiently for these cases.
 
         Returns:
 
@@ -123,7 +128,7 @@ class DataModule(object):
         """
         pass
 
-    def sum_hessian(self, hessian, p):
+    def sum_hessian(self, hessian, p=None):
         """
         Sums the Hessian matrix of this data module to *hessian* and returns
         the result.
@@ -134,6 +139,9 @@ class DataModule(object):
             2D array with the old Hessian matrix
         * p
             Array with the parameter vector
+            
+        Solvers for linear problems will use ``p = None`` so that the class
+        knows how to calculate gradients more efficiently for these cases.
 
         Returns:
 

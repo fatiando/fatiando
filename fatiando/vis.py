@@ -264,7 +264,7 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     * mesh
         A :func:`fatiando.mesher.dd.SquareMesh` or other compatible mesh
         (a compatible mesh must implement the methods ``_get_xs`` and
-         ``_get_ys``)
+        ``_get_ys``)
     * scalars
         Array with the scalar value assigned to each square in the mesh
     * cmap

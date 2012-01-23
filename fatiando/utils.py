@@ -27,9 +27,9 @@ Mathematical functions
 Point scatter generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*:func:`fatiando.utils.random_points`
-*:func:`fatiando.utils.circular_points`
-*:func:`fatiando.utils.connect_points`
+* :func:`fatiando.utils.random_points`
+* :func:`fatiando.utils.circular_points`
+* :func:`fatiando.utils.connect_points`
 
 Others
 ^^^^^^

@@ -64,7 +64,7 @@ class Regularizer(object):
     """
 
     def __init__(self, mu):
-        self.mu
+        self.mu = mu
 
     def value(self, p):
         pass
@@ -131,6 +131,20 @@ class Damping(Regularizer):
 
     where :math:`\\bar{\\bar{I}}` is the identity matrix.
 
+    Example::
+
+        >>> import numpy
+        >>> p = [1, 2, 2]
+        >>> hessian = numpy.array([[1, 0, 0], [2, 0, 0], [4, 0, 0]])
+        >>> damp = Damping(0.1)
+        >>> print damp.value(p)
+        0.3
+        >>> print damp.sum_hessian(hessian, p)
+        [[ 1.2  0.   0. ]
+         [ 2.   0.2  0. ]
+         [ 4.   0.   0.2]]
+    
+
     Parameters:
         
     * mu
@@ -149,6 +163,14 @@ class Damping(Regularizer):
         return gradient + (self.mu*2.)*p
 
     def sum_hessian(self, hessian, p):
-        return hessian + (self.mu*2.)*numpy.identity(len(hessian))
+        return hessian + (self.mu*2.)*numpy.identity(len(p))
         
         
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

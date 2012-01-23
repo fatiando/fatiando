@@ -30,6 +30,8 @@ __date__ = 'Created 19-Jan-2012'
 
 
 import numpy
+from numpy import dot as dot_product
+from numpy.linalg import solve as linsys_solver
 import itertools
 
 from fatiando import logger
@@ -90,21 +92,26 @@ def newton(dms, initial, regs=[], step=1, maxit=100, tol=10**(-5)):
     """
     if len(dms) == 0:
         raise ValueError, "Need at least 1 data module. None given"
-    nparams = len(p)
     p = initial
-    misfit = sum(d.get_misfit(d.get_residuals(p)) for d in dms)
+    nparams = len(p)
+    residuals = [d.data - d.get_predicted(p) for d in dms]
+    misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms, residuals))
     goal = misfit + sum(r.value(p) for r in regs)
     misfits = [misfit]
     goals = [goal]
     for i in xrange(maxit):
         gradient = numpy.zeros_like(p)
-        for m in itertools.chain(dms, regs):
-            gradient = d.sum_gradient(gradient, p)
+        for d, res in itertools.izip(dms, residuals):
+            gradient = d.sum_gradient(gradient, p, res)
+        for r in regs:
+            gradient = r.sum_gradient(gradient, p)
         hessian = numpy.zeros((nparams, nparams))
         for m in itertools.chain(dms, regs):
-            hessian = d.sum_hessian(hessian, p)
+            hessian = m.sum_hessian(hessian, p)
         p += step*linsys_solver(hessian, -1*gradient)
-        misfit = sum(d.get_misfit(d.get_residuals(p)) for d in dms)
+        residuals = [d.data - d.get_predicted(p) for d in dms]
+        misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
+                     residuals))
         goal = misfit + sum(r.value(p) for r in regs)
         misfits.append(misfit)
         goals.append(goal)
@@ -115,3 +122,11 @@ def newton(dms, initial, regs=[], step=1, maxit=100, tol=10**(-5)):
         if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
             break
         
+    
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

@@ -24,4 +24,4 @@ calculate things like misfit functions, gradients and Hessians.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
-from fatiando.inversion import gradient
+from fatiando.inversion import gradient, datamodule, regularizer
