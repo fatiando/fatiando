@@ -29,19 +29,24 @@ seisdir = join('src', 'seismic')
 
 potential_prism = Extension('fatiando.potential._prism',
                             sources=[join(potdir, 'prism.c'),
-                                     join(potdir, 'prism.pyf')])
+                                     join(potdir, 'prism.pyf')],
+                            extra_compile_args=['-fno-strict-aliasing'])
 potential_talwani = Extension('fatiando.potential._talwani',
                             sources=[join(potdir, 'talwani.c'),
-                                     join(potdir, 'talwani.pyf')])
+                                     join(potdir, 'talwani.pyf')],
+                            extra_compile_args=['-fno-strict-aliasing'])
 potential_polyprism = Extension('fatiando.potential._polyprism',
                                 sources=[join(potdir, 'polyprism.c'),
-                                         join(potdir, 'polyprism.pyf')])
+                                         join(potdir, 'polyprism.pyf')],
+                                extra_compile_args=['-fno-strict-aliasing'])
 potential_transform = Extension('fatiando.potential._transform',
                                 sources=[join(potdir, 'transform.c'),
-                                         join(potdir, 'transform.pyf')])
+                                         join(potdir, 'transform.pyf')],
+                                extra_compile_args=['-fno-strict-aliasing'])
 seismic_traveltime = Extension('fatiando.seismic._traveltime',
                                 sources=[join(seisdir, 'traveltime.c'),
-                                         join(seisdir, 'traveltime.pyf')])
+                                         join(seisdir, 'traveltime.pyf')],
+                                extra_compile_args=['-fno-strict-aliasing'])
 
 extmods = [potential_prism,
            potential_talwani,
