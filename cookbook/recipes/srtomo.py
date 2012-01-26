@@ -4,9 +4,10 @@ on an image file.
 """
 from os import path
 from matplotlib import pyplot
+import numpy
 from fatiando.mesher.dd import SquareMesh
 from fatiando.seismic import srtomo, traveltime
-from fatiando import vis, logger, utils
+from fatiando import vis, logger, utils, inversion
 
 log = logger.get()
 log.info(logger.header())
@@ -20,25 +21,29 @@ model.img2prop(imgfile, 5, 10, 'vp')
 
 log.info("Generating synthetic travel-time data")
 src_loc = utils.random_points(area, 150)
-rec_loc = utils.circular_points(area, 100, random=True)
+rec_loc = utils.circular_points(area, 40, random=True)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
 ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                            0.01, percent=True)
 
 mesh = SquareMesh(area, shape)
-estimate, residuals = srtomo.smooth(ttimes, srcs, recs, mesh, damping=0.01)
+log.info("Solve using Newton's method")
+solver = inversion.gradient.newton(initial=numpy.zeros(mesh.size), maxit=5)
+results = srtomo.smooth(ttimes, srcs, recs, mesh, solver, damping=0.01)
+estimate, residuals = results
 
-pyplot.figure()
+pyplot.figure(figsize=(14, 5))
+pyplot.subplot(1, 2, 1)
+pyplot.axis('scaled')
 pyplot.title('Vp synthetic model of the Earth')
 colormap = pyplot.cm.gist_gray_r
 vis.squaremesh(model, model.props['vp'], vmin=5, vmax=10, cmap=colormap)
 pyplot.colorbar()
-#vis.paths(srcs, recs, '-k')
 vis.points(src_loc, '*y', label="Sources")
 vis.points(rec_loc, '^r', label="Receivers")
 pyplot.legend(loc='lower left', shadow=True)
-
-pyplot.figure()
+pyplot.subplot(1, 2, 2)
+pyplot.axis('scaled')
 pyplot.title('Tomography result')
 vis.squaremesh(mesh, estimate, vmin=5, vmax=10, cmap=colormap)
 pyplot.colorbar()

@@ -18,22 +18,19 @@
 SrTomo: Straight-ray 2D travel-time tomography (i.e., does not consider
 reflection or refraction)
 
-**Solvers**
+**SOLVERS**
 
 * :func:`fatiando.seismic.srtomo.smooth`
 * :func:`fatiando.seismic.srtomo.sharp`
-
-**Data Modules**
-
-* :class:`fatiando.seismic.srtomo.TravelTimeStraightRay2D`
 
 **Examples**
 
 Using simple synthetic data::
 
+    >>> from fatiando.mesher.dd import Square, SquareMesh
+    >>> from fatiando.inversion.gradient import newton
     >>> # One source was recorded at 3 receivers.
     >>> # The medium has 2 velocities: 2 and 5
-    >>> from fatiando.mesher.dd import Square, SquareMesh
     >>> model = [Square([0, 10, 0, 5], {'vp':2}),
     ...          Square([0, 10, 5, 10], {'vp':5})]
     >>> src = (5, 0)
@@ -46,13 +43,15 @@ Using simple synthetic data::
     [ 2.5  3.5  2.5]
     >>> # Run the tomography to calculate the 2 velocities
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
-    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh)
+    >>> # Will use Newton's method to solve this
+    >>> solver = newton(initial=[0, 0], maxit=5)
+    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
     >>> for v in estimate:
-    ...     print '%.2f' % (v),
-    2.00 5.00
+    ...     print '%.4f' % (v),
+    2.0000 5.0000
     >>> for v in residuals:
-    ...     print '%.2f' % (v),
-    0.00 -0.00 0.00
+    ...     print '%.4f' % (v),
+    0.0000 0.0000 0.0000
 
 ----
 
@@ -107,7 +106,6 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
         >>> # what TravelTimeStraightRay2D expects is
         >>> srcs = [src, src, src]
         >>> dm = TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)
-
     
     """
 
@@ -160,7 +158,7 @@ def _slow2vel(slowness, tol=10**(-5)):
     else:
         return 1./float(slowness)
 
-def smooth(ttimes, srcs, recs, mesh, damping=0.):
+def smooth(ttimes, srcs, recs, mesh, solver, damping=0.):
     """
     Perform a tomography with smoothing regularization.
 
@@ -189,16 +187,14 @@ def smooth(ttimes, srcs, recs, mesh, damping=0.):
         msg = "Must have same number of travel-times, sources and receivers"
         raise ValueError, msg
     if damping < 0:
-        raise ValueError, "Damping must be positive"        
+        raise ValueError, "Damping must be positive"
+    dms = [TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)]    
     regs = [inversion.regularizer.Damping(damping)]
-    dms = [TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)]
-    initial = numpy.zeros(mesh.size, dtype='f')
     log.info("Running smooth straight-ray 2D travel-time tomography (SrTomo):")
     log.info("  damping: %g" % (damping))
-    iterator = inversion.gradient.newton(dms, initial, regs, tol=0.001)
     start = time.time()
     try:
-        for i, chset in enumerate(iterator):
+        for i, chset in enumerate(solver(dms, regs)):
             continue
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
