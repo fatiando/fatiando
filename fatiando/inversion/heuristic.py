@@ -1,4 +1,4 @@
-# Copyright 2010 The Fatiando a Terra Development Team
+# Copyright 2012 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,18 +15,28 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Everything you need to solve inverse problems.
+Heuristic solvers for generic inverse problems.
 
-The main components of this package are:
 
-**Inverse problem solvers**
-
-* :mod:`fatiando.inversion.linear`
-* :mod:`fatiando.inversion.gradient`
-* :mod:`fatiando.inversion.heuristic`
+----
 
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
+__date__ = 'Created 26-Jan-2012'
 
-from fatiando.inversion import gradient, datamodule, regularizer
+
+import numpy
+
+from fatiando import logger
+
+log = logger.dummy()
+
+
+            
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()

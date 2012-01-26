@@ -17,8 +17,6 @@
 """
 Gradient solvers for generic inverse problems.
 
-**Solvers**
-
 * :func:`fatiando.inversion.gradient.newton`
 * :func:`fatiando.inversion.gradient.levmarq`
 
