@@ -74,6 +74,117 @@ from fatiando import logger
 log = logger.dummy()
 
 
+def steepest(initial, step=1., maxsteps=20, maxit=100, tol=10**(-3)):
+    """
+    Factory function for the non-linear inverse problem solver using the
+    Steepest Descent algorithm.
+
+    The increment to the parameter vector :math:`\\bar{p}` is calculated by
+    
+    .. math::
+
+        \\Delta\\bar{p} = -\\lambda\\bar{g}
+
+    where :math:`\\lambda` is the step size and :math:`\\bar{g}` is the
+    gradient vector.
+
+    Parameters:
+    
+    * initial
+        The initial estimate of the parameters
+    * step
+        The initial step size (:math:`\\lambda`)
+    * maxsteps
+        The maximum number os times to try to take a step before giving up
+    * maxit
+        Maximum number of iterations
+    * tol
+        Relative tolerance for decreasing the goal function to before
+        terminating
+
+    Returns:
+
+    * solver
+        A Python generator function that solves an inverse problem using the
+        parameters given above.
+
+    References:
+
+    * Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
+    
+    """
+    if tol <= 0.0:
+        raise ValueError, "tol parameter should be > 0"
+    if maxit <= 0:
+        raise ValueError, "maxit parameter should be > 0"
+    if maxsteps <= 0:
+        raise ValueError, "maxsteps parameter should be > 0"
+    if step <= 0 or step > 1.:
+        raise ValueError, "step parameter should be 1 >= step > 0"
+    log.info("Generating Steepest Descent solver:")
+    log.info("  initial step size: %g" % (step))
+    log.info("  max step iterations: %d" % (maxsteps))
+    log.info("  max iterations: %d" % (maxit))
+    log.info("  convergence tolerance: %g" % (tol))
+    initial_array = numpy.array(initial, dtype='f')
+    def solver(dms, regs, initial=initial_array, step=float(step),
+        maxsteps=maxsteps, maxit=maxit, tol=tol):
+        """
+        Inverse problem solver using the Steepest Descent algorithm.
+        """
+        if len(dms) == 0:
+            raise ValueError, "Need at least 1 data module. None given"
+        p = initial
+        nparams = len(p)
+        residuals = [d.data - d.get_predicted(p) for d in dms]
+        misfit = sum(d.get_misfit(res)
+                     for d, res in itertools.izip(dms, residuals))
+        goal = misfit + sum(r.value(p) for r in regs)
+        misfits = [misfit]
+        goals = [goal]
+        for it in xrange(maxit):
+            gradient = numpy.zeros_like(p)
+            for d, res in itertools.izip(dms, residuals):
+                gradient = d.sum_gradient(gradient, p, res)
+            for r in regs:
+                gradient = r.sum_gradient(gradient, p)
+            stagnation = True
+            # The loop to determine the best step size
+            m = 1
+            for itstep in xrange(maxsteps):
+                ptmp = p - (step**m)*gradient
+                restmp = [d.data - d.get_predicted(ptmp) for d in dms]
+                misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
+                             restmp))
+                goal = misfit + sum(r.value(ptmp) for r in regs)
+                if goal - goals[-1] < (step**m)*numpy.linalg.norm(gradient)**2:
+                    # Don't let the damping factor be smaller than this
+                    if damp > 10.**(-10):
+                        damp /= factor
+                    stagnation = False
+                    break
+                else:
+                    # Don't let the damping factor be larger than this
+                    if damp < 10**(10):
+                        damp *= factor
+            if stagnation:
+                msg = "Steepest Descent exited because couldn't take a step"
+                if it == 0:
+                    raise ValueError, msg
+                else:
+                    log.warning(msg)
+                break
+            p = ptmp
+            residuals = restmp     
+            misfits.append(misfit)
+            goals.append(goal)            
+            yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+                   'residuals':residuals}
+            # Check if goal function decreases more than a threshold
+            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
+                break
+    return solver
+
 def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
     """
     Factory function for the non-linear inverse problem solver using the
@@ -122,6 +233,12 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
         raise ValueError, "tol parameter should be > 0"
     if maxit <= 0:
         raise ValueError, "maxit parameter should be > 0"
+    if maxsteps <= 0:
+        raise ValueError, "maxsteps parameter should be > 0"
+    if damp <= 0:
+        raise ValueError, "damp parameter should be > 0"
+    if factor <= 0:
+        raise ValueError, "factor parameter should be > 0"
     log.info("Generating Levemberg-Marquardt solver:")
     log.info("  initial damping factor: %g" % (damp))
     log.info("  damping factor increment/decrement: %g" % (factor))
@@ -150,15 +267,14 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
                 gradient = r.sum_gradient(gradient, p)
-            # Already multiply the gradient so that doesn't do this inside the
-            # Marquardt loop
+            # Multiply the gradient now so that doesn't do this inside the loop
             gradient *= -1
             hessian = numpy.zeros((nparams, nparams))
             for m in itertools.chain(dms, regs):
                 hessian = m.sum_hessian(hessian, p)
             hessian_diag = hessian.diagonal()
             stagnation = True
-            # The Marquardt loop to determine the best step size
+            # The loop to determine the best step size
             for itstep in xrange(maxsteps):
                 ptmp = p + linsys_solver(hessian + damp*hessian_diag, gradient)
                 restmp = [d.data - d.get_predicted(ptmp) for d in dms]
