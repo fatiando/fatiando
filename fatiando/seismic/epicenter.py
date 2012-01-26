@@ -52,9 +52,9 @@ Example using the solve function::
     >>> # Generate synthetic travel-time residuals method
     >>> solver = gradient.newton(initial=(1, 1), tol=10**(-3), maxit=1000)
     >>> # Estimate the epicenter
-    >>> estimate, residuals = solve_flathomogeneous(ttres, recs, vp, vs, solver)
-    >>> print estimate
-    [ 5.  5.]
+    >>> p, residuals = solve_flathomogeneous(ttres, recs, vp, vs, solver)
+    >>> print "(%.4f, %.4f)" % (p[0], p[1])
+    (5.0000, 5.0000)
 
 Example using the iterate function::
 
