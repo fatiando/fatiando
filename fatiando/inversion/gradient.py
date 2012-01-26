@@ -15,10 +15,47 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Gradient solvers for generic inverse problems.
+Factory functions for generic inverse problem solvers using gradient
+optimization methods.
 
 * :func:`fatiando.inversion.gradient.newton`
 * :func:`fatiando.inversion.gradient.levmarq`
+
+The factory functions produce the actual solver functions. Solver functions are
+Python generator functions that have the general format::
+
+    def solver(dms, regs, **kwargs):
+        ...
+        for i in xrange(maxit):
+            # Perform an iteration
+            ...
+            yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+                   'residuals':residuals}
+
+Parameters:
+
+* dms
+    List of data modules. Data modules should be child-classes of the
+    :class:`fatiando.inversion.datamodule.DataModule` class.
+* regs
+    List of regularizers. Regularizers should be child-classes of the
+    :class:`fatiando.inversion.regularizer.Regularizer` class.
+* kwargs
+    Are how the factory functions pass the needed parameters to the solvers.
+    Not to be altered outside the factory functions.
+
+Yields:
+
+* changeset
+    A dictionary with the solution at the current iteration:
+    
+    ``changeset = {'estimate':p, 'misfits':misfits, 'goals':goals,
+    'residuals':residuals}``
+    
+    * ``p`` is the parameter vector.
+    * ``misfits`` list with data-misfit function values per iteration
+    * ``goals`` list with goal function values per iteration
+    * ``residuals`` list with the residual vectors at this iteration
 
 ----
 
@@ -37,96 +74,126 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def levmarq(dms, initial, regs=[], step=1, maxit=100, tol=10**(-5)):
+def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
     """
-    Solve the non-linear inverse problem using the Levemberg-Marquardt algorithm
+    Factory function for the non-linear inverse problem solver using the
+    Levemberg-Marquardt algorithm.
 
     The increment to the parameter vector :math:`\\bar{p}` is calculated by
     
     .. math::
 
-        \\bar{\\Delta\\bar{p}} = -[\\bar{\\bar{H}} +
+        \\Delta\\bar{p} = -[\\bar{\\bar{H}} +
         \\lambda\\cdot diag(\\bar{\\bar{H}})]^{-1}\\bar{g}
 
-    where :math:`\\lambda` is the Marquardt parameter, :math:`\\bar{\\bar{H}}`
-    is the Hessian matrix and :math:`\\bar{g}` is the gradient vector.
-
-    This function is a generator and should be used inside a loop.
-    It yields one step of the algorithm per iteration.
-
-    Example::
-
-        Need example
-    
+    where :math:`\\lambda` is a damping factor (step size),
+    :math:`\\bar{\\bar{H}}` is the Hessian matrix,
+    :math:`diag(\\bar{\\bar{H}})` is a matrix with the diagonal of the Hessian,
+    and :math:`\\bar{g}` is the gradient vector.
 
     Parameters:
-
-    * dms
-        List of data modules. Data modules should be child-classes of the
-        :class:`fatiando.inversion.datamodule.DataModule` class.
+    
     * initial
         The initial estimate of the parameters
-    * regs
-        List of regularizers. Regularizers should be child-classes of the
-        :class:`fatiando.inversion.regularizer.Regularizer` class.
-    * step
-        Step size.
+    * damp
+        The initial damping factor (:math:`\\lambda`)
+    * factor
+        The increment/decrement to the damping factor at each iteration
+    * maxsteps
+        The maximum number os times to try to take a step before giving up
     * maxit
         Maximum number of iterations
     * tol
         Relative tolerance for decreasing the goal function to before
         terminating
 
-    Yields:
+    Returns:
 
-    * changeset
-        A dictionary with the current solution.        
-        ``{'estimate':p, 'misfits':misfits, 'goals':goals, 'dms':dms}``
-        
-        * ``p`` is the current parameter vector.
-        * ``misfits`` list with data-misfit function values per iteration
-        * ``goals`` list with goal function values per iteration
-        * ``residuals`` list with the residual vectors at this iteration
-    
+    * solver
+        A Python generator function that solves an inverse problem using the
+        parameters given above.
+
     References:
 
     * Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
     
     """
-    if len(dms) == 0:
-        raise ValueError, "Need at least 1 data module. None given"
-    p = initial
-    nparams = len(p)
-    residuals = [d.data - d.get_predicted(p) for d in dms]
-    misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms, residuals))
-    goal = misfit + sum(r.value(p) for r in regs)
-    misfits = [misfit]
-    goals = [goal]
-    for i in xrange(maxit):
-        gradient = numpy.zeros_like(p)
-        for d, res in itertools.izip(dms, residuals):
-            gradient = d.sum_gradient(gradient, p, res)
-        for r in regs:
-            gradient = r.sum_gradient(gradient, p)
-        hessian = numpy.zeros((nparams, nparams))
-        for m in itertools.chain(dms, regs):
-            hessian = m.sum_hessian(hessian, p)
-        p += step*linsys_solver(hessian, -1*gradient)
+    if tol <= 0.0:
+        raise ValueError, "tol parameter should be > 0"
+    if maxit <= 0:
+        raise ValueError, "maxit parameter should be > 0"
+    log.info("Generating Levemberg-Marquardt solver:")
+    log.info("  initial damping factor: %g" % (damp))
+    log.info("  damping factor increment/decrement: %g" % (factor))
+    log.info("  max step iterations: %d" % (maxsteps))
+    log.info("  max iterations: %d" % (maxit))
+    log.info("  convergence tolerance: %g" % (tol))
+    initial_array = numpy.array(initial, dtype='f')
+    def solver(dms, regs, initial=initial_array, damp=float(damp),
+        factor=float(factor), maxsteps=maxsteps, maxit=maxit, tol=tol):
+        """
+        Inverse problem solver using the Levemberg-Marquardt algorithm.
+        """
+        if len(dms) == 0:
+            raise ValueError, "Need at least 1 data module. None given"
+        p = initial
+        nparams = len(p)
         residuals = [d.data - d.get_predicted(p) for d in dms]
-        misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
-                     residuals))
+        misfit = sum(d.get_misfit(res)
+                     for d, res in itertools.izip(dms, residuals))
         goal = misfit + sum(r.value(p) for r in regs)
-        misfits.append(misfit)
-        goals.append(goal)
-        
-        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
-               'residuals':residuals}
+        misfits = [misfit]
+        goals = [goal]
+        for it in xrange(maxit):
+            gradient = numpy.zeros_like(p)
+            for d, res in itertools.izip(dms, residuals):
+                gradient = d.sum_gradient(gradient, p, res)
+            for r in regs:
+                gradient = r.sum_gradient(gradient, p)
+            # Already multiply the gradient so that doesn't do this inside the
+            # Marquardt loop
+            gradient *= -1
+            hessian = numpy.zeros((nparams, nparams))
+            for m in itertools.chain(dms, regs):
+                hessian = m.sum_hessian(hessian, p)
+            hessian_diag = hessian.diagonal()
+            stagnation = True
+            # The Marquardt loop to determine the best step size
+            for itstep in xrange(maxsteps):
+                ptmp = p + linsys_solver(hessian + damp*hessian_diag, gradient)
+                restmp = [d.data - d.get_predicted(ptmp) for d in dms]
+                misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
+                             restmp))
+                goal = misfit + sum(r.value(ptmp) for r in regs)
+                if goal < goals[-1]:
+                    # Don't let the damping factor be smaller than this
+                    if damp > 10.**(-10):
+                        damp /= factor
+                    stagnation = False
+                    break
+                else:
+                    # Don't let the damping factor be larger than this
+                    if damp < 10**(10):
+                        damp *= factor
+            if stagnation:
+                msg = "Levemberg-Marquardt exited because couldn't take a step"
+                if it == 0:
+                    raise ValueError, msg
+                else:
+                    log.warning(msg)
+                break
+            p = ptmp
+            residuals = restmp     
+            misfits.append(misfit)
+            goals.append(goal)            
+            yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+                   'residuals':residuals}
+            # Check if goal function decreases more than a threshold
+            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
+                break
+    return solver
 
-        # Check if goal function decreases more than a threshold
-        if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
-            break
-
-def newton(initial, maxit=100, tol=10**(-5)):
+def newton(initial, maxit=100, tol=10**(-3)):
     """
     Factory function for the non-linear inverse problem solver using Newton's
     method.
@@ -135,7 +202,7 @@ def newton(initial, maxit=100, tol=10**(-5)):
     
     .. math::
 
-        \\bar{\\Delta\\bar{p}} = -\\bar{\\bar{H}}^{-1}\\bar{g}
+        \\Delta\\bar{p} = -\\bar{\\bar{H}}^{-1}\\bar{g}
 
     where :math:`\\bar{\\bar{H}}` is the Hessian matrix and :math:`\\bar{g}` is
     the gradient vector.
@@ -155,40 +222,6 @@ def newton(initial, maxit=100, tol=10**(-5)):
     * solver
         A Python generator function that solves an inverse problem using the
         parameters given above.
-
-    The solver generator function has the following specifications:
-
-    ``solver(dms, regs, initial=initial, maxit=maxit, tol=tol)``
-    
-    Parameters:
-
-    * dms
-        List of data modules. Data modules should be child-classes of the
-        :class:`fatiando.inversion.datamodule.DataModule` class.
-    * regs
-        List of regularizers. Regularizers should be child-classes of the
-        :class:`fatiando.inversion.regularizer.Regularizer` class.
-    * initial
-        The initial estimate of the parameters.
-        Default is the value given to the factory function.
-    * maxit
-        Maximum number of iterations.
-        Default is the value given to the factory function.
-    * tol
-        Relative tolerance for decreasing the goal function to before
-        terminating.        
-        Default is the value given to the factory function.
-
-    Yields:
-
-    * changeset
-        A dictionary with the current solution.        
-        ``{'estimate':p, 'misfits':misfits, 'goals':goals, 'dms':dms}``
-        
-        * ``p`` is the current parameter vector.
-        * ``misfits`` list with data-misfit function values per iteration
-        * ``goals`` list with goal function values per iteration
-        * ``residuals`` list with the residual vectors at this iteration
 
     References:
 
