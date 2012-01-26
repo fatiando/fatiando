@@ -17,7 +17,7 @@ model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (5, 5)
-srcs, recs = utils.connect_points([src], utils.random_points(area, 5))
+srcs, recs = utils.connect_points([src], utils.random_points(area, 3))
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
 ttresiduals = stime - ptime

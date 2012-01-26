@@ -199,7 +199,7 @@ def newton(dms, initial, regs=[], maxit=100, tol=10**(-5)):
         hessian = numpy.zeros((nparams, nparams))
         for m in itertools.chain(dms, regs):
             hessian = m.sum_hessian(hessian, p)
-        p += step*linsys_solver(hessian, -1*gradient)
+        p += linsys_solver(hessian, -1*gradient)
         residuals = [d.data - d.get_predicted(p) for d in dms]
         misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
                      residuals))
