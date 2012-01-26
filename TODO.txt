@@ -1,47 +1,7 @@
-* There seems to be a bottleneck in PrismMesh element look up. Profile and try to seedup
-* Make example in docstring of inversion.gradient.newton
-* Run doctests in test.py
-* Replace the runall script in cookbook by something that imports the recipes.
-  This way it is possible to catch the exceptions and know what recipe failed!
-* Make vis into a package and separate things
-* Make ui package and put all picking like volume.draw_polygon there
-* Generalize mesher.volume.vfilter and extract to any volume element
-* Make grid.rotate function
-* Make grid.profile function to extract a profile from a grid
-* Make grid.dump function that recieves a list of channels (columns)
-* Make grid.load function to wrap numpy.loadtxt(..., unpack=True). make it print comments in the file to log
-* Make conversion function for TVTK and VTK in mesher.volume
-* Make mesher.volume.dump_prisms function with support for ASCII and VTK formats
-* Make PrismMesh3D.dump and .load functions with support for pickle and UBC formats
-* Deduce analytical upward continuation for tensor (blakely 168)
-* Replace all module loggers with logger.dummy
-* Make a fat script that interfaces with all fatiando.modules (like hg or pip)
-* Two types of grid loading: load and stream
-* make export to VTK method in mesh that is independent of tvtk module
-* Convert string VTK file to tvtk structure for plotting with vis mod
-* Make a fatiando.modules package that automatically loads all modules as subcommands
-* Try to make only numpy a requirement (optional mpl and mayavi if doing scripting)
-* Write README
-* Write docs for the inverse problem theory
-* Make the examples into the cookbook
-* Make tutorial for implementing new inversion
-* Automatic reference generation form fatiando scripts
-* Implement sparsity regularization
-* Use the data covariance matrix
-* Implement the Chi squared test for a population
-* Implement the test for outliers in a population
-* Implement VBA model for oceanic lithosphere
-* Implement McKenzie model
-* Implement gravity tensor invariants
-* Implement grav of sphere
-* Implement Parker
-* Implement spherical harmonis
-* Make vis mayavi function for sphere
-* Make vis mayavi function for tesseroid
-* Implement grav spherical harmonics
-* Implement grav reductions
-* Implement grav terrain correction
-* Put all constants used into a constants.py module and pass them to the C functions
-* Normalize inversion terms in solvers so that reg params are equivalent to decimal percentages
-* Make all synthetic functions receive a grid object
-* Integrate Radial3D inversion with fatiando
+* inversion.gradient:
+    * functions just curry the arguments and return a generic solver which only
+      takes dms and regs.
+    * generic solvers are generators
+* specific inverse problem functions of two kinds
+    * solve: takes the generic solver and runs all iterations. returns last yield
+    * iterate: takes generic solver and yields each iteration

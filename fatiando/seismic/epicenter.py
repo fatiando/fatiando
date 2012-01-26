@@ -18,8 +18,7 @@
 Estimate the epicenter of a seismic event considering various approximations for
 the Earth.
 
-Flat and homogeneous Earth
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Flat and homogeneous Earth**
 
 * :func:`fatiando.seismic.epicenter.flat_homogeneous`
 

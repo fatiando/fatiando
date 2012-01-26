@@ -197,8 +197,6 @@ def smooth(ttimes, srcs, recs, mesh, damping=0.):
     log.info("  damping: %g" % (damping))
     iterator = inversion.gradient.newton(dms, initial, regs, tol=0.001)
     start = time.time()
-    #for i, chset in enumerate(iterator):
-        #continue
     try:
         for i, chset in enumerate(iterator):
             continue
