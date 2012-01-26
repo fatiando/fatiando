@@ -156,4 +156,8 @@ These solvers can then be called from scripts, like so::
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 02-Apr-2010'
 
-from fatiando.inversion import gradient, datamodule, regularizer
+from fatiando.inversion import (datamodule,
+                                regularizer,
+                                gradient,
+                                heuristic,
+                                linear)

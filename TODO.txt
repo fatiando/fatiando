@@ -1,11 +1,3 @@
-* inversion.gradient:
-    * functions just curry the arguments and return a generic solver which only
-      takes dms and regs.
-    * generic solvers are generators
-* specific inverse problem functions of two kinds
-    * solve: takes the generic solver and runs all iterations. returns last yield
-    * iterate: takes generic solver and yields each iteration
-
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props
