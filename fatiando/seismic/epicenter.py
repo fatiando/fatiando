@@ -20,15 +20,15 @@ the Earth.
 
 **FLAT AND HOMOGENEOUS EARTH**
 
-* :func:`fatiando.seismic.epicenter.solve_flathomogeneous`
-* :func:`fatiando.seismic.epicenter.iterate_flathomogeneous`
+* :func:`fatiando.seismic.epicenter.solve_flat`
+* :func:`fatiando.seismic.epicenter.iterate_flat`
 
 Estimates the (x, y) cartesian coordinates of the epicenter based on travel-time
 residuals between S and P waves.
 
-Use the :func:`fatiando.seismic.epicenter.solve_flathomogeneous` function to
+Use the :func:`fatiando.seismic.epicenter.solve_flat` function to
 obtain an estimate, or the
-:func:`fatiando.seismic.epicenter.iterate_flathomogeneous` function to see each
+:func:`fatiando.seismic.epicenter.iterate_flat` function to see each
 step of the solver algorithm.
 
 Example using the solve function::
@@ -52,7 +52,7 @@ Example using the solve function::
     >>> # Generate synthetic travel-time residuals method
     >>> solver = gradient.newton(initial=(1, 1), tol=10**(-3), maxit=1000)
     >>> # Estimate the epicenter
-    >>> p, residuals = solve_flathomogeneous(ttres, recs, vp, vs, solver)
+    >>> p, residuals = solve_flat(ttres, recs, vp, vs, solver)
     >>> print "(%.4f, %.4f)" % (p[0], p[1])
     (5.0000, 5.0000)
 
@@ -77,7 +77,7 @@ Example using the iterate function::
     >>> # Generate synthetic travel-time residuals method
     >>> solver = gradient.newton(initial=(1, 1), tol=10**(-3), maxit=5)    
     >>> # Show the steps to estimate the epicenter
-    >>> for p, r in iterate_flathomogeneous(ttres, recs, vp, vs, solver):
+    >>> for p, r in iterate_flat(ttres, recs, vp, vs, solver):
     ...     print "(%.4f, %.4f)" % (p[0], p[1])
     (2.4157, 5.8424)
     (4.3279, 4.7485)
@@ -102,14 +102,36 @@ log = logger.dummy()
 
 class TTResidualsFlatHomogeneous(inversion.datamodule.DataModule):
     """
-    Data module for epicenter estimation using travel-time residuals and
-    assuming a flat and homogeneous Earth.
+    Data module for epicenter estimation using travel-time residuals between
+    S and P waves, assuming a flat and homogeneous Earth.
 
+    The travel-time residual measured by the ith receiver is a function of the
+    (x, y) coordinates of the epicenter:
+
+    .. math::
+
+        t_{S_i} - t_{P_i} = \\Delta t_i (x, y) =
+        \\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
+        \\sqrt{(x_i - x)^2 + (y_i - y)^2}
+
+    The elements :math:`G_{i1}` and :math:`G_{i2}` of the Jacobian matrix for
+    this data type are
+
+    .. math::
+
+        G_{i1}(x, y) = -\\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
+        \\frac{x_i - x}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
+
+    .. math::
+
+        G_{i2}(x, y) = -\\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
+        \\frac{y_i - y}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
+        
     Parameters:
 
-    * ttresiduals
+    * ttres
         Array with the travel-time residuals between S and P waves
-    * receivers
+    * recs
         List with the (x, y) coordinates of the receivers
     * vp
         Assumed velocity of P waves
@@ -118,9 +140,9 @@ class TTResidualsFlatHomogeneous(inversion.datamodule.DataModule):
     
     """
 
-    def __init__(self, ttresiduals, receivers, vp, vs):
-        inversion.datamodule.DataModule.__init__(self, ttresiduals)
-        self.x_rec, self.y_rec = numpy.array(receivers, dtype='f').T
+    def __init__(self, ttres, recs, vp, vs):
+        inversion.datamodule.DataModule.__init__(self, ttres)
+        self.x_rec, self.y_rec = numpy.array(recs, dtype='f').T
         self.vp = vp
         self.vs = vs
         self.alpha = 1./float(vs) - 1./float(vp)
@@ -146,26 +168,79 @@ class TTResidualsFlatHomogeneous(inversion.datamodule.DataModule):
                              -self.alpha*(self.y_rec - y)/sqrt])
         return hessian + 2.*numpy.dot(jac_T, jac_T.T)        
 
-def solve_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
+class MinimumDistance(inversion.regularizer.Regularizer):
+    """
+    A regularizing function that imposes that the solution (estimated epicenter)
+    be at the smallest distance from the receivers as possible.
+
+    .. math::
+
+        \\theta(\\bar{p}) = \\bar{d}^T\\bar{d}
+
+    where :math:`\\bar{d}` is a vector with the distance from the current
+    estimate :math:`\\bar{p} = \\begin{bmatrix}x && y\end{bmatrix}^T` to the
+    receivers.
+
+    .. math::
+
+        d_i = \\sqrt{(x_i - x)^2 + (y_i - y)^2}
+
+    The gradient vector of :math:`\\theta(\\bar{p})` is given by
+
+    .. math::
+
+        \\bar{g}(\\bar{p}) = \\begin{bmatrix}
+        -2\\sum\\limits_{i=1}^N x_i - x \\\\[0.5cm]
+        -2\\sum\\limits_{i=1}^N y_i - y \end{bmatrix}
+        
+    The elements :math:`G_{i1}` and :math:`G_{i2}` of the Jacobian matrix of
+    :math:`\\theta(\\bar{p})` are
+
+    .. math::
+
+        G_{i1}(x, y) = -\\frac{x_i - x}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
+
+    .. math::
+
+        G_{i2}(x, y) = -\\frac{y_i - y}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
+
+    And the Hessian matrix can be approximated by
+    :math:`\\bar{\\bar{G}}^T\\bar{\\bar{G}}`.
+        
+    """
+
+    def __init__(self, mu, recs):
+        inversion.regularizer.Regularizer.__init__(self, mu)
+        self.xrec, self.yrec = numpy.array(recs, dtype='f').T   
+
+    def value(self, p):
+        x, y = p
+        distance = numpy.sqrt((self.xrec - x)**2 + (self.yrec - y)**2)
+        return self.mu*numpy.linalg.norm(distance)**2
+
+    def sum_gradient(self, gradient, p):
+        x, y = p
+        grad = [numpy.sum(self.xrec - x), numpy.sum(self.yrec - y)]
+        return gradient + self.mu*-2.*numpy.array(grad)
+        
+    def sum_hessian(self, hessian, p):
+        x, y = p
+        sqrt = numpy.sqrt((self.xrec - x)**2 + (self.yrec - y)**2)
+        jac_T = numpy.array([(x - self.xrec)/sqrt,
+                             (y - self.yrec)/sqrt])
+        return hessian + self.mu*2.*numpy.dot(jac_T, jac_T.T)        
+        
+def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     """
     Estimate the (x, y) coordinates of the epicenter of an event using
     travel-time residuals between P and S waves and assuming a flat and
     homogeneous Earth.
 
-    The travel-time residual measured by the ith receiver is a function of the
-    (x, y) coordinates of the epicenter:
-
-    .. math::
-
-        t_{S_i} - t_{P_i} = \\Delta t_i (x, y) =
-        \\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
-        \\sqrt{(x_i - x)^2 + (y_i - y)^2}
-
     Parameters:
 
-    * ttresiduals
+    * ttres
         Array with the travel-time residuals between S and P waves
-    * receivers
+    * recs
         List with the (x, y) coordinates of the receivers
     * vp
         Assumed velocity of P waves
@@ -174,6 +249,13 @@ def solve_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
     * solver
         A non-linear inverse problem solver generated by a factory function
         from a :mod:`fatiando.inversion` inverse problem solver module.
+    * damping
+        Positive scalar regularizing parameter for Damping regularization.
+        (:class:`fatiando.inversion.regularizer.Damping`).
+    * mindist
+        Positive scalar regularizing parameter for the Minimum Distance to
+        Receivers regularization
+        (:class:`fatiando.seismic.epicenter.MinimumDistance`).
 
     Returns:
 
@@ -182,15 +264,17 @@ def solve_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
         measured and predicted travel-time residuals)
     
     """    
-    if len(ttresiduals) != len(receivers):
+    if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
     if damping < 0:
         raise ValueError, "Damping must be positive"
-    dms = [TTResidualsFlatHomogeneous(ttresiduals, receivers, vp, vs)]
-    regs = [inversion.regularizer.Damping(damping)]
+    dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
+    regs = [MinimumDistance(mindist, recs),
+            inversion.regularizer.Damping(damping)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
     log.info("  damping: %g" % (damping))
+    log.info("  minimum distance from receivers: %g" % (mindist))
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
@@ -205,26 +289,17 @@ def solve_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
-def iterate_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
+def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     """
     Yields the steps taken to estimate the (x, y) coordinates of the epicenter
     of an event using travel-time residuals between P and S waves and assuming
     a flat and homogeneous Earth.
 
-    The travel-time residual measured by the ith receiver is a function of the
-    (x, y) coordinates of the epicenter:
-
-    .. math::
-
-        t_{S_i} - t_{P_i} = \\Delta t_i (x, y) =
-        \\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
-        \\sqrt{(x_i - x)^2 + (y_i - y)^2}
-
     Parameters:
 
-    * ttresiduals
+    * ttres
         Array with the travel-time residuals between S and P waves
-    * receivers
+    * recs
         List with the (x, y) coordinates of the receivers
     * vp
         Assumed velocity of P waves
@@ -233,6 +308,13 @@ def iterate_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
     * solver
         A non-linear inverse problem solver generated by a factory function
         from a :mod:`fatiando.inversion` inverse problem solver module.
+    * damping
+        Positive scalar regularizing parameter for Damping regularization.
+        (:class:`fatiando.inversion.regularizer.Damping`).
+    * mindist
+        Positive scalar regularizing parameter for the Minimum Distance to
+        Receivers regularization
+        (:class:`fatiando.seismic.epicenter.MinimumDistance`).
 
     Yields:
 
@@ -242,15 +324,17 @@ def iterate_flathomogeneous(ttresiduals, receivers, vp, vs, solver, damping=0.):
         non-linear solver
     
     """    
-    if len(ttresiduals) != len(receivers):
+    if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
     if damping < 0:
         raise ValueError, "Damping must be positive"
-    dms = [TTResidualsFlatHomogeneous(ttresiduals, receivers, vp, vs)]
-    regs = [inversion.regularizer.Damping(damping)]
+    dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
+    regs = [MinimumDistance(mindist, recs),
+            inversion.regularizer.Damping(damping)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
     log.info("  damping: %g" % (damping))
+    log.info("  minimum distance from receivers: %g" % (mindist))
     try:
         for i, chset in enumerate(solver(dms, regs)):
             yield chset['estimate'], chset['residuals'][0]       

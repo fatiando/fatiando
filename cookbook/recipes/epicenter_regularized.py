@@ -1,6 +1,5 @@
 """
-Example of epicenter estimation assuming a homogeneous and flat Earth.
-Show all steps of the non-linear solver algorithm.
+Example when epicenter estimation requires regularization.
 """
 from matplotlib import pyplot
 import numpy
@@ -12,24 +11,28 @@ log = logger.get()
 log.info(logger.header())
 log.info(__doc__)
 
+log.info("The data are noisy and receiver locations are bad.")
+log.info("So use the Minimum Distance from Receivers regularization.")
+
 area = (0, 10, 0, 10)
 vp, vs = 2, 1
 model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (7, 5)
-srcs, recs = utils.connect_points([src], utils.circular_points(area, 4))
+srcs, recs = utils.connect_points([src], [(0.5, 7), (5, 7), (9.5, 7)])
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
-error_level = 0.05
+error_level = 0.1
 ttr, error = utils.contaminate(stime - ptime, error_level, percent=True,
                                return_stddev=True)
     
 initial = (0, 1)
+mindist = 5.
 log.info("Will solve the inverse problem using Newton's method")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver)
+iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver, mindist=mindist)
 for e, r in iterator:
     newton.append(e)
 newton_predicted = ttr - r
@@ -37,7 +40,7 @@ newton_predicted = ttr - r
 log.info("... and also the Levemberg-Marquardt algorithm for comparison")
 lmsolver = inversion.gradient.levmarq(initial, damp=0.1)
 levmarq = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver)
+iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver, mindist=mindist)
 for e, r in iterator:
     levmarq.append(e)
 levmarq_predicted = ttr - r

@@ -269,7 +269,8 @@ def newton(initial, maxit=100, tol=10**(-3)):
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
-            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
+            if (goals[-1] < goals[-2] and
+                abs((goals[-1] - goals[-2])/goals[-2]) <= tol):
                 break
     return solver
     
