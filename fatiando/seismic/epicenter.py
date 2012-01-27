@@ -269,6 +269,8 @@ def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
         raise ValueError, msg
     if damping < 0:
         raise ValueError, "Damping must be positive"
+    if mindist < 0:
+        raise ValueError, "Mindist regularization parameter must be positive"
     dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
     regs = [MinimumDistance(mindist, recs),
             inversion.regularizer.Damping(damping)]
@@ -323,12 +325,14 @@ def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
         measured and predicted travel-time residuals) for each iteration of the
         non-linear solver
     
-    """    
+    """
     if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
     if damping < 0:
-        raise ValueError, "Damping must be positive"
+        raise ValueError, "Damping regularization parameter must be positive"
+    if mindist < 0:
+        raise ValueError, "Mindist regularization parameter must be positive"
     dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
     regs = [MinimumDistance(mindist, recs),
             inversion.regularizer.Damping(damping)]
@@ -345,6 +349,54 @@ def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
 
+def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., mindist=0.):
+    """
+    Make a map of the goal function for a given set of inversion parameters.
+
+    The goal function is define as:
+
+    .. math::
+
+        \\Gamma(\\bar{p}) = \\phi(\\bar{p}) + \\sum\\limits_{r=1}^{R}
+        \\mu_r\\theta_r(\\bar{p})
+
+    where :math:`\\phi(\\bar{p})` is the data-misfit function, 
+    :math:`\\theta_r(\\bar{p})` is the rth of the R regularizing function used,
+    and :math:`\\mu_r` is the rth regularizing parameter.
+
+    Parameters:
+
+    * xs, ys
+        Lists of x and y values where the goal function will be calculated
+    * ttres
+        Array with the travel-time residuals between S and P waves
+    * recs
+        List with the (x, y) coordinates of the receivers
+    * vp
+        Assumed velocity of P waves
+    * vs
+        Assumed velocity of S waves
+    * damping
+        Positive scalar regularizing parameter for Damping regularization.
+        (:class:`fatiando.inversion.regularizer.Damping`).
+    * mindist
+        Positive scalar regularizing parameter for the Minimum Distance to
+        Receivers regularization
+        (:class:`fatiando.seismic.epicenter.MinimumDistance`).
+
+    Returns:
+
+    * goals
+        Array with the goal function values
+    
+    """    
+    dm = TTResidualsFlatHomogeneous(ttres, recs, vp, vs)
+    reg1 = MinimumDistance(mindist, recs)
+    reg2 = inversion.regularizer.Damping(damping)
+    return numpy.array([dm.get_misfit(ttres - dm.get_predicted(p)) +
+                        reg1.value(p) + reg2.value(p) for p in zip(xs, ys)])
+        
+    
 def _test():
     import doctest
     doctest.testmod()

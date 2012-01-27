@@ -6,7 +6,7 @@ from matplotlib import pyplot
 import numpy
 from fatiando.mesher.dd import Square
 from fatiando.seismic import epicenter, traveltime
-from fatiando import vis, logger, utils, inversion
+from fatiando import vis, logger, utils, inversion, gridder
 
 log = logger.get()
 log.info(logger.header())
@@ -51,11 +51,17 @@ for e, r in iterator:
     levmarq.append(e)
 levmarq_predicted = ttr - r
 
+log.info("Build a map of the goal function")
+shape = (100, 100)
+xs, ys = gridder.regular(area, shape)
+goals = epicenter.mapgoal(xs, ys, ttr, recs, vp, vs)
+
 log.info("Plotting")
 pyplot.figure(figsize=(14,6))
 pyplot.subplot(1, 2, 1)
 pyplot.title('Epicenter + recording stations')
 pyplot.axis('scaled')
+vis.pcolor(xs, ys, goals, shape)
 vis.points(recs, '^r', label="Stations")
 vis.points(newton, '.-c', size=5, label="Newton")
 vis.points([newton[-1]], '*c')
@@ -80,4 +86,5 @@ ax.set_xticks(s)
 pyplot.legend(loc='upper left', shadow=True, prop={'size':12})
 pyplot.xlabel("Station number")
 pyplot.ylabel("Travel-time residual")
+pyplot.savefig("sample-epicenter.png", dpi=300)
 pyplot.show()

@@ -25,7 +25,11 @@ The factory functions produce the actual solver functions. Solver functions are
 Python generator functions that have the general format::
 
     def solver(dms, regs, **kwargs):
+        # Start-up
         ...
+        # yield the initial estimate
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
         for i in xrange(maxit):
             # Perform an iteration
             ...
@@ -74,7 +78,7 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
+def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-3)):
     """
     Factory function for the non-linear inverse problem solver using the
     Steepest Descent algorithm.
@@ -88,14 +92,35 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
     where :math:`\\lambda` is the step size and :math:`\\bar{g}` is the
     gradient vector.
 
+    The step size is determined thought a line search algorithm. In this case
+
+    .. math::
+    
+        \\lambda = \\beta^m
+
+    where :math:`1 > \\beta > 0` and :math:`m \\ge 0` is an interger that
+    controls the step size.
+    The line search finds the smallest :math:`m` that satisfies the condition
+
+    .. math::
+
+        \\Gamma(\\bar{p} + \\Delta\\bar{p}) - \\Gamma(\\bar{p}) <
+        \\alpha\\beta^m ||\\bar{g}(\\bar{p})||^2
+
+    where :math:`\\Gamma(\\bar{p})` is the goal function evaluated for parameter
+    vector :math:`\\bar{p}`, :math:`\\alpha = 10^{-4}`, and 
+    :math:`\\bar{g}(\\bar{p})` is the gradient vector of
+    :math:`\\Gamma(\\bar{p})`.
+
     Parameters:
     
     * initial
         The initial estimate of the parameters
     * step
-        The initial step size (:math:`\\lambda`)
+        The step size (:math:`\\beta`)
     * maxsteps
         The maximum number os times to try to take a step before giving up
+        (i.e., the maximum value of :math:`m`)
     * maxit
         Maximum number of iterations
     * tol
@@ -142,6 +167,8 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
         goal = misfit + sum(r.value(p) for r in regs)
         misfits = [misfit]
         goals = [goal]
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
         for it in xrange(maxit):
             gradient = numpy.zeros_like(p)
             for d, res in itertools.izip(dms, residuals):
@@ -152,7 +179,7 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
             gradnorm = numpy.linalg.norm(gradient)**2
             stagnation = True
             # The loop to determine the best step size
-            for m in xrange(1, maxsteps + 1):
+            for m in xrange(maxsteps):
                 factor = step**m
                 ptmp = p - factor*gradient
                 restmp = [d.data - d.get_predicted(ptmp) for d in dms]
@@ -163,11 +190,11 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
                     stagnation = False
                     break
             if stagnation:
-                msg = "  Steepest Descent exited because couldn't take a step"
                 if it == 0:
-                    raise ValueError, msg
+                    msg = "  Steepest Descent didn't take any steps"
                 else:
-                    log.warning(msg)
+                    msg = "  Steepest Descent finished: couldn't take a step"
+                log.warning(msg)
                 break
             p = ptmp
             residuals = restmp     
@@ -256,6 +283,8 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
         goal = misfit + sum(r.value(p) for r in regs)
         misfits = [misfit]
         goals = [goal]
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
         for it in xrange(maxit):
             gradient = numpy.zeros_like(p)
             for d, res in itertools.izip(dms, residuals):
@@ -287,11 +316,11 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
                     if damp < 10**(10):
                         damp *= factor
             if stagnation:
-                msg = "  Levemberg-Marquardt exited because couldnt take a step"
                 if it == 0:
-                    raise ValueError, msg
+                    msg = "  Levemberg-Marquardt didn't take any steps"
                 else:
-                    log.warning(msg)
+                    msg = "  Levemberg-Marquardt finished: couldn't take a step"
+                log.warning(msg)
                 break
             p = ptmp
             residuals = restmp     
@@ -361,6 +390,8 @@ def newton(initial, maxit=100, tol=10**(-3)):
         goal = misfit + sum(r.value(p) for r in regs)
         misfits = [misfit]
         goals = [goal]
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
         for it in xrange(maxit):
             gradient = numpy.zeros_like(p)
             for d, res in itertools.izip(dms, residuals):
