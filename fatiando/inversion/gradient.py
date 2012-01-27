@@ -74,7 +74,7 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def steepest(initial, step=1., maxsteps=20, maxit=100, tol=10**(-3)):
+def steepest(initial, step=0.1, maxsteps=20, maxit=100, tol=10**(-3)):
     """
     Factory function for the non-linear inverse problem solver using the
     Steepest Descent algorithm.
@@ -119,8 +119,8 @@ def steepest(initial, step=1., maxsteps=20, maxit=100, tol=10**(-3)):
         raise ValueError, "maxit parameter should be > 0"
     if maxsteps <= 0:
         raise ValueError, "maxsteps parameter should be > 0"
-    if step <= 0 or step > 1.:
-        raise ValueError, "step parameter should be 1 >= step > 0"
+    if step <= 0 or step >= 1.:
+        raise ValueError, "step parameter should be 1 > step > 0"
     log.info("Generating Steepest Descent solver:")
     log.info("  initial step size: %g" % (step))
     log.info("  max step iterations: %d" % (maxsteps))
@@ -128,7 +128,7 @@ def steepest(initial, step=1., maxsteps=20, maxit=100, tol=10**(-3)):
     log.info("  convergence tolerance: %g" % (tol))
     initial_array = numpy.array(initial, dtype='f')
     def solver(dms, regs, initial=initial_array, step=float(step),
-        maxsteps=maxsteps, maxit=maxit, tol=tol):
+        maxsteps=maxsteps, maxit=maxit, tol=tol, alpha=10**(-4)):
         """
         Inverse problem solver using the Steepest Descent algorithm.
         """
@@ -148,27 +148,22 @@ def steepest(initial, step=1., maxsteps=20, maxit=100, tol=10**(-3)):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
                 gradient = r.sum_gradient(gradient, p)
+            # Calculate now to avoid computing inside the loop
+            gradnorm = numpy.linalg.norm(gradient)**2
             stagnation = True
             # The loop to determine the best step size
-            m = 1
-            for itstep in xrange(maxsteps):
-                ptmp = p - (step**m)*gradient
+            for m in xrange(1, maxsteps + 1):
+                factor = step**m
+                ptmp = p - factor*gradient
                 restmp = [d.data - d.get_predicted(ptmp) for d in dms]
                 misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
                              restmp))
                 goal = misfit + sum(r.value(ptmp) for r in regs)
-                if goal - goals[-1] < (step**m)*numpy.linalg.norm(gradient)**2:
-                    # Don't let the damping factor be smaller than this
-                    if damp > 10.**(-10):
-                        damp /= factor
+                if goal - goals[-1] < alpha*factor*gradnorm:
                     stagnation = False
                     break
-                else:
-                    # Don't let the damping factor be larger than this
-                    if damp < 10**(10):
-                        damp *= factor
             if stagnation:
-                msg = "Steepest Descent exited because couldn't take a step"
+                msg = "  Steepest Descent exited because couldn't take a step"
                 if it == 0:
                     raise ValueError, msg
                 else:
@@ -292,7 +287,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
                     if damp < 10**(10):
                         damp *= factor
             if stagnation:
-                msg = "Levemberg-Marquardt exited because couldn't take a step"
+                msg = "  Levemberg-Marquardt exited because couldnt take a step"
                 if it == 0:
                     raise ValueError, msg
                 else:
