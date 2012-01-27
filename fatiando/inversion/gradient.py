@@ -78,7 +78,7 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-3)):
+def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
     """
     Factory function for the non-linear inverse problem solver using the
     Steepest Descent algorithm.
@@ -207,10 +207,10 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-3)):
                 break
     return solver
 
-def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
+def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
     """
     Factory function for the non-linear inverse problem solver using the
-    Levemberg-Marquardt algorithm.
+    Levenberg-Marquardt algorithm.
 
     The increment to the parameter vector :math:`\\bar{p}` is calculated by
     
@@ -261,7 +261,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
         raise ValueError, "damp parameter should be > 0"
     if factor <= 0:
         raise ValueError, "factor parameter should be > 0"
-    log.info("Generating Levemberg-Marquardt solver:")
+    log.info("Generating Levenberg-Marquardt solver:")
     log.info("  initial damping factor: %g" % (damp))
     log.info("  damping factor increment/decrement: %g" % (factor))
     log.info("  max step iterations: %d" % (maxsteps))
@@ -271,7 +271,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
     def solver(dms, regs, initial=initial_array, damp=float(damp),
         factor=float(factor), maxsteps=maxsteps, maxit=maxit, tol=tol):
         """
-        Inverse problem solver using the Levemberg-Marquardt algorithm.
+        Inverse problem solver using the Levenberg-Marquardt algorithm.
         """
         if len(dms) == 0:
             raise ValueError, "Need at least 1 data module. None given"
@@ -299,27 +299,30 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
             hessian_diag = hessian.diagonal()
             stagnation = True
             # The loop to determine the best step size
+            step = damp
             for itstep in xrange(maxsteps):
-                ptmp = p + linsys_solver(hessian + damp*hessian_diag, gradient)
+                ptmp = p + linsys_solver(hessian + step*hessian_diag, gradient)
                 restmp = [d.data - d.get_predicted(ptmp) for d in dms]
                 misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
                              restmp))
                 goal = misfit + sum(r.value(ptmp) for r in regs)
                 if goal < goals[-1]:
                     # Don't let the damping factor be smaller than this
-                    if damp > 10.**(-10):
-                        damp /= factor
+                    if step > 10.**(-10):
+                        step /= factor
                     stagnation = False
                     break
                 else:
                     # Don't let the damping factor be larger than this
-                    if damp < 10**(10):
-                        damp *= factor
+                    if step < 10**(10):
+                        step *= factor
+                    else:
+                        break
             if stagnation:
                 if it == 0:
-                    msg = "  Levemberg-Marquardt didn't take any steps"
+                    msg = "  Levenberg-Marquardt didn't take any steps"
                 else:
-                    msg = "  Levemberg-Marquardt finished: couldn't take a step"
+                    msg = "  Levenberg-Marquardt finished: couldn't take a step"
                 log.warning(msg)
                 break
             p = ptmp
@@ -333,7 +336,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-3)):
                 break
     return solver
 
-def newton(initial, maxit=100, tol=10**(-3)):
+def newton(initial, maxit=100, tol=10**(-5)):
     """
     Factory function for the non-linear inverse problem solver using Newton's
     method.

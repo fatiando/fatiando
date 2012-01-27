@@ -43,7 +43,7 @@ for e, r in iterator:
     steepest.append(e)
 steepest_predicted = ttr - r
 
-log.info("... and also the Levemberg-Marquardt algorithm for comparison")
+log.info("... and also the Levenberg-Marquardt algorithm for comparison")
 lmsolver = inversion.gradient.levmarq(initial, damp=0.1)
 levmarq = [initial]
 iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver)

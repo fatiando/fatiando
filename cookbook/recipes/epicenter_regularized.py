@@ -19,18 +19,18 @@ vp, vs = 2, 1
 model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
-src = (8, 6)
-srcs, recs = utils.connect_points([src], [(0.5, 5), (3, 5), (5.5, 5)])
+src = (8, 5)
+srcs, recs = utils.connect_points([src], [(0.5, 5), (2, 5), (2.5, 5)])
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
-error_level = 0.05
+error_level = 0.01
 ttr, error = utils.contaminate(stime - ptime, error_level, percent=True,
                                return_stddev=True)
     
-initial = (1, 1)
-mindist = 0.00
+initial = (3, 7)
+mindist = 0.02
 log.info("Will solve the inverse problem using Newton's method")
-nsolver = inversion.gradient.newton(initial)
+nsolver = inversion.gradient.newton(initial, tol=10.**(-10))
 newton = [initial]
 iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver, mindist=mindist)
 for e, r in iterator:
@@ -38,15 +38,15 @@ for e, r in iterator:
 newton_predicted = ttr - r
 
 log.info("and the Steepest Descent method")
-sdsolver = inversion.gradient.steepest(initial)
+sdsolver = inversion.gradient.steepest(initial, tol=10.**(-10))
 steepest = [initial]
 iterator = epicenter.iterate_flat(ttr, recs, vp, vs, sdsolver, mindist=mindist)
 for e, r in iterator:
     steepest.append(e)
 steepest_predicted = ttr - r
 
-log.info("... and also the Levemberg-Marquardt algorithm for comparison")
-lmsolver = inversion.gradient.levmarq(initial)
+log.info("... and also the Levenberg-Marquardt algorithm for comparison")
+lmsolver = inversion.gradient.levmarq(initial, tol=10.**(-10))
 levmarq = [initial]
 iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver, mindist=mindist)
 for e, r in iterator:
@@ -63,7 +63,7 @@ pyplot.figure(figsize=(14,6))
 pyplot.subplot(1, 2, 1)
 pyplot.title('Epicenter + recording stations')
 pyplot.axis('scaled')
-vis.pcolor(xs, ys, goals, shape)
+vis.contourf(xs, ys, goals, shape, 50)
 vis.points(recs, '^r', label="Stations")
 vis.points(newton, '.-c', size=5, label="Newton")
 vis.points([newton[-1]], '*c')
@@ -73,7 +73,7 @@ vis.points(steepest, '.-m', size=5, label="Steepest")
 vis.points([steepest[-1]], '*m')
 vis.points([src], '*y', label="True")
 vis.set_area(area)
-#pyplot.legend(loc='lower right', shadow=True, numpoints=1, prop={'size':12})
+pyplot.legend(loc='lower right', shadow=True, numpoints=1, prop={'size':12})
 pyplot.xlabel("X")
 pyplot.ylabel("Y")
 ax = pyplot.subplot(1, 2, 2)
