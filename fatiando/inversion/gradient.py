@@ -20,6 +20,7 @@ optimization methods.
 
 * :func:`fatiando.inversion.gradient.newton`
 * :func:`fatiando.inversion.gradient.levmarq`
+* :func:`fatiando.inversion.gradient.steepest`
 
 The factory functions produce the actual solver functions. Solver functions are
 Python generator functions that have the general format::
@@ -78,7 +79,8 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
+def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
+    maxsteps=20):
     """
     Factory function for the non-linear inverse problem solver using the
     Steepest Descent algorithm.
@@ -92,7 +94,8 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
     where :math:`\\lambda` is the step size and :math:`\\bar{g}` is the
     gradient vector.
 
-    The step size is determined thought a line search algorithm. In this case
+    Optionally, the step size can be determined thought a line search algorithm
+    using the Armijo rule. In this case
 
     .. math::
     
@@ -101,6 +104,7 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
     where :math:`1 > \\beta > 0` and :math:`m \\ge 0` is an interger that
     controls the step size.
     The line search finds the smallest :math:`m` that satisfies the condition
+    (Armijo rule)
 
     .. math::
 
@@ -117,15 +121,19 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
     * initial
         The initial estimate of the parameters
     * step
-        The step size (:math:`\\beta`)
-    * maxsteps
-        The maximum number os times to try to take a step before giving up
-        (i.e., the maximum value of :math:`m`)
+        The step size (if using Armijo, :math:`\\beta`, else :math:`\\lambda`)
     * maxit
         Maximum number of iterations
     * tol
         Relative tolerance for decreasing the goal function to before
         terminating
+    * armijo
+        If True, will use the Armijo rule to determine the best step size at
+        each iteration. It's highly recommended to use this.
+    * maxsteps
+        If using Armijo, the maximum number os times to try to take a step
+        before giving up (i.e., the maximum value of :math:`m`). If not using
+        Armijo, maxsteps is ignored
 
     Returns:
 
@@ -146,17 +154,64 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
         raise ValueError, "maxsteps parameter should be > 0"
     if step <= 0 or step >= 1.:
         raise ValueError, "step parameter should be 1 > step > 0"
+    initial_array = numpy.array(initial, dtype='f')
     log.info("Generating Steepest Descent solver:")
     log.info("  initial step size: %g" % (step))
-    log.info("  max step iterations: %d" % (maxsteps))
     log.info("  max iterations: %d" % (maxit))
     log.info("  convergence tolerance: %g" % (tol))
-    initial_array = numpy.array(initial, dtype='f')
-    def solver(dms, regs, initial=initial_array, step=float(step),
-        maxsteps=maxsteps, maxit=maxit, tol=tol, alpha=10**(-4)):
-        """
-        Inverse problem solver using the Steepest Descent algorithm.
-        """
+    log.info("  using Armijo rule: %s" % (str(armijo)))
+    if armijo:
+        log.info("  max step iterations: %d" % (maxsteps))
+        return _steepest_armijo(initial_array, float(step), maxsteps, maxit,
+            float(tol))
+    else:
+        return _steepest(initial_array, float(step), maxit, float(tol))
+
+def _steepest(initial, step, maxit, tol):
+    """
+    Factory for the simple Steepest Descent algorithm without using backtracking
+    to find the best step sizes.
+    """
+    def solver(dms, regs, initial=initial, step=step, maxit=maxit, tol=tol):
+        if len(dms) == 0:
+            raise ValueError, "Need at least 1 data module. None given"
+        p = initial
+        nparams = len(p)
+        residuals = [d.data - d.get_predicted(p) for d in dms]
+        misfit = sum(d.get_misfit(res)
+                     for d, res in itertools.izip(dms, residuals))
+        goal = misfit + sum(r.value(p) for r in regs)
+        misfits = [misfit]
+        goals = [goal]
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
+        for it in xrange(maxit):
+            gradient = numpy.zeros_like(p)
+            for d, res in itertools.izip(dms, residuals):
+                gradient = d.sum_gradient(gradient, p, res)
+            for r in regs:
+                gradient = r.sum_gradient(gradient, p)
+            p -= step*gradient
+            residuals = [d.data - d.get_predicted(p) for d in dms]
+            misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
+                         residuals))
+            goal = misfit + sum(r.value(p) for r in regs)
+            misfits.append(misfit)
+            goals.append(goal)            
+            yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+                   'residuals':residuals}
+            # Check if goal function decreases more than a threshold
+            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
+                break
+    return solver
+
+def _steepest_armijo(initial, step, maxsteps, maxit, tol):
+    """
+    Factory for the Steepest Descent algorithm with line search using the Armijo
+    rule.
+    """
+    def solver(dms, regs, initial=initial, step=step, maxsteps=maxsteps,
+        maxit=maxit, tol=tol, alpha=10**(-4)):
         if len(dms) == 0:
             raise ValueError, "Need at least 1 data module. None given"
         p = initial
@@ -207,7 +262,8 @@ def steepest(initial, step=0.1, maxsteps=20, maxit=500, tol=10**(-5)):
                 break
     return solver
 
-def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
+def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
+    diag=False):
     """
     Factory function for the non-linear inverse problem solver using the
     Levenberg-Marquardt algorithm.
@@ -217,11 +273,11 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
     .. math::
 
         \\Delta\\bar{p} = -[\\bar{\\bar{H}} +
-        \\lambda\\cdot diag(\\bar{\\bar{H}})]^{-1}\\bar{g}
+        \\lambda \\bar{\\bar{I}}]^{-1}\\bar{g}
 
     where :math:`\\lambda` is a damping factor (step size),
     :math:`\\bar{\\bar{H}}` is the Hessian matrix,
-    :math:`diag(\\bar{\\bar{H}})` is a matrix with the diagonal of the Hessian,
+    :math:`\\bar{\\bar{I}}` is the identity matrix,
     and :math:`\\bar{g}` is the gradient vector.
 
     Parameters:
@@ -231,7 +287,8 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
     * damp
         The initial damping factor (:math:`\\lambda`)
     * factor
-        The increment/decrement to the damping factor at each iteration
+        The increment/decrement to the damping factor at each iteration.
+        Should be ``factor > 1``
     * maxsteps
         The maximum number os times to try to take a step before giving up
     * maxit
@@ -239,6 +296,10 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
     * tol
         Relative tolerance for decreasing the goal function to before
         terminating
+    * diag
+        If True, will use the diagonal of the Hessian matrix instead of the
+        identity matrix. Only use this is the parameters are different physical
+        quantities (like time and distance, for example)
 
     Returns:
 
@@ -261,18 +322,28 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
         raise ValueError, "damp parameter should be > 0"
     if factor <= 0:
         raise ValueError, "factor parameter should be > 0"
+    initial_array = numpy.array(initial, dtype='f')
     log.info("Generating Levenberg-Marquardt solver:")
     log.info("  initial damping factor: %g" % (damp))
     log.info("  damping factor increment/decrement: %g" % (factor))
     log.info("  max step iterations: %d" % (maxsteps))
     log.info("  max iterations: %d" % (maxit))
     log.info("  convergence tolerance: %g" % (tol))
-    initial_array = numpy.array(initial, dtype='f')
-    def solver(dms, regs, initial=initial_array, damp=float(damp),
-        factor=float(factor), maxsteps=maxsteps, maxit=maxit, tol=tol):
-        """
-        Inverse problem solver using the Levenberg-Marquardt algorithm.
-        """
+    log.info("  use diagonal of Hessian: %s" % (diag))
+    if diag:        
+        return _levmarq_diag(initial_array, float(damp), float(factor),
+            maxsteps, maxit, float(tol))
+    else:
+        return _levmarq(initial_array, float(damp), float(factor), maxsteps,
+            maxit, float(tol))
+
+def _levmarq(initial, damp, factor, maxsteps, maxit, tol):
+    """
+    Factory function for the Levenberg-Marquardt solver using the identity
+    matrix for damping.
+    """
+    def solver(dms, regs, initial=initial, damp=damp, factor=factor,
+        maxsteps=maxsteps, maxit=maxit, tol=tol):
         if len(dms) == 0:
             raise ValueError, "Need at least 1 data module. None given"
         p = initial
@@ -285,6 +356,77 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
         goals = [goal]
         yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                'residuals':residuals}
+        identity = numpy.identity(nparams)
+        step = damp
+        for it in xrange(maxit):
+            gradient = numpy.zeros_like(p)
+            for d, res in itertools.izip(dms, residuals):
+                gradient = d.sum_gradient(gradient, p, res)
+            for r in regs:
+                gradient = r.sum_gradient(gradient, p)
+            # Multiply the gradient now so that doesn't do this inside the loop
+            gradient *= -1
+            hessian = numpy.zeros((nparams, nparams))
+            for m in itertools.chain(dms, regs):
+                hessian = m.sum_hessian(hessian, p)
+            stagnation = True
+            # The loop to determine the best step size
+            for itstep in xrange(maxsteps):
+                ptmp = p + linsys_solver(hessian + step*identity, gradient)
+                restmp = [d.data - d.get_predicted(ptmp) for d in dms]
+                misfit = sum(d.get_misfit(res) for d, res in itertools.izip(dms,
+                             restmp))
+                goal = misfit + sum(r.value(ptmp) for r in regs)
+                if goal < goals[-1]:
+                    # Don't let the damping factor be smaller than this
+                    if step > 10.**(-10):
+                        step /= factor
+                    stagnation = False
+                    break
+                else:
+                    # Don't let the damping factor be larger than this
+                    if step < 10**(10):
+                        step *= factor
+                    else:
+                        break
+            if stagnation:
+                if it == 0:
+                    msg = "  Levenberg-Marquardt didn't take any steps"
+                else:
+                    msg = "  Levenberg-Marquardt finished: couldn't take a step"
+                log.warning(msg)
+                break
+            p = ptmp
+            residuals = restmp     
+            misfits.append(misfit)
+            goals.append(goal)            
+            yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+                   'residuals':residuals}
+            # Check if goal function decreases more than a threshold
+            if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
+                break
+    return solver
+    
+def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
+    """
+    Factory function for the Levenberg-Marquardt solver using the diagonal of
+    the Hessian for damping.
+    """
+    def solver(dms, regs, initial=initial, damp=damp, factor=factor,
+        maxsteps=maxsteps, maxit=maxit, tol=tol):
+        if len(dms) == 0:
+            raise ValueError, "Need at least 1 data module. None given"
+        p = initial
+        nparams = len(p)
+        residuals = [d.data - d.get_predicted(p) for d in dms]
+        misfit = sum(d.get_misfit(res)
+                     for d, res in itertools.izip(dms, residuals))
+        goal = misfit + sum(r.value(p) for r in regs)
+        misfits = [misfit]
+        goals = [goal]
+        yield {'estimate':p, 'misfits':misfits, 'goals':goals,
+               'residuals':residuals}
+        step = damp
         for it in xrange(maxit):
             gradient = numpy.zeros_like(p)
             for d, res in itertools.izip(dms, residuals):
@@ -299,7 +441,6 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5)):
             hessian_diag = hessian.diagonal()
             stagnation = True
             # The loop to determine the best step size
-            step = damp
             for itstep in xrange(maxsteps):
                 ptmp = p + linsys_solver(hessian + step*hessian_diag, gradient)
                 restmp = [d.data - d.get_predicted(ptmp) for d in dms]
