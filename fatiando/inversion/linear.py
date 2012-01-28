@@ -109,7 +109,7 @@ def overdet(nparams):
         gradientchain = [numpy.zeros(nparams)]
         gradientchain.extend(itertools.chain(dms, regs))
         gradient = reduce(lambda g, m: m.sum_gradient(g), gradientchain)
-        hessianchain = [numpy.zeros((nparams,nparams))]
+        hessianchain = [numpy.zeros((nparams, nparams))]
         hessianchain.extend(itertools.chain(dms, regs))
         hessian = reduce(lambda h, m: m.sum_hessian(h), hessianchain)
         p = linsys_solver(hessian, -1*gradient)
