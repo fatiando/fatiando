@@ -90,14 +90,13 @@ __date__ = 'Created 19-Jan-2012'
 import time
 import numpy
 import scipy.sparse
-import scipy.sparse.linalg
 
 from fatiando import logger, inversion, utils
 from fatiando.seismic import _traveltime
 log = logger.dummy()
 
 
-class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
+class TravelTime(inversion.datamodule.DataModule):
     """
     Data module for the 2D travel-time straight-ray tomography problem.
 
@@ -131,9 +130,9 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
         >>> # If running the tomography on a mesh like
         >>> from fatiando.mesher.dd import SquareMesh
         >>> mesh = SquareMesh(bounds=(0, 10, 0, 10), shape=(10, 10))
-        >>> # what TravelTimeStraightRay2D expects is
+        >>> # what TravelTime expects is
         >>> srcs = [src, src, src]
-        >>> dm = TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)
+        >>> dm = TravelTime(ttimes, srcs, recs, mesh)
     
     """
 
@@ -142,13 +141,17 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
         self.x_src, self.y_src = numpy.array(srcs, dtype='f').T
         self.x_rec, self.y_rec = numpy.array(recs, dtype='f').T
         self.mesh = mesh
-        log.info("Initializing TravelTimeStraightRay2D data module:")
+        self.nparams = mesh.size
+        self.ndata = len(ttimes)
+        log.info("Initializing travel time data module:")
+        log.info("  number of parameters: %d" % (self.nparams))
+        log.info("  number of data: %d" % (self.ndata))
         log.info("  Calculating Jacobian (sensitivity matrix)...")
         start = time.time()
         self.jacobian = self._get_jacobian()
         log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
         self.jacobian_T = self.jacobian.T
-        self.hessian = numpy.dot(self.jacobian_T, self.jacobian)
+        self.hessian = self._get_hessian()
 
     def _get_jacobian(self):
         """
@@ -161,6 +164,12 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
                 self.x_rec, self.y_rec)
             for c in self.mesh]).T
         return jac
+
+    def _get_hessian(self):
+        """
+        Build the Hessian matrix by Gauss-Newton approximation.
+        """
+        return numpy.dot(self.jacobian_T, self.jacobian)
 
     def get_misfit(self, residuals):
         return numpy.linalg.norm(residuals)
@@ -177,6 +186,46 @@ class TravelTimeStraightRay2D(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p=None):
         return hessian + 2.*self.hessian
 
+class TravelTimeSparse(TravelTime):
+    """
+    Version of the :class:`fatiando.seismic.srtomo.TravelTime` class that uses
+    sparse matrices.
+    """
+
+    def __init__(self, ttimes, srcs, recs, mesh):
+        TravelTime.__init__(self, ttimes, srcs, recs, mesh)
+
+    def _get_jacobian(self):
+        """
+        Build the sparse Jacobian (sensitivity) matrix using the travel-time
+        data stored.
+        """
+        shoot = _traveltime.straight_ray_2d
+        nonzero = []
+        for j, c in enumerate(self.mesh):
+            nonzero.extend((i, j, tt) for i, tt in enumerate(shoot(1.,
+                float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
+                self.x_src, self.y_src, self.x_rec, self.y_rec)) if tt != 0)
+        row, col, val = numpy.array(nonzero).T
+        shape = (self.ndata, self.nparams)
+        jac = scipy.sparse.csr_matrix((val, (row, col)), shape)
+        return jac
+
+    def _get_hessian(self):
+        """
+        Build the Hessian matrix by Gauss-Newton approximation.
+        """
+        return self.jacobian_T*self.jacobian
+
+    def get_predicted(self, p):
+        return self.jacobian*p
+
+    def sum_gradient(self, gradient, p=None, residuals=None):
+        if p is None:
+            return gradient - 2.*self.jacobian_T*self.data
+        else:
+            return gradient - 2.*self.jacobian_T*residuals   
+
 def _slow2vel(slowness, tol=10**(-5)):
     """
     Safely convert slowness to velocity. 0 slowness is mapped to 0 velocity.
@@ -186,7 +235,7 @@ def _slow2vel(slowness, tol=10**(-5)):
     else:
         return 1./float(slowness)
 
-def smooth(ttimes, srcs, recs, mesh, solver, damping=0.):
+def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
     """
     Perform a tomography with smoothing regularization.
 
@@ -201,6 +250,11 @@ def smooth(ttimes, srcs, recs, mesh, solver, damping=0.):
     * mesh
         The mesh where the inversion (tomography) will take place.
         Typically a :class:`fatiando.mesher.dd.SquareMesh`
+    * sparse
+        If True, will use sparse matrices from scipy.sparse
+        Don't forget to turn on sparcity in the inversion solver module.
+        The usual way of doing this is by calling the ``use_sparse`` function.
+        Ex: ``fatiando.inversion.gradient.use_sparse()``
     * damping
         Damping regularizing parameter (i.e., how much damping to apply).
         Must be a positive scalar.
@@ -216,8 +270,12 @@ def smooth(ttimes, srcs, recs, mesh, solver, damping=0.):
         raise ValueError, msg
     if damping < 0:
         raise ValueError, "Damping must be positive"
-    dms = [TravelTimeStraightRay2D(ttimes, srcs, recs, mesh)]    
-    regs = [inversion.regularizer.Damping(damping)]
+    if sparse:
+        dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]   
+        regs = [inversion.regularizer.DampingSparse(damping)]     
+    else:
+        dms = [TravelTime(ttimes, srcs, recs, mesh)]
+        regs = [inversion.regularizer.Damping(damping)]
     log.info("Running smooth straight-ray 2D travel-time tomography (SrTomo):")
     log.info("  damping: %g" % (damping))
     start = time.time()

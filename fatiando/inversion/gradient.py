@@ -73,11 +73,41 @@ import itertools
 
 import numpy
 from numpy.linalg import solve as linsys_solver
+import scipy.sparse
+import scipy.sparse.linalg
 
 from fatiando import logger
 
 log = logger.dummy()
 
+
+def _sparse_linsys_solver(A, x):
+    res = scipy.sparse.linalg.cgs(A, x)
+    if res[1] > 0:
+        log.warning("Conjugate Gradient convergence not achieved")
+    if res[1] < 0:
+        log.error("Conjugate Gradient illegal input or breakdown")
+    return res[0]
+
+def _zerovector(n):
+    return numpy.zeros(n)
+
+def _zeromatrix(shape):
+    return numpy.zeros(shape)
+    
+def use_sparse():
+    """
+    Configure the gradient solvers to use the sparse conjugate gradient linear
+    linear system solver from Scipy.
+
+    Note that this does not make the DataModules use sparse matrices! That must
+    be implemented for each inverse problem.
+    
+    """
+    log.info("Using sparse conjugate gradient solver")
+    global linsys_solver, _zeromatrix
+    linsys_solver = _sparse_linsys_solver
+    _zeromatrix = scipy.sparse.csr_matrix
 
 def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
     maxsteps=20):
@@ -186,7 +216,7 @@ def _steepest(initial, step, maxit, tol):
         yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                'residuals':residuals}
         for it in xrange(maxit):
-            gradient = numpy.zeros_like(p)
+            gradient = _zerovector(nparams)
             for d, res in itertools.izip(dms, residuals):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
@@ -225,7 +255,7 @@ def _steepest_armijo(initial, step, maxsteps, maxit, tol):
         yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                'residuals':residuals}
         for it in xrange(maxit):
-            gradient = numpy.zeros_like(p)
+            gradient = _zerovector(nparams)
             for d, res in itertools.izip(dms, residuals):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
@@ -359,14 +389,14 @@ def _levmarq(initial, damp, factor, maxsteps, maxit, tol):
         identity = numpy.identity(nparams)
         step = damp
         for it in xrange(maxit):
-            gradient = numpy.zeros_like(p)
+            gradient = _zerovector(nparams)
             for d, res in itertools.izip(dms, residuals):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
                 gradient = r.sum_gradient(gradient, p)
             # Multiply the gradient now so that doesn't do this inside the loop
             gradient *= -1
-            hessian = numpy.zeros((nparams, nparams))
+            hessian = _zeromatrix((nparams, nparams))
             for m in itertools.chain(dms, regs):
                 hessian = m.sum_hessian(hessian, p)
             stagnation = True
@@ -428,14 +458,14 @@ def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
                'residuals':residuals}
         step = damp
         for it in xrange(maxit):
-            gradient = numpy.zeros_like(p)
+            gradient = _zerovector(nparams)
             for d, res in itertools.izip(dms, residuals):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
                 gradient = r.sum_gradient(gradient, p)
             # Multiply the gradient now so that doesn't do this inside the loop
             gradient *= -1
-            hessian = numpy.zeros((nparams, nparams))
+            hessian = _zeromatrix((nparams, nparams))
             for m in itertools.chain(dms, regs):
                 hessian = m.sum_hessian(hessian, p)
             hessian_diag = hessian.diagonal()
@@ -537,12 +567,12 @@ def newton(initial, maxit=100, tol=10**(-5)):
         yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                'residuals':residuals}
         for it in xrange(maxit):
-            gradient = numpy.zeros_like(p)
+            gradient = _zerovector(nparams)
             for d, res in itertools.izip(dms, residuals):
                 gradient = d.sum_gradient(gradient, p, res)
             for r in regs:
                 gradient = r.sum_gradient(gradient, p)
-            hessian = numpy.zeros((nparams, nparams))
+            hessian = _zeromatrix((nparams, nparams))
             for m in itertools.chain(dms, regs):
                 hessian = m.sum_hessian(hessian, p)
             p = p + linsys_solver(hessian, -1*gradient)

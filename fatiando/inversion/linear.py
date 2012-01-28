@@ -69,12 +69,42 @@ import itertools
 
 import numpy
 from numpy.linalg import solve as linsys_solver
+import scipy.sparse
+import scipy.sparse.linalg
 
 from fatiando import logger
 
 log = logger.dummy()
 
 
+def _sparse_linsys_solver(A, x):
+    res = scipy.sparse.linalg.cgs(A, x)
+    if res[1] > 0:
+        log.warning("Conjugate Gradient convergence not achieved")
+    if res[1] < 0:
+        log.error("Conjugate Gradient illegal input or breakdown")
+    return res[0]
+
+def _zerovector(n):
+    return numpy.zeros(n)
+
+def _zeromatrix(shape):
+    return numpy.zeros(shape)
+    
+def use_sparse():
+    """
+    Configure the linear solvers to use the sparse conjugate gradient linear
+    linear system solver from Scipy.
+
+    Note that this does not make the DataModules use sparse matrices! That must
+    be implemented for each inverse problem.
+    
+    """
+    log.info("Using sparse conjugate gradient solver")
+    global linsys_solver, _zeromatrix
+    linsys_solver = _sparse_linsys_solver
+    _zeromatrix = scipy.sparse.csr_matrix
+    
 def overdet(nparams):
     """
     Factory function for a linear least-squares solver to an overdetermined
@@ -106,10 +136,10 @@ def overdet(nparams):
     if nparams <= 0:
         raise ValueError, "nparams must be > 0"
     def solver(dms, regs, nparams=nparams):
-        gradientchain = [numpy.zeros(nparams)]
+        gradientchain = [_zerovector(nparams)]
         gradientchain.extend(itertools.chain(dms, regs))
         gradient = reduce(lambda g, m: m.sum_gradient(g), gradientchain)
-        hessianchain = [numpy.zeros((nparams, nparams))]
+        hessianchain = [_zeromatrix((nparams, nparams))]
         hessianchain.extend(itertools.chain(dms, regs))
         hessian = reduce(lambda h, m: m.sum_hessian(h), hessianchain)
         p = linsys_solver(hessian, -1*gradient)

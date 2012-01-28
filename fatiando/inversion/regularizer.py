@@ -30,6 +30,7 @@ __date__ = 'Created 19-Jan-2012'
 
 
 import numpy
+import scipy.sparse
 
 from fatiando import logger
 
@@ -115,7 +116,6 @@ class Regularizer(object):
         """
         pass
 
-
 class Damping(Regularizer):
     """
     Damping regularization. Also known as Tikhonov order 0, Ridge Regression, or
@@ -172,6 +172,18 @@ class Damping(Regularizer):
 
     def sum_hessian(self, hessian, p=None):
         return hessian + (self.mu*2.)*numpy.identity(len(hessian))
+
+class DampingSparse(Damping):
+    """
+    Same as Damping regularizer but using sparse matrices instead.
+    """
+
+    def __init__(self, mu):
+        Damping.__init__(self, mu)
+
+    def sum_hessian(self, hessian, p=None):
+        eye = scipy.sparse.identity(hessian.shape[0], dtype='f', format='csr')
+        return hessian + (self.mu*2.)*eye
         
 def _test():
     import doctest
