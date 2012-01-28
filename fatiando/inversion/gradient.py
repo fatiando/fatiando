@@ -69,10 +69,10 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 19-Jan-2012'
 
 
-import numpy
-from numpy import dot as dot_product
-from numpy.linalg import solve as linsys_solver
 import itertools
+
+import numpy
+from numpy.linalg import solve as linsys_solver
 
 from fatiando import logger
 

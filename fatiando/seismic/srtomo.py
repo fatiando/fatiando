@@ -25,7 +25,35 @@ reflection or refraction)
 
 **Examples**
 
-Using simple synthetic data::
+Using simple synthetic data and a linear solver::
+
+    >>> from fatiando.mesher.dd import Square, SquareMesh
+    >>> from fatiando.inversion import linear
+    >>> # One source was recorded at 3 receivers.
+    >>> # The medium has 2 velocities: 2 and 5
+    >>> model = [Square([0, 10, 0, 5], {'vp':2}),
+    ...          Square([0, 10, 5, 10], {'vp':5})]
+    >>> src = (5, 0)
+    >>> srcs = [src, src, src]
+    >>> recs = [(0, 0), (5, 10), (10, 0)]
+    >>> # Calculate the synthetic travel-times
+    >>> from fatiando.seismic.traveltime import straight_ray_2d
+    >>> ttimes = straight_ray_2d(model, 'vp', srcs, recs)
+    >>> print ttimes
+    [ 2.5  3.5  2.5]
+    >>> # Run the tomography to calculate the 2 velocities
+    >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
+    >>> # Will use a linear overdetermined solver
+    >>> solver = linear.overdet(mesh.size)
+    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
+    >>> for v in estimate:
+    ...     print '%.4f' % (v),
+    2.0000 5.0000
+    >>> for v in residuals:
+    ...     print '%.4f' % (v),
+    0.0000 0.0000 0.0000
+
+Again, using simple synthetic data but this time use Newton's method to solve::
 
     >>> from fatiando.mesher.dd import Square, SquareMesh
     >>> from fatiando.inversion.gradient import newton

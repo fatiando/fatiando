@@ -69,7 +69,7 @@ class Regularizer(object):
     def value(self, p):
         pass
 
-    def sum_gradient(self, gradient, p):
+    def sum_gradient(self, gradient, p=None):
         """
         Sums the gradient vector of this regularizer module to *gradient* and
         returns the result.
@@ -80,6 +80,9 @@ class Regularizer(object):
             Array with the old gradient vector
         * p
             Array with the parameter vector
+            
+        Solvers for linear problems will use ``p = None`` so that the class
+        knows how to calculate gradients more efficiently for these cases.
 
         Returns:
 
@@ -89,7 +92,7 @@ class Regularizer(object):
         """
         pass
         
-    def sum_hessian(self, hessian, p):
+    def sum_hessian(self, hessian, p=None):
         """
         Sums the Hessian matrix of this regularizer module to *hessian* and
         returns the result.
@@ -100,7 +103,10 @@ class Regularizer(object):
             2D array with the old Hessian matrix
         * p
             Array with the parameter vector
-
+            
+        Solvers for linear problems will use ``p = None`` so that the class
+        knows how to calculate gradients more efficiently for these cases.
+        
         Returns:
 
         * new_hessian
@@ -159,11 +165,13 @@ class Damping(Regularizer):
     def value(self, p):
         return self.mu*numpy.linalg.norm(p)
 
-    def sum_gradient(self, gradient, p):
+    def sum_gradient(self, gradient, p=None):
+        if p is None:
+            return gradient
         return gradient + (self.mu*2.)*p
 
-    def sum_hessian(self, hessian, p):
-        return hessian + (self.mu*2.)*numpy.identity(len(p))
+    def sum_hessian(self, hessian, p=None):
+        return hessian + (self.mu*2.)*numpy.identity(len(hessian))
         
 def _test():
     import doctest

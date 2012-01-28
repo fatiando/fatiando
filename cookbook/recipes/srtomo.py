@@ -27,8 +27,7 @@ ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                            0.01, percent=True)
 
 mesh = SquareMesh(area, shape)
-log.info("Solve using Newton's method")
-solver = inversion.gradient.newton(initial=numpy.zeros(mesh.size), maxit=5)
+solver = inversion.linear.overdet(mesh.size)
 results = srtomo.smooth(ttimes, srcs, recs, mesh, solver, damping=0.01)
 estimate, residuals = results
 
