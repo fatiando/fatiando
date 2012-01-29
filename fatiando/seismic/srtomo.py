@@ -46,8 +46,9 @@ Using simple synthetic data and a linear solver::
     >>> # Will use a linear overdetermined solver
     >>> solver = linear.overdet(mesh.size)
     >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
-    >>> for v in estimate:
-    ...     print '%.4f' % (v),
+    >>> # Actually returns slowness instead of velocity
+    >>> for slowness in estimate:
+    ...     print '%.4f' % (1./slowness),
     2.0000 5.0000
     >>> for v in residuals:
     ...     print '%.4f' % (v),
@@ -74,8 +75,9 @@ Again, using simple synthetic data but this time use Newton's method to solve::
     >>> # Will use Newton's method to solve this
     >>> solver = newton(initial=[0, 0], maxit=5)
     >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
+    >>> # Actually returns slowness instead of velocity
     >>> for v in estimate:
-    ...     print '%.4f' % (v),
+    ...     print '%.4f' % (1./v),
     2.0000 5.0000
     >>> for v in residuals:
     ...     print '%.4f' % (v),
@@ -138,30 +140,33 @@ class TravelTime(inversion.datamodule.DataModule):
 
     def __init__(self, ttimes, srcs, recs, mesh):
         inversion.datamodule.DataModule.__init__(self, ttimes)
-        self.x_src, self.y_src = numpy.array(srcs, dtype='f').T
-        self.x_rec, self.y_rec = numpy.array(recs, dtype='f').T
+        self.xsrc, self.ysrc = numpy.array(srcs, dtype='f').T
+        self.xrec, self.yrec = numpy.array(recs, dtype='f').T
         self.mesh = mesh
         self.nparams = mesh.size
         self.ndata = len(ttimes)
         log.info("Initializing travel time data module:")
         log.info("  number of parameters: %d" % (self.nparams))
         log.info("  number of data: %d" % (self.ndata))
-        log.info("  Calculating Jacobian (sensitivity matrix)...")
+        log.info("  calculating Jacobian (sensitivity matrix)...")
         start = time.time()
         self.jacobian = self._get_jacobian()
         log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
         self.jacobian_T = self.jacobian.T
+        log.info("  calculating Hessian matrix...")
+        start = time.time()
         self.hessian = self._get_hessian()
+        log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
 
     def _get_jacobian(self):
         """
         Build the Jacobian (sensitivity) matrix using the travel-time data
         stored.
         """
+        xsrc, ysrc, xrec, yrec = self.xsrc, self.ysrc, self.xrec, self.yrec
         jac = numpy.array(
             [_traveltime.straight_ray_2d(1., float(c['x1']), float(c['y1']),
-                float(c['x2']), float(c['y2']), self.x_src, self.y_src,
-                self.x_rec, self.y_rec)
+                float(c['x2']), float(c['y2']), xsrc, ysrc, xrec, yrec)
             for c in self.mesh]).T
         return jac
 
@@ -201,11 +206,12 @@ class TravelTimeSparse(TravelTime):
         data stored.
         """
         shoot = _traveltime.straight_ray_2d
+        xsrc, ysrc, xrec, yrec = self.xsrc, self.ysrc, self.xrec, self.yrec
         nonzero = []
         for j, c in enumerate(self.mesh):
             nonzero.extend((i, j, tt) for i, tt in enumerate(shoot(1.,
                 float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
-                self.x_src, self.y_src, self.x_rec, self.y_rec)) if tt != 0)
+                xsrc, ysrc, xrec, yrec)) if tt != 0)
         row, col, val = numpy.array(nonzero).T
         shape = (self.ndata, self.nparams)
         jac = scipy.sparse.csr_matrix((val, (row, col)), shape)
@@ -237,7 +243,8 @@ def _slow2vel(slowness, tol=10**(-5)):
 
 def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
     """
-    Perform a tomography with smoothing regularization.
+    Perform a tomography with smoothing regularization. Estimates the slowness
+    (1/velocity) of cells in mesh (because slowness is linear and easier)
 
     Parameters:
 
@@ -255,6 +262,8 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
         Don't forget to turn on sparcity in the inversion solver module.
         The usual way of doing this is by calling the ``use_sparse`` function.
         Ex: ``fatiando.inversion.gradient.use_sparse()``
+        WARNING: Jacobian matrix building using sparse matrices isn't very
+        optimized. It will be slow but won't overflow the memory.
     * damping
         Damping regularizing parameter (i.e., how much damping to apply).
         Must be a positive scalar.
@@ -262,7 +271,7 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
     Returns:
 
     * [estimate, residuals]
-        Arrays with the estimated velocity and residual vector, respectively
+        Arrays with the estimated slowness and residual vector, respectively
         
     """
     if len(ttimes) != len(srcs) != len(recs):
@@ -290,9 +299,9 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
-    velocity = [_slow2vel(s) for s in chset['estimate']]
+    slowness = chset['estimate']
     residuals = chset['residuals'][0]
-    return velocity, residuals
+    return slowness, residuals
     
 def _test():
     import doctest

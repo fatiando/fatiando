@@ -135,6 +135,8 @@ def overdet(nparams):
     """
     if nparams <= 0:
         raise ValueError, "nparams must be > 0"
+    log.info("Generating linear solver for overdetermined problems")
+    log.info("  number of parameters: %d" % (nparams))
     def solver(dms, regs, nparams=nparams):
         gradientchain = [_zerovector(nparams)]
         gradientchain.extend(itertools.chain(dms, regs))

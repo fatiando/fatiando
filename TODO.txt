@@ -1,3 +1,8 @@
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props
+* Sparse Jacobian computation in SrTomo still too slow (much slower than dense
+  version)
+* Consider getting rid of use_sparse functions and DampingSparse type regularizers.
+  Instead, use sparse=True keyword arguments
+* Make srtomo return slowness instead of velocity.
