@@ -176,9 +176,6 @@ class TravelTime(inversion.datamodule.DataModule):
         """
         return numpy.dot(self.jacobian_T, self.jacobian)
 
-    def get_misfit(self, residuals):
-        return numpy.linalg.norm(residuals)
-
     def get_predicted(self, p):
         return numpy.dot(self.jacobian, p)
 

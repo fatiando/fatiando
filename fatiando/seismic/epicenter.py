@@ -79,6 +79,7 @@ Example using the iterate function::
     >>> # Show the steps to estimate the epicenter
     >>> for p, r in iterate_flat(ttres, recs, vp, vs, solver):
     ...     print "(%.4f, %.4f)" % (p[0], p[1])
+    (1.0000, 1.0000)
     (2.4157, 5.8424)
     (4.3279, 4.7485)
     (4.9465, 4.9998)
@@ -146,9 +147,6 @@ class TTResidualsFlatHomogeneous(inversion.datamodule.DataModule):
         self.vp = vp
         self.vs = vs
         self.alpha = 1./float(vs) - 1./float(vp)
-
-    def get_misfit(self, residuals):
-        return numpy.linalg.norm(residuals)
 
     def get_predicted(self, p):
         x, y = p

@@ -83,7 +83,7 @@ class DataModule(object):
             Scalar value of the data-misfit
             
         """
-        pass
+        return numpy.linalg.norm(residuals)
 
     def get_predicted(self, p):
         """
