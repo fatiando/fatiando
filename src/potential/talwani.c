@@ -71,6 +71,7 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
     for(i=0; i < n; i++, res++, xp++, zp++)
     {
         flag = 0;
+        *res = 0;
         tmp = 0;
         xvp1 = *x - *xp;
         zvp1 = *z - *zp;  
@@ -106,42 +107,44 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
             if(xv == 0)
             {
                 /* 1.570796327 = pi/2 */ 
-                tmp += -ai*sin(phi_v)*cos(phi_v)*(theta_vp1 -
+                tmp = -ai*sin(phi_v)*cos(phi_v)*(theta_vp1 -
                     1.57079632679489661923 + tan(phi_v)*log(
                         cos(theta_vp1)*(tan(theta_vp1)- tan(phi_v))));
                 flag = 1;
             }             
             if(xvp1 == 0)
             {
-                tmp += ai*sin(phi_v)*cos(phi_v)*(theta_v -
+                tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v -
                     1.57079632679489661923 + tan(phi_v)*log(
                         cos(theta_v)*(tan(theta_v) - tan(phi_v))));         
                 flag = 2;
             }            
             if(zv == zvp1)
             {
-                tmp += zv*(theta_vp1 - theta_v);
+                tmp = zv*(theta_vp1 - theta_v);
                 flag = 3;
             }            
             if(xv == xvp1)
             {
-                tmp += xv*(log((double)cos(theta_v)/cos(theta_vp1)));
+                tmp = xv*(log((double)cos(theta_v)/cos(theta_vp1)));
                 flag = 4;
             }            
             if((theta_v == theta_vp1) || (xv == 0. && zv == 0.) ||
                (xvp1 == 0. && zvp1 == 0.))
             {
+                tmp = 0;
                 flag = 5;
             }            
             if(!flag)
             { 
-                tmp += ai*sin(phi_v)*cos(phi_v)*(theta_v - theta_vp1 +
+                tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v - theta_vp1 +
                     tan(phi_v)*log((double)
                         (cos(theta_v)*(tan(theta_v) - tan(phi_v)))/
                         (cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))));
             }
+            *res += tmp;
         }
-        *res = SI2MGAL*2.0*G*dens*tmp;
+        *res *= SI2MGAL*2.0*G*dens;
     }
     return i;
 }

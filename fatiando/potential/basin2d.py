@@ -33,23 +33,27 @@ Example of triagular basin inversion using synthetic data::
     >>> from fatiando.mesher.dd import Polygon
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import steepest
-    >>> # Make a triangular basin model (will estimate the middle point)
-    >>> verts = [(10000, 0), (50000, 5000), (90000, 0)]
+    >>> from fatiando import logger
+    >>> log = logger.get()
+    >>> # Make a triangular basin model (will estimate the last point)
+    >>> verts = [(10000, 100), (90000, 100), (50000, 5000)]
     >>> left, middle, right = verts
     >>> props = {'density':500}
     >>> model = Polygon(verts, props)
     >>> # Generate the synthetic gz profile
-    >>> xs = numpy.arange(0, 100000, 1000)
+    >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> dm = TriangularGzDM(xs, zs, gz, prop=500, verts=[left, right])
-    >>> # Estimate the coordinates of the middle point using Steepest Descent
+    >>> dm = TriangularGzDM(xs, zs, gz, prop=500, verts=[left, middle])
+    >>> # Estimate the coordinates of the last point using Steepest Descent
     >>> solver = steepest(initial=(10000, 1000))
     >>> p, res = triangular([dm], solver)
     >>> for v in p:
-    ...     print '%.0f' % (v),
+    ...     print '%.1f' % (v),
     50000. 5000.
+    >>> print gz
+    
 
 
 **PRISMATIC PARAMETRIZATION**
@@ -67,12 +71,10 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 29-Jan-2012'
 
 import time
-
 import numpy
 
 from fatiando.potential import _talwani
-from fatiando import inversion
-from fatiando import logger
+from fatiando import inversion, utils, logger
 
 log = logger.dummy()
 
@@ -94,38 +96,56 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     * data
         Array with the profile data
     * verts
-        List with the (x, z) coordinates of the two know vertices.
+        List with the (x, z) coordinates of the two know vertices. Very
+        important that the vertices in the list be ordered from left to right!
+        Otherwise the forward model will give results with an inverted sign and
+        terrible things may happen!
     * prop
         Value of the physical property of the basin. The physical property must
         be compatible with the potential field used! I.e., gravitational fields
         require a value of density contrast.
+    * delta
+        Interval used to calculate the approximate derivatives
         
     """
 
-    def __init__(self, xp, zp, data, verts, prop):
+    def __init__(self, xp, zp, data, verts, prop, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing TriangularDM data module:")
         if len(xp) != len(zp) != len(data):
             raise ValueError, "xp, zp, and data must be of same length"
         if len(verts) != 2:
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
-        self.xp = xp
-        self.zp = zp
-        self.prop = prop
-        self.verts = verts        
+        self.xp = numpy.array(xp, dtype=numpy.float64)
+        self.zp = numpy.array(zp, dtype=numpy.float64)
+        self.prop = float(prop)
+        self.verts = verts
+        self.delta = numpy.array([0., 0., delta], dtype='f')
         log.info("  number of data: %d" % (len(data)))
         log.info("  physical property: %s" % (str(prop)))
         
     def get_predicted(self, p):
-        pass
+        tmp = [v for v in self.verts]
+        tmp.append(p)
+        xs, zs = numpy.array(tmp, dtype='f').T
+        return _talwani.talwani_gz(self.prop, xs, zs, self.xp, self.zp)
 
     def sum_gradient(self, gradient, p, residuals):
-        pass
+        xp, zp = self.xp, self.zp
+        delta = self.delta
+        tmp = [v for v in self.verts]
+        tmp.append(p)
+        xs, zs = numpy.array(tmp, dtype='f').T
+        at_p = _talwani.talwani_gz(self.prop, xs, zs, xp, zp)
+        jacx = ((_talwani.talwani_gz(self.prop, xs + delta, zs, xp, zp) - at_p)/
+                delta[-1])
+        jacz = ((_talwani.talwani_gz(self.prop, xs, zs + delta, xp, zp) - at_p)/
+                delta[-1])
+        self.jac_T = numpy.array([jacx, jacz])
+        return gradient - 2.*numpy.dot(self.jac_T, residuals)
 
     def sum_hessian(self, hessian, p):
-        pass
-    
-
+        return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
 
 def triangular(dms, solver, iterate=False):
     """

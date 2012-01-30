@@ -64,7 +64,7 @@ def Polygon(vertices, props):
     * Polygon object
     
     """    
-    x, y = numpy.array(vertices, dtype=numpy.float64).T
+    x, y = numpy.array(vertices, dtype='f').T
     poly = {'x':x, 'y':y}
     for prop in props:
         poly[prop] = props[prop]
