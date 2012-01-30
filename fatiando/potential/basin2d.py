@@ -25,7 +25,7 @@ data.
 
 Uses 2D bodies with a polygonal cross-section to parameterize the basin relief.
 Potential fields are calculated using the :mod:`fatiando.potential.talwani`
-module. 
+module. **WARNING**: Vertices of polygons must always be in clockwise order!
 
 **Triangular basin**
 
@@ -94,18 +94,17 @@ Use when the basin can be approximated by a 2D body with **trapezoidal**
 vertical cross-section.
 The trapezoid is assumed to have 2 known vertices at the surface
 (the edges of the basin) and two unknown vertice in the subsurface.
-The inversion will then either estimate the (x, z) coordinates of the unknown
-vertices, or estimate only the z coordinate of the two vertices. If you choose
-the latter, you must provide the x coordinates of these vertices as well.
+We assume that the x coordinates of the unknown vertices are the same as the x
+coordinates of the known vertices (i.e., the unknown vertices are directly under
+the known vertices). The inversion will then estimate the z coordinates of the
+unknown vertices.
 
-Example using synthetic data to inverse for the x and z coordinates::
+Example of inverting for the z coordinates of the unknown vertices::
 
     >>> import numpy
     >>> from fatiando.mesher.dd import Polygon
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import levmarq
-    >>> from fatiando import logger
-    >>> log = logger.get()
     >>> # Make a trapezoidal basin model (will estimate the last two point)
     >>> verts = [(10000, 5), (90000, 10), (90000, 5000), (10000, 3000)]
     >>> model = Polygon(verts, {'density':500})
@@ -115,33 +114,41 @@ Example using synthetic data to inverse for the x and z coordinates::
     >>> gz = talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
     >>> dm = TrapezoidalGzDM(xs, zs, gz, prop=500, verts=verts[0:2])
-    >>> # Estimate the coordinates of the two points using Levenberg-Marquardt
-    >>> solver = levmarq(initial=(79000, 4000, 35000, 2500), damp=0.001)
+    >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
+    >>> solver = levmarq(initial=(1000, 500))
     >>> p, residuals = trapezoidal([dm], solver)
     >>> print '%.1f, %.1f' % (p[0], p[1])
     5000.0, 3000.0
 
-Example of inverting only for the z coordinates of the vertices::
+Same example but this time using ``iterate=True`` to view the steps of the
+algorithm::
 
     >>> import numpy
     >>> from fatiando.mesher.dd import Polygon
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import levmarq
     >>> # Make a trapezoidal basin model (will estimate the last two point)
-    >>> verts = [(10000, 5), (90000, 10), (80000, 5000), (33000, 3000)]
+    >>> verts = [(10000, 5), (90000, 10), (90000, 5000), (10000, 3000)]
     >>> model = Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> xverts = [80000, 33000]
-    >>> dm = TrapezoidalGzDM(xs, zs, gz, prop=500, verts=verts[0:2], xs=xverts)
+    >>> dm = TrapezoidalGzDM(xs, zs, gz, prop=500, verts=verts[0:2])
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
     >>> solver = levmarq(initial=(1000, 500))
-    >>> p, residuals = trapezoidal([dm], solver)
-    >>> print '%.1f, %.1f' % (p[0], p[1])
-    5000.0, 3000.0
+    >>> for p, residuals in trapezoidal([dm], solver, iterate=True):
+    ...     print '%.2f, %.2f' % (p[0], p[1])
+    1000.00, 500.00
+    1000.85, 500.61
+    1009.34, 506.65
+    1092.50, 565.69
+    1782.11, 1045.63
+    4057.01, 2481.09
+    4984.89, 2987.82
+    4999.96, 2999.95
+    5000.00, 3000.00
 
 **PRISMATIC PARAMETRIZATION**
 
@@ -291,10 +298,6 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
         Value of the physical property of the basin. The physical property must
         be compatible with the potential field used! I.e., gravitational fields
         require a value of density contrast.
-    * xs
-        List with two x coordinates of the unknown vertices. If not None, will
-        estimate only the z coordinates in the inversion. If None, will estimate
-        the (x, z) coordinates of both vertices.
     * delta
         Interval used to calculate the approximate derivatives
 
@@ -306,7 +309,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
 
     field = "gz"
 
-    def __init__(self, xp, zp, data, verts, prop, xs=None, delta=1.):
+    def __init__(self, xp, zp, data, verts, prop, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing %s data module for trapezoidal basin:" %
                 (self.field))
@@ -323,44 +326,25 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
         self.delta = delta
         self.d1 = numpy.array([0., 0., delta, 0.], dtype='f')
         self.d2 = numpy.array([0., 0., 0., delta], dtype='f')
-        self.xs = xs
-        if xs is None:
-            log.info("  invert for: (x, z) coordinates")
-        else:
-            log.info("  invert for: z coordinates only")
-            log.info("  x coordinates given: %s" % (str(xs)))
+        self.xs = [x for x in reversed(numpy.array(verts).T[0])]
                     
     def get_predicted(self, p):
-        if self.xs is None:
-            vertices = itertools.chain(self.verts, numpy.reshape(p, (2, 2)))
-        else:
-            tmp = [[x, z] for x, z in zip(self.xs, p)]
-            vertices = itertools.chain(self.verts, tmp)
+        tmp = [[x, z] for x, z in zip(self.xs, p)]
+        vertices = itertools.chain(self.verts, tmp)
         xs, zs = numpy.array([v for v in vertices], dtype='f').T
         return _talwani.talwani_gz(self.prop, xs, zs, self.xp, self.zp)
 
     def sum_gradient(self, gradient, p, residuals):
         xp, zp = self.xp, self.zp
-        if self.xs is None:
-            tmp = numpy.reshape(p, (2, 2))
-            vertices = itertools.chain(self.verts, tmp)
-        else:
-            tmp = [[x, z] for x, z in zip(self.xs, p)]
-            vertices = itertools.chain(self.verts, tmp)
+        tmp = [[x, z] for x, z in zip(self.xs, p)]
+        vertices = itertools.chain(self.verts, tmp)
         xs, zs = numpy.array([v for v in vertices], dtype='f').T        
         at_p = _talwani.talwani_gz(self.prop, xs, zs, xp, zp)
         jacz1 = ((_talwani.talwani_gz(self.prop, xs, zs + self.d1, xp, zp) -
                   at_p)/self.delta)
         jacz2 = ((_talwani.talwani_gz(self.prop, xs, zs + self.d2, xp, zp) -
                   at_p)/self.delta)
-        if self.xs is None:
-            jacx1 = ((_talwani.talwani_gz(self.prop, xs + self.d1, zs, xp, zp) -
-                      at_p)/self.delta)
-            jacx2 = ((_talwani.talwani_gz(self.prop, xs + self.d2, zs, xp, zp) -
-                      at_p)/self.delta)
-            self.jac_T = numpy.array([jacx1, jacz1, jacx2, jacz2])
-        else:
-            self.jac_T = numpy.array([jacz1, jacz2])
+        self.jac_T = numpy.array([jacz1, jacz2])
         return gradient - 2.*numpy.dot(self.jac_T, residuals)
 
     def sum_hessian(self, hessian, p):

@@ -1,5 +1,5 @@
 """
-Gravity inversion for the relief of a 2D triangular basin
+Gravity inversion for the relief of a 2D trapezoidal basin
 """
 from matplotlib import pyplot
 import numpy
@@ -13,25 +13,24 @@ log.info(logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")
-verts = [(11500, 10.), (91500, 15.), (85100, 5000)]
-left, middle, right = verts
+verts = [(11500, 10.), (91500, 15.), (91500, 7000), (11500, 3330)]
 model = Polygon(verts, {'density':-100})
 xp = numpy.arange(0., 100000., 1000.)
 zp = numpy.zeros_like(xp)
-gz = utils.contaminate(talwani.gz(xp, zp, [model]), 1)
+gz = utils.contaminate(talwani.gz(xp, zp, [model]), 0.5)
 
 log.info("Preparing for the inversion")
-dm = basin2d.TriangularGzDM(xp, zp, gz, prop=-100, verts=[left, middle])
-solver = levmarq(initial=(10000, 1000))
-p, residuals = basin2d.triangular([dm], solver)
-estimate = Polygon([left, middle, p])
+dm = basin2d.TrapezoidalGzDM(xp, zp, gz, prop=-100, verts=verts[0:2])
+solver = levmarq(initial=(9000, 500))
+p, residuals = basin2d.trapezoidal([dm], solver)
+estimate = Polygon([(11500, 10.), (91500, 15.), (91500, p[0]), (11500, p[1])])
 
 pyplot.figure()
 pyplot.subplot(2, 1, 1)
 pyplot.title("Gravity anomaly")
 pyplot.plot(xp, gz, 'ok', label='Observed')
 pyplot.plot(xp, gz - residuals[0], '--r', linewidth=2, label='Predicted')
-pyplot.legend(loc='lower left')
+pyplot.legend(loc='lower left', numpoints=1)
 pyplot.ylabel("mGal")
 pyplot.xlim(0, 100000)
 pyplot.subplot(2, 1, 2)
