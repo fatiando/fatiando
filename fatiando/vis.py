@@ -326,7 +326,7 @@ def square(area, color='-k', width=1, label=None):
     plot, = pyplot.plot(xs, ys, color, **kwargs)
     return plot
 
-def polyprism_contours(prisms, colors=None, labels=None):
+def polyprism_contours(prisms, colors=None, labels=None, linewidth=1):
     """
     Plot 2D contours of PolygonalPrism3D objects on a map.
 
@@ -355,7 +355,7 @@ def polyprism_contours(prisms, colors=None, labels=None):
         args = [tmpx, tmpy]
         if colors is not None:
             args.append(colors[i])
-        kwargs = {}
+        kwargs = {'linewidth':linewidth}
         if labels is not None:
             kwargs['label'] = labels[i]
         line, = pyplot.plot(*args, **kwargs)

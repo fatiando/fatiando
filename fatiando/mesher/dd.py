@@ -45,7 +45,7 @@ from fatiando import logger, gridder
 log = logger.dummy()
 
 
-def Polygon(vertices, props):
+def Polygon(vertices, props=None):
     """
     Create a polygon object.
 
@@ -66,11 +66,12 @@ def Polygon(vertices, props):
     """    
     x, y = numpy.array(vertices, dtype='f').T
     poly = {'x':x, 'y':y}
-    for prop in props:
-        poly[prop] = props[prop]
+    if props is not None:
+        for prop in props:
+            poly[prop] = props[prop]
     return poly
 
-def Square(bounds, props):
+def Square(bounds, props=None):
     """
     Create a square object.
 
@@ -101,8 +102,9 @@ def Square(bounds, props):
     """
     x1, x2, y1, y2 = bounds
     square = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2}
-    for prop in props:
-        square[prop] = props[prop]
+    if props is not None:
+        for prop in props:
+            square[prop] = props[prop]
     return square
 
 class SquareMesh(object):

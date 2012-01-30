@@ -32,28 +32,23 @@ Example of triagular basin inversion using synthetic data::
     >>> import numpy
     >>> from fatiando.mesher.dd import Polygon
     >>> from fatiando.potential import talwani
-    >>> from fatiando.inversion.gradient import steepest
-    >>> from fatiando import logger
-    >>> log = logger.get()
+    >>> from fatiando.inversion.gradient import levmarq
     >>> # Make a triangular basin model (will estimate the last point)
-    >>> verts = [(10000, 100), (90000, 100), (50000, 5000)]
+    >>> verts = [(10000, 5), (90000, 10), (50000, 5000)]
     >>> left, middle, right = verts
-    >>> props = {'density':500}
-    >>> model = Polygon(verts, props)
+    >>> model = Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
     >>> dm = TriangularGzDM(xs, zs, gz, prop=500, verts=[left, middle])
-    >>> # Estimate the coordinates of the last point using Steepest Descent
-    >>> solver = steepest(initial=(10000, 1000))
+    >>> # Estimate the coordinates of the last point using Levenberg-Marquardt
+    >>> solver = levmarq(initial=(10000, 1000))
     >>> p, res = triangular([dm], solver)
     >>> for v in p:
     ...     print '%.1f' % (v),
-    50000. 5000.
-    >>> print gz
-    
+    50000.0 5000.0
 
 
 **PRISMATIC PARAMETRIZATION**
