@@ -1,5 +1,5 @@
 """
-Generate synthetic gz data from a prism model.
+Generate synthetic gz data from a 3D prism model.
 """
 from matplotlib import pyplot
 import numpy
@@ -8,7 +8,7 @@ from fatiando.mesher.ddd import Prism, extract
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of direct modelling using right rectangular prisms")
+log.info(__doc__)
 
 prisms = [Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
           Prism(-1000,1000,-1000,1000,0,2000,{'density':-1000}),
@@ -19,14 +19,13 @@ gz = potential.prism.gz(xp, yp, zp, prisms)
 
 pyplot.axis('scaled')
 pyplot.title("gz produced by prism model (mGal)")
-vis.pcolor(xp, yp, gz, shape)
+vis.map.pcolor(xp, yp, gz, shape)
 pyplot.colorbar()
 pyplot.show()
 
-vis.mayavi_figure()
-plot = vis.prisms3D(prisms, extract('density', prisms))
-vis.add_outline3d()
-axes = vis.add_axes3d(plot)
-vis.wall_bottom(axes.axes.bounds, opacity=0.2)
-vis.wall_north(axes.axes.bounds)
-vis.mlab.show()
+vis.vtk.figure()
+vis.vtk.prisms(prisms, extract('density', prisms))
+axes = vis.vtk.add_axes(vis.vtk.add_outline())
+vis.vtk.wall_bottom(axes.axes.bounds, opacity=0.2)
+vis.vtk.wall_north(axes.axes.bounds)
+vis.vtk.mlab.show()

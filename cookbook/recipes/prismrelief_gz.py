@@ -1,5 +1,5 @@
 """
-Calculating gz cause by a topographic model using prisms
+Calculate the gravity anomaly caused by a topographic model using prisms
 """
 from matplotlib import pyplot
 from fatiando import utils, gridder, logger, vis, potential
@@ -7,6 +7,7 @@ from fatiando.mesher.ddd import PrismRelief
 
 log = logger.get()
 log.info(logger.header())
+log.info(__doc__)
 
 log.info("Generating synthetic topography")
 area = (-150, 150, -300, 300)
@@ -22,29 +23,31 @@ relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Calculating gz effect")
 gridarea = (-80, 80, -220, 220)
-xp, yp, zp = gridder.regular(gridarea, shape, z=-200)
+gridshape = (100, 100)
+xp, yp, zp = gridder.regular(gridarea, gridshape, z=-200)
 gz = potential.prism.gz(xp, yp, zp, relief)
 
 log.info("Plotting")
-pyplot.figure()
-pyplot.subplot(1,2,1)
+pyplot.figure(figsize=(10,7))
+pyplot.subplot(1, 2, 1)
 pyplot.title("Synthetic topography")
 pyplot.axis('scaled')
-vis.pcolor(x, y, height, shape)
-pyplot.colorbar()
-vis.square(gridarea, label='Computation grid')
+vis.map.pcolor(x, y, height, shape)
+cb = pyplot.colorbar()
+cb.set_label("meters")
+vis.map.square(gridarea, label='Computation grid')
 pyplot.legend()
-pyplot.subplot(1,2,2)
-pyplot.title("Topographic gz effect")
+pyplot.subplot(1, 2, 2)
+pyplot.title("Topographic effect")
 pyplot.axis('scaled')
-vis.pcolor(xp, yp, gz, shape)
-pyplot.colorbar()
+vis.map.pcolor(xp, yp, gz, gridshape)
+cb = pyplot.colorbar()
+cb.set_label("mGal")
 pyplot.show()
 
-vis.mayavi_figure()
-plot = vis.prisms3D(relief, relief.props['density'])
-vis.add_outline3d()
-axes = vis.add_axes3d(plot)
-vis.wall_bottom(axes.axes.bounds, opacity=0.2)
-vis.wall_north(axes.axes.bounds)
-vis.mlab.show()
+vis.vtk.figure()
+vis.vtk.prisms(relief, relief.props['density'])
+axes = vis.vtk.add_axes(vis.vtk.add_outline())
+vis.vtk.wall_bottom(axes.axes.bounds, opacity=0.2)
+vis.vtk.wall_north(axes.axes.bounds)
+vis.vtk.mlab.show()

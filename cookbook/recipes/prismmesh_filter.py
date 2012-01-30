@@ -1,12 +1,12 @@
 """
-Filter values from a 3D prism mesh.
+Filter values from a 3D prism mesh with alternating density contrasts.
 """
 from fatiando import logger, vis
 from fatiando.mesher.ddd import PrismMesh, vfilter, extract
 
 log = logger.get()
 log.info(logger.header())
-log.info("Generating prism mesh with alternating density contrast")
+log.info(__doc__)
 
 shape = (5, 20, 10)
 bounds = (0, 100, 0, 200, 0, 50)
@@ -23,9 +23,9 @@ odd = vfilter(-1, 0, 'density', mesh)
 even = vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
-vis.mayavi_figure()
-vis.prisms3D(odd, extract('density', odd), vmin=-1, vmax=1)
-plot = vis.prisms3D(even, extract('density', even), style='wireframe', vmin=-1,
-                    vmax=1)
-vis.add_axes3d(plot, extent=bounds)
-vis.mlab.show()
+vis.vtk.figure()
+vis.vtk.prisms(odd, extract('density', odd), vmin=-1, vmax=1)
+vis.vtk.prisms(even, extract('density', even), style='wireframe',
+    vmin=-1, vmax=1)
+vis.vtk.add_axes(vis.vtk.add_outline(bounds))
+vis.vtk.mlab.show()

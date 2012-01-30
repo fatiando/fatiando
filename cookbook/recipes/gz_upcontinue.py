@@ -1,5 +1,5 @@
 """
-Upcontinue gz data.
+Upcontinue noisy gz data using the analytical formula
 """
 from matplotlib import pyplot
 from fatiando import gridder, potential, vis, logger, utils
@@ -7,7 +7,7 @@ from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of upward continuation using the analytical formula")
+log.info(__doc__)
 
 log.info("Generating synthetic data")
 prisms = [Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
@@ -28,19 +28,18 @@ log.info("Computing true values at new height")
 gztrue = potential.prism.gz(xp, yp, zp - height, prisms)
 
 log.info("Plotting")
-pyplot.figure()
+pyplot.figure(figsize=(14,6))
+pyplot.subplot(1, 2, 1)
 pyplot.title("Original")
 pyplot.axis('scaled')
-vis.contourf(xp, yp, gz, shape, 15)
-vis.contour(xp, yp, gz, shape, 15)
-
-pyplot.figure()
+vis.map.contourf(xp, yp, gz, shape, 15)
+vis.map.contour(xp, yp, gz, shape, 15)
+pyplot.subplot(1, 2, 2)
 pyplot.title("Continued + true")
 pyplot.axis('scaled')
-levels = vis.contour(xp, yp, gzcont, shape, 12, color='b', label='continued',
-    style='dashed')
-vis.contour(xp, yp, gztrue, shape, levels, color='r', label='true',
+levels = vis.map.contour(xp, yp, gzcont, shape, 12, color='b',
+    label='Continued', style='dashed')
+vis.map.contour(xp, yp, gztrue, shape, levels, color='r', label='True',
     style='solid')
 pyplot.legend()
-
 pyplot.show()

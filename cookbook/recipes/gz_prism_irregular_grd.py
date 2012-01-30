@@ -8,7 +8,7 @@ from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of generating and plotting irregular grids")
+log.info(__doc__)
 
 log.info("Calculating...")
 prisms = [Prism(-2000,2000,-2000,2000,0,2000,{'density':1000})]
@@ -20,7 +20,7 @@ shape = (100,100)
 pyplot.axis('scaled')
 pyplot.title("gz produced by prism model on an irregular grid (mGal)")
 pyplot.plot(xp, yp, '.k', label='Grid points')
-levels = vis.contourf(xp, yp, gz, shape, 12, interpolate=True)
-vis.contour(xp, yp, gz, shape, levels, interpolate=True)
-pyplot.legend(loc='lower right')
+levels = vis.map.contourf(xp, yp, gz, shape, 12, interpolate=True)
+vis.map.contour(xp, yp, gz, shape, levels, interpolate=True)
+pyplot.legend(loc='lower right', numpoints=1)
 pyplot.show()

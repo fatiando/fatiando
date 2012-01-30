@@ -17,14 +17,14 @@ model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (5, 5)
-srcs, recs = utils.connect_points([src], utils.random_points(area, 4))
+srcs, recs = utils.connect_points([src], utils.random_points(area, 6))
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
 ttresiduals, error = utils.contaminate(stime - ptime, 0.10, percent=True,
                                        return_stddev=True)
 
-log.info("Will solve the inverse problem using Newton's method")
-solver = inversion.gradient.newton(initial=(0, 0), maxit=1000, tol=10**(-3))
+log.info("Will solve the inverse problem using the Levenberg-Marquardt method")
+solver = inversion.gradient.levmarq(initial=(0, 0), maxit=1000, tol=10**(-3))
 result = epicenter.solve_flat(ttresiduals, recs, vp, vs, solver)
 estimate, residuals = result
 predicted = ttresiduals - residuals
@@ -34,10 +34,10 @@ pyplot.figure(figsize=(10,4))
 pyplot.subplot(1, 2, 1)
 pyplot.title('Epicenter + recording stations')
 pyplot.axis('scaled')
-vis.points([src], '*y', label="True")
-vis.points(recs, '^r', label="Stations")
-vis.points([estimate], '*g', label="Estimate")
-vis.set_area(area)
+vis.map.points([src], '*y', label="True")
+vis.map.points(recs, '^r', label="Stations")
+vis.map.points([estimate], '*g', label="Estimate")
+vis.map.set_area(area)
 pyplot.legend(loc='lower right', shadow=True, numpoints=1, prop={'size':12})
 pyplot.xlabel("X")
 pyplot.ylabel("Y")

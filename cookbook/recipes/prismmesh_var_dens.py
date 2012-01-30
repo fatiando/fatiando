@@ -1,12 +1,12 @@
 """
-Making a 3D prism mesh with depth-varying density.
+Make and plot a 3D prism mesh with depth-varying density.
 """
 from fatiando import logger, vis
 from fatiando.mesher.ddd import PrismMesh
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of generating a prism mesh with depth varying density")
+log.info(__doc__)
 
 shape = (10, 20, 10)
 nz, ny, nx = shape
@@ -16,7 +16,7 @@ def fill(i):
     return k
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
-vis.mayavi_figure()
-plot = vis.prisms3D(mesh, mesh.props['density'])
-axes = vis.add_axes3d(plot)
-vis.mlab.show()
+vis.vtk.figure()
+vis.vtk.prisms(mesh, mesh.props['density'])
+vis.vtk.add_axes(vis.vtk.add_outline(), fmt='%.0f')
+vis.vtk.mlab.show()

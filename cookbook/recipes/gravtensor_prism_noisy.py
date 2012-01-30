@@ -18,14 +18,14 @@ components = [potential.prism.gxx, potential.prism.gxy, potential.prism.gxz,
 ftg = [utils.contaminate(comp(xp, yp, zp, prisms),5.0) for comp in components]
 
 log.info("Plotting...")
-pyplot.figure()
+pyplot.figure(figsize=(14,6))
 pyplot.suptitle("Contaminated FTG data")
 names = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 for i, data in enumerate(ftg):
     pyplot.subplot(2,3,i+1)
     pyplot.title(names[i])
     pyplot.axis('scaled')
-    levels = vis.contourf(xp*0.001, yp*0.001, data, (100,100), 12)
+    levels = vis.map.contourf(xp*0.001, yp*0.001, data, (100,100), 12)
     pyplot.colorbar()
-    vis.contour(xp*0.001, yp*0.001, data, shape, levels, clabel=False)
+    vis.map.contour(xp*0.001, yp*0.001, data, shape, levels, clabel=False)
 pyplot.show()

@@ -6,3 +6,4 @@
 * Consider getting rid of use_sparse functions and DampingSparse type regularizers.
   Instead, use sparse=True keyword arguments
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
+* Fix recipe epicenter_regularized.py

@@ -7,7 +7,7 @@ from fatiando.mesher.ddd import Prism
 
 log = logger.get()
 log.info(logger.header())
-log.info("Example of generating noise-corrupted synthetic data using prisms")
+log.info(__doc__)
 
 log.info("Calculating...")
 prisms = [Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
@@ -19,6 +19,6 @@ gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.05,
 log.info("Plotting...")
 pyplot.title("gz contaminated with 1 mGal noise")
 pyplot.axis('scaled')
-levels = vis.contourf(xp, yp, gz, (100,100), 12)
-vis.contour(xp, yp, gz, shape, levels)
+levels = vis.map.contourf(xp, yp, gz, (100,100), 12)
+vis.map.contour(xp, yp, gz, shape, levels)
 pyplot.show()
