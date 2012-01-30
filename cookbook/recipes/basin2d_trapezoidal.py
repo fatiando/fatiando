@@ -13,7 +13,7 @@ log.info(logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")
-verts = [(11500, 10.), (91500, 15.), (91500, 7000), (11500, 3330)]
+verts = [(10000, 1.), (90000, 1.), (90000, 7000), (10000, 3330)]
 model = Polygon(verts, {'density':-100})
 xp = numpy.arange(0., 100000., 1000.)
 zp = numpy.zeros_like(xp)
@@ -23,7 +23,7 @@ log.info("Preparing for the inversion")
 dm = basin2d.TrapezoidalGzDM(xp, zp, gz, prop=-100, verts=verts[0:2])
 solver = levmarq(initial=(9000, 500))
 p, residuals = basin2d.trapezoidal([dm], solver)
-estimate = Polygon([(11500, 10.), (91500, 15.), (91500, p[0]), (11500, p[1])])
+estimate = Polygon([(10000, 1.), (90000, 1.), (90000, p[0]), (10000, p[1])])
 
 pyplot.figure()
 pyplot.subplot(2, 1, 1)

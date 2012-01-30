@@ -92,6 +92,24 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
                 xvp1 = *(++px) - *xp;
                 zvp1 = *(++pz) - *zp;                
             }
+            /* Temporary fix to the two bad conditions bellow */
+            if(xv == 0 || xv == xvp1)
+            {
+                xv += 0.1;
+            }
+            if((xv == 0. && zv == 0.) || zv == zvp1)
+            {
+                zv += 0.1;
+            }
+            if(xvp1 == 0. && zvp1 == 0.)
+            {
+                zvp1 += 0.1;
+            }
+            if(xvp1 == 0.)
+            {
+                xvp1 += 0.1;
+            }
+            /* Fix ends here */
             theta_v = atan2(zv, xv); 
             theta_vp1 = atan2(zvp1, xvp1); 
             phi_v = atan2(zvp1 - zv, xvp1 - xv); 
@@ -103,10 +121,13 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
             if(theta_vp1 < 0)
             {
                 theta_vp1 += 3.1415926535897932384626433832795;
-            }            
+            }   
+            /* There is something wrong with these conditions. Need to review.
+             * For now, just sum 0.1 meter to one of the coordinates (above).
+             * Gives decent enough result.          
             if(xv == 0)
             {
-                /* 1.570796327 = pi/2 */ 
+                // 1.570796327 = pi/2 
                 tmp = -ai*sin(phi_v)*cos(phi_v)*(theta_vp1 -
                     1.57079632679489661923 + tan(phi_v)*log(
                         cos(theta_vp1)*(tan(theta_vp1)- tan(phi_v))));
@@ -117,24 +138,29 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
                 tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v -
                     1.57079632679489661923 + tan(phi_v)*log(
                         cos(theta_v)*(tan(theta_v) - tan(phi_v))));         
-                flag = 2;
-            }            
+                flag = 1;
+            }
             if(zv == zvp1)
             {
                 tmp = zv*(theta_vp1 - theta_v);
-                flag = 3;
+                flag = 1; 
             }            
             if(xv == xvp1)
             {
                 tmp = xv*(log((double)cos(theta_v)/cos(theta_vp1)));
-                flag = 4;
-            }            
+                flag = 1;
+            }         
             if((theta_v == theta_vp1) || (xv == 0. && zv == 0.) ||
                (xvp1 == 0. && zvp1 == 0.))
             {
                 tmp = 0;
-                flag = 5;
-            }            
+                flag = 1;
+            }*/
+            if(theta_v == theta_vp1)
+            {
+                tmp = 0;
+                flag = 1;
+            }
             if(!flag)
             { 
                 tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v - theta_vp1 +

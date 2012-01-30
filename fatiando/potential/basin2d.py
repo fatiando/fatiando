@@ -41,7 +41,7 @@ Example using synthetic data::
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import levmarq
     >>> # Make a triangular basin model (will estimate the last point)
-    >>> verts = [(10000, 5), (90000, 10), (50000, 5000)]
+    >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
     >>> model = Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
@@ -64,7 +64,7 @@ algorithm::
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import levmarq
     >>> # Make a triangular basin model (will estimate the last point)
-    >>> verts = [(10000, 5), (90000, 10), (50000, 5000)]
+    >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
     >>> model = Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
@@ -78,15 +78,16 @@ algorithm::
     >>> for p, residuals in triangular([dm], solver, iterate=True):
     ...     print '%.4f, %.4f' % (p[0], p[1])
     70000.0000, 2000.0000
-    69999.8806, 2005.4735
-    69998.6844, 2059.0869
-    69986.4959, 2502.6711
-    69844.7495, 3961.6829
-    67987.8796, 4733.3432
-    59046.1546, 4820.3780
-    50717.7844, 4951.7917
-    50000.9652, 4999.4255
-    50000.0009, 5000.0002
+    69999.8789, 2005.4746
+    69998.6811, 2059.0979
+    69986.4657, 2502.6963
+    69843.9888, 3960.5020
+    67972.7649, 4728.4963
+    59022.3155, 4820.1361
+    50714.4193, 4952.5626
+    50001.0132, 4999.4348
+    50000.0020, 5000.0002
+    49999.9981, 5000.0002
 
 **Trapezoidal basin**
 
@@ -106,7 +107,7 @@ Example of inverting for the z coordinates of the unknown vertices::
     >>> from fatiando.potential import talwani
     >>> from fatiando.inversion.gradient import levmarq
     >>> # Make a trapezoidal basin model (will estimate the last two point)
-    >>> verts = [(10000, 5), (90000, 10), (90000, 5000), (10000, 3000)]
+    >>> verts = [(10000, 1), (90000, 1), (90000, 5000), (10000, 3000)]
     >>> model = Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
@@ -139,16 +140,16 @@ algorithm::
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
     >>> solver = levmarq(initial=(1000, 500))
     >>> for p, residuals in trapezoidal([dm], solver, iterate=True):
-    ...     print '%.2f, %.2f' % (p[0], p[1])
-    1000.00, 500.00
-    1000.85, 500.61
-    1009.34, 506.65
-    1092.50, 565.69
-    1782.11, 1045.63
-    4057.01, 2481.09
-    4984.89, 2987.82
-    4999.96, 2999.95
-    5000.00, 3000.00
+    ...     print '%.4f, %.4f' % (p[0], p[1])
+    1000.0000, 500.0000
+    1010.4376, 509.4190
+    1111.6982, 600.5537
+    1888.0891, 1281.9118
+    3926.6116, 2780.5289
+    4903.8182, 3040.3440
+    4998.6975, 3001.0088
+    4999.9983, 3000.0017
+    4999.9998, 3000.0000
 
 **PRISMATIC PARAMETRIZATION**
 

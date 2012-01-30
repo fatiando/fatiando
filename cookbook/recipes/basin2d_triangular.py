@@ -13,7 +13,7 @@ log.info(logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")
-verts = [(11500, 10.), (91500, 15.), (85100, 5000)]
+verts = [(10000, 1.), (90000, 1.), (80000, 5000)]
 left, middle, right = verts
 model = Polygon(verts, {'density':-100})
 xp = numpy.arange(0., 100000., 1000.)
