@@ -1,4 +1,4 @@
-# Copyright 2010 The Fatiando a Terra Development Team
+# Copyright 2012 The Fatiando a Terra Development Team
 #
 # This file is part of Fatiando a Terra.
 #
@@ -15,12 +15,21 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Package ``fatiando`` contains tools for geophysical direct and inverse modeling
-as well as data processing, gridding, and visualization.
-"""
-__date__ = '02-Apr-2010'
-__version__ = '0.0.1'
+Modeling and inversion of geothermics.
 
-__all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
-           'utils', 'logger', 'heat']
-from fatiando.changeset import __changeset__
+**CLIMATE SIGNAL**
+
+* :mod:`fatiando.heat.climatesignal`
+
+Modeling and inversion of temperature residuals measured in wells due to
+temperature perturbations in the surface.
+
+----
+
+"""
+__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
+__date__ = 'Created 30-Jan-2012'
+
+
+from fatiando.heat import climatesignal
+

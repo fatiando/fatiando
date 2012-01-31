@@ -26,6 +26,7 @@ import fatiando
 # Base paths for extention modules
 potdir = join('src', 'potential')
 seisdir = join('src', 'seismic')
+heatdir = join('src', 'heat')
 
 potential_prism = Extension('fatiando.potential._prism',
                             sources=[join(potdir, 'prism.c'),
@@ -47,12 +48,17 @@ seismic_traveltime = Extension('fatiando.seismic._traveltime',
                                 sources=[join(seisdir, 'traveltime.c'),
                                          join(seisdir, 'traveltime.pyf')],
                                 extra_compile_args=['-fno-strict-aliasing'])
+heat_climatesignal = Extension('fatiando.heat._climatesignal',
+                                sources=[join(heatdir, 'climatesignal.c'),
+                                         join(heatdir, 'climatesignal.pyf')],
+                                extra_compile_args=['-fno-strict-aliasing'])
 
 extmods = [potential_prism,
            potential_talwani,
            potential_polyprism,
            potential_transform,
-           seismic_traveltime]
+           seismic_traveltime,
+           heat_climatesignal]
 
 packages = ['fatiando',
             'fatiando.mesher',

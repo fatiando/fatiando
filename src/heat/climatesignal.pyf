@@ -1,0 +1,15 @@
+! f2py wrapper for extention module fatiando.heat._climatesignal
+python module _climatesignal
+interface
+
+  subroutine climatesignal_abrupt(diffus, amp, age, zp, n, res)
+    intent(c) climatesignal_abrupt
+    intent(c)
+    double precision intent(in) :: diffus, amp, age
+    double precision intent(in), dimension(n) :: zp
+    double precision intent(out), dimension(n) :: res
+    integer intent(hide), depend(zp) :: n=len(zp)
+  end subroutine climatesignal_abrupt
+
+end interface
+end python module _climatesignal
