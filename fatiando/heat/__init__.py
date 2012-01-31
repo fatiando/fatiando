@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Modeling and inversion of geothermics.
+Modeling and inversion for geothermics.
 
 **CLIMATE SIGNAL**
 
