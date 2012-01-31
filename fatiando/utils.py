@@ -34,16 +34,20 @@ Point scatter generation
 Others
 ^^^^^^
 
+* :func:`fatiando.utils.contaminate`
+    Contaminate a vector with pseudo-random Gaussian noise
+* :func:`fatiando.utils.vecmean`
+    Take the mean array out of a list of arrays
+* :func:`fatiando.utils.vecstd`
+    Take the standard deviation array out of a list of arrays
+* :class:`fatiando.utils.SparseList`
+    Store only non-zero elements on an immutable list
 * :func:`fatiando.utils.sec2hms`
     Convert seconds to hours, minutes, and seconds
 * :func:`fatiando.utils.sec2year`
     Convert seconds to Julian years
 * :func:`fatiando.utils.year2sec`
     Convert Julian years to seconds
-* :func:`fatiando.utils.contaminate`
-    Contaminate a vector with pseudo-random Gaussian noise
-* :class:`fatiando.utils.SparseList`
-    Store only non-zero elements on an immutable list
 
 ----
 
@@ -60,6 +64,40 @@ from fatiando import logger
 log = logger.dummy()
 
   
+def vecmean(arrays):
+    """
+    Take the mean array out of a list of arrays.
+
+    Parameter:
+
+    * arrays
+        List of arrays
+
+    Returns:
+
+    * mean
+        Array with the mean of each element in the arrays
+        
+    """
+    return numpy.mean(arrays, axis=0)
+
+def vecstd(arrays):
+    """
+    Take the standard deviation array out of a list of arrays.
+
+    Parameter:
+
+    * arrays
+        List of arrays
+
+    Returns:
+
+    * std
+        Array with the standard deviation of each element in the arrays
+        
+    """
+    return numpy.std(arrays, axis=0)
+    
 class SparseList(object):
     """
     Store only non-zero elements on an immutable list.
