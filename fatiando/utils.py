@@ -77,6 +77,11 @@ def vecmean(arrays):
 
     * mean
         Array with the mean of each element in the arrays
+
+    Example::
+
+        >>> print vecmean([[1, 1, 2], [2, 3, 5]])
+        [ 1.5  2.   3.5]
         
     """
     return numpy.mean(arrays, axis=0)
@@ -94,6 +99,11 @@ def vecstd(arrays):
 
     * std
         Array with the standard deviation of each element in the arrays
+        
+    Example::
+
+        >>> print vecstd([[1, 1, 2], [2, 3, 5]])
+        [ 0.5  1.   1.5]
         
     """
     return numpy.std(arrays, axis=0)
