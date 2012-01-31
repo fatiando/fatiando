@@ -35,10 +35,12 @@
 #include <math.h>
 
 /* The gravitational constant (m^3*kg^-1*s^-1) */
-#define G 0.00000000006673
+const double G = 0.00000000006673;
 
 /* Conversion factor from SI units to mGal: 1 m/s**2 = 10**5 mGal */
-#define SI2MGAL 100000.0
+const double SI2MGAL = 100000.0;
+
+const double FAT_PI = 3.1415926535897932384626433832795;
 
 
 /* Calculate the gravitational attraction of a 2D body with polygonal vertical
@@ -116,27 +118,26 @@ unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
             ai = xvp1 + (zvp1)*((double)(xvp1 - xv)/(zv - zvp1));            
             if(theta_v < 0)
             {
-                theta_v += 3.1415926535897932384626433832795;
+                theta_v += FAT_PI;
             }
             if(theta_vp1 < 0)
             {
-                theta_vp1 += 3.1415926535897932384626433832795;
+                theta_vp1 += FAT_PI;
             }   
             /* There is something wrong with these conditions. Need to review.
              * For now, just sum 0.1 meter to one of the coordinates (above).
              * Gives decent enough result.          
             if(xv == 0)
             {
-                // 1.570796327 = pi/2 
                 tmp = -ai*sin(phi_v)*cos(phi_v)*(theta_vp1 -
-                    1.57079632679489661923 + tan(phi_v)*log(
+                    0.5*FAT_PI + tan(phi_v)*log(
                         cos(theta_vp1)*(tan(theta_vp1)- tan(phi_v))));
                 flag = 1;
             }             
             if(xvp1 == 0)
             {
                 tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v -
-                    1.57079632679489661923 + tan(phi_v)*log(
+                    0.5*FAT_PI + tan(phi_v)*log(
                         cos(theta_v)*(tan(theta_v) - tan(phi_v))));         
                 flag = 1;
             }
