@@ -36,6 +36,10 @@ Others
 
 * :func:`fatiando.utils.sec2hms`
     Convert seconds to hours, minutes, and seconds
+* :func:`fatiando.utils.sec2year`
+    Convert seconds to Julian years
+* :func:`fatiando.utils.year2sec`
+    Convert Julian years to seconds
 * :func:`fatiando.utils.contaminate`
     Contaminate a vector with pseudo-random Gaussian noise
 * :class:`fatiando.utils.SparseList`
@@ -147,6 +151,54 @@ def sec2hms(seconds):
     m = int((seconds - h*3600)/60)
     s = seconds - h*3600 - m*60
     return '%dh %dm %2.5fs' % (h, m, s)
+
+def sec2year(seconds):
+    """
+    Convert seconds into decimal Julian years.
+
+    Julian years have 365.25 days.
+
+    Parameters:
+    
+    * seconds
+        Time in seconds
+
+    Returns:
+    
+    * years
+        Time in years
+
+    Example::
+    
+        >>> print sec2year(31557600)
+        1.0
+    
+    """
+    return float(seconds)/31557600.0
+
+def year2sec(years):
+    """
+    Convert decimal Julian years into seconds.
+
+    Julian years have 365.25 days.
+
+    Parameters:
+    
+    * years
+        Time in years
+
+    Returns:
+    
+    * seconds
+        Time in seconds
+
+    Example::
+    
+        >>> print year2sec(1)
+        31557600.0
+    
+    """
+    return 31557600.0*float(years)
 
 def contaminate(data, stddev, percent=False, return_stddev=False):
     """

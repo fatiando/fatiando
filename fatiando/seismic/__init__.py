@@ -17,6 +17,18 @@
 """
 Various tools for seismic and seismology, like direct modeling, inversion
 (tomography), epicenter determination, etc.
+
+**DIRECT MODELING**
+
+* :mod:`fatiando.seismic.traveltime`
+
+**INVERSION**
+
+* :mod:`fatiando.seismic.epicenter`
+* :mod:`fatiando.seismic.srtomo`
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
