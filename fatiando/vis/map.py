@@ -36,6 +36,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`fatiando.vis.map.square`
 * :func:`fatiando.vis.map.squaremesh`
 * :func:`fatiando.vis.map.polygon`
+* :func:`fatiando.vis.map.layers`
 
 ----
    
@@ -114,6 +115,51 @@ def paths(pts1, pts2, style='-k', linewidth=1, label=None):
     for p1, p2 in zip(pts1, pts2):
         pyplot.plot([p1[0], p2[0]], [p1[1], p2[1]], style, **kwargs)
 
+def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
+    **kwargs):
+    """
+    Plot a series of layers and values associated to each layer.
+
+    Parameters:
+
+    * thickness
+        List with the thickness of each layer in order of increasing depth
+    * values
+        List with the value associated with each layer in order of increasing
+        depth    
+    * style
+        String with the color and line style (as in matplotlib.pyplot.plot)
+    * z0
+        The depth of the top of the first layer 
+    * linewidth
+        Line width
+    * label
+        label associated with the square.
+
+    Returns:
+
+    * ``matplitlib.axes`` element of the plot
+    
+    """
+    if len(thickness) != len(values):
+        raise ValueError, "thickness and values must have same length"
+    nlayers = len(thickness)
+    interfaces = [z0 + sum(thickness[:i]) for i in xrange(nlayers + 1)]
+    ys = [interfaces[0]]
+    for y in interfaces[1:-1]:
+        ys.append(y)
+        ys.append(y)
+    ys.append(interfaces[-1])
+    xs = []
+    for x in values:
+        xs.append(x)
+        xs.append(x)
+    kwargs['linewidth'] = linewidth
+    if label is not None:
+        kwargs['label'] = label
+    plot, = pyplot.plot(xs, ys, style, **kwargs)
+    return plot
+    
 def square(area, style='-k', linewidth=1, label=None):
     """
     Plot a square.
@@ -129,6 +175,10 @@ def square(area, style='-k', linewidth=1, label=None):
     * label
         label associated with the square.
 
+    Returns:
+
+    * ``matplitlib.axes`` element of the plot
+    
     """
     x1, x2, y1, y2 = area
     xs = [x1, x1, x2, x2, x1]
