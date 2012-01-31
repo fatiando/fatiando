@@ -61,9 +61,11 @@ extmods = [potential_prism,
            heat_climatesignal]
 
 packages = ['fatiando',
-            'fatiando.mesher',
             'fatiando.potential',
             'fatiando.seismic',
+            'fatiando.heat',
+            'fatiando.vis',
+            'fatiando.mesher',
             'fatiando.inversion',
             'fatiando.tests']
 

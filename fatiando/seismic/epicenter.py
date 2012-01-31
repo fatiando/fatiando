@@ -187,9 +187,9 @@ class MinimumDistance(inversion.regularizer.Regularizer):
 
     .. math::
 
-        \\bar{g}(\\bar{p}) = \\begin{bmatrix}
-        -2\\sum\\limits_{i=1}^N x_i - x \\\\[0.5cm]
-        -2\\sum\\limits_{i=1}^N y_i - y \end{bmatrix}
+        \\bar{g}(\\bar{p}) = -2\\begin{bmatrix}
+        \\sum\\limits_{i=1}^N x_i - x \\\\
+        \\sum\\limits_{i=1}^N y_i - y \end{bmatrix}
         
     The elements :math:`G_{i1}` and :math:`G_{i2}` of the Jacobian matrix of
     :math:`\\theta(\\bar{p})` are
@@ -203,7 +203,7 @@ class MinimumDistance(inversion.regularizer.Regularizer):
         G_{i2}(x, y) = -\\frac{y_i - y}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
 
     And the Hessian matrix can be approximated by
-    :math:`\\bar{\\bar{G}}^T\\bar{\\bar{G}}`.
+    :math:`2\\bar{\\bar{G}}^T\\bar{\\bar{G}}`.
         
     """
 
