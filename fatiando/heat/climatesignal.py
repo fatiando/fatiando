@@ -83,7 +83,7 @@ class AbruptDM(inversion.datamodule.DataModule):
     
     Packs the necessary data for the inversion.
 
-    Derivatives with respect to the amplitude and age are calculated using the.
+    Derivatives with respect to the amplitude and age are calculated using the
     formula
 
     .. math::
