@@ -239,6 +239,8 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
     log.info("Invert a vertical seismic profile for slowness:")
     log.info("  number of layers: %d" % (len(thickness)))
     log.info("  iterate: %s" % (str(iterate)))
+    log.info("  damping: %g" % (damping))
+    log.info("  smoothness: %g" % (smooth))
     nparams = len(thickness)
     dms = [VerticalSlownessDM(traveltimes, zp, thickness)]
     regs = []

@@ -18,10 +18,7 @@
 SrTomo: Straight-ray 2D travel-time tomography (i.e., does not consider
 reflection or refraction)
 
-**SOLVERS**
-
-* :func:`fatiando.seismic.srtomo.smooth`
-* :func:`fatiando.seismic.srtomo.sharp`
+* :func:`fatiando.seismic.srtomo.run`
 
 **Examples**
 
@@ -45,7 +42,7 @@ Using simple synthetic data and a linear solver::
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Will use a linear overdetermined solver
     >>> solver = linear.overdet(mesh.size)
-    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
+    >>> estimate, residuals = run(ttimes, srcs, recs, mesh, solver)
     >>> # Actually returns slowness instead of velocity
     >>> for slowness in estimate:
     ...     print '%.4f' % (1./slowness),
@@ -74,7 +71,7 @@ Again, using simple synthetic data but this time use Newton's method to solve::
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Will use Newton's method to solve this
     >>> solver = newton(initial=[0, 0], maxit=5)
-    >>> estimate, residuals = smooth(ttimes, srcs, recs, mesh, solver)
+    >>> estimate, residuals = run(ttimes, srcs, recs, mesh, solver)
     >>> # Actually returns slowness instead of velocity
     >>> for v in estimate:
     ...     print '%.4f' % (1./v),
@@ -238,10 +235,13 @@ def _slow2vel(slowness, tol=10**(-5)):
     else:
         return 1./float(slowness)
 
-def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
+def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.):
     """
-    Perform a tomography with smoothing regularization. Estimates the slowness
+    Perform a 2D straight-ray travel-time tomography. Estimates the slowness
     (1/velocity) of cells in mesh (because slowness is linear and easier)
+
+    Regularization is usually **not** optional. At least some amount of damping
+    is required.
 
     Parameters:
 
@@ -264,6 +264,9 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
     * damping
         Damping regularizing parameter (i.e., how much damping to apply).
         Must be a positive scalar.
+    * smooth
+        Smoothness regularizing parameter (i.e., how much smoothness to apply).
+        Must be a positive scalar.    
 
     Returns:
 
@@ -278,13 +281,23 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
         raise ValueError, "Damping must be positive"
     nparams = len(mesh)
     if sparse:
-        dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]   
-        regs = [inversion.regularizer.DampingSparse(damping, nparams)]     
+        dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]
+        regs = []
+        if damping:
+            regs.append(inversion.regularizer.DampingSparse(damping, nparams))
+        if smooth:
+            raise NotImplementedError, "Sparse smoothness not implemented"
     else:
         dms = [TravelTime(ttimes, srcs, recs, mesh)]
-        regs = [inversion.regularizer.Damping(damping, nparams)]
-    log.info("Running smooth straight-ray 2D travel-time tomography (SrTomo):")
+        regs = []
+        if damping:
+            regs.append(inversion.regularizer.Damping(damping, nparams))
+        if smooth:
+            regs.append(inversion.regularizer.Smoothness2D(smooth, mesh.shape))
+    log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
+    log.info("  sparse: %s" % (str(sparse)))
     log.info("  damping: %g" % (damping))
+    log.info("  smoothness: %g" % (smooth))
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):

@@ -1,6 +1,6 @@
 """
-Example of running a straight ray tomography on synthetic data generated based
-on an image file.
+Example of running a 2D straight-ray tomography on synthetic data generated
+based on an image file. Uses damping regularization.
 """
 from os import path
 from matplotlib import pyplot
@@ -20,15 +20,15 @@ model = SquareMesh(area, shape)
 model.img2prop(imgfile, 4, 10, 'vp')
 
 log.info("Generating synthetic travel-time data")
-src_loc = utils.random_points(area, 150)
-rec_loc = utils.circular_points(area, 40, random=True)
+src_loc = utils.random_points(area, 80)
+rec_loc = utils.circular_points(area, 30, random=True)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
 ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                            0.01, percent=True)
 
 mesh = SquareMesh(area, shape)
 solver = inversion.linear.overdet(mesh.size)
-results = srtomo.smooth(ttimes, srcs, recs, mesh, solver, damping=0.01)
+results = srtomo.run(ttimes, srcs, recs, mesh, solver, damping=0.01)
 estimate, residuals = results
 
 pyplot.figure(figsize=(14, 5))
@@ -43,7 +43,7 @@ vis.map.points(rec_loc, '^r', label="Receivers")
 pyplot.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
 pyplot.subplot(1, 2, 2)
 pyplot.axis('scaled')
-pyplot.title('Tomography result')
+pyplot.title('Tomography result (damped)')
 vis.map.squaremesh(mesh, estimate, vmin=0.1, vmax=0.25,
     cmap=pyplot.cm.seismic_r)
 cb = pyplot.colorbar()

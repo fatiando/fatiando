@@ -21,6 +21,9 @@ plus a range of regularizing functions already implemented.
 **Tikhonov regularization**
 
 * :class:`fatiando.inversion.regularizer.Damping`
+* :class:`fatiando.inversion.regularizer.DampingSparse`
+* :class:`fatiando.inversion.regularizer.Smoothness1D`
+* :class:`fatiando.inversion.regularizer.Smoothness2D`
 
 ----
 
@@ -142,9 +145,9 @@ class Damping(Regularizer):
         >>> import numpy
         >>> p = [1, 2, 2]
         >>> hessian = numpy.array([[1, 0, 0], [2, 0, 0], [4, 0, 0]])
-        >>> damp = Damping(0.1)
+        >>> damp = Damping(0.1, nparams=3)
         >>> print damp.value(p)
-        0.3
+        0.9
         >>> print damp.sum_hessian(hessian, p)
         [[ 1.2  0.   0. ]
          [ 2.   0.2  0. ]
@@ -182,6 +185,19 @@ class Damping(Regularizer):
 class DampingSparse(Damping):
     """
     Same as Damping regularizer but using sparse matrices instead.
+
+    Uses a Compressed Sparse Row matrix from ``scipy.sparse`` to generate the
+    identity matrix. Ocupies less memory and has efficient linear algebra
+    operations
+    
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much damping to apply
+    * nparams
+        Number of parameters in the inversion
+    
     """
 
     def __init__(self, mu, nparams):
@@ -193,11 +209,16 @@ class DampingSparse(Damping):
     def sum_hessian(self, hessian, p=None):
         return hessian + (self.mu*2.)*self.eye
 
-class Smoothness1D(Regularizer):
+class Smoothness(Regularizer):
     """
-    Smoothness regularization for 1D problems. Also known as Tikhonov order 1.
-    Imposes that adjacent parameters be as close as possible. By adjacent, I
-    mean next to each other in the parameter vector, e.g., p[2] and p[3].
+    Smoothness regularization for n-dimensional problems. Imposes that adjacent
+    parameters have values as close as possible to each other. What *adjacent*
+    means depends of the dimension of the problem. It can be spacially adjacent,
+    or just adjacent in the parameter vector, or both.
+
+    This class provides a template for smoothness classes of a specific
+    dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the Smoothness*D
+    classes.
 
     The gradient and Hessian matrix are, respectively:
     
@@ -211,8 +232,47 @@ class Smoothness1D(Regularizer):
 
         \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{R}}^T\\bar{\\bar{R}}
 
-    where :math:`\\bar{\\bar{R}}` is a finite difference matrix. For example, if
-    there are 7 parameters, matrix :math:`\\bar{\\bar{R}}` will be
+    where :math:`\\bar{\\bar{R}}` is a finite difference matrix. 
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much smoothness to
+        apply.
+    * nparams
+        Number of parameters in the inversion
+    
+    """
+
+    def __init__(self, mu, nparams):
+        Regularizer.__init__(self, mu)
+        fdmat = self._makefd(nparams)
+        self.rtr = numpy.dot(fdmat.T, fdmat)
+
+    def _makefd(self, nparams):
+        raise NotImplementedError, "_makefd of Smoothness not implemented"
+            
+    def value(self, p):
+        return self.mu*numpy.dot(p.T, numpy.dot(self.rtr, p))
+
+    def sum_gradient(self, gradient, p=None):
+        if p is None:
+            return gradient
+        return gradient + (self.mu*2.)*numpy.dot(self.rtr, p)
+
+    def sum_hessian(self, hessian, p=None):
+        return hessian + (self.mu*2.)*self.rtr
+
+class Smoothness1D(Smoothness):
+    """
+    Smoothness regularization for 1D problems. Also known as Tikhonov order 1.
+    Imposes that adjacent parameters have values as close as possible to each
+    other. By adjacent, I mean next to each other in the parameter vector,
+    e.g., p[2] and p[3].
+
+    For example, if there are 7 parameters, matrix :math:`\\bar{\\bar{R}}` will
+    be
 
     .. math::
 
@@ -232,13 +292,13 @@ class Smoothness1D(Regularizer):
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much smoothness to
         apply.
+    * nparams
+        Number of parameters in the inversion
     
     """
 
     def __init__(self, mu, nparams):
-        Regularizer.__init__(self, mu)
-        fdmat = self._makefd(nparams)
-        self.rtr = numpy.dot(fdmat.T, fdmat)
+        Smoothness.__init__(self, mu, nparams)
 
     def _makefd(self, nparams):
         fdmat = numpy.zeros((nparams - 1, nparams), dtype='f')
@@ -246,17 +306,81 @@ class Smoothness1D(Regularizer):
             fdmat[i][i] = 1
             fdmat[i][i + 1] = -1
         return fdmat
-            
-    def value(self, p):
-        return self.mu*numpy.dot(p.T, numpy.dot(self.rtr, p))
 
-    def sum_gradient(self, gradient, p=None):
-        if p is None:
-            return gradient
-        return gradient + (self.mu*2.)*numpy.dot(self.rtr, p)
+class Smoothness2D(Smoothness):
+    """
+    Smoothness regularization for 2D problems. Also known as Tikhonov order 1.
 
-    def sum_hessian(self, hessian, p=None):
-        return hessian + (self.mu*2.)*self.rtr
+    Imposes that **spacially** adjacent parameters have values as close as
+    possible to each other. By spacially adjacent, I mean that I assume the
+    parameters are originaly placed on a grid and the grid is then flattened to
+    make the parameter vector.
+        
+    For example, if the parameters are on a 2 x 2 grid (for example, in 2D
+    linear gravimetric problems), there are 4 parameters on the parameter vector
+
+    .. math::
+
+        \\mathrm{grid} = 
+        \\begin{pmatrix}
+        p_1 & p_2 \\\\
+        p_3 & p_4
+        \\end{pmatrix}, \\quad
+        \\bar{p} = 
+        \\begin{pmatrix}
+        p_1 \\\\ p_2 \\\\
+        p_3 \\\\ p_4
+        \\end{pmatrix}
+
+    In the case of our example above, the matrix :math:`\\bar{\\bar{R}}` will be
+
+    .. math::
+
+        \\bar{\\bar{R}} = 
+        \\begin{bmatrix}
+        1 & -1 & 0 & 0 \\\\
+        0 & 0 & 1 & -1 \\\\
+        1 & 0 & -1 & 0 \\\\    
+        0 & 1 & 0 & -1 \\\\    
+        \\end{bmatrix}    
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much smoothness to
+        apply.
+    * shape
+        (ny, nx): number of parameters in each direction of the grid
+    
+    """
+
+    def __init__(self, mu, shape):
+        Smoothness.__init__(self, mu, shape)
+
+    def _makefd(self, shape):
+        ny, nx = shape
+        deriv_num = (nx - 1)*ny + (ny - 1)*nx
+        fdmat = numpy.zeros((deriv_num, nx*ny))
+        deriv_i = 0
+        # Derivatives in the x direction
+        param_i = 0
+        for i in xrange(ny):
+            for j in xrange(nx - 1):
+                fdmat[deriv_i][param_i] = 1
+                fdmat[deriv_i][param_i + 1] = -1
+                deriv_i += 1
+                param_i += 1
+            param_i += 1
+        # Derivatives in the y direction
+        param_i = 0
+        for i in xrange(ny - 1):
+            for j in xrange(nx):
+                fdmat[deriv_i][param_i] = 1
+                fdmat[deriv_i][param_i + nx] = -1
+                deriv_i += 1
+                param_i += 1
+        return fdmat
         
 def _test():
     import doctest
