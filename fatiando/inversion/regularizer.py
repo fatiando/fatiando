@@ -156,14 +156,20 @@ class Damping(Regularizer):
     * mu
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much damping to apply
+    * nparams
+        Number of parameters in the inversion
     
     """
 
-    def __init__(self, mu):
+    def __init__(self, mu, nparams):
         Regularizer.__init__(self, mu)
+        self.eye = self._get_identity(nparams)
+
+    def _get_identity(self, nparams):
+        return numpy.identity(nparams)
 
     def value(self, p):
-        return self.mu*numpy.linalg.norm(p)
+        return self.mu*numpy.linalg.norm(p)**2
 
     def sum_gradient(self, gradient, p=None):
         if p is None:
@@ -171,19 +177,86 @@ class Damping(Regularizer):
         return gradient + (self.mu*2.)*p
 
     def sum_hessian(self, hessian, p=None):
-        return hessian + (self.mu*2.)*numpy.identity(len(hessian))
+        return hessian + (self.mu*2.)*self.eye
 
 class DampingSparse(Damping):
     """
     Same as Damping regularizer but using sparse matrices instead.
     """
 
-    def __init__(self, mu):
-        Damping.__init__(self, mu)
+    def __init__(self, mu, nparams):
+        Damping.__init__(self, mu, nparams)
+
+    def _get_identity(self, nparams):
+        return scipy.sparse.identity(nparams, dtype='f', format='csr')    
 
     def sum_hessian(self, hessian, p=None):
-        eye = scipy.sparse.identity(hessian.shape[0], dtype='f', format='csr')
-        return hessian + (self.mu*2.)*eye
+        return hessian + (self.mu*2.)*self.eye
+
+class Smoothness1D(Regularizer):
+    """
+    Smoothness regularization for 1D problems. Also known as Tikhonov order 1.
+    Imposes that adjacent parameters be as close as possible. By adjacent, I
+    mean next to each other in the parameter vector, e.g., p[2] and p[3].
+
+    The gradient and Hessian matrix are, respectively:
+    
+    .. math::
+
+        \\bar{g}(\\bar{p}) = 2\\bar{\\bar{R}}^T\\bar{\\bar{R}}\\bar{p}
+
+    and
+
+    .. math::
+
+        \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{R}}^T\\bar{\\bar{R}}
+
+    where :math:`\\bar{\\bar{R}}` is a finite difference matrix. For example, if
+    there are 7 parameters, matrix :math:`\\bar{\\bar{R}}` will be
+
+    .. math::
+
+        \\bar{\\bar{R}} = 
+        \\begin{bmatrix}
+        1 & -1 & 0 & 0 & 0 & 0 & 0\\\\
+        0 & 1 & -1 & 0 & 0 & 0 & 0\\\\
+        0 & 0 & 1 & -1 & 0 & 0 & 0\\\\    
+        0 & 0 & 0 & 1 & -1 & 0 & 0\\\\    
+        0 & 0 & 0 & 0 & 1 & -1 & 0\\\\   
+        0 & 0 & 0 & 0 & 0 & 1 & -1    
+        \\end{bmatrix}    
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much smoothness to
+        apply.
+    
+    """
+
+    def __init__(self, mu, nparams):
+        Regularizer.__init__(self, mu)
+        fdmat = self._makefd(nparams)
+        self.rtr = numpy.dot(fdmat.T, fdmat)
+
+    def _makefd(self, nparams):
+        fdmat = numpy.zeros((nparams - 1, nparams), dtype='f')
+        for i in xrange(nparams - 1):
+            fdmat[i][i] = 1
+            fdmat[i][i + 1] = -1
+        return fdmat
+            
+    def value(self, p):
+        return self.mu*numpy.dot(p.T, numpy.dot(self.rtr, p))
+
+    def sum_gradient(self, gradient, p=None):
+        if p is None:
+            return gradient
+        return gradient + (self.mu*2.)*numpy.dot(self.rtr, p)
+
+    def sum_hessian(self, hessian, p=None):
+        return hessian + (self.mu*2.)*self.rtr
         
 def _test():
     import doctest

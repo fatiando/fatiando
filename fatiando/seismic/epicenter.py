@@ -271,7 +271,7 @@ def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
         raise ValueError, "Mindist regularization parameter must be positive"
     dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
     regs = [MinimumDistance(mindist, recs),
-            inversion.regularizer.Damping(damping)]
+            inversion.regularizer.Damping(damping, 2)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
     log.info("  damping: %g" % (damping))
     log.info("  minimum distance from receivers: %g" % (mindist))
@@ -333,7 +333,7 @@ def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
         raise ValueError, "Mindist regularization parameter must be positive"
     dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
     regs = [MinimumDistance(mindist, recs),
-            inversion.regularizer.Damping(damping)]
+            inversion.regularizer.Damping(damping, 2)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
     log.info("  damping: %g" % (damping))
     log.info("  minimum distance from receivers: %g" % (mindist))
@@ -390,7 +390,7 @@ def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., mindist=0.):
     """    
     dm = TTResidualsFlatHomogeneous(ttres, recs, vp, vs)
     reg1 = MinimumDistance(mindist, recs)
-    reg2 = inversion.regularizer.Damping(damping)
+    reg2 = inversion.regularizer.Damping(damping, 2)
     return numpy.array([dm.get_misfit(ttres - dm.get_predicted(p)) +
                         reg1.value(p) + reg2.value(p) for p in zip(xs, ys)])
         

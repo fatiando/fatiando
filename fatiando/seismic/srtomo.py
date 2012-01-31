@@ -276,12 +276,13 @@ def smooth(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0.):
         raise ValueError, msg
     if damping < 0:
         raise ValueError, "Damping must be positive"
+    nparams = len(mesh)
     if sparse:
         dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]   
-        regs = [inversion.regularizer.DampingSparse(damping)]     
+        regs = [inversion.regularizer.DampingSparse(damping, nparams)]     
     else:
         dms = [TravelTime(ttimes, srcs, recs, mesh)]
-        regs = [inversion.regularizer.Damping(damping)]
+        regs = [inversion.regularizer.Damping(damping, nparams)]
     log.info("Running smooth straight-ray 2D travel-time tomography (SrTomo):")
     log.info("  damping: %g" % (damping))
     start = time.time()
