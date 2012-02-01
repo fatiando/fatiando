@@ -24,6 +24,8 @@ plus a range of regularizing functions already implemented.
 * :class:`fatiando.inversion.regularizer.DampingSparse`
 * :class:`fatiando.inversion.regularizer.Smoothness1D`
 * :class:`fatiando.inversion.regularizer.Smoothness2D`
+* :class:`fatiando.inversion.regularizer.TotalVariation1D`
+* :class:`fatiando.inversion.regularizer.TotalVariation2D`
 
 ----
 
@@ -301,11 +303,7 @@ class Smoothness1D(Smoothness):
         Smoothness.__init__(self, mu, nparams)
 
     def _makefd(self, nparams):
-        fdmat = numpy.zeros((nparams - 1, nparams), dtype='f')
-        for i in xrange(nparams - 1):
-            fdmat[i][i] = 1
-            fdmat[i][i + 1] = -1
-        return fdmat
+        return fdmatrix1d(nparams)
 
 class Smoothness2D(Smoothness):
     """
@@ -359,28 +357,81 @@ class Smoothness2D(Smoothness):
         Smoothness.__init__(self, mu, shape)
 
     def _makefd(self, shape):
-        ny, nx = shape
-        deriv_num = (nx - 1)*ny + (ny - 1)*nx
-        fdmat = numpy.zeros((deriv_num, nx*ny))
-        deriv_i = 0
-        # Derivatives in the x direction
-        param_i = 0
-        for i in xrange(ny):
-            for j in xrange(nx - 1):
-                fdmat[deriv_i][param_i] = 1
-                fdmat[deriv_i][param_i + 1] = -1
-                deriv_i += 1
-                param_i += 1
+        return fdmatrix2d(shape)
+
+def fdmatrix1d(n):
+    """
+    Make a finite difference matrix for a 1D problem.
+
+    See :class:`fatiando.inversion.regularizer.Smoothness1D` for more
+    explanation on this matrix.
+
+    Parameters:
+
+    * n
+        Number of elements in the parameter vector
+
+    Returns:
+
+    * fdmat
+        The finite difference matrix for of a 1D problem with n parameters
+        
+    """
+    fdmat = numpy.zeros((n - 1, n), dtype='f')
+    for i in xrange(n - 1):
+        fdmat[i][i] = 1
+        fdmat[i][i + 1] = -1
+    return fdmat
+
+def fdmatrix2d(shape, sparse=False):
+    """
+    Make a finite difference matrix for a 2D problem.
+
+    See :class:`fatiando.inversion.regularizer.Smoothness2D` for more
+    explanation on this matrix.
+
+    The diagonal derivatives are not taken into account.  
+
+    Parameters:
+
+    * shape
+        (ny, nx): number of parameters in each direction of the grid
+        representing the interpretative model.
+    * sparse
+        If True, will use `scipy.sparse.csr_matrix` instead of normal numpy
+        arrays
+
+    Returns:
+
+    * fdmat
+        The finite difference matrix for of a 2D problem
+        
+    """
+    if sparse:
+        msg = "Sparse 2D finite-difference matrix not implemented"
+        raise NotImplementedError, msg
+    ny, nx = shape
+    deriv_num = (nx - 1)*ny + (ny - 1)*nx
+    fdmat = numpy.zeros((deriv_num, nx*ny))
+    deriv_i = 0
+    # Derivatives in the x direction
+    param_i = 0
+    for i in xrange(ny):
+        for j in xrange(nx - 1):
+            fdmat[deriv_i][param_i] = 1
+            fdmat[deriv_i][param_i + 1] = -1
+            deriv_i += 1
             param_i += 1
-        # Derivatives in the y direction
-        param_i = 0
-        for i in xrange(ny - 1):
-            for j in xrange(nx):
-                fdmat[deriv_i][param_i] = 1
-                fdmat[deriv_i][param_i + nx] = -1
-                deriv_i += 1
-                param_i += 1
-        return fdmat
+        param_i += 1
+    # Derivatives in the y direction
+    param_i = 0
+    for i in xrange(ny - 1):
+        for j in xrange(nx):
+            fdmat[deriv_i][param_i] = 1
+            fdmat[deriv_i][param_i + nx] = -1
+            deriv_i += 1
+            param_i += 1
+    return fdmat  
         
 def _test():
     import doctest
