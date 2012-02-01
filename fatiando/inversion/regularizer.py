@@ -128,6 +128,12 @@ class Damping(Regularizer):
 
     Requires that the estimate have its l2-norm as close as possible to zero.
 
+    This regularizing function has the form
+
+    .. math::
+
+        \\theta(\\bar{p}) = \\bar{p}^T\\bar{p}
+        
     The gradient and Hessian matrix are, respectively:
     
     .. math::
@@ -221,6 +227,12 @@ class Smoothness(Regularizer):
     This class provides a template for smoothness classes of a specific
     dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the Smoothness*D
     classes.
+
+    This regularizing function has the form
+
+    .. math::
+
+        \\theta(\\bar{p}) = \\bar{p}^T\\bar{\\bar{R}}^T\\bar{\\bar{R}}\\bar{p}
 
     The gradient and Hessian matrix are, respectively:
     
@@ -358,6 +370,156 @@ class Smoothness2D(Smoothness):
 
     def _makefd(self, shape):
         return fdmatrix2d(shape)
+        
+class TotalVariation(Regularizer):
+    """
+    Total variation regularization for n-dimensional problems. Imposes that
+    adjacent parameters have values as close as possible to each other, in a
+    **l1-norm** sense. What *adjacent* means depends of the dimension of the
+    problem. It can be spacially adjacent, or just adjacent in the parameter
+    vector, or both.
+
+    "in a l1-norm sense" means that, instead of smoothness, total variation
+    imposes **sharpness** on the solution. This means that most parameters will
+    be close to each other in value, but a few will be far apart, allowing
+    discontinuities to appear.
+
+    This class provides a template for total variation classes of a specific
+    dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the
+    TotalVariation*D classes.
+
+    This regularizing function has the form
+
+    .. math::
+
+        \\theta(\\bar{p}) = \\sum\\limits_{k=1}^L |v_k|
+
+    where :math:`v_k` is the kth element of vector :math:`\\bar{v}`
+
+    .. math::
+    
+        \\bar{v} = \\bar{\\bar{R}}\\bar{p}
+
+    Function :math:`\\theta(\\bar{p})` is not differentiable when :math:`v_k`
+    approaches zero. We can substitute it with a more friendly version
+
+    .. math::
+
+        \\theta_{\\beta}(\\bar{p}) = \\sum\\limits_{k=1}^L
+        \\sqrt{v_k^2 + \\beta}
+
+    :math:`\\beta` should be small and controls how close this function is to
+    :math:`\\theta(\\bar{p})`. The larger the value of :math:`\\beta` is, the
+    closer :math:`\\theta_{\\beta}` is to the smoothness regularization.
+    
+    The gradient and Hessian matrix are, respectively:
+    
+    .. math::
+
+        \\bar{g}(\\bar{p}) = \\bar{\\bar{R}}^T \\bar{q}(\\bar{p})
+
+    and
+
+    .. math::
+
+        \\bar{\\bar{H}}(\\bar{p}) = \\bar{\\bar{R}}^T\\bar{\\bar{Q}}(\\bar{p})
+        \\bar{\\bar{R}}
+
+    where :math:`\\bar{\\bar{R}}` is a finite difference matrix, and
+    :math:`\\bar{q}` and :math:`\\bar{\\bar{Q}}` are
+
+    .. math::
+    
+        \\bar{q}(\\bar{p}) = 
+        \\begin{bmatrix}
+        \\frac{v_1}{\\sqrt{v_1^2 + \\beta}} \\\\
+        \\frac{v_2}{\\sqrt{v_2^2 + \\beta}} \\\\
+        \\vdots \\\\ \\frac{v_L}{\\sqrt{v_L^2 + \\beta}}
+        \\end{bmatrix}
+
+    and
+    
+    .. math::
+
+        \\bar{\\bar{Q}}(\\bar{p}) = 
+        \\begin{bmatrix}
+        \\frac{\\beta}{(v_1^2 + \\beta)^{\\frac{3}{2}}} & 0 & \\ldots & 0 \\\\
+        0 & \\frac{\\beta}{(v_2^2 + \\beta)^{\\frac{3}{2}}} & \\ldots & 0 \\\\
+        \\vdots & \\vdots & \\ddots & \\vdots \\\\
+        0 & 0 & \\ldots & \\frac{\\beta}{(v_L^2 + \\beta)^{\\frac{3}{2}}}
+        \\end{bmatrix}
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much sharpness to
+        apply.
+    * nparams
+        Number of parameters in the inversion
+    
+    """
+
+    def __init__(self, mu, nparams, beta=10.**(-10)):
+        Regularizer.__init__(self, mu)
+        self.fdmat = self._makefd(nparams)
+        self.beta = float(beta)
+        log.info("  total variation: using beta = %g" % (beta))
+
+    def _makefd(self, nparams):
+        raise NotImplementedError, "_makefd of TotalVariation not implemented"
+            
+    def value(self, p):
+        return self.mu*numpy.linalg.norm(numpy.dot(self.fdmat, p), 1)
+
+    def sum_gradient(self, gradient, p=None):
+        if p is None:
+            msg = ("TotalVariation is non-linear and cannot be used with a" +
+                   " linear solver.")
+            raise ValueError, msg
+        v = numpy.dot(self.fdmat, p)
+        self.sqrt = numpy.sqrt(v**2 + self.beta)
+        q = v/self.sqrt
+        return gradient + self.mu*numpy.dot(self.fdmat.T, q)
+
+    def sum_hessian(self, hessian, p=None):
+        if p is None:
+            msg = ("TotalVariation is non-linear and cannot be used with a" +
+                   " linear solver.")
+            raise ValueError, msg
+        Qdiag = self.beta/(self.sqrt**3) + 1.
+        return hessian + self.mu*numpy.dot(self.fdmat.T*Qdiag, self.fdmat)
+
+class TotalVariation1D(TotalVariation):
+    """
+    Total variation regularization for 1D problems. Imposes that adjacent
+    parameters have values as close as possible to each other, in a **l1-norm**
+    sense. By adjacent, I mean next to each other in the parameter vector,
+    e.g., p[2] and p[3].
+
+    Imposes sharpness on the solution. See
+    :class:`fatiando.inversion.regularizer.TotalVariation` for more
+    explanation on this. See
+    :class:`fatiando.inversion.regularizer.Smoothness1D` for details on
+    matrix :math:`\\bar{\\bar{R}}`.
+
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much smoothness to
+        apply.
+    * nparams
+        Number of parameters in the inversion
+    
+    """
+
+    def __init__(self, mu, nparams, beta=10.**(-10)):
+        TotalVariation.__init__(self, mu, nparams, beta)
+
+    def _makefd(self, nparams):
+        return fdmatrix1d(nparams)
 
 def fdmatrix1d(n):
     """

@@ -19,10 +19,10 @@ tts, error = utils.contaminate(profile.vertical(thickness, velocity, zp), 0.02,
                                percent=True, return_stddev=True)
 
 log.info("Preparing for the inversion")
-solver = linear.overdet(len(thickness))
 damping = 1000.
 estimates = []
 for i in xrange(30):    
+    solver = linear.overdet(len(thickness))
     p, r = profile.invert_vertical(utils.contaminate(tts, error), zp, thickness,
                                    solver, damping=damping)
     estimates.append(1./p)

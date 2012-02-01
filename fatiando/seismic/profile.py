@@ -194,7 +194,7 @@ def vertical(thickness, velocity, zp):
     return traveltime.straight_ray_2d(layers, 'vp', srcs, recs)
 
 def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
-    iterate=False):
+    sharp=0., beta=10.**(-10), iterate=False):
     """
     Invert first-arrival travel-time data for the slowness of each layer.
 
@@ -216,6 +216,12 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
     * smooth
         Smoothness regularizing parameter (i.e., how much smoothness to apply).
         Must be a positive scalar.    
+    * sharp
+        Sharpness (total variation) regularizing parameter (i.e., how much
+        sharpness to apply). Must be a positive scalar.
+    * beta
+        Total variation parameter. See
+        :class:`fatiando.inversion.regularizer.TotalVariation` for details
     * iterate
         If True, will yield the current estimate at each iteration yielded by
         *solver*. In Python terms, ``iterate=True`` transforms this function
@@ -241,6 +247,8 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
     log.info("  iterate: %s" % (str(iterate)))
     log.info("  damping: %g" % (damping))
     log.info("  smoothness: %g" % (smooth))
+    log.info("  sharpness: %g" % (sharp))
+    log.info("  beta (total variation parameter): %g" % (beta))
     nparams = len(thickness)
     dms = [VerticalSlownessDM(traveltimes, zp, thickness)]
     regs = []
@@ -248,6 +256,9 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
         regs.append(inversion.regularizer.Damping(damping, nparams))
     if smooth != 0.:
         regs.append(inversion.regularizer.Smoothness1D(smooth, nparams))
+    if sharp != 0.:
+        regs.append(inversion.regularizer.TotalVariation1D(sharp, nparams,
+                                                           beta))
     if iterate:
         return _iterator(dms, regs, solver)
     else:
