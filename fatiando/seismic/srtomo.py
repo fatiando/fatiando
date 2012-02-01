@@ -235,7 +235,8 @@ def _slow2vel(slowness, tol=10**(-5)):
     else:
         return 1./float(slowness)
 
-def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.):
+def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
+    sharp=0., beta=10.**(-10)):
     """
     Perform a 2D straight-ray travel-time tomography. Estimates the slowness
     (1/velocity) of cells in mesh (because slowness is linear and easier)
@@ -267,6 +268,12 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.):
     * smooth
         Smoothness regularizing parameter (i.e., how much smoothness to apply).
         Must be a positive scalar.    
+    * sharp
+        Sharpness (total variation) regularizing parameter (i.e., how much
+        sharpness to apply). Must be a positive scalar.
+    * beta
+        Total variation parameter. See
+        :class:`fatiando.inversion.regularizer.TotalVariation` for details
 
     Returns:
 
@@ -287,6 +294,8 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.):
             regs.append(inversion.regularizer.DampingSparse(damping, nparams))
         if smooth:
             raise NotImplementedError, "Sparse smoothness not implemented"
+        if sharp:
+            raise NotImplementedError, "Sparse total variation not implemented"
     else:
         dms = [TravelTime(ttimes, srcs, recs, mesh)]
         regs = []
@@ -294,10 +303,15 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.):
             regs.append(inversion.regularizer.Damping(damping, nparams))
         if smooth:
             regs.append(inversion.regularizer.Smoothness2D(smooth, mesh.shape))
+        if sharp:
+            regs.append(inversion.regularizer.TotalVariation2D(sharp,
+                mesh.shape, beta))
     log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
     log.info("  sparse: %s" % (str(sparse)))
     log.info("  damping: %g" % (damping))
     log.info("  smoothness: %g" % (smooth))
+    log.info("  sharpness: %g" % (sharp))
+    log.info("  beta (total variation parameter): %g" % (beta))
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):

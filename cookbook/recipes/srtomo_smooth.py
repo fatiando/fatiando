@@ -23,13 +23,17 @@ log.info("Generating synthetic travel-time data")
 src_loc = utils.random_points(area, 80)
 rec_loc = utils.circular_points(area, 30, random=True)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
-ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
-                           0.01, percent=True)
+tts, error = utils.contaminate(
+    traveltime.straight_ray_2d(model, 'vp', srcs, recs), 0.01, percent=True,
+    return_stddev=True)
 
 mesh = SquareMesh(area, shape)
 solver = inversion.linear.overdet(mesh.size)
-results = srtomo.run(ttimes, srcs, recs, mesh, solver, smooth=0.05)
+results = srtomo.run(tts, srcs, recs, mesh, solver, smooth=0.1)
 estimate, residuals = results
+
+log.info("Assumed error: %g" % (error))
+log.info("Standard deviation of residuals: %g" % (numpy.std(residuals)))
 
 pyplot.figure(figsize=(14, 5))
 pyplot.subplot(1, 2, 1)
@@ -48,4 +52,9 @@ vis.map.squaremesh(mesh, estimate, vmin=0.1, vmax=0.25,
     cmap=pyplot.cm.seismic_r)
 cb = pyplot.colorbar()
 cb.set_label('Slowness')
+pyplot.figure()
+pyplot.grid()
+pyplot.title('Residuals (data with %.4f s error)' % (error))
+pyplot.hist(residuals, color='gray', bins=10)
+pyplot.xlabel("seconds")
 pyplot.show()

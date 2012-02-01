@@ -492,12 +492,13 @@ class TotalVariation(Regularizer):
 
 class TotalVariation1D(TotalVariation):
     """
-    Total variation regularization for 1D problems. Imposes that adjacent
-    parameters have values as close as possible to each other, in a **l1-norm**
-    sense. By adjacent, I mean next to each other in the parameter vector,
-    e.g., p[2] and p[3].
+    Total variation regularization for 1D problems.
 
-    Imposes sharpness on the solution. See
+    Imposes that adjacent parameters have values as close as possible to each
+    other, in a **l1-norm** sense. By adjacent, I mean next to each other in the
+    parameter vector, e.g., p[2] and p[3].
+
+    In other words, total variation imposes sharpness on the solution. See
     :class:`fatiando.inversion.regularizer.TotalVariation` for more
     explanation on this. See
     :class:`fatiando.inversion.regularizer.Smoothness1D` for details on
@@ -508,7 +509,7 @@ class TotalVariation1D(TotalVariation):
         
     * mu
         The regularizing parameter. A positve scalar that controls the tradeoff
-        between data fitting and regularization. I.e., how much smoothness to
+        between data fitting and regularization. I.e., how much sharpness to
         apply.
     * nparams
         Number of parameters in the inversion
@@ -520,6 +521,38 @@ class TotalVariation1D(TotalVariation):
 
     def _makefd(self, nparams):
         return fdmatrix1d(nparams)
+
+class TotalVariation2D(TotalVariation):
+    """
+    Total variation regularization for 1D problems.
+
+    Imposes that spacially adjacent parameters have values as close as possible
+    to each other, in a **l1-norm** sense. By spacially adjacent, I mean that I
+    assume the parameters are originaly placed on a grid and the grid is then
+    flattened to make the parameter vector.
+        
+    In other words, total variation imposes sharpness on the solution. See
+    :class:`fatiando.inversion.regularizer.TotalVariation` for more
+    explanation on this. See :
+    class:`fatiando.inversion.regularizer.Smoothness2D`
+    for details on matrix :math:`\\bar{\\bar{R}}`.
+    
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much smoothness to
+        apply.
+    * shape
+        (ny, nx): number of parameters in each direction of the grid
+    
+    """
+
+    def __init__(self, mu, shape, beta=10.**(-10)):
+        TotalVariation.__init__(self, mu, shape, beta)
+
+    def _makefd(self, shape):
+        return fdmatrix2d(shape)
 
 def fdmatrix1d(n):
     """

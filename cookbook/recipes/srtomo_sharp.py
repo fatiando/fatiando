@@ -1,6 +1,6 @@
 """
 Example of running a 2D straight-ray tomography on synthetic data generated
-based on an image file. Uses damping regularization.
+based on an image file. Uses sharpness (total variation) regularization.
 """
 from os import path
 from matplotlib import pyplot
@@ -28,8 +28,9 @@ tts, error = utils.contaminate(
     return_stddev=True)
 
 mesh = SquareMesh(area, shape)
-solver = inversion.linear.overdet(mesh.size)
-results = srtomo.run(tts, srcs, recs, mesh, solver, damping=0.1)
+log.info("Since Total Variation is non-linear, need to use a gradient solver")
+solver = inversion.gradient.steepest(numpy.zeros(mesh.size))
+results = srtomo.run(tts, srcs, recs, mesh, solver, sharp=0.01, beta=10**(-5))
 estimate, residuals = results
 
 log.info("Assumed error: %g" % (error))
@@ -47,7 +48,7 @@ vis.map.points(rec_loc, '^r', label="Receivers")
 pyplot.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
 pyplot.subplot(1, 2, 2)
 pyplot.axis('scaled')
-pyplot.title('Tomography result (damped)')
+pyplot.title('Tomography result (sharp)')
 vis.map.squaremesh(mesh, estimate, vmin=0.1, vmax=0.25,
     cmap=pyplot.cm.seismic_r)
 cb = pyplot.colorbar()
