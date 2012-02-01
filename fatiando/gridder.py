@@ -39,10 +39,11 @@ Create and operate on grids and profiles.
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 26-Oct-2010'
 
-from fatiando import logger
 
 import numpy
 import matplotlib.mlab
+
+from fatiando import logger
 
 log = logger.dummy()
 

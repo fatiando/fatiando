@@ -65,6 +65,7 @@ packages = ['fatiando',
             'fatiando.seismic',
             'fatiando.heat',
             'fatiando.vis',
+            'fatiando.ui',
             'fatiando.mesher',
             'fatiando.inversion',
             'fatiando.tests']

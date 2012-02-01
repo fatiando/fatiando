@@ -30,7 +30,6 @@ tesseroids, etc.
 
 **Utility functions**
 
-* :func:`fatiando.mesher.ddd.draw_polygon`
 * :func:`fatiando.mesher.ddd.extract`
 * :func:`fatiando.mesher.ddd.filter`
 * :func:`fatiando.mesher.ddd.center`
@@ -434,91 +433,6 @@ class PrismMesh(object):
             
         """
         pass
-
-def draw_polygon(area, axes):
-    """
-    Draw a polygon by clicking with the mouse.
-
-    Starts with an empty plot.
-
-    INSTRUCTIONS:
-    
-    * Left click to pick the edges of the polygon;
-    * Draw edges CLOCKWISE;
-    * Press 'e' to erase the last edge;
-    * Right click to close the polygon;
-    * Close the figure window to finish;
-
-    Parameters:
-    
-    * area
-        ``(x1, x2, y1, y2)``: borders of the area containing the polygon
-    * axes
-        A matplotlib Axes.
-        Ex::
-        
-            from matplotlib import pyplot
-            axes = pyplot.figure().add_subplot(1,1,1)
-            
-    Returns:
-    
-    * edges
-        List of ``(x, y)`` pairs with the edges of the polygon
-
-    """
-    log.info("Drawing polygon...")
-    log.info("INSTRUCTIONS:")
-    log.info("  * Left click to pick the edges of the polygon;")
-    log.info("  * Draw edges CLOCKWISE;")
-    log.info("  * Press 'e' to erase the last edge;")
-    log.info("  * Right click to close the polygon;")
-    log.info("  * Close the figure window to finish;")
-    from matplotlib import pyplot
-    pyplot.axis('scaled')
-    axes.set_xlim(area[0], area[1])
-    axes.set_ylim(area[2], area[3])
-    # start with an empty line
-    line, = axes.plot([0],[0], '-k')
-    line.figure.canvas.draw()
-    x = []
-    y = []
-    plotx = []
-    ploty = []
-    # Hack because Python 2 doesn't like nonlocal variables that change value.
-    # Lists it doesn't mind.
-    picking = [True]
-    def pick(event):
-        if event.inaxes != axes:
-            return 0
-        if event.button == 1 and picking[0]:
-            # TODO: Find a way to always plot north on y axis. this would be the
-            # other way around if that is the case.
-            x.append(event.xdata)
-            y.append(event.ydata)
-            plotx.append(event.xdata)
-            ploty.append(event.ydata)
-            line.set_color('black')
-            line.set_linestyle('-')
-            line.set_marker('.')
-        if event.button == 3 or event.button == 2 and picking[0]:
-            picking[0] = False
-            axes.set_title("Done")
-            plotx.append(x[0])
-            ploty.append(y[0])
-        line.set_data(plotx, ploty)
-        line.figure.canvas.draw()
-    def erase(event):
-        if event.key == 'e' and picking[0]:
-            x.pop()
-            y.pop()
-            plotx.pop()
-            ploty.pop()
-            line.set_data(plotx, ploty)
-            line.figure.canvas.draw()
-    line.figure.canvas.mpl_connect('button_press_event', pick)
-    line.figure.canvas.mpl_connect('key_press_event', erase)
-    pyplot.show()
-    return numpy.array([x, y]).T
 
 def extract(key, prisms):
     """

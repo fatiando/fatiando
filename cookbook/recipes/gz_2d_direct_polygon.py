@@ -4,7 +4,7 @@
 from matplotlib import pyplot
 import numpy
 from fatiando import potential, vis, logger
-from fatiando.mesher.ddd import draw_polygon
+from fatiando.ui import picker
 from fatiando.mesher.dd import Polygon
 
 log = logger.get()
@@ -17,7 +17,7 @@ area = (-5000, 5000, 5000, 0)
 axes = pyplot.figure().add_subplot(1,1,1)
 pyplot.xlabel("X")
 pyplot.ylabel("Z")
-polygons = [Polygon(draw_polygon(area, axes), {'density':500})]
+polygons = [Polygon(picker.draw_polygon(area, axes), {'density':500})]
 xp = numpy.arange(-4500, 4500, 100)
 zp = numpy.zeros_like(xp)
 gz = potential.talwani.gz(xp, zp, polygons)
