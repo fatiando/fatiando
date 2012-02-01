@@ -493,7 +493,7 @@ class TotalVariation(Regularizer):
     dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the
     TotalVariation*D classes.
 
-    This regularizing function has the form
+    This regularizing function has the form (Martins et al., 2011)
 
     .. math::
 
@@ -507,6 +507,7 @@ class TotalVariation(Regularizer):
 
     Function :math:`\\theta(\\bar{p})` is not differentiable when :math:`v_k`
     approaches zero. We can substitute it with a more friendly version
+    (Martins et al., 2011)
 
     .. math::
 
@@ -517,7 +518,7 @@ class TotalVariation(Regularizer):
     :math:`\\theta(\\bar{p})`. The larger the value of :math:`\\beta` is, the
     closer :math:`\\theta_{\\beta}` is to the smoothness regularization.
     
-    The gradient and Hessian matrix are, respectively:
+    The gradient and Hessian matrix are, respectively (Martins et al., 2011):
     
     .. math::
 
@@ -562,6 +563,12 @@ class TotalVariation(Regularizer):
         apply.
     * nparams
         Number of parameters in the inversion
+
+    References:
+
+    * Martins, C. M., W. A. Lima, V. C. F. Barbosa, and J. B. C. Silva, 2011,
+      Total variation regularization for depth-to-basement estimate: Part 1 -
+      mathematical details and applications: Geophysics, 76, I1-I12.
     
     """
 

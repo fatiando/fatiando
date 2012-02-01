@@ -50,7 +50,7 @@ Example using synthetic data::
     >>> print "(%.4f, %.4f)" % (p[0], p[1])
     (5.0000, 5.0000)
 
-Example using iterate=True to step through the solver algorithm::
+Example using ``iterate = True`` to step through the solver algorithm::
 
     >>> from fatiando.mesher.dd import Square
     >>> from fatiando.seismic.traveltime import straight_ray_2d
@@ -121,6 +121,9 @@ class TTRFlat(inversion.datamodule.DataModule):
 
         G_{i2}(x, y) = -\\left(\\frac{1}{V_S} - \\frac{1}{V_P} \\right)
         \\frac{y_i - y}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
+        
+    The Hessian matrix is approximated by
+    :math:`2\\bar{\\bar{G}}^T\\bar{\\bar{G}}` (Gauss-Newton method).
         
     Parameters:
 
