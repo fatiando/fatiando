@@ -4,11 +4,12 @@ Use an equality constraint on one of the coordinates to stabilize the problem.
 Try setting equality=0 and see what happens! Make sure to run a few times since
 the noise is random and you might get lucky!
 """
+import sys
 from matplotlib import pyplot
 import numpy
 from fatiando.mesher.dd import Square
 from fatiando.seismic import epicenter, traveltime
-from fatiando import vis, logger, utils, inversion, gridder
+from fatiando import vis, logger, utils, inversion, gridder, ui
 
 log = logger.get()
 log.info(logger.header())
@@ -32,7 +33,19 @@ ttr_true = stime - ptime
 ttr, error = utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
     
-initial = (5, 1)
+log.info("Choose the initial estimate for the gradient solvers")
+pyplot.figure()
+ax = pyplot.subplot(1, 1, 1)
+pyplot.axis('scaled')
+pyplot.suptitle("Choose the initial estimate for the gradient solvers")
+vis.map.points(recs, '^r')
+vis.map.points(srcs, '*y')
+initial = ui.picker.points(area, ax, marker='*', color='k')
+if len(initial) > 1:
+    log.error("Don't be greedy! Pick only one initial estimate")
+    sys.exit()
+initial = initial[0]
+
 ref = {'y':7}
 equality = 0.1
 log.info("Will solve the inverse problem using Newton's method")

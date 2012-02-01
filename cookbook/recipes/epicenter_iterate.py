@@ -2,11 +2,12 @@
 Example of epicenter estimation assuming a homogeneous and flat Earth.
 Show all steps of the non-linear solver algorithm.
 """
+import sys
 from matplotlib import pyplot
 import numpy
 from fatiando.mesher.dd import Square
 from fatiando.seismic import epicenter, traveltime
-from fatiando import vis, logger, utils, inversion, gridder
+from fatiando import vis, logger, utils, inversion, gridder, ui
 
 log = logger.get()
 log.info(logger.header())
@@ -16,10 +17,26 @@ area = (0, 10, 0, 10)
 vp, vs = 2, 1
 model = [Square(area, props={'vp':vp, 'vs':vs})]
 
+log.info("Choose the location of the receivers")
+pyplot.figure()
+ax = pyplot.subplot(1, 1, 1)
+pyplot.axis('scaled')
+pyplot.suptitle("Choose the location of the receivers")
+rec_points = ui.picker.points(area, ax, marker='^', color='r')
+
+log.info("Choose the location of the receivers")
+pyplot.figure()
+ax = pyplot.subplot(1, 1, 1)
+pyplot.axis('scaled')
+pyplot.suptitle("Choose the location of the source")
+vis.map.points(rec_points, '^r')
+src = ui.picker.points(area, ax, marker='*', color='y')
+if len(src) > 1:
+    log.error("Don't be greedy! Pick only one point as the source")
+    sys.exit()
+    
 log.info("Generating synthetic travel-time data")
-src = (8, 6)
-stations = 10
-srcs, recs = utils.connect_points([src], utils.random_points(area, stations))
+srcs, recs = utils.connect_points(src, rec_points)
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
 error_level = 0.1
@@ -27,7 +44,19 @@ ttr_true = stime - ptime
 ttr, error = utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
     
-initial = (1, 3)
+log.info("Choose the initial estimate for the gradient solvers")
+pyplot.figure()
+ax = pyplot.subplot(1, 1, 1)
+pyplot.axis('scaled')
+pyplot.suptitle("Choose the initial estimate for the gradient solvers")
+vis.map.points(rec_points, '^r')
+vis.map.points(src, '*y')
+initial = ui.picker.points(area, ax, marker='*', color='k')
+if len(initial) > 1:
+    log.error("Don't be greedy! Pick only one initial estimate")
+    sys.exit()
+initial = initial[0]
+    
 log.info("Will solve the inverse problem using Newton's method")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
@@ -60,7 +89,7 @@ goals = epicenter.mapgoal(xs, ys, ttr, recs, vp, vs)
 log.info("Plotting")
 pyplot.figure(figsize=(14,4))
 pyplot.subplot(1, 3, 1)
-pyplot.title('Epicenter + %d recording stations' % (stations))
+pyplot.title('Epicenter + %d recording stations' % (len(rec_points)))
 pyplot.axis('scaled')
 vis.map.contourf(xs, ys, goals, shape, 50)
 vis.map.points(recs, '^r', label="Stations")
@@ -70,7 +99,7 @@ vis.map.points(levmarq, '.-k', size=5, label="Lev-Marq")
 vis.map.points([levmarq[-1]], '*k')
 vis.map.points(steepest, '.-m', size=5, label="Steepest")
 vis.map.points([steepest[-1]], '*m')
-vis.map.points([src], '*y', label="True")
+vis.map.points(src, '*y', label="True")
 vis.map.set_area(area)
 pyplot.legend(loc='upper left', shadow=True, numpoints=1, prop={'size':10})
 pyplot.xlabel("X")

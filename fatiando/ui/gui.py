@@ -15,25 +15,21 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Provides modules for user interface (UI). From command line interfaces, to
-simple map picking, to full graphical user interfaces (GUI).
+Classes for graphical user interfaces (GUIs).
 
-**Map picking**
+**Interactive matplotlib plots**
 
-* :mod:`fatiando.ui.picker`
-
-Click on matplotlib plots to extract the coordinates of points into your script,
-draw polygons, lines, etc.
-
-**GUIs**
-
-* :mod:`fatiando.ui.gui`
+* COMING SOON
 
 ----
-   
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Feb-2012'
 
-from fatiando.ui import picker, gui
 
+import numpy
+from matplotlib import pyplot
+
+from fatiando import logger
+log = logger.dummy()
