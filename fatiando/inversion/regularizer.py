@@ -24,8 +24,15 @@ plus a range of regularizing functions already implemented.
 * :class:`fatiando.inversion.regularizer.DampingSparse`
 * :class:`fatiando.inversion.regularizer.Smoothness1D`
 * :class:`fatiando.inversion.regularizer.Smoothness2D`
+
+**Total Variation**
+
 * :class:`fatiando.inversion.regularizer.TotalVariation1D`
 * :class:`fatiando.inversion.regularizer.TotalVariation2D`
+
+**Equality constraint**
+
+* :class:`fatiando.inversion.regularizer.Equality`
 
 ----
 
@@ -120,6 +127,104 @@ class Regularizer(object):
         
         """
         pass
+
+class Equality(Regularizer):
+    """
+    Equality constraints. 
+
+    Imposes that some or all of the parameters be as close as possible to
+    given reference values.
+
+    This regularizing function has the form
+
+    .. math::
+
+        \\theta(\\bar{p}) = (\\bar{p} - \\bar{p}^{\\thinspace a})^T
+        \\bar{\\bar{A}}^T\\bar{\\bar{A}}(\\bar{p} - \\bar{p}^{\\thinspace a})
+
+    Vector :math:`\\bar{p}^{\\thinspace a}` contains the refence values and
+    matrix :math:`\\bar{\\bar{A}}` is a diagonal matrix. The elements in the
+    diagonal of :math:`\\bar{\\bar{A}}` are either 1 or 0. If there is a
+    reference for parameter :math:`i`, then :math:`A_{ii} = 1`, else
+    :math:`A_{ii} = 0`. Since this is a bit hard to explain, I'll just give an
+    example. Suppose there are 3 parameters
+    and I want to impose that the second one be as close as possible to the
+    number 26. Then,
+
+    .. math::
+    
+        \\bar{p} =
+            \\begin{bmatrix}
+            p_1 \\\\ p_2 \\\\ p_3
+            \\end{bmatrix} , \\quad
+        \\bar{p}^{\\thinspace a} =
+            \\begin{bmatrix}
+            0 \\\\ 26 \\\\ 0
+            \\end{bmatrix} \\quad \\mathrm{and} \\quad
+        \\bar{\\bar{A}} = 
+            \\begin{bmatrix}
+            0 & 0 & 0 \\\\
+            0 & 1 & 0 \\\\
+            0 & 0 & 0
+            \\end{bmatrix}
+            
+    The gradient and Hessian matrix are, respectively:
+    
+    .. math::
+
+        \\bar{g}(\\bar{p}) = 2\\bar{\\bar{A}}^T\\bar{\\bar{A}}
+        \\left(\\bar{p} - \\bar{p}^{\\thinspace a} \\right)
+
+    and
+
+    .. math::
+
+        \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{A}}^T\\bar{\\bar{A}}
+
+    Parameters:
+        
+    * mu
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much equality to
+        impose
+    * reference
+        Dictionay with the reference values for the parameters you with to
+        constrain. The keys are the indexes of the parameters in the parameter
+        vector. The respective values are the reference value for each
+        parameter. For example, to constrain parameter 1 to be as close as
+        possible to 3.4 and parameter 57 to be as close as possible to 43.7::
+
+            reference = {1:3.4, 57:43.7}
+    
+    """
+
+    def __init__(self, mu, reference):
+        Regularizer.__init__(self, mu)
+        self.reference = reference
+
+    # In practice A^T A = A and we don't actually need any of them
+
+    def value(self, p):
+        pa = self.reference
+        # A*(p - pa) is a vector with all zeros except for the params with
+        # reference values. These are equal to p_k - pa_k
+        # The zeros don't enter the norm computation.
+        return self.mu*numpy.linalg.norm([p[k] - pa[k] for k in pa])**2
+
+    def sum_gradient(self, gradient, p=None):
+        pa = self.reference
+        if p is None:
+            for k in pa:
+                gradient[k] += -2.*self.mu*pa[k]
+        else:
+            for k in pa:
+                gradient[k] += self.mu*2.*(p[k] - pa[k])
+        return gradient
+
+    def sum_hessian(self, hessian, p=None):
+        for k in self.reference:
+            hessian[k][k] += self.mu*2.
+        return hessian
 
 class Damping(Regularizer):
     """

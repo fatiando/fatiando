@@ -1,5 +1,8 @@
 """
 Example when epicenter estimation requires regularization.
+Use an equality constraint on one of the coordinates to stabilize the problem.
+Try setting equality=0 and see what happens! Make sure to run a few times since
+the noise is random and you might get lucky!
 """
 from matplotlib import pyplot
 import numpy
@@ -19,8 +22,9 @@ vp, vs = 2, 1
 model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
-src = (8, 3)
-srcs, recs = utils.connect_points([src], [(4, 6), (5, 5.5), (6, 6)])
+src = (8, 7)
+stations = 10
+srcs, recs = utils.connect_points([src], [(4, 6), (5, 5.9), (6, 6)])
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
 error_level = 0.05
@@ -28,12 +32,15 @@ ttr_true = stime - ptime
 ttr, error = utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
     
-initial = (5, 2)
-damping = 0.005
+initial = (5, 1)
+ref = {'y':7}
+equality = 0.1
 log.info("Will solve the inverse problem using Newton's method")
+log.info("and with equality constaints for stability")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver, damping=damping)
+iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver, equality=equality,
+                                  ref=ref)
 for e, r in iterator:
     newton.append(e)
 newton_predicted = ttr - r
@@ -41,7 +48,8 @@ newton_predicted = ttr - r
 log.info("and the Steepest Descent method")
 sdsolver = inversion.gradient.steepest(initial, step=0.1)
 steepest = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, sdsolver, damping=damping)
+iterator = epicenter.iterate_flat(ttr, recs, vp, vs, sdsolver, equality=equality,
+                                  ref=ref)
 for e, r in iterator:
     steepest.append(e)
 steepest_predicted = ttr - r
@@ -49,7 +57,8 @@ steepest_predicted = ttr - r
 log.info("... and also the Levenberg-Marquardt algorithm for comparison")
 lmsolver = inversion.gradient.levmarq(initial)
 levmarq = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver, damping=damping)
+iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver, equality=equality,
+                                  ref=ref)
 for e, r in iterator:
     levmarq.append(e)
 levmarq_predicted = ttr - r
@@ -57,10 +66,10 @@ levmarq_predicted = ttr - r
 log.info("Build a map of the goal function")
 shape = (100, 100)
 xs, ys = gridder.regular(area, shape)
-goals = epicenter.mapgoal(xs, ys, ttr, recs, vp, vs, damping=damping)
+goals = epicenter.mapgoal(xs, ys, ttr, recs, vp, vs, equality=equality, ref=ref)
 
 log.info("Plotting")
-pyplot.figure(figsize=(14,4))
+pyplot.figure(figsize=(14, 4))
 pyplot.subplot(1, 3, 1)
 pyplot.title('Epicenter + recording stations')
 pyplot.axis('scaled')
@@ -88,7 +97,6 @@ pyplot.bar(s + 1*width, steepest_predicted, width, color='m', label="Steepest")
 pyplot.plot(s - 1.5*width, ttr_true, '^-y', linewidth=2, label="Noise-free")
 ax.set_xticks(s)
 pyplot.legend(loc='lower right', shadow=True, prop={'size':10})
-pyplot.ylim(0, 3)
 pyplot.xlabel("Station number")
 pyplot.ylabel("Travel-time residual")
 ax = pyplot.subplot(1, 3, 3)

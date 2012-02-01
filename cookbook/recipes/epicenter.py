@@ -5,7 +5,7 @@ from matplotlib import pyplot
 import numpy
 from fatiando.mesher.dd import Square
 from fatiando.seismic import epicenter, traveltime
-from fatiando import vis, logger, utils, inversion
+from fatiando import vis, logger, utils, inversion, gridder
 
 log = logger.get()
 log.info(logger.header())
@@ -17,7 +17,8 @@ model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (5, 5)
-srcs, recs = utils.connect_points([src], utils.random_points(area, 6))
+circ_area = (1, 9, 1, 9)
+srcs, recs = utils.connect_points([src], utils.circular_points(circ_area, 4))
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
 ttresiduals, error = utils.contaminate(stime - ptime, 0.10, percent=True,
@@ -29,11 +30,17 @@ result = epicenter.solve_flat(ttresiduals, recs, vp, vs, solver)
 estimate, residuals = result
 predicted = ttresiduals - residuals
 
+log.info("Build a map of the goal function")
+shape = (100, 100)
+xs, ys = gridder.regular(area, shape)
+goals = epicenter.mapgoal(xs, ys, ttresiduals, recs, vp, vs)
+
 log.info("Plotting")
 pyplot.figure(figsize=(10,4))
 pyplot.subplot(1, 2, 1)
 pyplot.title('Epicenter + recording stations')
 pyplot.axis('scaled')
+vis.map.contourf(xs, ys, goals, shape, 50)
 vis.map.points([src], '*y', label="True")
 vis.map.points(recs, '^r', label="Stations")
 vis.map.points([estimate], '*g', label="Estimate")

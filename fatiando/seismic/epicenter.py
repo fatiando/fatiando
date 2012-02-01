@@ -101,7 +101,7 @@ from fatiando import logger, inversion, utils
 log = logger.dummy()
 
 
-class TTResidualsFlatHomogeneous(inversion.datamodule.DataModule):
+class TTRFlat(inversion.datamodule.DataModule):
     """
     Data module for epicenter estimation using travel-time residuals between
     S and P waves, assuming a flat and homogeneous Earth.
@@ -228,7 +228,7 @@ class MinimumDistance(inversion.regularizer.Regularizer):
                              (y - self.yrec)/sqrt])
         return hessian + self.mu*2.*numpy.dot(jac_T, jac_T.T)        
         
-def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
+def solve_flat(ttres, recs, vp, vs, solver, equality=0., ref={}):
     """
     Estimate the (x, y) coordinates of the epicenter of an event using
     travel-time residuals between P and S waves and assuming a flat and
@@ -265,11 +265,9 @@ def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
-    if damping < 0:
-        raise ValueError, "Damping must be positive"
-    if mindist < 0:
-        raise ValueError, "Mindist regularization parameter must be positive"
-    dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
+    if equality < 0:
+        raise ValueError, "Equality must be positive"
+    dms = [TTRFlat(ttres, recs, vp, vs)]
     regs = [MinimumDistance(mindist, recs),
             inversion.regularizer.Damping(damping, 2)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
@@ -289,7 +287,7 @@ def solve_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
-def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
+def iterate_flat(ttres, recs, vp, vs, solver, equality=0., ref={}):
     """
     Yields the steps taken to estimate the (x, y) coordinates of the epicenter
     of an event using travel-time residuals between P and S waves and assuming
@@ -327,16 +325,23 @@ def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
-    if damping < 0:
-        raise ValueError, "Damping regularization parameter must be positive"
-    if mindist < 0:
-        raise ValueError, "Mindist regularization parameter must be positive"
-    dms = [TTResidualsFlatHomogeneous(ttres, recs, vp, vs)]
-    regs = [MinimumDistance(mindist, recs),
-            inversion.regularizer.Damping(damping, 2)]
+    if equality < 0:
+        raise ValueError, "Equality must be positive"
+    for k in ref:
+        if k not in ['x', 'y']:
+            raise ValueError, "Invalid key in ref: %s" % (str(k))
+    dms = [TTRFlat(ttres, recs, vp, vs)]
+    regs = []
+    if equality:
+        reference = {}
+        if 'x' in ref:
+            reference[0] = ref['x']
+        if 'y' in ref:
+            reference[1] = ref['y']
+        regs = [inversion.regularizer.Equality(equality, reference)]
     log.info("Estimating epicenter assuming flat and homogeneous Earth:")
-    log.info("  damping: %g" % (damping))
-    log.info("  minimum distance from receivers: %g" % (mindist))
+    log.info("  equality: %g" % (equality))
+    log.info("  reference parameters: %s" % (str(ref)))
     try:
         for i, chset in enumerate(solver(dms, regs)):
             yield chset['estimate'], chset['residuals'][0]       
@@ -347,7 +352,7 @@ def iterate_flat(ttres, recs, vp, vs, solver, damping=0., mindist=0.):
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
 
-def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., mindist=0.):
+def mapgoal(xs, ys, ttres, recs, vp, vs, equality=0., ref={}):
     """
     Make a map of the goal function for a given set of inversion parameters.
 
@@ -388,11 +393,15 @@ def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., mindist=0.):
         Array with the goal function values
     
     """    
-    dm = TTResidualsFlatHomogeneous(ttres, recs, vp, vs)
-    reg1 = MinimumDistance(mindist, recs)
-    reg2 = inversion.regularizer.Damping(damping, 2)
+    dm = TTRFlat(ttres, recs, vp, vs)
+    reference = {}
+    if 'x' in ref:
+        reference[0] = ref['x']
+    if 'y' in ref:
+        reference[1] = ref['y']
+    reg = inversion.regularizer.Equality(equality, reference)
     return numpy.array([dm.get_misfit(ttres - dm.get_predicted(p)) +
-                        reg1.value(p) + reg2.value(p) for p in zip(xs, ys)])
+                        reg.value(p) for p in zip(xs, ys)])
         
     
 def _test():

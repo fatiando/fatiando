@@ -18,16 +18,16 @@ model = [Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (8, 6)
-circ_area = (1, 9, 1, 9)
-srcs, recs = utils.connect_points([src], utils.circular_points(circ_area, 4))
+stations = 10
+srcs, recs = utils.connect_points([src], utils.random_points(area, stations))
 ptime = traveltime.straight_ray_2d(model, 'vp', srcs, recs)
 stime = traveltime.straight_ray_2d(model, 'vs', srcs, recs)
-error_level = 0.05
+error_level = 0.1
 ttr_true = stime - ptime
 ttr, error = utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
     
-initial = (1, 1)
+initial = (1, 3)
 log.info("Will solve the inverse problem using Newton's method")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
@@ -60,7 +60,7 @@ goals = epicenter.mapgoal(xs, ys, ttr, recs, vp, vs)
 log.info("Plotting")
 pyplot.figure(figsize=(14,4))
 pyplot.subplot(1, 3, 1)
-pyplot.title('Epicenter + recording stations')
+pyplot.title('Epicenter + %d recording stations' % (stations))
 pyplot.axis('scaled')
 vis.map.contourf(xs, ys, goals, shape, 50)
 vis.map.points(recs, '^r', label="Stations")
@@ -97,5 +97,5 @@ pyplot.bar(2, len(levmarq), width, color='k', label="Lev-Marq")
 pyplot.bar(3, len(steepest), width, color='m', label="Steepest")
 ax.set_xticks([])
 pyplot.grid()
-pyplot.legend(loc='lower left', shadow=True, prop={'size':10})
+pyplot.legend(loc='lower right', shadow=True, prop={'size':10})
 pyplot.show()
