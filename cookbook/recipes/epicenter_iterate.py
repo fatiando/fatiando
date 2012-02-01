@@ -31,7 +31,7 @@ initial = (1, 3)
 log.info("Will solve the inverse problem using Newton's method")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, nsolver)
+iterator = epicenter.flat_earth(ttr, recs, vp, vs, nsolver, iterate=True)
 for e, r in iterator:
     newton.append(e)
 newton_predicted = ttr - r
@@ -39,7 +39,7 @@ newton_predicted = ttr - r
 log.info("and the Steepest Descent method")
 sdsolver = inversion.gradient.steepest(initial)
 steepest = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, sdsolver)
+iterator = epicenter.flat_earth(ttr, recs, vp, vs, sdsolver, iterate=True)
 for e, r in iterator:
     steepest.append(e)
 steepest_predicted = ttr - r
@@ -47,7 +47,7 @@ steepest_predicted = ttr - r
 log.info("... and also the Levenberg-Marquardt algorithm for comparison")
 lmsolver = inversion.gradient.levmarq(initial)
 levmarq = [initial]
-iterator = epicenter.iterate_flat(ttr, recs, vp, vs, lmsolver)
+iterator = epicenter.flat_earth(ttr, recs, vp, vs, lmsolver, iterate=True)
 for e, r in iterator:
     levmarq.append(e)
 levmarq_predicted = ttr - r

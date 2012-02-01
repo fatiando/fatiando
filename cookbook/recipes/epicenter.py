@@ -26,7 +26,7 @@ ttresiduals, error = utils.contaminate(stime - ptime, 0.10, percent=True,
 
 log.info("Will solve the inverse problem using the Levenberg-Marquardt method")
 solver = inversion.gradient.levmarq(initial=(0, 0), maxit=1000, tol=10**(-3))
-result = epicenter.solve_flat(ttresiduals, recs, vp, vs, solver)
+result = epicenter.flat_earth(ttresiduals, recs, vp, vs, solver)
 estimate, residuals = result
 predicted = ttresiduals - residuals
 
