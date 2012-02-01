@@ -29,6 +29,8 @@ triangles.
 
 **Utility functions**
 
+* :func:`fatiando.mesher.dd.square2polygon`
+
 
 ----
 
@@ -337,6 +339,40 @@ class SquareMesh(object):
             return numpy.array(ys)
         else:
             return ys
+
+def square2polygon(square):
+    """
+    Convert a Square object into a Polygon object.
+
+    Vertices are ordered clockwise considering that x is North.
+
+    Parameters:
+
+    * square
+        A :func:`fatiando.mesher.dd.Square` object
+
+    Returns:
+
+    * polygon
+        A :func:`fatiando.mesher.dd.Polygon` object
+
+    Example::
+
+        >>> square = Square((0, 1, 0, 3), {'vp':1000})
+        >>> poly = square2polygon(square)
+        >>> print poly['x']
+        [ 0.  1.  1.  0.]
+        >>> print poly['y']
+        [ 0.  0.  3.  3.]
+        >>> print poly['vp']
+        1000
+        
+    """
+    verts = [[square['x1'], square['y1']], [square['x2'], square['y1']],
+             [square['x2'], square['y2']], [square['x1'], square['y2']]]
+    notprops = ['x1', 'x2', 'y1', 'y2']
+    props = dict([p, square[p]] for p in square if p not in notprops)
+    return Polygon(verts, props)
             
 def _test():
     import doctest
