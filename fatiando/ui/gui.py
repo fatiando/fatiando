@@ -17,9 +17,15 @@
 """
 Classes for graphical user interfaces (GUIs).
 
-**Interactive matplotlib plots**
+**Interactive gravimetric modeling**
 
-* COMING SOON
+* :class:`fatiando.ui.gui.Moulder`
+* :class:`fatiando.ui.gui.BasinTrap`
+* :class:`fatiando.ui.gui.BasinTri`
+
+**Interactive modeling of layered media**
+
+* :class:`fatiando.ui.gui.Lasagne`
 
 ----
 
@@ -28,10 +34,13 @@ __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 01-Feb-2012'
 
 
+import bisect
+
 import numpy
 from matplotlib import pyplot, widgets, nxutils
 
 from fatiando.potential import talwani
+from fatiando import seismic
 from fatiando.mesher.dd import Polygon
 from fatiando import logger, utils
 
@@ -54,7 +63,7 @@ class Moulder():
         zp = [0]*len(xp)
         # Create the application
         app = Moulder(area, xp, zp)
-        # Run it
+        # Run it (close the window to finish)
         app.run()
         # and save the calculated gravity anomaly profile
         app.savedata("mydata.txt")
@@ -75,8 +84,9 @@ class Moulder():
     
     """
 
-    instructions = "Left click to close polygon - 'e' to delete"
-    name = "Moulder"
+    instructions = ("Click to start drawing - Choose density using the slider" +
+                    " - Left click to close polygon - 'e' to delete")
+    name = "Moulder - Direct gravimetric modeling"
 
     def __init__(self, area, xp, zp, gz=None):
         if len(zp) != len(xp):
@@ -93,7 +103,7 @@ class Moulder():
         self.xp = numpy.array(xp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
         # Make the figure
-        self.fig = pyplot.figure()
+        self.fig = pyplot.figure(figsize=(12,8))
         self.fig.canvas.set_window_title(self.name)
         self.fig.suptitle(self.instructions)
         self.draw = self.fig.canvas.draw
@@ -112,7 +122,7 @@ class Moulder():
                                  hspace=0.1)
         # Make the sliders
         sliderax = self.fig.add_axes([0.20, 0.08, 0.60, 0.03])
-        self.densslider = widgets.Slider(sliderax, 'Density of\nnext polygon',
+        self.densslider = widgets.Slider(sliderax, 'Density',
             -9, 9, valinit=0., valfmt='%1.2f (g/cm3)')
         sliderax = self.fig.add_axes([0.20, 0.03, 0.60, 0.03])
         self.errslider = widgets.Slider(sliderax, 'Error',
@@ -188,8 +198,6 @@ class Moulder():
         if event.inaxes != self.mcanvas:
             return 0
         x, y = event.xdata, event.ydata
-        #if (event.button == 1 and
-            #True not in (nxutils.pnpoly(x, y, p) for p in self.polygons)):
         if (event.button == 1):
             self.picking = True
             self.nextpoly.append([x, y])
@@ -261,11 +269,12 @@ class BasinTrap(Moulder):
         # Where the gravity effect is calculated
         xp = range(0, 1000, 10)
         zp = [0]*len(xp)
-        # Where the two surface nodes are
-        nodes = [[100, 0], [900, 0]]
+        # Where the two surface nodes are. Use depth = 1 because direct modeling
+        # doesn't like it when the model and computation points coincide
+        nodes = [[100, 1], [900, 1]]
         # Create the application
-        app = ItsATrap(area, nodes, xp, zp)
-        # Run it
+        app = BasinTrap(area, nodes, xp, zp)
+        # Run it (close the window to finish)
         app.run()
         # and save the calculated gravity anomaly profile
         app.savedata("mydata.txt")
@@ -287,7 +296,7 @@ class BasinTrap(Moulder):
         
     """
 
-    instructions = "Click set node depth - Left click to change nodes"
+    instructions = "Click to set node depth - Left click to change nodes"
     name = "BasinTrap"
 
     def __init__(self, area, nodes, xp, zp, gz=None):
@@ -318,8 +327,7 @@ class BasinTrap(Moulder):
     def move(self, event):
         if event.inaxes != self.mcanvas:
             return 0
-        v, z = event.xdata, event.ydata
-        self.draw_guide(v, z)
+        self.draw_guide(event.xdata, event.ydata)
         self.draw()
         
     def set_density(self, value):
@@ -345,6 +353,258 @@ class BasinTrap(Moulder):
         if event.button == 3 or event.button == 2:
             self.isleft = not self.isleft
             self.draw_guide(x, y)
+            self.draw()
+        
+    def key_press(self, event):
+        pass
+
+class BasinTri(Moulder):
+    """
+    Interactive gravity modeling using a triangular model.
+
+    The triangle has two surface nodes with fixed positions. The user can then
+    model by controling the bottom node.
+
+    Example::
+
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Where the two surface nodes are. Use depth = 1 because direct modeling
+        # doesn't like it when the model and computation points coincide
+        nodes = [[100, 1], [900, 1]]
+        # Create the application
+        app = BasinTri(area, nodes, xp, zp)
+        # Run it (close the window to finish)
+        app.run() 
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
+
+    Parameters:
+
+    * area
+        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
+        Remember, z is positive downward
+    * nodes
+        [[x1, z1], [x2, z2]]: x and z coordinates of the two top nodes.
+        Must be in clockwise order!
+    * xp, zp
+        Array with the x and z coordinates of the computation points
+    * gz
+        The array with the observed gravity values at the computation points.
+        Will be plotted as black points together with the modeled (predicted)
+        data. If None, will ignore this.
+        
+    """
+
+    instructions = "Click to set node location"
+    name = "BasinTri"
+
+    def __init__(self, area, nodes, xp, zp, gz=None):
+        Moulder.__init__(self, area, xp, zp, gz)
+        left, right = numpy.array(nodes)*0.001
+        z = 0.001*0.5*(area[3] - area[2])
+        x = 0.5*(right[0] + left[0])
+        self.polygons = [[left, right, [x, z]]]
+        self.densities = [0.]
+        self.plotx = [v[0] for v in self.polygons[0]]
+        self.plotx.append(left[0])
+        self.ploty = [v[1] for v in self.polygons[0]]
+        self.ploty.append(left[1])
+        self.polyline.set_data(self.plotx, self.ploty)
+        self.polyline.set_color('k')
+        self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
+                 color='red', linewidth=2)
+
+    def draw_guide(self, x, z):
+        x0, z0 = self.polygons[0][0]
+        x1, z1 = self.polygons[0][1]            
+        self.guide.set_data([x0, x, x1], [z0, z, z1])
+                
+    def move(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        self.draw_guide(event.xdata, event.ydata)
+        self.draw()
+        
+    def set_density(self, value):
+        self.densities[0] = 1000.*value
+        self.update()
+        self.draw()
+
+    def pick(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        x, y = event.xdata, event.ydata
+        if (event.button == 1):
+            self.polygons[0][2] = [x, y]
+            self.plotx[2] = x
+            self.ploty[2] = y
+            self.polyline.set_data(self.plotx, self.ploty)
+            self.guide.set_data([], [])
+            self.update()
+            self.draw()
+        
+    def key_press(self, event):
+        pass
+
+class Lasagne():
+    """
+    Interactive modeling of vertical seismic profiling for 1D layered media.
+
+    The wave source is assumed to be on the surface of a vertical borehole. The
+    receivers are at given depths. What is measured is the travel-time of
+    first arrivals.
+
+    Assumes that the thickness of the layers are known. The user then only needs
+    to choose the velocities.
+
+    Example::
+
+        # Define the thickness of the layers
+        thickness = [10, 20, 5, 10]
+        # Define the measuring points along the well
+        zp = range(1, sum(thickness), 1)
+        # Define the velocity range
+        vmin, vmax = 0, 10000
+        # Run the application
+        app = Lasagne(thickness, zp, vmin, vmax)
+        app.run()
+        # Save the modeled data
+        app.savedata("mydata.txt")        
+
+    Parameters:
+
+    * thickness
+        List with the thickness of each layer in order of increasing depth
+    * zp
+        List with the depths of the measurement stations (seismometers)
+    * vmin, vmax
+        Range of velocities to allow
+    * tts
+        The array with the observed travel-time values at the measurement
+        stations. Will be plotted as black points together with the modeled
+        (predicted) data. If None, will ignore this.
+        
+    """
+
+    instructions = "Click to set the velocity of the layers"
+    name = "Lasagne - Vertical seismic profiling for 1D layered media"
+
+    def __init__(self, thickness, zp, vmin, vmax, tts=None):
+        if tts is not None:
+            if len(tts) != len(zp):
+                raise ValueError, "zp and tts must have same size"
+        self.tts = tts
+        self.zp = zp
+        self.thickness = thickness
+        # Make the figure
+        self.fig = pyplot.figure(figsize=(14,8))
+        self.fig.canvas.set_window_title(self.name)
+        self.fig.suptitle(self.instructions)
+        self.draw = self.fig.canvas.draw
+        # Make the data and model canvas
+        self.dcanvas = self.fig.add_subplot(1, 2, 1)
+        self.dcanvas.set_ylabel("Depth (m)")
+        self.dcanvas.set_xlabel("Travel-time (s)")
+        self.dcanvas.set_ylim(sum(thickness), 0)
+        self.dcanvas.grid()
+        self.dcanvas.set_ylim(sum(thickness), 0)
+        self.mcanvas = self.fig.add_subplot(1, 2, 2)
+        self.mcanvas.set_ylabel("Depth (m)")
+        self.mcanvas.set_xlabel("Velocity (m/s2)")
+        self.mcanvas.set_xlim(vmin, vmax)
+        self.mcanvas.set_ylim(sum(thickness), 0)
+        self.mcanvas.grid()
+        self.fig.subplots_adjust(top=0.95, left=0.1, right=0.95, bottom=0.15,
+                                 hspace=0.1)
+        # Make the sliders
+        sliderax = self.fig.add_axes([0.20, 0.03, 0.60, 0.03])
+        self.errslider = widgets.Slider(sliderax, 'Error',
+            0, 10, valinit=0., valfmt='%2.1f (percent)')
+        # Initialize the data
+        self.error = 0.
+        self.velocity = vmin*numpy.ones_like(thickness)
+        self.predtts = seismic.profile.vertical(thickness, self.velocity, zp)
+        self.layers = [sum(thickness[:i]) for i in xrange(len(thickness) + 1)]
+        self.predplot, = self.dcanvas.plot(self.predtts, zp, '-r', linewidth=2)
+        if self.tts is not None:
+            self.ttsplot, = self.dcanvas.plot(self.tts, self.zp, 'ok')
+        self.ploty = [self.layers[0]]
+        for y in self.layers[1:-1]:
+            self.ploty.append(y)
+            self.ploty.append(y)
+        self.ploty.append(self.layers[-1])
+        self.plotx = numpy.zeros_like(self.ploty)
+        self.layerplot, = self.mcanvas.plot(self.plotx, self.ploty, 'o-k',
+            linewidth=2)       
+        self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
+                 color='red', linewidth=2) 
+
+    def run(self):
+        self.connect()
+        pyplot.show()
+
+    def get_data(self):
+        return self.predtts
+
+    def savedata(self, fname):
+        data = numpy.array([self.zp, self.predtts]).T
+        numpy.savetxt(fname, data, fmt='%.5f')
+
+    def connect(self):
+        self.errslider.on_changed(self.set_error)
+        self.fig.canvas.mpl_connect('button_press_event', self.pick)
+        self.fig.canvas.mpl_connect('key_press_event', self.key_press)
+        self.fig.canvas.mpl_connect('motion_notify_event', self.move)
+
+    def set_error(self, value):
+        self.error = 0.01*value
+        self.update()
+        self.draw()
+        
+    def update(self):
+        self.predtts = utils.contaminate(
+            seismic.profile.vertical(self.thickness, self.velocity, self.zp),
+            self.error, percent=True)
+        self.predplot.set_data(self.predtts, self.zp)
+        if self.tts is not None:
+            xmin = min(self.predtts.min(), self.tts.min())
+            xmax = max(self.predtts.max(), self.tts.max())
+        else:
+            xmin = self.predtts.min()
+            xmax = self.predtts.max()
+        if xmin != xmax:
+            self.dcanvas.set_xlim(xmin, xmax)
+
+    def draw_guide(self, x, z):
+        i = bisect.bisect(self.layers, z)
+        if i > 0:
+            z1 = self.layers[i - 1]
+            z2 = self.layers[i]
+            x1 = self.velocity[i - 1]
+            self.guide.set_data([x1, x, x, x1], [z1, z1, z2, z2])
+                
+    def move(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        self.draw_guide(event.xdata, event.ydata)
+        self.draw()
+        
+    def pick(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        x, z = event.xdata, event.ydata
+        if (event.button == 1):
+            i = bisect.bisect(self.layers, z) - 1
+            self.velocity[i] = x
+            self.plotx[2*i] = x
+            self.plotx[2*i + 1] = x
+            self.layerplot.set_data(self.plotx, self.ploty)
+            self.guide.set_data([], [])
+            self.update()
             self.draw()
         
     def key_press(self, event):

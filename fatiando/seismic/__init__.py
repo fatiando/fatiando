@@ -34,4 +34,4 @@ Various tools for seismic and seismology, like direct modeling, inversion
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 11-Sep-2010'
 
-from fatiando.seismic import epicenter, traveltime, srtomo
+from fatiando.seismic import epicenter, traveltime, srtomo, profile
