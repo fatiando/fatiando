@@ -38,10 +38,41 @@ from fatiando import logger, utils
 log = logger.dummy()
 
 
-class Potential2DModeler():
+class Moulder():
     """
-    Interactive potential field direct modeling in 2D using module
-    :mod:`fatiando.potential.talwani`.
+    Interactive potential field direct modeling in 2D using polygons (and module
+    :mod:`fatiando.potential.talwani` for computations).
+
+    For the moment only works for the gravity anomaly.
+
+    To run this in a script, use::
+
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Create the application
+        app = Moulder(area, xp, zp)
+        # Run it
+        app.run()
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
+
+    Parameters:
+
+    * area
+        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
+        Remember, z is positive downward
+    * xp, zp
+        Array with the x and z coordinates of the computation points
+    * gz
+        The array with the observed gravity values at the computation points.
+        Will be plotted as black points together with the modeled (predicted)
+        data. If None, will ignore this.
+
+    "The truth is out there"
+    
     """
 
     def __init__(self, area, xp, zp, gz=None):
@@ -50,7 +81,7 @@ class Potential2DModeler():
         # Get the data
         self.area = area
         self.x1, self.x2, z1, z2 = 0.001*numpy.array(area)
-        self.gz = None
+        self.gz = gz
         self.xp = numpy.array(xp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
         # Make the figure
@@ -83,6 +114,8 @@ class Potential2DModeler():
         self.leg = None
         self.predgz = None
         self.predplot, = self.dcanvas.plot([], [], '-r', linewidth=2)
+        if self.gz is not None:
+            self.gzplot, = self.dcanvas.plot(xp*0.001, gz, 'ok')
         self.nextdens = 0.
         self.error = 0.
         self.densities = []
@@ -92,18 +125,22 @@ class Potential2DModeler():
         self.ploty = []
         self.polyplots = []
         self.polyline, = self.mcanvas.plot([], [], marker='o', linewidth=2)
+
+    def run(self):
         # Connect the event handlers
         self.picking = False
         self.connect()
-        self.print_instructions()
         pyplot.show()
+
+    def get_data(self):
+        """
+        Returns the calculated data vector.
+        """
+        return self.predgz
 
     def savedata(self, fname):
         data = numpy.array([self.xp, self.zp, self.predgz]).T
         numpy.savetxt(fname, data, fmt='%.5f')
-
-    def print_instructions(self):
-        pass
 
     def connect(self):
         self.densslider.on_changed(self.set_density)
@@ -122,7 +159,13 @@ class Potential2DModeler():
         else:
             self.predgz = numpy.zeros_like(self.xp)
         self.predplot.set_data(self.xp*0.001, self.predgz)
-        self.dcanvas.set_ylim(self.predgz.min(), self.predgz.max())
+        if self.gz is not None:
+            ymin = min(self.predgz.min(), self.gz.min())
+            ymax = max(self.predgz.max(), self.gz.max())
+        else:
+            ymin = self.predgz.min()
+            ymax = self.predgz.max()
+        self.dcanvas.set_ylim(ymin, ymax)
         self.draw()
 
     def set_density(self, value):
@@ -189,7 +232,7 @@ class Potential2DModeler():
                 if len(self.polygons) == 0:
                     return 0
                 self.polygons.pop()
-                #self.densities.pop()
+                self.densities.pop()
                 line, fill = self.polyplots.pop()
                 line.remove()
                 fill.remove()
