@@ -45,7 +45,8 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
+def draw_polygon(area, axes, style='-', marker='o', color='k', width=1,
+    alpha=0.7):
     """
     Draw a polygon by clicking with the mouse.
 
@@ -78,6 +79,9 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
         String with line color (as in matplotlib.pyplot.plot)
     * width
         The line width (as in matplotlib.pyplot.plot)
+    * alpha
+        Transparency of the fill of the polygon. 0 for transparent, 1 for opaque
+        (fills the polygon once done drawing)
         
     Returns:
     
@@ -98,7 +102,9 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
     # start with an empty line
     line, = axes.plot([],[], marker=marker, linestyle=style, color=color,
                       linewidth=width)
-    line.figure.canvas.draw()
+    tmpline, = axes.plot([],[], marker=marker, linestyle=style, color=color,
+                         linewidth=width)
+    draw = axes.figure.canvas.draw
     x = []
     y = []
     plotx = []
@@ -106,6 +112,15 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
     # Hack because Python 2 doesn't like nonlocal variables that change value.
     # Lists it doesn't mind.
     picking = [True]
+    def draw_guide(px, py):
+        if len(x) != 0:
+            tmpline.set_data([x[-1], px], [y[-1], py])
+    def move(event):
+        if event.inaxes != axes:
+            return 0
+        if picking[0]:
+            draw_guide(event.xdata, event.ydata)
+            draw()
     def pick(event):
         if event.inaxes != axes:
             return 0
@@ -116,10 +131,6 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
             y.append(event.ydata)
             plotx.append(event.xdata)
             ploty.append(event.ydata)
-            line.set_color(color)
-            line.set_linestyle(style)
-            line.set_linewidth(width)
-            line.set_marker(marker)
         if event.button == 3 or event.button == 2 and picking[0]:
             if len(x) < 3:
                 axes.set_title("Need at least 3 points to make a polygon")
@@ -128,8 +139,10 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
                 axes.set_title("Done! You can close the window now.")
                 plotx.append(x[0])
                 ploty.append(y[0])
+                tmpline.set_data([], [])
+                axes.fill(plotx, ploty, color=color, alpha=alpha)
         line.set_data(plotx, ploty)
-        line.figure.canvas.draw()
+        draw()
     def erase(event):
         if event.key == 'e' and picking[0]:
             x.pop()
@@ -137,9 +150,11 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=1):
             plotx.pop()
             ploty.pop()
             line.set_data(plotx, ploty)
-            line.figure.canvas.draw()
+            draw_guide(event.xdata, event.ydata)
+            draw()
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
+    line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
     if len(x) < 3:
         raise ValueError, "Need at least 3 points to make a polygon"
