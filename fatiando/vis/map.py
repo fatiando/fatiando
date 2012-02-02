@@ -228,7 +228,7 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     pyplot.ylim(ys.min(), ys.max())
     return plot
 
-def polygon(polygon, style='-k', label=None, linewidth=1):
+def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
     """
     Plot a polygon.
 
@@ -238,6 +238,14 @@ def polygon(polygon, style='-k', label=None, linewidth=1):
         List of :func:`fatiando.mesher.dd.Polygon`
     * style
         Color and line style string (as in matplotlib.pyplot.plot)
+    * linewidth
+        Line width
+    * fill
+        A color string used to fill the polygon. If None, the polygon is not
+        filled
+    * alpha
+        Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
+        opaque
     * label
         String with the label identifying the polygon in the legend 
 
@@ -251,11 +259,12 @@ def polygon(polygon, style='-k', label=None, linewidth=1):
     tmpx.append(polygon['x'][0])
     tmpy = [y for y in polygon['y']]
     tmpy.append(polygon['y'][0])
-    args = [tmpx, tmpy, style]
     kwargs = {'linewidth':linewidth}
     if label is not None:
         kwargs['label'] = label
-    line, = pyplot.plot(*args, **kwargs)
+    line, = pyplot.plot(tmpx, tmpy, style, **kwargs)
+    if fill is not None:
+        pyplot.fill(tmpx, tmpy, color=fill, alpha=alpha)
     return line
 
 def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,

@@ -45,8 +45,8 @@ from fatiando import logger
 log = logger.dummy()
 
 
-def draw_polygon(area, axes, style='-', marker='o', color='k', width=1,
-    alpha=0.7):
+def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
+    alpha=0.5):
     """
     Draw a polygon by clicking with the mouse.
 
