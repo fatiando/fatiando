@@ -160,7 +160,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     return plot
     
-def square(area, style='-k', linewidth=1, label=None):
+def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
     """
     Plot a square.
 
@@ -172,6 +172,12 @@ def square(area, style='-k', linewidth=1, label=None):
         String with the color and line style (as in matplotlib.pyplot.plot)
     * linewidth
         Line width
+    * fill
+        A color string used to fill the square. If None, the square is not
+        filled
+    * alpha
+        Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
+        opaque
     * label
         label associated with the square.
 
@@ -187,6 +193,8 @@ def square(area, style='-k', linewidth=1, label=None):
     if label is not None:
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, style, **kwargs)
+    if fill is not None:
+        pyplot.fill(xs, ys, color=fill, alpha=alpha)
     return plot
 
 def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
