@@ -279,6 +279,11 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         log.info("  noise level = %g percent" % (100*stddev))
         stddev = stddev*max(abs(data))
     log.info("  noise stddev = %s" % (str(stddev)))
+    if stddev == 0.:
+        if return_stddev:
+            return [data, stddev]
+        else:
+            return data
     contam = numpy.array([numpy.random.normal(v, stddev) for v in data])
     if return_stddev:
         return [contam, stddev]

@@ -33,3 +33,13 @@ from matplotlib import pyplot
 
 from fatiando import logger
 log = logger.dummy()
+
+
+class Potential2DModeler():
+    """
+    Interactive potential field direct modeling in 2D using module
+    :mod:`fatiando.potential.talwani`.
+    """
+
+    def __init__(self, area, xp, zp):
+        pass
