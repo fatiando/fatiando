@@ -75,19 +75,27 @@ class Moulder():
     
     """
 
+    instructions = "Left click to close polygon - 'e' to delete"
+    name = "Moulder"
+
     def __init__(self, area, xp, zp, gz=None):
         if len(zp) != len(xp):
             raise ValueError, "xp and zp must have same size"
         # Get the data
         self.area = area
         self.x1, self.x2, z1, z2 = 0.001*numpy.array(area)
-        self.gz = gz
+        if gz is not None:
+            if len(gz) != len(xp):
+                raise ValueError, "xp, zp and gz must have same size"
+            self.gz = numpy.array(gz)
+        else:
+            self.gz = gz
         self.xp = numpy.array(xp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
         # Make the figure
         self.fig = pyplot.figure()
-        self.fig.canvas.set_window_title("Potential2DModeler")
-        self.fig.suptitle("Left click to close polygon - 'e' to delete")
+        self.fig.canvas.set_window_title(self.name)
+        self.fig.suptitle(self.instructions)
         self.draw = self.fig.canvas.draw
         # Make the data and model canvas
         self.dcanvas = self.fig.add_subplot(2, 1, 1)
@@ -97,7 +105,6 @@ class Moulder():
         self.mcanvas = self.fig.add_subplot(2, 1, 2)
         self.mcanvas.set_ylabel("Depth (km)")
         self.mcanvas.set_xlabel("x (km)")
-        self.mcanvas.set_xticklabels([])
         self.mcanvas.set_xlim(self.x1, self.x2)
         self.mcanvas.set_ylim(z2, z1)
         self.mcanvas.grid()
@@ -130,12 +137,10 @@ class Moulder():
         # Connect the event handlers
         self.picking = False
         self.connect()
+        self.update()
         pyplot.show()
 
     def get_data(self):
-        """
-        Returns the calculated data vector.
-        """
         return self.predgz
 
     def savedata(self, fname):
@@ -165,7 +170,8 @@ class Moulder():
         else:
             ymin = self.predgz.min()
             ymax = self.predgz.max()
-        self.dcanvas.set_ylim(ymin, ymax)
+        if ymin != ymax:
+            self.dcanvas.set_ylim(ymin, ymax)
         self.draw()
 
     def set_density(self, value):
@@ -238,4 +244,108 @@ class Moulder():
                 fill.remove()
                 self.update()
             self.draw()
+
+class BasinTrap(Moulder):
+    """
+    Interactive gravity modeling using a trapezoidal model.
+
+    The trapezoid has two surface nodes with fixed position. The bottom two have
+    fixed x coordinates but movable z. The x coordinates for the bottom nodes
+    are the same as the ones for the surface nodes. The user can then model by
+    controling the depths of the two bottom nodes.
+
+    Example::
+
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Where the two surface nodes are
+        nodes = [[100, 0], [900, 0]]
+        # Create the application
+        app = ItsATrap(area, nodes, xp, zp)
+        # Run it
+        app.run()
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
+
+    Parameters:
+
+    * area
+        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
+        Remember, z is positive downward
+    * nodes
+        [[x1, z1], [x2, z2]]: x and z coordinates of the two top nodes.
+        Must be in clockwise order!
+    * xp, zp
+        Array with the x and z coordinates of the computation points
+    * gz
+        The array with the observed gravity values at the computation points.
+        Will be plotted as black points together with the modeled (predicted)
+        data. If None, will ignore this.
         
+    """
+
+    instructions = "Click set node depth - Left click to change nodes"
+    name = "BasinTrap"
+
+    def __init__(self, area, nodes, xp, zp, gz=None):
+        Moulder.__init__(self, area, xp, zp, gz)
+        left, right = numpy.array(nodes)*0.001
+        z1 = z2 = 0.001*0.5*(area[3] - area[2])
+        self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
+        self.densities = [0.]
+        self.plotx = [v[0] for v in self.polygons[0]]
+        self.plotx.append(left[0])
+        self.ploty = [v[1] for v in self.polygons[0]]
+        self.ploty.append(left[1])
+        self.polyline.set_data(self.plotx, self.ploty)
+        self.polyline.set_color('k')
+        self.isleft = True
+        self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
+                 color='red', linewidth=2)
+
+    def draw_guide(self, x, z):
+        if self.isleft:
+            x0, z0 = self.polygons[0][3]
+            x1, z1 = self.polygons[0][2]
+        else:
+            x0, z0 = self.polygons[0][2]
+            x1, z1 = self.polygons[0][3]            
+        self.guide.set_data([x0, x0, x1], [z0, z, z1])
+                
+    def move(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        v, z = event.xdata, event.ydata
+        self.draw_guide(v, z)
+        self.draw()
+        
+    def set_density(self, value):
+        self.densities[0] = 1000.*value
+        self.update()
+        self.draw()
+
+    def pick(self, event):
+        if event.inaxes != self.mcanvas:
+            return 0
+        x, y = event.xdata, event.ydata
+        if (event.button == 1):
+            if self.isleft:
+                self.polygons[0][3][1] = y
+                self.ploty[3] = y
+            else:
+                self.polygons[0][2][1] = y
+                self.ploty[2] = y
+            self.polyline.set_data(self.plotx, self.ploty)
+            self.guide.set_data([], [])
+            self.update()
+            self.draw()
+        if event.button == 3 or event.button == 2:
+            self.isleft = not self.isleft
+            self.draw_guide(x, y)
+            self.draw()
+        
+    def key_press(self, event):
+        pass
