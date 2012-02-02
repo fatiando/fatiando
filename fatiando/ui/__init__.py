@@ -29,6 +29,8 @@ draw polygons, lines, etc.
 
 * :mod:`fatiando.ui.gui`
 
+Classes for various GUI interfaces for different ``fatiando`` modules. 
+
 ----
    
 """

@@ -22,9 +22,10 @@ directly from Python scripts. They all call matplotlib.pyplot.show() to start
 an event loop, get the user input, and return the picked values once the plot
 window is closed.
 
-**DRAWING GEOMETRIC ELEMENTS**
+**DRAWING GEOMETRIC ELEMENTS AND MODELS**
 
 * :func:`fatiando.ui.picker.draw_polygon`
+* :func:`fatiando.ui.picker.draw_layers`
 
 **PICKING POINT COORDINATES**
 
@@ -38,7 +39,7 @@ __date__ = 'Created 01-Feb-2012'
 
 
 import numpy
-from matplotlib import pyplot
+from matplotlib import pyplot, widgets
 
 from fatiando import logger
 log = logger.dummy()
@@ -226,6 +227,127 @@ def points(area, axes, marker='o', color='k', size=8):
     line.figure.canvas.mpl_connect('key_press_event', erase)
     pyplot.show()
     return numpy.array([x, y]).T
+    
+def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
+    """
+    Draw series of horizontal layers by clicking with the mouse.
+
+    The y-axis is assumed to be depth, the x-axis is the physical property of
+    each layer.
+
+    INSTRUCTIONS:
+    
+    * Click to make a new layer;
+    * Press 'e' to erase the last layer;
+    * Close the figure window to finish;
+
+    Parameters:
+    
+    * area
+        (v1, v2, z1, z2): lower and upper bounds on physical property value and
+        depth, respectively.
+    * axes
+        A matplotlib Axes.
+        To get an Axes instace, just do::
+        
+            from matplotlib import pyplot
+            axes = pyplot.figure().add_subplot(1,1,1)
+
+        You can plot things to ``axes`` before calling this function so that
+        they'll appear on the background.
+    * style
+        String with line style (as in matplotlib.pyplot.plot)
+    * marker
+        String with style of the point markers (as in matplotlib.pyplot.plot)
+    * color
+        String with line color (as in matplotlib.pyplot.plot)
+    * width
+        The line width (as in matplotlib.pyplot.plot)
+        
+    Returns:
+    
+    * [thickness, values]
+
+        * thickness
+            List with the thickness of each layer, in order of increasing depth
+        * values
+            List with the physical property value of each layer, in the same
+            order        
+
+    """
+    log.info("Drawing layers...")
+    log.info("  INSTRUCTIONS:")
+    log.info("  * Click to make a new layer;")
+    log.info("  * Press 'e' to erase the last layer;")
+    log.info("  * Close the figure window to finish;")
+    axes.set_title("Click to set a layer. Close the window when done.")
+    axes.grid()
+    vmin, vmax, zmin, zmax = area
+    axes.set_xlim(vmin, vmax)
+    axes.set_ylim(zmax, zmin)
+    # start with an empty line
+    line, = axes.plot([], [], marker=marker, linestyle=style,
+                       color=color, linewidth=width)
+    midv = 0.5*(vmax + vmin)
+    # this is the line that moves around with the mouse
+    tmpline, = axes.plot([midv], [zmin], marker=marker, linestyle='--',
+                         color=color, linewidth=width)
+    # Make a proxy for drawing
+    draw = axes.figure.canvas.draw
+    depths = [zmin]
+    values = []
+    plotv = []
+    plotz = []
+    tmpz = [zmin]
+    # Hack because Python 2 doesn't like nonlocal variables that change value.
+    # Lists it doesn't mind.
+    picking = [True]
+    def draw_guide(v, z):
+        if len(values) == 0:
+            tmpline.set_data([v, v], [tmpz[0], z])
+        else:
+            if z > tmpz[0]:                
+                tmpline.set_data([values[-1], v, v], [tmpz[0], tmpz[0], z])
+            else:                
+                tmpline.set_data([values[-1], v], [tmpz[0], tmpz[0]])
+    def move(event):
+        if event.inaxes != axes:
+            return 0
+        v, z = event.xdata, event.ydata
+        if picking[0]:
+            draw_guide(v, z)
+            draw()
+    def pick(event):
+        if event.inaxes != axes:
+            return 0
+        if event.button == 1 and picking[0]:
+            v, z = event.xdata, event.ydata
+            if z > tmpz[0]:
+                depths.append(z)
+                values.append(v)
+                plotz.extend([tmpz[0], z])
+                plotv.extend([v, v])
+                tmpz[0] = z
+                line.set_data(plotv, plotz)
+                draw()
+    def erase(event):
+        if picking[0] and len(values) > 0 and event.key == 'e':
+            depths.pop()
+            values.pop()
+            tmpz[0] = depths[-1]
+            plotv.pop()
+            plotv.pop()
+            plotz.pop()
+            plotz.pop()
+            line.set_data(plotv, plotz)
+            draw_guide(event.xdata, event.ydata)
+            draw()
+    line.figure.canvas.mpl_connect('button_press_event', pick)
+    line.figure.canvas.mpl_connect('key_press_event', erase)
+    line.figure.canvas.mpl_connect('motion_notify_event', move)
+    pyplot.show()
+    thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
+    return thickness, values
 
 def _test():
     import doctest
