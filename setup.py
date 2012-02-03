@@ -71,7 +71,7 @@ packages = ['fatiando',
             'fatiando.tests']
 
 with open("README.txt") as f:
-    long_description = f.readlines()
+    long_description = ''.join(f.readlines())
 
 if __name__ == '__main__':
 
@@ -80,8 +80,7 @@ if __name__ == '__main__':
           description="Geophysical direct and inverse modeling",
           long_description=long_description,
           version=fatiando.__version__,
-          author="Leonardo Uieda",
-          author_email='leouieda at gmail.com',
+          author="Fatiando a Terra Development Team",
           license='GNU LGPL',
           url="www.fatiando.org",
           platforms="Linux",

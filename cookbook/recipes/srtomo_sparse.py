@@ -30,7 +30,8 @@ ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
                     
 mesh = SquareMesh(area, shape)
 solver = inversion.gradient.steepest(numpy.zeros(mesh.size))
-results = srtomo.run(ttimes, srcs, recs, mesh, solver, sparse=True, smooth=0.05)
+results = srtomo.run(ttimes, srcs, recs, mesh, solver, sparse=True,
+                     damping=0.05)
 estimate, residuals = results
 
 pyplot.figure(figsize=(14, 5))

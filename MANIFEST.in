@@ -1,7 +1,5 @@
 include LICENSE.txt
 include README.txt
-include CHANGELOG.txt
 include MANIFEST.in
-include SConstruct
-recursive-include examples *
+recursive-include cookbook *
 recursive-include doc *

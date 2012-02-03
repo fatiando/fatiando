@@ -14,7 +14,7 @@ For more information and online documentation, visit http://www.fatiando.org
 Downloading and Installing
 ==========================
 
-Visit the project page at http://code.google.com/p/fatiando/  for instructions
+Visit the project page at http://code.google.com/p/fatiando/ for instructions
 of downloading and installing.
 
 
