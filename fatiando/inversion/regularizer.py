@@ -600,6 +600,7 @@ class TotalVariation(Regularizer):
                    " linear solver.")
             raise ValueError, msg
         Qdiag = self.beta/(self.sqrt**3) + 1.
+        #Qdiag = self.beta/(self.sqrt**3)
         return hessian + self.mu*numpy.dot(self.fdmat.T*Qdiag, self.fdmat)
 
 class TotalVariation1D(TotalVariation):
