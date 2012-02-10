@@ -28,37 +28,22 @@ potdir = join('src', 'potential')
 seisdir = join('src', 'seismic')
 heatdir = join('src', 'heat')
 
-potential_prism = Extension('fatiando.potential._prism',
-                            sources=[join(potdir, 'prism.c'),
-                                     join(potdir, 'prism.pyf')],
-                            extra_compile_args=['-fno-strict-aliasing'])
-potential_talwani = Extension('fatiando.potential._talwani',
-                            sources=[join(potdir, 'talwani.c'),
-                                     join(potdir, 'talwani.pyf')],
-                            extra_compile_args=['-fno-strict-aliasing'])
-potential_polyprism = Extension('fatiando.potential._polyprism',
-                                sources=[join(potdir, 'polyprism.c'),
-                                         join(potdir, 'polyprism.pyf')],
-                                extra_compile_args=['-fno-strict-aliasing'])
-potential_transform = Extension('fatiando.potential._transform',
-                                sources=[join(potdir, 'transform.c'),
-                                         join(potdir, 'transform.pyf')],
-                                extra_compile_args=['-fno-strict-aliasing'])
-seismic_traveltime = Extension('fatiando.seismic._traveltime',
-                                sources=[join(seisdir, 'traveltime.c'),
-                                         join(seisdir, 'traveltime.pyf')],
-                                extra_compile_args=['-fno-strict-aliasing'])
-heat_climatesignal = Extension('fatiando.heat._climatesignal',
-                                sources=[join(heatdir, 'climatesignal.c'),
-                                         join(heatdir, 'climatesignal.pyf')],
-                                extra_compile_args=['-fno-strict-aliasing'])
-
-extmods = [potential_prism,
-           potential_talwani,
-           potential_polyprism,
-           potential_transform,
-           seismic_traveltime,
-           heat_climatesignal]
+extmods = [
+    Extension('fatiando.potential._prism', sources=[join(potdir, 'prism.c'),
+        join(potdir, 'prism.pyf')]),
+    Extension('fatiando.potential._talwani', sources=[join(potdir, 'talwani.c'),
+        join(potdir, 'talwani.pyf')]),
+    Extension('fatiando.potential._polyprism',
+        sources=[join(potdir, 'polyprism.c'), join(potdir, 'polyprism.pyf')]),
+    Extension('fatiando.potential._transform',
+        sources=[join(potdir, 'transform.c'), join(potdir, 'transform.pyf')]),
+    Extension('fatiando.seismic._traveltime',
+        sources=[join(seisdir, 'traveltime.c'),
+                 join(seisdir, 'traveltime.pyf')]),
+    Extension('fatiando.heat._climatesignal',
+        sources=[join(heatdir, 'climatesignal.c'),
+                 join(heatdir, 'climatesignal.pyf')])
+    ]
 
 packages = ['fatiando',
             'fatiando.potential',
