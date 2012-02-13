@@ -147,12 +147,12 @@ def header(comment=''):
         string with the header message
 
     """
-    lines = ["%sFatiando a Terra:\n" % (comment),
-             "%s  version: %s\n" % (comment, fatiando.__version__),
-             "%s  date: %s\n" % (comment, time.asctime()),
-             "%s  changeset: %s\n" % (comment, fatiando.__changeset__)
+    lines = ["%sFatiando a Terra:" % (comment),
+             "%s  version: %s" % (comment, fatiando.__version__),
+             "%s  date: %s" % (comment, time.asctime()),
+             "%s  changeset: %s" % (comment, fatiando.__changeset__)
             ]
-    return ''.join(lines)
+    return '\n'.join(lines)
     
 def _test():
     import doctest
