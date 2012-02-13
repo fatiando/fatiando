@@ -19,7 +19,7 @@ Package ``fatiando`` contains tools for geophysical direct and inverse modeling
 as well as data processing, gridding, and visualization.
 """
 __date__ = '02-Apr-2010'
-__version__ = '0.1'
+__version__ = '0.0.1'
 
 __all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
            'utils', 'logger', 'heat']

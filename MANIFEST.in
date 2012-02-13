@@ -2,4 +2,3 @@ include LICENSE.txt
 include README.txt
 include MANIFEST.in
 recursive-include cookbook *
-recursive-include doc *
