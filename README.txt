@@ -25,6 +25,8 @@ Fatiando is being developed by a group of geophysics graduates from the
 Universidade de Sao Paulo and the Observatorio Nacional in Brazil. Work done
 here is part of some Masters and Phd projects.
 
+See http://www.fatiando.org/people for a list of people involved.
+
 License
 =======
 
