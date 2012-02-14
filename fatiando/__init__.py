@@ -23,4 +23,3 @@ __version__ = '0.0.1'
 
 __all__ = ['potential', 'seismic', 'inversion', 'gridder', 'mesher', 'vis',
            'utils', 'logger', 'heat']
-from fatiando.changeset import __changeset__

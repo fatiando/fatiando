@@ -3,7 +3,7 @@ syntax: glob
 ./.sconsign.dblite
 *.pyc
 *.so
-doc/userguide/_build
+doc/build
 _*module.c
 build
 dist

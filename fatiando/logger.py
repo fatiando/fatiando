@@ -149,9 +149,7 @@ def header(comment=''):
     """
     lines = ["%sFatiando a Terra:" % (comment),
              "%s  version: %s" % (comment, fatiando.__version__),
-             "%s  date: %s" % (comment, time.asctime()),
-             "%s  changeset: %s" % (comment, fatiando.__changeset__)
-            ]
+             "%s  date: %s" % (comment, time.asctime())]
     return '\n'.join(lines)
     
 def _test():
