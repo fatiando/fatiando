@@ -15,7 +15,53 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-3D iterative inversion using a planting algorithm.
+Robust 3D potential field inversion by planting anomalous densities.
+
+Performs the inversion by iteratively growing the estimate around user-specified
+"seeds". Supports various kinds of data (gravity, gravity tensor, magnetic) and
+there are plans to support different kinds of seeds as well.
+
+**SEEDS**
+
+* :class:`fatiando.potential.harvester.SeedPrism`
+
+Coming soon:
+
+* :class:`fatiando.potential.harvester.SeedTesseroid`
+* :class:`fatiando.potential.harvester.SeedPolyhedron`
+
+**DATAMODULES**
+
+* :class:`fatiando.potential.harvester.DMPrismGz`
+* :class:`fatiando.potential.harvester.DMPrismGxx`
+* :class:`fatiando.potential.harvester.DMPrismGxy`
+* :class:`fatiando.potential.harvester.DMPrismGxz`
+* :class:`fatiando.potential.harvester.DMPrismGyy`
+* :class:`fatiando.potential.harvester.DMPrismGyz`
+* :class:`fatiando.potential.harvester.DMPrismGzz`
+
+**USAGE**
+
+The standard usage of :mod:`fatiando.potential.harvester` is::
+
+    import fatiando.mesher.ddd
+    # Create a mesh
+    # Assuming that bounds has the limits of the mesh and shape has the number
+    # of prisms in each dimension
+    bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
+    shape = (nz, ny, nx)
+    mesh = fatiando.mesher.ddd.PrismMesh(bounds, shape)
+    # Make a data module    
+    # Assuming the gravity data has been loaded into arrays xp, yp, zp and gz
+    dms = [DMPrismGz(xp, yp, zp, gz, mesh)]
+    # Make the seed and set the compactness regularizing parameter mu
+    seeds = [SeedPrism([x, y, z], {'density':800}, mu=0.1)]
+    # Run the inversion
+    estimate = harvest(dms, seeds)
+    # The estimate is a list of prisms that make up the solution
+
+----
+
 """
 __author__ = 'Leonardo Uieda (leouieda@gmail.com)'
 __date__ = 'Created 17-Nov-2010'
