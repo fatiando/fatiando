@@ -21,7 +21,17 @@ Performs the inversion by iteratively growing the estimate around user-specified
 "seeds". Supports various kinds of data (gravity, gravity tensor, magnetic) and
 there are plans to support different kinds of seeds as well.
 
+The inversion is performed by function
+:func:`fatiando.potential.harvester.harvest`. The required information, such as
+observed data, seeds, and regularization, are passed to the function though
+seed classes and data modules.
+
 **SEEDS**
+
+A seed class determines what kind of geometric element is used to parametrize
+the anomalous density distribution. For example, if you use a SeedPrism, the
+output of :func:`fatiando.potential.harvester.harvest` will be a list of prisms
+that make up the estimated density distribution.
 
 * :class:`fatiando.potential.harvester.SeedPrism`
 
@@ -30,7 +40,11 @@ Coming soon:
 * :class:`fatiando.potential.harvester.SeedTesseroid`
 * :class:`fatiando.potential.harvester.SeedPolyhedron`
 
-**DATAMODULES**
+**DATA MODULES**
+
+Data modules wrap the observed data and calculate the predicted data for a given
+parametrization. Data modules should match the type of seed used! Trying to
+invert using SeedTesseroid and  DMPrismGz will cause errors.
 
 * :class:`fatiando.potential.harvester.DMPrismGz`
 * :class:`fatiando.potential.harvester.DMPrismGxx`
@@ -57,8 +71,10 @@ The standard usage of :mod:`fatiando.potential.harvester` is::
     # Make the seed and set the compactness regularizing parameter mu
     seeds = [SeedPrism([x, y, z], {'density':800}, mu=0.1)]
     # Run the inversion
-    estimate = harvest(dms, seeds)
-    # The estimate is a list of prisms that make up the solution
+    estimate, goals, misfits = harvest(dms, seeds)
+    # The estimate is a list with the density of each prism in mesh
+    # goals is a list of goal function value per iteration.
+    # misfits is a list of the data misfit value per iteration.
 
 ----
 
@@ -70,15 +86,40 @@ import time
 import math
 import bisect
 
-import numpy
-sum = numpy.sum
-
 from fatiando.potential import _prism
 from fatiando import utils, logger
 
 log = logger.dummy()
 
-                
+
+class SeedPrism(object):
+    """
+    A 3D right rectangular prism seed.
+
+    One of the types of seed required by
+    :func:`fatiando.potential.harvester.harvest`.
+
+    Wraps the information about a seed. Also knows how to grow a seed and the
+    estimate it produced.
+
+    Parameters:
+
+    * pos
+        ``(x, y, z)``: x, y, z coordinates of where you want to place the seed.
+        The seed will be a prism of the mesh that has this point inside it.
+    
+    * compact
+        Wether or not to impose compactness algorithmically on the solution.
+        If False, the compactness of the solution will depend on the value of
+        *mu*.
+    
+    """
+
+    def __init__(self):
+        pass
+
+
+
 class DataModule(object):
     """
     Mother class for data modules
@@ -876,18 +917,138 @@ def grow(seeds, mesh, datamods, jury):
         if not onegrew:
             break 
 
-def harvest(seeds, mesh, datamods, jury):
+def _harvest_iterator(dms, seeds, first_goal):
     """
-    Perform all accretions. Return mesh with special props in it.
-    special props don't store 0s, return 0 if try to access element not in dict
+    Iterator that yields the growth iterations of a 3D potential field inversion
+    by planting anomalous densities.
+    For more details on the parameters, see
+    :func:`fatiando.potential.harvester.harvest`.
+
+    Yields:
+
+    * changeset
+        A dictionary with keys:
+
+        * 'estimate'
+            The estimate at this growth iteration
+        * 'goal'
+            Goal function value at this growth iteration
+        * 'misfit'
+            Data misfit value at this growth iteration
+            
     """
-    tstart = time.clock()
-    grower = grow(seeds, mesh, datamods, jury)
-    goals = [chset['goal'] for i, chset in enumerate(grower)]
-    tfinish = time.clock() - tstart
-    log.info("Final goal function value: %g" % (goals[-1]))   
-    log.info("Total time for inversion: %s" % (utils.sec2hms(tfinish)))
-    log.info("Total number of accretions: %d" % (i))
-    if i > 0:
-        log.info("Average time per accretion: %s" % (utils.sec2hms(tfinish/i)))
-    return chset, goals
+    pass
+    
+def _harvest_solver(dms, seeds, first_goal):
+    """
+    Solve a 3D potential field inversion by planting anomalous densities.
+    For more details on the parameters and return values, see
+    :func:`fatiando.potential.harvester.harvest`.           
+    """
+    goals = [first_goal]
+    upgoal = goals.append
+    # Since the compactness regularizing function is zero in the begining
+    misfits = [first_goal]
+    upmisfit = misfits.append
+    goal = first_goal
+    misfit = first_goal
+    while True:
+        grew = False
+        for seed in seeds:
+            change = seed.grow(dms, seeds, goal, misfit)
+            if change is not None:
+                grew = True
+                params, goal, misfit = change
+                upgoal(goal)
+                upmisfit(misfit)
+                for dm in dms:
+                    dm.update(params)
+        if not grew:
+            break
+    estimate = [e for seed in seeds for e in seed.estimate]
+    return [estimate, goals, misfits]
+
+def harvest(dms, seeds, mu=None, shape=None, iterate=False):
+    """
+    Robust 3D potential field inversion by planting anomalous densities.
+
+    Performs the inversion on a data set by iteratively growing the given seeds
+    until the observed data fit the predicted data (according to the misfit
+    measure specified).
+
+    Parameters:
+
+    * dms
+        List of data modules (see the docs of
+        :mod:`fatiando.potential.harvester` for information on data modules)
+    * seeds
+        List of seeds (see the docs of :mod:`fatiando.potential.harvester` for
+        information on seeds)
+    * mu
+        Compactness regularizing parameters. Positive scalar that measures the
+        trade-off between fit and regularization. If None, will use the values
+        passed to each seed. If not None, will overwrite the values passed to
+        the seeds.
+    * shape
+        Wether or not to use the shape-of-anomaly data misfit function of
+        Rene (1986) instead of the conventional l1-norm data misfit. If None,
+        will use the values passed to each seed. If not None, will overwrite the
+        values passed to the seeds.
+    * iterate
+        If True, will return an iterator object that yields one growth iteration
+        at a time.
+
+    Returns:
+
+    * [estimate, goals, misfits]
+        goals is a list with the goal function value per iteration.
+        misfits is a list with the data misfit value per iteration.
+        The contents of *estimate* depend on the type of seed used:
+
+        * SeedPrism
+            A dictionary of physical properties. Each key is a physical property
+            name, like ``'density'``, and each value is a list of values of
+            that physical property for each element in the given model space
+            mesh (interpretative model). Example::
+
+                estimate = {'density':[1, 0, 6, 9, 7, 8, ...],
+                            'susceptibility':[0, 4, 8, 3, 4, 5.4, ...]}
+
+    References:
+
+    Rene, R. M. (1986). Gravity inversion using open, reject, and
+        "shape-of-anomaly" fill criteria. Geophysics, 51, 988.
+        doi:10.1190/1.1442157
+                
+    """
+    log.info("Harvesting inversion results from planting anomalous densities:")
+    log.info("  regularizing parameter (mu): %g" % (mu))
+    log.info("  shape-of-anomaly: %s" % (str(shape)))
+    log.info("  iterate: %s" % (str(iterate)))
+    # Initialize the seeds and data modules before starting
+    for seed in seeds:
+        for dm in dms:
+            dm.update(seed.seed)
+        if mu is not None:
+            seed.set_mu(mu)
+        if shape is not None and shape:
+            seed.use_shape()
+    # Calculate the initial goal function
+    if shape is not None and shape:
+        goal = sum(dm.shape_of_anomaly(dm.predicted) for dm in dms)
+    else:
+        goal = sum(dm.misfit(dm.predicted) for dm in dms)
+    # Now run the actual inversion
+    if iterate:
+        return _harvest_iterator(dms, seeds, goal)
+    else:
+        tstart = time.clock()
+        results = _harvest_solver(dms, seeds, goal)
+        tfinish = time.clock() - tstart
+        its = len(results[1])
+        log.info("  Final goal function value: %g" % (results[1][-1]))   
+        log.info("  Total number of accretions: %d" % (its))
+        log.info("  Average time per accretion: %s" %
+            (utils.sec2hms(float(tfinish)/its)))
+        log.info("  Total time for inversion: %s" % (utils.sec2hms(tfinish)))
+        return results

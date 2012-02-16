@@ -54,7 +54,7 @@ seeds = [harvester.PrismSeed((800, 3250, 600), dens, mesh, mu),
          harvester.PrismSeed((4300, 2050, 600), dens, mesh, mu)]
 
 log.info("Run the inversion and collect the results")
-estimate = harvester.harvest(datamods, seeds)
+estimate, goals, misfits = harvester.harvest(datamods, seeds)
 density_model = vfilter(1100, 1200, 'density', mesh)
 tensor = (gyy, gyz, gzz)
 predicted = [dm.predicted for dm in datamods]
