@@ -119,6 +119,9 @@ class SeedPrism(object):
         trade-off between fit and regularization. This applies only to this
         seeds contribution to the total regularizing function. This way you can
         assign different mus to different seeds.
+    * delta
+        Minimum percentage of change required in the goal function to perform
+        an accretion. The smaller this is, the less the solution is able to grow
     * compact
         Wether or not to impose compactness algorithmically on the solution.
         If False, the compactness of the solution will depend on the value of
@@ -126,16 +129,94 @@ class SeedPrism(object):
     
     """
 
-    def __init__(self, point, props, mesh, mu=0., compact=False):
+    def __init__(self, point, props, mesh, mu=0., delta=0.0001 compact=False):
         self.props = props
         self.mesh = mesh
-        self.mu = mu
+        self.delta = delta
         if compact:
-            self.impose_compactness()
-        self.seed = self.get(point, mesh)
-        self.estimate = utils.SparseList(mesh.size)
-        
+            self._judge = self._compact_judge
+        else:
+            self._judge = self._standard_judge
+        index = self._get_index(point, mesh)
+        self.seed = [index, props]
+        self.estimate = {}
+        for prop in props:
+            estimate[prop] = [[index, props[prop]]]
+        nz, ny, nx = mesh.shape
+        dx, dy, dz = mesh.dims
+        self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
+        self.mu = mu*self.weight
+        self.neighbors = []
+        self.reg = 0
+        self.distance = {}
 
+    def initialize(self, seeds):
+        """
+        Initialize the neighbor list of this seed.
+
+        Leaves out elements that are already neighbors of other seeds or that
+        are the seeds.
+        """
+        pass
+
+    def set_mu(self, mu):
+        """
+        Set the value of the regularizing parameter mu.
+        """
+        self.mu = self.weight*mu
+        
+    def set_delta(self, delta):
+        """
+        Set the value of the delta threshold.
+        """
+        self.delta = delta
+
+    def _get_index(self, point, mesh):
+        """
+        Get the index of the prism in mesh that has point inside it.
+        """
+        pass
+
+    def _update_neighbors(self, n, seeds):
+        """
+        Remove neighbor n from the list of neighbors and include its neighbors
+        """
+        pass
+
+    def _standard_judge(self, goals, misfits, goal, misfit):
+        """
+        Choose the best neighbor using the following criteria:
+
+        1. Must decrease the misfit
+        2. Must produce the smallest goal function out of all that pass 1.        
+        """
+        pass
+
+    def _compact_judge(self, goals, misfits, goal, misfit):
+        """
+        Choose the best neighbor using the following criteria:
+
+        1. Must satisfy the compactness criterion
+        2. Must decrease the goal function  
+        """
+        pass
+
+    def grow(self, dms, seeds, goal, misfit):
+        """
+        Try to grow this seed by adding a prism to it's periphery.
+        """
+        misfits = [sum(dm.testdrive(n) for dm in dms) for n in self.neighbors]
+        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n[0]])
+                 for n, m in zip(self.neighbors, misfits)]
+        best = self._judge(goals, misfits, goal, misfit)
+        if best is None:
+            return None
+        index = self.neighbors[best][0]
+        for prop in self.props:
+            estimate[prop].append([index, self.props[prop]])
+        self._update_neighbors(best, seeds)
+        return self.neighbors[best]
+            
 
 
 class DataModule(object):
@@ -1006,7 +1087,7 @@ def _harvest_solver(dms, seeds, first_goal):
     estimate = _cat_estimate(seeds)
     return [estimate, goals, misfits]
 
-def harvest(dms, seeds, mu=None, shape=None, iterate=False):
+def harvest(dms, seeds, mu=None, shape=None, delta=None, iterate=False):
     """
     Robust 3D potential field inversion by planting anomalous densities.
 
@@ -1027,6 +1108,11 @@ def harvest(dms, seeds, mu=None, shape=None, iterate=False):
         trade-off between fit and regularization. If None, will use the values
         passed to each seed. If not None, will overwrite the values passed to
         the seeds.
+    * delta
+        Minimum percentage of change required in the goal function to perform
+        an accretion. The smaller this is, the less the solution is able to
+        grow. If None, will use the values passed to each seed. If not None,
+        will overwrite the values passed to the seeds.
     * shape
         Wether or not to use the shape-of-anomaly data misfit function of
         Rene (1986) instead of the conventional l1-norm data misfit. If None,
@@ -1061,6 +1147,7 @@ def harvest(dms, seeds, mu=None, shape=None, iterate=False):
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
     log.info("  regularizing parameter (mu): %g" % (mu))
+    log.info("  delta (threshold): %g" % (delta))
     log.info("  shape-of-anomaly: %s" % (str(shape)))
     log.info("  iterate: %s" % (str(iterate)))
     # Make sure the seeds are all of the same kind. The .cound hack is from
@@ -1070,18 +1157,19 @@ def harvest(dms, seeds, mu=None, shape=None, iterate=False):
     if kinds.count(kinds[0]) != len(kinds):
         raise ValueError, "Seeds must all be of the same kind!"
     # Initialize the seeds and data modules before starting
-    for seed in seeds:
-        for dm in dms:
-            dm.update(seed.seed)
+    for i, seed in enumerate(seeds):
         if mu is not None:
             seed.set_mu(mu)
+        if delta is not None:
+            seed.set_delta(delta)
+        seed.initialize(seeds)
+    for dm in dms:
         if shape is not None and shape:
-            seed.use_shape()
+            dm.use_shape()
+        for seed in seeds:
+            dm.update(seed.seed)
     # Calculate the initial goal function
-    if shape is not None and shape:
-        goal = sum(dm.shape_of_anomaly(dm.predicted) for dm in dms)
-    else:
-        goal = sum(dm.misfit(dm.predicted) for dm in dms)
+    goal = sum(dm.misfit(dm.predicted) for dm in dms)
     # Now run the actual inversion
     if iterate:
         return _harvest_iterator(dms, seeds, goal)
