@@ -243,7 +243,7 @@ class PrismMesh(object):
     :func:`fatiando.potential.prism.gz`.
 
     To make the mesh incorporate a topography, use
-    meth:`fatiando.mesher.ddd.PrismMesh.carvetopo`
+    :meth:`fatiando.mesher.ddd.PrismMesh.carvetopo`
 
     Example::
 
@@ -266,11 +266,22 @@ class PrismMesh(object):
         >>> def show(p):
         ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
         >>> props = {'density':[2670.0, 1000.0]}
-        >>> mesh = PrismMesh((0,2,0,4,0,3),(1,1,2),props=props)
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2), props=props)
         >>> for p in mesh:
         ...     show(p)
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
         density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
+
+    You can use :meth:`fatiando.mesher.ddd.PrismMesh.get_xs` (and similar
+    methods for y and z) to get the x coordinates os the prisms in the mesh::
+
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
+        >>> print mesh.get_xs()
+        [ 0.  1.  2.]
+        >>> print mesh.get_ys()
+        [ 0.  4.]
+        >>> print mesh.get_zs()
+        [ 0.  3.]
 
     Parameters:
     
@@ -413,26 +424,54 @@ class PrismMesh(object):
                     self.mask.append(c)
                 c += 1
 
-    def dump(self, fname, fmt='vtk'):
+    def get_xs(self):
         """
-        Dump the mesh to a file.
+        Return an array with the x coordinates of the prisms in mesh.
+        """
+        x1, x2, y1, y2, z1, z2 = self.bounds
+        dx, dy, dz = self.dims
+        nz, ny, nx = self.shape
+        xs = numpy.arange(x1, x2 + dx, dx)
+        if xs.size > nx + 1:
+            return xs[:-1]
+        return xs
 
-        File formats:
-        
-        * vtk
-            Save the mesh as VTK UnstructuredGrid
-        * ubc
-            Save the mesh in the format required by UBC-GIF program MeshTools3D
+    def get_ys(self):
+        """
+        Return an array with the y coordinates of the prisms in mesh.
+        """
+        x1, x2, y1, y2, z1, z2 = self.bounds
+        dx, dy, dz = self.dims
+        nz, ny, nx = self.shape
+        ys = numpy.arange(y1, y2 + dy, dy)
+        if ys.size > ny + 1:
+            return ys[:-1]
+        return ys
+
+    def get_zs(self):
+        """
+        Return an array with the z coordinates of the prisms in mesh.
+        """
+        x1, x2, y1, y2, z1, z2 = self.bounds
+        dx, dy, dz = self.dims
+        nz, ny, nx = self.shape
+        zs = numpy.arange(z1, z2 + dz, dz)
+        if zs.size > nz + 1:
+            return zs[:-1]
+        return zs
+
+    def dump_ubc(self, fname):
+        """
+        Dump the mesh to a file in the format required by UBC-GIF program
+        MeshTools3D.
 
         Parameters:
         
         * fname
             File name or open file object.
-        * fmt
-            File format
             
         """
-        pass
+        raise NotImplementedError, "Sorry, UBC format support is not ready"
 
 def extract(key, prisms):
     """
