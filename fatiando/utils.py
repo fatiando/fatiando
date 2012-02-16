@@ -128,12 +128,8 @@ class SparseList(object):
         >>> print l[1], l[3]
         0.0 42.0
         >>> for i in l:
-        ...     print i
-        0.0
-        0.0
-        0.0
-        42.0
-        0.0
+        ...     print i,
+        0.0 0.0 0.0 42.0 0.0
         
     """
 

@@ -65,11 +65,11 @@ The standard usage of :mod:`fatiando.potential.harvester` is::
     bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
     shape = (nz, ny, nx)
     mesh = fatiando.mesher.ddd.PrismMesh(bounds, shape)
-    # Make a data module    
+    # Make the data modules
     # Assuming the gravity data has been loaded into arrays xp, yp, zp and gz
-    dms = [DMPrismGz(xp, yp, zp, gz, mesh)]
+    dms = wrapdata(mesh, xp, yp, zp, gz=gz)
     # Make the seed and set the compactness regularizing parameter mu
-    seeds = [SeedPrism([x, y, z], {'density':800}, mu=0.1)]
+    seeds = sow(points=[[x, y, z]], props=[800], name='density', mu=0.1)
     # Run the inversion
     estimate, goals, misfits = harvest(dms, seeds)
     # The estimate is a list with the density of each prism in mesh
@@ -104,10 +104,21 @@ class SeedPrism(object):
 
     Parameters:
 
-    * pos
+    * point
         ``(x, y, z)``: x, y, z coordinates of where you want to place the seed.
         The seed will be a prism of the mesh that has this point inside it.
-    
+    * props
+        Dictionary with the physical properties assigned to the seed.
+        Ex: ``props={'density':10, 'susceptibility':10000}``
+    * mesh
+        The model space mesh (or interpretative model). A
+        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
+        :func:`fatiando.mesher.ddd.Prism`.
+    * mu
+        Compactness regularizing parameters. Positive scalar that measures the
+        trade-off between fit and regularization. This applies only to this
+        seeds contribution to the total regularizing function. This way you can
+        assign different mus to different seeds.
     * compact
         Wether or not to impose compactness algorithmically on the solution.
         If False, the compactness of the solution will depend on the value of
@@ -115,8 +126,15 @@ class SeedPrism(object):
     
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, point, props, mesh, mu=0., compact=False):
+        self.props = props
+        self.mesh = mesh
+        self.mu = mu
+        if compact:
+            self.impose_compactness()
+        self.seed = self.get(point, mesh)
+        self.estimate = utils.SparseList(mesh.size)
+        
 
 
 
@@ -917,6 +935,26 @@ def grow(seeds, mesh, datamods, jury):
         if not onegrew:
             break 
 
+def _cat_estimate(seeds):
+    """
+    Concatenate the estimate of all seeds to produce the final estimate.
+    What estimate is depends on the kind of seed.
+    """
+    estimate = None
+    kind = seeds[0].kind
+    if kind == 'prism':
+        estimate = {}
+        for seed in seeds:
+            for prop in seed.estimate:
+                if prop not in estimate:
+                    estimate[prop] = seed.estimate[prop]
+                else:
+                    estimate[prop].extend(seed.estimate[prop])
+        size = seeds[0].mesh.size
+        for prop in estimate:
+            estimate[prop] = utils.SparseList(size, dict(estimate[prop]))        
+    return estimate
+
 def _harvest_iterator(dms, seeds, first_goal):
     """
     Iterator that yields the growth iterations of a 3D potential field inversion
@@ -965,7 +1003,7 @@ def _harvest_solver(dms, seeds, first_goal):
                     dm.update(params)
         if not grew:
             break
-    estimate = [e for seed in seeds for e in seed.estimate]
+    estimate = _cat_estimate(seeds)
     return [estimate, goals, misfits]
 
 def harvest(dms, seeds, mu=None, shape=None, iterate=False):
@@ -1005,7 +1043,7 @@ def harvest(dms, seeds, mu=None, shape=None, iterate=False):
         misfits is a list with the data misfit value per iteration.
         The contents of *estimate* depend on the type of seed used:
 
-        * SeedPrism
+        * Prisms
             A dictionary of physical properties. Each key is a physical property
             name, like ``'density'``, and each value is a list of values of
             that physical property for each element in the given model space
@@ -1025,6 +1063,12 @@ def harvest(dms, seeds, mu=None, shape=None, iterate=False):
     log.info("  regularizing parameter (mu): %g" % (mu))
     log.info("  shape-of-anomaly: %s" % (str(shape)))
     log.info("  iterate: %s" % (str(iterate)))
+    # Make sure the seeds are all of the same kind. The .cound hack is from
+    # stackoverflow.com/questions/3844801/check-if-all-elements-in-a-list-are-
+    # identical
+    kinds = [seed.kind for seed in seeds]
+    if kinds.count(kinds[0]) != len(kinds):
+        raise ValueError, "Seeds must all be of the same kind!"
     # Initialize the seeds and data modules before starting
     for seed in seeds:
         for dm in dms:
