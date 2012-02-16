@@ -118,6 +118,9 @@ class SparseList(object):
     
     * size
         Size of the list.
+    * elements
+        Dictionary used to initialize the list. Keys are the index of the
+        elements and values are their respective values.
 
     Example::
 
@@ -128,19 +131,22 @@ class SparseList(object):
         >>> print l[1], l[3]
         0.0 42.0
         >>> for i in l:
-        ...     print i
-        0.0
-        0.0
-        0.0
-        42.0
-        0.0
+        ...     print i,
+        0.0 0.0 0.0 42.0 0.0
+        >>> l2 = SparseList(4, elements={1:3.2, 3:2.8})
+        >>> for i in l2:
+        ...     print i,
+        0.0 3.2 0.0 2.8
         
     """
 
-    def __init__(self, size):
+    def __init__(self, size, elements=None):
         self.size = size
         self.i = 0
-        self.elements = {}
+        if elements is None:
+            self.elements = {}
+        else:
+            self.elements = elements
 
     def __str__(self):
         return str(self.elements)
