@@ -69,7 +69,7 @@ The standard usage of :mod:`fatiando.potential.harvester` is::
     # Assuming the gravity data has been loaded into arrays xp, yp, zp and gz
     dms = wrapdata(mesh, xp, yp, zp, gz=gz)
     # Make the seed and set the compactness regularizing parameter mu
-    seeds = sow(points=[[x, y, z]], props=[800], name='density', mu=0.1)
+    seeds = sow_prisms([[x, y, z]], {'density':[800]}, mesh, mu=0.1)
     # Run the inversion
     estimate, goals, misfits = harvest(dms, seeds)
     # The estimate is a list with the density of each prism in mesh
@@ -90,133 +90,6 @@ from fatiando.potential import _prism
 from fatiando import utils, logger
 
 log = logger.dummy()
-
-
-class SeedPrism(object):
-    """
-    A 3D right rectangular prism seed.
-
-    One of the types of seed required by
-    :func:`fatiando.potential.harvester.harvest`.
-
-    Wraps the information about a seed. Also knows how to grow a seed and the
-    estimate it produced.
-
-    Parameters:
-
-    * point
-        ``(x, y, z)``: x, y, z coordinates of where you want to place the seed.
-        The seed will be a prism of the mesh that has this point inside it.
-    * props
-        Dictionary with the physical properties assigned to the seed.
-        Ex: ``props={'density':10, 'susceptibility':10000}``
-    * mesh
-        The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
-        :func:`fatiando.mesher.ddd.Prism`.
-    * mu
-        Compactness regularizing parameters. Positive scalar that measures the
-        trade-off between fit and regularization. This applies only to this
-        seeds contribution to the total regularizing function. This way you can
-        assign different mus to different seeds.
-    * delta
-        Minimum percentage of change required in the goal function to perform
-        an accretion. The smaller this is, the less the solution is able to grow
-    * compact
-        Wether or not to impose compactness algorithmically on the solution.
-        If False, the compactness of the solution will depend on the value of
-        *mu*.
-    
-    """
-
-    def __init__(self, point, props, mesh, mu=0., delta=0.0001 compact=False):
-        self.props = props
-        self.mesh = mesh
-        self.delta = delta
-        if compact:
-            self._judge = self._compact_judge
-        else:
-            self._judge = self._standard_judge
-        index = self._get_index(point, mesh)
-        self.seed = [index, props]
-        self.estimate = {}
-        for prop in props:
-            estimate[prop] = [[index, props[prop]]]
-        nz, ny, nx = mesh.shape
-        dx, dy, dz = mesh.dims
-        self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
-        self.mu = mu*self.weight
-        self.neighbors = []
-        self.reg = 0
-        self.distance = {}
-
-    def initialize(self, seeds):
-        """
-        Initialize the neighbor list of this seed.
-
-        Leaves out elements that are already neighbors of other seeds or that
-        are the seeds.
-        """
-        pass
-
-    def set_mu(self, mu):
-        """
-        Set the value of the regularizing parameter mu.
-        """
-        self.mu = self.weight*mu
-        
-    def set_delta(self, delta):
-        """
-        Set the value of the delta threshold.
-        """
-        self.delta = delta
-
-    def _get_index(self, point, mesh):
-        """
-        Get the index of the prism in mesh that has point inside it.
-        """
-        pass
-
-    def _update_neighbors(self, n, seeds):
-        """
-        Remove neighbor n from the list of neighbors and include its neighbors
-        """
-        pass
-
-    def _standard_judge(self, goals, misfits, goal, misfit):
-        """
-        Choose the best neighbor using the following criteria:
-
-        1. Must decrease the misfit
-        2. Must produce the smallest goal function out of all that pass 1.        
-        """
-        pass
-
-    def _compact_judge(self, goals, misfits, goal, misfit):
-        """
-        Choose the best neighbor using the following criteria:
-
-        1. Must satisfy the compactness criterion
-        2. Must decrease the goal function  
-        """
-        pass
-
-    def grow(self, dms, seeds, goal, misfit):
-        """
-        Try to grow this seed by adding a prism to it's periphery.
-        """
-        misfits = [sum(dm.testdrive(n) for dm in dms) for n in self.neighbors]
-        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n[0]])
-                 for n, m in zip(self.neighbors, misfits)]
-        best = self._judge(goals, misfits, goal, misfit)
-        if best is None:
-            return None
-        index = self.neighbors[best][0]
-        for prop in self.props:
-            estimate[prop].append([index, self.props[prop]])
-        self._update_neighbors(best, seeds)
-        return self.neighbors[best]
-            
 
 
 class DataModule(object):
@@ -1014,7 +887,318 @@ def grow(seeds, mesh, datamods, jury):
                 yield {'estimate':estimate, 'neighborhood':neighborhood,
                        'goal':goal, 'datamods':datamods}
         if not onegrew:
-            break 
+            break
+
+
+################################################################################
+
+def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
+    gyz=None, gzz=None, use_shape=False, norm=1):
+    """
+    Takes the observed data vectors (measured at the same points) and generates
+    the data modules required by :func:`fatiando.potential.harvester.harvest`.
+
+    If your data sets where measured at different points, make multiple calls
+    to this function. For example, if gz was measured at x1, y1, z1 while gzz
+    and gxx were measured at x2, y2, z2, use::
+
+        dms = wrapdata(mesh, x1, y1, z1, gz=gz)
+        dms.extend(wrapdata(mesh, x2, y2, z2, gxx=gxx, gzz=gzz))
+        
+    Parameters:
+    
+    * mesh
+        The model space mesh (or interpretative model). A
+        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
+        :func:`fatiando.mesher.ddd.Prism`.
+    * xp, yp, zp
+        Arrays with the x, y, and z coordinates of the observation points.
+    * gz, gxx, gxy, etc.
+        Arrays with the observed data, measured at xp, yp, and zp, of the
+        respective components.
+    * use_shape
+        If True, will use the Shape-of-Anomaly function of Rene (1986) instead
+        of the standard data-misfit function.
+    * norm
+        Order of the norm of the residual vector to use. Can be:
+        
+        * 1 -> l1 norm
+        * 2 -> l2 norm
+
+    Returns
+
+    * dms
+        List of data modules    
+    
+    """
+    pass
+
+def sow_prisms(points, props, mesh, mu=0.):
+    """
+    Generate a set of :class:`fatiando.potential.harvester.SeedPrism` from a
+    list of points.
+
+    This is the preferred method for generating seeds! We strongly discourage
+    using :class:`fatiando.potential.harvester.SeedPrism` directly unless you
+    know what you're doing!
+
+    Parameters:
+
+    * points
+        List of ``[x, y, z]`` coordinates where the seeds should be placed. Each
+        point generates a seed (prism in *mesh*) that has the point inside it.
+    * props
+        Dictionary with the physical properties assigned to each seed.
+        Ex: ``props={'density':[10, 28, ...], 'susceptibility':[100, 23, ...]}``
+    * mesh
+        The model space mesh (or interpretative model). A
+        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
+        :func:`fatiando.mesher.ddd.Prism`.
+    * mu
+        Compactness regularizing parameters. Positive scalar that measures the
+        trade-off between fit and regularization. This applies only to this
+        seeds contribution to the total regularizing function. This way you can
+        assign different mus to different seeds.
+
+    Returns:
+
+    * seeds
+        List of :class:`fatiando.potential.harvester.SeedPrism`
+    
+    """
+    pass
+
+class DMPrism(object):
+    """
+    Generic data module for the right rectangular prism.
+
+    Use this class as a base for developing data modules for individual
+    components, like gz, gzz, etc.
+
+    This class wraps the observed data and measurement points. Its derived
+    classes should knows how to calculate the predicted data for their
+    respective components.
+
+    Parameters:
+
+    * data
+        Array with the observed data values of the component of the potential
+        field
+    * xp, yp, zp
+        Arrays with the x, y, and z coordinates of the observation points.
+    * mesh
+        The model space mesh (or interpretative model). A
+        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
+        :func:`fatiando.mesher.ddd.Prism`.
+    * use_shape
+        If True, will use the Shape-of-Anomaly function of Rene (1986) instead
+        of the standard data-misfit function.
+    * norm
+        Order of the norm of the residual vector to use. Can be:
+        
+        * 1 -> l1 norm
+        * 2 -> l2 norm    
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        if norm not in [1, 2]:
+            raise ValueError, "Invalid norm %s: must be 1 or 2" % (str(norm))
+        self.data = data
+        self.predicted = numpy.zeros_like(data)
+        self.xp, self.yp, self.zp = xp, yp, zp
+        self.mesh = mesh            
+        self.norm = norm
+        if use_shape:
+            self.use_shape()
+
+    def use_shape(self):
+        """
+        Replace the standard data misfit function with the shape-of-anomaly
+        data misfit of Rene (1986).
+        """
+        pass
+
+    def update(self, element):
+        """
+        Updated the precited data to include element.
+
+        Parameters:
+
+        * element
+            List ``[index, props]`` where ``index`` is the index of the element
+            in the mesh and ``props`` is a dictionary with the physical
+            properties of the element.
+            
+        """
+        pass
+
+    def testdrive(self, element):
+        """
+        Calculate the value that the data misfit would have if *element* was
+        included in the estimate.
+
+        Parameters:
+         
+        * element
+            List ``[index, props]`` where ``index`` is the index of the element
+            in the mesh and ``props`` is a dictionary with the physical
+            properties of the element.
+
+        Returns:
+
+        * misfit
+            The misfit value
+            
+        """
+        pass
+
+    def misfit(self, predicted):
+        """
+        Return the value of the data misfit given a predicted data vector.
+
+        Parameters:
+
+        * predicted
+            Array with the predicted data
+
+        Returns:
+
+        * misfit
+            The misfit value
+                        
+        """
+        pass
+
+class SeedPrism(object):
+    """
+    A 3D right rectangular prism seed.
+
+    One of the types of seed required by
+    :func:`fatiando.potential.harvester.harvest`.
+
+    Wraps the information about a seed. Also knows how to grow a seed and the
+    estimate it produced.
+
+    **It is highly recommended** that you use function
+    :func:`fatiando.potential.harvester.sow_prisms` to generate the seeds
+    because it checks for duplicate seeds. 
+
+    Parameters:
+
+    * point
+        ``(x, y, z)``: x, y, z coordinates of where you want to place the seed.
+        The seed will be a prism of the mesh that has this point inside it.
+    * props
+        Dictionary with the physical properties assigned to the seed.
+        Ex: ``props={'density':10, 'susceptibility':10000}``
+    * mesh
+        The model space mesh (or interpretative model). A
+        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
+        :func:`fatiando.mesher.ddd.Prism`.
+    * mu
+        Compactness regularizing parameters. Positive scalar that measures the
+        trade-off between fit and regularization. This applies only to this
+        seeds contribution to the total regularizing function. This way you can
+        assign different mus to different seeds.
+    * delta
+        Minimum percentage of change required in the goal function to perform
+        an accretion. The smaller this is, the less the solution is able to grow
+    * compact
+        Wether or not to impose compactness algorithmically on the solution.
+        If False, the compactness of the solution will depend on the value of
+        *mu*.
+    
+    """
+
+    def __init__(self, point, props, mesh, mu=0., delta=0.0001, compact=False):
+        self.props = props
+        self.mesh = mesh
+        self.delta = delta
+        if compact:
+            self._judge = self._compact_judge
+        else:
+            self._judge = self._standard_judge
+        index = self._get_index(point, mesh)
+        self.seed = [index, props]
+        self.estimate = {}
+        for prop in props:
+            estimate[prop] = [[index, props[prop]]]
+        nz, ny, nx = mesh.shape
+        dx, dy, dz = mesh.dims
+        self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
+        self.mu = mu*self.weight
+        self.neighbors = []
+        self.reg = 0
+        self.distance = {}
+
+    def initialize(self, seeds):
+        """
+        Initialize the neighbor list of this seed.
+
+        Leaves out elements that are already neighbors of other seeds or that
+        are the seeds.
+        """
+        pass
+
+    def set_mu(self, mu):
+        """
+        Set the value of the regularizing parameter mu.
+        """
+        self.mu = self.weight*mu
+        
+    def set_delta(self, delta):
+        """
+        Set the value of the delta threshold.
+        """
+        self.delta = delta
+
+    def _get_index(self, point, mesh):
+        """
+        Get the index of the prism in mesh that has point inside it.
+        """
+        pass
+
+    def _update_neighbors(self, n, seeds):
+        """
+        Remove neighbor n from the list of neighbors and include its neighbors
+        """
+        pass
+
+    def _standard_judge(self, goals, misfits, goal, misfit):
+        """
+        Choose the best neighbor using the following criteria:
+
+        1. Must decrease the misfit
+        2. Must produce the smallest goal function out of all that pass 1.        
+        """
+        pass
+
+    def _compact_judge(self, goals, misfits, goal, misfit):
+        """
+        Choose the best neighbor using the following criteria:
+
+        1. Must satisfy the compactness criterion
+        2. Must decrease the goal function  
+        """
+        pass
+
+    def grow(self, dms, seeds, goal, misfit):
+        """
+        Try to grow this seed by adding a prism to it's periphery.
+        """
+        misfits = [sum(dm.testdrive(n) for dm in dms) for n in self.neighbors]
+        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n[0]])
+                 for n, m in zip(self.neighbors, misfits)]
+        best = self._judge(goals, misfits, goal, misfit)
+        if best is None:
+            return None
+        chosen = self.neighbors[best]
+        index = chosen[0]
+        for prop in self.props:
+            estimate[prop].append([index, self.props[prop]])
+        self._update_neighbors(best, seeds)
+        return chosen
 
 def _cat_estimate(seeds):
     """
@@ -1087,7 +1271,7 @@ def _harvest_solver(dms, seeds, first_goal):
     estimate = _cat_estimate(seeds)
     return [estimate, goals, misfits]
 
-def harvest(dms, seeds, mu=None, shape=None, delta=None, iterate=False):
+def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
     """
     Robust 3D potential field inversion by planting anomalous densities.
 
@@ -1113,11 +1297,11 @@ def harvest(dms, seeds, mu=None, shape=None, delta=None, iterate=False):
         an accretion. The smaller this is, the less the solution is able to
         grow. If None, will use the values passed to each seed. If not None,
         will overwrite the values passed to the seeds.
-    * shape
-        Wether or not to use the shape-of-anomaly data misfit function of
-        Rene (1986) instead of the conventional l1-norm data misfit. If None,
-        will use the values passed to each seed. If not None, will overwrite the
-        values passed to the seeds.
+    * use_shape
+        If True, will use the shape-of-anomaly data misfit function of
+        Rene (1986) instead of the conventional l1- or l2- norm data misfit. If
+        None, will use the values passed to each data module. If not None, will
+        overwrite the values passed to the data modules.
     * iterate
         If True, will return an iterator object that yields one growth iteration
         at a time.
@@ -1148,7 +1332,7 @@ def harvest(dms, seeds, mu=None, shape=None, delta=None, iterate=False):
     log.info("Harvesting inversion results from planting anomalous densities:")
     log.info("  regularizing parameter (mu): %g" % (mu))
     log.info("  delta (threshold): %g" % (delta))
-    log.info("  shape-of-anomaly: %s" % (str(shape)))
+    log.info("  shape-of-anomaly: %s" % (str(use_shape)))
     log.info("  iterate: %s" % (str(iterate)))
     # Make sure the seeds are all of the same kind. The .cound hack is from
     # stackoverflow.com/questions/3844801/check-if-all-elements-in-a-list-are-
@@ -1164,7 +1348,7 @@ def harvest(dms, seeds, mu=None, shape=None, delta=None, iterate=False):
             seed.set_delta(delta)
         seed.initialize(seeds)
     for dm in dms:
-        if shape is not None and shape:
+        if use_shape is not None and use_shape:
             dm.use_shape()
         for seed in seeds:
             dm.update(seed.seed)
