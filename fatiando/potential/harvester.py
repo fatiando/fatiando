@@ -1001,6 +1001,8 @@ class DMPrism(object):
     
     """
 
+    prop_type = None
+
     def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
         if norm not in [1, 2]:
             raise ValueError, "Invalid norm %s: must be 1 or 2" % (str(norm))
@@ -1076,7 +1078,14 @@ class DMPrism(object):
             properties of the element.
             
         """
-        pass
+        index, props = element
+        # Only updated if the element doesn't have a physical property that
+        # influences this data module
+        if self.prop_type in props:
+            if index not in self.jacobian:
+                self.jacobian[index] = self._jacobian_column(index)            
+            self.predicted += props[self.prop_type]*self.jacobian[index]
+            del self.jacobian[index]
 
     def testdrive(self, element):
         """
@@ -1096,7 +1105,17 @@ class DMPrism(object):
             The misfit value
             
         """
-        pass
+        index, props = element
+        # If the element doesn't have a physical property that influences this
+        # data module, then return the previous misfit
+        if self.prop_type not in props:
+            # TODO: keep track of the misfit value on update so that don't have
+            # to calculate it every time.
+            return self.misfit(self.predicted)
+        if index not in self.jacobian:
+            self.jacobian[index] = self._jacobian_column(index)
+        tmp = self.predicted + props[self.prop_type]*self.jacobian[index]
+        return self.misfit(tmp)
 
     def misfit(self, predicted):
         """
@@ -1215,7 +1234,8 @@ class SeedPrism(object):
         Choose the best neighbor using the following criteria:
 
         1. Must decrease the misfit
-        2. Must produce the smallest goal function out of all that pass 1.        
+        2. Must produce the smallest goal function out of all that pass 1.
+            
         """
         pass
 
@@ -1224,7 +1244,8 @@ class SeedPrism(object):
         Choose the best neighbor using the following criteria:
 
         1. Must satisfy the compactness criterion
-        2. Must decrease the goal function  
+        2. Must decrease the goal function
+        
         """
         pass
 
