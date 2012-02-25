@@ -1011,13 +1011,58 @@ class DMPrism(object):
         self.norm = norm
         if use_shape:
             self.use_shape()
+        else:            
+            self.weight = 1./numpy.linalg.norm(data, norm)
+        self.jacobian = {}
+
+    def _shape_of_anomaly_l2(self, predicted):
+        """
+        Return the value of the l2-norm shape-of-anomaly data misfit given a
+        predicted data vector.
+
+        Parameters:
+
+        * predicted
+            Array with the predicted data
+
+        Returns:
+
+        * misfit
+            The misfit value
+            
+        """
+        alpha = numpy.sum(self.data*predicted)/self.data_l2norm
+        return numpy.linalg.norm(alpha*self.data - predicted, 2)
+
+    def _shape_of_anomaly_l1(self, predicted):
+        """
+        Return the value of the l1-norm shape-of-anomaly data misfit given a
+        predicted data vector.
+
+        Parameters:
+
+        * predicted
+            Array with the predicted data
+
+        Returns:
+
+        * misfit
+            The misfit value
+            
+        """
+        alpha = numpy.max(predicted/self.data)
+        return numpy.linalg.norm(alpha*self.data - predicted, 1)
 
     def use_shape(self):
         """
         Replace the standard data misfit function with the shape-of-anomaly
         data misfit of Rene (1986).
         """
-        pass
+        if self.norm == 2:
+            self.data_l2norm = numpy.linalg.norm(self.data, 2)**2
+            self.misfit = self._shape_of_anomaly_l2
+        if self.norm == 1:
+            self.misfit = self._shape_of_anomaly_l1
 
     def update(self, element):
         """
@@ -1068,7 +1113,7 @@ class DMPrism(object):
             The misfit value
                         
         """
-        pass
+        return self.weight*numpy.linalg.norm(self.data - predicted, self.norm)
 
 class SeedPrism(object):
     """
