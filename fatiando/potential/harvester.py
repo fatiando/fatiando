@@ -972,12 +972,35 @@ class DMPrism(object):
     """
     Generic data module for the right rectangular prism.
 
-    Use this class as a base for developing data modules for individual
-    components, like gz, gzz, etc.
-
     This class wraps the observed data and measurement points. Its derived
     classes should knows how to calculate the predicted data for their
     respective components.
+    
+    Use this class as a base for developing data modules for individual
+    components, like gz, gzz, etc.
+
+    The only method that needs to be implemented by the derived classes is
+    :meth:`fatiando.potential.harvester.DMPrism._effect_of_prism`. This method
+    is used to calculate the effect of a prism on the computation points (i.e.,
+    the column of the Jacobian matrix corresponding to the prism times the
+    prisms physical property value).
+
+    Derived classes must also set the variable ``prop_type`` to the apropriate
+    physical property that the data module uses.
+
+    Examples:
+
+    To build a prism data module for the gravity anomaly::
+
+        class DMPrismGz(DMPrism):
+        
+            def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+                DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+                self.prop_type = 'density'
+
+            def _effect_of_prism(self, index, props):
+                return fatiando.potential.prism.gz(self.xp, self.yp, self.zp,
+                    [self.mesh[index]])
 
     Parameters:
 
@@ -1001,9 +1024,7 @@ class DMPrism(object):
     
     """
 
-    prop_type = None
-
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+    def __init__(self, data, xp, yp, zp, mesh, use_shape, norm):
         if norm not in [1, 2]:
             raise ValueError, "Invalid norm %s: must be 1 or 2" % (str(norm))
         self.data = data
@@ -1015,7 +1036,32 @@ class DMPrism(object):
             self.use_shape()
         else:            
             self.weight = 1./numpy.linalg.norm(data, norm)
-        self.jacobian = {}
+        self.effect = {}        
+        self.prop_type = None
+
+    def _effect_of_prism(self, index, props):
+        """
+        Calculate the effect of the *index*th prism with the given physical
+        properties.
+
+        This is the only function that need to be implemented by the derived
+        classes!
+
+        Parameters:
+
+        * index
+            Index of the prism in the mesh
+        * props
+            A dictionary with the physical properties of the prism.
+
+        Returns:
+
+        * effect
+            Array with the values of the effect of the *index*th prism
+        
+        """
+        msg = "Oops, effect calculation not implemented"
+        raise NotImplementedError, msg
 
     def _shape_of_anomaly_l2(self, predicted):
         """
@@ -1082,10 +1128,10 @@ class DMPrism(object):
         # Only updated if the element doesn't have a physical property that
         # influences this data module
         if self.prop_type in props:
-            if index not in self.jacobian:
-                self.jacobian[index] = self._jacobian_column(index)            
-            self.predicted += props[self.prop_type]*self.jacobian[index]
-            del self.jacobian[index]
+            if index not in self.effect:
+                self.effect[index] = self._effect_of_prism(index, props)            
+            self.predicted += self.effect[index]
+            del self.effect[index]
 
     def testdrive(self, element):
         """
@@ -1112,9 +1158,9 @@ class DMPrism(object):
             # TODO: keep track of the misfit value on update so that don't have
             # to calculate it every time.
             return self.misfit(self.predicted)
-        if index not in self.jacobian:
-            self.jacobian[index] = self._jacobian_column(index)
-        tmp = self.predicted + props[self.prop_type]*self.jacobian[index]
+        if index not in self.effect:
+            self.effect[index] = self._effect_of_prism(index, props)
+        tmp = self.predicted + self.effect[index]
         return self.misfit(tmp)
 
     def misfit(self, predicted):
@@ -1133,6 +1179,27 @@ class DMPrism(object):
                         
         """
         return self.weight*numpy.linalg.norm(self.data - predicted, self.norm)
+
+class DMPrismGz(DMPrism):
+    """
+    Data module for the gravity anomaly of a right rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gz(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class SeedPrism(object):
     """
