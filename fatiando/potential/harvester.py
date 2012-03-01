@@ -931,9 +931,10 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
         List of data modules    
     
     """
-    pass
+    log.info("Creating prism data modules:")
+    log.info("  shape-of-anomaly: %s" % (str(use_shape)))
 
-def sow_prisms(points, props, mesh, mu=0.):
+def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     """
     Generate a set of :class:`fatiando.potential.harvester.SeedPrism` from a
     list of points.
@@ -959,6 +960,11 @@ def sow_prisms(points, props, mesh, mu=0.):
         trade-off between fit and regularization. This applies only to this
         seeds contribution to the total regularizing function. This way you can
         assign different mus to different seeds.
+    * delta
+        Minimum percentage of change required in the goal function to perform
+        an accretion. The smaller this is, the less the solution is able to
+        grow. If None, will use the values passed to each seed. If not None,
+        will overwrite the values passed to the seeds.
 
     Returns:
 
@@ -966,7 +972,9 @@ def sow_prisms(points, props, mesh, mu=0.):
         List of :class:`fatiando.potential.harvester.SeedPrism`
     
     """
-    pass
+    log.info("Generating prism seeds:")
+    log.info("  regularizing parameter (mu): %g" % (mu))
+    log.info("  delta (threshold): %g" % (delta))
 
 class DMPrism(object):
     """
@@ -1179,6 +1187,21 @@ class DMPrism(object):
                         
         """
         return self.weight*numpy.linalg.norm(self.data - predicted, self.norm)
+        
+    def get_predicted(self):
+        """
+        Get the predicted data vector out of this data module.
+
+        Use this method to get the predicted data after an inversion has been
+        performed using the data module.
+
+        Returns:
+
+        * predicted
+            Array with the predicted data
+            
+        """
+        return self.predicted
 
 class DMPrismGz(DMPrism):
     """
@@ -1262,6 +1285,18 @@ class SeedPrism(object):
         self.neighbors = []
         self.reg = 0
         self.distance = {}
+
+    def get_prism(self):
+        """
+        Return a :func:`fatiando.mesher.ddd.Prism` corresponding to the seed.
+        """
+        # TODO: Replace hand setting of physical properties of a prism with an
+        # actual addprop function.
+        index, props = self.seed
+        prism = self.mesh[index]
+        for p in props:
+            prism[p] = props[p]
+        return prism
 
     def initialize(self, seeds):
         """
@@ -1404,7 +1439,7 @@ def _harvest_solver(dms, seeds, first_goal):
     estimate = _cat_estimate(seeds)
     return [estimate, goals, misfits]
 
-def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
+def harvest(dms, seeds, iterate=False):
     """
     Robust 3D potential field inversion by planting anomalous densities.
 
@@ -1420,28 +1455,13 @@ def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
     * seeds
         List of seeds (see the docs of :mod:`fatiando.potential.harvester` for
         information on seeds)
-    * mu
-        Compactness regularizing parameters. Positive scalar that measures the
-        trade-off between fit and regularization. If None, will use the values
-        passed to each seed. If not None, will overwrite the values passed to
-        the seeds.
-    * delta
-        Minimum percentage of change required in the goal function to perform
-        an accretion. The smaller this is, the less the solution is able to
-        grow. If None, will use the values passed to each seed. If not None,
-        will overwrite the values passed to the seeds.
-    * use_shape
-        If True, will use the shape-of-anomaly data misfit function of
-        Rene (1986) instead of the conventional l1- or l2- norm data misfit. If
-        None, will use the values passed to each data module. If not None, will
-        overwrite the values passed to the data modules.
     * iterate
         If True, will return an iterator object that yields one growth iteration
         at a time.
 
     Returns:
 
-    * [estimate, goals, misfits]
+    * if ``iterate == False``: [estimate, goals, misfits]
         goals is a list with the goal function value per iteration.
         misfits is a list with the data misfit value per iteration.
         The contents of *estimate* depend on the type of seed used:
@@ -1454,6 +1474,10 @@ def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
 
                 estimate = {'density':[1, 0, 6, 9, 7, 8, ...],
                             'susceptibility':[0, 4, 8, 3, 4, 5.4, ...]}
+    * else: iterator
+        An iterator that yields one growth iteration at a time. A growth
+        iteration consists of trying to grow each seed.
+        **Not implemented!**
 
     References:
 
@@ -1463,9 +1487,6 @@ def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
                 
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
-    log.info("  regularizing parameter (mu): %g" % (mu))
-    log.info("  delta (threshold): %g" % (delta))
-    log.info("  shape-of-anomaly: %s" % (str(use_shape)))
     log.info("  iterate: %s" % (str(iterate)))
     # Make sure the seeds are all of the same kind. The .cound hack is from
     # stackoverflow.com/questions/3844801/check-if-all-elements-in-a-list-are-
@@ -1475,14 +1496,8 @@ def harvest(dms, seeds, mu=None, use_shape=None, delta=None, iterate=False):
         raise ValueError, "Seeds must all be of the same kind!"
     # Initialize the seeds and data modules before starting
     for i, seed in enumerate(seeds):
-        if mu is not None:
-            seed.set_mu(mu)
-        if delta is not None:
-            seed.set_delta(delta)
         seed.initialize(seeds)
     for dm in dms:
-        if use_shape is not None and use_shape:
-            dm.use_shape()
         for seed in seeds:
             dm.update(seed.seed)
     # Calculate the initial goal function

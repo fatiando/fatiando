@@ -10,5 +10,3 @@
 * Fix broken links in vis.vtk
 
 HARVESTER:
-* Remove use_shape, mu and delta from function harvest. They already appear in
-  the seeds, data modules, wrapdata and sow_prisms. 
