@@ -951,7 +951,9 @@ class SeedPrism(object):
         else:
             self._judge = self._standard_judge
         index = self._get_index(point, mesh)
-        self.seed = [index, props]
+        self.index = index
+        self.props = props
+        self.seed = [self.index, self.props]
         self.estimate = {}
         for prop in props:
             estimate[prop] = [[index, props[prop]]]
@@ -1017,6 +1019,98 @@ class SeedPrism(object):
                 return s                
         raise ValueError("Couldn't find seed at location %s" % (str(point)))
 
+    def _find_neighbors(self, n, full=False):
+        """
+        Return a list of neighboring prisms (that share a face) of *neighbor*.
+    
+        Parameters:
+        
+        * n
+            The index of the neighbor in the mesh.
+        * full
+            If True, return also the prisms on the diagonal
+    
+        Returns:
+
+        * neighbors
+            List with the index of the neighbors in the mesh
+        
+        """
+        nz, ny, nx = self.mesh.shape 
+        above, bellow, front, back, left, right = [None]*6
+        # The guy above
+        tmp = n - nx*ny    
+        if up and tmp > 0:        
+            above = tmp
+        # The guy bellow
+        tmp = n + nx*ny
+        if down and tmp < mesh.size:
+            bellow = tmp    
+        # The guy in front
+        tmp = n + 1
+        if n%nx < nx - 1:
+            front = tmp
+        # The guy in the back
+        tmp = n - 1
+        if n%nx != 0:
+            back = tmp
+        # The guy to the left
+        tmp = n + nx
+        if n%(nx*ny) < nx*(ny - 1):
+            left = tmp
+        # The guy to the right
+        tmp = n - nx
+        if n%(nx*ny) >= nx:
+            right = tmp
+        indexes = [above, bellow, front, back, left, right]
+        # The diagonal neighbors
+        if full:
+            append = indexes.append
+            if front is not None and left is not None:        
+                append(left + 1)    
+            if front is not None and right is not None:        
+                append(right + 1)
+            if back is not None and left is not None:
+                append(left - 1)
+            if back is not None and right is not None:
+                append(right - 1)
+            if above is not None and left is not None:
+                append(above + nx)
+            if above is not None and right is not None:
+                append(above - nx)
+            if above is not None and front is not None:
+                append(above + 1)
+            if above is not None and back is not None:
+                append(above - 1)
+            if above is not None and front is not None and left is not None:
+                append(above + nx + 1)
+            if above is not None and front is not None and right is not None:
+                append(above - nx + 1)
+            if above is not None and back is not None and left is not None:
+                append(above + nx - 1)
+            if above is not None and back is not None and right is not None:
+                append(above - nx - 1)
+            if bellow is not None and left is not None:
+                append(bellow + nx)
+            if bellow is not None and right is not None:
+                append(bellow - nx)
+            if bellow is not None and front is not None:
+                append(bellow + 1)
+            if bellow is not None and back is not None:
+                append(bellow - 1)
+            if bellow is not None and front is not None and left is not None:
+                append(bellow + nx + 1)
+            if bellow is not None and front is not None and right is not None:
+                append(bellow - nx + 1)
+            if bellow is not None and back is not None and left is not None:
+                append(bellow + nx - 1)
+            if bellow is not None and back is not None and right is not None:
+                append(bellow - nx - 1)
+        # Filter out the ones that do not exist or are masked
+        neighbors = [i for i in indexes
+                     if i is not None and self.mesh[i] is not None]
+        return neighbors
+
     def _update_neighbors(self, n, seeds):
         """
         Remove neighbor n from the list of neighbors and include its neighbors
@@ -1052,19 +1146,19 @@ class SeedPrism(object):
         """
         Try to grow this seed by adding a prism to it's periphery.
         """
-        misfits = [sum(dm.testdrive(n) for dm in dms) for n in self.neighbors]
-        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n[0]])
+        misfits = [sum(dm.testdrive((n, self.props)) for dm in dms)
+                   for n in self.neighbors]
+        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n])
                  for n, m in zip(self.neighbors, misfits)]
         best = self._judge(goals, misfits, goal, misfit)
         if best is None:
             return None
         i, goal, misfit = best
-        params = self.neighbors[i]
-        index = params[0]
+        index = self.neighbors[i]
         for prop in self.props:
             estimate[prop].append([index, self.props[prop]])
         self._update_neighbors(i, seeds)
-        return [params, goal, misfit]
+        return [[index, self.props], goal, misfit]
 
 def _cat_estimate(seeds):
     """
