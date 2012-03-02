@@ -999,8 +999,23 @@ class SeedPrism(object):
     def _get_index(self, point, mesh):
         """
         Get the index of the prism in mesh that has point inside it.
-        """
-        pass
+        """        
+        nz, ny, nx = mesh.shape
+        xs = mesh.get_xs()
+        ys = mesh.get_ys()
+        zs = mesh.get_zs()
+        x, y, z = point
+        found = False
+        if x <= x2 and x >= x1 and y <= y2 and y >= y1 and z <= z2 and z >= z1:
+            # -1 because bisect gives the index z would have. I want to know
+            # what index z comes after
+            k = bisect.bisect_left(zs, z) - 1
+            j = bisect.bisect_left(ys, y) - 1
+            i = bisect.bisect_left(xs, x) - 1
+            s = i + j*nx + k*nx*ny
+            if mesh[s] is not None:
+                return s                
+        raise ValueError("Couldn't find seed at location %s" % (str(point)))
 
     def _update_neighbors(self, n, seeds):
         """
