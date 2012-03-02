@@ -10,3 +10,5 @@
 * Fix broken links in vis.vtk
 
 HARVESTER:
+* keep track of the misfit value on update so that don't have to calculate it every time.
+* Replace hand setting of physical properties of a prism with an actual addprop function

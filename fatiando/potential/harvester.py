@@ -92,341 +92,6 @@ from fatiando import utils, logger
 log = logger.dummy()
 
 
-class DataModule(object):
-    """
-    Mother class for data modules
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component of the potential field.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        Wether of not to use a weighing factor for this data type. The weight
-        if the norm of the observed data.
-    * use_shape
-		Wether to use the Shape-of-Anomaly criterion instead of regular
-		residuals
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm, weight):
-        self.norm = norm
-        self.obs = obs
-        self.x = x
-        self.y = y
-        self.z = z
-        self.effect = {}
-        self.predicted = numpy.zeros_like(self.obs)
-        self.l2obs = numpy.linalg.norm(obs, 2)**2
-        self.absobs = numpy.abs(obs)
-        self.obsmax = self.absobs.max()
-        if weight is None:
-            self.weight = 1./numpy.linalg.norm(obs, norm)
-        else:
-            self.weight = weight
-
-    def calc_effect(self, prop, x1, x2, y1, y2, z1, z2, x, y, z):
-        """
-        Calculate the effect of the cell with a physical property prop.
-        """
-        raise NotImplementedError("Method 'calc_col' was not implemented")
-		
-    def new_predicted(self, neighbor, mesh):
-        """
-        Calculate the predicted data vector due to adding the neighbor to the
-        estimate.
-        
-        Parameters:
-        * neighbor
-            [n, props]
-            n is the index of the neighbor in the mesh.
-            props is a dictionary with the physical properties of the neighbor
-        * mesh
-            A 3D mesh. See :mod:`fatiando.mesher.volume`
-        
-        Returns:
-        * array
-            Array with the predicted data
-                    
-        """
-        n, props = neighbor['index'], neighbor['props']
-        if self.prop not in props:
-            return self.predicted
-        if n not in self.effect:
-            c = mesh[n]
-            self.effect[n] = self.calc_effect(float(props[self.prop]),
-                c['x1'], c['x2'], c['y1'], c['y2'], c['z1'], c['z2'],
-                self.x, self.y, self.z)
-        return self.predicted + self.effect[n]
-
-    def residuals(self, predicted):
-        """
-        Calculate the residuals vector.
-
-        Parameters:
-        * predicted
-			Array with the predicted data
-
-        Returns:
-        * array
-            Array with the residuals
-           
-        """
-        return self.obs - predicted
-
-    def misfit(self, predicted):
-        """
-        Return the data misfit given a predicted data vector.
-        
-        Uses the prespecified norm.
-
-        Parameters:
-        * predicted
-            Array with the predicted data calculated on each data point
-
-        Returns:
-        * float
-            The data misfit
-            
-        """
-        return self.weight*numpy.linalg.norm(self.obs - predicted, self.norm)
-        
-    def shape_of_anomaly(self, predicted):
-        """
-        Calculate the shape-of-anomaly criterion.
-
-        Parameters:
-        * predicted
-			Array with the predicted data
-
-        Returns:
-        * float
-            
-        """
-        scale = numpy.sum(self.obs*predicted)/self.l2obs
-        return numpy.linalg.norm(scale*self.obs - predicted, 2)
-        
-    def update(self, neighbor, mesh):
-        """
-        Update the predicted data vector and delete unnecessary things after
-        neighbor has been added to the estimate.
-    
-        Parameters:
-        * neighbor
-            [n, props]
-            n is the index of the neighbor in the mesh.
-            props is a dictionary with the physical properties of the neighbor
-        * mesh
-            A 3D mesh. See :mod:`fatiando.mesher.volume`
-            
-        """
-        n, props = neighbor['index'], neighbor['props']
-        if self.prop not in props:
-            pass
-        if n not in self.effect:
-            c = mesh[n]
-            self.effect[n] = self.calc_effect(float(props[self.prop]),
-                c['x1'], c['x2'], c['y1'], c['y2'], c['z1'], c['z2'],
-                self.x, self.y, self.z)
-        self.predicted += self.effect[n]
-        del self.effect[n]
-        
-class PrismGzModule(DataModule):
-    """
-    Data module for the vertical component of the gravitational attraction (gz).
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the gz component of the gravity field.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gz
-        
-class PrismGxxModule(DataModule):
-    """
-    Data module for the gxx component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gxx
-        
-class PrismGxyModule(DataModule):
-    """
-    Data module for the gxy component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gxy
-        
-class PrismGxzModule(DataModule):
-    """
-    Data module for the gxz component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gxz
-        
-class PrismGyyModule(DataModule):
-    """
-    Data module for the gyy component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gyy
-        
-class PrismGyzModule(DataModule):
-    """
-    Data module for the gyz component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gyz
-        
-class PrismGzzModule(DataModule):
-    """
-    Data module for the gzz component of the gravity gradient tensor.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * x, y, z
-        Arrays with the x, y, and z coordinates of the data points.
-    * obs
-        Array with the observed values of the component.
-    * norm
-        Order of the norm of the residual vector to use (Default: 2). Can be:
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-        * etc
-    * weight
-        The relative weight of this data module. Should be a positive number
-        from 1 to 0.
-    
-    """
-
-    def __init__(self, x, y, z, obs, norm=2, weight=None):
-        DataModule.__init__(self, x, y, z, obs, norm, weight)
-        self.prop = 'density'
-        self.calc_effect = _prism.prism_gzz
 
 class ConcentrationRegularizer(object):
     """
@@ -975,6 +640,18 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     log.info("Generating prism seeds:")
     log.info("  regularizing parameter (mu): %g" % (mu))
     log.info("  delta (threshold): %g" % (delta))
+    seeds = []
+    for i, point in enumerate(points):
+        sprops = {}
+        for p in props:
+            sprops[p] = props[p][i]
+        seed = SeedPrism(point, sprops, mesh, mu=mu, delta=delta)
+        if seed.seed[0] not in (s.seed[0] for s in seeds):            
+            seeds.append(seed)
+        else:
+            log.info("  Duplicate seed found at point %s. Will ignore this one"
+                % (str(point)))
+    return seeds        
 
 class DMPrism(object):
     """
@@ -1339,7 +1016,12 @@ class SeedPrism(object):
         2. Must produce the smallest goal function out of all that pass 1.
             
         """
-        pass
+        decreased = [i for i, m in enumerate(misfits)
+                     if abs(m - misfit)/misfit >= self.delta]
+        if not decreased:
+            return None
+        best = decreased[numpy.argmin([goals[i] for i in decreased])]
+        return [best, goals[best], misfits[best]]
 
     def _compact_judge(self, goals, misfits, goal, misfit):
         """
@@ -1361,12 +1043,13 @@ class SeedPrism(object):
         best = self._judge(goals, misfits, goal, misfit)
         if best is None:
             return None
-        chosen = self.neighbors[best]
-        index = chosen[0]
+        i, goal, misfit = best
+        params = self.neighbors[i]
+        index = params[0]
         for prop in self.props:
             estimate[prop].append([index, self.props[prop]])
-        self._update_neighbors(best, seeds)
-        return chosen
+        self._update_neighbors(i, seeds)
+        return [params, goal, misfit]
 
 def _cat_estimate(seeds):
     """
