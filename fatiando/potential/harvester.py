@@ -954,9 +954,7 @@ class SeedPrism(object):
         self.index = index
         self.props = props
         self.seed = [self.index, self.props]
-        self.estimate = {}
-        for prop in props:
-            estimate[prop] = [[index, props[prop]]]
+        self.estimate = [index]
         nz, ny, nx = mesh.shape
         dx, dy, dz = mesh.dims
         self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
@@ -1111,11 +1109,27 @@ class SeedPrism(object):
                      if i is not None and self.mesh[i] is not None]
         return neighbors
 
+    def _not_neighbors(seeds, neighbors):
+        """
+        Remove the neighbors that are already neighbors of a seed.
+        """
+        pass
+
+    def _are_free(self, seeds, neighbors):
+        """
+        Remove the neighbors that are already part of the estimate
+        """
+        pass
+
     def _update_neighbors(self, n, seeds):
         """
         Remove neighbor n from the list of neighbors and include its neighbors
         """
-        pass
+        new = self._not_neighbors(seeds,
+                self._are_free(seeds,
+                    self._find_neighbors(n)))
+        self.neighbors.remove(n)
+        self.neighbors.append(new)
 
     def _standard_judge(self, goals, misfits, goal, misfit):
         """
@@ -1155,8 +1169,7 @@ class SeedPrism(object):
             return None
         i, goal, misfit = best
         index = self.neighbors[i]
-        for prop in self.props:
-            estimate[prop].append([index, self.props[prop]])
+        self.estimate.append(index)
         self._update_neighbors(i, seeds)
         return [[index, self.props], goal, misfit]
 
@@ -1170,11 +1183,12 @@ def _cat_estimate(seeds):
     if kind == 'prism':
         estimate = {}
         for seed in seeds:
-            for prop in seed.estimate:
+            for prop in seed.props:
+                values = [(i, seed.props[prop]) for i in seed.estimate]
                 if prop not in estimate:
-                    estimate[prop] = seed.estimate[prop]
+                    estimate[prop] = values
                 else:
-                    estimate[prop].extend(seed.estimate[prop])
+                    estimate[prop].extend(values)
         size = seeds[0].mesh.size
         for prop in estimate:
             estimate[prop] = utils.SparseList(size, dict(estimate[prop]))        
