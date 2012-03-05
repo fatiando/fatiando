@@ -26,6 +26,38 @@ The inversion is performed by function
 observed data, seeds, and regularization, are passed to the function though
 seed classes and data modules.
 
+**USAGE**
+
+The recommened way of generating the required seeds and data modules is to use
+the helper functions :func:`fatiando.potential.harvester.wrapdata`,
+:func:`fatiando.potential.harvester.loadseeds`, and
+:func:`fatiando.potential.harvester.sow_prisms`.
+
+A typical script to run the inversion on a data set looks like::
+    
+    import numpy
+    from fatiando.mesher.ddd import PrismMesh
+    from fatiando.potential import harvester
+    # Load the data from a file
+    xp, yp, zp, gz = numpy.loadtxt('mydata.xyz', unpack=True)
+    # Create a mesh assuming that 'bounds' are the limits of the mesh and
+    # 'shape' is the number of prisms in each dimension
+    bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
+    shape = (nz, ny, nx)
+    mesh = PrismMesh(bounds, shape)
+    # Make the data modules
+    dms = harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
+    # Read the seeds from a file with 4 columns: x  y  z  density
+    points, densities = harvester.loadseeds('myseedfile.txt')
+    seeds = harvester.sow_prism(points, {'density':densities}, mesh, mu=0.1)
+    # Run the inversion
+    estimate, goals, misfits = harvest(dms, seeds)
+    # fill the mesh with the density values
+    mesh.addprop('density', estimate['density'])
+    # Save the mesh in UBC-GIF format
+    mesh.dump('result')
+    
+
 **SEEDS**
 
 A seed class determines what kind of geometric element is used to parametrize
@@ -35,16 +67,10 @@ that make up the estimated density distribution.
 
 * :class:`fatiando.potential.harvester.SeedPrism`
 
-Coming soon:
-
-* :class:`fatiando.potential.harvester.SeedTesseroid`
-* :class:`fatiando.potential.harvester.SeedPolyhedron`
-
 **DATA MODULES**
 
 Data modules wrap the observed data and calculate the predicted data for a given
-parametrization. Data modules should match the type of seed used! Trying to
-invert using SeedTesseroid and  DMPrismGz will cause errors.
+parametrization.
 
 * :class:`fatiando.potential.harvester.DMPrismGz`
 * :class:`fatiando.potential.harvester.DMPrismGxx`
@@ -53,28 +79,6 @@ invert using SeedTesseroid and  DMPrismGz will cause errors.
 * :class:`fatiando.potential.harvester.DMPrismGyy`
 * :class:`fatiando.potential.harvester.DMPrismGyz`
 * :class:`fatiando.potential.harvester.DMPrismGzz`
-
-**USAGE**
-
-The standard usage of :mod:`fatiando.potential.harvester` is::
-
-    import fatiando.mesher.ddd
-    # Create a mesh
-    # Assuming that bounds has the limits of the mesh and shape has the number
-    # of prisms in each dimension
-    bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
-    shape = (nz, ny, nx)
-    mesh = fatiando.mesher.ddd.PrismMesh(bounds, shape)
-    # Make the data modules
-    # Assuming the gravity data has been loaded into arrays xp, yp, zp and gz
-    dms = wrapdata(mesh, xp, yp, zp, gz=gz)
-    # Make the seed and set the compactness regularizing parameter mu
-    seeds = sow_prisms([[x, y, z]], {'density':[800]}, mesh, mu=0.1)
-    # Run the inversion
-    estimate, goals, misfits = harvest(dms, seeds)
-    # The estimate is a list with the density of each prism in mesh
-    # goals is a list of goal function value per iteration.
-    # misfits is a list of the data misfit value per iteration.
 
 ----
 
@@ -93,52 +97,6 @@ from fatiando import utils, logger
 
 log = logger.dummy()
 
-
-def shape_jury(regularizer=None, thresh=0.0001, maxcmp=4, tol=0.01):
-    """
-    Creates a jury function (neighbor chooser) based on shape-of-anomaly data
-    misfit, algorithmic compactness, and regularization.
-    """    
-    def jury(seed, neighbors, estimate, datamods, goal, mesh, it, nseeds,
-             maxcmp=maxcmp, thresh=thresh, tol=tol, regularizer=regularizer):
-        # Make the compactness criterion vary with iteration so that the first
-        # neighbors are eligible (they only have the seed as neighbor)
-        compact = 1 + it/nseeds
-        if compact > maxcmp:
-            compact = maxcmp
-        # Filter the ones that don't satisfy the compactness criterion
-        left = [(i, n) for i, n in enumerate(neighbors)
-                if is_compact(estimate, mesh, n, compact)]
-        # Calculate the predicted data of the ones that are left
-        pred = dict((i, [dm.new_predicted(n, mesh) for dm in datamods])
-                    for i, n in left)
-        # Filter the eligible for accretion based on their predicted data
-        #left = [(i, n) for i, n in left if is_eligible(pred[i], tol, datamods)]
-        misfits = [(i, sum(dm.misfit(p) for dm, p in zip(datamods, pred[i])))
-                   for i, n in left]
-        # Calculate the goal function
-        if regularizer is not None:
-            reg = (regularizer(n, seed) for i, n in left)
-            goals = [(m[0], m[1] + r) for m, r in zip(misfits, reg)]
-        else:
-            goals = misfits
-        # Keep only the ones that decrease the goal function
-        decreased = [(i, g) for i, g in goals
-                     if g < goal and abs(g - goal)/goal >= thresh]
-        if not decreased:
-            return None
-        # Find any holes
-        #hole = find_holes(
-        # Choose based on the shape-of-anomaly criterion
-        soa = [sum(dm.shape_of_anomaly(p) for dm, p in zip(datamods, pred[i]))
-               for i, g in decreased]
-        #TODO: what if there is a tie?
-        # Choose the best neighbor (decreases the goal function most)
-        best = decreased[numpy.argmin(soa)]
-        if regularizer is not None:
-            regularizer.update(neighbors[best[0]])
-        return best
-    return jury
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     gyz=None, gzz=None, use_shape=False, norm=1):
@@ -166,7 +124,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
         respective components.
     * use_shape
         If True, will use the Shape-of-Anomaly function of Rene (1986) instead
-        of the standard data-misfit function.
+        of the standard data-misfit function. **NOT IMPLEMENTED**
     * norm
         Order of the norm of the residual vector to use. Can be:
         
@@ -253,13 +211,14 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
                 % (str(point)))
     return seeds
 
-def loadseeds(fname, prop):
+def loadseeds(fname):
     """
     Load a set of seed locations and physical properties from a file.
 
-    The file should have 4 columns: x, y, z, value
-    x, y, and z are the coordinates where the seed should be put. value is value
-    of the physical property associated with the seed.
+    The file should have columns: x  y  z  prop1  prop2  ...
+    x, y, and z are the coordinates where the seed should be put. prop1, prop2
+    etc, are the values of the physical properties of the seeds (like density,
+    susceptibility, etc)
 
     Remember: the coordinate system is x->North, y->East, and z->Down
 
@@ -267,18 +226,35 @@ def loadseeds(fname, prop):
     
     * fname
         Open file object or filename string
-    * prop
-        String with the name of the physical property. Ex: ``'density'``
 
     Returns:
     
-    * list
-        A list with the position and physical property of the seeds::
+    * [points, props1, props2, ...]
+        *points* is a list of (x, y, z) points where the seeds will be placed
+        and *props1* is list with the values of the first physical property,
+        *props2* the second, etc.
+
+    Example::
+
+        >>> from StringIO import StringIO
+        >>> file = StringIO("1 2 3 4 5\\n6 7 8 9 -1")
+        >>> points, props1, props2 = loadseeds(file)
+        >>> print points
+        [[ 1.  2.  3.]
+         [ 6.  7.  8.]]
+        >>> print props1
+        [ 4.  9.]
+        >>> print props2
+        [ 5. -1.]
         
-            [((x1, y1, z1), {prop:value1}), ((x2, y2, z2), {prop:value2}), ...] 
     
     """
-    return [((x, y, z), {prop:v}) for x, y, z, v  in numpy.loadtxt(fname)]
+    data = numpy.loadtxt(fname, unpack=True)
+    points = data[0:3].T
+    output = [points]
+    for prop in data[3:]:
+        output.append(prop)
+    return output
 
 class DMPrism(object):
     """
@@ -327,7 +303,7 @@ class DMPrism(object):
         :func:`fatiando.mesher.ddd.Prism`.
     * use_shape
         If True, will use the Shape-of-Anomaly function of Rene (1986) instead
-        of the standard data-misfit function.
+        of the standard data-misfit function. **NOT IMPLEMENTED**
     * norm
         Order of the norm of the residual vector to use. Can be:
         
@@ -338,7 +314,9 @@ class DMPrism(object):
 
     def __init__(self, data, xp, yp, zp, mesh, use_shape, norm):
         if norm not in [1, 2]:
-            raise ValueError, "Invalid norm %s: must be 1 or 2" % (str(norm))
+            raise ValueError("Invalid norm %s: must be 1 or 2" % (str(norm)))
+        if use_shape:
+            raise NotImplementedError("Sorry, not available yet")
         self.data = data
         self.predicted = numpy.zeros_like(data)
         self.xp, self.yp, self.zp = xp, yp, zp
@@ -373,7 +351,7 @@ class DMPrism(object):
         
         """
         msg = "Oops, effect calculation not implemented"
-        raise NotImplementedError, msg
+        raise NotImplementedError(msg)
 
     def _shape_of_anomaly_l2(self, predicted):
         """
@@ -1123,3 +1101,12 @@ def harvest(dms, seeds, iterate=False):
             (utils.sec2hms(float(tfinish)/its)))
         log.info("  Total time for inversion: %s" % (utils.sec2hms(tfinish)))
         return results
+        
+def _test():
+    import doctest
+    doctest.testmod()
+    print "doctest finished"
+
+if __name__ == '__main__':
+    _test()
+    
