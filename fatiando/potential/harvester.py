@@ -171,30 +171,6 @@ class ConcentrationRegularizer(object):
         self.record(self.reg)
         del self.dists[n]
                 
-def loadseeds(fname, prop):
-    """
-    Load a set of seed locations and physical properties from a file.
-
-    The file should have 4 columns: x, y, z, value
-    x, y, and z are the coordinates where the seed should be put. value is value
-    of the physical property associated with the seed.
-
-    Remember: the coordinate system is x->North, y->East, and z->Down
-
-    Parameters:
-    * fname
-        Open file object or filename string
-    * prop
-        String with the name of the physical property. Ex: density
-
-    Returns:
-    * list
-        A list with the position and physical property of the seeds, as required
-        by :func:`fatiando.inversion.harvester.sow`::        
-            [((x1,y1,z1), {prop:value1}), ((x2,y2,z2), {prop:value2}), ...] 
-    
-    """
-    return [((x, y, z), {prop:v}) for x, y, z, v  in numpy.loadtxt(fname)]
 
 def sow(mesh, rawseeds):
     """ 
@@ -651,7 +627,34 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         else:
             log.info("  Duplicate seed found at point %s. Will ignore this one"
                 % (str(point)))
-    return seeds        
+    return seeds
+
+def loadseeds(fname, prop):
+    """
+    Load a set of seed locations and physical properties from a file.
+
+    The file should have 4 columns: x, y, z, value
+    x, y, and z are the coordinates where the seed should be put. value is value
+    of the physical property associated with the seed.
+
+    Remember: the coordinate system is x->North, y->East, and z->Down
+
+    Parameters:
+    
+    * fname
+        Open file object or filename string
+    * prop
+        String with the name of the physical property. Ex: ``'density'``
+
+    Returns:
+    
+    * list
+        A list with the position and physical property of the seeds::
+        
+            [((x1, y1, z1), {prop:value1}), ((x2, y2, z2), {prop:value2}), ...] 
+    
+    """
+    return [((x, y, z), {prop:v}) for x, y, z, v  in numpy.loadtxt(fname)]
 
 class DMPrism(object):
     """
@@ -952,7 +955,6 @@ class SeedPrism(object):
             self._judge = self._standard_judge
         index = self._get_index(point, mesh)
         self.index = index
-        self.props = props
         self.seed = [self.index, self.props]
         self.estimate = [index]
         nz, ny, nx = mesh.shape
@@ -982,7 +984,10 @@ class SeedPrism(object):
         Leaves out elements that are already neighbors of other seeds or that
         are the seeds.
         """
-        pass
+        self.neighbors.append(
+            self._not_neighbors(seeds,
+                self._are_free(seeds,
+                    self._find_neighbors(self.index))))
 
     def set_mu(self, mu):
         """
@@ -1113,13 +1118,35 @@ class SeedPrism(object):
         """
         Remove the neighbors that are already neighbors of a seed.
         """
-        pass
+        return [n for n in neighbors if not self._is_neighbors(n, seeds)]
+
+    def _is_neighbor(self, n, seeds):
+        """
+        Check is a neighbor is already in a seeds neighbor list (is it shares a
+        physical property with this seed)
+        """
+        for s in seeds:
+            for p in self.props:
+                if p in s.props and n in s.neighbors:
+                    return True
+        return False
 
     def _are_free(self, seeds, neighbors):
         """
         Remove the neighbors that are already part of the estimate
         """
-        pass
+        return [n for n in neighbors if not self._in_estimate(n, seeds)]
+
+    def _in_estimate(self, n, seeds):
+        """
+        Check is neighbor n is already in the estimate of the seeds that have
+        this seeds physical property.
+        """
+        for s in seeds:
+            for p in self.props:
+                if p in s.props and n in s.estimate:
+                    return True
+        return False
 
     def _update_neighbors(self, n, seeds):
         """
