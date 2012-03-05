@@ -1,58 +1,60 @@
 Fatiando a Terra:
   version: 0.0.1
-  date: Mon Mar  5 17:27:34 2012
-         12019451 function calls in 21.723 seconds
+  date: Mon Mar  5 17:47:10 2012
+         6884807 function calls in 10.925 seconds
 
    Ordered by: standard name
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    0.000    0.000   21.723   21.723 <string>:1(<module>)
+        1    0.000    0.000   10.925   10.925 <string>:1(<module>)
         6    0.000    0.000    0.000    0.000 __init__.py:1122(info)
         6    0.000    0.000    0.000    0.000 __init__.py:1310(getEffectiveLevel)
         6    0.000    0.000    0.000    0.000 __init__.py:1324(isEnabledFor)
-    19428    0.080    0.000    0.113    0.000 ddd.py:330(__getitem__)
-    19428    0.003    0.000    0.003    0.000 ddd.py:346(<genexpr>)
-    19428    0.030    0.000    0.030    0.000 ddd.py:66(Prism)
-     2004    0.007    0.000    0.111    0.000 fromnumeric.py:32(_wrapit)
-     2004    0.011    0.000    0.122    0.000 fromnumeric.py:739(argmin)
-     2005    0.005    0.000    0.153    0.000 harvester.py:1004(_are_free)
-    12030    0.148    0.000    0.148    0.000 harvester.py:1010(_in_estimate)
-     2004    0.008    0.000    0.318    0.000 harvester.py:1021(_update_neighbors)
-     2005    0.954    0.000    1.135    0.001 harvester.py:1033(_standard_judge)
-     2005    1.887    0.001   21.651    0.011 harvester.py:1058(grow)
-  1698860    0.737    0.000   16.275    0.000 harvester.py:1062(<genexpr>)
-  1698860    0.189    0.000    0.189    0.000 harvester.py:1064(<genexpr>)
-        1    0.001    0.001    0.001    0.001 harvester.py:1076(_cat_estimate)
-        1    0.045    0.045   21.721   21.721 harvester.py:1119(_harvest_solver)
-        1    0.000    0.000   21.722   21.722 harvester.py:1146(harvest)
-        2    0.000    0.000    0.000    0.000 harvester.py:1208(<genexpr>)
-     2005    0.024    0.000    0.024    0.000 harvester.py:525(update)
-   849430    3.368    0.000   15.538    0.000 harvester.py:546(testdrive)
-   849431    2.830    0.000   10.180    0.000 harvester.py:576(misfit)
-     2697    1.969    0.001    1.991    0.001 harvester.py:624(_effect_of_prism)
-        1    0.000    0.000    0.000    0.000 harvester.py:836(initialize)
-     2005    0.013    0.000    0.039    0.000 harvester.py:849(_get_distances)
-     2005    0.021    0.000    0.087    0.000 harvester.py:895(_find_neighbors)
-     2005    0.003    0.000    0.029    0.000 harvester.py:987(_not_neighbors)
-     6591    0.026    0.000    0.026    0.000 harvester.py:993(_is_neighbor)
-   849431    1.498    0.000    7.350    0.000 linalg.py:1839(norm)
-   851435    0.452    0.000    1.315    0.000 numeric.py:216(asarray)
+     8323    0.034    0.000    0.049    0.000 ddd.py:330(__getitem__)
+     8323    0.001    0.000    0.001    0.000 ddd.py:346(<genexpr>)
+     8323    0.013    0.000    0.013    0.000 ddd.py:66(Prism)
+   762430    0.399    0.000    9.348    0.000 fromnumeric.py:1348(sum)
+      852    0.003    0.000    0.047    0.000 fromnumeric.py:32(_wrapit)
+      852    0.005    0.000    0.051    0.000 fromnumeric.py:739(argmin)
+        1    0.021    0.021   10.924   10.924 harvester.py:1022(_harvest_solver)
+        1    0.000    0.000   10.925   10.925 harvester.py:1049(harvest)
+        2    0.000    0.000    0.000    0.000 harvester.py:1111(<genexpr>)
+      853    0.011    0.000    0.012    0.000 harvester.py:427(update)
+   381215    1.599    0.000    7.599    0.000 harvester.py:448(testdrive)
+   381216    1.317    0.000    4.965    0.000 harvester.py:478(misfit)
+     1525    1.024    0.001    1.036    0.001 harvester.py:526(_effect_of_prism)
+        1    0.000    0.000    0.000    0.000 harvester.py:738(initialize)
+      853    0.006    0.000    0.019    0.000 harvester.py:751(_get_distances)
+      853    0.008    0.000    0.033    0.000 harvester.py:797(_find_neighbors)
+      853    0.001    0.000    0.013    0.000 harvester.py:889(_not_neighbors)
+     2650    0.012    0.000    0.012    0.000 harvester.py:895(_is_neighbor)
+      853    0.002    0.000    0.026    0.000 harvester.py:906(_are_free)
+     4421    0.024    0.000    0.024    0.000 harvester.py:912(_in_estimate)
+      852    0.003    0.000    0.097    0.000 harvester.py:923(_update_neighbors)
+      853    0.391    0.000    0.466    0.001 harvester.py:935(_standard_judge)
+      853    0.966    0.001   10.892    0.013 harvester.py:960(grow)
+   762430    0.351    0.000    7.950    0.000 harvester.py:965(<genexpr>)
+   762430    0.085    0.000    0.085    0.000 harvester.py:967(<genexpr>)
+        1    0.000    0.000    0.000    0.000 harvester.py:979(_cat_estimate)
+   381216    0.744    0.000    3.648    0.000 linalg.py:1839(norm)
+   382068    0.211    0.000    0.617    0.000 numeric.py:216(asarray)
         1    0.000    0.000    0.000    0.000 utils.py:143(__init__)
         2    0.000    0.000    0.000    0.000 utils.py:182(sec2hms)
-  1703864    2.172    0.000    2.172    0.000 {abs}
-     2004    0.001    0.000    0.001    0.000 {getattr}
+   733189    1.179    0.000    1.179    0.000 {abs}
+      852    0.000    0.000    0.000    0.000 {getattr}
+   762430    0.084    0.000    0.084    0.000 {isinstance}
         2    0.000    0.000    0.000    0.000 {len}
-     2696    0.001    0.000    0.001    0.000 {math.sqrt}
-     6012    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
-     2004    0.020    0.000    0.020    0.000 {method 'argmin' of 'numpy.ndarray' objects}
+     1524    0.000    0.000    0.000    0.000 {math.sqrt}
+     2556    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+      852    0.009    0.000    0.009    0.000 {method 'argmin' of 'numpy.ndarray' objects}
         1    0.000    0.000    0.000    0.000 {method 'count' of 'list' objects}
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
-     2005    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
-     2004    0.002    0.000    0.002    0.000 {method 'remove' of 'list' objects}
-   849431    2.509    0.000    2.509    0.000 {method 'sum' of 'numpy.ndarray' objects}
-   851435    0.862    0.000    0.862    0.000 {numpy.core.multiarray.array}
-  1698861    1.814    0.000   18.277    0.000 {sum}
+      853    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}
+      852    0.003    0.000    0.003    0.000 {method 'remove' of 'list' objects}
+   381216    1.169    0.000    1.169    0.000 {method 'sum' of 'numpy.ndarray' objects}
+   382068    0.405    0.000    0.405    0.000 {numpy.core.multiarray.array}
+   762431    0.831    0.000    8.866    0.000 {sum}
         2    0.000    0.000    0.000    0.000 {time.clock}
-     2005    0.033    0.000    0.033    0.000 {zip}
+      853    0.014    0.000    0.014    0.000 {zip}
 
 

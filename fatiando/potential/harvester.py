@@ -961,9 +961,10 @@ class SeedPrism(object):
         """
         Try to grow this seed by adding a prism to it's periphery.
         """
-        misfits = [sum(dm.testdrive((n, self.props)) for dm in dms)
+        # numpy.sum seems to be faster than Python sum
+        misfits = [numpy.sum(dm.testdrive((n, self.props)) for dm in dms)
                    for n in self.neighbors]
-        goals = [m + sum((s.reg for s in seeds), self.mu*self.distance[n])
+        goals = [m + numpy.sum((s.reg for s in seeds), self.mu*self.distance[n])
                  for n, m in zip(self.neighbors, misfits)]
         best = self._judge(goals, misfits, goal, misfit)
         if best is None:
