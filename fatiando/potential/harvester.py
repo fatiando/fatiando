@@ -94,40 +94,6 @@ from fatiando import utils, logger
 log = logger.dummy()
 
 
-def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
-    """
-    Creates a standard jury function (neighbor chooser) based on regular data
-    misfit and regularization.
-    """
-    def jury(seed, neighbors, estimate, datamods, misfit, mesh, it, nseeds,
-             thresh=thresh, tol=tol, regularizer=regularizer):
-        left = [(i, n) for i, n in enumerate(neighbors)]
-        # Calculate the predicted data of the ones that are left
-        pred = [[dm.new_predicted(n, mesh) for dm in datamods]
-                for n in neighbors]
-        # Filter the eligible for accretion based on their predicted data
-        #left = [(i, n) for i, n in enumerate(neighbors)
-                #if is_eligible(pred[i], tol, datamods)]
-        misfits = ((i, sum(dm.misfit(p) for dm, p in zip(datamods, pred[i])))
-                   for i, n in left)
-        # Keep only the ones that decrease the data misfit function
-        decreased = [(i, m) for i, m in misfits
-                     if m < misfit and abs(m - misfit)/misfit >= thresh]
-        if not decreased:
-            return None
-        # Calculate the goal functions
-        if regularizer is not None:
-            goals = [m + regularizer(neighbors[i], seed) for i, m in decreased]
-        else:
-            goals = [m for i, m in decreased]
-        #TODO: what if there is a tie?
-        # Choose the best neighbor (decreases the goal function most)
-        best = decreased[numpy.argmin(goals)]
-        if regularizer is not None:
-            regularizer.update(neighbors[best[0]])
-        return best
-    return jury
-
 def shape_jury(regularizer=None, thresh=0.0001, maxcmp=4, tol=0.01):
     """
     Creates a jury function (neighbor chooser) based on shape-of-anomaly data
@@ -173,70 +139,6 @@ def shape_jury(regularizer=None, thresh=0.0001, maxcmp=4, tol=0.01):
             regularizer.update(neighbors[best[0]])
         return best
     return jury
-
-def grow(seeds, mesh, datamods, jury):
-    """
-    Yield one accretion at a time
-    """
-    # Initialize the estimate with SparseLists
-    estimate = {}
-    for seed in seeds:
-        for p in seed['props']:
-            if p not in estimate:
-                estimate[p] = utils.SparseList(mesh.size)
-    # Include the seeds in the estimate
-    for seed in seeds:
-        for p in seed['props']:
-            estimate[p][seed['index']] = seed['props'][p]
-        for dm in datamods:
-			dm.update(seed, mesh)
-    # Find the neighbors of the seeds
-    neighborhood = []
-    for seed in seeds:
-        neighbors = not_neighbors(neighborhood,
-                        free_neighbors(estimate, 
-                            find_neighbors(seed, mesh)))
-        for n in neighbors:
-            n['neighbors'] = find_neighbors(n, mesh, full=True)
-        neighborhood.append(neighbors)
-	# Calculate the initial goal function
-    goal = sum(dm.misfit(dm.predicted) for dm in datamods)
-    # Spit out a changeset
-    yield {'estimate':estimate, 'neighborhood':neighborhood, 'goal':goal,
-           'datamods':datamods}
-    # Perform the accretions. The maximum number of accretions is the whole mesh
-    # minus seeds. The goal function starts with the total misfit of the seeds.
-    nseeds = len(seeds)
-    for iteration in xrange(mesh.size - nseeds):
-        onegrew = False
-        for seed, neighbors in zip(seeds, neighborhood):
-            chosen = jury(seed, neighbors, estimate, datamods, goal, mesh,
-                          iteration, nseeds)
-            if chosen is not None:                
-                onegrew = True
-                j, goal = chosen
-                best = neighbors[j]
-                # Add it to the estimate
-                for p in best['props']:
-                    estimate[p][best['index']] = best['props'][p]
-                for dm in datamods:
-                    dm.update(best, mesh)
-                # Update the neighbors of this neighborhood
-                neighbors.pop(j)
-                newneighbors = not_neighbors(neighborhood,
-									free_neighbors(estimate,
-                                        find_neighbors(best, mesh)))
-                for n in newneighbors:
-                    n['neighbors'] = find_neighbors(n, mesh, full=True)
-                neighbors.extend(newneighbors)
-                # Spit out a changeset
-                yield {'estimate':estimate, 'neighborhood':neighborhood,
-                       'goal':goal, 'datamods':datamods}
-        if not onegrew:
-            break
-
-
-################################################################################
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     gyz=None, gzz=None, use_shape=False, norm=1):
