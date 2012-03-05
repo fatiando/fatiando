@@ -904,6 +904,138 @@ class DMPrismGz(DMPrism):
         return _prism.gz(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
+class DMPrismGxx(DMPrism):
+    """
+    Data module for the gxx component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gxx(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
+class DMPrismGxy(DMPrism):
+    """
+    Data module for the gxy component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gxy(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
+class DMPrismGxz(DMPrism):
+    """
+    Data module for the gxz component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gxz(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
+class DMPrismGyy(DMPrism):
+    """
+    Data module for the gyy component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gyy(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
+class DMPrismGyz(DMPrism):
+    """
+    Data module for the gyz component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gyz(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
+class DMPrismGzz(DMPrism):
+    """
+    Data module for the gzz component of the gravity gradient tensor of a right
+    rectangular prism.
+
+    See :class:`fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+    
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+        self.prop_type = 'density'
+
+    def _effect_of_prism(self, index, props):
+        p = self.mesh[index]
+        return _prism.gzz(float(props[self.prop_type]), p['x1'], p['x2'],
+            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+
 class SeedPrism(object):
     """
     A 3D right rectangular prism seed.
