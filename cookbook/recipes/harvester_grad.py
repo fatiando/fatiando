@@ -11,7 +11,7 @@ log = logger.get()
 log.info(logger.header())
 log.info(__doc__)
 
-log.info("Generating synthetic data")
+# Generate a synthetic model
 bounds = [0, 5000, 0, 5000, 0, 1500]
 model = [Prism(500, 4500, 3000, 3500, 200, 700, {'density':1200}),
          Prism(3000, 4500, 1800, 2300, 200, 700, {'density':1200}),
@@ -24,15 +24,14 @@ model = [Prism(500, 4500, 3000, 3500, 200, 700, {'density':1200}),
          Prism(4000, 4500, 500, 1500, 400, 1000, {'density':-1000}),
          Prism(1800, 3700, 500, 1500, 300, 1300, {'density':-1000}),
          Prism(500, 4500, 4000, 4500, 400, 1300, {'density':-1000})]
-
+# show it
 vis.vtk.figure()
 vis.vtk.prisms(model, extract('density', model))
 vis.vtk.add_axes(vis.vtk.add_outline(bounds), ranges=[i*0.001 for i in bounds],
     fmt='%.1f', nlabels=6)
 vis.vtk.wall_bottom(bounds)
 vis.vtk.wall_north(bounds)
-#vis.vtk.mlab.show()
-
+# and use it to generate some tensor data
 shape = (51, 51)
 area = bounds[0:4]
 noise = 2
@@ -40,10 +39,11 @@ x, y, z = gridder.regular(area, shape, z=-150)
 gyy = utils.contaminate(potential.prism.gyy(x, y, z, model), noise)
 gyz = utils.contaminate(potential.prism.gyz(x, y, z, model), noise)
 gzz = utils.contaminate(potential.prism.gzz(x, y, z, model), noise)
-
-log.info("Setting up the inversion")
+# Create a prism mesh
 mesh = PrismMesh(bounds, (15, 50, 50))
+# Make the data modules
 datamods = harvester.wrapdata(mesh, x, y, z, gyy=gyy, gyz=gyz, gzz=gzz)
+# and the seeds
 points =[(800, 3250, 600),
          (1200, 3250, 600),
          (1700, 3250, 600),
@@ -59,15 +59,16 @@ points =[(800, 3250, 600),
          (4300, 2050, 600)]
 seeds = harvester.sow_prisms(points, {'density':[1200]*len(points)}, mesh,
     mu=0.1, delta=0.0001)
-
-log.info("Run the inversion and collect the results")
+# Run the inversion and collect the results
 estimate, goals, misfits = harvester.harvest(datamods, seeds)
+# Insert the estimated density values into the mesh
 mesh.addprop('density', estimate['density'])
+# and get only the prisms corresponding to our estimate
 density_model = vfilter(1100, 1300, 'density', mesh)
+# Get the predicted data from the data modules
 tensor = (gyy, gyz, gzz)
-predicted = [dm.predicted for dm in datamods]
-
-log.info("Plotting")
+predicted = [dm.get_predicted() for dm in datamods]
+# Plot the results
 for true, pred in zip(tensor, predicted):
     pyplot.figure()
     pyplot.title("True: color | Inversion: contour")
@@ -78,7 +79,6 @@ for true, pred in zip(tensor, predicted):
     pyplot.xlabel('Horizontal coordinate y (km)')
     pyplot.ylabel('Horizontal coordinate x (km)')
 pyplot.show()
-
 vis.vtk.figure()
 vis.vtk.prisms(model, extract('density', model), style='wireframe')
 vis.vtk.prisms(density_model, extract('density', density_model), vmin=0)
