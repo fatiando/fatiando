@@ -86,308 +86,13 @@ import time
 import math
 import bisect
 
+import numpy
+
 from fatiando.potential import _prism
 from fatiando import utils, logger
 
 log = logger.dummy()
 
-
-
-class ConcentrationRegularizer(object):
-    """
-    The mass concentration regularizer.
-    Use it to force the estimated bodies to concentrate around the seeds.
-
-    Parameters:
-    * seeds
-        List of seeds as output by :func:`fatiando.inversion.harvester.sow`
-    * mesh
-        A 3D mesh. See :mod:`fatiando.mesher.volume`   
-    * mu
-        The regularing parameter. Controls the tradeoff between fitting the data
-        and regularization.
-    * power
-        Power to which the distances are raised. Usually between 3 and 7.
-        
-    """
-
-    def __init__(self, seeds, mesh, mu=10**(-4), power=3, weight=True):
-        self.mu = mu
-        self.power = power
-        self.seeds = seeds
-        self.mesh = mesh
-        self.reg = 0
-        self.timeline = [0.]
-        self.record = self.timeline.append
-        self.dists = {}
-        self.weight = 1.
-        if weight:
-            nz, ny, nx = mesh.shape
-            dx, dy, dz = mesh.dims
-            #self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.)**power)
-            self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
-
-    def calc_dist(self, cell1, cell2):
-        """
-        Calculate the distance between 2 cells
-        """
-        dx = abs(cell1['x1'] - cell2['x1'])
-        dy = abs(cell1['y1'] - cell2['y1'])
-        dz = abs(cell1['z1'] - cell2['z1'])        
-        return math.sqrt(dx**2 + dy**2 + dz**2)
-
-    def __call__(self, neighbor, seed):
-        """
-        Evaluate the regularizer with the neighbor included in the estimate.
-
-        Parameters:
-        * neighbor
-            [n, props]
-            n is the index of the neighbor in the mesh.
-            props is a dictionary with the physical properties of the neighbor
-        * seed
-            [s, props]
-            s is the index of the seed in the mesh.
-            props is a dictionary with the physical properties of the seed
-
-        Returns:
-        * float
-            The value of the regularing function already multiplied by the
-            regularizing parameter mu
-            
-        """
-        n = neighbor['index']
-        if n not in self.dists:
-            s = seed['index']
-            self.dists[n] = self.calc_dist(self.mesh[n], self.mesh[s])
-        return self.reg + self.weight*self.mu*(self.dists[n]**self.power)
-
-    def update(self, neighbor):
-        """
-        Clean up things after adding the neighbor to the estimate.
-        """
-        n = neighbor['index']
-        self.reg += self.weight*self.mu*(self.dists[n]**self.power)
-        self.record(self.reg)
-        del self.dists[n]
-                
-
-def sow(mesh, rawseeds):
-    """ 
-    Find the index of the seeds in the mesh given their (x,y,z) location.
-
-    The output of this function should be passed to
-    :func:`fatiando.inversion.harvester.harvest`
-
-    Parameters:
-    * mesh
-        A 3D mesh. See :mod:`fatiando.mesher.volume`
-    * rawseeds
-        A list with the position and physical property of each seed::        
-            [((x1,y1,z1), {'density':v1}), ((x2,y2,z2), {'density':v2}), ...] 
-
-    Returns:
-    * list
-        A list seeds as required by :func:`fatiando.inversion.harvester.harvest`
-        
-    """
-    log.info("Sowing seeds in the mesh:")
-    tstart = time.clock()
-    seeds = []
-    append = seeds.append
-    # This is a quick hack to get the xs, ys, and zs.
-    # TODO: make PrismMesh have get_xs, etc, methods
-    x1, x2, y1, y2, z1, z2 = mesh.bounds
-    dx, dy, dz = mesh.dims
-    nz, ny, nx = mesh.shape
-    xs = numpy.arange(x1, x2, dx)
-    ys = numpy.arange(y1, y2, dy)
-    zs = numpy.arange(z1, z2, dz)
-    for point, props in rawseeds:
-        x, y, z = point
-        found = False
-        if x <= x2 and x >= x1 and y <= y2 and y >= y1 and z <= z2 and z >= z1:
-            # -1 because bisect gives the index z would have. I want to know
-            # what index z comes after
-            k = bisect.bisect_left(zs, z) - 1
-            j = bisect.bisect_left(ys, y) - 1
-            i = bisect.bisect_left(xs, x) - 1
-            s = i + j*nx + k*nx*ny
-            if mesh[s] is not None:
-                found = True
-                append({'index':s, 'props':props})
-        if not found:
-            raise ValueError, "Couldn't find seed at location %s" % (str(point))
-    # Search for duplicates
-    duplicates = []
-    for i in xrange(len(seeds)):
-        si, pi = seeds[i]['index'], seeds[i]['props']
-        for j in xrange(i + 1, len(seeds)):
-            sj, pj = seeds[j]['index'], seeds[j]['props']
-            if si == sj and True in [p in pi for p in pj]:
-                duplicates.append((i, j))
-    if duplicates:
-        guilty = ', '.join(['%d and %d' % (i, j) for i, j in duplicates])
-        msg1 = "Can't have seeds with same location and physical properties!"
-        msg2 = "Guilty seeds: %s" % (guilty)
-        raise ValueError, ' '.join([msg1, msg2])
-    log.info("  found %d seeds" % (len(seeds)))
-    tfinish = time.clock() - tstart
-    log.info("  time: %s" % (utils.sec2hms(tfinish)))
-    return seeds
-    
-def find_neighbors(neighbor, mesh, full=False, up=True, down=True):
-    """
-    Return neighboring prisms of neighbor (that share a face).
-
-    Parameters:
-    * neighbor
-        Dictionary with keys:
-        'index': the index of the neighbor in the mesh.
-        'props': a dictionary with the physical properties of the neighbor
-    * mesh
-        A 3D mesh. See :mod:`fatiando.mesher.volume`
-    * full
-        If True, return also the prisms on the diagonal
-
-    Returns:
-    * list
-        List with the neighbors (in the same format as parameter *neighbor*)
-    
-    """
-    nz, ny, nx = mesh.shape 
-    n, props = neighbor['index'], neighbor['props']
-    above, bellow, front, back, left, right = [None]*6
-    # The guy above
-    tmp = n - nx*ny    
-    if up and tmp > 0:        
-        above = tmp
-    # The guy bellow
-    tmp = n + nx*ny
-    if down and tmp < mesh.size:
-        bellow = tmp    
-    # The guy in front
-    tmp = n + 1
-    if n%nx < nx - 1:
-        front = tmp
-    # The guy in the back
-    tmp = n - 1
-    if n%nx != 0:
-        back = tmp
-    # The guy to the left
-    tmp = n + nx
-    if n%(nx*ny) < nx*(ny - 1):
-        left = tmp
-    # The guy to the right
-    tmp = n - nx
-    if n%(nx*ny) >= nx:
-        right = tmp
-    indexes = [above, bellow, front, back, left, right]
-    # The diagonal neighbors
-    if full:
-        append = indexes.append
-        if front is not None and left is not None:        
-            append(left + 1)    
-        if front is not None and right is not None:        
-            append(right + 1)
-        if back is not None and left is not None:
-            append(left - 1)
-        if back is not None and right is not None:
-            append(right - 1)
-        if above is not None and left is not None:
-            append(above + nx)
-        if above is not None and right is not None:
-            append(above - nx)
-        if above is not None and front is not None:
-            append(above + 1)
-        if above is not None and back is not None:
-            append(above - 1)
-        if above is not None and front is not None and left is not None:
-            append(above + nx + 1)
-        if above is not None and front is not None and right is not None:
-            append(above - nx + 1)
-        if above is not None and back is not None and left is not None:
-            append(above + nx - 1)
-        if above is not None and back is not None and right is not None:
-            append(above - nx - 1)
-        if bellow is not None and left is not None:
-            append(bellow + nx)
-        if bellow is not None and right is not None:
-            append(bellow - nx)
-        if bellow is not None and front is not None:
-            append(bellow + 1)
-        if bellow is not None and back is not None:
-            append(bellow - 1)
-        if bellow is not None and front is not None and left is not None:
-            append(bellow + nx + 1)
-        if bellow is not None and front is not None and right is not None:
-            append(bellow - nx + 1)
-        if bellow is not None and back is not None and left is not None:
-            append(bellow + nx - 1)
-        if bellow is not None and back is not None and right is not None:
-            append(bellow - nx - 1)
-    # Filter out the ones that do not exist or are masked
-    neighbors = [{'index':i, 'props':props} for i in indexes if i is not None
-                 and mesh[i] is not None]
-    return neighbors
-
-def in_estimate(estimate, neighbor):
-    """
-    Check if the neighbor is already set (not 0) in any of the physical
-    properties of the estimate.
-    """
-    n = neighbor['index']
-    for p in neighbor['props']:
-        if estimate[p][n] != 0:
-            return True
-    return False    
-   
-def free_neighbors(estimate, neighbors):
-    """
-    Remove neighbors that have their physical properties already set on the
-    estimate.
-    """    
-    return [n for n in neighbors if not in_estimate(estimate, n)]
-
-def in_tha_hood(neighborhood, neighbor):
-    """
-    Check if a neighbor is already in the neighborhood with the same physical
-    properties.
-    """
-    n, props = neighbor['index'], neighbor['props']
-    for neighbors in neighborhood:
-        for tmp in neighbors:
-            if n == tmp['index']:
-                for p in props:
-                    if p in tmp['props']:
-                        return True
-    return False
-
-def not_neighbors(neighborhood, neighbors):
-    """
-    Remove the neighbors that are already in the neighborhood.
-    """
-    return [n for n in neighbors if not in_tha_hood(neighborhood, n)]
-
-def is_compact(estimate, mesh, neighbor, compact):
-    """
-    Check if this neighbor satifies the compactness criterion.
-    """
-    around = neighbor['neighbors']
-    free = free_neighbors(estimate, around)
-    return len(around) - len(free) >= compact
-    
-def is_eligible(predicted, tol, dmods):
-    """
-    Check is a neighbor is eligible for accretion based on the residuals it
-    produces.
-    The criterion is that the predicted data must not be larger than the
-    observed data in absolute value.
-    """
-    for dm, pred in zip(dmods, predicted):
-        if True in (d < -tol for d in (dm.absobs - abs(pred))/dm.obsmax):
-            return False
-    return True
 
 def standard_jury(regularizer=None, thresh=0.0001, tol=0.01):
     """
@@ -574,6 +279,23 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     """
     log.info("Creating prism data modules:")
     log.info("  shape-of-anomaly: %s" % (str(use_shape)))
+    log.info("  data misfit norm: %d" % (norm))
+    dms = []
+    if gz is not None:
+        dms.append(DMPrismGz(gz, xp, yp, zp, mesh, use_shape, norm))
+    if gxx is not None:
+        dms.append(DMPrismGxx(gxx, xp, yp, zp, mesh, use_shape, norm))
+    if gxy is not None:
+        dms.append(DMPrismGxy(gxy, xp, yp, zp, mesh, use_shape, norm))
+    if gxz is not None:
+        dms.append(DMPrismGxz(gxz, xp, yp, zp, mesh, use_shape, norm))
+    if gyy is not None:
+        dms.append(DMPrismGyy(gyy, xp, yp, zp, mesh, use_shape, norm))
+    if gyz is not None:
+        dms.append(DMPrismGyz(gyz, xp, yp, zp, mesh, use_shape, norm))
+    if gzz is not None:
+        dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, use_shape, norm))
+    return dms
 
 def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     """
@@ -901,7 +623,7 @@ class DMPrismGz(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gz(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gz(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGxx(DMPrism):
@@ -923,7 +645,7 @@ class DMPrismGxx(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gxx(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gxx(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGxy(DMPrism):
@@ -945,7 +667,7 @@ class DMPrismGxy(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gxy(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gxy(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGxz(DMPrism):
@@ -967,7 +689,7 @@ class DMPrismGxz(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gxz(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gxz(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGyy(DMPrism):
@@ -989,7 +711,7 @@ class DMPrismGyy(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gyy(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gyy(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGyz(DMPrism):
@@ -1011,7 +733,7 @@ class DMPrismGyz(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gyz(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gyz(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class DMPrismGzz(DMPrism):
@@ -1033,7 +755,7 @@ class DMPrismGzz(DMPrism):
 
     def _effect_of_prism(self, index, props):
         p = self.mesh[index]
-        return _prism.gzz(float(props[self.prop_type]), p['x1'], p['x2'],
+        return _prism.prism_gzz(float(props[self.prop_type]), p['x1'], p['x2'],
             p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
 
 class SeedPrism(object):
@@ -1077,6 +799,8 @@ class SeedPrism(object):
     
     """
 
+    kind = 'prism'
+
     def __init__(self, point, props, mesh, mu=0., delta=0.0001, compact=False):
         self.props = props
         self.mesh = mesh
@@ -1116,10 +840,23 @@ class SeedPrism(object):
         Leaves out elements that are already neighbors of other seeds or that
         are the seeds.
         """
-        self.neighbors.append(
+        self.neighbors.extend(
             self._not_neighbors(seeds,
                 self._are_free(seeds,
                     self._find_neighbors(self.index))))
+        self._get_distances(self.neighbors)
+
+    def _get_distances(self, neighbors):
+        """
+        Add the distance of the neighbors to the distance dictionary.
+        """
+        scell = self.mesh[self.index]
+        for n in neighbors:
+            ncell = self.mesh[n]
+            dx = abs(ncell['x1'] - scell['x1'])
+            dy = abs(ncell['y1'] - scell['y1'])
+            dz = abs(ncell['z1'] - scell['z1'])        
+            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)        
 
     def set_mu(self, mu):
         """
@@ -1136,7 +873,8 @@ class SeedPrism(object):
     def _get_index(self, point, mesh):
         """
         Get the index of the prism in mesh that has point inside it.
-        """        
+        """
+        x1, x2, y1, y2, z1, z2 = mesh.bounds
         nz, ny, nx = mesh.shape
         xs = mesh.get_xs()
         ys = mesh.get_ys()
@@ -1154,7 +892,7 @@ class SeedPrism(object):
                 return s                
         raise ValueError("Couldn't find seed at location %s" % (str(point)))
 
-    def _find_neighbors(self, n, full=False):
+    def _find_neighbors(self, n, full=False, up=True, down=True):
         """
         Return a list of neighboring prisms (that share a face) of *neighbor*.
     
@@ -1179,7 +917,7 @@ class SeedPrism(object):
             above = tmp
         # The guy bellow
         tmp = n + nx*ny
-        if down and tmp < mesh.size:
+        if down and tmp < self.mesh.size:
             bellow = tmp    
         # The guy in front
         tmp = n + 1
@@ -1246,11 +984,11 @@ class SeedPrism(object):
                      if i is not None and self.mesh[i] is not None]
         return neighbors
 
-    def _not_neighbors(seeds, neighbors):
+    def _not_neighbors(self, seeds, neighbors):
         """
         Remove the neighbors that are already neighbors of a seed.
         """
-        return [n for n in neighbors if not self._is_neighbors(n, seeds)]
+        return [n for n in neighbors if not self._is_neighbor(n, seeds)]
 
     def _is_neighbor(self, n, seeds):
         """
@@ -1288,7 +1026,9 @@ class SeedPrism(object):
                 self._are_free(seeds,
                     self._find_neighbors(n)))
         self.neighbors.remove(n)
-        self.neighbors.append(new)
+        self.neighbors.extend(new)
+        del self.distance[n]
+        self._get_distances(new)
 
     def _standard_judge(self, goals, misfits, goal, misfit):
         """
@@ -1299,7 +1039,7 @@ class SeedPrism(object):
             
         """
         decreased = [i for i, m in enumerate(misfits)
-                     if abs(m - misfit)/misfit >= self.delta]
+                     if m < misfit and abs(m - misfit)/misfit >= self.delta]
         if not decreased:
             return None
         best = decreased[numpy.argmin([goals[i] for i in decreased])]
@@ -1329,7 +1069,8 @@ class SeedPrism(object):
         i, goal, misfit = best
         index = self.neighbors[i]
         self.estimate.append(index)
-        self._update_neighbors(i, seeds)
+        self.reg += self.mu*self.distance[index]
+        self._update_neighbors(index, seeds)
         return [[index, self.props], goal, misfit]
 
 def _cat_estimate(seeds):
@@ -1386,12 +1127,10 @@ def _harvest_solver(dms, seeds, first_goal):
     # Since the compactness regularizing function is zero in the begining
     misfits = [first_goal]
     upmisfit = misfits.append
-    goal = first_goal
-    misfit = first_goal
     while True:
         grew = False
         for seed in seeds:
-            change = seed.grow(dms, seeds, goal, misfit)
+            change = seed.grow(dms, seeds, goals[-1], misfits[-1])
             if change is not None:
                 grew = True
                 params, goal, misfit = change

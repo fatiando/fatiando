@@ -2,8 +2,7 @@
 Example of inverting synthetic gz data from a single prism using harvester
 """
 from fatiando import potential, gridder
-from fatiando.mesher.volume import Prism3D, PrismMesh3D
-from fatiando.inversion import harvester
+from fatiando.mesher.ddd import Prism, PrismMesh
 
 extent = (0, 10000, 0, 10000, 0, 6000)
 model = [Prism3D(4000, 6000, 2000, 8000, 2000, 4000, props={'density':800})]
