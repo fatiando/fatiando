@@ -19,11 +19,10 @@ subpackages for individual geophysical methods.
 Check out the :ref:`api` for available packages and modules.
 
 
-Developers
-----------
+Development
+-------------
 
 :ref:`the-team` behind Fatiando a Terra.
-
 
 Contents
 --------
