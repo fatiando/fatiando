@@ -17,37 +17,36 @@
 """
 Logging utilities for fatiando.
 
-This module is basically a wrapper around Pythons ``logging`` module.
+This module is basically a wrapper around Pythons `logging` module.
 
 Use it in your script::
 
-    from fatiando import logger
-    # Get a logger to stderr
-    log = logger.get()
-    log.info("This is an info msg printed to stderr")
-    log.dedug("This is a debug msg printed to stderr")
-    logger.tofile('mylogfile.log')
-    log.warning('Warning printed to both stderr and log file')
-    log.warning('and this is an Error message.')
-    # Log a header with useful provenance information
-    log.info(logger.header())
+    >>> from fatiando import logger
+    >>> # Get a logger to stderr
+    >>> log = logger.get()
+    >>> log.info("This is an info msg printed to stderr")
+    >>> log.dedug("This is a debug msg printed to stderr")
+    >>> logger.tofile('mylogfile.log')
+    >>> log.warning('Warning printed to both stderr and log file')
+    >>> log.warning('and this is an Error message.')
+    >>> # Log a header with useful provenance information
+    >>> log.info(logger.header())
 
 In a module, use a logger with a null handler so that it only logs if the script
 wants to log::
 
-    # in fatiando.package.module.py
-    import fatiando.logger
+    >>> # in fatiando.package.module.py
+    >>> import fatiando.logger
+    >>> log = fatiando.logger.dummy()
+    >>> def myfunc():
+    >>>     log.info("From myfunc. Only logs if a script calls logger.get")
 
-    log = fatiando.logger.dummy()
-
-    def myfunc(...):
-        log.info("From myfunc. Only logs if a script calls logger.get")
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 14-Sep-2011
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 14-Sep-2011'
 
 import logging
 import time
@@ -66,19 +65,19 @@ class NullHandler(logging.Handler):
 
 def get(level=logging.DEBUG):
     """
-    Get a logger to ``stderr``.
+    Get a logger to `stderr`.
 
     (Adds a stream handler to the base logger ``'fatiando'``)
 
     Parameters:
     
-    * level
-        The logging level. Default to ``logging.DEBUG``. See ``logging`` module
+    * level : logging level
+        Default to `logging.DEBUG`. See `logging` module
         
     Returns:
     
-    * a logger object
-
+    * log : a `logging.Logger` object
+    
     """
     logger = logging.getLogger('fatiando')
     handler = logging.StreamHandler()
@@ -101,7 +100,7 @@ def tofile(fname, level=logging.DEBUG):
     * fname
         Log file name
     * level
-        The logging level. Default to ``logging.DEBUG``. See ``logging`` module
+        The logging level. Default to `logging.DEBUG`. See `logging` module
         
     Returns:
     
