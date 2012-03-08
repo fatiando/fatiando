@@ -49,11 +49,13 @@ Others
 * :func:`fatiando.utils.year2sec`
     Convert Julian years to seconds
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 11-Sep-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
 
 import math
 

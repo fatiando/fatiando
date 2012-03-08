@@ -35,7 +35,7 @@ tesseroids, etc.
 * :func:`~fatiando.mesher.ddd.center`
 
 :author: Leonardo Uieda (leouieda@gmail.com)
-:date: 13-Sep-2010
+:date: Created 13-Sep-2010
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----

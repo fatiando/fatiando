@@ -33,7 +33,7 @@ triangles.
 
 
 :author: Leonardo Uieda (leouieda@gmail.com)
-:date: 12-Jan-2012
+:date: Created 12-Jan-2012
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----

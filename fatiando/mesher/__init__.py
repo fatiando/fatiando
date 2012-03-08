@@ -18,7 +18,7 @@
 Modules to generate and operate on varios kinds of meshes and geometric elements
 
 :author: Leonardo Uieda (leouieda@gmail.com)
-:date: 15-Sep-2011
+:date: Created 15-Sep-2011
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
