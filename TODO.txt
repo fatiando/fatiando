@@ -5,6 +5,9 @@
         * :author:
         * :date:
         * :license:
+    DONE:
+        * mesher
+
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props

@@ -20,25 +20,27 @@ tesseroids, etc.
 
 **Elements**
 
-* :func:`fatiando.mesher.ddd.Prism`
-* :func:`fatiando.mesher.ddd.PolygonalPrism`
+* :func:`~fatiando.mesher.ddd.Prism`
+* :func:`~fatiando.mesher.ddd.PolygonalPrism`
 
 **Meshes**
 
-* :class:`fatiando.mesher.ddd.PrismMesh`
-* :class:`fatiando.mesher.ddd.PrismRelief`
+* :class:`~fatiando.mesher.ddd.PrismMesh`
+* :class:`~fatiando.mesher.ddd.PrismRelief`
 
 **Utility functions**
 
-* :func:`fatiando.mesher.ddd.extract`
-* :func:`fatiando.mesher.ddd.filter`
-* :func:`fatiando.mesher.ddd.center`
+* :func:`~fatiando.mesher.ddd.extract`
+* :func:`~fatiando.mesher.ddd.vfilter`
+* :func:`~fatiando.mesher.ddd.center`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: 13-Sep-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = '13-Sep-2010'
 
 import numpy
 import matplotlib.mlab
@@ -69,20 +71,28 @@ def Prism(x1, x2, y1, y2, z1, z2, props=None):
 
     Parameters:
     
-    * x1, x2
+    * x1, x2 : float
         South and north borders of the prism
-    * y1, y2
+    * y1, y2 : float
         West and east borders of the prism
-    * z1, z2
+    * z1, z2 : float
         Top and bottom of the prism
-    * props
-        Dictionary with the physical properties assigned to the prism.
+    * props : dict
+        Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'susceptibility':10000}``
         
     Returns:
     
-    * prism
+    * prism : dict
         Dictionary describing the prism
+
+    Examples:
+
+        >>> p = Prism(1, 2, 3, 4, 5, 6, {'density':200})
+        >>> p['density']
+        200
+        >>> print p['x1'], p['x2'], p['y1'], p['y2'], p['z1'], p['z2']
+        1.0 2.0 3.0 4.0 5.0 6.0
 
     """
     prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
@@ -96,25 +106,39 @@ def PolygonalPrism(vertices, z1, z2, props=None):
     """
     Create a 3D prism with polygonal crossection.
 
+    .. note:: *vertices* must be **CLOCKWISE** or will give inverse result.
+        
     Parameters:
     
-    * vertices
-        List of (x,y) pairs with the coordinates of the vertices. MUST BE
-        CLOCKWISE or will give inverse result.
-    * z1, z2
+    * vertices : list of lists
+        Coordinates of the vertices. A list of ``[x, y]`` pairs.
+    * z1, z2 : float
         Top and bottom of the prism
-    * props
-        Dictionary with the physical properties assigned to the prism.
+    * props :  dict
+        Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'susceptibility':10000}``
         
     Returns:
     
-    * prism
+    * prism :  dict
         Dictionary describing the prism
 
+    Examples:
+
+        >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
+        >>> p = PolygonalPrism(verts, 0, 3, props={'temperature':25})
+        >>> p['temperature']
+        25
+        >>> print p['x']
+        [ 1.  1.  2.  2.]
+        >>> print p['y']
+        [ 1.  2.  2.  1.]
+        >>> print p['z1'], p['z2']
+        0.0 3.0
+
     """
-    x, y = numpy.array(vertices).T
-    prism = {'x':x, 'y':y, 'z1':z1, 'z2':z2}
+    x, y = numpy.array(vertices, dtype='f').T
+    prism = {'x':x, 'y':y, 'z1':float(z1), 'z2':float(z2)}
     if props is not None:
         for prop in props:
             prism[prop] = props[prop]
@@ -138,16 +162,15 @@ class PrismRelief():
 
     Parameters:
     
-    * ref
+    * ref : float
         Reference level. Prisms will have:
             * bottom on zref and top on z if z > zref;
             * bottom on z and top on zref otherwise.
-    * dims
-        ``(dy, dx)``: the dimensions of the prisms in the y and x directions
-    * nodes
-        ``(x, y, z)`` where x, y, and z are arrays with the x, y and z
-        coordinates of the center of the top face of each prism.
-        x and y should be on a regular grid.
+    * dims :  tuple = (dy, dx)
+        Dimensions of the prisms in the y and x directions
+    * nodes : list of lists = [x, y, z]
+        Coordinates of the center of the top face of each prism.x, y, and z are
+        lists with the x, y and z coordinates on a regular grid.
 
     """
 
@@ -204,15 +227,15 @@ class PrismRelief():
         """
         Add physical property values to the prisms.
 
-        **WARNING**: If a the z value of any point in the relief is bellow the
-        reference level, its corresponding prism will have the physical property
-        value with oposite sign than was assigned to it.
+        .. warning:: If the z value of any point in the relief is bellow the
+            reference level, its corresponding prism will have the physical
+            property value with oposite sign than was assigned to it.
 
         Parameters:
         
-        * prop
+        * prop : str
             Name of the physical property.
-        * values
+        * values : list
             List or array with the value of this physical property in each
             prism of the mesh.
             
@@ -230,22 +253,36 @@ class PrismMesh(object):
     Prisms are ordered as follows: first layers (z coordinate), then EW rows (y)
     and finaly x coordinate (NS).
 
-    Remember that the coordinate system is x->North, y->East and z->Down
+    .. note:: Remember that the coordinate system is x->North, y->East and
+        z->Down
 
     Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has z index
     1 (second layer), y index 1 (second row), and x index 2 (third element in
     the column).
 
-    PrismMesh can used as list of prisms. It acts as an iteratior (so you can 
-    loop over prisms). It also has a ``__getitem__`` method to access individual 
-    elements in the mesh. In practice, PrismMesh should be able to be passed 
-    to any function that asks for a list of prisms, like 
+    :class:`~fatiando.mesher.ddd.PrismMesh` can used as list of prisms. It acts
+    as an iteratior (so you can loop over prisms). It also has a ``__getitem__``
+    method to access individual elements in the mesh.
+    In practice, :class:`~fatiando.mesher.ddd.PrismMesh` should be able to be
+    passed to any function that asks for a list of prisms, like 
     :func:`fatiando.potential.prism.gz`.
 
     To make the mesh incorporate a topography, use
-    :meth:`fatiando.mesher.ddd.PrismMesh.carvetopo`
+    :meth:`~fatiando.mesher.ddd.PrismMesh.carvetopo`
 
-    Example::
+    Parameters:
+    
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        Boundaries of the mesh.
+    * shape : tuple = (nz, ny, nx)
+        Number of prisms in the x, y, and z directions, respectively.
+    * props :  dict
+        Physical properties of each prism in the mesh.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each prism of the mesh.
+
+    Examples:
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
@@ -261,7 +298,7 @@ class PrismMesh(object):
         >>> show(mesh[-1])
         x1 : 0.5 | x2 : 1.0 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
 
-    Example with physical properties::
+    One with physical properties::
 
         >>> def show(p):
         ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
@@ -272,7 +309,7 @@ class PrismMesh(object):
         density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
         density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
 
-    You can use :meth:`fatiando.mesher.ddd.PrismMesh.get_xs` (and similar
+    You can use :meth:`~fatiando.mesher.ddd.PrismMesh.get_xs` (and similar
     methods for y and z) to get the x coordinates os the prisms in the mesh::
 
         >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
@@ -282,19 +319,7 @@ class PrismMesh(object):
         [ 0.  4.]
         >>> print mesh.get_zs()
         [ 0.  3.]
-
-    Parameters:
-    
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``: boundaries of the mesh.
-    * shape
-        Number of prisms in the x, y, and z directions, ie ``(nz, ny, nx)``
-    * props
-        Dictionary with the physical properties of each prism in the mesh.
-        Each key should be the name of a physical property. The corresponding
-        value should be a list with the values of that particular property on
-        each prism of the mesh.
-
+        
     """
 
     def __init__(self, bounds, shape, props=None):
@@ -365,12 +390,12 @@ class PrismMesh(object):
 
         Parameters:
         
-        * prop
+        * prop : str
             Name of the physical property.
-        * values
-            List or array with the value of this physical property in each
-            prism of the mesh. For the ordering of prisms in the mesh see the
-            docstring for PrismMesh
+        * values :  list or array
+            Value of this physical property in each prism of the mesh. For the
+            ordering of prisms in the mesh see
+            :class:`~fatiando.mesher.ddd.PrismMesh`
             
         """
         self.props[prop] = values
@@ -387,9 +412,9 @@ class PrismMesh(object):
     
         Parameters:
            
-        * x, y
-            Arrays with x and y coordinates of the grid points
-        * height
+        * x, y : lists
+            x and y coordinates of the grid points
+        * height : list or array
             Array with the height of the topography
                 
         """
@@ -460,14 +485,14 @@ class PrismMesh(object):
             return zs[:-1]
         return zs
 
-    def dump_ubc(self, fname):
+    def dump(self, fname):
         """
         Dump the mesh to a file in the format required by UBC-GIF program
         MeshTools3D.
 
         Parameters:
         
-        * fname
+        * fname : str or file
             File name or open file object.
             
         """
@@ -479,16 +504,17 @@ def extract(key, prisms):
 
     Parameters:
     
-    * key
-        string representing the key whose value will be extracted.
-        Should be one of the arguments to :func:`fatiando.mesher.ddd.Prism`
+    * key : str
+        The key whose value will be extracted.
+        Should be one of the arguments to :func:`~fatiando.mesher.ddd.Prism`
         
-    * prisms
-        A list of :func:`fatiando.mesher.ddd.Prism` objects.
+    * prisms : list
+        A list of :func:`~fatiando.mesher.ddd.Prism` objects.
         
     Returns:
     
-    * Array with the extracted values
+    * values : array
+        The extracted values
 
     """
     def getkey(p):
@@ -504,19 +530,20 @@ def vfilter(vmin, vmax, key, prisms):
 
     Parameters:
     
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism`
-    * vmin
+    * prisms : list
+        List of :func:`~fatiando.mesher.ddd.Prism`
+    * vmin : float
         Minimum value
-    * vmax
+    * vmax : float
         Maximum value
-    * key
+    * key : str
         The key of the prisms whose value will be used to filter
         
     Returns:
     
-    * filtered
-        List of prisms whose *key* falls within the given range
+    * filtered : list
+        List of :func:`~fatiando.mesher.ddd.Prism` whose *key* falls within the
+        given range
 
     """
     filtered = [p for p in prisms if p is not None and p[key] >= vmin and
@@ -529,13 +556,13 @@ def center(cell):
 
     Paremters:
     
-    * cell
-        A cell (like :func:`fatiando.mesher.ddd.Prism`)
+    * cell : :func:`~fatiando.mesher.ddd.Prism`
+        A cell
 
     Returns:
     
-    * tuple
-        ``(xc, yc, zc)`` coordinates
+    * coords : tuple = (xc, yc, zc)
+        Coordinates of the center
         
     """
     xc = 0.5*(cell['x1'] + cell['x2'])

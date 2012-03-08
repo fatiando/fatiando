@@ -15,10 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Modules to generate and operate on varios kinds of meshes.
-"""
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 15-Sep-2011'
+Modules to generate and operate on varios kinds of meshes and geometric elements
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: 15-Sep-2011
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
+----
+
+"""
 
 from fatiando.mesher import ddd, dd

@@ -24,11 +24,10 @@ Development
 
 :ref:`the-team` behind Fatiando a Terra.
 
-Contents
---------
 
 .. toctree::
-
+    :hidden:
+    
     cookbook/index.rst
     api/index.rst
     the-team.rst
