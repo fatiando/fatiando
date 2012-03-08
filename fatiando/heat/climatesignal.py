@@ -106,8 +106,6 @@ import numpy
 from fatiando.heat import _climatesignal
 from fatiando import inversion, utils, logger
 
-log = logger.dummy()
-
  
 class AbruptDM(inversion.datamodule.DataModule):
     """
@@ -146,6 +144,7 @@ class AbruptDM(inversion.datamodule.DataModule):
 
     # The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
     def __init__(self, temp, zp, diffus=31.5576):
+        log = logger.dummy('fatiando.heat.climatesignal.AbruptDM')
         if len(temp) != len(zp):
             raise ValueError, "temp and zp must be of same length"
         inversion.datamodule.DataModule.__init__(self, temp)
@@ -230,13 +229,14 @@ def invert_abrupt(temp, zp, solver, diffus=31.5576, iterate=False):
         data predicted by the estimated parameters.
 
     """
+    log = logger.dummy('fatiando.heat.climatesignal.invert_abrupt')
     log.info("Estimating amplitude and age of an abrupt perturbation:")
     log.info("  iterate: %s" % (str(iterate)))
     dms = [AbruptDM(temp, zp, diffus)]
     if iterate:
-        return _iterator(dms, solver)
+        return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver)
+        return _solver(dms, solver, log)
  
 class LinearDM(inversion.datamodule.DataModule):
     """
@@ -271,6 +271,7 @@ class LinearDM(inversion.datamodule.DataModule):
 
     # The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
     def __init__(self, temp, zp, diffus=31.5576):
+        log = logger.dummy('fatiando.heat.climatesignal.LinearDM')
         if len(temp) != len(zp):
             raise ValueError, "temp and zp must be of same length"
         inversion.datamodule.DataModule.__init__(self, temp)
@@ -358,15 +359,16 @@ def invert_linear(temp, zp, solver, diffus=31.5576, iterate=False):
         data predicted by the estimated parameters.
 
     """
+    log = logger.dummy('fatiando.heat.climatesignal.invert_linear')
     log.info("Estimating amplitude and age of a linear perturbation:")
     log.info("  iterate: %s" % (str(iterate)))
     dms = [LinearDM(temp, zp, diffus)]
     if iterate:
-        return _iterator(dms, solver)
+        return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver)
+        return _solver(dms, solver, log)
 
-def _solver(dms, solver):
+def _solver(dms, solver, log):
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, [])):
@@ -381,7 +383,7 @@ def _solver(dms, solver):
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
-def _iterator(dms, solver):
+def _iterator(dms, solver, log):
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, [])):

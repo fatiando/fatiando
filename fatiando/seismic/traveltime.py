@@ -31,9 +31,6 @@ __date__ = 'Created 11-Sep-2010'
 import numpy
 
 from fatiando.seismic import _traveltime
-from fatiando import logger
-
-log = logger.dummy()
 
 
 def straight_ray_2d(cells, prop, srcs, recs):

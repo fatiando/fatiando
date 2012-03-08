@@ -60,8 +60,6 @@ import numpy
 
 from fatiando import logger
 
-log = logger.dummy()
-
   
 def vecmean(arrays):
     """
@@ -278,7 +276,8 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     * [contam_data, stddev if *return_stddev* is ``True``]
         The contaminated data array
 
-    """
+    """    
+    log = logger.dummy('fatiando.utils.contaminate')
     log.info("Contaminating data with Gaussian noise:")
     if percent:
         log.info("  noise level = %g percent" % (100*stddev))

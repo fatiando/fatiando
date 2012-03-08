@@ -42,7 +42,6 @@ import numpy
 from matplotlib import pyplot, widgets
 
 from fatiando import logger
-log = logger.dummy()
 
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
@@ -89,6 +88,7 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
         List of ``(x, y)`` pairs with the edges of the polygon
 
     """
+    log = logger.dummy('fatiando.ui.picker.draw_polygon')
     log.info("Drawing polygon...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Left click to pick the edges of the polygon;")
@@ -196,6 +196,7 @@ def points(area, axes, marker='o', color='k', size=8):
         List of ``(x, y)`` coordinates of the points
 
     """
+    log = logger.dummy('fatiando.ui.picker.points')
     log.info("Picking points...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Left click to pick the points;")
@@ -290,6 +291,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
             order        
 
     """
+    log = logger.dummy('fatiando.ui.picker.draw_layers')
     log.info("Drawing layers...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Click to make a new layer;")

@@ -37,8 +37,6 @@ import numpy
 from fatiando import logger, gridder
 from fatiando.potential import _transform
 
-log = logger.dummy()
-
 
 def upcontinue(gz, z0, height, xp, yp, dims):
     """
@@ -80,6 +78,7 @@ def upcontinue(gz, z0, height, xp, yp, dims):
         Array with the upward continued :math:`g_z`
 
     """
+    log = logger.dummy('fatiando.potential.transform.upcontinue')
     dy, dx = dims
     if len(xp) != len(yp):
         raise ValueError, "xp and yp arrays must have same lengths"

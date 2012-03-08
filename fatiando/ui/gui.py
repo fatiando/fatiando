@@ -42,9 +42,7 @@ from matplotlib import pyplot, widgets, nxutils
 from fatiando.potential import talwani
 from fatiando import seismic
 from fatiando.mesher.dd import Polygon
-from fatiando import logger, utils
-
-log = logger.dummy()
+from fatiando import utils
 
 
 class Moulder():

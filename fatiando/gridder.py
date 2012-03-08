@@ -45,8 +45,6 @@ import matplotlib.mlab
 
 from fatiando import logger
 
-log = logger.dummy()
-
 
 def regular(area, shape, z=None):
     """
@@ -71,6 +69,7 @@ def regular(area, shape, z=None):
         points
 
     """
+    log = logger.dummy('fatiando.gridder.regular')
     log.info("Generating regular grid:")
     ny, nx = shape
     x1, x2, y1, y2 = area
@@ -120,6 +119,7 @@ def scatter(area, n, z=None):
         If *z* given. Arrays with the x, y, and z coordinates of the points
 
     """
+    log = logger.dummy('fatiando.gridder.scatter')
     x1, x2, y1, y2 = area
     log.info("Generating irregular grid (scatter):")
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
@@ -179,7 +179,7 @@ def interpolate(x, y, v, shape, algorithm='nn'):
 
     """
     if algorithm != 'nn' and algorithm != 'linear':
-        raise ValueError, "Invalid interpolation: %s" % (str(algorithm))
+        raise ValueError("Invalid interpolation: %s" % (str(algorithm)))
     ny, nx = shape
     dx = float(x.max() - x.min())/(nx - 1)
     dy = float(y.max() - y.min())/(ny - 1)
@@ -212,6 +212,7 @@ def cut(x, y, scalars, area):
         Arrays with x and y coordinates and scalar values of the subsection.
 
     """
+    log = logger.dummy('fatiando.gridder.cut')
     xmin, xmax, ymin, ymax = area
     log.info("Cutting grid:")
     log.info("  area = xmin, xmax, ymin, ymax = %s" % (str(area)))

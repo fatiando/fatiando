@@ -172,8 +172,6 @@ import numpy
 from fatiando.potential import _talwani
 from fatiando import inversion, utils, logger
 
-log = logger.dummy()
-
 
 class TriangularGzDM(inversion.datamodule.DataModule):
     """
@@ -206,6 +204,7 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     """
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
+        log = logger.dummy('fatiando.potential.basin2d.TriangularGzDM')
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing TriangularDM data module:")
         if len(xp) != len(zp) != len(data):
@@ -270,12 +269,13 @@ def triangular(dms, solver, iterate=False):
         data module in *dms*
     
     """
+    log = logger.dummy('fatiando.potential.basin2d.triangular')
     log.info("Estimating relief of a triangular basin:")
     log.info("  iterate: %s" % (str(iterate)))
     if iterate:
-        return _iterator(dms, solver)
+        return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver)
+        return _solver(dms, solver, log)
 
 class TrapezoidalGzDM(inversion.datamodule.DataModule):
     """
@@ -311,6 +311,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
     field = "gz"
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
+        log = logger.dummy('fatiando.potential.basin2d.TrapezoidalGzDM')
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing %s data module for trapezoidal basin:" %
                 (self.field))
@@ -378,14 +379,15 @@ def trapezoidal(dms, solver, iterate=False):
         data module in *dms*
     
     """
+    log = logger.dummy('fatiando.potential.basin2d.trapezoidal')
     log.info("Estimating relief of a trapezoidal basin:")
     log.info("  iterate: %s" % (str(iterate)))
     if iterate:
-        return _iterator(dms, solver)
+        return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver)
+        return _solver(dms, solver, log)
 
-def _solver(dms, solver):
+def _solver(dms, solver, log):
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, [])):
@@ -400,7 +402,7 @@ def _solver(dms, solver):
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals']
 
-def _iterator(dms, solver):
+def _iterator(dms, solver, log):
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, [])):

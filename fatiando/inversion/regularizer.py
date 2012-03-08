@@ -44,9 +44,6 @@ __date__ = 'Created 19-Jan-2012'
 import numpy
 import scipy.sparse
 
-from fatiando import logger
-
-log = logger.dummy()
 
 class Regularizer(object):
     """
@@ -576,7 +573,6 @@ class TotalVariation(Regularizer):
         Regularizer.__init__(self, mu)
         self.fdmat = self._makefd(nparams)
         self.beta = float(beta)
-        log.info("  total variation: using beta = %g" % (beta))
 
     def _makefd(self, nparams):
         raise NotImplementedError, "_makefd of TotalVariation not implemented"
