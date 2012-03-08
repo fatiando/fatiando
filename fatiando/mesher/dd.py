@@ -118,7 +118,7 @@ class SquareMesh(object):
     Generate a 2D regular mesh of squares.
 
     For all purposes, :class:`~fatiando.mesher.dd.SquareMesh` can be used as a
-    list of :func:`~fatiando.mesher.dd.Square`s. The order of the squares in the
+    list of :func:`~fatiando.mesher.dd.Square`. The order of the squares in the
     list is: x directions varies first, then y.
 
     Parameters:

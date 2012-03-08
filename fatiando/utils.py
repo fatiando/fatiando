@@ -17,36 +17,33 @@
 """
 Miscellaneous utility functions and classes.
 
-Mathematical functions
-^^^^^^^^^^^^^^^^^^^^^^
+**Mathematical functions**
 
-* :func:`fatiando.utils.normal`
-* :func:`fatiando.utils.gaussian`
-* :func:`fatiando.utils.gaussian2d`
+* :func:`~fatiando.utils.normal`
+* :func:`~fatiando.utils.gaussian`
+* :func:`~fatiando.utils.gaussian2d`
 
-Point scatter generation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+**Point scatter generation**
 
-* :func:`fatiando.utils.random_points`
-* :func:`fatiando.utils.circular_points`
-* :func:`fatiando.utils.connect_points`
+* :func:`~fatiando.utils.random_points`
+* :func:`~fatiando.utils.circular_points`
+* :func:`~fatiando.utils.connect_points`
 
-Others
-^^^^^^
+**Others**
 
-* :func:`fatiando.utils.contaminate`
+* :func:`~fatiando.utils.contaminate`
     Contaminate a vector with pseudo-random Gaussian noise
-* :func:`fatiando.utils.vecmean`
+* :func:`~fatiando.utils.vecmean`
     Take the mean array out of a list of arrays
-* :func:`fatiando.utils.vecstd`
+* :func:`~fatiando.utils.vecstd`
     Take the standard deviation array out of a list of arrays
-* :class:`fatiando.utils.SparseList`
+* :class:`~fatiando.utils.SparseList`
     Store only non-zero elements on an immutable list
-* :func:`fatiando.utils.sec2hms`
+* :func:`~fatiando.utils.sec2hms`
     Convert seconds to hours, minutes, and seconds
-* :func:`fatiando.utils.sec2year`
+* :func:`~fatiando.utils.sec2year`
     Convert seconds to Julian years
-* :func:`fatiando.utils.year2sec`
+* :func:`~fatiando.utils.year2sec`
     Convert Julian years to seconds
 
 :author: Leonardo Uieda (leouieda@gmail.com)
@@ -72,13 +69,13 @@ def vecmean(arrays):
 
     Parameter:
 
-    * arrays
+    * arrays : list
         List of arrays
 
     Returns:
 
-    * mean
-        Array with the mean of each element in the arrays
+    * mean : array
+        The mean of each element in the arrays
 
     Example::
 
@@ -94,13 +91,13 @@ def vecstd(arrays):
 
     Parameter:
 
-    * arrays
+    * arrays : list
         List of arrays
 
     Returns:
 
-    * std
-        Array with the standard deviation of each element in the arrays
+    * std : array
+        Standard deviation of each element in the arrays
         
     Example::
 
@@ -118,9 +115,9 @@ class SparseList(object):
 
     Parameters:
     
-    * size
+    * size : int
         Size of the list.
-    * elements
+    * elements : dict
         Dictionary used to initialize the list. Keys are the index of the
         elements and values are their respective values.
 
@@ -187,12 +184,12 @@ def sec2hms(seconds):
 
     Parameters:
     
-    * seconds
+    * seconds : float
         Time in seconds
 
     Returns:
     
-    * string
+    * time : str
         String in the format ``'%dh %dm %2.5fs'``
 
     Example::
@@ -216,12 +213,12 @@ def sec2year(seconds):
 
     Parameters:
     
-    * seconds
+    * seconds : float
         Time in seconds
 
     Returns:
     
-    * years
+    * years : float
         Time in years
 
     Example::
@@ -240,12 +237,12 @@ def year2sec(years):
 
     Parameters:
     
-    * years
+    * years : float
         Time in years
 
     Returns:
     
-    * seconds
+    * seconds : float
         Time in seconds
 
     Example::
@@ -264,15 +261,15 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
 
     Parameters:
     
-    * data
-        1D array-like data to contaminate
-    * stddev
+    * data : list or array
+        Data to contaminate
+    * stddev : float
         Standard deviation of the Gaussian noise that will be added to *data*
-    * percent
+    * percent : True or False
         If ``True``, will consider *stddev* as a decimal percentage and the
         standard deviation of the Gaussian noise will be this percentage of
         the maximum absolute value of *data*
-    * return_stddev
+    * return_stddev : True or False
         If ``True``, will return also the standard deviation used to contaminate
         *data*
         
@@ -305,20 +302,21 @@ def normal(x, mean, std):
     .. math::
 
         N(x,\\bar{x},\sigma) = \\frac{1}{\sigma\sqrt{2 \pi}}
-        \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
+        \exp\\left(-\\frac{(x-\\bar{x})^2}{\sigma^2}\\right)
 
     Parameters:
     
-    * x
+    * x : float or array
         Value at which to calculate the normal distribution
-    * mean
+    * mean : float
         The mean of the distribution :math:`\\bar{x}`
-    * std
+    * std : float
         The standard deviation of the distribution :math:`\sigma`
         
     Returns:
     
-    * normal distribution evaluated at *x*
+    * normal : array
+        Normal distribution evaluated at *x*
 
     """
     return numpy.exp(-1*((mean - x)/std)**2)/(std*numpy.sqrt(2*numpy.pi))
@@ -329,20 +327,22 @@ def gaussian(x, mean, std):
 
     .. math::
 
-        G(x,\\bar{x},\sigma) = \exp(-\\frac{(x-\\bar{x})^2}{\sigma^2})
+        G(x,\\bar{x},\sigma) = \exp\\left(-\\frac{(x-\\bar{x})^2}{\sigma^2}
+        \\right)
 
     Parameters:
     
-    * x
-        Value at which to calculate the Gaussian function
-    * mean
+    * x : float or array
+        Values at which to calculate the Gaussian function
+    * mean : float
         The mean of the distribution :math:`\\bar{x}`
-    * std
+    * std : float
         The standard deviation of the distribution :math:`\sigma`
         
     Returns:
     
-    * Gaussian function evaluated at *x*
+    * gauss : array
+        Gaussian function evaluated at *x*
 
     """
     return numpy.exp(-1*((mean - x)/std)**2)
@@ -353,19 +353,20 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
 
     Parameters:
     
-    * x, y
+    * x, y : float or arrays
         Coordinates at which to calculate the Gaussian function
-    * sigma_x, sigma_y
+    * sigma_x, sigma_y : float
         Standard deviation in the x and y directions
-    * x0, y0
+    * x0, y0 : float
         Coordinates of the center of the distribution
-    * angle
+    * angle : float
         Rotation angle of the gaussian measure from the x axis (north) growing
         positive to the east (positive y axis)
         
     Returns:
     
-    * Gaussian function evaluated at *x*, *y*
+    * gauss : array
+        Gaussian function evaluated at *x*, *y*
 
     """
     theta = -1*angle*numpy.pi/180.
@@ -386,14 +387,14 @@ def random_points(area, n):
  
     Parameters:
 
-    * area
-        [x1, x2, y1, y2]: area inside of which the points are contained
-    * n
+    * area : list = [x1, x2, y1, y2]
+        Area inside of which the points are contained
+    * n : int
         Number of points
 
     Result:
 
-    * points
+    * points : list
         List of (x, y) coordinates of the points
         
     """
@@ -410,16 +411,16 @@ def circular_points(area, n, random=False):
  
     Parameters:
 
-    * area
-        [x1, x2, y1, y2]: area inside of which the points are contained
-    * n
+    * area : list = [x1, x2, y1, y2]
+        Area inside of which the points are contained
+    * n : int
         Number of points
-    * random
+    * random : True or False
         If True, positions of the points on the circle will be chosen at random
 
     Result:
 
-    * points
+    * points : list
         List of (x, y) coordinates of the points
         
     """
@@ -442,14 +443,14 @@ def connect_points(pts1, pts2):
 
     Parameters:
 
-    * pts1
+    * pts1 : list
         List of (x, y) coordinates of the points.
-    * pts2
+    * pts2 : list
         List of (x, y) coordinates of the points.
 
     Returns:
 
-    * [connect1, connect2]
+    * [connect1, connect2] : lists
         2 lists with the connected points
         
     """
