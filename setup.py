@@ -19,9 +19,8 @@ Build extention modules, package and install Fatiando.
 Uses the numpy's extension of distutils to build the f2py extension modules
 """
 from os.path import join
+import subprocess
 from numpy.distutils.core import setup, Extension
-
-import fatiando
 
 # Base paths for extention modules
 potdir = join('src', 'potential')
@@ -52,19 +51,37 @@ packages = ['fatiando',
             'fatiando.vis',
             'fatiando.ui',
             'fatiando.mesher',
-            'fatiando.inversion',
-            'fatiando.tests']
+            'fatiando.inversion']
 
 with open("README.txt") as f:
     long_description = ''.join(f.readlines())
 
+def setrevison(version):
+    with open(join('fatiando','version.py'), 'w') as versionfile:
+        proc = subprocess.Popen('hg tip', shell=True,
+                                stdout=subprocess.PIPE)
+        csline, bline = [l.strip() for l in proc.stdout.readlines()[0:2]]
+        changeset = csline.split(':')[-1].strip()
+        branch = bline.split(':')[-1].strip()
+        if branch == 'tip':
+            branch = 'default'
+        versionfile.write(''.join([
+            '"""\n',
+            "Version, changeset, and branch information for the current build.",
+            '\n"""\n']))
+        versionfile.write("version = '%s'\n" % (version))
+        versionfile.write("changeset = '%s'\n" % (changeset))
+        versionfile.write("branch = '%s'" % (branch))
+
 if __name__ == '__main__':
 
+    version = '0.0.1'
+    setrevison(version)
     setup(name='fatiando',
           fullname="Fatiando a Terra",
           description="Geophysical direct and inverse modeling",
           long_description=long_description,
-          version=fatiando.__version__,
+          version=version,
           author="Leonardo Uieda",
           author_email='leouieda at gmail dot com',
           license='GNU LGPL',

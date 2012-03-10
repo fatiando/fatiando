@@ -73,7 +73,7 @@ import time
 
 import numpy
 
-import fatiando
+import fatiando.version
 
 
 # Add the NullHandler to the root logger for fatiando so that nothing is printed
@@ -124,7 +124,7 @@ def tofile(logger, fname, level=logging.DEBUG):
 
     Returns:
     
-    * log : a `logging.Logger` object
+    * log : `logging.Logger`
         *logger* with added FileHandler
         
     Examples:
@@ -165,7 +165,7 @@ def dummy(name='fatiando'):
     
     Returns:
     
-    * logger
+    * log : `logging.Logger`
         A logger without any handlers so that it only prints when
         :func:`fatiando.logger.get` or :func:`fatiando.logger.tofile` are called
 
@@ -189,20 +189,23 @@ def header(comment=''):
 
     Parameters:
     
-    * comment
+    * comment : str
         Character inserted at the beginning of each line. Use this to make a
         message that can be inserted in source code files as comments.
         
     Returns:
     
-    * msg
-        string with the header message
+    * msg : str
+        The header message
 
     """
-    lines = ["%sFatiando a Terra:" % (comment),
-             "%s  version: %s" % (comment, fatiando.__version__),
-             "%s  date: %s" % (comment, time.asctime())]
-    return '\n'.join(lines)
+    msg = '\n'.join(
+        ["%sFatiando a Terra:" % (comment),
+         "%s  date: %s" % (comment, time.asctime()),
+         "%s  version: %s" % (comment, fatiando.version.version),
+         "%s  changeset: %s" % (comment, fatiando.version.changeset),
+         "%s  branch: %s" % (comment, fatiando.version.branch)])
+    return msg
     
 def _test():
     import doctest
