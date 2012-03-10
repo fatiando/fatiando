@@ -23,7 +23,7 @@ mesh = PrismMesh(bounds, (25, 25, 25))
 dms = potential.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Make the seed and set the compactness regularizing parameter mu
 seeds = potential.harvester.sow_prisms([[500, 500, 450]], {'density':[1000]},
-    mesh, mu=0.1, delta=0.00001)
+    mesh, mu=0.1, delta=0.0001)
 # Run the inversion
 estimate, goals, misfits = potential.harvester.harvest(dms, seeds)
 # Put the estimated density values in the mesh

@@ -31,6 +31,7 @@ vis.vtk.add_axes(vis.vtk.add_outline(bounds), ranges=[i*0.001 for i in bounds],
     fmt='%.1f', nlabels=6)
 vis.vtk.wall_bottom(bounds)
 vis.vtk.wall_north(bounds)
+vis.vtk.mlab.show()
 # and use it to generate some tensor data
 shape = (51, 51)
 area = bounds[0:4]

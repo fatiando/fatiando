@@ -942,7 +942,8 @@ class SeedPrism(object):
         # numpy.sum seems to be faster than Python sum
         misfits = [numpy.sum(dm.testdrive((n, self.props)) for dm in dms)
                    for n in self.neighbors]
-        goals = [m + numpy.sum((s.reg for s in seeds), self.mu*self.distance[n])
+        regularizer = numpy.sum(s.reg for s in seeds)
+        goals = [m + regularizer + self.mu*self.distance[n]
                  for n, m in zip(self.neighbors, misfits)]
         best = self._judge(goals, misfits, goal, misfit)
         if best is None:
