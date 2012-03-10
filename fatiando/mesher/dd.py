@@ -20,23 +20,25 @@ triangles.
 
 **Elements**
 
-* :func:`fatiando.mesher.dd.Polygon`
-* :func:`fatiando.mesher.dd.Square`
+* :func:`~fatiando.mesher.dd.Polygon`
+* :func:`~fatiando.mesher.dd.Square`
 
 **Meshes**
 
-* :class:`fatiando.mesher.dd.SquareMesh`
+* :class:`~fatiando.mesher.dd.SquareMesh`
 
 **Utility functions**
 
-* :func:`fatiando.mesher.dd.square2polygon`
+* :func:`~fatiando.mesher.dd.square2polygon`
 
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 12-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 12-Jan-2012'
 
 from PIL import Image
 import numpy
@@ -44,26 +46,25 @@ import scipy.misc
 
 from fatiando import logger, gridder
 
-log = logger.dummy()
-
 
 def Polygon(vertices, props=None):
     """
     Create a polygon object.
 
-    Note: Most applications require the vertices to be in a clockwise!
+    .. note:: Most applications require the vertices to be **clockwise**!
 
     Parameters:
 
-    * vertices
-        List of (x, y) pairs with the coordinates of the vertices.        
-    * props
-        Dictionary with the physical properties assigned to the polygon.
+    * vertices : list of lists
+        List of [x, y] pairs with the coordinates of the vertices.        
+    * props : dict
+        Physical properties assigned to the polygon.
         Ex: ``props={'density':10, 'susceptibility':10000}``
 
     Returns:
 
-    * Polygon object
+    * polygon : dict
+        A polygon
     
     """    
     x, y = numpy.array(vertices, dtype='f').T
@@ -77,6 +78,20 @@ def Square(bounds, props=None):
     """
     Create a square object.
 
+
+    Parameters:
+
+    * bounds : list = [x1, x2, y1, y2]
+        Coordinates of the top right and bottom left corners of the square       
+    * props : dict
+        Physical properties assigned to the square.
+        Ex: ``props={'density':10, 'slowness':10000}``
+
+    Returns:
+
+    * square : dict
+        A square
+    
     Example::
 
         >>> sq = Square([0, 1, 2, 4], {'density':750})
@@ -87,19 +102,6 @@ def Square(bounds, props=None):
         x2 = 1
         y1 = 2
         y2 = 4
-
-    Parameters:
-
-    * bounds
-        [x1, x2, y1, y2]: coordinates of the top right and bottom left
-        corners of the square       
-    * props
-        Dictionary with the physical properties assigned to the square.
-        Ex: ``props={'density':10, 'slowness':10000}``
-
-    Returns:
-
-    * Square object
     
     """
     x1, x2, y1, y2 = bounds
@@ -113,11 +115,23 @@ class SquareMesh(object):
     """
     Generate a 2D regular mesh of squares.
 
-    For all purposes, SquareMesh can be used as a list of
-    :func:`fatiando.mesher.dd.Square`. The order of the squares in the list is:
-    x directions varies first, then y.
+    For all purposes, :class:`~fatiando.mesher.dd.SquareMesh` can be used as a
+    list of :func:`~fatiando.mesher.dd.Square`. The order of the squares in the
+    list is: x directions varies first, then y.
 
-    Example::
+    Parameters:
+
+    * bounds :  list = [x1, x2, y1, y2]
+        Boundaries of the mesh
+    * shape : tuple = (ny, nx)
+        Number of squares in the y and x dimension, respectively
+    * props : dict
+        Physical properties of each square in the mesh.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each square of the mesh.
+        
+    Examples:
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
@@ -133,7 +147,7 @@ class SquareMesh(object):
         >>> show(mesh[-1])
         x1 : 2.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
         
-    Example with physical properties::
+    With physical properties::
 
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
@@ -154,22 +168,11 @@ class SquareMesh(object):
         ...     show(s)
         slowness : 3.4 | x1 : 0.0 | x2 : 4.0 | y1 : 0.0 | y2 : 3.0
         slowness : 8.6 | x1 : 0.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
-
-    Parameters:
-
-    * bounds
-        [x1, x2, y1, y2]: limits of the mesh
-    * shape
-        (ny, nx) number of squares in the y and x dimension, respectively
-    * props
-        Dictionary with the physical properties of each square in the mesh.
-        Each key should be the name of a physical property. The corresponding
-        value should be a list with the values of that particular property on
-        each square of the mesh.
         
     """
 
     def __init__(self, bounds, shape, props=None):
+        log = logger.dummy('fatiando.mesher.dd.SquareMesh')
         object.__init__(self)
         log.info("Generating 2D regular square mesh:")
         ny, nx = shape
@@ -236,12 +239,12 @@ class SquareMesh(object):
 
         Parameters:
         
-        * prop
+        * prop : str
             Name of the physical property
-        * values
-            List or array with the value of this physical property in each
-            square of the mesh. For the ordering of squares in the mesh see the
-            docstring for :class:`fatiando.mesher.dd.SquareMesh`
+        * values : list or array
+            The value of this physical property in each square of the mesh.
+            For the ordering of squares in the mesh see
+            :class:`~fatiando.mesher.dd.SquareMesh`
             
         """
         self.props[prop] = values
@@ -253,7 +256,7 @@ class SquareMesh(object):
         The image is converted to gray scale and the gray intensity of each
         pixel is used to set the value of the physical property of the
         cells in the mesh. Gray intensity values are scaled to the range
-        [vmin, vmax].
+        ``[vmin, vmax]``.
 
         If the shape of image (number of pixels in y and x) is different from
         the shape of the mesh, the image will be interpolated to match the shape
@@ -261,15 +264,16 @@ class SquareMesh(object):
 
         Parameters:
 
-        * fname
+        * fname : str
             Name of the image file
-        * vmax, vmin
+        * vmax, vmin : float
             Range of physical property values (used to convert the gray scale to
             physical property values)
-        * prop
+        * prop : str
             Name of the physical property
             
         """
+        log = logger.dummy('fatiando.mesher.dd.SquareMesh.img2prop')
         log.info("Loading physical property from image file:")
         log.info("  file: '%s'" % (fname))
         log.info("  physical property: %s" % (prop))
@@ -342,19 +346,19 @@ class SquareMesh(object):
 
 def square2polygon(square):
     """
-    Convert a Square object into a Polygon object.
+    Convert a square into a polygon.
 
     Vertices are ordered clockwise considering that x is North.
 
     Parameters:
 
-    * square
-        A :func:`fatiando.mesher.dd.Square` object
+    * square : :func:`~fatiando.mesher.dd.Square`
+        A square
 
     Returns:
 
-    * polygon
-        A :func:`fatiando.mesher.dd.Polygon` object
+    * polygon : :func:`~fatiando.mesher.dd.Polygon`
+        The polygon equivalente of *square*
 
     Example::
 

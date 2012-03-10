@@ -8,3 +8,4 @@ _*module.c
 build
 dist
 MANIFEST
+fatiando/version.py

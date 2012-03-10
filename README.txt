@@ -2,11 +2,8 @@
 Fatiando a Terra
 ================
 
-Fatiando a Terra provides command-line tools and an API for a variety of
-geophysical modeling applications. It makes heavy use of Numpy for linear
-algebra operations, provides a high level interface to visualise your data and
-results using Matplotlib for 2D and Mayavi2 for 3D. Optimized code is written in
-Fortran and C and wrapped to Python using Numpy's f2py.
+Fatiando a Terra provides an API for a variety of geophysical modeling and
+inversion methods.
 
 For more information and online documentation, visit http://www.fatiando.org
 
@@ -14,7 +11,7 @@ For more information and online documentation, visit http://www.fatiando.org
 Downloading and Installing
 ==========================
 
-Visit the project page at http://code.google.com/p/fatiando/ for instructions
+Visit the project page at http://www.fatiando.org for instructions
 of downloading and installing.
 
 

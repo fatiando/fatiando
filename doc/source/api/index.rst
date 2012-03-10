@@ -15,8 +15,8 @@ geophysical method or type of operation:
     heat.rst
     mesher.rst
     inversion.rst
-    gridder.rst
     vis.rst
     ui.rst
+    gridder.rst
     utils.rst
     logger.rst
