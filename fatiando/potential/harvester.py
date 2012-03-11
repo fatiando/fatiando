@@ -138,23 +138,33 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     
     """
     log.info("Creating prism data modules:")
-    log.info("  shape-of-anomaly: %s" % (str(use_shape)))
     log.info("  data misfit norm: %d" % (norm))
+    log.info("  observations per data type: %d" % (len(xp)))
     dms = []
+    fields = []
     if gz is not None:
         dms.append(DMPrismGz(gz, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gz')
     if gxx is not None:
         dms.append(DMPrismGxx(gxx, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gxx')
     if gxy is not None:
         dms.append(DMPrismGxy(gxy, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gxy')
     if gxz is not None:
         dms.append(DMPrismGxz(gxz, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gxz')
     if gyy is not None:
         dms.append(DMPrismGyy(gyy, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gyy')
     if gyz is not None:
         dms.append(DMPrismGyz(gyz, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gyz')
     if gzz is not None:
         dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, use_shape, norm))
+        fields.append('gzz')
+    log.info("  data types: %s" % (', '.join(fields)))
+    log.info("  total number of observations: %d" % (len(xp)*len(fields)))
     return dms
 
 def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
@@ -198,6 +208,8 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     log.info("Generating prism seeds:")
     log.info("  regularizing parameter (mu): %g" % (mu))
     log.info("  delta (threshold): %g" % (delta))
+    log.info("  physical properties: %s" % (', '.join(p for p in props)))
+    log.info("  points: %d" % (len(points)))
     seeds = []
     for i, point in enumerate(points):
         sprops = {}
@@ -209,6 +221,7 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         else:
             log.info("  Duplicate seed found at point %s. Will ignore this one"
                 % (str(point)))
+    log.info("  seeds found: %d" % (len(seeds)))
     return seeds
 
 def loadseeds(fname):
