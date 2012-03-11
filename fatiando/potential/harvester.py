@@ -99,7 +99,7 @@ log = logger.dummy()
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
-    gyz=None, gzz=None, use_shape=False, norm=1):
+    gyz=None, gzz=None, norm=1):
     """
     Takes the observed data vectors (measured at the same points) and generates
     the data modules required by :func:`fatiando.potential.harvester.harvest`.
@@ -115,16 +115,12 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     
     * mesh
         The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
-        :func:`fatiando.mesher.ddd.Prism`.
+        :class:`~fatiando.mesher.ddd.PrismMesh`
     * xp, yp, zp
         Arrays with the x, y, and z coordinates of the observation points.
     * gz, gxx, gxy, etc.
         Arrays with the observed data, measured at xp, yp, and zp, of the
         respective components.
-    * use_shape
-        If True, will use the Shape-of-Anomaly function of Rene (1986) instead
-        of the standard data-misfit function. **NOT IMPLEMENTED**
     * norm
         Order of the norm of the residual vector to use. Can be:
         
@@ -143,25 +139,25 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     dms = []
     fields = []
     if gz is not None:
-        dms.append(DMPrismGz(gz, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGz(gz, xp, yp, zp, mesh, norm))
         fields.append('gz')
     if gxx is not None:
-        dms.append(DMPrismGxx(gxx, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGxx(gxx, xp, yp, zp, mesh, norm))
         fields.append('gxx')
     if gxy is not None:
-        dms.append(DMPrismGxy(gxy, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGxy(gxy, xp, yp, zp, mesh, norm))
         fields.append('gxy')
     if gxz is not None:
-        dms.append(DMPrismGxz(gxz, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGxz(gxz, xp, yp, zp, mesh, norm))
         fields.append('gxz')
     if gyy is not None:
-        dms.append(DMPrismGyy(gyy, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGyy(gyy, xp, yp, zp, mesh, norm))
         fields.append('gyy')
     if gyz is not None:
-        dms.append(DMPrismGyz(gyz, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGyz(gyz, xp, yp, zp, mesh, norm))
         fields.append('gyz')
     if gzz is not None:
-        dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, use_shape, norm))
+        dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, norm))
         fields.append('gzz')
     log.info("  data types: %s" % (', '.join(fields)))
     log.info("  total number of observations: %d" % (len(xp)*len(fields)))
@@ -169,7 +165,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
 
 def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     """
-    Generate a set of :class:`fatiando.potential.harvester.SeedPrism` from a
+    Generate a set of :class:`~fatiando.potential.harvester.SeedPrism` from a
     list of points.
 
     This is the preferred method for generating seeds! We strongly discourage
@@ -219,7 +215,8 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         if seed.seed[0] not in (s.seed[0] for s in seeds):            
             seeds.append(seed)
         else:
-            log.info("  Duplicate seed found at point %s. Will ignore this one"
+            log.warning(
+                "  Duplicate seed found at point %s! Will ignore this one."
                 % (str(point)))
     log.info("  seeds found: %d" % (len(seeds)))
     return seeds
@@ -295,8 +292,8 @@ class DMPrism(object):
 
         class DMPrismGz(DMPrism):
         
-            def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-                DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+            def __init__(self, data, xp, yp, zp, mesh, norm=1):
+                DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
                 self.prop_type = 'density'
 
             def _effect_of_prism(self, index, props):
@@ -312,11 +309,7 @@ class DMPrism(object):
         Arrays with the x, y, and z coordinates of the observation points.
     * mesh
         The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
-        :func:`fatiando.mesher.ddd.Prism`.
-    * use_shape
-        If True, will use the Shape-of-Anomaly function of Rene (1986) instead
-        of the standard data-misfit function. **NOT IMPLEMENTED**
+        :class:`fatiando.mesher.ddd.PrismMesh`
     * norm
         Order of the norm of the residual vector to use. Can be:
         
@@ -325,20 +318,17 @@ class DMPrism(object):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape, norm):
+    def __init__(self, data, xp, yp, zp, mesh, norm):
         if norm not in [1, 2]:
             raise ValueError("Invalid norm %s: must be 1 or 2" % (str(norm)))
-        if use_shape:
-            raise NotImplementedError("Sorry, not available yet")
+        if len(xp) != len(yp) != len(zp) != len(data):
+            raise ValueError("xp, yp, zp, and data must have same length")
         self.data = data
         self.predicted = numpy.zeros_like(data)
         self.xp, self.yp, self.zp = xp, yp, zp
         self.mesh = mesh            
         self.norm = norm
-        if use_shape:
-            self.use_shape()
-        else:            
-            self.weight = 1./numpy.linalg.norm(data, norm)
+        self.weight = 1./numpy.linalg.norm(data, norm)
         self.effect = {}        
         self.prop_type = None
 
@@ -365,55 +355,6 @@ class DMPrism(object):
         """
         msg = "Oops, effect calculation not implemented"
         raise NotImplementedError(msg)
-
-    def _shape_of_anomaly_l2(self, predicted):
-        """
-        Return the value of the l2-norm shape-of-anomaly data misfit given a
-        predicted data vector.
-
-        Parameters:
-
-        * predicted
-            Array with the predicted data
-
-        Returns:
-
-        * misfit
-            The misfit value
-            
-        """
-        alpha = numpy.sum(self.data*predicted)/self.data_l2norm
-        return numpy.linalg.norm(alpha*self.data - predicted, 2)
-
-    def _shape_of_anomaly_l1(self, predicted):
-        """
-        Return the value of the l1-norm shape-of-anomaly data misfit given a
-        predicted data vector.
-
-        Parameters:
-
-        * predicted
-            Array with the predicted data
-
-        Returns:
-
-        * misfit
-            The misfit value
-            
-        """
-        alpha = numpy.max(predicted/self.data)
-        return numpy.linalg.norm(alpha*self.data - predicted, 1)
-
-    def use_shape(self):
-        """
-        Replace the standard data misfit function with the shape-of-anomaly
-        data misfit of Rene (1986).
-        """
-        if self.norm == 2:
-            self.data_l2norm = numpy.linalg.norm(self.data, 2)**2
-            self.misfit = self._shape_of_anomaly_l2
-        if self.norm == 1:
-            self.misfit = self._shape_of_anomaly_l1
 
     def update(self, element):
         """
@@ -510,8 +451,8 @@ class DMPrismGz(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -532,8 +473,8 @@ class DMPrismGxx(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -554,8 +495,8 @@ class DMPrismGxy(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -576,8 +517,8 @@ class DMPrismGxz(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -598,8 +539,8 @@ class DMPrismGyy(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -620,8 +561,8 @@ class DMPrismGyz(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -642,8 +583,8 @@ class DMPrismGzz(DMPrism):
     
     """
 
-    def __init__(self, data, xp, yp, zp, mesh, use_shape=False, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, use_shape, norm)
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
@@ -656,7 +597,7 @@ class SeedPrism(object):
     A 3D right rectangular prism seed.
 
     One of the types of seed required by
-    :func:`fatiando.potential.harvester.harvest`.
+    :func:`~fatiando.potential.harvester.harvest`.
 
     Wraps the information about a seed. Also knows how to grow a seed and the
     estimate it produced.
@@ -685,23 +626,15 @@ class SeedPrism(object):
     * delta
         Minimum percentage of change required in the goal function to perform
         an accretion. The smaller this is, the less the solution is able to grow
-    * compact
-        Wether or not to impose compactness algorithmically on the solution.
-        If False, the compactness of the solution will depend on the value of
-        *mu*.
     
     """
 
     kind = 'prism'
 
-    def __init__(self, point, props, mesh, mu=0., delta=0.0001, compact=False):
+    def __init__(self, point, props, mesh, mu=0., delta=0.0001):
         self.props = props
         self.mesh = mesh
         self.delta = delta
-        if compact:
-            self._judge = self._compact_judge
-        else:
-            self._judge = self._standard_judge
         index = self._get_index(point, mesh)
         self.index = index
         self.seed = [self.index, self.props]
@@ -749,19 +682,7 @@ class SeedPrism(object):
             dx = abs(ncell['x1'] - scell['x1'])
             dy = abs(ncell['y1'] - scell['y1'])
             dz = abs(ncell['z1'] - scell['z1'])        
-            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)        
-
-    def set_mu(self, mu):
-        """
-        Set the value of the regularizing parameter mu.
-        """
-        self.mu = self.weight*mu
-        
-    def set_delta(self, delta):
-        """
-        Set the value of the delta threshold.
-        """
-        self.delta = delta
+            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)    
 
     def _get_index(self, point, mesh):
         """
@@ -923,7 +844,7 @@ class SeedPrism(object):
         del self.distance[n]
         self._get_distances(new)
 
-    def _standard_judge(self, goals, misfits, goal, misfit):
+    def _judge(self, goals, misfits, goal, misfit):
         """
         Choose the best neighbor using the following criteria:
 
@@ -937,16 +858,6 @@ class SeedPrism(object):
             return None
         best = decreased[numpy.argmin([goals[i] for i in decreased])]
         return [best, goals[best], misfits[best]]
-
-    def _compact_judge(self, goals, misfits, goal, misfit):
-        """
-        Choose the best neighbor using the following criteria:
-
-        1. Must satisfy the compactness criterion
-        2. Must decrease the goal function
-        
-        """
-        pass
 
     def grow(self, dms, seeds, goal, misfit):
         """
@@ -1087,6 +998,8 @@ def harvest(dms, seeds, iterate=False):
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
     log.info("  iterate: %s" % (str(iterate)))
+    if iterate:
+        raise NotImplementedError("Sorry, iteration is not implemented yet")
     # Make sure the seeds are all of the same kind. The .cound hack is from
     # stackoverflow.com/questions/3844801/check-if-all-elements-in-a-list-are-
     # identical
@@ -1097,10 +1010,15 @@ def harvest(dms, seeds, iterate=False):
     for i, seed in enumerate(seeds):
         seed.initialize(seeds)
     for dm in dms:
+        # Divide the weight of the dms by the number dms so that the initial
+        # goal function is always almost 1, no matter how many dms. This way
+        # the regularizing parameter has always the same scale
+        dm.weight /= float(len(dms))
         for seed in seeds:
             dm.update(seed.seed)
     # Calculate the initial goal function
     goal = sum(dm.misfit(dm.predicted) for dm in dms)
+    log.info("  initial goal function: %g" % (goal))   
     # Now run the actual inversion
     if iterate:
         return _harvest_iterator(dms, seeds, goal)
@@ -1109,11 +1027,11 @@ def harvest(dms, seeds, iterate=False):
         results = _harvest_solver(dms, seeds, goal)
         tfinish = time.clock() - tstart
         its = len(results[1])
-        log.info("  Final goal function value: %g" % (results[1][-1]))   
-        log.info("  Total number of accretions: %d" % (its))
-        log.info("  Average time per accretion: %s" %
+        log.info("  final goal function: %g" % (results[1][-1]))   
+        log.info("  total number of accretions: %d" % (its))
+        log.info("  average time per accretion: %s" %
             (utils.sec2hms(float(tfinish)/its)))
-        log.info("  Total time for inversion: %s" % (utils.sec2hms(tfinish)))
+        log.info("  total time for inversion: %s" % (utils.sec2hms(tfinish)))
         return results
         
 def _test():
