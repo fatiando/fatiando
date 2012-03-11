@@ -989,12 +989,6 @@ def harvest(dms, seeds, iterate=False):
         iteration consists of trying to grow each seed.
         **Not implemented!**
 
-    References:
-
-    Rene, R. M. (1986). Gravity inversion using open, reject, and
-        "shape-of-anomaly" fill criteria. Geophysics, 51, 988.
-        doi:10.1190/1.1442157
-                
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
     log.info("  iterate: %s" % (str(iterate)))
