@@ -23,3 +23,4 @@
 HARVESTER:
 * keep track of the misfit value on update so that don't have to calculate it every time.
 * Replace hand setting of physical properties of a prism with an actual addprop function
+* Initial goal is actually initial misfit. so change goal for misfit and keep track of misfit, goal and reg
