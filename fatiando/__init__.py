@@ -25,14 +25,3 @@ as well as data processing, gridding, and visualization.
 ----
 
 """
-__all__ = ['heat',
-           'inversion',
-           'mesher',
-           'potential',
-           'seismic',
-           'ui',
-           'vis',           
-           'gridder',
-           'logger',
-           'utils',
-           'version']

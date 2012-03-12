@@ -94,8 +94,11 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'default'
-html_theme = 'nature'
+html_theme = 'default'
+#html_theme = 'nature'
+#html_theme = 'agogo'
+#html_theme = 'haiku'
+#html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -107,10 +110,10 @@ html_theme = 'nature'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = "<project> v<release> Documentation"
+html_title = "Fatiando a Terra v%s docs" % (version)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+html_short_title = "Fatiando a Terra v%s docs" % (version)
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.

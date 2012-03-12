@@ -1,33 +1,45 @@
-Fatiando a Terra Documentation
-==============================
+Overview
+---------
 
-Welcome to the Fatiando a Terra Documentation!
+Fatiando a Terra is an open source toolkit for geophysical modeling and
+inversion. Fatiando provides an easy and flexible way to perform common
+tasks like: generating synthetic data, manipulating data sets, plotting
+non-gridded data, direct modeling, inversion, etc.
 
-Cookbook
---------
+The main interface for Fatiando is provided by a
+`Python <http://www.python.org>`_ package (:ref:`the API <api>`). This means that
+commands in Fatiando are in executed using Python scripts, instead of the
+command line or shell scripts. The advantage of this is that Python is a very
+feature rich and powerful programming language. So, you can easily extend the
+functionality of Fatiando with your own code!
 
-We've prepared a :ref:`cookbook` with many examples scripts to help introduce
-the API.
+To show off our API, this is how easy it is to create synthetic noise-corrupted
+gravity data on random points from a 3D prism model::
 
-The API
--------
+    >>> # Get the needed components
+    >>> from fatiando import potential, gridder, utils
+    >>> from fatiando.mesher.ddd import Prism
+    >>> # Create the prism model
+    >>> prisms = [Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
+    ...           Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
+    ...           Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
+    >>> # Generate 1000 random observation points at 100m height
+    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 1000, z=-100)
+    >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
+    >>> # gaussian noise
+    >>> gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.1)
+    
+Contents of this documentation:
 
-The Fatiando a Terra API is provided in the ``fatiando`` Python package.
-This package is divided into general purpose modules and
-subpackages for individual geophysical methods.
+.. toctree::
+    :maxdepth: 1
+    
+    api/index.rst
+    cookbook/index.rst
+    the-team.rst
 
-Check out the :ref:`api` for available packages and modules.
-
-
-Development
--------------
+Developing
+-----------
 
 :ref:`the-team` behind Fatiando a Terra.
 
-
-.. toctree::
-    :hidden:
-    
-    cookbook/index.rst
-    api/index.rst
-    the-team.rst
