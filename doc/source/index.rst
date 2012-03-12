@@ -14,7 +14,7 @@ feature rich and powerful programming language. So, you can easily extend the
 functionality of Fatiando with your own code!
 
 To show off our API, this is how easy it is to create synthetic noise-corrupted
-gravity data on random points from a 3D prism model::
+gravity data on random points from a 3D prism model:
 
 .. doctest::
 
