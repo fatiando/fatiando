@@ -94,6 +94,7 @@ def Square(bounds, props=None):
     
     Example::
 
+        >>> from fatiando.mesher.dd import Square
         >>> sq = Square([0, 1, 2, 4], {'density':750})
         >>> for k in sorted(sq):
         ...     print k, '=', sq[k]
@@ -133,6 +134,7 @@ class SquareMesh(object):
         
     Examples:
 
+        >>> from fatiando.mesher.dd import SquareMesh
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
         >>> mesh = SquareMesh((0, 4, 0, 6), (2, 2))
@@ -362,6 +364,7 @@ def square2polygon(square):
 
     Example::
 
+        >>> from fatiando.mesher.dd import Square, square2polygon
         >>> square = Square((0, 1, 0, 3), {'vp':1000})
         >>> poly = square2polygon(square)
         >>> print poly['x']

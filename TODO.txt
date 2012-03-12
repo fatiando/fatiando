@@ -8,6 +8,9 @@
     DONE:
         * mesher
         * utils
+        * seismic.epicenter
+
+* Sphinx is missing some doctests. Need to put .. doctest:: before them
 
 * consider making the parameter vector a dictionary
     * one array for each prop

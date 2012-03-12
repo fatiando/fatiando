@@ -51,14 +51,6 @@ Then it can be used in a script::
     are only printed if a script calls :func:`fatiando.logger.get` or assigns a
     Handler to it.
 
-**Ignore the next few lines**: This is needed since `doctest` keeps all tests in
-the same namespace. So I have to get rid of the handlers before running the
-other tests in this module.
-
-    >>> for h in log.handlers:
-    ...     log.removeHandler(h)
-
-
 :author: Leonardo Uieda (leouieda@gmail.com)
 :date: Created 14-Sep-2011
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)

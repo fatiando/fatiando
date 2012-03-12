@@ -16,6 +16,8 @@ functionality of Fatiando with your own code!
 To show off our API, this is how easy it is to create synthetic noise-corrupted
 gravity data on random points from a 3D prism model::
 
+.. doctest::
+
     >>> # Get the needed components
     >>> from fatiando import potential, gridder, utils
     >>> from fatiando.mesher.ddd import Prism

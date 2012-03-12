@@ -87,6 +87,7 @@ def Prism(x1, x2, y1, y2, z1, z2, props=None):
 
     Examples:
 
+        >>> from fatiando.mesher.ddd import Prism
         >>> p = Prism(1, 2, 3, 4, 5, 6, {'density':200})
         >>> p['density']
         200
@@ -124,6 +125,7 @@ def PolygonalPrism(vertices, z1, z2, props=None):
 
     Examples:
 
+        >>> from fatiando.mesher.ddd import PolygonalPrism
         >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
         >>> p = PolygonalPrism(verts, 0, 3, props={'temperature':25})
         >>> p['temperature']
@@ -284,6 +286,7 @@ class PrismMesh(object):
 
     Examples:
 
+        >>> from fatiando.mesher.ddd import PrismMesh
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
         >>> mesh = PrismMesh((0,1,0,2,0,3),(1,2,2))
