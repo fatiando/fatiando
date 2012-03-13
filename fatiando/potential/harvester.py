@@ -165,7 +165,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     log.info("  total number of observations: %d" % (len(xp)*len(fields)))
     return dms
 
-def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
+def sow_prisms(points, props, mesh, mu=0., delta=0.0001, reldist=False):
     """
     Generate a set of :class:`~fatiando.potential.harvester.SeedPrism` from a
     list of points.
@@ -195,6 +195,12 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         an accretion. The smaller this is, the less the solution is able to
         grow. If None, will use the values passed to each seed. If not None,
         will overwrite the values passed to the seeds.
+    * reldist : True or False
+        Wether or not to use relative distances on the regularizing function.
+        The standard way is use the distances between the centers of a prism and
+        the respective seed. If ``reldist == True``, will use distance in number
+        of cells instead (e.g., the prism right on top is ``dist = 1`` away).
+        Using this is when mesh cells are not cubic (flattened or rectangular).
 
     Returns:
 
@@ -205,6 +211,8 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     log.info("Generating prism seeds:")
     log.info("  regularizing parameter (mu): %g" % (mu))
     log.info("  delta (threshold): %g" % (delta))
+    log.info("  distance type: %s" %
+                ({True:'relative', False:'absolute'}[reldist]))
     log.info("  physical properties: %s" % (', '.join(p for p in props)))
     log.info("  points: %d" % (len(points)))
     seeds = []
@@ -212,7 +220,8 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         sprops = {}
         for p in props:
             sprops[p] = props[p][i]
-        seed = SeedPrism(point, sprops, mesh, mu=mu, delta=delta)
+        seed = SeedPrism(point, sprops, mesh, mu=mu, delta=delta,
+                         reldist=reldist)
         if seed.seed[0] not in (s.seed[0] for s in seeds):            
             seeds.append(seed)
         else:
@@ -626,12 +635,18 @@ class SeedPrism(object):
     * delta
         Minimum percentage of change required in the goal function to perform
         an accretion. The smaller this is, the less the solution is able to grow
+    * reldist : True or False
+        Wether or not to use relative distances on the regularizing function.
+        The standard way is use the distances between the centers of a prism and
+        the respective seed. If ``reldist == True``, will use distance in number
+        of cells instead (e.g., the prism right on top is ``dist = 1`` away).
+        Using this is when mesh cells are not cubic (flattened or rectangular).
     
     """
 
     kind = 'prism'
 
-    def __init__(self, point, props, mesh, mu=0., delta=0.0001):
+    def __init__(self, point, props, mesh, mu=0., delta=0.0001, reldist=False):
         self.props = props
         self.mesh = mesh
         self.delta = delta
@@ -642,10 +657,18 @@ class SeedPrism(object):
         nz, ny, nx = mesh.shape
         dx, dy, dz = mesh.dims
         self.weight = 1./((sum([nx*dx, ny*dy, nz*dz])/3.))
-        self.mu = mu*self.weight
         self.neighbors = []
         self.reg = 0
         self.distance = {}
+        self._get_distances = self._get_absolute_distances
+        if reldist:
+            k = index/(nx*ny)
+            j = (index - k*(nx*ny))/nx
+            i = (index - k*(nx*ny) - j*nx)
+            self.ijk = [i, j, k]
+            self._get_distances = self._get_relative_distances
+            self.weight = 1./((sum([nx, ny, nz])/3.))
+        self.mu = mu*self.weight
 
     def get_prism(self):
         """
@@ -672,9 +695,26 @@ class SeedPrism(object):
                     self._find_neighbors(self.index))))
         self._get_distances(self.neighbors)
 
-    def _get_distances(self, neighbors):
+    def _get_relative_distances(self, neighbors):
         """
-        Add the distance of the neighbors to the distance dictionary.
+        Add the relative distance of the neighbors to the distance dictionary.
+        """
+        scell = self.mesh[self.index]
+        for n in neighbors:
+            nz, ny, nx = self.mesh.shape
+            # The i, j, k index of the neighbor in the mesh
+            knbr = n/(nx*ny)
+            jnbr = (n - knbr*(nx*ny))/nx
+            inbr = (n - knbr*(nx*ny) - jnbr*nx)
+            isd, jsd, ksd = self.ijk
+            dx = isd - inbr
+            dy = jsd - jnbr
+            dz = ksd - knbr
+            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)    
+
+    def _get_absolute_distances(self, neighbors):
+        """
+        Add the absolute distance of the neighbors to the distance dictionary.
         """
         scell = self.mesh[self.index]
         for n in neighbors:
