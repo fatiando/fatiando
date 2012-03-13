@@ -22,16 +22,16 @@ Performs the inversion by iteratively growing the estimate around user-specified
 there are plans to support different kinds of seeds as well.
 
 The inversion is performed by function
-:func:`fatiando.potential.harvester.harvest`. The required information, such as
+:func:`~fatiando.potential.harvester.harvest`. The required information, such as
 observed data, seeds, and regularization, are passed to the function though
 seed classes and data modules.
 
-**USAGE**
+**Usage**
 
 The recommened way of generating the required seeds and data modules is to use
-the helper functions :func:`fatiando.potential.harvester.wrapdata`,
-:func:`fatiando.potential.harvester.loadseeds`, and
-:func:`fatiando.potential.harvester.sow_prisms`.
+the helper functions :func:`~fatiando.potential.harvester.wrapdata`,
+:func:`~fatiando.potential.harvester.loadseeds`, and
+:func:`~fatiando.potential.harvester.sow_prisms`.
 
 A typical script to run the inversion on a data set looks like::
     
@@ -58,33 +58,35 @@ A typical script to run the inversion on a data set looks like::
     mesh.dump('result')
     
 
-**SEEDS**
+**Seeds**
 
 A seed class determines what kind of geometric element is used to parametrize
 the anomalous density distribution. For example, if you use a SeedPrism, the
-output of :func:`fatiando.potential.harvester.harvest` will be a list of prisms
+output of :func:`~fatiando.potential.harvester.harvest` will be a list of prisms
 that make up the estimated density distribution.
 
-* :class:`fatiando.potential.harvester.SeedPrism`
+* :class:`~fatiando.potential.harvester.SeedPrism`
 
-**DATA MODULES**
+**Data Modules**
 
 Data modules wrap the observed data and calculate the predicted data for a given
 parametrization.
 
-* :class:`fatiando.potential.harvester.DMPrismGz`
-* :class:`fatiando.potential.harvester.DMPrismGxx`
-* :class:`fatiando.potential.harvester.DMPrismGxy`
-* :class:`fatiando.potential.harvester.DMPrismGxz`
-* :class:`fatiando.potential.harvester.DMPrismGyy`
-* :class:`fatiando.potential.harvester.DMPrismGyz`
-* :class:`fatiando.potential.harvester.DMPrismGzz`
+* :class:`~fatiando.potential.harvester.DMPrismGz`
+* :class:`~fatiando.potential.harvester.DMPrismGxx`
+* :class:`~fatiando.potential.harvester.DMPrismGxy`
+* :class:`~fatiando.potential.harvester.DMPrismGxz`
+* :class:`~fatiando.potential.harvester.DMPrismGyy`
+* :class:`~fatiando.potential.harvester.DMPrismGyz`
+* :class:`~fatiando.potential.harvester.DMPrismGzz`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 17-Nov-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 17-Nov-2010'
 
 import time
 import math
@@ -95,14 +97,14 @@ import numpy
 from fatiando.potential import _prism
 from fatiando import utils, logger
 
-log = logger.dummy()
+log = logger.dummy('fatiando.potential.harvester')
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     gyz=None, gzz=None, norm=1):
     """
     Takes the observed data vectors (measured at the same points) and generates
-    the data modules required by :func:`fatiando.potential.harvester.harvest`.
+    the data modules required by :func:`~fatiando.potential.harvester.harvest`.
 
     If your data sets where measured at different points, make multiple calls
     to this function. For example, if gz was measured at x1, y1, z1 while gzz
@@ -169,7 +171,7 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     list of points.
 
     This is the preferred method for generating seeds! We strongly discourage
-    using :class:`fatiando.potential.harvester.SeedPrism` directly unless you
+    using :class:`~fatiando.potential.harvester.SeedPrism` directly unless you
     know what you're doing!
 
     Parameters:
@@ -182,8 +184,7 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
         Ex: ``props={'density':[10, 28, ...], 'susceptibility':[100, 23, ...]}``
     * mesh
         The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
-        :func:`fatiando.mesher.ddd.Prism`.
+        :class:`~fatiando.mesher.ddd.PrismMesh`
     * mu
         Compactness regularizing parameters. Positive scalar that measures the
         trade-off between fit and regularization. This applies only to this
@@ -198,7 +199,7 @@ def sow_prisms(points, props, mesh, mu=0., delta=0.0001):
     Returns:
 
     * seeds
-        List of :class:`fatiando.potential.harvester.SeedPrism`
+        List of :class:`~fatiando.potential.harvester.SeedPrism`
     
     """
     log.info("Generating prism seeds:")
@@ -278,7 +279,7 @@ class DMPrism(object):
     components, like gz, gzz, etc.
 
     The only method that needs to be implemented by the derived classes is
-    :meth:`fatiando.potential.harvester.DMPrism._effect_of_prism`. This method
+    :meth:`~fatiando.potential.harvester.DMPrism._effect_of_prism`. This method
     is used to calculate the effect of a prism on the computation points (i.e.,
     the column of the Jacobian matrix corresponding to the prism times the
     prisms physical property value).
@@ -309,7 +310,7 @@ class DMPrism(object):
         Arrays with the x, y, and z coordinates of the observation points.
     * mesh
         The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh`
+        :class:`~fatiando.mesher.ddd.PrismMesh`
     * norm
         Order of the norm of the residual vector to use. Can be:
         
@@ -443,10 +444,10 @@ class DMPrismGz(DMPrism):
     """
     Data module for the gravity anomaly of a right rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -465,10 +466,10 @@ class DMPrismGxx(DMPrism):
     Data module for the gxx component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -487,10 +488,10 @@ class DMPrismGxy(DMPrism):
     Data module for the gxy component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -509,10 +510,10 @@ class DMPrismGxz(DMPrism):
     Data module for the gxz component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -531,10 +532,10 @@ class DMPrismGyy(DMPrism):
     Data module for the gyy component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -553,10 +554,10 @@ class DMPrismGyz(DMPrism):
     Data module for the gyz component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -575,10 +576,10 @@ class DMPrismGzz(DMPrism):
     Data module for the gzz component of the gravity gradient tensor of a right
     rectangular prism.
 
-    See :class:`fatiando.potential.harvester.DMPrism` for details.
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
 
     **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`fatiando.potential.harvester.wrapdata` to generate data
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
     
     """
@@ -603,7 +604,7 @@ class SeedPrism(object):
     estimate it produced.
 
     **It is highly recommended** that you use function
-    :func:`fatiando.potential.harvester.sow_prisms` to generate the seeds
+    :func:`~fatiando.potential.harvester.sow_prisms` to generate the seeds
     because it checks for duplicate seeds. 
 
     Parameters:
@@ -616,8 +617,7 @@ class SeedPrism(object):
         Ex: ``props={'density':10, 'susceptibility':10000}``
     * mesh
         The model space mesh (or interpretative model). A
-        :class:`fatiando.mesher.ddd.PrismMesh` or a list of
-        :func:`fatiando.mesher.ddd.Prism`.
+        :class:`~fatiando.mesher.ddd.PrismMesh`
     * mu
         Compactness regularizing parameters. Positive scalar that measures the
         trade-off between fit and regularization. This applies only to this
@@ -649,7 +649,7 @@ class SeedPrism(object):
 
     def get_prism(self):
         """
-        Return a :func:`fatiando.mesher.ddd.Prism` corresponding to the seed.
+        Return a :func:`~fatiando.mesher.ddd.Prism` corresponding to the seed.
         """
         # TODO: Replace hand setting of physical properties of a prism with an
         # actual addprop function.
@@ -905,7 +905,7 @@ def _harvest_iterator(dms, seeds, first_goal):
     Iterator that yields the growth iterations of a 3D potential field inversion
     by planting anomalous densities.
     For more details on the parameters, see
-    :func:`fatiando.potential.harvester.harvest`.
+    :func:`~fatiando.potential.harvester.harvest`.
 
     Yields:
 
@@ -926,7 +926,7 @@ def _harvest_solver(dms, seeds, first_goal):
     """
     Solve a 3D potential field inversion by planting anomalous densities.
     For more details on the parameters and return values, see
-    :func:`fatiando.potential.harvester.harvest`.           
+    :func:`~fatiando.potential.harvester.harvest`.           
     """
     goals = [first_goal]
     upgoal = goals.append
@@ -961,9 +961,9 @@ def harvest(dms, seeds, iterate=False):
 
     * dms
         List of data modules (see the docs of
-        :mod:`fatiando.potential.harvester` for information on data modules)
+        :mod:`~fatiando.potential.harvester` for information on data modules)
     * seeds
-        List of seeds (see the docs of :mod:`fatiando.potential.harvester` for
+        List of seeds (see the docs of :mod:`~fatiando.potential.harvester` for
         information on seeds)
     * iterate
         If True, will return an iterator object that yields one growth iteration
