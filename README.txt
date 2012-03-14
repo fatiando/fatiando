@@ -6,7 +6,7 @@ Fatiando a Terra provides an API for a variety of methods of geophysical
 modeling and inversion.
 
 For more information, documentation, download, and installing, visit the
-`official site <http://www.fatiando.org>`_
+official site <http://www.fatiando.org>
 
 Dependencies
 -------------
@@ -21,7 +21,7 @@ Fatiando requires the following packages:
 * nose (for running the tests)
 
 All of these can be found on most GNU/Linux distros. On Windows, we recommend
-downloading `PythonXY <http://code.google.com/p/pythonxy/>`_. It comes with
+downloading PythonXY <http://code.google.com/p/pythonxy/>. It comes with
 Python, all of our dependencies, plus a whole bunch of useful stuff! Trust me,
 it's better than installing things separately.
 
@@ -31,7 +31,7 @@ If compiling from source, you'll also need:
 * A C compiler
 
 If building in Windows using the MinGW compiler, see
-`this post <http://boodebr.org/main/python/build-windows-extensions>`_ (and good
+this post <http://boodebr.org/main/python/build-windows-extensions> (and good
 luck).
 
 
@@ -43,7 +43,7 @@ GNU/Linux (sorry Windows users, we're working on it):
 
 0 - For all options, download the source from http://www.fatiando.org
 1 - Using `pip`:
-    * Install `pip <http://pypi.python.org/pypi/pip>`_
+    * Install pip <http://pypi.python.org/pypi/pip>
     * Run `pip install fatiando-0.0.1.tar.gz` (or whatever the .tar.gz file is
     called
     * To uninstall, run `pip uninstall fatiando`
@@ -52,7 +52,7 @@ GNU/Linux (sorry Windows users, we're working on it):
     * Go to where you unpacked it and run `python setup.py install`
 
 **Note** that using `pip` is the preferred option since it's the more modern
-way (see `The Guide <http://guide.python-distribute.org/index.html>`_ for more
+way (see The Guide <http://guide.python-distribute.org/index.html> for more
 information about this). Also, using `setup.py` doesn't give you an uninstall
 option.
 
