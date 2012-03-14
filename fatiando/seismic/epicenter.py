@@ -25,9 +25,7 @@ the Earth.
 Estimates the (x, y) cartesian coordinates of the epicenter based on travel-time
 residuals between S and P waves.
 
-Example using synthetic data:
-
-.. doctest::
+Example using synthetic data::
 
     >>> from fatiando.mesher.dd import Square
     >>> from fatiando.seismic.traveltime import straight_ray_2d
@@ -53,9 +51,7 @@ Example using synthetic data:
     >>> print "(%.4f, %.4f)" % (p[0], p[1])
     (5.0000, 5.0000)
 
-Example using ``iterate = True`` to step through the solver algorithm:
-
-.. doctest::
+Example using ``iterate = True`` to step through the solver algorithm::
 
     >>> from fatiando.mesher.dd import Square
     >>> from fatiando.seismic.traveltime import straight_ray_2d

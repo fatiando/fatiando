@@ -30,6 +30,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'matplotlib.sphinxext.plot_directive']
 
+# So that sphinx won't try to run the doctests in docstrings (do this using
+# nosetests instead)
+doctest_test_doctest_blocks = ''
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
