@@ -9,6 +9,7 @@
         * mesher
         * utils
         * seismic.epicenter
+        * heat
 
 * Sphinx is missing some doctests. Need to put .. doctest:: before them
 

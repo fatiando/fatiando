@@ -17,19 +17,21 @@
 """
 Modeling and inversion for geothermics.
 
-**CLIMATE SIGNAL**
-
-* :mod:`fatiando.heat.climatesignal`
+**Climate signal**
 
 Modeling and inversion of temperature residuals measured in wells due to
 temperature perturbations in the surface.
 
+* :mod:`~fatiando.heat.climatesignal`
+
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 30-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 30-Jan-2012'
-
 
 from fatiando.heat import climatesignal
 
