@@ -9,7 +9,7 @@ For more information, documentation, download, and installing, visit the
 official site <http://www.fatiando.org>
 
 Dependencies
--------------
+------------
 
 Fatiando requires the following packages:
 
@@ -27,7 +27,7 @@ it's better than installing things separately.
 
 If compiling from source, you'll also need:
 
-* Python development files (usually called `python-dev` on GNU/Linux)
+* Python development files (usually called python-dev on GNU/Linux)
 * A C compiler
 
 If building in Windows using the MinGW compiler, see
@@ -42,18 +42,18 @@ At the moment, there are few options for installing Fatiando from source on
 GNU/Linux (sorry Windows users, we're working on it):
 
 0 - For all options, download the source from http://www.fatiando.org
-1 - Using `pip`:
+1 - Using pip:
     * Install pip <http://pypi.python.org/pypi/pip>
-    * Run `pip install fatiando-0.0.1.tar.gz` (or whatever the .tar.gz file is
-    called
-    * To uninstall, run `pip uninstall fatiando`
-2 - Using the `setup.py` script:
-    * Unpack the .tar.gz file anywhere (say, `~/src/fatiando`)
-    * Go to where you unpacked it and run `python setup.py install`
+    * Run: pip install fatiando-0.0.1.tar.gz
+      (or whatever the .tar.gz file is called)
+    * To uninstall, run: pip uninstall fatiando
+2 - Using the setup.py script:
+    * Unpack the .tar.gz file anywhere (say, '~/src/fatiando')
+    * Go to where you unpacked it and run: python setup.py install
 
-**Note** that using `pip` is the preferred option since it's the more modern
+**Note** that using pip is the preferred option since it's the more modern
 way (see The Guide <http://guide.python-distribute.org/index.html> for more
-information about this). Also, using `setup.py` doesn't give you an uninstall
+information about this). Also, using setup.py doesn't give you an uninstall
 option.
 
 
@@ -80,7 +80,7 @@ A copy of this license is provided in file LICENSE.txt
 Testing
 --------
 
-Fatiando uses `nose` to run the unit test suite as well as the doctests. To run
-the tests, go to the directory with the `fatiando` package and run::
+Fatiando uses 'nose' to run the unit test suite as well as the doctests. To run
+the tests, go to the directory with the 'fatiando' package and run::
 
     nosetests
