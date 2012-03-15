@@ -32,6 +32,7 @@ def findwrap(path):
 Clean(os.path.curdir, 'build')
 Clean(os.path.curdir, 'dist')
 Clean(os.path.curdir, 'MANIFEST')
+Clean(os.path.curdir, 'mylogfile.log')
 Clean(os.path.curdir, os.path.join('fatiando', 'version.py'))
 Clean(os.path.curdir, findwrap('src'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
