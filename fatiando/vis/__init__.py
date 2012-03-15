@@ -20,16 +20,18 @@ of grids, 3D meshes, etc.
 
 **2D plotting**
 
-* :mod:`fatiando.vis.map`
+* :mod:`~fatiando.vis.map`
 
 **3D plotting**
 
-* :mod:`fatiando.vis.vtk`
+* :mod:`~fatiando.vis.vtk`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 30-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
    
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 30-Jan-2012'
 
 from fatiando.vis import map, vtk

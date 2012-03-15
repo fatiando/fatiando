@@ -19,26 +19,27 @@ Create and operate on grids and profiles.
 
 **Grid generation**
 
-* :func:`fatiando.gridder.regular`
-* :func:`fatiando.gridder.scatter`
+* :func:`~fatiando.gridder.regular`
+* :func:`~fatiando.gridder.scatter`
 
 **Grid I/O**
 
 **Grid operations**
 
-* :func:`fatiando.gridder.cut`
-* :func:`fatiando.gridder.interpolate`
+* :func:`~fatiando.gridder.cut`
+* :func:`~fatiando.gridder.interpolate`
 
 **Misc**
 
-* :func:`fatiando.gridder.spacing`
+* :func:`~fatiando.gridder.spacing`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 26-Oct-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 26-Oct-2010'
-
 
 import numpy
 import matplotlib.mlab
