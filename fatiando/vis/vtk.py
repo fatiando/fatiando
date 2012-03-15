@@ -82,7 +82,7 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     Parameters:
     
     * prisms
-        List of prisms (see :func:`fatiando.mesher.prism.Prism3D`)
+        List of prisms (see :class`fatiando.mesher.ddd.Prism`)
     * scalars
         Array with the scalar value of each prism. Used as the color scale.
     * label
@@ -129,9 +129,7 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     for prism, scalar in zip(prisms, scalars):
         if prism is None or scalar is None:
             continue
-        x1, x2 = prism['x1'], prism['x2']
-        y1, y2 = prism['y1'], prism['y2']
-        z1, z2 = prism['z1'], prism['z2']
+        x1, x2, y1, y2, z1, z2 = prism.get_bounds()
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)

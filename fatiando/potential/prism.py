@@ -76,10 +76,10 @@ def gz(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gz(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gz(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gxx(xp, yp, zp, prisms):
@@ -108,10 +108,10 @@ def gxx(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gxx(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gxx(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gxy(xp, yp, zp, prisms):
@@ -140,10 +140,10 @@ def gxy(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gxy(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gxy(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gxz(xp, yp, zp, prisms):
@@ -172,10 +172,10 @@ def gxz(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gxz(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gxz(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gyy(xp, yp, zp, prisms):
@@ -204,10 +204,10 @@ def gyy(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gyy(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gyy(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gyz(xp, yp, zp, prisms):
@@ -236,10 +236,10 @@ def gyz(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gyz(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gyz(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
 
 def gzz(xp, yp, zp, prisms):
@@ -268,10 +268,10 @@ def gzz(xp, yp, zp, prisms):
         raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is not None:
-            res += _prism.prism_gzz(float(prism['density']), prism['x1'],
-                prism['x2'], prism['y1'], prism['y2'], prism['z1'], prism['z2'],
-                xp, yp, zp)
+        if prism is not None and 'density' in prism.props:
+            x1, x2, y1, y2, z1, z2 = prism.get_bounds()            
+            res += _prism.prism_gzz(float(prism.props['density']), x1, x2, y1,
+                y2, z1, z2, xp, yp, zp)
     return res
     
 def _test():
