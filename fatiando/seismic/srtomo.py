@@ -328,11 +328,3 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
     slowness = chset['estimate']
     residuals = chset['residuals'][0]
     return slowness, residuals
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

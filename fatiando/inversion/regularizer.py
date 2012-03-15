@@ -735,12 +735,4 @@ def fdmatrix2d(shape, sparse=False):
             fdmat[deriv_i][param_i + nx] = -1
             deriv_i += 1
             param_i += 1
-    return fdmat  
-        
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
+    return fdmat

@@ -75,11 +75,3 @@ def gz(xp, zp, polygons):
             res += _talwani.talwani_gz(float(p['density']), p['x'], p['y'],
                 xp, zp)
     return res
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

@@ -365,11 +365,3 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     pyplot.show()
     thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
     return thickness, values
-
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

@@ -470,11 +470,3 @@ def connect_points(pts1, pts2):
             append1(p1)
             append2(p2)
     return [connect1, connect2]
-
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

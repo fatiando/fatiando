@@ -198,11 +198,3 @@ def header(comment=''):
          "%s  changeset: %s" % (comment, fatiando.version.changeset),
          "%s  branch: %s" % (comment, fatiando.version.branch)])
     return msg
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

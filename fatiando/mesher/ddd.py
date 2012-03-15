@@ -639,11 +639,3 @@ def vfilter(vmin, vmax, prop, cells):
             return False
         return True
     return [c for c in cells if isin(c)]
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

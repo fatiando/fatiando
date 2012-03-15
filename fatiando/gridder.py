@@ -225,11 +225,3 @@ def cut(x, y, scalars, area):
     suby = numpy.array([y[i] for i in inside])
     subscalars = [numpy.array([scl[i] for i in inside]) for scl in scalars]
     return [subx, suby, subscalars]
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

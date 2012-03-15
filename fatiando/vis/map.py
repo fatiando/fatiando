@@ -410,16 +410,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     pyplot.xlim(X.min(), X.max())
     pyplot.ylim(Y.min(), Y.max())
     return plot
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
 
-if __name__ == '__main__':
-    _test()
-#
-#
 #def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
                       #fillcolor='r', fillkey='value', alpha=1, label=''):
     #"""

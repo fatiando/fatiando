@@ -380,11 +380,3 @@ def square2polygon(square):
     notprops = ['x1', 'x2', 'y1', 'y2']
     props = dict([p, square[p]] for p in square if p not in notprops)
     return Polygon(verts, props)
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

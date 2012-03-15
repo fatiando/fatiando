@@ -596,12 +596,3 @@ def newton(initial, maxit=100, tol=10**(-5)):
                 abs((goals[-1] - goals[-2])/goals[-2]) <= tol):
                 break
     return solver
-    
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

@@ -392,11 +392,3 @@ def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., equality=0., ref={}):
     reg2 = inversion.regularizer.Damping(damping, 2)
     return numpy.array([dm.get_misfit(ttres - dm.get_predicted(p)) +
                         reg1.value(p) + reg2.value(p) for p in zip(xs, ys)])
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

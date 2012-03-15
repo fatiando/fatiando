@@ -91,12 +91,3 @@ def straight_ray_2d(cells, prop, srcs, recs):
                 float(c['x1']), float(c['y1']), float(c['x2']), float(c['y2']),
                 x_src, y_src, x_rec, y_rec)
     return times
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
-

@@ -68,11 +68,3 @@ def gz(xp, yp, zp, prisms):
             res += _polyprism.polyprism_gz(p['density'], p['z2'], p['z1'],
                                            p['x'], p['y'], xp, yp, zp)
     return res
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

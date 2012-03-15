@@ -154,11 +154,3 @@ def overdet(nparams):
         yield {'estimate':p, 'misfits':[misfit], 'goals':[goal],
                'residuals':residuals}
     return solver
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

@@ -151,14 +151,6 @@ algorithm::
     4999.9983, 3000.0017
     4999.9998, 3000.0000
 
-**PRISMATIC PARAMETRIZATION**
-
-* :func:`fatiando.potential.basin2d.prism`
- 
-Uses juxtaposed 2D right rectangular prisms to parameterize the basin relief.
-Potential fields are calculated using the :mod:`fatiando.potential.prism2d`
-module. 
-
 ----
 
 """
@@ -414,16 +406,4 @@ def _iterator(dms, solver, log):
     log.info("  number of iterations: %d" % (i))
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))    
-    
-def prism():
-    pass
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
-    
+    log.info("  time: %s" % (utils.sec2hms(stop - start)))

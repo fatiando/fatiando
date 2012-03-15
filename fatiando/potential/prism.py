@@ -273,11 +273,3 @@ def gzz(xp, yp, zp, prisms):
             res += _prism.prism_gzz(float(prism.props['density']), x1, x2, y1,
                 y2, z1, z2, xp, yp, zp)
     return res
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

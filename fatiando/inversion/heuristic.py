@@ -31,13 +31,3 @@ import numpy
 from fatiando import logger
 
 log = logger.dummy()
-
-
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
