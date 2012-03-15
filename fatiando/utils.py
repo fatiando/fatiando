@@ -273,8 +273,16 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         
     Returns:
     
-    * [contam_data, stddev if *return_stddev* is ``True``]
+    if *return_stddev* is ``False``:
+    
+    * contam : array
         The contaminated data array
+
+    else:
+
+    * results : list = [contam, stddev]
+        The contaminated data array and the standard deviation used to
+        contaminate it.
 
     """    
     log = logger.dummy('fatiando.utils.contaminate')
@@ -449,7 +457,7 @@ def connect_points(pts1, pts2):
 
     Returns:
 
-    * [connect1, connect2] : lists
+    * results : lists of lists = [connect1, connect2]
         2 lists with the connected points
         
     """
