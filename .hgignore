@@ -9,3 +9,4 @@ build
 dist
 MANIFEST
 fatiando/version.py
+mylogfile.log

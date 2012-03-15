@@ -47,6 +47,8 @@ import matplotlib.mlab
 from fatiando import logger
 
 
+log = logger.dummy('fatiando.gridder')
+
 def regular(area, shape, z=None):
     """
     Create a regular grid. Order of the output grid is x varies first, then y.
@@ -70,7 +72,6 @@ def regular(area, shape, z=None):
         points
 
     """
-    log = logger.dummy('fatiando.gridder.regular')
     log.info("Generating regular grid:")
     ny, nx = shape
     x1, x2, y1, y2 = area
@@ -120,7 +121,6 @@ def scatter(area, n, z=None):
         If *z* given. Arrays with the x, y, and z coordinates of the points
 
     """
-    log = logger.dummy('fatiando.gridder.scatter')
     x1, x2, y1, y2 = area
     log.info("Generating irregular grid (scatter):")
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
@@ -213,7 +213,6 @@ def cut(x, y, scalars, area):
         Arrays with x and y coordinates and scalar values of the subsection.
 
     """
-    log = logger.dummy('fatiando.gridder.cut')
     xmin, xmax, ymin, ymax = area
     log.info("Cutting grid:")
     log.info("  area = xmin, xmax, ymin, ymax = %s" % (str(area)))

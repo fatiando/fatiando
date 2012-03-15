@@ -97,6 +97,8 @@ import numpy
 from fatiando import logger, inversion, utils
 
 
+log = logger.dummy('fatiando.seismic.epicenter')
+
 class TTRFlat(inversion.datamodule.DataModule):
     """
     Data module for epicenter estimation using travel-time residuals between
@@ -272,7 +274,6 @@ def flat_earth(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
         measured and predicted travel-time residuals)
     
     """
-    log = logger.dummy('fatiando.seismic.epicenter.flat_earth')
     if len(ttres) != len(recs):
         msg = "Must have same number of travel-time residuals and receivers"
         raise ValueError, msg
@@ -305,7 +306,6 @@ def flat_earth(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
         return _solver(dms, regs, solver)
         
 def _solver(dms, regs, solver):
-    log = logger.dummy('fatiando.seismic.epicenter.flat_earth')
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
@@ -321,7 +321,6 @@ def _solver(dms, regs, solver):
     return chset['estimate'], chset['residuals'][0]
 
 def _iterator(dms, regs, solver):
-    log = logger.dummy('fatiando.seismic.epicenter.flat_earth')
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):

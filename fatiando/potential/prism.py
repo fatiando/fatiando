@@ -48,7 +48,10 @@ import logging
 import numpy
 
 from fatiando.potential import _prism
+from fatiando import logger
 
+
+log = logger.dummy('fatiando.potential.prism')
 
 def gz(xp, yp, zp, prisms):
     """

@@ -37,7 +37,10 @@ __date__ = 'Created 28-Sep-2011'
 import numpy
 
 from fatiando.potential import _polyprism
+from fatiando import logger
 
+
+log = logger.dummy('fatiando.potential.polyprism')
 
 def gz(xp, yp, zp, prisms):
     """

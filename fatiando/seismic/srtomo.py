@@ -94,6 +94,8 @@ from fatiando import logger, inversion, utils
 from fatiando.seismic import _traveltime
 
 
+log = logger.dummy('fatiando.seismic.srtomo')
+
 class TravelTime(inversion.datamodule.DataModule):
     """
     Data module for the 2D travel-time straight-ray tomography problem.
@@ -135,7 +137,6 @@ class TravelTime(inversion.datamodule.DataModule):
     """
 
     def __init__(self, ttimes, srcs, recs, mesh):
-        log = logger.dummy('fatiando.seismic.srtomo.TravelTime')
         inversion.datamodule.DataModule.__init__(self, ttimes)
         self.xsrc, self.ysrc = numpy.array(srcs, dtype='f').T
         self.xrec, self.yrec = numpy.array(recs, dtype='f').T
@@ -281,7 +282,6 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
         Arrays with the estimated slowness and residual vector, respectively
         
     """
-    log = logger.dummy('fatiando.seismic.srtomo.run')
     if len(ttimes) != len(srcs) != len(recs):
         msg = "Must have same number of travel-times, sources and receivers"
         raise ValueError, msg

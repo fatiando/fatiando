@@ -42,7 +42,10 @@ __date__ = 'Created 12-Jan-2012'
 import numpy
 
 from fatiando.potential import _talwani
+from fatiando import logger
 
+
+log = logger.dummy('fatiando.potential.talwani')
 
 def gz(xp, zp, polygons):
     """

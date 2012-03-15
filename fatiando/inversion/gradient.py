@@ -79,13 +79,13 @@ import scipy.sparse.linalg
 from fatiando import logger
 
 
+log = logger.dummy('fatiando.inversion.gradient')
+
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
     if res[1] > 0:
-        log = logger.dummy('fatiando.inversion.gradient._sparse_linsys_solver')
         log.warning("Conjugate Gradient convergence not achieved")
     if res[1] < 0:
-        log = logger.dummy('fatiando.inversion.gradient._sparse_linsys_solver')
         log.error("Conjugate Gradient illegal input or breakdown")
     return res[0]
 
@@ -104,7 +104,6 @@ def use_sparse():
     be implemented for each inverse problem separately.
     
     """
-    log = logger.dummy('fatiando.inversion.gradient.use_sparse')
     log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
     linsys_solver = _sparse_linsys_solver
@@ -177,7 +176,6 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
     * Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
     
     """
-    log = logger.dummy('fatiando.inversion.gradient.steepest')
     if tol <= 0.0:
         raise ValueError, "tol parameter should be > 0"
     if maxit <= 0:
@@ -281,7 +279,6 @@ def _steepest_armijo(initial, step, maxsteps, maxit, tol):
                     msg = "  Steepest Descent didn't take any steps"
                 else:
                     msg = "  Steepest Descent finished: couldn't take a step"
-                log = logger.dummy('fatiando.inversion.gradient.steepest')
                 log.warning(msg)
                 break
             p = ptmp
@@ -345,7 +342,6 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
     * Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
     
     """
-    log = logger.dummy('fatiando.inversion.gradient.levmarq')
     if tol <= 0.0:
         raise ValueError, "tol parameter should be > 0"
     if maxit <= 0:
@@ -428,7 +424,6 @@ def _levmarq(initial, damp, factor, maxsteps, maxit, tol):
                     msg = "  Levenberg-Marquardt didn't take any steps"
                 else:
                     msg = "  Levenberg-Marquardt finished: couldn't take a step"
-                log = logger.dummy('fatiando.inversion.gradient.levmarq')
                 log.warning(msg)
                 break
             p = ptmp
@@ -499,7 +494,6 @@ def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
                     msg = "  Levenberg-Marquardt didn't take any steps"
                 else:
                     msg = "  Levenberg-Marquardt finished: couldn't take a step"
-                log = logger.dummy('fatiando.inversion.gradient.levmarq')
                 log.warning(msg)
                 break
             p = ptmp
@@ -548,7 +542,6 @@ def newton(initial, maxit=100, tol=10**(-5)):
     * Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
     
     """
-    log = logger.dummy('fatiando.inversion.gradient.newton')
     if tol <= 0.0:
         raise ValueError, "tol parameter should be > 0"
     if maxit <= 0:

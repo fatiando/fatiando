@@ -46,6 +46,8 @@ import matplotlib.mlab
 
 from fatiando import logger
 
+
+log = logger.dummy('fatiando.mesher.ddd')
     
 class Prism(object):
     """
@@ -234,7 +236,6 @@ class PrismRelief():
     """
 
     def __init__(self, ref, dims, nodes):
-        log = logger.dummy('fatiando.mesher.ddd.PrismRelief')
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError, "nodes has x,y,z coordinates of different lengths"
@@ -380,7 +381,6 @@ class PrismMesh(object):
     """
 
     def __init__(self, bounds, shape, props=None):
-        log = logger.dummy('fatiando.mesher.ddd.PrismMesh')
         object.__init__(self)
         log.info("Generating 3D right rectangular prism mesh:")
         nz, ny, nx = shape

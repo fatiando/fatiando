@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Wrappers for `matplotlib` calls to plot grids (from :mod:`fatiando.gridder`),
+Wrappers for `matplotlib` calls to plot grids (from :mod:`~fatiando.gridder`),
 2D objects (from :mod:`~fatiando.mesher.dd`) and more.
 
 .. tip:: Avoid importing this module using ``from fatiando.vis import map``
@@ -49,8 +49,10 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 import numpy
 from matplotlib import pyplot
 
-import fatiando.gridder
+from fatiando import gridder, logger
 
+
+log = logger.dummy('fatiando.vis.map')
 
 def set_area(area):
     """
@@ -314,7 +316,7 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+        X, Y, V = gridder.interpolate(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -364,7 +366,7 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+        X, Y, V = gridder.interpolate(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -406,7 +408,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+        X, Y, V = gridder.interpolate(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)

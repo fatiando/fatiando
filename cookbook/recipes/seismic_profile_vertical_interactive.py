@@ -9,4 +9,3 @@ zp = numpy.arange(0.5, sum(thickness), 0.5)
 vmin, vmax = 500, 10000
 app = Lasagne(thickness, zp, vmin, vmax)
 app.run()
-app.savedata('meh.txt')

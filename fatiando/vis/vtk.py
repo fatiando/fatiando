@@ -44,6 +44,11 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 
 import numpy
 
+from fatiando import logger
+
+
+log = logger.dummy('fatiando.vis.vtk')
+        
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
 mlab = None

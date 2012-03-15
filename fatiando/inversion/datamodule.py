@@ -28,7 +28,8 @@ import numpy
 
 from fatiando import logger
 
-log = logger.dummy()
+
+log = logger.dummy('fatiando.inversion.datamodule')
 
 
 class DataModule(object):

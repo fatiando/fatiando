@@ -165,6 +165,8 @@ from fatiando.potential import _talwani
 from fatiando import inversion, utils, logger
 
 
+log = logger.dummy('fatiando.potential.basin2d')
+
 class TriangularGzDM(inversion.datamodule.DataModule):
     """
     Data module for the inversion to estimate the relief of a triangular basin.
@@ -196,7 +198,6 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     """
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
-        log = logger.dummy('fatiando.potential.basin2d.TriangularGzDM')
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing TriangularDM data module:")
         if len(xp) != len(zp) != len(data):
@@ -261,7 +262,6 @@ def triangular(dms, solver, iterate=False):
         data module in *dms*
     
     """
-    log = logger.dummy('fatiando.potential.basin2d.triangular')
     log.info("Estimating relief of a triangular basin:")
     log.info("  iterate: %s" % (str(iterate)))
     if iterate:
@@ -303,7 +303,6 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
     field = "gz"
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
-        log = logger.dummy('fatiando.potential.basin2d.TrapezoidalGzDM')
         inversion.datamodule.DataModule.__init__(self, data)
         log.info("Initializing %s data module for trapezoidal basin:" %
                 (self.field))
@@ -371,7 +370,6 @@ def trapezoidal(dms, solver, iterate=False):
         data module in *dms*
     
     """
-    log = logger.dummy('fatiando.potential.basin2d.trapezoidal')
     log.info("Estimating relief of a trapezoidal basin:")
     log.info("  iterate: %s" % (str(iterate)))
     if iterate:

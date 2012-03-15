@@ -47,6 +47,8 @@ import scipy.misc
 from fatiando import logger, gridder
 
 
+log = logger.dummy('fatiando.mesher.dd')
+
 def Polygon(vertices, props=None):
     """
     Create a polygon object.
@@ -174,7 +176,6 @@ class SquareMesh(object):
     """
 
     def __init__(self, bounds, shape, props=None):
-        log = logger.dummy('fatiando.mesher.dd.SquareMesh')
         object.__init__(self)
         log.info("Generating 2D regular square mesh:")
         ny, nx = shape
@@ -275,7 +276,6 @@ class SquareMesh(object):
             Name of the physical property
             
         """
-        log = logger.dummy('fatiando.mesher.dd.SquareMesh.img2prop')
         log.info("Loading physical property from image file:")
         log.info("  file: '%s'" % (fname))
         log.info("  physical property: %s" % (prop))

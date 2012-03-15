@@ -44,6 +44,10 @@ __date__ = 'Created 19-Jan-2012'
 import numpy
 import scipy.sparse
 
+from fatiando import logger
+
+
+log = logger.dummy('fatiando.inversion.regularizer')
 
 class Regularizer(object):
     """

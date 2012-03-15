@@ -98,6 +98,8 @@ from fatiando.mesher.dd import Square
 from fatiando import logger, inversion, utils
 
 
+log = logger.dummy('fatiando.seismic.profile')
+        
 class VerticalSlownessDM(inversion.datamodule.DataModule):
     """
     Data module for a vertical seismic profile first-arrival travel-time data.
@@ -130,7 +132,6 @@ class VerticalSlownessDM(inversion.datamodule.DataModule):
     """
 
     def __init__(self, traveltimes, zp, thickness):
-        log = logger.dummy('fatiando.seismic.profile.VerticalSlownessDM')
         inversion.datamodule.DataModule.__init__(self, traveltimes)
         self.zp = zp
         self.thickness = thickness
@@ -235,7 +236,6 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
             minus predicted travel-times by the slowness estimate)
         
     """
-    log = logger.dummy('fatiando.seismic.profile.invert_vertical')
     if damping < 0:
         raise ValueError, "Damping parameter must be positive"
     if smooth < 0:
@@ -265,7 +265,6 @@ def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
         return _solver(dms, regs, solver)
         
 def _solver(dms, regs, solver):
-    log = logger.dummy('fatiando.seismic.profile.invert_vertical')
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
@@ -281,7 +280,6 @@ def _solver(dms, regs, solver):
     return chset['estimate'], chset['residuals'][0]
 
 def _iterator(dms, regs, solver):
-    log = logger.dummy('fatiando.seismic.profile.invert_vertical')
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):

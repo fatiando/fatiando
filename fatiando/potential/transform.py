@@ -38,6 +38,8 @@ from fatiando import logger, gridder
 from fatiando.potential import _transform
 
 
+log = logger.dummy('fatiando.potential.transform')
+
 def upcontinue(gz, z0, height, xp, yp, dims):
     """
     Upward continue :math:`g_z` data using numerical integration of the
@@ -78,14 +80,13 @@ def upcontinue(gz, z0, height, xp, yp, dims):
         Array with the upward continued :math:`g_z`
 
     """
-    log = logger.dummy('fatiando.potential.transform.upcontinue')
     dy, dx = dims
     if len(xp) != len(yp):
         raise ValueError, "xp and yp arrays must have same lengths"
     if height < 0:
         raise ValueError, "'height' should be positive"
     newz = z0 - height
-    log.info("Upward continuation:")
+    log.info("Upward continuation using the analytical formula:")
     log.info("  original z coordinate: %g m" % (z0))
     log.info("  height increment: %g m" % (height))
     log.info("  new z coordinate: %g m" % (newz))

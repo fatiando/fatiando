@@ -40,10 +40,11 @@ import numpy
 from matplotlib import pyplot, widgets, nxutils
 
 from fatiando.potential import talwani
-from fatiando import seismic
 from fatiando.mesher.dd import Polygon
-from fatiando import utils
+from fatiando import utils, seismic, logger
 
+
+log = logger.dummy('fatiando.ui.gui')
 
 class Moulder():
     """
