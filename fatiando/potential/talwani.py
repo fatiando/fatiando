@@ -18,26 +18,28 @@
 Calculate the gravitational attraction of a 2D body with polygonal vertical
 cross-section using the formula of Talwani et al. (1959)
 
-Use the :func:`fatiando.mesher.dd.Polygon` object.
+Use the :func:`~fatiando.mesher.dd.Polygon` object to create polygons.
 
-**Remember**, the vertices must be given clockwise!
-If not, the result will have an inverted sign. 
+.. warning:: the vertices must be given clockwise! If not, the result will have
+    an inverted sign.
 
 **Components**
 
-* :func:`fatiando.potential.talwani.gz`
+* :func:`~fatiando.potential.talwani.gz`
 
 **References**
 
 Talwani, M., J. L. Worzel, and M. Landisman (1959), Rapid Gravity Computations
-    for Two-Dimensional Bodies with Application to the Mendocino Submarine
-    Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
+for Two-Dimensional Bodies with Application to the Mendocino Submarine
+Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 12-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 12-Jan-2012'
 
 import numpy
 
@@ -51,30 +53,35 @@ def gz(xp, zp, polygons):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
-    The coordinate system of the input parameters is z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
     
-    * xp, zp
-        Arrays with x and z coordinates of the computation points.        
-    * polygons
-        List of :func:`fatiando.mesher.dd.Polygon` objects.
-        The y coordinate of the polygons is used as z! 
+    * xp, zp : arrays
+        The x and z coordinates of the computation points.        
+    * polygons : list of :func:`~fatiando.mesher.dd.Polygon`
+        The density model used.
+        Polygons must have the property ``'density'``. Polygons that don't have
+        this property will be ignored in the computations. Elements of
+        *polygons* that are None will also be ignored.
+
+        .. note:: The y coordinate of the polygons is used as z! 
 
     Returns:
     
-    * List with the :math:`g_z` component calculated on the computation points
+    * gz : array
+        The :math:`g_z` component calculated on the computation points
 
     """
     if xp.shape != zp.shape:
-        raise ValueError, "Input arrays xp and zp must have same shape!"
+        raise ValueError("Input arrays xp and zp must have same shape!")
     xp = numpy.array(xp, dtype=numpy.float64)
     zp = numpy.array(zp, dtype=numpy.float64)
     res = numpy.zeros_like(xp)
     for p in polygons:
-        if p is not None:
+        if p is not None and 'density' in p:
             res += _talwani.talwani_gz(float(p['density']), p['x'], p['y'],
                 xp, zp)
     return res
