@@ -93,12 +93,12 @@ def _zeromatrix(shape):
     
 def use_sparse():
     """
-    Configure the linear solvers to use the sparse conjugate gradient linear
-    linear system solver from Scipy.
+    Configure the gradient solvers to use the sparse conjugate gradient linear
+    system solver from `scipy.sparse`.
 
-    Note that this does not make the DataModules use sparse matrices! That must
-    be implemented for each inverse problem.
-    
+    .. note:: This does not make the data modules use sparse matrices! That must
+        be implemented for each inverse problem separately.
+        
     """
     log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
