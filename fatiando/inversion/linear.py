@@ -17,14 +17,15 @@
 """
 Factory functions for generic linear inverse problem solvers.
 
-* :func:`fatiando.inversion.linear.overdet`
-* :func:`fatiando.inversion.linear.underdet`
+* :func:`~fatiando.inversion.linear.overdet`
+* :func:`~fatiando.inversion.linear.underdet`
 
 The factory functions produce the actual solver functions.
 These solver functions are Python generator functions that yield only once.
-This is so they are compatible with gradient
-(:mod:`fatiando.inversion.gradient`) and heurist
-(:mod:`fatiando.inversion.heuristic`) solvers.
+This might seem unnecessary but it is done so that the linear solvers are
+compatible with the non-linear solvers (e.g.,
+:mod:`~fatiando.inversion.gradient` and :mod:`~fatiando.inversion.heuristic`).
+
 In the case of linear problems, solver functions have the general format::
 
     def solver(dms, regs):
@@ -38,32 +39,39 @@ In the case of linear problems, solver functions have the general format::
 
 Parameters:
 
-* dms
+* dms : list
     List of data modules. Data modules should be child-classes of the
-    :class:`fatiando.inversion.datamodule.DataModule` class.
-* regs
+    :class:`~fatiando.inversion.datamodule.DataModule` class.
+* regs : list
     List of regularizers. Regularizers should be child-classes of the
-    :class:`fatiando.inversion.regularizer.Regularizer` class.
+    :class:`~fatiando.inversion.regularizer.Regularizer` class.
 
+    .. note:: The regularizing functions must also be linear!
+    
 Yields:
 
-* solution
-    A dictionary with the final solution:
-    
+* changeset : dict
+    A dictionary with the final solution:    
     ``changeset = {'estimate':p, 'misfits':[misfit], 'goals':[goal],
     'residuals':residuals}``
     
-    * ``p`` is the parameter vector.
-    * ``misfit`` the data-misfit function value
-    * ``goal`` the goal function value
-    * ``residuals`` list with the residual vectors
+    * p : array
+        The parameter vector.
+    * misfit : list
+        The data-misfit function value
+    * goal : list
+        The goal function value
+    * residuals : list
+        List with the residual vectors from each data module at this iteration
+
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 26-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 26-Jan-2012'
-
 
 import itertools
 
@@ -106,35 +114,83 @@ def use_sparse():
     _zeromatrix = scipy.sparse.csr_matrix
     
 def overdet(nparams):
-    """
+    r"""
     Factory function for a linear least-squares solver to an overdetermined
     problem (more data than parameters).
 
-    The least-squares estimate is found by solving the linear system
+    The problem at hand is finding the vector :math:`\bar{p}` that produces a
+    predicted data vector :math:`\bar{d}` as close as possible to an observed
+    data vector :math:`\bar{d}^o`.
+
+    In linear problems, the relation between the parameters and the predicted
+    data are expressed through the linear system
 
     .. math::
 
-        \\bar{\\bar{H}}\\hat{\\bar{p}} = -\\bar{g}
+        \bar{\bar{G}}\bar{p} = \bar{d}
 
-    where :math:`\\bar{\\bar{H}}` is the Hessian matrix of the goal function,
-    :math:`\\bar{g}` is the gradient vector of the goal function, and
-    :math:`\\bar{p}` is the estimated parameter vector.
+    where :math:`\bar{\bar{G}}` is the Jacobian (or sensitivity) matrix. In the
+    **over determined** case, matrix :math:`\bar{\bar{G}}` has more lines
+    than columns, i.e., more equations than unknowns.
+
+    The least-squares estimate of :math:`\bar{p}` can be found by minimizing
+    the goal function
+
+    .. math::
+
+        \Gamma(\bar{p}) = \bar{r}^T\bar{r} + \sum\limits_{k=1}^L
+        \mu_k\theta_k(\bar{p})
+
+    where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector,
+    :math:`\theta_k(\bar{p})` are regularizing functions, and :math:`\mu_k` are
+    regularizing parameters (positive scalars).
+
+    The mininum of the goal function can be calculated by solving the linear
+    system
+
+    .. math::
+
+        \bar{\bar{H}}\hat{\bar{p}} = -\bar{g}
+
+    where :math:`\bar{\bar{H}}` is the Hessian matrix of the goal function,
+    :math:`\bar{g}` is the gradient vector of the goal function, and
+    :math:`\hat{\bar{p}}` is the estimated parameter vector.
+
+    The Hessian of the goal function is given by
+    
+    .. math::
+
+        \bar{\bar{H}} = 2\bar{\bar{G}}^T\bar{\bar{G}} + \sum\limits_{k=1}^L
+        \mu_k \bar{\bar{H}}_k
+
+    where :math:`\bar{\bar{H}}_k` are the Hessian matrices of the regularizing
+    functions.
+
+    The gradient vector of the goal function is given by
+
+    .. math::
+
+        \bar{g} = -2\bar{\bar{G}}^T\bar{d}^o + \sum\limits_{k=1}^L
+        \mu_k \bar{g}_k
+        
+    where :math:`\bar{g}_k` are the gradient vectors of the regularizing
+    functions.
     
     Parameters:
 
-    * nparams
-        The number of parameters in vector :math:`\\bar{p}` (usually something
+    * nparams : int
+        The number of parameters in vector :math:`\bar{p}` (usually something
         like ``mesh.size``)
 
     Returns
     
-    * solver
+    * solver : function
         A Python generator function that solves an linear overdetermined inverse
         problem using the parameters given above.
     
     """
     if nparams <= 0:
-        raise ValueError, "nparams must be > 0"
+        raise ValueError("nparams must be > 0")
     log.info("Generating linear solver for overdetermined problems")
     log.info("  number of parameters: %d" % (nparams))
     def solver(dms, regs, nparams=nparams):
