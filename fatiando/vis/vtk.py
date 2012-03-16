@@ -78,8 +78,8 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
-           edges=True, vmin=None, vmax=None, cmap='blue-red'):
+def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
+    vmax=None, cmap='blue-red'):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -89,10 +89,9 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     
     * prisms : list
         Prisms (see :class:`~fatiando.mesher.ddd.Prism`)
-    * scalars : array
-        The scalar value of each prism. Used as the color scale.
-    * label : str
-        Label used as the scalar type (like ``'density'`` for example)
+    * prop : str or None
+        The physical property of the prisms to use as the color scale. If a
+        prism doesn't have *prop*, or if it is None, then it will not be plotted
     * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
@@ -102,11 +101,11 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
         Wether or not to display the edges of the prisms in black lines. Will
         ignore this if ``style='wireframe'``
     * vmin, vmax : float
-        Min and max values for the color scale of the scalars. If *None* will
-        default to min(scalars) or max(scalars).
+        Min and max values for the color scale. If *None* will default to
+        the min and max of *prop* in the prisms.
     * cmap : Mayavi colormap
-        Color map to use for the scalar values. See the 'Colors and Legends'
-        menu on the Mayavi2 GUI for valid color maps.
+        Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
+        for valid color maps.
 
     Returns:
     
@@ -124,6 +123,10 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     _lazy_import_mlab()
     _lazy_import_tvtk()
 
+    if prop is None:
+        label = 'scalar'
+    else:
+        label = prop
     # VTK parameters
     points = []
     cells = []
@@ -133,10 +136,14 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     celldata = []
     # To mark what index in the points the cell starts
     start = 0
-    for prism, scalar in zip(prisms, scalars):
-        if prism is None or scalar is None:
+    for prism in prisms:
+        if prism is None or (prop is not None and prop not in prism.props):
             continue
         x1, x2, y1, y2, z1, z2 = prism.get_bounds()
+        if prop is None:
+            scalar = 0.
+        else:
+            scalar = prism.props[prop]
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
