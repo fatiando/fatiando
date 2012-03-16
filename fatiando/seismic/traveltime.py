@@ -19,14 +19,15 @@ Direct modeling of seismic wave travel times.
 
 **Straight rays**
 
-* :func:`fatiando.seismic.traveltime.straight_ray_2d`
+* :func:`~fatiando.seismic.traveltime.straight_ray_2d`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 11-Sep-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
-
 
 import numpy
 
@@ -42,21 +43,23 @@ def straight_ray_2d(cells, prop, srcs, recs):
     source and receiver pairs assuming the rays are straight lines
     (no refraction or reflection).
 
-    **NOTE**: Don't care about the units as long they are compatible.
+    .. note:: Don't care about the units as long they are compatible.
 
     For a homogeneous model, *cells* can be a list with only one big cell.
 
     Parameters:
 
-    * cells
-        List of square cells (:func:`fatiando.mesher.dd.Square` or
-        :class:`fatiando.mesher.dd.SquareMesh`)
-    * prop
-        String with which physical property of the cells to use as velocity.
+    * cells : list of :func:`~fatiando.mesher.dd.Square`
+        The velocity model to use to trace the straight rays. Cells must have
+        the physical property given in parameter *prop*. This will be used
+        as the velocity of each cell. (*cells* can also be a
+        :class:`~fatiando.mesher.dd.SquareMesh`)
+    * prop : str
+        Which physical property of the cells to use as velocity.
         Normaly one would choose ``'vp'`` or ``'vs'``
-    * srcs
+    * srcs : list fo lists
         List with [x, y] coordinate pairs of the wave sources.
-    * recs
+    * recs : list fo lists
         List with [x, y] coordinate pairs of the receivers sources
     
     *srcs* and *recs* are lists of source-receiver pairs. Each source in *srcs*
@@ -78,13 +81,13 @@ def straight_ray_2d(cells, prop, srcs, recs):
 
     Returns:
 
-    * times
-        Array with the total times each ray took to get from a source to a
-        receiver (in compatible units with *prop*)
+    * times : array
+        The total times each ray took to get from a source to a receiver (in
+        compatible units with *prop*)
 
     """
     if len(srcs) != len(recs):
-        raise ValueError, "srcs and recs must have the same length"
+        raise ValueError("srcs and recs must have the same length")
     x_src, y_src = numpy.array(srcs, dtype='f').T
     x_rec, y_rec = numpy.array(recs, dtype='f').T
     times = numpy.zeros_like(x_src)

@@ -8,9 +8,7 @@
     DONE:
         * mesher
         * utils
-        * seismic.epicenter
-        * seismic.profile
-        * seismic.srtomo
+        * seismic
         * heat
         * gridder
         * vis

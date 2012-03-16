@@ -300,9 +300,9 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
     """
     if len(ttimes) != len(srcs) != len(recs):
         msg = "Must have same number of travel-times, sources and receivers"
-        raise ValueError, msg
+        raise ValueError(msg)
     if damping < 0:
-        raise ValueError, "Damping must be positive"
+        raise ValueError("Damping must be positive")
     nparams = len(mesh)
     if sparse:
         dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]
@@ -310,9 +310,9 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
         if damping:
             regs.append(inversion.regularizer.DampingSparse(damping, nparams))
         if smooth:
-            raise NotImplementedError, "Sparse smoothness not implemented"
+            raise NotImplementedError("Sparse smoothness not implemented")
         if sharp:
-            raise NotImplementedError, "Sparse total variation not implemented"
+            raise NotImplementedError("Sparse total variation not implemented")
     else:
         dms = [TravelTime(ttimes, srcs, recs, mesh)]
         regs = []
@@ -334,8 +334,8 @@ def run(ttimes, srcs, recs, mesh, solver, sparse=False, damping=0., smooth=0.,
         for i, chset in enumerate(solver(dms, regs)):
             continue
     except numpy.linalg.linalg.LinAlgError:
-        raise ValueError, ("Oops, the Hessian is a singular matrix." +
-                           " Try applying more regularization")        
+        raise ValueError("Oops, the Hessian is a singular matrix." +
+                         " Try applying more regularization")
     stop = time.time()
     log.info("  number of iterations: %d" % (i))
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
