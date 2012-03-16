@@ -20,26 +20,27 @@ plus a range of regularizing functions already implemented.
 
 **Tikhonov regularization**
 
-* :class:`fatiando.inversion.regularizer.Damping`
-* :class:`fatiando.inversion.regularizer.DampingSparse`
-* :class:`fatiando.inversion.regularizer.Smoothness1D`
-* :class:`fatiando.inversion.regularizer.Smoothness2D`
+* :class:`~fatiando.inversion.regularizer.Damping`
+* :class:`~fatiando.inversion.regularizer.DampingSparse`
+* :class:`~fatiando.inversion.regularizer.Smoothness1D`
+* :class:`~fatiando.inversion.regularizer.Smoothness2D`
 
 **Total Variation**
 
-* :class:`fatiando.inversion.regularizer.TotalVariation1D`
-* :class:`fatiando.inversion.regularizer.TotalVariation2D`
+* :class:`~fatiando.inversion.regularizer.TotalVariation1D`
+* :class:`~fatiando.inversion.regularizer.TotalVariation2D`
 
 **Equality constraint**
 
-* :class:`fatiando.inversion.regularizer.Equality`
+* :class:`~fatiando.inversion.regularizer.Equality`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 19-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 19-Jan-2012'
-
 
 import numpy
 import scipy.sparse
@@ -71,7 +72,7 @@ class Regularizer(object):
 
     Constructor parameters common to all methods:
 
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization.
         
@@ -90,21 +91,22 @@ class Regularizer(object):
 
         Parameters:
 
-        * gradient
-            Array with the old gradient vector
-        * p
-            Array with the parameter vector
+        * gradient : array
+            The old gradient vector
+        * p : array
+            The parameter vector
             
-        Solvers for linear problems will use ``p = None`` so that the class
-        knows how to calculate gradients more efficiently for these cases.
+        .. note:: Solvers for linear problems will use ``p = None`` so that the
+            class knows how to calculate gradients more efficiently for these
+            cases.
 
         Returns:
 
-        * new_gradient
-            Array with the new gradient vector
+        * new_gradient : array
+            The new gradient vector
         
         """
-        pass
+        raise NotImplementedError("sum_gradient method not implemented")
         
     def sum_hessian(self, hessian, p=None):
         """
@@ -113,24 +115,25 @@ class Regularizer(object):
 
         Parameters:
 
-        * hessian
+        * hessian : array
             2D array with the old Hessian matrix
-        * p
-            Array with the parameter vector
-            
-        Solvers for linear problems will use ``p = None`` so that the class
-        knows how to calculate gradients more efficiently for these cases.
+        * p : array
+            The parameter vector
+                    
+        .. note:: Solvers for linear problems will use ``p = None`` so that the
+            class knows how to calculate gradients more efficiently for these
+            cases.
         
         Returns:
 
-        * new_hessian
+        * new_hessian : array
             2D array with the new Hessian matrix
         
         """
-        pass
+        raise NotImplementedError("sum_hessian method not implemented")
 
 class Equality(Regularizer):
-    """
+    r"""
     Equality constraints. 
 
     Imposes that some or all of the parameters be as close as possible to
@@ -140,12 +143,12 @@ class Equality(Regularizer):
 
     .. math::
 
-        \\theta(\\bar{p}) = (\\bar{p} - \\bar{p}^{\\thinspace a})^T
-        \\bar{\\bar{A}}^T\\bar{\\bar{A}}(\\bar{p} - \\bar{p}^{\\thinspace a})
+        \theta(\bar{p}) = (\bar{p} - \bar{p}^{\thinspace a})^T
+        \bar{\bar{A}}^T\bar{\bar{A}}(\bar{p} - \bar{p}^{\thinspace a})
 
-    Vector :math:`\\bar{p}^{\\thinspace a}` contains the refence values and
-    matrix :math:`\\bar{\\bar{A}}` is a diagonal matrix. The elements in the
-    diagonal of :math:`\\bar{\\bar{A}}` are either 1 or 0. If there is a
+    Vector :math:`\bar{p}^{\thinspace a}` contains the refence values and
+    matrix :math:`\bar{\bar{A}}` is a diagonal matrix. The elements in the
+    diagonal of :math:`\bar{\bar{A}}` are either 1 or 0. If there is a
     reference for parameter :math:`i`, then :math:`A_{ii} = 1`, else
     :math:`A_{ii} = 0`. Since this is a bit hard to explain, I'll just give an
     example. Suppose there are 3 parameters
@@ -154,41 +157,41 @@ class Equality(Regularizer):
 
     .. math::
     
-        \\bar{p} =
-            \\begin{bmatrix}
-            p_1 \\\\ p_2 \\\\ p_3
-            \\end{bmatrix} , \\quad
-        \\bar{p}^{\\thinspace a} =
-            \\begin{bmatrix}
-            0 \\\\ 26 \\\\ 0
-            \\end{bmatrix} \\quad \\mathrm{and} \\quad
-        \\bar{\\bar{A}} = 
-            \\begin{bmatrix}
-            0 & 0 & 0 \\\\
-            0 & 1 & 0 \\\\
+        \bar{p} =
+            \begin{bmatrix}
+            p_1 \\ p_2 \\ p_3
+            \end{bmatrix} , \quad
+        \bar{p}^{\thinspace a} =
+            \begin{bmatrix}
+            0 \\ 26 \\ 0
+            \end{bmatrix} \quad \mathrm{and} \quad
+        \bar{\bar{A}} = 
+            \begin{bmatrix}
+            0 & 0 & 0 \\
+            0 & 1 & 0 \\
             0 & 0 & 0
-            \\end{bmatrix}
+            \end{bmatrix}
             
     The gradient and Hessian matrix are, respectively:
     
     .. math::
 
-        \\bar{g}(\\bar{p}) = 2\\bar{\\bar{A}}^T\\bar{\\bar{A}}
-        \\left(\\bar{p} - \\bar{p}^{\\thinspace a} \\right)
+        \bar{g}(\bar{p}) = 2\bar{\bar{A}}^T\bar{\bar{A}}
+        \left(\bar{p} - \bar{p}^{\thinspace a} \right)
 
     and
 
     .. math::
 
-        \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{A}}^T\\bar{\\bar{A}}
+        \bar{\bar{H}}(\bar{p}) = 2\bar{\bar{A}}^T\bar{\bar{A}}
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much equality to
         impose
-    * reference
+    * reference : dict
         Dictionay with the reference values for the parameters you with to
         constrain. The keys are the indexes of the parameters in the parameter
         vector. The respective values are the reference value for each
@@ -228,7 +231,7 @@ class Equality(Regularizer):
         return hessian
 
 class Damping(Regularizer):
-    """
+    r"""
     Damping regularization. Also known as Tikhonov order 0, Ridge Regression, or
     Minimum Norm.
 
@@ -238,23 +241,31 @@ class Damping(Regularizer):
 
     .. math::
 
-        \\theta(\\bar{p}) = \\bar{p}^T\\bar{p}
+        \theta(\bar{p}) = \bar{p}^T\bar{p}
         
     The gradient and Hessian matrix are, respectively:
     
     .. math::
 
-        \\bar{g}(\\bar{p}) = 2\\bar{\\bar{I}}\\bar{p}
+        \bar{g}(\bar{p}) = 2\bar{\bar{I}}\bar{p}
 
     and
 
     .. math::
 
-        \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{I}}
+        \bar{\bar{H}}(\bar{p}) = 2\bar{\bar{I}}
 
-    where :math:`\\bar{\\bar{I}}` is the identity matrix.
+    where :math:`\bar{\bar{I}}` is the identity matrix.
 
-    Example::
+    Parameters:
+        
+    * mu : float
+        The regularizing parameter. A positve scalar that controls the tradeoff
+        between data fitting and regularization. I.e., how much damping to apply
+    * nparams : int
+        Number of parameters in the inversion
+       
+    Examples:
 
         >>> import numpy
         >>> p = [1, 2, 2]
@@ -266,15 +277,6 @@ class Damping(Regularizer):
         [[ 1.2  0.   0. ]
          [ 2.   0.2  0. ]
          [ 4.   0.   0.2]]
-    
-
-    Parameters:
-        
-    * mu
-        The regularizing parameter. A positve scalar that controls the tradeoff
-        between data fitting and regularization. I.e., how much damping to apply
-    * nparams
-        Number of parameters in the inversion
     
     """
 
@@ -306,10 +308,10 @@ class DampingSparse(Damping):
     
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much damping to apply
-    * nparams
+    * nparams : int
         Number of parameters in the inversion
     
     """
@@ -324,43 +326,45 @@ class DampingSparse(Damping):
         return hessian + (self.mu*2.)*self.eye
 
 class Smoothness(Regularizer):
-    """
+    r"""
     Smoothness regularization for n-dimensional problems. Imposes that adjacent
     parameters have values as close as possible to each other. What *adjacent*
     means depends of the dimension of the problem. It can be spacially adjacent,
     or just adjacent in the parameter vector, or both.
 
     This class provides a template for smoothness classes of a specific
-    dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the Smoothness*D
-    classes.
+    dimension.
+
+    .. warning:: **DON'T USE THIS CLASS DIRECTLY!** Instead, use the
+        Smoothness*D classes.
 
     This regularizing function has the form
 
     .. math::
 
-        \\theta(\\bar{p}) = \\bar{p}^T\\bar{\\bar{R}}^T\\bar{\\bar{R}}\\bar{p}
+        \theta(\bar{p}) = \bar{p}^T\bar{\bar{R}}^T\bar{\bar{R}}\bar{p}
 
     The gradient and Hessian matrix are, respectively:
     
     .. math::
 
-        \\bar{g}(\\bar{p}) = 2\\bar{\\bar{R}}^T\\bar{\\bar{R}}\\bar{p}
+        \bar{g}(\bar{p}) = 2\bar{\bar{R}}^T\bar{\bar{R}}\bar{p}
 
     and
 
     .. math::
 
-        \\bar{\\bar{H}}(\\bar{p}) = 2\\bar{\\bar{R}}^T\\bar{\\bar{R}}
+        \bar{\bar{H}}(\bar{p}) = 2\bar{\bar{R}}^T\bar{\bar{R}}
 
-    where :math:`\\bar{\\bar{R}}` is a finite difference matrix. 
+    where :math:`\bar{\bar{R}}` is a finite difference matrix. 
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much smoothness to
         apply.
-    * nparams
+    * nparams : int
         Number of parameters in the inversion
     
     """
@@ -371,7 +375,7 @@ class Smoothness(Regularizer):
         self.rtr = numpy.dot(fdmat.T, fdmat)
 
     def _makefd(self, nparams):
-        raise NotImplementedError, "_makefd of Smoothness not implemented"
+        raise NotImplementedError("_makefd of Smoothness not implemented")
             
     def value(self, p):
         return self.mu*numpy.dot(p.T, numpy.dot(self.rtr, p))
@@ -385,34 +389,34 @@ class Smoothness(Regularizer):
         return hessian + (self.mu*2.)*self.rtr
 
 class Smoothness1D(Smoothness):
-    """
+    r"""
     Smoothness regularization for 1D problems. Also known as Tikhonov order 1.
     Imposes that adjacent parameters have values as close as possible to each
     other. By adjacent, I mean next to each other in the parameter vector,
     e.g., p[2] and p[3].
 
-    For example, if there are 7 parameters, matrix :math:`\\bar{\\bar{R}}` will
+    For example, if there are 7 parameters, matrix :math:`\bar{\bar{R}}` will
     be
 
     .. math::
 
-        \\bar{\\bar{R}} = 
-        \\begin{bmatrix}
-        1 & -1 & 0 & 0 & 0 & 0 & 0\\\\
-        0 & 1 & -1 & 0 & 0 & 0 & 0\\\\
-        0 & 0 & 1 & -1 & 0 & 0 & 0\\\\    
-        0 & 0 & 0 & 1 & -1 & 0 & 0\\\\    
-        0 & 0 & 0 & 0 & 1 & -1 & 0\\\\   
+        \bar{\bar{R}} = 
+        \begin{bmatrix}
+        1 & -1 & 0 & 0 & 0 & 0 & 0\\
+        0 & 1 & -1 & 0 & 0 & 0 & 0\\
+        0 & 0 & 1 & -1 & 0 & 0 & 0\\    
+        0 & 0 & 0 & 1 & -1 & 0 & 0\\    
+        0 & 0 & 0 & 0 & 1 & -1 & 0\\   
         0 & 0 & 0 & 0 & 0 & 1 & -1    
-        \\end{bmatrix}    
+        \end{bmatrix}    
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much smoothness to
         apply.
-    * nparams
+    * nparams : int
         Number of parameters in the inversion
     
     """
@@ -424,7 +428,7 @@ class Smoothness1D(Smoothness):
         return fdmatrix1d(nparams)
 
 class Smoothness2D(Smoothness):
-    """
+    r"""
     Smoothness regularization for 2D problems. Also known as Tikhonov order 1.
 
     Imposes that **spacially** adjacent parameters have values as close as
@@ -437,37 +441,37 @@ class Smoothness2D(Smoothness):
 
     .. math::
 
-        \\mathrm{grid} = 
-        \\begin{pmatrix}
-        p_1 & p_2 \\\\
+        \mathrm{grid} = 
+        \begin{pmatrix}
+        p_1 & p_2 \\
         p_3 & p_4
-        \\end{pmatrix}, \\quad
-        \\bar{p} = 
-        \\begin{pmatrix}
-        p_1 \\\\ p_2 \\\\
-        p_3 \\\\ p_4
-        \\end{pmatrix}
+        \end{pmatrix}, \quad
+        \bar{p} = 
+        \begin{pmatrix}
+        p_1 \\ p_2 \\
+        p_3 \\ p_4
+        \end{pmatrix}
 
-    In the case of our example above, the matrix :math:`\\bar{\\bar{R}}` will be
+    In the case of our example above, the matrix :math:`\bar{\bar{R}}` will be
 
     .. math::
 
-        \\bar{\\bar{R}} = 
-        \\begin{bmatrix}
-        1 & -1 & 0 & 0 \\\\
-        0 & 0 & 1 & -1 \\\\
-        1 & 0 & -1 & 0 \\\\    
-        0 & 1 & 0 & -1 \\\\    
-        \\end{bmatrix}    
+        \bar{\bar{R}} = 
+        \begin{bmatrix}
+        1 & -1 & 0 & 0 \\
+        0 & 0 & 1 & -1 \\
+        1 & 0 & -1 & 0 \\    
+        0 & 1 & 0 & -1 \\    
+        \end{bmatrix}    
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much smoothness to
         apply.
-    * shape
-        (ny, nx): number of parameters in each direction of the grid
+    * shape : tuple = (ny, nx)
+        Number of parameters in each direction of the grid
     
     """
 
@@ -478,7 +482,7 @@ class Smoothness2D(Smoothness):
         return fdmatrix2d(shape)
         
 class TotalVariation(Regularizer):
-    """
+    r"""
     Total variation regularization for n-dimensional problems. Imposes that
     adjacent parameters have values as close as possible to each other, in a
     **l1-norm** sense. What *adjacent* means depends of the dimension of the
@@ -491,85 +495,87 @@ class TotalVariation(Regularizer):
     discontinuities to appear.
 
     This class provides a template for total variation classes of a specific
-    dimension. **DON'T USE THIS CLASS DIRECTLY!** Instead, use the
-    TotalVariation*D classes.
+    dimension.
+
+    .. warning:: **DON'T USE THIS CLASS DIRECTLY!** Instead, use the
+        TotalVariation*D classes.
 
     This regularizing function has the form (Martins et al., 2011)
 
     .. math::
 
-        \\theta(\\bar{p}) = \\sum\\limits_{k=1}^L |v_k|
+        \theta(\bar{p}) = \sum\limits_{k=1}^L |v_k|
 
-    where :math:`v_k` is the kth element of vector :math:`\\bar{v}`
+    where :math:`v_k` is the kth element of vector :math:`\bar{v}`
 
     .. math::
     
-        \\bar{v} = \\bar{\\bar{R}}\\bar{p}
+        \bar{v} = \bar{\bar{R}}\bar{p}
 
-    Function :math:`\\theta(\\bar{p})` is not differentiable when :math:`v_k`
+    Function :math:`\theta(\bar{p})` is not differentiable when :math:`v_k`
     approaches zero. We can substitute it with a more friendly version
     (Martins et al., 2011)
 
     .. math::
 
-        \\theta_{\\beta}(\\bar{p}) = \\sum\\limits_{k=1}^L
-        \\sqrt{v_k^2 + \\beta}
+        \theta_{\beta}(\bar{p}) = \sum\limits_{k=1}^L
+        \sqrt{v_k^2 + \beta}
 
-    :math:`\\beta` should be small and controls how close this function is to
-    :math:`\\theta(\\bar{p})`. The larger the value of :math:`\\beta` is, the
-    closer :math:`\\theta_{\\beta}` is to the smoothness regularization.
+    :math:`\beta` should be small and controls how close this function is to
+    :math:`\theta(\bar{p})`. The larger the value of :math:`\beta` is, the
+    closer :math:`\theta_{\beta}` is to the smoothness regularization.
     
     The gradient and Hessian matrix are, respectively (Martins et al., 2011):
     
     .. math::
 
-        \\bar{g}(\\bar{p}) = \\bar{\\bar{R}}^T \\bar{q}(\\bar{p})
+        \bar{g}(\bar{p}) = \bar{\bar{R}}^T \bar{q}(\bar{p})
 
     and
 
     .. math::
 
-        \\bar{\\bar{H}}(\\bar{p}) = \\bar{\\bar{R}}^T\\bar{\\bar{Q}}(\\bar{p})
-        \\bar{\\bar{R}}
+        \bar{\bar{H}}(\bar{p}) = \bar{\bar{R}}^T\bar{\bar{Q}}(\bar{p})
+        \bar{\bar{R}}
 
-    where :math:`\\bar{\\bar{R}}` is a finite difference matrix, and
-    :math:`\\bar{q}` and :math:`\\bar{\\bar{Q}}` are
+    where :math:`\bar{\bar{R}}` is a finite difference matrix, and
+    :math:`\bar{q}` and :math:`\bar{\bar{Q}}` are
 
     .. math::
     
-        \\bar{q}(\\bar{p}) = 
-        \\begin{bmatrix}
-        \\frac{v_1}{\\sqrt{v_1^2 + \\beta}} \\\\
-        \\frac{v_2}{\\sqrt{v_2^2 + \\beta}} \\\\
-        \\vdots \\\\ \\frac{v_L}{\\sqrt{v_L^2 + \\beta}}
-        \\end{bmatrix}
+        \bar{q}(\bar{p}) = 
+        \begin{bmatrix}
+        \frac{v_1}{\sqrt{v_1^2 + \beta}} \\
+        \frac{v_2}{\sqrt{v_2^2 + \beta}} \\
+        \vdots \\ \frac{v_L}{\sqrt{v_L^2 + \beta}}
+        \end{bmatrix}
 
     and
     
     .. math::
 
-        \\bar{\\bar{Q}}(\\bar{p}) = 
-        \\begin{bmatrix}
-        \\frac{\\beta}{(v_1^2 + \\beta)^{\\frac{3}{2}}} & 0 & \\ldots & 0 \\\\
-        0 & \\frac{\\beta}{(v_2^2 + \\beta)^{\\frac{3}{2}}} & \\ldots & 0 \\\\
-        \\vdots & \\vdots & \\ddots & \\vdots \\\\
-        0 & 0 & \\ldots & \\frac{\\beta}{(v_L^2 + \\beta)^{\\frac{3}{2}}}
-        \\end{bmatrix}
+        \bar{\bar{Q}}(\bar{p}) = 
+        \begin{bmatrix}
+        \frac{\beta}{(v_1^2 + \beta)^{\frac{3}{2}}} & 0 & \ldots & 0 \\
+        0 & \frac{\beta}{(v_2^2 + \beta)^{\frac{3}{2}}} & \ldots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \ldots & \frac{\beta}{(v_L^2 + \beta)^{\frac{3}{2}}}
+        \end{bmatrix}
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much sharpness to
         apply.
-    * nparams
+    * nparams : int
         Number of parameters in the inversion
 
     References:
 
-    * Martins, C. M., W. A. Lima, V. C. F. Barbosa, and J. B. C. Silva, 2011,
-      Total variation regularization for depth-to-basement estimate: Part 1 -
-      mathematical details and applications: Geophysics, 76, I1-I12.
+    Martins, C. M., W. A. Lima, V. C. F. Barbosa, and J. B. C. Silva, 2011,
+    Total variation regularization for depth-to-basement estimate: Part 1 -
+    mathematical details and applications: Geophysics, 76, I1-I12.
     
     """
 
@@ -579,7 +585,7 @@ class TotalVariation(Regularizer):
         self.beta = float(beta)
 
     def _makefd(self, nparams):
-        raise NotImplementedError, "_makefd of TotalVariation not implemented"
+        raise NotImplementedError("_makefd of TotalVariation not implemented")
             
     def value(self, p):
         return self.mu*numpy.linalg.norm(numpy.dot(self.fdmat, p), 1)
@@ -588,7 +594,7 @@ class TotalVariation(Regularizer):
         if p is None:
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
-            raise ValueError, msg
+            raise ValueError(msg)
         v = numpy.dot(self.fdmat, p)
         self.sqrt = numpy.sqrt(v**2 + self.beta)
         q = v/self.sqrt
@@ -598,13 +604,13 @@ class TotalVariation(Regularizer):
         if p is None:
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
-            raise ValueError, msg
+            raise ValueError(msg)
         Qdiag = self.beta/(self.sqrt**3) + 1.
         #Qdiag = self.beta/(self.sqrt**3)
         return hessian + self.mu*numpy.dot(self.fdmat.T*Qdiag, self.fdmat)
 
 class TotalVariation1D(TotalVariation):
-    """
+    r"""
     Total variation regularization for 1D problems.
 
     Imposes that adjacent parameters have values as close as possible to each
@@ -612,19 +618,19 @@ class TotalVariation1D(TotalVariation):
     parameter vector, e.g., p[2] and p[3].
 
     In other words, total variation imposes sharpness on the solution. See
-    :class:`fatiando.inversion.regularizer.TotalVariation` for more
+    :class:`~fatiando.inversion.regularizer.TotalVariation` for more
     explanation on this. See
-    :class:`fatiando.inversion.regularizer.Smoothness1D` for details on
-    matrix :math:`\\bar{\\bar{R}}`.
+    :class:`~fatiando.inversion.regularizer.Smoothness1D` for details on
+    matrix :math:`\bar{\bar{R}}`.
 
 
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much sharpness to
         apply.
-    * nparams
+    * nparams : int
         Number of parameters in the inversion
     
     """
@@ -636,7 +642,7 @@ class TotalVariation1D(TotalVariation):
         return fdmatrix1d(nparams)
 
 class TotalVariation2D(TotalVariation):
-    """
+    r"""
     Total variation regularization for 1D problems.
 
     Imposes that spacially adjacent parameters have values as close as possible
@@ -645,18 +651,18 @@ class TotalVariation2D(TotalVariation):
     flattened to make the parameter vector.
         
     In other words, total variation imposes sharpness on the solution. See
-    :class:`fatiando.inversion.regularizer.TotalVariation` for more
-    explanation on this. See :
-    class:`fatiando.inversion.regularizer.Smoothness2D`
-    for details on matrix :math:`\\bar{\\bar{R}}`.
+    :class:`~fatiando.inversion.regularizer.TotalVariation` for more
+    explanation on this. See
+    :class:`~fatiando.inversion.regularizer.Smoothness2D`
+    for details on matrix :math:`\bar{\bar{R}}`.
     
     Parameters:
         
-    * mu
+    * mu : float
         The regularizing parameter. A positve scalar that controls the tradeoff
         between data fitting and regularization. I.e., how much smoothness to
         apply.
-    * shape
+    * shape : tuple = (ny, nx)
         (ny, nx): number of parameters in each direction of the grid
     
     """
@@ -671,17 +677,17 @@ def fdmatrix1d(n):
     """
     Make a finite difference matrix for a 1D problem.
 
-    See :class:`fatiando.inversion.regularizer.Smoothness1D` for more
+    See :class:`~fatiando.inversion.regularizer.Smoothness1D` for more
     explanation on this matrix.
 
     Parameters:
 
-    * n
+    * n : int
         Number of elements in the parameter vector
 
     Returns:
 
-    * fdmat
+    * fdmat : array
         The finite difference matrix for of a 1D problem with n parameters
         
     """
@@ -695,29 +701,29 @@ def fdmatrix2d(shape, sparse=False):
     """
     Make a finite difference matrix for a 2D problem.
 
-    See :class:`fatiando.inversion.regularizer.Smoothness2D` for more
+    See :class:`~fatiando.inversion.regularizer.Smoothness2D` for more
     explanation on this matrix.
 
     The diagonal derivatives are not taken into account.  
 
     Parameters:
 
-    * shape
+    * shape : tuple = (ny, nx)
         (ny, nx): number of parameters in each direction of the grid
         representing the interpretative model.
-    * sparse
+    * sparse : True or False
         If True, will use `scipy.sparse.csr_matrix` instead of normal numpy
         arrays
 
     Returns:
 
-    * fdmat
+    * fdmat : aray
         The finite difference matrix for of a 2D problem
         
     """
     if sparse:
         msg = "Sparse 2D finite-difference matrix not implemented"
-        raise NotImplementedError, msg
+        raise NotImplementedError(msg)
     ny, nx = shape
     deriv_num = (nx - 1)*ny + (ny - 1)*nx
     fdmat = numpy.zeros((deriv_num, nx*ny))

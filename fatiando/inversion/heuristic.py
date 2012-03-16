@@ -19,12 +19,13 @@ Heuristic solvers for generic inverse problems.
 
 **Sorry, nothing yet...**
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 26-Jan-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 26-Jan-2012'
-
 
 import numpy
 
