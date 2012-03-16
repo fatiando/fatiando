@@ -20,14 +20,15 @@ total mass.
 
 **Transformations**
 
-* :func:`fatiando.potential.transform.upcontinue`
+* :func:`~fatiando.potential.transform.upcontinue`
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 20-Oct-2010'
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 20-Oct-2010'
 
 import math
 import time
@@ -51,47 +52,50 @@ def upcontinue(gz, z0, height, xp, yp, dims):
         {\infty} g_z(x',y',z_0) \\frac{1}{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
         ]^{\\frac{3}{2}}} dx' dy'
 
-    **Data needs to be on a regular grid.**
+    .. note:: Data needs to be on a regular grid!
 
-    **UNITS**: SI for all coordinates, mGal for :math:`g_z`
+    .. note:: Units are SI for all coordinates and mGal for :math:`g_z`
 
-    NOTE: be aware of coordinate systems! The *x*, *y*, *z* coordinates are
-    x -> North, y -> East and z -> **DOWN**.
+    .. note:: be aware of coordinate systems! The *x*, *y*, *z* coordinates are:
+        x -> North, y -> East and z -> **DOWN**.
 
     Parameters:
     
-    * gz
-        Array with the gravity values on the grid points
-    * z0
+    * gz : array
+        The gravity values on the grid points
+    * z0 : float
         Original z coordinate of the observations
-        (Remember: z is positive downward!)
-    * height
+
+        .. note:: Remember that z is positive downward!
+        
+    * height : float
         How much higher to move the gravity field (should be POSITIVE!)
-        Will be subtracted from z0 to obtain the new z coordinate of the
+        Will be subtracted from *z0* to obtain the new z coordinate of the
         continued observations.
-    * xp, yp
-        Arrays with the x and y coordinates of the grid points
-    * dims
-        [dy, dx]: the grid spacing in the y and x directions
+    * xp, yp : arrays
+        The x and y coordinates of the grid points
+    * dims : list = [dy, dx]
+        The grid spacing in the y and x directions
 
     Returns:
     
-    * gzcont
-        Array with the upward continued :math:`g_z`
+    * gzcont : array
+        The upward continued :math:`g_z`
 
     """
-    dy, dx = dims
     if len(xp) != len(yp):
-        raise ValueError, "xp and yp arrays must have same lengths"
+        raise ValueError("xp and yp arrays must have same lengths")
     if height < 0:
-        raise ValueError, "'height' should be positive"
+        raise ValueError("'height' should be positive")
+    dy, dx = dims
     newz = z0 - height
     log.info("Upward continuation using the analytical formula:")
     log.info("  original z coordinate: %g m" % (z0))
     log.info("  height increment: %g m" % (height))
     log.info("  new z coordinate: %g m" % (newz))
+    log.info("  grid spacing [dy, dx]: %s m" % (str(dims)))
     start = time.time()
     gzcont = _transform.upcontinue(gz, z0, newz, xp, yp, dx, dy)
     end = time.time()
-    log.info("  time: %g s" % (end - start))
+    log.info("  time to calculate: %g s" % (end - start))
     return gzcont
