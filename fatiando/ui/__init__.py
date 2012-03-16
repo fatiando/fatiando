@@ -20,22 +20,24 @@ simple map picking, to full graphical user interfaces (GUI).
 
 **Map picking**
 
-* :mod:`fatiando.ui.picker`
+* :mod:`~fatiando.ui.picker`
 
 Click on matplotlib plots to extract the coordinates of points into your script,
 draw polygons, lines, etc.
 
 **GUIs**
 
-* :mod:`fatiando.ui.gui`
+* :mod:`~fatiando.ui.gui`
 
 Classes for various GUI interfaces for different ``fatiando`` modules. 
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 01-Feb-2012
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
    
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 01-Feb-2012'
 
 from fatiando.ui import picker, gui
 

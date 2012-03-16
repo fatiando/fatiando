@@ -75,7 +75,7 @@ def setrevison(version):
 
 if __name__ == '__main__':
 
-    version = '0.0.1'
+    version = '0.1.dev'
     setrevison(version)
     setup(name='fatiando',
           fullname="Fatiando a Terra",

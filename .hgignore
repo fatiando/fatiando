@@ -10,3 +10,6 @@ dist
 MANIFEST
 fatiando/version.py
 mylogfile.log
+mydata.txt
+myresultsfile-density.den
+myresultsfile.msh
