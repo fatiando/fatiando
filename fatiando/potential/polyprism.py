@@ -20,7 +20,7 @@ crossection using the forumla of Plouff (1976).
 
 **Gravity**
 
-* :func:`fatiando.potential.polyprism.gz`
+* :func:`~fatiando.potential.polyprism.gz`
 
 **References**
 
@@ -28,11 +28,13 @@ Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
     applications to magnetic terrain corrections, Geophysics, 41(4),
     727-741.
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 28-Sep-2011
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 28-Sep-2011'
 
 import numpy
 
@@ -46,25 +48,26 @@ def gz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with x, y, and z coordinates of the computation points.
-    * prisms
-        List of :func:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates of the computation points.
+    * prisms : list
+        List of :func:`~fatiando.mesher.ddd.PolygonalPrism` objects.
 
     Returns:
     
-    * List with the :math:`g_z` component calculated on the computation points.
+    * gz : array
+        The :math:`g_z` component calculated on the computation points.
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for p in prisms:
         if p is not None:
