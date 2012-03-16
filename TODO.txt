@@ -10,6 +10,7 @@
         * utils
         * seismic.epicenter
         * seismic.profile
+        * seismic.srtomo
         * heat
         * gridder
         * vis
@@ -25,4 +26,4 @@
 * Fix recipe epicenter_regularized.py
 * In vtk.prisms: get rid of scalars and ask for a prop name instead. if the prism
 doesn't have the prop, its not plotted. Optional, give prop=None and the prisms
-are plotted with a 0 scalar value.
+are plotted with a 0 scalar value. Do the same for vis.map.squaremesh
