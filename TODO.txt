@@ -1,20 +1,3 @@
-* New doc style:
-    * make every example a doctest
-    * use "name : type" parameter description
-    * in modules include
-        * :author:
-        * :date:
-        * :license:
-    DONE:
-        * mesher
-        * utils
-        * seismic
-        * heat
-        * gridder
-        * vis
-        * ui
-        * potential
-        * inversion
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props
