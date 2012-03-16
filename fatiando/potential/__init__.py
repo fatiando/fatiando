@@ -17,38 +17,39 @@
 """
 Potential field direct modeling, inversion, transformations and utilities.
 
-**DIRECT MODELLING**
+**Direct modelling**
 
-* :mod:`fatiando.potential.prism`
-* :mod:`fatiando.potential.polyprism`
-* :mod:`fatiando.potential.talwani`
+* :mod:`~fatiando.potential.prism`
+* :mod:`~fatiando.potential.polyprism`
+* :mod:`~fatiando.potential.talwani`
 
 The direct modeling modules provide ways to calculate the gravitational and
 magnetic field of various types of geometric objects. For 3D right rectangular
-prisms, use :mod:`fatiando.potential.prism`. For 2D bodies with polygonal
-vertical cross-sections, use :mod:`fatiando.potential.talwani`. For 3D bodies
+prisms, use :mod:`~fatiando.potential.prism`. For 2D bodies with polygonal
+vertical cross-sections, use :mod:`~fatiando.potential.talwani`. For 3D bodies
 with polygonal horizontal cross-sections, use
-:mod:`fatiando.potential.polyprism`.
+:mod:`~fatiando.potential.polyprism`.
 
-**INVERSION**
+**Inversion**
 
-* :mod:`fatiando.potential.basin2d`
+* :mod:`~fatiando.potential.basin2d`
 
 The inverse modeling modules use the direct models and the
-:mod:`fatiando.inversion` package to solve potential field inverse problems.
+:mod:`~fatiando.inversion` package to solve potential field inverse problems.
 
-**PROCESSING**
+**Processing**
 
-* :mod:`fatiando.potential.transform`
+* :mod:`~fatiando.potential.transform`
 
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 16-Mar-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 16-Mar-2010'
-
 
 from fatiando.potential import prism, polyprism, transform, talwani
