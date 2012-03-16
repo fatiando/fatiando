@@ -160,7 +160,7 @@ Modules :mod:`~fatiando.seismic.profile`, :mod:`~fatiando.seismic.srtomo`,
 implement simple inverse problems using :mod:`~fatiando.inversion.datamodule`,
 :mod:`~fatiando.inversion.regularizer` and the solvers. They are good examples
 of how to use the :mod:`~fatiando.inversion` package.
-        
+
 :author: Leonardo Uieda (leouieda@gmail.com)
 :date: Created 02-Apr-2010
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)      
