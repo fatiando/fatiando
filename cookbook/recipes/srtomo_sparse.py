@@ -33,13 +33,13 @@ solver = inversion.gradient.steepest(numpy.zeros(mesh.size))
 results = srtomo.run(ttimes, srcs, recs, mesh, solver, sparse=True,
                      damping=0.05)
 estimate, residuals = results
+mesh.addprop('vp', estimate)
 
 pyplot.figure(figsize=(14, 5))
 pyplot.subplot(1, 2, 1)
 pyplot.axis('scaled')
 pyplot.title('Vp synthetic model of the Earth')
-vis.map.squaremesh(model, model.props['vp'], vmin=4, vmax=10,
-               cmap=pyplot.cm.seismic)
+vis.map.squaremesh(model, prop='vp', vmin=4, vmax=10, cmap=pyplot.cm.seismic)
 cb = pyplot.colorbar()
 cb.set_label('Velocity')
 vis.map.points(src_loc, '*y', label="Sources")
@@ -48,7 +48,7 @@ pyplot.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
 pyplot.subplot(1, 2, 2)
 pyplot.axis('scaled')
 pyplot.title('Tomography result')
-vis.map.squaremesh(mesh, estimate, vmin=0.1, vmax=0.25,
+vis.map.squaremesh(mesh, prop='vp', vmin=0.1, vmax=0.25,
     cmap=pyplot.cm.seismic_r)
 cb = pyplot.colorbar()
 cb.set_label('Slowness')

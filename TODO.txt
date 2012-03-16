@@ -7,6 +7,3 @@
   Instead, use sparse=True keyword arguments
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
 * Fix recipe epicenter_regularized.py
-* In vtk.prisms: get rid of scalars and ask for a prop name instead. if the prism
-doesn't have the prop, its not plotted. Optional, give prop=None and the prisms
-are plotted with a 0 scalar value. Do the same for vis.map.squaremesh

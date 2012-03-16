@@ -203,7 +203,7 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         pyplot.fill(xs, ys, color=fill, alpha=alpha)
     return plot
 
-def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
+def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     """
     Make a pseudo-color plot of a mesh of squares
     
@@ -212,8 +212,8 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     * mesh : :class:`~fatiando.mesher.dd.SquareMesh` or compatible
         The mesh (a compatible mesh must implement the methods ``get_xs`` and
         ``get_ys``)
-    * scalars : array
-        Array with the scalar value assigned to each square in the mesh
+    * prop : str
+        The physical property of the squares to use as the color scale.
     * cmap : colormap
         Color map to be used. (see pyplot.cm module)
     * vmin, vmax : float
@@ -225,10 +225,13 @@ def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
         The axes element of the plot
 
     """
+    if prop not in mesh.props:
+        raise ValueError("Can't plot because 'mesh' doesn't have property '%s'"
+                         % (prop))
     xs = mesh.get_xs()
     ys = mesh.get_ys()
     X, Y = numpy.meshgrid(xs, ys)
-    V = numpy.reshape(scalars, mesh.shape)
+    V = numpy.reshape(mesh.props[prop], mesh.shape)
     plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)
     pyplot.xlim(xs.min(), xs.max())
     pyplot.ylim(ys.min(), ys.max())

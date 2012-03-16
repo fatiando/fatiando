@@ -17,7 +17,7 @@ mesh.img2prop(imgfile, 5, 10, 'slowness')
 
 pyplot.figure()
 pyplot.title('Slowness model of the Earth')
-vis.map.squaremesh(mesh, mesh.props['slowness'])
+vis.map.squaremesh(mesh, prop='slowness')
 cb = pyplot.colorbar()
 cb.set_label("Slowness")
 pyplot.show()
