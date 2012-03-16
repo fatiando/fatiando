@@ -18,20 +18,22 @@
 Various tools for seismic and seismology, like direct modeling, inversion
 (tomography), epicenter determination, etc.
 
-**DIRECT MODELING AND INVERSION**
+**Direct modeling and inversion**
 
-* :mod:`fatiando.seismic.traveltime`
-* :mod:`fatiando.seismic.epicenter`
-* :mod:`fatiando.seismic.profile`
+* :mod:`~fatiando.seismic.traveltime`
+* :mod:`~fatiando.seismic.epicenter`
+* :mod:`~fatiando.seismic.profile`
 
-**TOMOGRAPHY**
+**Tomography**
 
-* :mod:`fatiando.seismic.srtomo`
+* :mod:`~fatiando.seismic.srtomo`
+
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 11-Sep-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
 
 from fatiando.seismic import epicenter, traveltime, srtomo, profile

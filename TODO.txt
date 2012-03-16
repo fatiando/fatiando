@@ -9,6 +9,7 @@
         * mesher
         * utils
         * seismic.epicenter
+        * seismic.profile
         * heat
         * gridder
         * vis
