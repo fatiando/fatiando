@@ -23,7 +23,7 @@ total mass.
 * :func:`~fatiando.potential.transform.upcontinue`
 
 :author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 20-Oct-2010'
+:date: Created 20-Oct-2010
 :license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----

@@ -19,9 +19,9 @@ Everything you need to solve inverse problems.
 
 The main components of this package are:
 
-**REGULARIZING FUNCTIONS**
+**Regularizing functions**
 
-* :mod:`fatiando.inversion.regularizer`
+* :mod:`~fatiando.inversion.regularizer`
 
 This module has many classes that implement a range of regularzing functions.
 These classes know how to calculate the Hessian matrix, gradient vector, and
@@ -31,14 +31,14 @@ designed for a specific parametrization (2D or 3D grids, for example).
 
 The regularizer classes can be passed to any inverse problem solver (bellow).
 
-See the :class:`fatiando.inversion.regularizer.Regularizer` class for the
+See the :class:`~fatiando.inversion.regularizer.Regularizer` class for the
 general structure the solvers expect from regularizer classes.
 
-**INVERSE PROBLEM SOLVERS**
+**Inverse problem solvers**
 
-* :mod:`fatiando.inversion.linear`
-* :mod:`fatiando.inversion.gradient`
-* :mod:`fatiando.inversion.heuristic`
+* :mod:`~fatiando.inversion.linear`
+* :mod:`~fatiando.inversion.gradient`
+* :mod:`~fatiando.inversion.heuristic`
 
 These modules have factory functions that generate generic inverse problem
 solvers. Instead of solving the inverse problem, they return a solver function
@@ -50,8 +50,8 @@ Generators are Python functions that have a ``yield`` statement instead of a
 ``for`` loops and return one iteration of the solving process per loop
 iteration.
 The solver functions receive only two parameters: a list of data modules
-(:mod:`fatiando.inversion.datamodule`) and a list of regularizers
-(:mod:`fatiando.inversion.regularizer`).
+(:mod:`~fatiando.inversion.datamodule`) and a list of regularizers
+(:mod:`~fatiando.inversion.regularizer`).
 Data modules know how to calculate things like the Hessian matrix and gradient
 vector for a given data set and parametrization (specific to a given inverse
 problem). Regularizers know how to calculate the same things but for a given
@@ -81,6 +81,9 @@ A typical factory function for an iterative solver looks like::
         # The factory function returns the solver function (Python magic) which
         # can be passed to a particular inverse problem.
         return solver
+
+
+**Example of using a solver**
 
 Lets say I have a module that solves a particular inverse problem called
 ``myinvprob.py``. This module would look something like this::
@@ -148,14 +151,23 @@ These solvers can then be called from scripts, like so::
     for estimate in myinvprob.iterate(data, solver, damping=0.1):
         # Plot estimate
         ...
-            
+
+
+**Real usage examples**
+
+Modules :mod:`~fatiando.seismic.profile`, :mod:`~fatiando.seismic.srtomo`,
+:mod:`~fatiando.heat.climatesignal`, and :mod:`~fatiando.potential.basin2d`
+implement simple inverse problems using :mod:`~fatiando.inversion.datamodule`,
+:mod:`~fatiando.inversion.regularizer` and the solvers. They are good examples
+of how to use the :mod:`~fatiando.inversion` package.
+        
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 02-Apr-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)      
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
-
 
 from fatiando.inversion import (datamodule,
                                 regularizer,
