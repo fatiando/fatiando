@@ -18,11 +18,11 @@
 Wrappers for calls to Mayavi2's `mlab` module for plotting
 :mod:`~fatiando.mesher.ddd` objects and automating common tasks.
 
-**OBJECTS**
+**Objects**
 
 * :func:`~fatiando.vis.vtk.prisms`
 
-**HELPERS**
+**Helpers**
 
 * :func:`~fatiando.vis.vtk.figure`
 * :func:`~fatiando.vis.vtk.add_outline`
