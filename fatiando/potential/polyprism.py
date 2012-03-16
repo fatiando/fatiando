@@ -25,8 +25,7 @@ crossection using the forumla of Plouff (1976).
 **References**
 
 Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
-    applications to magnetic terrain corrections, Geophysics, 41(4),
-    727-741.
+applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 
 :author: Leonardo Uieda (leouieda@gmail.com)
 :date: Created 28-Sep-2011

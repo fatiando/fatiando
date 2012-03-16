@@ -20,13 +20,13 @@ using the forumla of Nagy et al. (2000)
 
 **Gravity**
 
-* :func:`fatiando.potential.prism.gz`
-* :func:`fatiando.potential.prism.gxx`
-* :func:`fatiando.potential.prism.gxy`
-* :func:`fatiando.potential.prism.gxz`
-* :func:`fatiando.potential.prism.gyy`
-* :func:`fatiando.potential.prism.gyz`
-* :func:`fatiando.potential.prism.gzz`
+* :func:`~fatiando.potential.prism.gz`
+* :func:`~fatiando.potential.prism.gxx`
+* :func:`~fatiando.potential.prism.gxy`
+* :func:`~fatiando.potential.prism.gxz`
+* :func:`~fatiando.potential.prism.gyy`
+* :func:`~fatiando.potential.prism.gyz`
+* :func:`~fatiando.potential.prism.gzz`
 
 **Magnetic**
 
@@ -34,14 +34,16 @@ using the forumla of Nagy et al. (2000)
 **References**
 
 Nagy, D., G. Papp, and J. Benedek, 2000, The gravitational potential and its
-    derivatives for the prism: Journal of Geodesy, 74, 552--560,
-    doi: 10.1007/s001900000116.
+derivatives for the prism: Journal of Geodesy, 74, 552--560,
+doi: 10.1007/s001900000116.
     
+:author: Leonardo Uieda (leouieda@gmail.com)
+:date: Created 11-Sep-2010
+:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 11-Sep-2010'
 
 import logging
 
@@ -57,26 +59,30 @@ def gz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_z` component calculated on *points*
+    * gz : array
+        The :math:`g_z` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -89,26 +95,30 @@ def gxx(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{xx}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{xx}` component calculated on *points*
+    * gxx : array
+        The :math:`g_{xx}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -121,26 +131,30 @@ def gxy(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{xy}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{xy}` component calculated on *points*
+    * gxy : array
+        The :math:`g_{xy}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -153,26 +167,30 @@ def gxz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{xz}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{xz}` component calculated on *points*
+    * gxz : array
+        The :math:`g_{xz}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -185,26 +203,30 @@ def gyy(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{yy}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{yy}` component calculated on *points*
+    * gyy : array
+        The :math:`g_{yy}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -217,26 +239,30 @@ def gyz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{yz}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{yz}` component calculated on *points*
+    * gyz : array
+        The :math:`g_{yz}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
@@ -249,26 +275,30 @@ def gzz(xp, yp, zp, prisms):
     """
     Calculates the :math:`g_{zz}` gravity acceleration component.
 
-    The coordinate system of the input parameters is to be x -> North,
-    y -> East and z -> **DOWN**.
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
 
-    **NOTE**: All input values in **SI** units(!) and output in **Eotvos**!
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
     Parameters:
     
-    * xp, yp, zp
-        Lists with (x,y,z) coordinates of the computation points.
-        Ex: points = [[1,2,3], [2,3,4]]
-    * prisms
-        List of :func:`fatiando.mesher.ddd.Prism` objects.
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have this
+        property will be ignored in the computations. Elements of *prisms* that
+        are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.ddd.PrismMesh`.
 
     Returns:
     
-    * List with the :math:`g_{zz}` component calculated on *points*
+    * gzz : array
+        The :math:`g_{zz}` component calculated on *points*
 
     """
     if xp.shape != yp.shape != zp.shape:
-        raise ValueError, "Input arrays xp, yp, and zp must have same shape!"
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is not None and 'density' in prism.props:
