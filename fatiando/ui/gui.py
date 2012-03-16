@@ -133,7 +133,8 @@ class Moulder():
         self.predplot, = self.dcanvas.plot([], [], '-r', linewidth=2)
         if self.gz is not None:
             self.gzplot, = self.dcanvas.plot(xp*0.001, gz, 'ok')
-        self.nextdens = 0.
+        self.nextdens = 1000.
+        self.densslider.set_val(self.nextdens*0.001)
         self.error = 0.
         self.densities = []
         self.polygons = []
@@ -303,7 +304,7 @@ class BasinTrap(Moulder):
         left, right = numpy.array(nodes)*0.001
         z1 = z2 = 0.001*0.5*(area[3] - area[2])
         self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
-        self.densities = [0.]
+        self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
         self.ploty = [v[1] for v in self.polygons[0]]
@@ -406,7 +407,7 @@ class BasinTri(Moulder):
         z = 0.001*0.5*(area[3] - area[2])
         x = 0.5*(right[0] + left[0])
         self.polygons = [[left, right, [x, z]]]
-        self.densities = [0.]
+        self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
         self.ploty = [v[1] for v in self.polygons[0]]
