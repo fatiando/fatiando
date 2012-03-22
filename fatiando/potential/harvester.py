@@ -254,7 +254,7 @@ def loadseeds(fname):
         and *props1* is list with the values of the first physical property,
         *props2* the second, etc.
 
-    Example::
+    Example:
 
         >>> from StringIO import StringIO
         >>> file = StringIO("1 2 3 4 5\\n6 7 8 9 -1")
@@ -266,10 +266,22 @@ def loadseeds(fname):
         [ 4.  9.]
         >>> print props2
         [ 5. -1.]
-        
+
+        >>> from StringIO import StringIO
+        >>> file = StringIO("1 2 3 4 5")
+        >>> points, props1, props2 = loadseeds(file)
+        >>> print points
+        [[ 1.  2.  3.]]
+        >>> print props1
+        [ 4.]
+        >>> print props2
+        [ 5.]        
     
     """
     data = numpy.loadtxt(fname, unpack=True)
+    # In case there is only one seed
+    if len(data.shape) == 1:
+        data.shape = (data.shape[0], 1)
     points = data[0:3].T
     output = [points]
     for prop in data[3:]:
