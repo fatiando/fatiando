@@ -93,4 +93,4 @@ Testing
 Fatiando uses ``nose`` to run the unit test suite as well as the doctests. To
 run the tests, go to the directory with the ``fatiando`` package and run::
 
-    nosetests
+    nosetests fatiando
