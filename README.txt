@@ -42,8 +42,8 @@ Installing
 At the moment, there are few options for installing Fatiando from source on
 GNU/Linux (sorry Windows users, we're working on it):
 
-0 - For all options, download the source from `http://www.fatiando.org`_
-1 - Using ``pip``:
+1. For all options, download the source from `http://www.fatiando.org`_
+2. Using ``pip``:
 
     * Install `pip <http://pypi.python.org/pypi/pip>`_
     * Run::
@@ -54,7 +54,7 @@ GNU/Linux (sorry Windows users, we're working on it):
 
         pip uninstall fatiando
         
-2 - Using the setup.py script:
+3. Using the setup.py script:
 
     * Unpack the .tar.gz file anywhere (say, ``~/src/fatiando``)
     * Go to where you unpacked it and run::
@@ -83,8 +83,8 @@ License
 Fatiando a Terra is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-A copy of this license is provided in file LICENSE.txt
+(at your option) any later version. A copy of this license is provided in file
+LICENSE.txt
 
 
 Testing
