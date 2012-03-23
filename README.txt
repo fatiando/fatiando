@@ -3,11 +3,10 @@ Fatiando a Terra
 ================
 
 
-Fatiando a Terra provides an API for a variety of methods of geophysical
-modeling and inversion.
+Fatiando a Terra is an API for geophysical modeling and inversion.
 
 For more information, documentation, download, and installing, visit the
-`official site <http://www.fatiando.org>`_
+`official site <http://www.fatiando.org/>`_
 
 Dependencies
 ------------
@@ -19,7 +18,6 @@ Fatiando requires the following packages:
 * matplotlib
 * mayavi
 * PIL
-* nose (for running the tests)
 
 All of these can be found on most GNU/Linux distros. On Windows, we recommend
 downloading `PythonXY <http://code.google.com/p/pythonxy/>`_. It comes with
@@ -37,12 +35,12 @@ luck).
 
 
 Installing
------------
+----------
 
 At the moment, there are few options for installing Fatiando from source on
 GNU/Linux (sorry Windows users, we're working on it):
 
-1. For all options, download the source from `http://www.fatiando.org`_
+1. Download the source from `the official site <http://www.fatiando.org>`_
 2. Using ``pip``:
 
     * Install `pip <http://pypi.python.org/pypi/pip>`_
@@ -54,16 +52,17 @@ GNU/Linux (sorry Windows users, we're working on it):
 
         pip uninstall fatiando
         
-3. Using the setup.py script:
+3. If don't want to install ``pip``, you can use the ``setup.py`` script:
 
     * Unpack the .tar.gz file anywhere (say, ``~/src/fatiando``)
     * Go to where you unpacked it and run::
 
         python setup.py install
 
+
 .. note:: Using ``pip`` is the preferred option since it's the more modern
     way (see `The Guide <http://guide.python-distribute.org/index.html>`_ for
-    more information about this). Also, using setup.py doesn't give you an
+    more information about this). Using ``setup.py`` doesn't give you an
     uninstall option.
 
 
@@ -88,9 +87,10 @@ LICENSE.txt
 
 
 Testing
---------
+-------
 
-Fatiando uses ``nose`` to run the unit test suite as well as the doctests. To
-run the tests, go to the directory with the ``fatiando`` package and run::
+Fatiando uses `nose <https://github.com/nose-devs/nose>`_ to run the unit tests
+and doctests. To run the tests, install nose, go to the directory with the
+``fatiando`` package and run::
 
     nosetests fatiando
