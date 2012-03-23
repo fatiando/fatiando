@@ -61,10 +61,10 @@ GNU/Linux (sorry Windows users, we're working on it):
 
         python setup.py install
 
-.. note:: that using ``pip`` is the preferred option since it's the more modern
-way (see `The Guide <http://guide.python-distribute.org/index.html>`_ for more
-information about this). Also, using setup.py doesn't give you an uninstall
-option.
+.. note:: Using ``pip`` is the preferred option since it's the more modern
+    way (see `The Guide <http://guide.python-distribute.org/index.html>`_ for
+    more information about this). Also, using setup.py doesn't give you an
+    uninstall option.
 
 
 The team
