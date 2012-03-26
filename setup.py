@@ -18,9 +18,15 @@
 Build extention modules, package and install Fatiando.
 Uses the numpy's extension of distutils to build the f2py extension modules
 """
-from os.path import join
+import sys
 import subprocess
-from numpy.distutils.core import setup, Extension
+from os.path import join
+try:
+    from numpy.distutils.core import setup, Extension
+except ImportError:
+    print ("Sorry, Numpy <http://numpy.org/> and a C compiler are needed to " +
+           "build Fatiando.")
+    sys.exit()
 
 # Base paths for extention modules
 potdir = join('src', 'potential')
@@ -83,11 +89,12 @@ if __name__ == '__main__':
           long_description=long_description,
           version=version,
           author="Leonardo Uieda",
-          author_email='leouieda at gmail dot com',
+          author_email='leouieda[at]gmail[dot]com',
           license='GNU LGPL',
           url="www.fatiando.org",
           platforms="Linux",
           scripts=[],
           packages=packages,
-          ext_modules=extmods
+          ext_modules=extmods,
+          install_requires=['numpy']
          )
