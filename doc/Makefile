@@ -13,8 +13,13 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
 
+requires:
+	@pip freeze | grep -i -E "(numpy|scipy|matplotlib|mayavi|tvtk|PIL)" > requires.txt
+	@cat requires.txt
+
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  requires   to make a dependencies file using pip freeze"
 	@echo "  html       to make standalone HTML files"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
