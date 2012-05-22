@@ -42,8 +42,8 @@ Contents of this documentation:
     :maxdepth: 1
 
     license.rst
-    api/index.rst
-    cookbook/index.rst
     contributors.rst
+    cookbook/index.rst
+    api/index.rst
 
 
