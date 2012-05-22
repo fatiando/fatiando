@@ -1,3 +1,27 @@
+GOALS FOR 1.0:
+
+* Make Developement Guide
+* Reconsider the API. Make explicit apis for each method (potential, etc) that
+  imports all you might need (with shorter names). Maybe something like:
+     from fatiando.apis import pot
+  which loads all potential modules, gridder, logger, etc
+
+
+GOALS FOR 0.1:
+
+* Migrate C extensions from f2py to Cython
+* Incorporate Tesseroids: gravitational modeling in spherical coordinates
+
+
+
+PRIORITY:
+
+* Make the setup script put the version hash in a file. Then version.py will
+  load the hash from file and put a "UNKNOWN" if it can't read (so that Read The
+  Docs builds don't fail)
+
+TODO:
+
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props
@@ -5,5 +29,9 @@
   version)
 * Consider getting rid of use_sparse functions and DampingSparse type regularizers.
   Instead, use sparse=True keyword arguments
-* BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
 * Fix recipe epicenter_regularized.py
+
+
+BUGS:
+
+* BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
