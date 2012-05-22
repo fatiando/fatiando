@@ -1,10 +1,6 @@
 GOALS FOR 1.0:
 
 * Make Developement Guide
-* Reconsider the API. Make explicit apis for each method (potential, etc) that
-  imports all you might need (with shorter names). Maybe something like:
-     from fatiando.apis import pot
-  which loads all potential modules, gridder, logger, etc
 
 
 GOALS FOR 0.1:
@@ -13,6 +9,11 @@ GOALS FOR 0.1:
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Hand-made docs of modules that rely on C extensions to avoid having to build
   the program everytime the docs are built
+* Reconsider the API. Make explicit apis for each method (potential, etc) that
+  imports all you might need (with shorter names). Maybe something like:
+     from fatiando.apis import pot
+  which loads all potential modules, gridder, logger, etc
+  Or a single fatlab for everything.
 
 
 PRIORITY:

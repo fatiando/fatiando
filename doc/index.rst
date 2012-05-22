@@ -1,5 +1,5 @@
-Overview
----------
+Welcome to Fatiando a Terra
+===========================
 
 Fatiando a Terra is an open source toolkit for geophysical modeling and
 inversion. Fatiando provides an easy and flexible way to perform common
@@ -18,7 +18,7 @@ command line or shell scripts. The advantage of this is that Python is a very
 feature rich and powerful programming language. So, you can easily extend the
 functionality of Fatiando with your own code!
 
-To show off our API, this is how easy it is to create synthetic noise-corrupted
+As an example, this is how easy it is to create synthetic noise-corrupted
 gravity data on random points from a 3D prism model:
 
 .. doctest::
@@ -36,13 +36,13 @@ gravity data on random points from a 3D prism model:
     >>> # gaussian noise
     >>> gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.1)
     
-Contents of this documentation:
 
 .. toctree::
     :maxdepth: 1
 
     license.rst
     contributors.rst
+    install.rst
     cookbook/index.rst
     api/index.rst
 
