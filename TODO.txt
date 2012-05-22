@@ -11,7 +11,8 @@ GOALS FOR 0.1:
 
 * Migrate C extensions from f2py to Cython
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
-
+* Hand-made docs of modules that rely on C extensions to avoid having to build
+  the program everytime the docs are built
 
 
 PRIORITY:
