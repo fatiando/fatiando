@@ -24,24 +24,38 @@ gravity data on random points from a 3D prism model:
 .. doctest::
 
     >>> # Get the needed components
-    >>> from fatiando import potential, gridder, utils
+    >>> from matplotlib import pyplot
+    >>> from fatiando import potential, gridder, utils, vis
     >>> from fatiando.mesher.ddd import Prism
     >>> # Create the prism model
     >>> prisms = [Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
     ...           Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
     ...           Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
-    >>> # Generate 1000 random observation points at 100m height
-    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 1000, z=-100)
+    >>> # Generate 100 random observation points at 100m height
+    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 100, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
     >>> # gaussian noise
     >>> gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.1)
-    
+    >>> # Plot the result
+    >>> vis.map.contourf(xp, yp, gz, (100, 100), 12, interpolate=True)
+    >>> pyplot.plot(xp, yp, '.k')
+    >>> pyplot.colorbar()
+    >>> pyplot.show()
+
+which results in
+
+.. image:: _static/sample.png
+    :align: center
+
+
+If you want to find out more,
+have a look at the rest of the documentation.
 
 .. toctree::
     :maxdepth: 1
 
-    license.rst
     contributors.rst
+    license.rst
     install.rst
     cookbook/index.rst
     api/index.rst
