@@ -7,9 +7,4 @@ doc/build
 _*module.c
 build
 dist
-MANIFEST
-fatiando/version.py
-mylogfile.log
-mydata.txt
-myresultsfile-density.den
-myresultsfile.msh
+fatiando/changeset.txt

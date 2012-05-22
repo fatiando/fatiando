@@ -18,10 +18,8 @@
 Package ``fatiando`` contains tools for geophysical direct and inverse modeling
 as well as data processing, gridding, and visualization.
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 02-Apr-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
-
 ----
 
 """
+
+version = '0.1.dev'

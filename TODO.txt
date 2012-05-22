@@ -17,9 +17,7 @@ GOALS FOR 0.1:
 
 PRIORITY:
 
-* Make the setup script put the version hash in a file. Then version.py will
-  load the hash from file and put a "UNKNOWN" if it can't read (so that Read The
-  Docs builds don't fail)
+* Change license texts to BSD
 
 TODO:
 
@@ -36,3 +34,11 @@ TODO:
 BUGS:
 
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
+
+
+DONE:
+
+
+* Make the setup script put the version hash in a file. Then version.py will
+  load the hash from file and put a "UNKNOWN" if it can't read (so that Read The
+  Docs builds don't fail)

@@ -1,19 +1,3 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Logging utilities for fatiando.
 
@@ -51,21 +35,18 @@ Then it can be used in a script::
     are only printed if a script calls :func:`fatiando.logger.get` or assigns a
     Handler to it.
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 14-Sep-2011
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
-
 ----
 
 """
-
+import inspect
+import os
 import sys
 import logging
 import time
 
 import numpy
 
-import fatiando.version
+import fatiando
 
 
 # Add the NullHandler to the root logger for fatiando so that nothing is printed
@@ -191,10 +172,18 @@ def header(comment=''):
         The header message
 
     """
+    csfile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          'changeset.txt')
+    if os.path.exists(csfile):
+        with open(csfile) as f:
+            changeset = f.readline()
+    else:
+        changeset = "Unknown"
     msg = '\n'.join(
-        ["%sFatiando a Terra:" % (comment),
+        ["########################################",
+         "%sFatiando a Terra:" % (comment),
          "%s  date: %s" % (comment, time.asctime()),
-         "%s  version: %s" % (comment, fatiando.version.version),
-         "%s  changeset: %s" % (comment, fatiando.version.changeset),
-         "%s  branch: %s" % (comment, fatiando.version.branch)])
+         "%s  version: %s" % (comment, fatiando.version),
+         "%s  changeset: %s" % (comment, changeset),
+         "########################################"])
     return msg
