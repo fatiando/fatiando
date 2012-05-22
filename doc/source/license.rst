@@ -1,4 +1,11 @@
+.. _license:
+
+=======
+License
+=======
+
 Copyright (c) 2012, Leonardo Uieda
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,

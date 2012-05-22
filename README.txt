@@ -79,11 +79,9 @@ See a list of `people involved <http://www.fatiando.org/people>`_.
 License
 -------
 
-Fatiando a Terra is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version. A copy of this license is provided in file
-LICENSE.txt
+Fatiando a Terra is free software: you can redistribute it and/or modify it
+under the terms of the BSD License.
+A copy of this license is provided in file LICENSE.txt
 
 
 Testing

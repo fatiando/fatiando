@@ -6,6 +6,11 @@ inversion. Fatiando provides an easy and flexible way to perform common
 tasks like: generating synthetic data, manipulating data sets, plotting
 non-gridded data, direct modeling, inversion, etc.
 
+Fatiando is licensed under the :ref:`BSD license <license>`.
+This means that it can be reused and remixed
+with few restrictions.
+See the license text for more information.
+
 The main interface for Fatiando is provided by a
 `Python <http://www.python.org>`_ package (:ref:`the API <api>`). This means that
 commands in Fatiando are in executed using Python scripts, instead of the
@@ -35,13 +40,10 @@ Contents of this documentation:
 
 .. toctree::
     :maxdepth: 1
-    
+
+    license.rst
     api/index.rst
     cookbook/index.rst
-    the-team.rst
+    contributors.rst
 
-Developing
------------
-
-:ref:`the-team` behind Fatiando a Terra.
 

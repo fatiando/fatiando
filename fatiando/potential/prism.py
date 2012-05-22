@@ -1,19 +1,3 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Calculate the potential fields and derivatives of the 3D right rectangular prism 
 using the forumla of Nagy et al. (2000)
@@ -37,10 +21,6 @@ Nagy, D., G. Papp, and J. Benedek, 2000, The gravitational potential and its
 derivatives for the prism: Journal of Geodesy, 74, 552--560,
 doi: 10.1007/s001900000116.
     
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 11-Sep-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
-
 ----
 
 """

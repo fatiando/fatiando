@@ -17,7 +17,6 @@ GOALS FOR 0.1:
 
 PRIORITY:
 
-* Change license texts to BSD
 
 TODO:
 
@@ -39,6 +38,7 @@ BUGS:
 DONE:
 
 
+* Change license texts to BSD
 * Make the setup script put the version hash in a file. Then version.py will
   load the hash from file and put a "UNKNOWN" if it can't read (so that Read The
   Docs builds don't fail)
