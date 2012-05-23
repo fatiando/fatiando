@@ -1,5 +1,5 @@
-Welcome to Fatiando a Terra
-===========================
+Welcome to Fatiando a Terra's documentation
+===========================================
 
 Fatiando a Terra is an open source toolkit for geophysical modeling and
 inversion. Fatiando provides an easy and flexible way to perform common
@@ -11,52 +11,56 @@ This means that it can be reused and remixed
 with few restrictions.
 See the license text for more information.
 
-The main interface for Fatiando is provided by a
-`Python <http://www.python.org>`_ package (:ref:`the API <api>`). This means that
-commands in Fatiando are in executed using Python scripts, instead of the
-command line or shell scripts. The advantage of this is that Python is a very
-feature rich and powerful programming language. So, you can easily extend the
-functionality of Fatiando with your own code!
+The main interface for Fatiando
+is provided by a Python_ package (:ref:`the API <api>`).
+This means that commands in Fatiando
+are executed using Python scripts,
+instead of the command line or shell scripts.
+The advantage of this is that
+Python is a very feature rich and powerful programming language.
+So, you can easily combine different commands together
+and even extend the functionality of Fatiando with your own code!
+
+.. _Python: http://www.python.org
 
 As an example, this is how easy it is to create synthetic noise-corrupted
 gravity data on random points from a 3D prism model:
 
 .. doctest::
 
-    >>> # Get the needed components
-    >>> from matplotlib import pyplot
-    >>> from fatiando import potential, gridder, utils, vis
-    >>> from fatiando.mesher.ddd import Prism
+    >>> import fatiando as fat
     >>> # Create the prism model
-    >>> prisms = [Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...           Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...           Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
-    >>> # Generate 100 random observation points at 100m height
-    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 100, z=-100)
+    >>> prisms = [
+    ...     fat.msh.ddd.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
+    ...     fat.msh.ddd.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
+    ...     fat.msh.ddd.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
+    >>> # Generate 500 random observation points at 100m height
+    >>> xp, yp, zp = fat.grd.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
     >>> # gaussian noise
-    >>> gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.1)
+    >>> gz = fat.utils.contaminate(fat.pot.prism.gz(xp, yp, zp, prisms), 0.1)
     >>> # Plot the result
-    >>> vis.map.contourf(xp, yp, gz, (100, 100), 12, interpolate=True)
-    >>> pyplot.plot(xp, yp, '.k')
-    >>> pyplot.colorbar()
-    >>> pyplot.show()
+    >>> fat.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
+    >>> cb = fat.vis.colorbar()
+    >>> cb.set_label('mGal')
+    >>> fat.vis.plot(xp, yp, '.k')
+    >>> fat.vis.show()
 
-which results in
+which results in something like this:
 
 .. image:: _static/sample.png
     :align: center
 
-
 If you want to find out more,
-have a look at the rest of the documentation.
+have a look at the rest of this documentation.
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     contributors.rst
     license.rst
-    install.rst
+    changelog.rst
+    getting-started.rst
     cookbook/index.rst
     api/index.rst
 
