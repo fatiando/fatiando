@@ -14,8 +14,29 @@ For more information and online documentation, visit http://www.fatiando.org
 Downloading and Installing
 ==========================
 
-Visit the project page at http://code.google.com/p/fatiando/ for instructions
-of downloading and installing.
+Fatiando requires:
+
+* numpy
+* scipy
+* matplotlib
+* PIL
+* mayavi
+
+All of these can be easily found in most GNU/Linux distros.
+You will also need the Python header files
+(called python-dev in Debian and Ubuntu)
+and a C compiler (GCC comes with almost every distro).
+
+After you've installed the dependencies
+you can proceed to install Fatiando using pip
+(remember to install pip before if don't have it)::
+
+    pip install fatiando
+
+That's it!
+Alternatively, you can run the setup.py script::
+
+    python setup.py install
 
 
 The team
