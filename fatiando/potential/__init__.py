@@ -1,32 +1,33 @@
 """
 Potential field direct modeling, inversion, transformations and utilities.
 
-**Direct modelling**
+**Forward modeling**
+
+The forward modeling modules provide ways to calculate the gravitational and
+magnetic field of various types of geometric objects:
 
 * :mod:`~fatiando.potential.prism`
+    3D right rectangular prisms
 * :mod:`~fatiando.potential.polyprism`
+    3D prisms with polygonal horizontal cross-sections
 * :mod:`~fatiando.potential.talwani`
-
-The direct modeling modules provide ways to calculate the gravitational and
-magnetic field of various types of geometric objects. For 3D right rectangular
-prisms, use :mod:`~fatiando.potential.prism`. For 2D bodies with polygonal
-vertical cross-sections, use :mod:`~fatiando.potential.talwani`. For 3D bodies
-with polygonal horizontal cross-sections, use
-:mod:`~fatiando.potential.polyprism`.
+    2D bodies with polygonal vertical cross-sections
 
 **Inversion**
 
-* :mod:`~fatiando.potential.basin2d`
+The inversion modules use the forward modeling models and the
+:mod:`fatiando.inversion` package to solve potential field inverse problems:
 
-The inverse modeling modules use the direct models and the
-:mod:`~fatiando.inversion` package to solve potential field inverse problems.
+* :mod:`~fatiando.potential.basin2d`
+    2D inversion of the shape of sedimentary basins and other outcropping bodies
 
 **Processing**
 
-* :mod:`~fatiando.potential.transform`
-
 The processing modules offer tools to prepare potential field data before or
 after modeling.
+
+* :mod:`~fatiando.potential.transform`
+    Potential field transformations, like upward continuation
 
 ----
 

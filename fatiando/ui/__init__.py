@@ -1,19 +1,15 @@
 """
-Provides modules for user interface (UI). From command line interfaces, to
-simple map picking, to full graphical user interfaces (GUI).
+Modules for user interface (UI)
 
-**Map picking**
+From command line interfaces, to simple map picking, to full graphical user
+interfaces (GUI).
 
 * :mod:`~fatiando.ui.picker`
-
-Click on matplotlib plots to extract the coordinates of points into your script,
-draw polygons, lines, etc.
-
-**GUIs**
-
+    Map picking: click on matplotlib plots to extract the coordinates of points
+    into your script, draw polygons, lines, etc.
 * :mod:`~fatiando.ui.gui`
-
-Classes for various GUI interfaces for different ``fatiando`` modules. 
+    Graphical interfaces: classes for various GUI interfaces for different
+    :mod:`fatiando` modules. 
 
 ----
    

@@ -1,14 +1,16 @@
 """
-Provides wrappers for `matplotlib` and `mayavi2` functions for easier plotting
-of grids, 3D meshes, etc.
+Plotting utilities
 
-**2D plotting**
+Wrappers to facilitate common plotting tasks using powerful third-party
+libraries.
 
 * :mod:`~fatiando.vis.map`
-
-**3D plotting**
-
+    2D plotting using matplotlib_
 * :mod:`~fatiando.vis.vtk`
+    3D plotting using Mayavi_
+
+.. _matplotlib: http://matplotlib.sourceforge.net/
+.. _Mayavi: http://code.enthought.com/projects/mayavi/
 
 ----
    

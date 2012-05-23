@@ -1,19 +1,19 @@
 .. _fatiando:
 
-Main package (``fatiando``)
-===========================
+The ``fatiando`` package
+========================
 
 .. automodule:: fatiando
    :members:
    :show-inheritance:
 
 .. toctree::
-
+    
     potential.rst
     seismic.rst
     heat.rst
-    mesher.rst
     inversion.rst
+    mesher.rst
     vis.rst
     ui.rst
     gridder.rst
