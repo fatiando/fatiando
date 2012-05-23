@@ -26,11 +26,11 @@ The inversion modules use the forward modeling models and the
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
-* :mod:`~fatiando.potential.transform`
+* :mod:`~fatiando.potential.trans`
     Potential field transformations, like upward continuation
 
 ----
 
 """
 
-from fatiando.potential import prism, polyprism, transform, talwani
+from fatiando.potential import prism, polyprism, trans, talwani

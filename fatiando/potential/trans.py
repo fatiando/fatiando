@@ -4,7 +4,7 @@ total mass.
 
 **Transformations**
 
-* :func:`~fatiando.potential.transform.upcontinue`
+* :func:`~fatiando.potential.trans.upcontinue`
 
 ----
 

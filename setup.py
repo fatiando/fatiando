@@ -61,8 +61,7 @@ def setrevison():
             versionfile.write("%s" % (changeset))
 
 if __name__ == '__main__':
-
-    from fatiando import version
+    version = '0.1.dev'
     setrevison()
     setup(name='fatiando',
           fullname="Fatiando a Terra",

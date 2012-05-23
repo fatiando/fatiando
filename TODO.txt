@@ -14,6 +14,11 @@ GOALS FOR 0.1:
      from fatiando.apis import pot
   which loads all potential modules, gridder, logger, etc
   Or a single fatlab for everything.
+* Start reducing the names of modules and function. Done:
+    * potential.transform -> potential.trans
+* When importing modules in fatiando, give them nicknames (decribe in docstring)
+* Unify all the potential.*.rst etc files in doc/api into a single potential.rst
+  (like wise for other packages)
 
 
 PRIORITY:

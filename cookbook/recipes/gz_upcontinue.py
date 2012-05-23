@@ -22,7 +22,7 @@ gz = utils.contaminate(potential.prism.gz(xp, yp, zp, prisms), 0.5)
 # Now do the upward continuation using the analytical formula
 height = 2000
 dims = gridder.spacing(area, shape)
-gzcont = potential.transform.upcontinue(gz, z0, height, xp, yp, dims)
+gzcont = potential.trans.upcontinue(gz, z0, height, xp, yp, dims)
 
 log.info("Computing true values at new height")
 gztrue = potential.prism.gz(xp, yp, zp - height, prisms)
