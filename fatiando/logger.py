@@ -46,8 +46,6 @@ import time
 
 import numpy
 
-import fatiando
-
 
 # Add the NullHandler to the root logger for fatiando so that nothing is printed
 # until logger.get is called
@@ -172,6 +170,7 @@ def header(comment=''):
         The header message
 
     """
+    from fatiando import version
     csfile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           'changeset.txt')
     if os.path.exists(csfile):
@@ -183,7 +182,7 @@ def header(comment=''):
         ["########################################",
          "%sFatiando a Terra:" % (comment),
          "%s  date: %s" % (comment, time.asctime()),
-         "%s  version: %s" % (comment, fatiando.version),
+         "%s  version: %s" % (comment, version),
          "%s  changeset: %s" % (comment, changeset),
          "########################################"])
     return msg
