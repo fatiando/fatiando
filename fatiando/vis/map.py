@@ -257,7 +257,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         pyplot.fill(tmpx, tmpy, color=fill, alpha=alpha)
     return line
 
-def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
+def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
             clabel=True, style='solid', linewidth=1.0):
     """
     Make a contour plot of the data.
@@ -274,7 +274,7 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         If interpolation is not False, then will use *shape* to grid the data.
     * levels : int or list
         Number of contours to use or a list with the contour values.
-    * interpolate : True or False
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
     * color : str
@@ -299,8 +299,8 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         raise ValueError, "Invalid contour style %s" % (style)
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -319,7 +319,7 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
+def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet):
     """
     Make a filled contour plot of the data.
 
@@ -335,7 +335,7 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
         If interpolation is not False, then will use *shape* to grid the data.
     * levels : int or list
         Number of contours to use or a list with the contour values.
-    * interpolate : True or False
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
     * cmap : colormap
@@ -349,8 +349,8 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -360,7 +360,7 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
+def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
            vmax=None):
     """
     Make a pseudo-color plot of the data.
@@ -375,7 +375,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     * shape : tuple = (ny, nx)
         Shape of the regular grid.
         If interpolation is not False, then will use *shape* to grid the data.
-    * interpolate : True or False
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
     * cmap : colormap
@@ -391,8 +391,8 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)

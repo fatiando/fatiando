@@ -7,17 +7,12 @@ GOALS FOR 0.1:
 
 * Migrate C extensions from f2py to Cython
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
-* Hand-made docs of modules that rely on C extensions to avoid having to build
-  the program everytime the docs are built
-* The API is now fully accessible by only import fatiando. Modules and packages
-  have short nicknames for easier access (e.g., pot for potential)
-  Or a single fatlab for everything.
+* Make pure Python alternatives to C modules. Use C modules if available at run
+  time. Example: prism.py chooses between _prism.py and _cprism.py
 * Start reducing the names of modules and function. Done:
     * potential.transform -> potential.trans
 * Unify all the potential.*.rst etc files in doc/api into a single potential.rst
   (like wise for other packages)
-* Move import everything from map and vtk in vis/__init__.py, plus some
-  functions from matplotlib.
 * Add vis.vtk.savefig3d to save a Mayavi scene
 
 
@@ -39,12 +34,3 @@ TODO:
 BUGS:
 
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
-
-
-DONE:
-
-
-* Change license texts to BSD
-* Make the setup script put the version hash in a file. Then version.py will
-  load the hash from file and put a "UNKNOWN" if it can't read (so that Read The
-  Docs builds don't fail)

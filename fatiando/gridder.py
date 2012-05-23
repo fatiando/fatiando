@@ -11,7 +11,7 @@ Create and operate on grids and profiles.
 **Grid operations**
 
 * :func:`~fatiando.gridder.cut`
-* :func:`~fatiando.gridder.interpolate`
+* :func:`~fatiando.gridder.interp`
 
 **Misc**
 
@@ -137,7 +137,7 @@ def spacing(area, shape):
     dy = float(y2 - y1)/float(ny - 1)
     return [dy, dx]
 
-def interpolate(x, y, v, shape, algorithm='nn'):
+def interp(x, y, v, shape, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 

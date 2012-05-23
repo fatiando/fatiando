@@ -280,8 +280,8 @@ class SquareMesh(object):
             xs = numpy.arange(nx)
             ys = numpy.arange(ny)
             X, Y = numpy.meshgrid(xs, ys)
-            model = gridder.interpolate(X.ravel(), Y.ravel(), model.ravel(),
-                                        self.shape)[2]
+            model = gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
+                                   self.shape)[2]
             log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
         self.props[prop] = model.ravel()
 
