@@ -9,17 +9,15 @@ GOALS FOR 0.1:
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Hand-made docs of modules that rely on C extensions to avoid having to build
   the program everytime the docs are built
-* Reconsider the API. Make explicit apis for each method (potential, etc) that
-  imports all you might need (with shorter names). Maybe something like:
-     from fatiando.apis import pot
-  which loads all potential modules, gridder, logger, etc
+* The API is now fully accessible by only import fatiando. Modules and packages
+  have short nicknames for easier access (e.g., pot for potential)
   Or a single fatlab for everything.
 * Start reducing the names of modules and function. Done:
     * potential.transform -> potential.trans
-* When importing modules in fatiando, give them nicknames (decribe in docstring)
 * Unify all the potential.*.rst etc files in doc/api into a single potential.rst
   (like wise for other packages)
-
+* Move map and vtk back into a single module or leave them separate and import
+  everything in vis/__init__.py (have to be careful of name clashes)
 
 PRIORITY:
 
