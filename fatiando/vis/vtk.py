@@ -8,9 +8,10 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 
 **Helpers**
 
-* :func:`~fatiando.vis.vtk.figure`
-* :func:`~fatiando.vis.vtk.add_outline`
-* :func:`~fatiando.vis.vtk.add_axes`
+* :func:`~fatiando.vis.vtk.show3d`
+* :func:`~fatiando.vis.vtk.figure3d`
+* :func:`~fatiando.vis.vtk.outline3d`
+* :func:`~fatiando.vis.vtk.axes3d`
 * :func:`~fatiando.vis.vtk.wall_north`
 * :func:`~fatiando.vis.vtk.wall_south`
 * :func:`~fatiando.vis.vtk.wall_east`
@@ -26,6 +27,8 @@ import numpy
 
 from fatiando import logger
 
+__all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
+           'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom']
 
 log = logger.dummy('fatiando.vis.vtk')
         
@@ -57,6 +60,15 @@ def _lazy_import_tvtk():
             from tvtk.api import tvtk
         except ImportError:
             from enthought.tvtk.api import tvtk
+
+def show3d():
+    """
+    Show the 3D plot of Mayavi2.
+
+    Enters a loop until the window is closed.
+    """
+    _lazy_import_mlab()
+    mlab.show()
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
     vmax=None, cmap='blue-red'):
@@ -156,7 +168,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
     surf.actor.property.backface_culling = 1
     return surf
 
-def figure(size=None):
+def figure3d(size=None):
     """
     Create a default figure in Mayavi with white background and z pointing down
 
@@ -181,7 +193,7 @@ def figure(size=None):
     fig.scene.camera.azimuth(180.)
     return fig
 
-def add_outline(extent=None, color=(0,0,0), width=2):
+def outline3d(extent=None, color=(0,0,0), width=2):
     """
     Create a default outline in Mayavi2.
 
@@ -206,7 +218,7 @@ def add_outline(extent=None, color=(0,0,0), width=2):
         outline.bounds = extent
     return outline
 
-def add_axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
+def axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
              width=2, fmt="%-#.2f"):
     """
     Add an Axes module to a Mayavi2 plot or dataset.

@@ -1,6 +1,5 @@
 """
-Wrappers for `matplotlib` calls to plot grids (from :mod:`~fatiando.gridder`),
-2D objects (from :mod:`~fatiando.mesher.dd`) and more.
+Wrappers for :mod:`matplotlib` calls to plot grids, 2D objects, etc.
 
 .. tip:: Avoid importing this module using ``from fatiando.vis import map``
     because it will cause conflicts with Pythons ``map`` function.
@@ -31,6 +30,8 @@ from matplotlib import pyplot
 
 from fatiando import gridder, logger
 
+__all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
+           'squaremesh', 'polygon', 'layers']
 
 log = logger.dummy('fatiando.vis.map')
 

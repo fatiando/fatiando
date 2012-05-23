@@ -16,8 +16,10 @@ GOALS FOR 0.1:
     * potential.transform -> potential.trans
 * Unify all the potential.*.rst etc files in doc/api into a single potential.rst
   (like wise for other packages)
-* Move map and vtk back into a single module or leave them separate and import
-  everything in vis/__init__.py (have to be careful of name clashes)
+* Move import everything from map and vtk in vis/__init__.py, plus some
+  functions from matplotlib.
+* Add vis.vtk.savefig3d to save a Mayavi scene
+
 
 PRIORITY:
 

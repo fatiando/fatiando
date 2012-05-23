@@ -47,13 +47,13 @@ version = '0.1.dev'
 
 # Import all the modules and subpackages so that they are accessible just by
 # importing fatiando
-from fatiando import logger as log
-from fatiando import gridder as grd
-from fatiando import utils
-from fatiando import heat
-from fatiando import mesher as msh
-from fatiando import potential as pot
-from fatiando import seismic as seis
-from fatiando import ui
-from fatiando import vis
-from fatiando import inversion
+import fatiando.logger as log
+import fatiando.gridder as grd
+import fatiando.utils as utils
+import fatiando.heat as heat
+import fatiando.mesher as msh
+import fatiando.potential as pot
+import fatiando.seismic as seis
+import fatiando.ui as ui
+import fatiando.vis as vis
+import fatiando.inversion as inversion
