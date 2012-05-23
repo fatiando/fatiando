@@ -58,3 +58,6 @@ from fatiando import ui
 from fatiando import vis
 from fatiando import inversion
 
+
+__all__ = ['log', 'grd', 'msh', 'pot', 'seis', 'utils', 'heat', 'ui', 'vis',
+           'inversion']
