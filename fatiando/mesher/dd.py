@@ -19,7 +19,7 @@ triangles.
 
 """
 
-from PIL import Image
+import PIL
 import numpy
 import scipy.misc
 
@@ -259,7 +259,7 @@ class SquareMesh(object):
         log.info("  file: '%s'" % (fname))
         log.info("  physical property: %s" % (prop))
         log.info("  range: [vmin, vmax] = %s" % (str([vmin, vmax])))
-        image = Image.open(fname)
+        image = PIL.Image.open(fname)
         imagearray = scipy.misc.fromimage(image, flatten=True)
         # Invert the color scale
         model = numpy.max(imagearray) - imagearray
