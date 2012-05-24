@@ -8,5 +8,5 @@ Geothermics (``fatiando.heat``)
    :show-inheritance:
 
 .. toctree::
-
-    heat.climatesignal.rst
+    
+    heat.climsig.rst

@@ -6,11 +6,11 @@ Modeling and inversion for geothermics.
 Modeling and inversion of temperature residuals measured in wells due to
 temperature perturbations in the surface.
 
-* :mod:`~fatiando.heat.climatesignal`
+* :mod:`~fatiando.heat.climsig`
 
 ----
 
 """
 
-from fatiando.heat import climatesignal
+from fatiando.heat import climsig
 

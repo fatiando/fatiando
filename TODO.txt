@@ -11,8 +11,7 @@ GOALS FOR 0.1:
   time. Example: prism.py chooses between _prism.py and _cprism.py
 * Start reducing the names of modules and function. Done:
     * potential.transform -> potential.trans
-* Unify all the potential.*.rst etc files in doc/api into a single potential.rst
-  (like wise for other packages)
+    * heat.climatesignal -> heat.climsig
 * Add vis.vtk.savefig3d to save a Mayavi scene
 
 

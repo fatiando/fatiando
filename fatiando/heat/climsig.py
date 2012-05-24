@@ -6,8 +6,8 @@ Perturbations can be of two kinds:
 
 **Abrupt**
 
-* :func:`~fatiando.heat.climatesignal.abrupt`
-* :func:`~fatiando.heat.climatesignal.invert_abrupt`
+* :func:`~fatiando.heat.climsig.abrupt`
+* :func:`~fatiando.heat.climsig.iabrupt`
 
 Assumes that the temperature perturbation was abrupt. The residual temperature
 at a depth :math:`z_i` in the well at a time :math:`t` after the perturbation is
@@ -34,14 +34,14 @@ synthetic data::
     >>> temp = abrupt(amp, age, zp) # Use the default diffusivity
     >>> # Run the inversion for the amplitude and time
     >>> solver = levmarq(initial=(10, 50))
-    >>> p, residuals = invert_abrupt(temp, zp, solver)
+    >>> p, residuals = iabrupt(temp, zp, solver)
     >>> print "amp: %.2f  age: %.2f" % (p[0], p[1])
     amp: 2.00  age: 100.00
 
 **Linear**
 
-* :func:`~fatiando.heat.climatesignal.linear`
-* :func:`~fatiando.heat.climatesignal.invert_linear`
+* :func:`~fatiando.heat.climsig.linear`
+* :func:`~fatiando.heat.climsig.ilinear`
 
 Assumes that the temperature perturbation was linear with time. The residual
 temperature at a depth :math:`z_i` in the well at a time :math:`t` after the
@@ -72,7 +72,7 @@ synthetic data::
     >>> temp = linear(amp, age, zp) # Use the default diffusivity
     >>> # Run the inversion for the amplitude and time
     >>> solver = levmarq(initial=(10, 50))
-    >>> p, residuals = invert_linear(temp, zp, solver)
+    >>> p, residuals = ilinear(temp, zp, solver)
     >>> print "amp: %.2f  age: %.2f" % (p[0], p[1])
     amp: 3.45  age: 52.50
 
@@ -88,7 +88,7 @@ from fatiando.heat import _climatesignal
 from fatiando import inversion, utils, logger
 
 
-log = logger.dummy('fatiando.heat.climatesignal')
+log = logger.dummy('fatiando.heat.climsig')
  
 class AbruptDM(inversion.datamodule.DataModule):
     """
@@ -180,7 +180,7 @@ def abrupt(amp, age, zp, diffus=31.5576):
     return _climatesignal.climatesignal_abrupt(float(diffus), float(amp),
         float(age), numpy.array(zp, dtype='f'))
     
-def invert_abrupt(temp, zp, solver, diffus=31.5576, iterate=False):
+def iabrupt(temp, zp, solver, diffus=31.5576, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age
     of an abrupt temperature perturbation.
@@ -308,7 +308,7 @@ def linear(amp, age, zp, diffus=31.5576):
     return _climatesignal.climatesignal_linear(float(diffus), float(amp),
         float(age), numpy.array(zp, dtype='f'))
     
-def invert_linear(temp, zp, solver, diffus=31.5576, iterate=False):
+def ilinear(temp, zp, solver, diffus=31.5576, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age
     of a linear temperature perturbation.
