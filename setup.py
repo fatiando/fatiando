@@ -65,7 +65,7 @@ if __name__ == '__main__':
     setrevison()
     setup(name='fatiando',
           fullname="Fatiando a Terra",
-          description="Geophysical modeling and inversion",
+          description="Fatiando a Terra - Geophysical modeling and inversion",
           long_description=long_description,
           version=version,
           author="Leonardo Uieda",
