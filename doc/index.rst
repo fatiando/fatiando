@@ -28,23 +28,23 @@ gravity data on random points from a 3D prism model:
 
 .. doctest::
 
-    >>> import fatiando as fat
+    >>> import fatiando as ft
     >>> # Create the prism model
     >>> prisms = [
-    ...     fat.msh.ddd.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...     fat.msh.ddd.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...     fat.msh.ddd.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
+    ...     ft.msh.ddd.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
+    ...     ft.msh.ddd.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
+    ...     ft.msh.ddd.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
     >>> # Generate 500 random observation points at 100m height
-    >>> xp, yp, zp = fat.grd.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
+    >>> xp, yp, zp = ft.grd.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
     >>> # gaussian noise
-    >>> gz = fat.utils.contaminate(fat.pot.prism.gz(xp, yp, zp, prisms), 0.1)
+    >>> gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.1)
     >>> # Plot the result
-    >>> fat.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
-    >>> cb = fat.vis.colorbar()
+    >>> ft.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
+    >>> cb = ft.vis.colorbar()
     >>> cb.set_label('mGal')
-    >>> fat.vis.plot(xp, yp, '.k')
-    >>> fat.vis.show()
+    >>> ft.vis.plot(xp, yp, '.k')
+    >>> ft.vis.show()
 
 which results in something like this:
 

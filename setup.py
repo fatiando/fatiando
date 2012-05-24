@@ -69,11 +69,17 @@ if __name__ == '__main__':
           long_description=long_description,
           version=version,
           author="Leonardo Uieda",
-          author_email='leouieda[at]gmail[dot]com',
-          license='GNU LGPL',
+          author_email='leouieda@gmail.com',
+          license='BSD License',
           url="http://www.fatiando.org",
           platforms="Any",
           scripts=[],
           packages=packages,
-          ext_modules=extmods
+          ext_modules=extmods,
+          classifiers=["Intended Audience :: Science/Research",
+                       "Intended Audience :: Developers",
+                       "Intended Audience :: Education",
+                       "Programming Language :: C",
+                       "Programming Language :: Python",
+                       "Topic :: Scientific/Engineering"]
          )
