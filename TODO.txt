@@ -21,6 +21,8 @@ PRIORITY:
 
 TODO:
 
+* In PrismMesh.dump: take a mesh file and a dict of prop:propfile pairs instead
+  of creating files. This is better to mock with StringIO.
 * consider making the parameter vector a dictionary
     * one array for each prop
     * this way the datamodules only operate on their props
