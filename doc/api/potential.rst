@@ -9,7 +9,7 @@ Potential Fields (``fatiando.potential``)
 
 .. toctree::
 
-    potential.transform.rst
+    potential.trans.rst
     potential.prism.rst
     potential.polyprism.rst
     potential.talwani.rst
