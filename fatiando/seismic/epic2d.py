@@ -1,63 +1,60 @@
 """
-Estimate the epicenter of a seismic event considering various approximations for
-the Earth.
+Epicenter determination in 2D, i.e., assuming a flat Earth.
 
-**Flat and homogeneous Earth**
+**Homogeneous Earth**
 
-* :func:`~fatiando.seismic.epicenter.flat_earth`
+* :func:`~fatiando.seismic.epic2d.homogeneous`
 
 Estimates the (x, y) cartesian coordinates of the epicenter based on travel-time
-residuals between S and P waves.
+residuals between S and P waves, assuming a homogeneous velocity distribution.
 
 Example using synthetic data::
 
-    >>> from fatiando.mesher.dd import Square
-    >>> from fatiando.seismic.traveltime import straight_ray_2d
-    >>> from fatiando.inversion import gradient
-    >>> from fatiando.seismic.epicenter import flat_earth
+    >>> import fatiando as ft
     >>> # Generate synthetic travel-time residuals
     >>> area = (0, 10, 0, 10)
     >>> vp = 2
     >>> vs = 1
-    >>> model = [Square(area, props={'vp':vp, 'vs':vs})]
+    >>> model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
     >>> # The true source (epicenter)
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = straight_ray_2d(model, 'vp', srcs, recs)
-    >>> stime = straight_ray_2d(model, 'vs', srcs, recs)
+    >>> ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
+    >>> stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
-    >>> solver = gradient.newton(initial=(1, 1), tol=10**(-3), maxit=1000)
+    >>> solver = ft.inversion.gradient.newton(initial=(1, 1), tol=10**(-3),
+    ...     maxit=1000)
     >>> # Estimate the epicenter
-    >>> p, residuals = flat_earth(ttres, recs, vp, vs, solver)
+    >>> p, residuals = ft.seis.epic2d.homogeneous(ttres, recs, vp, vs, solver)
     >>> print "(%.4f, %.4f)" % (p[0], p[1])
     (5.0000, 5.0000)
 
 Example using ``iterate = True`` to step through the solver algorithm::
 
-    >>> from fatiando.mesher.dd import Square
-    >>> from fatiando.seismic.traveltime import straight_ray_2d
-    >>> from fatiando.inversion import gradient
-    >>> from fatiando.seismic.epicenter import flat_earth
+    >>> import fatiando as ft
     >>> # Generate synthetic travel-time residuals
     >>> area = (0, 10, 0, 10)
     >>> vp = 2
     >>> vs = 1
-    >>> model = [Square(area, props={'vp':vp, 'vs':vs})]
+    >>> model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
     >>> # The true source (epicenter)
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = straight_ray_2d(model, 'vp', srcs, recs)
-    >>> stime = straight_ray_2d(model, 'vs', srcs, recs)
+    >>> ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
+    >>> stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
-    >>> solver = gradient.newton(initial=(1, 1), tol=10**(-3), maxit=5)    
+    >>> solver = ft.inversion.gradient.newton(initial=(1, 1), tol=10**(-3),
+    ...     maxit=5)    
     >>> # Show the steps to estimate the epicenter
-    >>> for p, r in flat_earth(ttres, recs, vp, vs, solver, iterate=True):
+    >>> steps = ft.seis.epic2d.homogeneous(ttres, recs, vp, vs, solver,
+    ...     iterate=True)
+    >>> for p, r in steps:
     ...     print "(%.4f, %.4f)" % (p[0], p[1])
     (1.0000, 1.0000)
     (2.4157, 5.8424)
@@ -77,12 +74,12 @@ import numpy
 from fatiando import logger, inversion, utils
 
 
-log = logger.dummy('fatiando.seismic.epicenter')
+log = logger.dummy('fatiando.seismic.epic2d')
 
 class TTRFlat(inversion.datamodule.DataModule):
     """
     Data module for epicenter estimation using travel-time residuals between
-    S and P waves, assuming a flat and homogeneous Earth.
+    S and P waves, assuming a homogeneous Earth.
 
     The travel-time residual measured by the ith receiver is a function of the
     (x, y) coordinates of the epicenter:
@@ -209,12 +206,11 @@ class _MinimumDistance(inversion.regularizer.Regularizer):
                              (y - self.yrec)/sqrt])
         return hessian + self.mu*2.*numpy.dot(jac_T, jac_T.T)        
 
-def flat_earth(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
+def homogeneous(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
     iterate=False):
     """
     Estimate the (x, y) coordinates of the epicenter of an event using
-    travel-time residuals between P and S waves and assuming a flat and
-    homogeneous Earth.
+    travel-time residuals between P and S waves and assuming a homogeneous Earth
 
     Parameters:
 
@@ -275,7 +271,7 @@ def flat_earth(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
         regs.append(inversion.regularizer.Equality(equality, reference))
     if damping:
         regs.append(inversion.regularizer.Damping(damping, 2))
-    log.info("Estimating epicenter assuming flat and homogeneous Earth:")
+    log.info("Estimating epicenter in 2D assuming a homogeneous Earth:")
     log.info("  equality: %g" % (equality))
     log.info("  reference parameters: %s" % (str(ref)))
     log.info("  damping: %g" % (damping))

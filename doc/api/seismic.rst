@@ -1,7 +1,7 @@
 .. _seismic:
 
 Seismics and seismology (``fatiando.seismic``)
-===============================================
+==============================================
 
 .. automodule:: fatiando.seismic
    :members:
@@ -10,6 +10,6 @@ Seismics and seismology (``fatiando.seismic``)
 .. toctree::
 
     seismic.traveltime.rst
-    seismic.epicenter.rst
+    seismic.epic2d.rst
     seismic.profile.rst
     seismic.srtomo.rst

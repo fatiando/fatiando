@@ -21,6 +21,10 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.map.polygon`
 * :func:`~fatiando.vis.map.layers`
 
+**Auxiliary**
+
+* :func:`~fatiando.vis.map.set_area`
+
 ----
    
 """
@@ -31,7 +35,7 @@ from matplotlib import pyplot
 from fatiando import gridder, logger
 
 __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
-           'squaremesh', 'polygon', 'layers']
+           'squaremesh', 'polygon', 'layers', 'set_area']
 
 log = logger.dummy('fatiando.vis.map')
 

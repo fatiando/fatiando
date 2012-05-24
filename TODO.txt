@@ -9,9 +9,6 @@ GOALS FOR 0.1:
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Make pure Python alternatives to C modules. Use C modules if available at run
   time. Example: prism.py chooses between _prism.py and _cprism.py
-* Start reducing the names of modules and function. Done:
-    * potential.transform -> potential.trans
-    * heat.climatesignal -> heat.climsig
 * Add vis.vtk.savefig3d to save a Mayavi scene
 
 
