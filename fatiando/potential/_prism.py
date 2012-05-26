@@ -64,7 +64,7 @@ def pot(xp, yp, zp, prisms):
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G*SI2MGAL;
+    res *= G;
     return res
 
 def gx(xp, yp, zp, prisms):
@@ -116,7 +116,7 @@ def gx(xp, yp, zp, prisms):
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G;
+    res *= G*SI2MGAL;
     return res
 
 def gy(xp, yp, zp, prisms):
@@ -266,7 +266,10 @@ def gxx(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = -arctan2(z[k]*y[j], x[i]*r)
+                    # In Nagy et al (2000) there should be a - sign with arctan
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I took them out
+                    kernel = arctan2(z[k]*y[j], x[i]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
@@ -316,7 +319,10 @@ def gxy(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = log(z[k] + r)
+                    # In Nagy et al (2000) there should not be a - sign with log
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I put them in
+                    kernel = -log(z[k] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
@@ -366,7 +372,10 @@ def gxz(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = log(y[j] + r)
+                    # In Nagy et al (2000) there should not be a - sign with log
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I put them in
+                    kernel = -log(y[j] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
@@ -416,7 +425,10 @@ def gyy(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = -arctan2(z[k]*x[i], y[j]*r)
+                    # In Nagy et al (2000) there should be a - sign with arctan
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I took them out
+                    kernel = arctan2(z[k]*x[i], y[j]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
@@ -466,7 +478,10 @@ def gyz(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = log(x[i] + r)
+                    # In Nagy et al (2000) there should not be a - sign with log
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I put them in
+                    kernel = -log(x[i] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
@@ -516,7 +531,10 @@ def gzz(xp, yp, zp, prisms):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = -arctan2(x[i]*y[j], z[k]*r)
+                    # In Nagy et al (2000) there should be a - sign with arctan
+                    # but the tensor components seemed to be with the wrong sign
+                    # so I took them out
+                    kernel = arctan2(x[i]*y[j], z[k]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
