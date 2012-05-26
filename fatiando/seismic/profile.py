@@ -4,7 +4,7 @@ Direct modeling and inversion of seismic profiles.
 **Vertical seismic profiling**
 
 * :func:`~fatiando.seismic.profile.vertical`
-* :func:`~fatiando.seismic.profile.invert_vertical`
+* :func:`~fatiando.seismic.profile.ivertical`
 
 Model and invert vertical seismic profiling data. In this kind of profiling, the
 wave source is located at the surface on top of the well. The travel-times of
@@ -25,14 +25,14 @@ The distance :math:`d_{ij}` is smaller or equal to the thickness of the layer
 To generate synthetic seismic profiling data, use
 :func:`~fatiando.seismic.profile.vertical` like so::
 
-    >>> from fatiando.seismic import profile
+    >>> import fatiando as ft
     >>> # Make the synthetic 4 layer model
     >>> thicks = [10, 20, 10, 30]
     >>> vels = [2, 4, 10, 5]
     >>> # Make an array with the z_i
     >>> zs = [10, 30, 40, 70]
     >>> # Calculate the travel-times
-    >>> for t in profile.vertical(thicks, vels, zs):    
+    >>> for t in ft.seis.profile.vertical(thicks, vels, zs):    
     ...     print '%.1f' % (t), 
     5.0 10.0 11.0 17.0
 
@@ -46,22 +46,21 @@ To make :math:`t_i` linear with respect to :math:`v_j`, we can use
 
 This allows us to easily invert for the slowness of each layer, given their
 thickness. Here's an example of using
-:func:`~fatiando.seismic.profile.invert_vertical` to do this on some synthetic
+:func:`~fatiando.seismic.profile.ivertical` to do this on some synthetic
 data::
 
     >>> import numpy
-    >>> from fatiando.seismic import profile
-    >>> from fatiando.inversion import linear
+    >>> import fatiando as ft
     >>> # Make the synthetic 4 layer model
     >>> thicks = [10, 20, 10, 30]
     >>> vels = [2, 4, 10, 8]
     >>> # Make an array with the z_i
     >>> zs = numpy.arange(5, sum(thicks), 1)
     >>> # Calculate the travel-times
-    >>> tts = profile.vertical(thicks, vels, zs)
+    >>> tts = ft.seis.profile.vertical(thicks, vels, zs)
     >>> # Make a linear solver and solve for the slowness
-    >>> solver = linear.overdet(nparams=len(thicks))
-    >>> p, residuals = profile.invert_vertical(tts, zs, thicks, solver)
+    >>> solver = ft.inversion.linear.overdet(nparams=len(thicks))
+    >>> p, residuals = ft.seis.profile.ivertical(tts, zs, thicks, solver)
     >>> for slow in p:
     ...     print '%.1f' % (1./slow), 
     2.0 4.0 10.0 8.0
@@ -173,7 +172,7 @@ def vertical(thickness, velocity, zp):
     recs = [(0, z) for z in zp]
     return traveltime.straight_ray_2d(layers, 'vp', srcs, recs)
 
-def invert_vertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
+def ivertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
     sharp=0., beta=10.**(-10), iterate=False):
     """
     Invert first-arrival travel-time data for the slowness of each layer.

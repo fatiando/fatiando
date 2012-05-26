@@ -10,7 +10,9 @@ GOALS FOR 0.1:
 * Make pure Python alternatives to C modules. Use C modules if available at run
   time. Example: prism.py chooses between _prism.py and _cprism.py
 * Add vis.vtk.savefig3d to save a Mayavi scene
-
+* Add default solvers to inversion functions so that general users don't need to
+  dig into fatiando.inversion
+* Rename utils.comtaminate to contam
 
 PRIORITY:
 

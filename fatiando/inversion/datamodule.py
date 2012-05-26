@@ -1,7 +1,7 @@
 """
 Base DataModule class with the format expected by all inverse problem solvers.
 
-See the docs for the :mod:`~fatiando.inversion` package for more information on
+See the docs for the :mod:`fatiando.inversion` package for more information on
 the role of the data modules.
 
 ----
