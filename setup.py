@@ -19,8 +19,8 @@ seisdir = join('src', 'seismic')
 heatdir = join('src', 'heat')
 
 extmods = [
-    Extension('fatiando.potential._prism', sources=[join(potdir, 'prism.c'),
-        join(potdir, 'prism.pyf')]),
+    #Extension('fatiando.potential._prism', sources=[join(potdir, 'prism.c'),
+        #join(potdir, 'prism.pyf')]),
     Extension('fatiando.potential._talwani', sources=[join(potdir, 'talwani.c'),
         join(potdir, 'talwani.pyf')]),
     Extension('fatiando.potential._polyprism',
