@@ -16,7 +16,7 @@ import time
 import numpy
 
 from fatiando import logger, gridder
-from fatiando.potential import _transform
+#from fatiando.potential import _transform
 
 
 log = logger.dummy('fatiando.potential.transform')

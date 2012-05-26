@@ -78,7 +78,7 @@ import numpy
 import scipy.sparse
 
 from fatiando import logger, inversion, utils
-from fatiando.seismic import _traveltime
+#from fatiando.seismic import _traveltime
 
 
 log = logger.dummy('fatiando.seismic.srtomo')

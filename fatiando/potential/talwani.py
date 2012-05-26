@@ -23,7 +23,7 @@ Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
 
 import numpy
 
-from fatiando.potential import _talwani
+#from fatiando.potential import _talwani
 from fatiando import logger
 
 

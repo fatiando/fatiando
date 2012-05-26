@@ -5,6 +5,9 @@ Calculate the potential fields of the 3D right rectangular prism.
  
 The gravitational fields are calculated using the forumla of Nagy et al. (2000)
 
+* :func:`~fatiando.potential.prism.pot`
+* :func:`~fatiando.potential.prism.gx`
+* :func:`~fatiando.potential.prism.gy`
 * :func:`~fatiando.potential.prism.gz`
 * :func:`~fatiando.potential.prism.gxx`
 * :func:`~fatiando.potential.prism.gxy`

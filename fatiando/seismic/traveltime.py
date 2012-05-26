@@ -12,7 +12,7 @@ Direct modeling of seismic wave travel times.
 import numpy
 
 from fatiando import logger
-from fatiando.seismic import _traveltime
+#from fatiando.seismic import _traveltime
 
 
 log = logger.dummy('fatiando.seismic.traveltime')

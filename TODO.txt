@@ -13,6 +13,8 @@ GOALS FOR 0.1:
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Rename utils.comtaminate to contam
+* Make logger get the level from string instead of having to import logging
+* Make unit tests to test Cython prism and numpy prism
 
 PRIORITY:
 

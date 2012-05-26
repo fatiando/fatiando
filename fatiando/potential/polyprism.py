@@ -17,7 +17,7 @@ applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 
 import numpy
 
-from fatiando.potential import _polyprism
+#from fatiando.potential import _polyprism
 from fatiando import logger
 
 

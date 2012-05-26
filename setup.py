@@ -6,34 +6,55 @@ import sys
 import subprocess
 import os
 from os.path import join
+from distutils.core import setup
+from distutils.extension import Extension
 try:
-    from numpy.distutils.core import setup, Extension
+    from Cython.Distutils import build_ext
+    ext_modules = [
+        Extension("fatiando.potential._cprism",
+                  ["fatiando/potential/_cprism.pyx"],
+                  libraries=['m'],
+                  extra_compile_args=['-O3'])]
+    CYTHON = True
 except ImportError:
-    print ("Sorry, Numpy <http://numpy.org/> and a C compiler are needed to " +
-           "build Fatiando.")
-    sys.exit()
+    print ("Couldn't find Cython to build C extension.\n" +
+        "Don't panic! Will use Python alternatives instead.")
+    CYTHON = False
+    
+#try:
+    #from numpy.distutils.core import setup, Extension
+#except ImportError:
+    #print ("Sorry, Numpy <http://numpy.org/> and a C compiler are needed to " +
+           #"build Fatiando.")
+    #sys.exit()
+#
+ #Base paths for extention modules
+#potdir = join('src', 'potential')
+#seisdir = join('src', 'seismic')
+#heatdir = join('src', 'heat')
+#
+#extmods = [
+    #Extension('fatiando.potential._talwani', sources=[join(potdir, 'talwani.c'),
+        #join(potdir, 'talwani.pyf')]),
+    #Extension('fatiando.potential._polyprism',
+        #sources=[join(potdir, 'polyprism.c'), join(potdir, 'polyprism.pyf')]),
+    #Extension('fatiando.potential._transform',
+        #sources=[join(potdir, 'transform.c'), join(potdir, 'transform.pyf')]),
+    #Extension('fatiando.seismic._traveltime',
+        #sources=[join(seisdir, 'traveltime.c'),
+                 #join(seisdir, 'traveltime.pyf')]),
+    #Extension('fatiando.heat._climatesignal',
+        #sources=[join(heatdir, 'climatesignal.c'),
+                 #join(heatdir, 'climatesignal.pyf')])
+    #]
 
-# Base paths for extention modules
-potdir = join('src', 'potential')
-seisdir = join('src', 'seismic')
-heatdir = join('src', 'heat')
-
-extmods = [
-    Extension('fatiando.potential._talwani', sources=[join(potdir, 'talwani.c'),
-        join(potdir, 'talwani.pyf')]),
-    Extension('fatiando.potential._polyprism',
-        sources=[join(potdir, 'polyprism.c'), join(potdir, 'polyprism.pyf')]),
-    Extension('fatiando.potential._transform',
-        sources=[join(potdir, 'transform.c'), join(potdir, 'transform.pyf')]),
-    Extension('fatiando.seismic._traveltime',
-        sources=[join(seisdir, 'traveltime.c'),
-                 join(seisdir, 'traveltime.pyf')]),
-    Extension('fatiando.heat._climatesignal',
-        sources=[join(heatdir, 'climatesignal.c'),
-                 join(heatdir, 'climatesignal.pyf')])
-    ]
-
-packages = ['fatiando',
+NAME = 'fatiando'
+FULLNAME = 'Fatiando a Terra'
+DESCRIPTION = "Fatiando a Terra - Geophysical modeling and inversion"
+VERSION = '0.1.dev'
+with open("README.txt") as f:
+    LONG_DESCRIPTION = ''.join(f.readlines())
+PACKAGES = ['fatiando',
             'fatiando.potential',
             'fatiando.seismic',
             'fatiando.heat',
@@ -41,9 +62,19 @@ packages = ['fatiando',
             'fatiando.ui',
             'fatiando.mesher',
             'fatiando.inversion']
-
-with open("README.txt") as f:
-    long_description = ''.join(f.readlines())
+AUTHOR = "Leonardo Uieda"
+AUTHOR_EMAIL = 'leouieda@gmail.com'
+LICENSE = 'BSD License'
+URL = "http://www.fatiando.org"
+PLATFORMS = "Any"
+SCRIPTS = []
+CLASSIFIERS = ["Intended Audience :: Science/Research",
+               "Intended Audience :: Developers",
+               "Intended Audience :: Education",
+               "Programming Language :: C",
+               "Programming Language :: Python",
+               "Topic :: Scientific/Engineering"]
+         
 
 def setrevison():
     # Check if the script is building/packaging or if this is a src dist
@@ -59,25 +90,35 @@ def setrevison():
             versionfile.write("%s" % (changeset))
 
 if __name__ == '__main__':
-    version = '0.1.dev'
     setrevison()
-    setup(name='fatiando',
-          fullname="Fatiando a Terra",
-          description="Fatiando a Terra - Geophysical modeling and inversion",
-          long_description=long_description,
-          version=version,
-          author="Leonardo Uieda",
-          author_email='leouieda@gmail.com',
-          license='BSD License',
-          url="http://www.fatiando.org",
-          platforms="Any",
-          scripts=[],
-          packages=packages,
-          ext_modules=extmods,
-          classifiers=["Intended Audience :: Science/Research",
-                       "Intended Audience :: Developers",
-                       "Intended Audience :: Education",
-                       "Programming Language :: C",
-                       "Programming Language :: Python",
-                       "Topic :: Scientific/Engineering"]
-         )
+    if CYTHON:
+        setup(name=NAME,
+              fullname=FULLNAME,
+              description=DESCRIPTION,
+              long_description=LONG_DESCRIPTION,
+              version=VERSION,
+              author=AUTHOR,
+              author_email=AUTHOR_EMAIL,
+              license=LICENSE,
+              url=URL,
+              platforms=PLATFORMS,
+              scripts=SCRIPTS,
+              packages=PACKAGES,
+              ext_modules=ext_modules,
+              cmdclass = {'build_ext': build_ext},
+              classifiers=CLASSIFIERS)
+    else:
+        setup(name=NAME,
+              fullname=FULLNAME,
+              description=DESCRIPTION,
+              long_description=LONG_DESCRIPTION,
+              version=VERSION,
+              author=AUTHOR,
+              author_email=AUTHOR_EMAIL,
+              license=LICENSE,
+              url=URL,
+              platforms=PLATFORMS,
+              scripts=SCRIPTS,
+              packages=PACKAGES,
+              classifiers=CLASSIFIERS)
+    

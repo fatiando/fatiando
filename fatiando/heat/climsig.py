@@ -84,7 +84,7 @@ import time
 import itertools
 import numpy
 
-from fatiando.heat import _climatesignal
+#from fatiando.heat import _climatesignal
 from fatiando import inversion, utils, logger
 
 
