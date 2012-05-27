@@ -18,6 +18,7 @@ GOALS FOR 0.1:
 * Make unit tests to test Cython prism and numpy prism
 * Hide data modules inside inversion functions: basin2d
 * Make basin2d spit out Polygons, not estimate vectors
+* Make unit test for talwani comparing with prism
 
 PRIORITY:
 

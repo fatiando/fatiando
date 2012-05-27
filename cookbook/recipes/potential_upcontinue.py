@@ -12,7 +12,7 @@ prisms = [ft.msh.ddd.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
           ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
           ft.msh.ddd.Prism(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
-shape = (25, 25)
+shape = (50, 50)
 z0 = -100
 xp, yp, zp = ft.grd.regular(area, shape, z=z0)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.5)
@@ -20,7 +20,7 @@ gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.5)
 # Now do the upward continuation using the analytical formula
 height = 2000
 dims = ft.grd.spacing(area, shape)
-gzcont = ft.pot.trans.upcontinue(gz, z0, height, xp, yp, dims)
+gzcont = ft.pot.trans.upcontinue(gz, height, xp, yp, dims)
 
 log.info("Computing true values at new height")
 gztrue = ft.pot.prism.gz(xp, yp, zp - height, prisms)

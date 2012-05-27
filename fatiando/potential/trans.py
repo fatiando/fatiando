@@ -4,24 +4,22 @@ total mass.
 
 **Transformations**
 
-* :func:`~fatiando.potential.trans.upcontinue`
+* :func:`~fatiando.potential.trans.upcontinue`: Upward continuation of the
+  vertical component of gravity :math:`g_z` using numerical integration
 
 ----
 
 """
-
-import math
 import time
 
 import numpy
 
-from fatiando import logger, gridder
-#from fatiando.potential import _transform
+from fatiando import logger
+
+log = logger.dummy('fatiando.potential.trans')
 
 
-log = logger.dummy('fatiando.potential.transform')
-
-def upcontinue(gz, z0, height, xp, yp, dims):
+def upcontinue(gz, height, xp, yp, dims):
     """
     Upward continue :math:`g_z` data using numerical integration of the
     analytical formula:
@@ -42,16 +40,9 @@ def upcontinue(gz, z0, height, xp, yp, dims):
     Parameters:
     
     * gz : array
-        The gravity values on the grid points
-    * z0 : float
-        Original z coordinate of the observations
-
-        .. note:: Remember that z is positive downward!
-        
+        The gravity values on the grid points        
     * height : float
         How much higher to move the gravity field (should be POSITIVE!)
-        Will be subtracted from *z0* to obtain the new z coordinate of the
-        continued observations.
     * xp, yp : arrays
         The x and y coordinates of the grid points
     * dims : list = [dy, dx]
@@ -63,19 +54,21 @@ def upcontinue(gz, z0, height, xp, yp, dims):
         The upward continued :math:`g_z`
 
     """
-    if len(xp) != len(yp):
-        raise ValueError("xp and yp arrays must have same lengths")
+    if xp.shape != yp.shape:
+        raise ValueError("xp and yp arrays must have same shape")
     if height < 0:
         raise ValueError("'height' should be positive")
     dy, dx = dims
-    newz = z0 - height
     log.info("Upward continuation using the analytical formula:")
-    log.info("  original z coordinate: %g m" % (z0))
     log.info("  height increment: %g m" % (height))
-    log.info("  new z coordinate: %g m" % (newz))
     log.info("  grid spacing [dy, dx]: %s m" % (str(dims)))
     start = time.time()
-    gzcont = _transform.upcontinue(gz, z0, newz, xp, yp, dx, dy)
+    area = dx*dy
+    deltaz_sqr = (height)**2
+    gzcont = numpy.zeros_like(gz)
+    for x, y, g in zip(xp, yp, gz): 
+        gzcont += g*area*((xp - x)**2 + (yp - y)**2 + deltaz_sqr)**(-1.5)
+    gzcont *= abs(height)/(2*numpy.pi)
     end = time.time()
     log.info("  time to calculate: %g s" % (end - start))
     return gzcont
