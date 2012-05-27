@@ -8,7 +8,8 @@ GOALS FOR 0.1:
 * Migrate C extensions from f2py to Cython
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Make pure Python alternatives to C modules. Use C modules if available at run
-  time. Example: prism.py chooses between _prism.py and _cprism.py
+  time. Example: prism.py overloads its functions with those of _cprism.py is
+  this extension module is available
 * Add vis.vtk.savefig3d to save a Mayavi scene
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion

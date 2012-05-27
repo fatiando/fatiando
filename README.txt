@@ -8,16 +8,18 @@ inversion.
 
 For more information visit the http://www.fatiando.org
 
-Documentation is available at http://www.fatiando.readthedocs.org
+Documentation is available at http://fatiando.readthedocs.org
 
 The source code of Fatiando is hosted on several online repositories:
 
-* fatiando on Bitbucket with the stable version (latest release):
-  https://bitbucket.org/fatiando/fatiando
-* fatiando-dev on Bitbucket with the development version (this is where
-  development happens): https://bitbucket.org/fatiando/fatiando-dev
-* fatiando on GoogleCode with a mirror of the stable version:
-  http://code.google.com/p/fatiando/
+* `fatiando on Bitbucket`_ with the stable version (latest release)
+* `fatiando-dev on Bitbucket`_ with the development version (this is where
+  development happens)
+* `fatiando on GoogleCode`_ with a mirror of the stable version
+  
+.. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
+.. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
+.. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
 
 Downloading and Installing
 --------------------------

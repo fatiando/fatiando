@@ -1,7 +1,7 @@
-Welcome to Fatiando a Terra's documentation
-===========================================
+Fatiando a Terra's documentation
+================================
 
-Fatiando a Terra is an open source toolkit for geophysical modeling and
+**Fatiando a Terra** is an open source toolkit for geophysical modeling and
 inversion. Fatiando provides an easy and flexible way to perform common
 tasks like: generating synthetic data, manipulating data sets, plotting
 non-gridded data, direct modeling, inversion, etc.
@@ -68,7 +68,7 @@ If you want to find out more,
 have a look at the rest of this documentation.
 
 .. toctree::
-    :maxdepth: 4
+    :maxdepth: 3
 
     contributors.rst
     license.rst

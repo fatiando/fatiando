@@ -8,10 +8,8 @@ These functions here are separated into modules, if you have a thing for
 namespaces, but importing :mod:`~fatiando.vis` will load everything you need
 (including some :mod:`matplotlib` functions, like ``plot`` and ``show``).
 
-* :mod:`~fatiando.vis.map`
-    2D plotting using matplotlib_
-* :mod:`~fatiando.vis.vtk`
-    3D plotting using Mayavi_
+* :mod:`~fatiando.vis.map`: 2D plotting using matplotlib_
+* :mod:`~fatiando.vis.vtk`: 3D plotting using Mayavi_
 
 .. _matplotlib: http://matplotlib.sourceforge.net/
 .. _Mayavi: http://code.enthought.com/projects/mayavi/
