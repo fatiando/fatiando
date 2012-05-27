@@ -42,7 +42,7 @@ def pot(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -97,7 +97,7 @@ def gx(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -149,7 +149,7 @@ def gy(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -206,7 +206,7 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -285,7 +285,7 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -356,7 +356,7 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -427,7 +427,7 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -498,7 +498,7 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -569,7 +569,7 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2
@@ -640,7 +640,7 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp,
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         x1, x2 = prism.x1, prism.x2

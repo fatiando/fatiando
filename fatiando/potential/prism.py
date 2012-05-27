@@ -70,7 +70,7 @@ def pot(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -125,7 +125,7 @@ def gx(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -177,7 +177,7 @@ def gy(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -229,7 +229,7 @@ def gz(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -281,7 +281,7 @@ def gxx(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -334,7 +334,7 @@ def gxy(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -387,7 +387,7 @@ def gxz(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -440,7 +440,7 @@ def gyy(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -493,7 +493,7 @@ def gyz(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
@@ -546,7 +546,7 @@ def gzz(xp, yp, zp, prisms):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None and 'density' not in prism.props:
+        if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
         # First thing to do is make the computation point P the origin of the
