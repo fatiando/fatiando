@@ -284,6 +284,8 @@ class BasinTrap(Moulder):
         left, right = numpy.array(nodes)*0.001
         z1 = z2 = 0.001*0.5*(area[3] - area[2])
         self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
+        self.nextdens = -1000        
+        self.densslider.set_val(self.nextdens*0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
@@ -387,6 +389,8 @@ class BasinTri(Moulder):
         z = 0.001*0.5*(area[3] - area[2])
         x = 0.5*(right[0] + left[0])
         self.polygons = [[left, right, [x, z]]]
+        self.nextdens = -1000        
+        self.densslider.set_val(self.nextdens*0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
