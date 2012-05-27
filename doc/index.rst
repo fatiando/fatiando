@@ -6,6 +6,19 @@ inversion. Fatiando provides an easy and flexible way to perform common
 tasks like: generating synthetic data, manipulating data sets, plotting
 non-gridded data, direct modeling, inversion, etc.
 
+For more information visit the http://www.fatiando.org
+
+The source code of Fatiando is hosted on several online repositories:
+
+* `fatiando on Bitbucket`_ with the stable version (latest release)
+* `fatiando-dev on Bitbucket`_ with the development version (this is where
+  development happens)
+* `fatiando on GoogleCode`_ with a mirror of the stable version
+  
+.. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
+.. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
+.. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
+
 Fatiando is licensed under the :ref:`BSD license <license>`.
 This means that it can be reused and remixed
 with few restrictions.
@@ -55,7 +68,7 @@ If you want to find out more,
 have a look at the rest of this documentation.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 4
 
     contributors.rst
     license.rst

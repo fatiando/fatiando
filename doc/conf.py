@@ -218,7 +218,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'FatiandoaTerra.tex', u'Fatiando a Terra Documentation',
+  ('index', 'fatiando-%s.tex' % (version), u'Fatiando a Terra',
    u'Leonardo Uieda', 'manual'),
 ]
 
@@ -248,7 +248,7 @@ latex_show_urls = True
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'fatiandoaterra', u'Fatiando a Terra Documentation',
+    ('index', 'fatiando', u'Fatiando a Terra Documentation',
      [u'Leonardo Uieda'], 1)
 ]
 
