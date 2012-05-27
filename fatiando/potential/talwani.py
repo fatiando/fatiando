@@ -60,13 +60,13 @@ def gz(xp, zp, polygons):
     res = numpy.zeros_like(xp)
     # Extract the indexes of an array that have cond == True
     subset = lambda cond: [i for i, istrue in enumerate(cond) if istrue]
-    for p in polygons:
-        if p is None or 'density' not in p:
+    for polygon in polygons:
+        if polygon is None or 'density' not in polygon:
             continue
-        density = p['density']
-        x = p['x']
-        z = p['y']
-        nverts = len(p['x'])
+        density = polygon['density']
+        x = polygon['x']
+        z = polygon['y']
+        nverts = len(polygon['x'])
         for v in xrange(nverts):
             # Change the coordinates of this vertice
             xv = x[v] - xp
@@ -100,5 +100,5 @@ def gz(xp, zp, polygons):
                         (cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))))
             tmp[subset(theta_v == theta_vp1)] = 0.
             res = res + tmp*density
-        res *= SI2MGAL*2.0*G
+    res = res*SI2MGAL*2.0*G
     return res
