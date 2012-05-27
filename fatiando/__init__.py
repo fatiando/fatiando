@@ -1,12 +1,18 @@
 """
 **Fatiando a Terra**:
 
-Tools for geophysical modeling and inversion.
+Tools for geophysical modeling and inversion. 
 
-Contains utilities for gridding, meshing, and visualization.
+Modules for specific geophysical methods are divided into subpackages:
 
-Some modules have "nicknames" for easier access when importing ``fatiando``
-directly. To import each module separately, use the full names:
+* :mod:`pot <fatiando.potential>`:
+  Potential fields
+* :mod:`seis <fatiando.seismic>`:
+  Seismics and seismology
+* :mod:`heat <fatiando.heat>`:
+  Geothermics
+
+Modules for gridding, meshing, visualization, user interface, etc:
 
 * :mod:`msh <fatiando.mesher>`:
   Mesh generation and definition of geometric elements
@@ -19,25 +25,22 @@ directly. To import each module separately, use the full names:
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
 * :mod:`log <fatiando.logger>`:
-  An interface to Pythons :mod:`logging` module for easy printing to log files
-
-Modules for specific geophysical methods are divided into subpackages:
-
-* :mod:`pot <fatiando.potential>`:
-  Potential fields
-* :mod:`seis <fatiando.seismic>`:
-  Seismic method and seismology
-* :mod:`heat <fatiando.heat>`:
-  Geothermics
+  A simpler interface to the Python :mod:`logging` module for log files
 
 See the documentation for each module to find out more about what they do and
 how to use them.
+
+.. note:: Some modules have "nicknames" for easier access when importing
+    the ``fatiando`` package directly. To import each module separately,
+    use the full names, e.g., ``from fatiando.mesher.ddd import PrismMesh`` or
+    ``from fatiando.potential import talwani``.
 
 Also included is the :mod:`fatiando.inversion` package with utilities for
 implementing inverse problems. There you'll find common regularizing functions,
 linear inverse problem solvers, and non-linear gradient solvers. This package
 is generaly only used from inside Fatiando itself, not when using Fatiando in
-scripts.
+scripts. For usage examples, see the source of modules
+:mod:`fatiando.seismic.epic2d` and :mod:`fatiando.potential.basin2d`.
 
 ----
 
