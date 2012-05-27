@@ -39,7 +39,7 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/* *.pdf
+	-rm -rf $(BUILDDIR)/* fatiando*.pdf
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
