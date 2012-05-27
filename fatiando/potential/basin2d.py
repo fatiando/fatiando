@@ -23,22 +23,21 @@ inversion will then estimate the (x, z) coordinates of the unknown vertice.
 Example using synthetic data::
 
     >>> import numpy
-    >>> from fatiando.mesher.dd import Polygon
-    >>> from fatiando.potential import talwani
-    >>> from fatiando.inversion.gradient import levmarq
+    >>> import fatiando as ft
     >>> # Make a triangular basin model (will estimate the last point)
     >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
-    >>> model = Polygon(verts, {'density':500})
+    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
-    >>> gz = talwani.gz(xs, zs, [model])
+    >>> gz = ft.pot.talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> dm = TriangularGzDM(xs, zs, gz, prop=500, verts=[left, middle])
+    >>> dm = ft.pot.basin2d.TriangularGzDM(xs, zs, gz, prop=500,
+    ...                                    verts=[left, middle])
     >>> # Estimate the coordinates of the last point using Levenberg-Marquardt
-    >>> solver = levmarq(initial=(10000, 1000))
-    >>> p, residuals = triangular([dm], solver)
+    >>> solver = ft.inversion.gradient.levmarq(initial=(10000, 1000))
+    >>> p, residuals = ft.pot.basin2d.triangular([dm], solver)
     >>> print '%.1f, %.1f' % (p[0], p[1])
     50000.0, 5000.0
 
@@ -46,34 +45,33 @@ Same example but this time using ``iterate=True`` to view the steps of the
 algorithm::
 
     >>> import numpy
-    >>> from fatiando.mesher.dd import Polygon
-    >>> from fatiando.potential import talwani
-    >>> from fatiando.inversion.gradient import levmarq
+    >>> import fatiando as ft
     >>> # Make a triangular basin model (will estimate the last point)
     >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
-    >>> model = Polygon(verts, {'density':500})
+    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
-    >>> gz = talwani.gz(xs, zs, [model])
+    >>> gz = ft.pot.talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> dm = TriangularGzDM(xs, zs, gz, prop=500, verts=[left, middle])
+    >>> dm = ft.pot.basin2d.TriangularGzDM(xs, zs, gz, prop=500,
+    ...                                    verts=[left, middle])
     >>> # Estimate the coordinates of the last point using Levenberg-Marquardt
-    >>> solver = levmarq(initial=(70000, 2000))
-    >>> for p, residuals in triangular([dm], solver, iterate=True):
+    >>> solver = ft.inversion.gradient.levmarq(initial=(70000, 2000))
+    >>> iterator = ft.pot.basin2d.triangular([dm], solver, iterate=True)
+    >>> for p, residuals in iterator:
     ...     print '%.4f, %.4f' % (p[0], p[1])
     70000.0000, 2000.0000
-    69999.8789, 2005.4746
-    69998.6811, 2059.0979
-    69986.4657, 2502.6963
-    69843.9888, 3960.5020
-    67972.7649, 4728.4963
-    59022.3155, 4820.1361
-    50714.4193, 4952.5626
-    50001.0132, 4999.4348
-    50000.0020, 5000.0002
-    49999.9981, 5000.0002
+    69999.8803, 2005.4746
+    69998.6825, 2059.0979
+    69986.4671, 2502.6963
+    69843.9902, 3960.5022
+    67972.7679, 4728.4970
+    59022.3186, 4820.1359
+    50714.4178, 4952.5628
+    50001.0118, 4999.4345
+    50000.0006, 4999.9999
 
 **Trapezoidal basin**
 
@@ -89,21 +87,20 @@ unknown vertices.
 Example of inverting for the z coordinates of the unknown vertices::
 
     >>> import numpy
-    >>> from fatiando.mesher.dd import Polygon
-    >>> from fatiando.potential import talwani
-    >>> from fatiando.inversion.gradient import levmarq
+    >>> import fatiando as ft
     >>> # Make a trapezoidal basin model (will estimate the last two point)
     >>> verts = [(10000, 1), (90000, 1), (90000, 5000), (10000, 3000)]
-    >>> model = Polygon(verts, {'density':500})
+    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
-    >>> gz = talwani.gz(xs, zs, [model])
+    >>> gz = ft.pot.talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> dm = TrapezoidalGzDM(xs, zs, gz, prop=500, verts=verts[0:2])
+    >>> dm = ft.pot.basin2d.TrapezoidalGzDM(xs, zs, gz, prop=500,
+    ...                                     verts=verts[0:2])
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
-    >>> solver = levmarq(initial=(1000, 500))
-    >>> p, residuals = trapezoidal([dm], solver)
+    >>> solver = ft.inversion.gradient.levmarq(initial=(1000, 500))
+    >>> p, residuals = ft.pot.basin2d.trapezoidal([dm], solver)
     >>> print '%.1f, %.1f' % (p[0], p[1])
     5000.0, 3000.0
 
@@ -111,32 +108,32 @@ Same example but this time using ``iterate=True`` to view the steps of the
 algorithm::
 
     >>> import numpy
-    >>> from fatiando.mesher.dd import Polygon
-    >>> from fatiando.potential import talwani
-    >>> from fatiando.inversion.gradient import levmarq
+    >>> import fatiando as ft
     >>> # Make a trapezoidal basin model (will estimate the last two point)
     >>> verts = [(10000, 5), (90000, 10), (90000, 5000), (10000, 3000)]
-    >>> model = Polygon(verts, {'density':500})
+    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
-    >>> gz = talwani.gz(xs, zs, [model])
+    >>> gz = ft.pot.talwani.gz(xs, zs, [model])
     >>> # Pack the data nicely in a DataModule
-    >>> dm = TrapezoidalGzDM(xs, zs, gz, prop=500, verts=verts[0:2])
+    >>> dm = ft.pot.basin2d.TrapezoidalGzDM(xs, zs, gz, prop=500,
+    ...                                     verts=verts[0:2])
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
-    >>> solver = levmarq(initial=(1000, 500))
-    >>> for p, residuals in trapezoidal([dm], solver, iterate=True):
+    >>> solver = ft.inversion.gradient.levmarq(initial=(1000, 500))
+    >>> iterator = ft.pot.basin2d.trapezoidal([dm], solver, iterate=True)
+    >>> for p, residuals in iterator:
     ...     print '%.4f, %.4f' % (p[0], p[1])
     1000.0000, 500.0000
-    1010.4376, 509.4190
-    1111.6982, 600.5537
-    1888.0891, 1281.9118
-    3926.6116, 2780.5289
-    4903.8182, 3040.3440
-    4998.6975, 3001.0088
-    4999.9983, 3000.0017
-    4999.9998, 3000.0000
-
+    1010.4375, 509.4191
+    1111.6975, 600.5546
+    1888.0846, 1281.9163
+    3926.6071, 2780.5317
+    4903.8174, 3040.3444
+    4998.6977, 3001.0087
+    4999.9980, 3000.0017
+    5000.0000, 2999.9999
+    
 ----
 
 """

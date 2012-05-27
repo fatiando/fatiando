@@ -4,7 +4,7 @@ syntax: glob
 *.pyc
 *.so
 doc/_build
-_*module.c
+_*.c
 build
 dist
 fatiando/changeset.txt

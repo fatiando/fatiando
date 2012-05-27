@@ -17,8 +17,7 @@ temp, error = ft.utils.contaminate(ft.heat.climsig.linear(amp, age, zp), 0.02,
                                    percent=True, return_stddev=True)
 
 log.info("Preparing for the inversion")
-solver = ft.inversion.gradient.levmarq(initial=(10, 20))
-p, residuals = ft.heat.climsig.ilinear(temp, zp, solver)
+p, residuals = ft.heat.climsig.ilinear(temp, zp)
 est_amp, est_age = p
 
 ft.vis.figure(figsize=(12,5))
