@@ -74,7 +74,7 @@ import time
 import numpy
 import numpy.linalg.linalg
 
-from fatiando.seismic import traveltime
+from fatiando.seismic import ttime2d
 from fatiando.mesher.dd import Square
 from fatiando import logger, inversion, utils
 

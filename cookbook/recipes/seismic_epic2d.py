@@ -33,8 +33,8 @@ if len(src) > 1:
 
 log.info("Generating synthetic travel-time data")
 srcs, recs = ft.utils.connect_points(src, rec_points)
-ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
-stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
+ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
 ttresiduals, error = ft.utils.contaminate(stime - ptime, 0.10, percent=True,
                                           return_stddev=True)
 

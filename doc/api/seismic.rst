@@ -9,7 +9,7 @@ Seismics and seismology (``fatiando.seismic``)
 
 .. toctree::
 
-    seismic.traveltime.rst
+    seismic.ttime2d.rst
     seismic.epic2d.rst
     seismic.profile.rst
     seismic.srtomo.rst

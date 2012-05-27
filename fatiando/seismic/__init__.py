@@ -4,7 +4,7 @@ Various tools for seismic and seismology, like direct modeling, inversion
 
 **Forward modeling and inversion**
 
-* :mod:`~fatiando.seismic.traveltime`: 2D seismic ray travel-time modeling
+* :mod:`~fatiando.seismic.ttime2d`: 2D seismic ray travel-time modeling
 * :mod:`~fatiando.seismic.epic2d`: 2D epicenter determination
 * :mod:`~fatiando.seismic.profile`: Modeling and inversion of seismic profiling
 
@@ -16,4 +16,4 @@ Various tools for seismic and seismology, like direct modeling, inversion
 
 """
 
-from fatiando.seismic import epic2d, traveltime, srtomo, profile
+from fatiando.seismic import epic2d, ttime2d, srtomo, profile
