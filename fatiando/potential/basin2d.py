@@ -145,7 +145,7 @@ import time
 import itertools
 import numpy
 
-from fatiando.potential import _talwani
+#from fatiando.potential import _talwani
 from fatiando import inversion, utils, logger
 
 

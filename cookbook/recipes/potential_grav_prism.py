@@ -13,6 +13,7 @@ prisms = [ft.msh.ddd.Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
           ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':1300})]
 shape = (100,100)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-150)
+log.info("Calculating fileds...")
 fields = [ft.pot.prism.pot(xp, yp, zp, prisms),
           ft.pot.prism.gx(xp, yp, zp, prisms),
           ft.pot.prism.gy(xp, yp, zp, prisms),
@@ -23,6 +24,7 @@ fields = [ft.pot.prism.pot(xp, yp, zp, prisms),
           ft.pot.prism.gyy(xp, yp, zp, prisms),
           ft.pot.prism.gyz(xp, yp, zp, prisms),
           ft.pot.prism.gzz(xp, yp, zp, prisms)]
+log.info("Plotting...")
 titles = ['potential', 'gx', 'gy', 'gz',
           'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 ft.vis.figure(figsize=(8, 9))
