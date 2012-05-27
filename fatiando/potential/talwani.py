@@ -21,10 +21,9 @@ Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
 
 """
 import numpy
+from numpy import arctan2, pi, sin, cos, log, tan
 
 from fatiando import logger
-
-log = logger.dummy('fatiando.potential.talwani')
 
 # The gravitational constant (m^3*kg^-1*s^-1)
 G = 0.00000000006673
@@ -62,126 +61,49 @@ def gz(xp, zp, polygons):
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for p in polygons:
-        if p is None or 'density' in p:
-            
-
-            
-            res += _talwani.talwani_gz(float(p['density']), p['x'], p['y'],
-                xp, zp)
+        if p is None or 'density' not in p:
+            continue
+        density = p['density']
+        x = p['x']
+        z = p['y']
+        nverts = len(p['x'])
+        for v in xrange(nverts):
+            # Change the coordinates of this vertice
+            xv = x[v] - xp;
+            zv = z[v] - zp;
+            # The last vertice pairs with the first one
+            if v == nverts - 1:
+                xvp1 = x[0] - xp
+                zvp1 = z[0] - zp
+            else:
+                xvp1 = x[v + 1]- xp
+                zvp1 = z[v + 1] - zp                
+            # Temporary fix. The analytical conditions for these limits don't
+            # work
+            if numpy.any(xv == 0) or numpy.any(xv == xvp1):
+                xv = xv + 0.01
+            if (numpy.any(xv == 0.) and numpy.any(zv == 0.) or
+                numpy.any(zv == zvp1)):
+                zv = zv + 0.01
+            if numpy.any(xvp1 == 0.) and numpy.any(zvp1 == 0.):
+                zvp1 = zvp1 + 0.01
+            if numpy.any(xvp1 == 0.):
+                xvp1 = xvp1 + 0.01
+            theta_v = arctan2(zv, xv)
+            theta_vp1 = arctan2(zvp1, xvp1)
+            phi_v = arctan2(zvp1 - zv, xvp1 - xv)
+            ai = xvp1 + zvp1*(xvp1 - xv)/(zv - zvp1)
+            if numpy.any(theta_v < 0):
+                theta_v = theta_v + pi
+            if numpy.any(theta_vp1 < 0):
+                theta_vp1 = theta_vp1 + pi
+            tmp = ai*sin(phi_v)*cos(phi_v)*(
+                    theta_v - theta_vp1 + tan(phi_v)*log(
+                        (cos(theta_v)*(tan(theta_v) - tan(phi_v)))/
+                        (cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))))
+            equal_theta = [i for i, isequal in enumerate(theta_v == theta_vp1)
+                           if isequal]
+            tmp[equal_theta] = 0.
+            res += tmp*density
+        res *= SI2MGAL*2.0*G
     return res
-
-
-
-#unsigned int talwani_gz(double dens, double *x, double *z, unsigned int m,
-                        #double *xp, double *zp, unsigned int n, double *res)
-#{
-    #double *px, *pz;
-    #double xv, zv, xvp1, zvp1, theta_v, theta_vp1, phi_v, ai, tmp;
-    #int flag;
-    #register unsigned int i, v;
-    #
-    #for(i=0; i < n; i++, res++, xp++, zp++)
-    #{
-        #flag = 0;
-        #*res = 0;
-        #tmp = 0;
-        #xvp1 = *x - *xp;
-        #zvp1 = *z - *zp;  
-        #px = x;
-        #pz = z;  
-        #for(v=0; v < m; v++)
-        #{
-            #xv = xvp1;
-            #zv = zvp1;
-            #/* The last vertice pairs with the first one */
-            #if(v == m - 1)
-            #{
-                #xvp1 = *x - *xp;
-                #zvp1 = *z - *zp;
-            #}
-            #else
-            #{
-                #xvp1 = *(++px) - *xp;
-                #zvp1 = *(++pz) - *zp;                
-            #}
-            #/* Temporary fix to the two bad conditions bellow */
-            #if(xv == 0 || xv == xvp1)
-            #{
-                #xv += 0.1;
-            #}
-            #if((xv == 0. && zv == 0.) || zv == zvp1)
-            #{
-                #zv += 0.1;
-            #}
-            #if(xvp1 == 0. && zvp1 == 0.)
-            #{
-                #zvp1 += 0.1;
-            #}
-            #if(xvp1 == 0.)
-            #{
-                #xvp1 += 0.1;
-            #}
-            #/* Fix ends here */
-            #theta_v = atan2(zv, xv); 
-            #theta_vp1 = atan2(zvp1, xvp1); 
-            #phi_v = atan2(zvp1 - zv, xvp1 - xv); 
-            #ai = xvp1 + (zvp1)*((double)(xvp1 - xv)/(zv - zvp1));            
-            #if(theta_v < 0)
-            #{
-                #theta_v += FAT_PI;
-            #}
-            #if(theta_vp1 < 0)
-            #{
-                #theta_vp1 += FAT_PI;
-            #}   
-            #/* There is something wrong with these conditions. Need to review.
-             #* For now, just sum 0.1 meter to one of the coordinates (above).
-             #* Gives decent enough result.          
-            #if(xv == 0)
-            #{
-                #tmp = -ai*sin(phi_v)*cos(phi_v)*(theta_vp1 -
-                    #0.5*FAT_PI + tan(phi_v)*log(
-                        #cos(theta_vp1)*(tan(theta_vp1)- tan(phi_v))));
-                #flag = 1;
-            #}             
-            #if(xvp1 == 0)
-            #{
-                #tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v -
-                    #0.5*FAT_PI + tan(phi_v)*log(
-                        #cos(theta_v)*(tan(theta_v) - tan(phi_v))));         
-                #flag = 1;
-            #}
-            #if(zv == zvp1)
-            #{
-                #tmp = zv*(theta_vp1 - theta_v);
-                #flag = 1; 
-            #}            
-            #if(xv == xvp1)
-            #{
-                #tmp = xv*(log((double)cos(theta_v)/cos(theta_vp1)));
-                #flag = 1;
-            #}         
-            #if((theta_v == theta_vp1) || (xv == 0. && zv == 0.) ||
-               #(xvp1 == 0. && zvp1 == 0.))
-            #{
-                #tmp = 0;
-                #flag = 1;
-            #}*/
-            #if(theta_v == theta_vp1)
-            #{
-                #tmp = 0;
-                #flag = 1;
-            #}
-            #if(!flag)
-            #{ 
-                #tmp = ai*sin(phi_v)*cos(phi_v)*(theta_v - theta_vp1 +
-                    #tan(phi_v)*log((double)
-                        #(cos(theta_v)*(tan(theta_v) - tan(phi_v)))/
-                        #(cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))));
-            #}
-            #*res += tmp;
-        #}
-        #*res *= SI2MGAL*2.0*G*dens;
-    #}
-    #return i;
-#}

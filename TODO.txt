@@ -19,6 +19,7 @@ GOALS FOR 0.1:
 
 PRIORITY:
 
+* Transform all geometric elements into classes
 
 TODO:
 
