@@ -145,7 +145,8 @@ import time
 import itertools
 import numpy
 
-#from fatiando.potential import _talwani
+from fatiando.potential import talwani
+from fatiando.mesher.dd import Polygon
 from fatiando import inversion, utils, logger
 
 
@@ -155,7 +156,8 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     """
     Data module for the inversion to estimate the relief of a triangular basin.
 
-    Packs the necessary data and interpretative model information.
+    Packs the necessary gravity anomaly data and interpretative model
+    information.
 
     The forward modeling is done using :mod:`~fatiando.potential.talwani`.
     Derivatives are calculated using a 2-point finite difference approximation.
@@ -166,16 +168,14 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     * xp, zp : array
         Arrays with the x and z coordinates of the profile data points
     * data : array
-        The profile data
+        The profile gravity anomaly data
     * verts : list of lists
         List of the [x, z] coordinates of the two know vertices. Very
         important that the vertices in the list be ordered from left to right!
         Otherwise the forward model will give results with an inverted sign and
         terrible things may happen!
     * prop : float
-        Value of the physical property of the basin. The physical property must
-        be compatible with the potential field used! I.e., gravitational fields
-        require a value of density contrast.
+        Density contrast of the basin
     * delta : float
         Interval used to calculate the approximate derivatives
         
@@ -187,36 +187,27 @@ class TriangularGzDM(inversion.datamodule.DataModule):
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
-        log.info("Initializing TriangularDM data module:")
         if len(xp) != len(zp) != len(data):
             raise ValueError, "xp, zp, and data must be of same length"
         if len(verts) != 2:
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
         self.xp = numpy.array(xp, dtype=numpy.float64)
         self.zp = numpy.array(zp, dtype=numpy.float64)
-        self.prop = float(prop)
-        self.verts = verts
-        self.delta = numpy.array([0., 0., delta], dtype='f')
-        log.info("  number of data: %d" % (len(data)))
-        log.info("  physical property: %s" % (str(prop)))
+        self.prop = {'density':prop}
+        self.verts = list(verts)
+        self.delta = delta
         
     def get_predicted(self, p):
-        tmp = [v for v in self.verts]
-        tmp.append(p)
-        xs, zs = numpy.array(tmp, dtype='f').T
-        return _talwani.talwani_gz(self.prop, xs, zs, self.xp, self.zp)
+        polygon = Polygon(self.verts + [p], self.prop)
+        return talwani.gz(self.xp, self.zp, [polygon])
 
     def sum_gradient(self, gradient, p, residuals):
-        xp, zp = self.xp, self.zp
-        delta = self.delta
-        tmp = [v for v in self.verts]
-        tmp.append(p)
-        xs, zs = numpy.array(tmp, dtype='f').T
-        at_p = _talwani.talwani_gz(self.prop, xs, zs, xp, zp)
-        jacx = ((_talwani.talwani_gz(self.prop, xs + delta, zs, xp, zp) - at_p)/
-                delta[-1])
-        jacz = ((_talwani.talwani_gz(self.prop, xs, zs + delta, xp, zp) - at_p)/
-                delta[-1])
+        polygon = Polygon(self.verts + [p], self.prop)
+        at_p = talwani.gz(self.xp, self.zp, [polygon])
+        polygon = Polygon(self.verts + [[p[0] + self.delta, p[1]]], self.prop)
+        jacx = (talwani.gz(self.xp, self.zp, [polygon]) - at_p)/self.delta
+        polygon = Polygon(self.verts + [[p[0], p[1] + self.delta]], self.prop)
+        jacz = (talwani.gz(self.xp, self.zp, [polygon]) - at_p)/self.delta
         self.jac_T = numpy.array([jacx, jacz])
         return gradient - 2.*numpy.dot(self.jac_T, residuals)
 
@@ -295,39 +286,33 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
 
     def __init__(self, xp, zp, data, verts, prop, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
-        log.info("Initializing %s data module for trapezoidal basin:" %
-                (self.field))
         if len(xp) != len(zp) != len(data):
             raise ValueError, "xp, zp, and data must be of same length"
         if len(verts) != 2:
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
         self.xp = numpy.array(xp, dtype=numpy.float64)
         self.zp = numpy.array(zp, dtype=numpy.float64)
-        self.prop = float(prop)
-        self.verts = verts
-        log.info("  number of data: %d" % (len(data)))
-        log.info("  physical property: %s" % (str(prop)))
+        self.prop = {'density':prop}
+        self.verts = list(verts)
         self.delta = delta
-        self.d1 = numpy.array([0., 0., delta, 0.], dtype='f')
-        self.d2 = numpy.array([0., 0., 0., delta], dtype='f')
         self.xs = [x for x in reversed(numpy.array(verts).T[0])]
                     
     def get_predicted(self, p):
-        tmp = [[x, z] for x, z in zip(self.xs, p)]
-        vertices = itertools.chain(self.verts, tmp)
-        xs, zs = numpy.array([v for v in vertices], dtype='f').T
-        return _talwani.talwani_gz(self.prop, xs, zs, self.xp, self.zp)
+        x1, x2 = self.verts[1][0], self.verts[0][0]
+        z1, z2 = p
+        polygon = Polygon(self.verts + [[x1, z1], [x2, z2]], self.prop)
+        return talwani.gz(self.xp, self.zp, [polygon])
 
     def sum_gradient(self, gradient, p, residuals):
-        xp, zp = self.xp, self.zp
-        tmp = [[x, z] for x, z in zip(self.xs, p)]
-        vertices = itertools.chain(self.verts, tmp)
-        xs, zs = numpy.array([v for v in vertices], dtype='f').T        
-        at_p = _talwani.talwani_gz(self.prop, xs, zs, xp, zp)
-        jacz1 = ((_talwani.talwani_gz(self.prop, xs, zs + self.d1, xp, zp) -
-                  at_p)/self.delta)
-        jacz2 = ((_talwani.talwani_gz(self.prop, xs, zs + self.d2, xp, zp) -
-                  at_p)/self.delta)
+        x1, x2 = self.verts[1][0], self.verts[0][0]
+        z1, z2 = p
+        delta = self.delta
+        polygon = Polygon(self.verts + [[x1, z1], [x2, z2]], self.prop)
+        at_p = talwani.gz(self.xp, self.zp, [polygon])        
+        polygon = Polygon(self.verts + [[x1, z1 + delta], [x2, z2]], self.prop)
+        jacz1 = (talwani.gz(self.xp, self.zp, [polygon]) - at_p)/delta
+        polygon = Polygon(self.verts + [[x1, z1], [x2, z2 + delta]], self.prop)
+        jacz2 = (talwani.gz(self.xp, self.zp, [polygon]) - at_p)/delta
         self.jac_T = numpy.array([jacz1, jacz2])
         return gradient - 2.*numpy.dot(self.jac_T, residuals)
 

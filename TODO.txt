@@ -16,6 +16,8 @@ GOALS FOR 0.1:
 * Rename utils.comtaminate to contam
 * Make logger get the level from string instead of having to import logging
 * Make unit tests to test Cython prism and numpy prism
+* Hide data modules inside inversion functions: basin2d
+* Make basin2d spit out Polygons, not estimate vectors
 
 PRIORITY:
 

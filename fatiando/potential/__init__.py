@@ -32,4 +32,4 @@ after modeling.
 
 """
 
-from fatiando.potential import prism, polyprism, trans, talwani
+from fatiando.potential import basin2d, polyprism, prism, talwani, trans
