@@ -10,6 +10,11 @@ This might seem unnecessary but it is done so that the linear solvers are
 compatible with the non-linear solvers (e.g.,
 :mod:`~fatiando.inversion.gradient` and :mod:`~fatiando.inversion.heuristic`).
 
+This module uses dense matrices (:mod:`numpy` arrays) by default. If you want
+to enable the use of sparse matrices from :mod:`scipy.sparse`, call function
+:func:`fatiando.inversion.linear.use_sparse` **before** creating any solver
+functions!
+
 In the case of linear problems, solver functions have the general format::
 
     def solver(dms, regs):

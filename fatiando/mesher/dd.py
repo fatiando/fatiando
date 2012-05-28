@@ -19,7 +19,7 @@ triangles.
 
 """
 
-import PIL
+import PIL.Image
 import numpy
 import scipy.misc
 

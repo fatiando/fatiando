@@ -15,7 +15,7 @@ from fatiando import logger
 log = logger.dummy('fatiando.seismic.ttime2d')
 
 
-def straight(cells, prop, srcs, recs):
+def straight(cells, prop, srcs, recs, velocity=None):
     """
     Calculate the travel times inside a mesh of square cells between source and
     receiver pairs assuming the rays are straight lines (no refraction or
@@ -27,7 +27,7 @@ def straight(cells, prop, srcs, recs):
 
     Parameters:
 
-    * cells : list of :func:`~fatiando.mesher.dd.Square`
+    * cells : list of :func:`fatiando.mesher.dd.Square`
         The velocity model to use to trace the straight rays. Cells must have
         the physical property given in parameter *prop*. This will be used
         as the velocity of each cell. (*cells* can also be a
@@ -39,6 +39,9 @@ def straight(cells, prop, srcs, recs):
         List with [x, y] coordinate pairs of the wave sources.
     * recs : list fo lists
         List with [x, y] coordinate pairs of the receivers sources
+    * velocity : float or None
+        If not None, will use this value instead of the prop of cells as the
+        velocity. Useful when building sensitivity matrices (use velocity = 1).
     
     *srcs* and *recs* are lists of source-receiver pairs. Each source in *srcs*
     is associated with the corresponding receiver in *recs* for a given travel
@@ -75,9 +78,13 @@ def straight(cells, prop, srcs, recs):
         minx = min(x_src, x_rec)
         miny = min(y_src, y_rec)
         for cell in cells:
-            if cell is None or prop not in cell:
+            if cell is None or (prop not in cell and velocity is None):
                 continue
             x1, x2, y1, y2 = cell['x1'], cell['x2'], cell['y1'], cell['y2']
+            if velocity is None:
+                vel = cell[prop]
+            else:
+                vel = velocity
             # Check if the cell is in the rectangle with the ray path as a
             # diagonal. If not, then the ray doesn't go through the cell.
             if x2 < minx or x1 > maxx or y2 < miny or y1 > maxy:
@@ -116,5 +123,5 @@ def straight(cells, prop, srcs, recs):
             if len(cross) == 2:
                 p1, p2 = cross
                 distance = math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-                times[l] += distance/float(cell[prop])
+                times[l] += distance/float(vel)
     return times

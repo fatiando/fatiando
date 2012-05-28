@@ -5,51 +5,47 @@ descent (doesn't require Hessians).
 WARNING: takes a long time to calculate (like 5 min)
 """
 from os import path
-from matplotlib import pyplot
 import numpy
-from fatiando.mesher.dd import SquareMesh
-from fatiando.seismic import srtomo, traveltime
-from fatiando import vis, logger, utils, inversion
+import fatiando as ft
 
-log = logger.get()
-log.info(logger.header())
+log = ft.log.get()
+log.info(ft.log.header())
 log.info(__doc__)
 
 imgfile = path.join(path.dirname(path.abspath(__file__)), 'fat-logo.png')
 area = (0, 5, 0, 5)
 shape = (150, 150)
-model = SquareMesh(area, shape)
+model = ft.msh.dd.SquareMesh(area, shape)
 model.img2prop(imgfile, 4, 10, 'vp')       
 
 log.info("Generating synthetic travel-time data")
-src_loc = utils.random_points(area, 200)
-rec_loc = utils.circular_points(area, 80, random=True)
-srcs, recs = utils.connect_points(src_loc, rec_loc)
-ttimes = utils.contaminate(traveltime.straight_ray_2d(model, 'vp', srcs, recs),
+src_loc = ft.utils.random_points(area, 200)
+rec_loc = ft.utils.circular_points(area, 80, random=True)
+srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
+ttimes = ft.utils.contaminate(ft.seis.ttime2d.straight(model, 'vp', srcs, recs),
                            0.01, percent=True)
                     
-mesh = SquareMesh(area, shape)
-solver = inversion.gradient.steepest(numpy.zeros(mesh.size))
-results = srtomo.run(ttimes, srcs, recs, mesh, solver, sparse=True,
-                     damping=0.05)
+mesh = ft.msh.dd.SquareMesh(area, shape)
+results = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
+                             damping=0.05)
 estimate, residuals = results
 mesh.addprop('vp', estimate)
 
-pyplot.figure(figsize=(14, 5))
-pyplot.subplot(1, 2, 1)
-pyplot.axis('scaled')
-pyplot.title('Vp synthetic model of the Earth')
-vis.map.squaremesh(model, prop='vp', vmin=4, vmax=10, cmap=pyplot.cm.seismic)
-cb = pyplot.colorbar()
+ft.vis.figure(figsize=(14, 5))
+ft.vis.subplot(1, 2, 1)
+ft.vis.axis('scaled')
+ft.vis.title('Vp synthetic model of the Earth')
+ft.vis.squaremesh(model, prop='vp', vmin=4, vmax=10, cmap=ft.vis.cm.seismic)
+cb = ft.vis.colorbar()
 cb.set_label('Velocity')
-vis.map.points(src_loc, '*y', label="Sources")
-vis.map.points(rec_loc, '^r', label="Receivers")
-pyplot.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
-pyplot.subplot(1, 2, 2)
-pyplot.axis('scaled')
-pyplot.title('Tomography result')
-vis.map.squaremesh(mesh, prop='vp', vmin=0.1, vmax=0.25,
-    cmap=pyplot.cm.seismic_r)
-cb = pyplot.colorbar()
+ft.vis.points(src_loc, '*y', label="Sources")
+ft.vis.points(rec_loc, '^r', label="Receivers")
+ft.vis.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
+ft.vis.subplot(1, 2, 2)
+ft.vis.axis('scaled')
+ft.vis.title('Tomography result')
+ft.vis.squaremesh(mesh, prop='vp', vmin=0.1, vmax=0.25,
+    cmap=ft.vis.cm.seismic_r)
+cb = ft.vis.colorbar()
 cb.set_label('Slowness')
-pyplot.show()
+ft.vis.show()

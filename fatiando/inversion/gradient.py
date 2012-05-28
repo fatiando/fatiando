@@ -6,6 +6,11 @@ optimization methods.
 * :func:`~fatiando.inversion.gradient.levmarq`
 * :func:`~fatiando.inversion.gradient.steepest`
 
+This module uses dense matrices (:mod:`numpy` arrays) by default. If you want
+to enable the use of sparse matrices from :mod:`scipy.sparse`, call function
+:func:`fatiando.inversion.gradient.use_sparse` **before** creating any solver
+functions!
+
 The factory functions produce the actual solver functions. Solver functions are
 Python generator functions that have the general format::
 

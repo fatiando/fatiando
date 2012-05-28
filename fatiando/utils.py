@@ -108,9 +108,10 @@ class SparseList(object):
         5
         >>> print l[1], l[3]
         0.0 42.0
+        >>> l[1] += 3.0
         >>> for i in l:
         ...     print i,
-        0.0 0.0 0.0 42.0 0.0
+        0.0 3.0 0.0 42.0 0.0
         >>> l2 = SparseList(4, elements={1:3.2, 3:2.8})
         >>> for i in l2:
         ...     print i,

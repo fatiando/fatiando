@@ -39,7 +39,7 @@ MOCK_MODULES = [
     'matplotlib',
     'matplotlib.mlab', 'matplotlib.pyplot', 'matplotlib.widgets',
     'matplotlib.nxutils',
-    'PIL']
+    'PIL.Image']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
