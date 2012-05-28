@@ -108,7 +108,7 @@ latexpdf:
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 	@echo "moving pdf file to doc"
-	mv _build/latex/*.pdf .
+	mv _build/latex/fatiando*.pdf .
 
 text:
 	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
