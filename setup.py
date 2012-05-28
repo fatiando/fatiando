@@ -12,7 +12,7 @@ try:
     from Cython.Distutils import build_ext
     ext_modules = [
         Extension("fatiando.potential._cprism",
-                  ["fatiando/potential/_cprism.pyx"],
+                  [join('fatiando', join('potential', '_cprism.pyx'))],
                   libraries=['m'],
                   extra_compile_args=['-O3'])]
     CYTHON = True
@@ -21,33 +21,6 @@ except ImportError:
         "Don't panic! Will use Python alternatives instead.")
     CYTHON = False
     
-#try:
-    #from numpy.distutils.core import setup, Extension
-#except ImportError:
-    #print ("Sorry, Numpy <http://numpy.org/> and a C compiler are needed to " +
-           #"build Fatiando.")
-    #sys.exit()
-#
- #Base paths for extention modules
-#potdir = join('src', 'potential')
-#seisdir = join('src', 'seismic')
-#heatdir = join('src', 'heat')
-#
-#extmods = [
-    #Extension('fatiando.potential._talwani', sources=[join(potdir, 'talwani.c'),
-        #join(potdir, 'talwani.pyf')]),
-    #Extension('fatiando.potential._polyprism',
-        #sources=[join(potdir, 'polyprism.c'), join(potdir, 'polyprism.pyf')]),
-    #Extension('fatiando.potential._transform',
-        #sources=[join(potdir, 'transform.c'), join(potdir, 'transform.pyf')]),
-    #Extension('fatiando.seismic._traveltime',
-        #sources=[join(seisdir, 'traveltime.c'),
-                 #join(seisdir, 'traveltime.pyf')]),
-    #Extension('fatiando.heat._climatesignal',
-        #sources=[join(heatdir, 'climatesignal.c'),
-                 #join(heatdir, 'climatesignal.pyf')])
-    #]
-
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Fatiando a Terra - Geophysical modeling and inversion"
@@ -75,7 +48,6 @@ CLASSIFIERS = ["Intended Audience :: Science/Research",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
          
-
 def setrevison():
     # Check if the script is building/packaging or if this is a src dist
     if os.path.exists('.hg'):

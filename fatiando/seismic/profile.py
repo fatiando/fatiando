@@ -1,5 +1,5 @@
 """
-Direct modeling and inversion of seismic profiles.
+Forward modeling and inversion of seismic profiling data.
 
 **Vertical seismic profiling**
 
@@ -97,8 +97,8 @@ class VerticalSlownessDM(inversion.datamodule.DataModule):
     where :math:`d_{ij}` is the distance that the ith first-arrival traveled
     inside the jth layer.
 
-    Uses :func:`~fatiando.seismic.traveltime.straight_ray_2d` for direct
-    modeling to build the Jacobian matrix.
+    Uses :func:`fatiando.seismic.ttime2d.straight` for forward modeling to
+    build the Jacobian matrix.
 
     Parameters:
 
@@ -126,7 +126,7 @@ class VerticalSlownessDM(inversion.datamodule.DataModule):
                   for i in xrange(nlayers)]
         srcs = [(0, 0)]*len(self.zp)
         recs = [(0, z) for z in self.zp]        
-        jac_T = numpy.array([traveltime.straight_ray_2d([l], 'vp', srcs, recs)
+        jac_T = numpy.array([ttime2d.straight([l], 'vp', srcs, recs)
                              for l in layers])
         return jac_T
 
@@ -170,7 +170,7 @@ def vertical(thickness, velocity, zp):
               for i in xrange(nlayers)]
     srcs = [(0, 0)]*len(zp)
     recs = [(0, z) for z in zp]
-    return traveltime.straight_ray_2d(layers, 'vp', srcs, recs)
+    return ttime2d.straight(layers, 'vp', srcs, recs)
 
 def ivertical(traveltimes, zp, thickness, solver, damping=0., smooth=0.,
     sharp=0., beta=10.**(-10), iterate=False):

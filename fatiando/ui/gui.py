@@ -451,7 +451,7 @@ class Lasagne():
         >>> # Define the measuring points along the well
         >>> zp = range(1, sum(thickness), 1)
         >>> # Define the velocity range
-        >>> vmin, vmax = 0, 10000
+        >>> vmin, vmax = 1, 10000
         >>> # Run the application
         >>> app = Lasagne(thickness, zp, vmin, vmax)
         >>> app.run()
@@ -479,7 +479,9 @@ class Lasagne():
     def __init__(self, thickness, zp, vmin, vmax, tts=None):
         if tts is not None:
             if len(tts) != len(zp):
-                raise ValueError, "zp and tts must have same size"
+                raise ValueError("zp and tts must have same size")
+        if vmin <= 0. or vmax <= 0.:
+            raise ValueError("Can't have velocity vmin or vmax <= 0")
         self.tts = tts
         self.zp = zp
         self.thickness = thickness
