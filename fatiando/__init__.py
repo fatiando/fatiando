@@ -1,9 +1,8 @@
 """
-**Fatiando a Terra**:
+The ``fatiando`` package contains all the subpackages and modules required for
+most tasks. 
 
-Tools for geophysical modeling and inversion. 
-
-Modules for specific geophysical methods are divided into subpackages:
+Modules for each geophysical method are group in subpackages:
 
 * :mod:`pot <fatiando.potential>`:
   Potential fields

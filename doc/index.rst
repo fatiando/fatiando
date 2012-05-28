@@ -1,10 +1,11 @@
-Fatiando a Terra's documentation
-================================
+Fatiando a Terra: Geophysical modeling and inversion
+====================================================
 
-**Fatiando a Terra** is an open source toolkit for geophysical modeling and
-inversion. Fatiando provides an easy and flexible way to perform common
-tasks like: generating synthetic data, manipulating data sets, plotting
-non-gridded data, direct modeling, inversion, etc.
+.. topic:: An open source toolkit for geophysical modeling and inversion
+
+    Fatiando provides an easy and flexible way to perform common tasks like:
+    generating synthetic data, forward modeling, inversion, 3D visualization,
+    and more! All from inside the powerfull Python_ language.
 
 For more information visit the http://www.fatiando.org
 
@@ -19,13 +20,13 @@ The source code of Fatiando is hosted on several online repositories:
 .. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
 .. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
 
-Fatiando is licensed under the :ref:`BSD license <license>`.
+**License**: Fatiando is licensed under the **BSD license**.
 This means that it can be reused and remixed
 with few restrictions.
-See the license text for more information.
+See the :ref:`license text <license>` for more information.
 
 The main interface for Fatiando
-is provided by a Python_ package (:ref:`the API <api>`).
+is provided by a Python_ package called ``fatiando``.
 This means that commands in Fatiando
 are executed using Python scripts,
 instead of the command line or shell scripts.
@@ -67,14 +68,17 @@ which results in something like this:
 If you want to find out more,
 have a look at the rest of this documentation.
 
+.. raw:: html
+
+    <h1>Contents:</h1>
+
 .. toctree::
     :maxdepth: 3
 
     contributors.rst
     license.rst
     changelog.rst
-    getting-started.rst
-    cookbook/index.rst
-    api/index.rst
+    userguide.rst
+    cookbook.rst
 
 

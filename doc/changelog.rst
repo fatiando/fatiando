@@ -3,8 +3,8 @@
 Changelog
 =========
 
-Changes in 0.1
---------------
+Changes in v0.1
+---------------
 
 * Change license to BSD (see the :ref:`license text <license>`).
 * The API is now fully accessible by only importing ``fatiando``. Modules and
