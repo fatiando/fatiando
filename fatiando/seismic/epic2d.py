@@ -20,8 +20,8 @@ Example using synthetic data::
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
-    >>> stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
+    >>> ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
@@ -44,8 +44,8 @@ Example using ``iterate = True`` to step through the solver algorithm::
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
-    >>> stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
+    >>> ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
