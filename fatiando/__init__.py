@@ -1,38 +1,65 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Package ``fatiando`` contains tools for geophysical direct and inverse modeling
-as well as data processing, gridding, and visualization.
+The ``fatiando`` package contains all the subpackages and modules required for
+most tasks. 
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 02-Apr-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+Modules for each geophysical method are group in subpackages:
+
+* :mod:`pot <fatiando.potential>`:
+  Potential fields
+* :mod:`seis <fatiando.seismic>`:
+  Seismics and seismology
+* :mod:`heat <fatiando.heat>`:
+  Geothermics
+
+Modules for gridding, meshing, visualization, user interface, etc:
+
+* :mod:`msh <fatiando.mesher>`:
+  Mesh generation and definition of geometric elements
+* :mod:`grd <fatiando.gridder>`:
+  Grid generation and operations (like interpolation)
+* :mod:`vis <fatiando.vis>`:
+  Plotting utilities for maps (using matplotlib) and 3D (using mayavi)
+* :mod:`ui <fatiando.ui>`:
+  User interfaces, like map picking and interactive drawing
+* :mod:`utils <fatiando.utils>`:
+  Miscelaneous utilities, like mathematical functions, unit conversion, etc
+* :mod:`log <fatiando.logger>`:
+  A simpler interface to the Python :mod:`logging` module for log files
+
+See the documentation for each module to find out more about what they do and
+how to use them.
+
+.. note:: Some modules have "nicknames" for easier access when importing
+    the ``fatiando`` package directly. To import each module separately,
+    use the full names, e.g., ``from fatiando.mesher.ddd import PrismMesh`` or
+    ``from fatiando.potential import talwani``.
+
+Also included is the :mod:`fatiando.inversion` package with utilities for
+implementing inverse problems. There you'll find common regularizing functions,
+linear inverse problem solvers, and non-linear gradient solvers. This package
+is generaly only used from inside Fatiando itself, not when using Fatiando in
+scripts. For usage examples, see the source of modules
+:mod:`fatiando.seismic.epic2d` and :mod:`fatiando.potential.basin2d`.
 
 ----
 
 """
-__all__ = ['heat',
-           'inversion',
-           'mesher',
-           'potential',
-           'seismic',
-           'ui',
-           'vis',           
-           'gridder',
-           'logger',
-           'utils',
-           'version']
+
+version = '0.1.dev'
+
+# Import all the modules and subpackages so that they are accessible just by
+# importing fatiando
+from fatiando import logger as log
+from fatiando import gridder as grd
+from fatiando import mesher as msh
+from fatiando import potential as pot
+from fatiando import seismic as seis
+from fatiando import utils
+from fatiando import heat
+from fatiando import ui
+from fatiando import vis
+from fatiando import inversion
+
+
+__all__ = ['log', 'grd', 'msh', 'pot', 'seis', 'utils', 'heat', 'ui', 'vis',
+           'inversion']

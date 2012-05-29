@@ -3,9 +3,9 @@ syntax: glob
 ./.sconsign.dblite
 *.pyc
 *.so
-doc/build
-_*module.c
+doc/_build
+doc/fatiando*.pdf
+_*.c
 build
 dist
-MANIFEST
-fatiando/version.py
+fatiando/changeset.txt

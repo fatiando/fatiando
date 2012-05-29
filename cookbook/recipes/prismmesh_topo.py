@@ -25,7 +25,7 @@ mesh.carvetopo(x, y, height)
 
 log.info("Plotting")
 vis.vtk.figure()
-vis.vtk.prisms(mesh, (0 for i in xrange(mesh.size)))
+vis.vtk.prisms(mesh)
 vis.vtk.add_axes(vis.vtk.add_outline(bounds), fmt='%.0f')
 vis.vtk.wall_north(bounds)
 vis.vtk.mlab.show()

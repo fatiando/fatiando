@@ -1,26 +1,113 @@
-* New doc style:
-    * make every example a doctest
-    * use "name : type" parameter description
-    * in modules include
-        * :author:
-        * :date:
-        * :license:
-    DONE:
-        * mesher
-        * utils
+GOALS FOR 1.0:
 
-* consider making the parameter vector a dictionary
-    * one array for each prop
-    * this way the datamodules only operate on their props
+* Write Developers Guide:
+    * Coding style
+    * Using version control
+    * Getting the source
+    * Building
+    * Sending patches
+* Write tutorial with a larger example than in the cookbook
+* Make the cookbook rst files automatically:
+    * include a Title and description in each recipes docstring (for autodoc)
+    * include sample output as <script_name>%d.pnd
+
+GOALS FOR 0.2:
+
+* Incorporate Tesseroids: gravitational modeling in spherical coordinates
+* Transform all geometric elements into classes
+
+GOALS FOR 0.1:
+
+* Merge potential.harvester
+* Optimize PrismMesh.dump (using Cython?)
+* In PrismMesh.dump: take a mesh file and a dict of prop:propfile pairs instead
+  of creating files. This is better to mock with StringIO.
+* Implement C extensions in Python + Numpy. If needed, use Cython for optional
+  speed gain. This way compiling is not a prerequisite to installing
+* Add vis.vtk.savefig3d to save a Mayavi scene
+* Add default solvers to inversion functions so that general users don't need to
+  dig into fatiando.inversion
+* Rename utils.comtaminate to contam
+* Make logger get the level from string instead of having to import logging
+* logger.get should receive a list of streams and add handlers to all
+* Make unit tests to test Cython prism against numpy prism
+* Hide data modules inside inversion functions: basin2d
+* Make basin2d spit out Polygons, not estimate vectors
+* Make unit test for talwani comparing with prism
+* Make unit test for polyprism comparing with prism
+* Port polyprism tensor components to fatiando
+* Make a plotter for PolygonalPrism
+
+URGENT:
+
+
+TODO:
+
 * Sparse Jacobian computation in SrTomo still too slow (much slower than dense
   version)
 * Consider getting rid of use_sparse functions and DampingSparse type regularizers.
   Instead, use sparse=True keyword arguments
-* BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
 * Fix recipe epicenter_regularized.py
-* Fix broken links in vis.vtk
+* Optimize equality constraints to use less memory
+* Remove MinimumDistance from epic2d
+
+BUGS:
+
+* BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
+
+
+TO-IMPLEMENT:
+
+* Parkers algorithm for potential fields
+* Fully integrate Radial3D inversion
+* Make a PolyprismStack that creates PolygonalPrisms staked on top of each other
+* Analytical upward continuation for tensor components
+* Spherical harmonics for potential fields
+* Spherical harmonic equivalent of Parkers algorithm
+* Sparsity regularization
+* McKenzie model
+* VBA model for oceanic lithosphere
+* ifat script that loads IPython with numpy and fatiando
+* potential.prism mag functions
+* potential.basin2d inversion using prisms
+* Interactive 2D potential field inversion (Silva and Barbosa, 2006)
+* Regional removal in potential fields
+* potential.sphere with the effect of a sphere
+* Finish implementing potential.polyprism
+* gridder.rotate to rotate grids
+* gridder.load/save to wrap numpy.loadtxt/savetxt (optional support for grid formats)
+* gridder.stream to return an interator that reads one grid point at a time
+* gridder.profile to extract (interpolate) a profile from a grid
+* mesher.ddd.prism2vtk to convert prisms to VTK and dump it to a file
+* potential.tensor for processing gradient tensors (invariants, center of mass estimation, etc)
+* inversion.linear.undet underdetermined solver for linear problems
+* Refactor ui.picker.draw_polygon to draw many polygons
+* utils.erange A range generator function with exponentially increasing intervals
+* Make a PrismMesh.get_index(i) method that converts index i in raveled array to
+  i, j, k 3D index
+* potential.terrain for terrain corrections (automatically find the best density)
+* utils.pickle and utils.upickle to automate pickling 
+
+IDEAS:
+
+* Get rid of the DataModule class. Provide a specification of it in the docs on
+  fatiando.inversion
+* Add decorator to logging that logs a functions name and parameters in debug
+  mode
+* Add a name attribute to data modules to facilitate doing:
+  for dm in datamods: plot dm
+* Consider making the parameter vector a dictionary: one array for each prop.
+  this way the datamodules only operate on their props
+* Consider numexpr to speedup numpy operations. Problem is that it only speedsup
+  large arrays
+* Make an automatic fetcher of bibliographic references from scripts
+* Store provenance of results in image files:
+  http://galacticusblog.blogspot.com/2012/01/reproducibility-of-galacticus-modesl.html
+* Use diagonal derivatives in Smoothness
 
 HARVESTER:
 * keep track of the misfit value on update so that don't have to calculate it every time.
 * Replace hand setting of physical properties of a prism with an actual addprop function
-* Initial goal is actually initial misfit. so change goal for misfit and keep track of misfit, goal and reg
+* Initial goal is actually initial misfit. so change goal for
+* Make harvest dump a list of prisms
+    

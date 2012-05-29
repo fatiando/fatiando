@@ -17,6 +17,6 @@ def fill(i):
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
 vis.vtk.figure()
-vis.vtk.prisms(mesh, mesh.props['density'])
+vis.vtk.prisms(mesh, prop='density')
 vis.vtk.add_axes(vis.vtk.add_outline(), fmt='%.0f')
 vis.vtk.mlab.show()

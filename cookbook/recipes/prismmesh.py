@@ -11,6 +11,6 @@ log.info(__doc__)
 mesh = PrismMesh(bounds=(-2, 2, -3, 3, 0, 1), shape=(4,4,4))
 
 vis.vtk.figure()
-plot = vis.vtk.prisms(mesh, [0 for i in xrange(mesh.size)])
+plot = vis.vtk.prisms(mesh)
 axes = vis.vtk.add_axes(plot)
 vis.vtk.mlab.show()

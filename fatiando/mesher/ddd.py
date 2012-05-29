@@ -1,26 +1,10 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Create and operate on meshes of 3D objects like prisms, polygonal prisms,
 tesseroids, etc.
 
 **Elements**
 
-* :func:`~fatiando.mesher.ddd.Prism`
+* :class:`~fatiando.mesher.ddd.Prism`
 * :func:`~fatiando.mesher.ddd.PolygonalPrism`
 
 **Meshes**
@@ -32,11 +16,6 @@ tesseroids, etc.
 
 * :func:`~fatiando.mesher.ddd.extract`
 * :func:`~fatiando.mesher.ddd.vfilter`
-* :func:`~fatiando.mesher.ddd.center`
-
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 13-Sep-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
 
 ----
 
@@ -48,23 +27,9 @@ import matplotlib.mlab
 from fatiando import logger
 
 
-# For lazy imports of TVTK, since it's very slow to import
-tvtk = None
-
-
-def _lazy_import_tvtk():
-    """
-    Do the lazy import of tvtk
-    """
-    global tvtk
-    # For campatibility with versions of Mayavi2 < 4
-    if tvtk is None:
-        try:
-            from tvtk.api import tvtk
-        except ImportError:
-            from enthought.tvtk.api import tvtk
+log = logger.dummy('fatiando.mesher.ddd')
     
-def Prism(x1, x2, y1, y2, z1, z2, props=None):
+class Prism(object):
     """
     Create a 3D right rectangular prism.
 
@@ -80,26 +45,102 @@ def Prism(x1, x2, y1, y2, z1, z2, props=None):
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'susceptibility':10000}``
         
-    Returns:
-    
-    * prism : dict
-        Dictionary describing the prism
-
     Examples:
 
+        >>> from fatiando.mesher.ddd import Prism
         >>> p = Prism(1, 2, 3, 4, 5, 6, {'density':200})
-        >>> p['density']
+        >>> p.props['density']
         200
-        >>> print p['x1'], p['x2'], p['y1'], p['y2'], p['z1'], p['z2']
-        1.0 2.0 3.0 4.0 5.0 6.0
+        >>> print p.get_bounds()
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        >>> print p
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:200
 
     """
-    prism = {'x1':float(x1), 'x2':float(x2), 'y1':float(y1), 'y2':float(y2),
-             'z1':float(z1), 'z2':float(z2)}
-    if props is not None:
-        for prop in props:
-            prism[prop] = props[prop]
-    return prism
+
+    def __init__(self, x1, x2, y1, y2, z1, z2, props=None):
+        self.x1 = float(x1)
+        self.x2 = float(x2)
+        self.y1 = float(y1)
+        self.y2 = float(y2)
+        self.z1 = float(z1)
+        self.z2 = float(z2)
+        self.props = {}
+        if props is not None:
+            for p in props:
+                self.props[p] = props[p]
+
+    def __str__(self):
+        """Return a string representation of the prism."""
+        names = [('x1', self.x1), ('x2', self.x2), ('y1', self.y1),
+                 ('y2', self.y2), ('z1', self.z1), ('z2', self.z2)]
+        names.extend((p, self.props[p]) for p in sorted(self.props))
+        return ' | '.join('%s:%g' % (n, v) for n, v in names)
+
+    def get_bounds(self):
+        """
+        Get the bounding box of the prism (i.e., the borders of the prism).
+
+        Returns:
+
+        * bounds : list
+            ``[x1, x2, y1, y2, z1, z2]``, the bounds of the prism
+
+        Examples:
+
+            >>> p = Prism(1, 2, 3, 4, 5, 6)
+            >>> print p.get_bounds()
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+            
+        """
+        return [self.x1, self.x2, self.y1, self.y2, self.z1, self.z2]        
+
+    def addprop(self, prop, value):
+        """
+        Add a physical property to the prism.
+
+        If the prism already has the property, the given value will overwrite
+        the existing one.
+
+        Parameters:
+        
+        * prop : str
+            Name of the physical property.
+        * value : float
+            The value of this physical property.
+
+        Example:
+
+            >>> prism = Prism(1, 2, 3, 4, 5, 6)
+            >>> print prism
+            x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6
+            >>> prism.addprop('density', 2670)
+            >>> print prism
+            x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:2670
+            
+        """
+        self.props[prop] = value
+        
+    def center(self):
+        """
+        Return the coordinates of the center of the prism.
+
+        Returns:
+        
+        * coords : list = [xc, yc, zc]
+            Coordinates of the center
+
+        Example:
+
+            >>> prism = Prism(1, 2, 1, 3, 0, 2)
+            >>> print prism.center()
+            [1.5, 2.0, 1.0]
+            
+        """
+        xc = 0.5*(self.x1 + self.x2)
+        yc = 0.5*(self.y1 + self.y2)
+        zc = 0.5*(self.z1 + self.z2)
+        return [xc, yc, zc]
 
 def PolygonalPrism(vertices, z1, z2, props=None):
     """
@@ -124,6 +165,7 @@ def PolygonalPrism(vertices, z1, z2, props=None):
 
     Examples:
 
+        >>> from fatiando.mesher.ddd import PolygonalPrism
         >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
         >>> p = PolygonalPrism(verts, 0, 3, props={'temperature':25})
         >>> p['temperature']
@@ -174,7 +216,6 @@ class PrismRelief():
     """
 
     def __init__(self, ref, dims, nodes):
-        log = logger.dummy('fatiando.mesher.ddd.PrismRelief')
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError, "nodes has x,y,z coordinates of different lengths"
@@ -237,7 +278,7 @@ class PrismRelief():
             Name of the physical property.
         * values : list
             List or array with the value of this physical property in each
-            prism of the mesh.
+            prism of the relief.
             
         """
         def correct(v, i):
@@ -284,30 +325,27 @@ class PrismMesh(object):
 
     Examples:
 
-        >>> def show(p):
-        ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
+        >>> from fatiando.mesher.ddd import PrismMesh
         >>> mesh = PrismMesh((0,1,0,2,0,3),(1,2,2))
         >>> for p in mesh:
-        ...     show(p)
-        x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
-        x1 : 0.5 | x2 : 1.0 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
-        x1 : 0.0 | x2 : 0.5 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
-        x1 : 0.5 | x2 : 1.0 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
-        >>> show(mesh[0])
-        x1 : 0.0 | x2 : 0.5 | y1 : 0.0 | y2 : 1.0 | z1 : 0.0 | z2 : 3.0
-        >>> show(mesh[-1])
-        x1 : 0.5 | x2 : 1.0 | y1 : 1.0 | y2 : 2.0 | z1 : 0.0 | z2 : 3.0
+        ...     print p
+        x1:0 | x2:0.5 | y1:0 | y2:1 | z1:0 | z2:3
+        x1:0.5 | x2:1 | y1:0 | y2:1 | z1:0 | z2:3
+        x1:0 | x2:0.5 | y1:1 | y2:2 | z1:0 | z2:3
+        x1:0.5 | x2:1 | y1:1 | y2:2 | z1:0 | z2:3
+        >>> print mesh[0]
+        x1:0 | x2:0.5 | y1:0 | y2:1 | z1:0 | z2:3
+        >>> print mesh[-1]
+        x1:0.5 | x2:1 | y1:1 | y2:2 | z1:0 | z2:3
 
     One with physical properties::
 
-        >>> def show(p):
-        ...     print '|'.join('%s:%g' % (k, p[k]) for k in sorted(p))
         >>> props = {'density':[2670.0, 1000.0]}
         >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2), props=props)
         >>> for p in mesh:
-        ...     show(p)
-        density:2670|x1:0|x2:1|y1:0|y2:4|z1:0|z2:3
-        density:1000|x1:1|x2:2|y1:0|y2:4|z1:0|z2:3
+        ...     print p
+        x1:0 | x2:1 | y1:0 | y2:4 | z1:0 | z2:3 | density:2670
+        x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
 
     You can use :meth:`~fatiando.mesher.ddd.PrismMesh.get_xs` (and similar
     methods for y and z) to get the x coordinates os the prisms in the mesh::
@@ -323,7 +361,6 @@ class PrismMesh(object):
     """
 
     def __init__(self, bounds, shape, props=None):
-        log = logger.dummy('fatiando.mesher.ddd.PrismMesh')
         object.__init__(self)
         log.info("Generating 3D right rectangular prism mesh:")
         nz, ny, nx = shape
@@ -486,95 +523,139 @@ class PrismMesh(object):
             return zs[:-1]
         return zs
 
-    def dump(self, fname):
-        """
+    def dump(self, name):
+        r"""
         Dump the mesh to a file in the format required by UBC-GIF program
         MeshTools3D.
 
         Parameters:
         
-        * fname : str or file
-            File name or open file object.
-            
-        """
-        raise NotImplementedError, "Sorry, UBC format support is not ready"
+        * fname : str
+            Output file name without extension. Will save the mesh to *name*.msh
+            and the physical properties *name*-*prop*.den, where *prop* is the
+            name of each physical property in the mesh. For example, if the mesh
+            has properties ``'density'`` and ``'conductivity'`` and
+            ``name = 'result'``, the output files will be: result.msh,
+            result-density.den, and result-conductivity.den
 
-def extract(key, prisms):
+        .. note:: Uses -100 as the dummy value for plotting topography
+
+        Examples:
+
+            >>> mesh = PrismMesh((0, 10, 0, 20, 0, 5), (1, 2, 2))
+            >>> mesh.addprop('density', [1, 2, 3, 4])
+            >>> mesh.dump('myresultsfile')
+            >>> with open('myresultsfile.msh') as f:
+            ...     print '\n'.join(l.strip() for l in f.readlines())
+            2 2 1
+            0 0 0
+            2*10
+            2*5
+            1*5
+            >>> with open('myresultsfile-density.den') as f:
+            ...     print ' '.join(l.strip() for l in f.readlines())
+            1.0000 3.0000 2.0000 4.0000
+            
+        """        
+        with open('%s.msh' % name, 'w') as f:
+            nz, ny, nx = self.shape
+            x1, x2, y1, y2, z1, z2 = self.bounds
+            dx, dy, dz = self.dims
+            f.write("%d %d %d\n" % (ny, nx, nz))
+            f.write("%g %g %g\n" % (y1, x1, -z1))
+            f.write("%d*%g\n" % (ny, dy))
+            f.write("%d*%g\n" % (nx, dx))
+            f.write("%d*%g\n" % (nz, dz))
+        for p in self.props:
+            values = (v if i not in self.mask else -100
+                      for i, v in enumerate(self.props[p]))
+            with open('%s-%s.den' % (name, p), 'w') as f:
+                numpy.savetxt(
+                    f,
+                    numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
+                        self.shape), order='F'),
+                    fmt='%.4f')
+
+def extract(prop, prisms):
     """
-    Extract a list of values of a key from each prism in a list
+    Extract the values of a physical property from the cells in a list.
+
+    If a cell is `None` or doesn't have the physical property, a value of `None`
+    will be put in it's place.
 
     Parameters:
     
-    * key : str
-        The key whose value will be extracted.
-        Should be one of the arguments to :func:`~fatiando.mesher.ddd.Prism`
-        
-    * prisms : list
-        A list of :func:`~fatiando.mesher.ddd.Prism` objects.
+    * prop : str
+        The name of the physical property to extract
+    * cells : list
+        A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
+        :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
         
     Returns:
     
     * values : array
         The extracted values
 
+    Examples:
+
+        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':10}),
+        ...          None,
+        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':2000})]
+        >>> print extract('foo', cells)
+        [1, 10, None, None]
+
     """
-    def getkey(p):
-        if p is None:
+    def getprop(p):
+        if p is None or prop not in p.props:
             return None
-        return p[key]
-    return [getkey(p) for p in prisms]
+        return p.props[prop]
+    return [getprop(p) for p in prisms]
 
-def vfilter(vmin, vmax, key, prisms):
+def vfilter(vmin, vmax, prop, cells):
     """
-    Return prisms from a list of Prism with a key that lies within a given
-    range.
+    Returns a list of cells that whose physical property fall within the range
+    [vmin, vmax].
 
+    If a cell is `None` or doesn't have the physical property, it will be not
+    be included in the result.
+    
     Parameters:
     
-    * prisms : list
-        List of :func:`~fatiando.mesher.ddd.Prism`
     * vmin : float
         Minimum value
     * vmax : float
         Maximum value
-    * key : str
-        The key of the prisms whose value will be used to filter
+    * prop : str
+        The name of the physical property used to filter
+    * cells : list
+        A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
+        :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
         
     Returns:
     
     * filtered : list
-        List of :func:`~fatiando.mesher.ddd.Prism` whose *key* falls within the
-        given range
+        The cells that fall within the desired range
+
+    Examples:
+
+        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':20}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':3}),
+        ...          None,
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':4}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':200}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':1000})]
+        >>> for cell in vfilter(0, 10, 'foo', cells):
+        ...     print cell
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:1
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:3
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:4
 
     """
-    filtered = [p for p in prisms if p is not None and p[key] >= vmin and
-                p[key] <= vmax]
-    return filtered
-
-def center(cell):
-    """
-    Return the coordinates of the center of a given cell.
-
-    Paremters:
-    
-    * cell : :func:`~fatiando.mesher.ddd.Prism`
-        A cell
-
-    Returns:
-    
-    * coords : tuple = (xc, yc, zc)
-        Coordinates of the center
-        
-    """
-    xc = 0.5*(cell['x1'] + cell['x2'])
-    yc = 0.5*(cell['y1'] + cell['y2'])
-    zc = 0.5*(cell['z1'] + cell['z2'])
-    return (xc, yc, zc)
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
+    def isin(cell):
+        if (cell is None or prop not in cell.props or cell.props[prop] < vmin or
+            cell.props[prop] > vmax):
+            return False
+        return True
+    return [c for c in cells if isin(c)]

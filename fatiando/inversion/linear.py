@@ -1,30 +1,20 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Factory functions for generic linear inverse problem solvers.
 
-* :func:`fatiando.inversion.linear.overdet`
-* :func:`fatiando.inversion.linear.underdet`
+* :func:`~fatiando.inversion.linear.overdet`
+* :func:`~fatiando.inversion.linear.underdet`
 
 The factory functions produce the actual solver functions.
 These solver functions are Python generator functions that yield only once.
-This is so they are compatible with gradient
-(:mod:`fatiando.inversion.gradient`) and heurist
-(:mod:`fatiando.inversion.heuristic`) solvers.
+This might seem unnecessary but it is done so that the linear solvers are
+compatible with the non-linear solvers (e.g.,
+:mod:`~fatiando.inversion.gradient` and :mod:`~fatiando.inversion.heuristic`).
+
+This module uses dense matrices (:mod:`numpy` arrays) by default. If you want
+to enable the use of sparse matrices from :mod:`scipy.sparse`, call function
+:func:`fatiando.inversion.linear.use_sparse` **before** creating any solver
+functions!
+
 In the case of linear problems, solver functions have the general format::
 
     def solver(dms, regs):
@@ -38,32 +28,34 @@ In the case of linear problems, solver functions have the general format::
 
 Parameters:
 
-* dms
+* dms : list
     List of data modules. Data modules should be child-classes of the
-    :class:`fatiando.inversion.datamodule.DataModule` class.
-* regs
+    :class:`~fatiando.inversion.datamodule.DataModule` class.
+* regs : list
     List of regularizers. Regularizers should be child-classes of the
-    :class:`fatiando.inversion.regularizer.Regularizer` class.
+    :class:`~fatiando.inversion.regularizer.Regularizer` class.
 
+    .. note:: The regularizing functions must also be linear!
+    
 Yields:
 
-* solution
-    A dictionary with the final solution:
-    
+* changeset : dict
+    A dictionary with the final solution:    
     ``changeset = {'estimate':p, 'misfits':[misfit], 'goals':[goal],
     'residuals':residuals}``
     
-    * ``p`` is the parameter vector.
-    * ``misfit`` the data-misfit function value
-    * ``goal`` the goal function value
-    * ``residuals`` list with the residual vectors
+    * p : array
+        The parameter vector.
+    * misfit : list
+        The data-misfit function value
+    * goal : list
+        The goal function value
+    * residuals : list
+        List with the residual vectors from each data module at this iteration
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 26-Jan-2012'
-
 
 import itertools
 
@@ -75,13 +67,13 @@ import scipy.sparse.linalg
 from fatiando import logger
 
 
+log = logger.dummy('fatiando.inversion.linear')
+
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
     if res[1] > 0:
-        log = logger.dummy('fatiando.inversion.linear._sparse_linsys_solver')
         log.warning("Conjugate Gradient convergence not achieved")
     if res[1] < 0:
-        log = logger.dummy('fatiando.inversion.linear._sparse_linsys_solver')
         log.error("Conjugate Gradient illegal input or breakdown")
     return res[0]
 
@@ -93,50 +85,96 @@ def _zeromatrix(shape):
     
 def use_sparse():
     """
-    Configure the linear solvers to use the sparse conjugate gradient linear
-    linear system solver from Scipy.
+    Configure the gradient solvers to use the sparse conjugate gradient linear
+    system solver from `scipy.sparse`.
 
-    Note that this does not make the DataModules use sparse matrices! That must
-    be implemented for each inverse problem.
-    
+    .. note:: This does not make the data modules use sparse matrices! That must
+        be implemented for each inverse problem separately.
+        
     """
-    log = logger.dummy('fatiando.inversion.linear.use_sparse')
     log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
     linsys_solver = _sparse_linsys_solver
     _zeromatrix = scipy.sparse.csr_matrix
     
 def overdet(nparams):
-    """
+    r"""
     Factory function for a linear least-squares solver to an overdetermined
     problem (more data than parameters).
 
-    The least-squares estimate is found by solving the linear system
+    The problem at hand is finding the vector :math:`\bar{p}` that produces a
+    predicted data vector :math:`\bar{d}` as close as possible to an observed
+    data vector :math:`\bar{d}^o`.
+
+    In linear problems, the relation between the parameters and the predicted
+    data are expressed through the linear system
 
     .. math::
 
-        \\bar{\\bar{H}}\\hat{\\bar{p}} = -\\bar{g}
+        \bar{\bar{G}}\bar{p} = \bar{d}
 
-    where :math:`\\bar{\\bar{H}}` is the Hessian matrix of the goal function,
-    :math:`\\bar{g}` is the gradient vector of the goal function, and
-    :math:`\\bar{p}` is the estimated parameter vector.
+    where :math:`\bar{\bar{G}}` is the Jacobian (or sensitivity) matrix. In the
+    **over determined** case, matrix :math:`\bar{\bar{G}}` has more lines
+    than columns, i.e., more equations than unknowns.
+
+    The least-squares estimate of :math:`\bar{p}` can be found by minimizing
+    the goal function
+
+    .. math::
+
+        \Gamma(\bar{p}) = \bar{r}^T\bar{r} + \sum\limits_{k=1}^L
+        \mu_k\theta_k(\bar{p})
+
+    where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector,
+    :math:`\theta_k(\bar{p})` are regularizing functions, and :math:`\mu_k` are
+    regularizing parameters (positive scalars).
+
+    The mininum of the goal function can be calculated by solving the linear
+    system
+
+    .. math::
+
+        \bar{\bar{H}}\hat{\bar{p}} = -\bar{g}
+
+    where :math:`\bar{\bar{H}}` is the Hessian matrix of the goal function,
+    :math:`\bar{g}` is the gradient vector of the goal function, and
+    :math:`\hat{\bar{p}}` is the estimated parameter vector.
+
+    The Hessian of the goal function is given by
+    
+    .. math::
+
+        \bar{\bar{H}} = 2\bar{\bar{G}}^T\bar{\bar{G}} + \sum\limits_{k=1}^L
+        \mu_k \bar{\bar{H}}_k
+
+    where :math:`\bar{\bar{H}}_k` are the Hessian matrices of the regularizing
+    functions.
+
+    The gradient vector of the goal function is given by
+
+    .. math::
+
+        \bar{g} = -2\bar{\bar{G}}^T\bar{d}^o + \sum\limits_{k=1}^L
+        \mu_k \bar{g}_k
+        
+    where :math:`\bar{g}_k` are the gradient vectors of the regularizing
+    functions.
     
     Parameters:
 
-    * nparams
-        The number of parameters in vector :math:`\\bar{p}` (usually something
+    * nparams : int
+        The number of parameters in vector :math:`\bar{p}` (usually something
         like ``mesh.size``)
 
     Returns
     
-    * solver
+    * solver : function
         A Python generator function that solves an linear overdetermined inverse
         problem using the parameters given above.
     
     """
-    log = logger.dummy('fatiando.inversion.linear.overdet')
     if nparams <= 0:
-        raise ValueError, "nparams must be > 0"
+        raise ValueError("nparams must be > 0")
     log.info("Generating linear solver for overdetermined problems")
     log.info("  number of parameters: %d" % (nparams))
     def solver(dms, regs, nparams=nparams):
@@ -154,11 +192,3 @@ def overdet(nparams):
         yield {'estimate':p, 'misfits':[misfit], 'goals':[goal],
                'residuals':residuals}
     return solver
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

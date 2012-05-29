@@ -1,19 +1,3 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Create and operate on 2D meshes and objects like polygons, squares, and
 triangles.
@@ -31,21 +15,18 @@ triangles.
 
 * :func:`~fatiando.mesher.dd.square2polygon`
 
-
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 12-Jan-2012
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
-
 ----
 
 """
 
-from PIL import Image
+import PIL.Image
 import numpy
 import scipy.misc
 
 from fatiando import logger, gridder
 
+
+log = logger.dummy('fatiando.mesher.dd')
 
 def Polygon(vertices, props=None):
     """
@@ -94,6 +75,7 @@ def Square(bounds, props=None):
     
     Example::
 
+        >>> from fatiando.mesher.dd import Square
         >>> sq = Square([0, 1, 2, 4], {'density':750})
         >>> for k in sorted(sq):
         ...     print k, '=', sq[k]
@@ -133,6 +115,7 @@ class SquareMesh(object):
         
     Examples:
 
+        >>> from fatiando.mesher.dd import SquareMesh
         >>> def show(p):
         ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
         >>> mesh = SquareMesh((0, 4, 0, 6), (2, 2))
@@ -172,7 +155,6 @@ class SquareMesh(object):
     """
 
     def __init__(self, bounds, shape, props=None):
-        log = logger.dummy('fatiando.mesher.dd.SquareMesh')
         object.__init__(self)
         log.info("Generating 2D regular square mesh:")
         ny, nx = shape
@@ -273,12 +255,11 @@ class SquareMesh(object):
             Name of the physical property
             
         """
-        log = logger.dummy('fatiando.mesher.dd.SquareMesh.img2prop')
         log.info("Loading physical property from image file:")
         log.info("  file: '%s'" % (fname))
         log.info("  physical property: %s" % (prop))
         log.info("  range: [vmin, vmax] = %s" % (str([vmin, vmax])))
-        image = Image.open(fname)
+        image = PIL.Image.open(fname)
         imagearray = scipy.misc.fromimage(image, flatten=True)
         # Invert the color scale
         model = numpy.max(imagearray) - imagearray
@@ -299,8 +280,8 @@ class SquareMesh(object):
             xs = numpy.arange(nx)
             ys = numpy.arange(ny)
             X, Y = numpy.meshgrid(xs, ys)
-            model = gridder.interpolate(X.ravel(), Y.ravel(), model.ravel(),
-                                        self.shape)[2]
+            model = gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
+                                   self.shape)[2]
             log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
         self.props[prop] = model.ravel()
 
@@ -362,6 +343,7 @@ def square2polygon(square):
 
     Example::
 
+        >>> from fatiando.mesher.dd import Square, square2polygon
         >>> square = Square((0, 1, 0, 3), {'vp':1000})
         >>> poly = square2polygon(square)
         >>> print poly['x']
@@ -377,11 +359,3 @@ def square2polygon(square):
     notprops = ['x1', 'x2', 'y1', 'y2']
     props = dict([p, square[p]] for p in square if p not in notprops)
     return Polygon(verts, props)
-            
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

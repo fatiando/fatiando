@@ -1,50 +1,33 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Create and operate on grids and profiles.
 
 **Grid generation**
 
-* :func:`fatiando.gridder.regular`
-* :func:`fatiando.gridder.scatter`
+* :func:`~fatiando.gridder.regular`
+* :func:`~fatiando.gridder.scatter`
 
 **Grid I/O**
 
 **Grid operations**
 
-* :func:`fatiando.gridder.cut`
-* :func:`fatiando.gridder.interpolate`
+* :func:`~fatiando.gridder.cut`
+* :func:`~fatiando.gridder.interp`
 
 **Misc**
 
-* :func:`fatiando.gridder.spacing`
+* :func:`~fatiando.gridder.spacing`
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 26-Oct-2010'
-
 
 import numpy
 import matplotlib.mlab
 
 from fatiando import logger
 
+
+log = logger.dummy('fatiando.gridder')
 
 def regular(area, shape, z=None):
     """
@@ -69,7 +52,6 @@ def regular(area, shape, z=None):
         points
 
     """
-    log = logger.dummy('fatiando.gridder.regular')
     log.info("Generating regular grid:")
     ny, nx = shape
     x1, x2, y1, y2 = area
@@ -119,7 +101,6 @@ def scatter(area, n, z=None):
         If *z* given. Arrays with the x, y, and z coordinates of the points
 
     """
-    log = logger.dummy('fatiando.gridder.scatter')
     x1, x2, y1, y2 = area
     log.info("Generating irregular grid (scatter):")
     log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
@@ -156,7 +137,7 @@ def spacing(area, shape):
     dy = float(y2 - y1)/float(ny - 1)
     return [dy, dx]
 
-def interpolate(x, y, v, shape, algorithm='nn'):
+def interp(x, y, v, shape, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 
@@ -212,7 +193,6 @@ def cut(x, y, scalars, area):
         Arrays with x and y coordinates and scalar values of the subsection.
 
     """
-    log = logger.dummy('fatiando.gridder.cut')
     xmin, xmax, ymin, ymax = area
     log.info("Cutting grid:")
     log.info("  area = xmin, xmax, ymin, ymax = %s" % (str(area)))
@@ -225,11 +205,3 @@ def cut(x, y, scalars, area):
     suby = numpy.array([y[i] for i in inside])
     subscalars = [numpy.array([scl[i] for i in inside]) for scl in scalars]
     return [subx, suby, subscalars]
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

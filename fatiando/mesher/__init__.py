@@ -1,25 +1,8 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Modules to generate and operate on varios kinds of meshes and geometric elements
+Modules to generate and operate on various kinds of meshes and geometric elements
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 15-Sep-2011
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+* :mod:`~fatiando.mesher.ddd`: 3D objects and meshes
+* :mod:`~fatiando.mesher.dd`: 2D objects and meshes
 
 ----
 

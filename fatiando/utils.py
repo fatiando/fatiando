@@ -1,19 +1,3 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Miscellaneous utility functions and classes.
 
@@ -46,10 +30,6 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.year2sec`
     Convert Julian years to seconds
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 11-Sep-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
-
 ----
 
 """
@@ -60,6 +40,7 @@ import numpy
 
 from fatiando import logger
 
+log = logger.dummy('fatiando.utils')
   
 def vecmean(arrays):
     """
@@ -127,9 +108,10 @@ class SparseList(object):
         5
         >>> print l[1], l[3]
         0.0 42.0
+        >>> l[1] += 3.0
         >>> for i in l:
         ...     print i,
-        0.0 0.0 0.0 42.0 0.0
+        0.0 3.0 0.0 42.0 0.0
         >>> l2 = SparseList(4, elements={1:3.2, 3:2.8})
         >>> for i in l2:
         ...     print i,
@@ -273,11 +255,18 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         
     Returns:
     
-    * [contam_data, stddev if *return_stddev* is ``True``]
+    if *return_stddev* is ``False``:
+    
+    * contam : array
         The contaminated data array
 
+    else:
+
+    * results : list = [contam, stddev]
+        The contaminated data array and the standard deviation used to
+        contaminate it.
+
     """    
-    log = logger.dummy('fatiando.utils.contaminate')
     log.info("Contaminating data with Gaussian noise:")
     if percent:
         log.info("  noise level = %g percent" % (100*stddev))
@@ -449,7 +438,7 @@ def connect_points(pts1, pts2):
 
     Returns:
 
-    * [connect1, connect2] : lists
+    * results : lists of lists = [connect1, connect2]
         2 lists with the connected points
         
     """
@@ -462,11 +451,3 @@ def connect_points(pts1, pts2):
             append1(p1)
             append2(p2)
     return [connect1, connect2]
-
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

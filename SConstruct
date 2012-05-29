@@ -15,8 +15,8 @@ def list_ext(path, ext):
     return files
 
 def findwrap(path):
-    """Find the f2py generated wrappers"""
-    iswrap = re.compile("module\.c$", re.IGNORECASE).search
+    """Find the Cython generated wrappers"""
+    iswrap = re.compile("_*.c$", re.IGNORECASE).search
     files = []
     fnames = os.listdir(path)
     for fname in fnames:
@@ -32,7 +32,11 @@ def findwrap(path):
 Clean(os.path.curdir, 'build')
 Clean(os.path.curdir, 'dist')
 Clean(os.path.curdir, 'MANIFEST')
-Clean(os.path.curdir, os.path.join('fatiando', 'version.py'))
-Clean(os.path.curdir, findwrap('src'))
+Clean(os.path.curdir, findwrap('fatiando'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.so'))
 Clean(os.path.curdir, list_ext(os.path.curdir, '.pyc'))
+# Clean up the doctests
+Clean(os.path.curdir, 'mylogfile.log')
+Clean(os.path.curdir, 'myresultsfile-density.den')
+Clean(os.path.curdir, 'myresultsfile.msh')
+Clean(os.path.curdir, 'mydata.txt')

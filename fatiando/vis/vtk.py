@@ -1,48 +1,37 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Wrappers for calls to Mayavi2's `mlab` module for plotting
-:mod:`fatiando.mesher.ddd` objects and automating common tasks.
+:mod:`~fatiando.mesher.ddd` objects and automating common tasks.
 
-**OBJECTS**
+**Objects**
 
-* :func:`fatiando.vis.vtk.prisms`
+* :func:`~fatiando.vis.vtk.prisms`
 
-**HELPERS**
+**Helpers**
 
-* :func:`fatiando.vis.vtk.figure`
-* :func:`fatiando.vis.vtk.add_outline`
-* :func:`fatiando.vis.vtk.add_axes`
-* :func:`fatiando.vis.vtk.wall_north`
-* :func:`fatiando.vis.vtk.wall_south`
-* :func:`fatiando.vis.vtk.wall_east`
-* :func:`fatiando.vis.vtk.wall_west`
-* :func:`fatiando.vis.vtk.wall_top`
-* :func:`fatiando.vis.vtk.wall_bottom`
+* :func:`~fatiando.vis.vtk.show3d`
+* :func:`~fatiando.vis.vtk.figure3d`
+* :func:`~fatiando.vis.vtk.outline3d`
+* :func:`~fatiando.vis.vtk.axes3d`
+* :func:`~fatiando.vis.vtk.wall_north`
+* :func:`~fatiando.vis.vtk.wall_south`
+* :func:`~fatiando.vis.vtk.wall_east`
+* :func:`~fatiando.vis.vtk.wall_west`
+* :func:`~fatiando.vis.vtk.wall_top`
+* :func:`~fatiando.vis.vtk.wall_bottom`
 
 ----
    
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 30-Jan-2012'
 
 import numpy
 
+from fatiando import logger
 
+__all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
+           'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom']
+
+log = logger.dummy('fatiando.vis.vtk')
+        
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
 mlab = None
@@ -72,8 +61,17 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
-           edges=True, vmin=None, vmax=None, cmap='blue-red'):
+def show3d():
+    """
+    Show the 3D plot of Mayavi2.
+
+    Enters a loop until the window is closed.
+    """
+    _lazy_import_mlab()
+    mlab.show()
+
+def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
+    vmax=None, cmap='blue-red'):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -81,30 +79,30 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
 
     Parameters:
     
-    * prisms
-        List of prisms (see :func:`fatiando.mesher.prism.Prism3D`)
-    * scalars
-        Array with the scalar value of each prism. Used as the color scale.
-    * label
-        Label used as the scalar type (like 'density' for example)
-    * style
+    * prisms : list
+        Prisms (see :class:`~fatiando.mesher.ddd.Prism`)
+    * prop : str or None
+        The physical property of the prisms to use as the color scale. If a
+        prism doesn't have *prop*, or if it is None, then it will not be plotted
+    * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
-    * edges
+    * edges : True or False
         Wether or not to display the edges of the prisms in black lines. Will
-        ignore this is style='wireframe'
-    * vmin, vmax
-        Min and max values for the color scale of the scalars. If *None* will
-        default to min(scalars) or max(scalars).
-    * cmap
-        Color map to use for the scalar values. See the 'Colors and Legends'
-        menu on the Mayavi2 GUI for valid color maps.
+        ignore this if ``style='wireframe'``
+    * vmin, vmax : float
+        Min and max values for the color scale. If *None* will default to
+        the min and max of *prop* in the prisms.
+    * cmap : Mayavi colormap
+        Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
+        for valid color maps.
 
     Returns:
     
-    * surface: the last element on the pipeline
+    * surface
+        the last element on the pipeline
 
     """
     if style not in ['surface', 'wireframe']:
@@ -117,6 +115,10 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     _lazy_import_mlab()
     _lazy_import_tvtk()
 
+    if prop is None:
+        label = 'scalar'
+    else:
+        label = prop
     # VTK parameters
     points = []
     cells = []
@@ -126,12 +128,14 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     celldata = []
     # To mark what index in the points the cell starts
     start = 0
-    for prism, scalar in zip(prisms, scalars):
-        if prism is None or scalar is None:
+    for prism in prisms:
+        if prism is None or (prop is not None and prop not in prism.props):
             continue
-        x1, x2 = prism['x1'], prism['x2']
-        y1, y2 = prism['y1'], prism['y2']
-        z1, z2 = prism['z1'], prism['z2']
+        x1, x2, y1, y2, z1, z2 = prism.get_bounds()
+        if prop is None:
+            scalar = 0.
+        else:
+            scalar = prism.props[prop]
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
@@ -164,19 +168,19 @@ def prisms(prisms, scalars, label='scalars', style='surface', opacity=1,
     surf.actor.property.backface_culling = 1
     return surf
 
-def figure(size=None):
+def figure3d(size=None):
     """
     Create a default figure in Mayavi with white background and z pointing down
 
     Parameters:
 
-    * size
+    * size : tuple = (dx, dy)
         The size of the figure. If ``None`` will use the default size.
 
     Return:
     
-    * fig
-        The Mayavi figure object
+    * fig : Mayavi figure object
+        The figure
 
     """
     _lazy_import_mlab()
@@ -189,23 +193,23 @@ def figure(size=None):
     fig.scene.camera.azimuth(180.)
     return fig
 
-def add_outline(extent=None, color=(0,0,0), width=2):
+def outline3d(extent=None, color=(0,0,0), width=2):
     """
     Create a default outline in Mayavi2.
 
     Parameters:
     
-    * extent
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``. Default if the objects extent.
-    * color
+    * extent : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        Default if the objects extent.
+    * color : tuple = (r, g, b)
         RGB of the color of the axes and text
-    * width
+    * width : float
         Line width
 
     Returns:
     
-    * outline
-        Mayavi outline instace in the pipeline
+    * outline : Mayavi outline instace
+        The outline in the pipeline
 
     """
     _lazy_import_mlab()
@@ -214,7 +218,7 @@ def add_outline(extent=None, color=(0,0,0), width=2):
         outline.bounds = extent
     return outline
 
-def add_axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
+def axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
              width=2, fmt="%-#.2f"):
     """
     Add an Axes module to a Mayavi2 plot or dataset.
@@ -224,23 +228,22 @@ def add_axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     * plot
         Either the plot (as returned by one of the plotting functions of this
         module) or a TVTK dataset.
-    * nlabels
+    * nlabels : int
         Number of labels on the axes
-    * extent
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``. Default if the objects extent.
-    * ranges
-        [xmin, xmax, ymin, ymax, zmin, zmax]. What will be display in the axes
-        labels. Default is extent
-    * color
+    * extent : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        Default if the objects extent.
+    * ranges : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        What will be display in the axes labels. Default is *extent*
+    * color : tuple = (r, g, b)
         RGB of the color of the axes and text
-    * width
+    * width : float
         Line width
-    * fmt
+    * fmt : str
         Label number format
 
     Returns:
     
-    * axes
+    * axes : Mayavi axes instace
         The axes object in the pipeline
 
     """
@@ -262,19 +265,19 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the North side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
@@ -284,19 +287,19 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the South side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
@@ -306,19 +309,19 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the East side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
@@ -328,19 +331,19 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the West side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
@@ -350,19 +353,19 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the Top side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
@@ -372,28 +375,26 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
     """
     Draw a 3D wall in Mayavi2 on the Bottom side.
 
-    Remember: x->North, y->East and z->Down
+    .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
     
-    * bounds
-        ``[xmin, xmax, ymin, ymax, zmin, zmax]``
-    * color
+    * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
+        The extent of the region where the wall is placed
+    * color : tuple = (r, g, b)
         RGB of the color of the wall
-    * opacity
+    * opacity : float
         Decimal percentage of opacity
 
-    Tip: Use :func:`fatiando.vis.add_axes3d` to create and 'axes' variable and
-    get the bounds as 'axes.axes.bounds'
+    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+        `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
     s, n, w, e, t, b = bounds
     _wall([s, n, w, e, b, b], color, opacity)
 
 def _wall(bounds, color, opacity):
-    """
-    Generate a 3D wall in Mayavi
-    """
+    """Generate a 3D wall in Mayavi"""
     _lazy_import_mlab()
     p = mlab.pipeline.builtin_surface()
     p.source = 'outline'
@@ -402,12 +403,3 @@ def _wall(bounds, color, opacity):
     su = mlab.pipeline.surface(p)
     su.actor.property.color = color
     su.actor.property.opacity = opacity
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
-    

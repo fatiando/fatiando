@@ -1,19 +1,3 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Pick points of 2D plots.
 
@@ -22,27 +6,25 @@ directly from Python scripts. They all call matplotlib.pyplot.show() to start
 an event loop, get the user input, and return the picked values once the plot
 window is closed.
 
-**DRAWING GEOMETRIC ELEMENTS AND MODELS**
+**Drawing geometric elements and models**
 
-* :func:`fatiando.ui.picker.draw_polygon`
-* :func:`fatiando.ui.picker.draw_layers`
+* :func:`~fatiando.ui.picker.draw_polygon`
+* :func:`~fatiando.ui.picker.draw_layers`
 
-**PICKING POINT COORDINATES**
+**Picking point coordinates**
 
-* :func:`fatiando.ui.picker.points`
+* :func:`~fatiando.ui.picker.points`
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 01-Feb-2012'
-
-
 import numpy
 from matplotlib import pyplot, widgets
 
 from fatiando import logger
 
+
+log = logger.dummy('fatiando.ui.picker')
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     alpha=0.5):
@@ -59,10 +41,10 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
 
     Parameters:
     
-    * area
-        (x1, x2, y1, y2): borders of the area containing the polygon
-    * axes
-        A matplotlib Axes.
+    * area : list = [x1, x2, y1, y2]
+        Borders of the area containing the polygon
+    * axes : matplotlib Axes
+        The figure to use for drawing the polygon.
         To get an Axes instace, just do::
         
             from matplotlib import pyplot
@@ -70,25 +52,24 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
 
         You can plot things to ``axes`` before calling this function so that
         they'll appear on the background.
-    * style
-        String with line style (as in matplotlib.pyplot.plot)
-    * marker
-        String with style of the point markers (as in matplotlib.pyplot.plot)
-    * color
-        String with line color (as in matplotlib.pyplot.plot)
-    * width
+    * style : str
+        Line style (as in matplotlib.pyplot.plot)
+    * marker : str
+        Style of the point markers (as in matplotlib.pyplot.plot)
+    * color : str
+        Line color (as in matplotlib.pyplot.plot)
+    * width : float
         The line width (as in matplotlib.pyplot.plot)
-    * alpha
+    * alpha : float
         Transparency of the fill of the polygon. 0 for transparent, 1 for opaque
         (fills the polygon once done drawing)
         
     Returns:
     
-    * edges
-        List of ``(x, y)`` pairs with the edges of the polygon
+    * edges : list of lists
+        List of ``[x, y]`` pairs with the edges of the polygon
 
     """
-    log = logger.dummy('fatiando.ui.picker.draw_polygon')
     log.info("Drawing polygon...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Left click to pick the edges of the polygon;")
@@ -172,10 +153,10 @@ def points(area, axes, marker='o', color='k', size=8):
 
     Parameters:
     
-    * area
-        (x1, x2, y1, y2): borders of the area containing the points
-    * axes
-        A matplotlib Axes.
+    * area : list = [x1, x2, y1, y2]
+        Borders of the area containing the points
+    * axes : matplotlib Axes
+        The figure to use for drawing the polygon.
         To get an Axes instace, just do::
         
             from matplotlib import pyplot
@@ -183,20 +164,19 @@ def points(area, axes, marker='o', color='k', size=8):
 
         You can plot things to ``axes`` before calling this function so that
         they'll appear on the background.
-    * marker
-        String with style of the point markers (as in matplotlib.pyplot.plot)
-    * color
-        String with color of the points (as in matplotlib.pyplot.plot)
-    * size
+    * marker : str
+        Style of the point markers (as in matplotlib.pyplot.plot)
+    * color : str
+        Line color (as in matplotlib.pyplot.plot)
+    * size : float
         Marker size (as in matplotlib.pyplot.plot)
         
     Returns:
     
-    * points
-        List of ``(x, y)`` coordinates of the points
+    * points : list of lists
+        List of ``[x, y]`` coordinates of the points
 
     """
-    log = logger.dummy('fatiando.ui.picker.points')
     log.info("Picking points...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Left click to pick the points;")
@@ -259,11 +239,10 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
 
     Parameters:
     
-    * area
-        (v1, v2, z1, z2): lower and upper bounds on physical property value and
-        depth, respectively.
-    * axes
-        A matplotlib Axes.
+    * area : list = [x1, x2, y1, y2]
+        Borders of the area containing the polygon
+    * axes : matplotlib Axes
+        The figure to use for drawing the polygon.
         To get an Axes instace, just do::
         
             from matplotlib import pyplot
@@ -271,27 +250,25 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
 
         You can plot things to ``axes`` before calling this function so that
         they'll appear on the background.
-    * style
-        String with line style (as in matplotlib.pyplot.plot)
-    * marker
-        String with style of the point markers (as in matplotlib.pyplot.plot)
-    * color
-        String with line color (as in matplotlib.pyplot.plot)
-    * width
+    * style : str
+        Line style (as in matplotlib.pyplot.plot)
+    * marker : str
+        Style of the point markers (as in matplotlib.pyplot.plot)
+    * color : str
+        Line color (as in matplotlib.pyplot.plot)
+    * width : float
         The line width (as in matplotlib.pyplot.plot)
         
     Returns:
     
-    * [thickness, values]
+    * layers : list = [thickness, values]
 
-        * thickness
-            List with the thickness of each layer, in order of increasing depth
-        * values
-            List with the physical property value of each layer, in the same
-            order        
+        * thickness : list
+            The thickness of each layer, in order of increasing depth
+        * values : list
+            The physical property value of each layer, in the same order        
 
     """
-    log = logger.dummy('fatiando.ui.picker.draw_layers')
     log.info("Drawing layers...")
     log.info("  INSTRUCTIONS:")
     log.info("  * Click to make a new layer;")
@@ -365,11 +342,3 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     pyplot.show()
     thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
     return thickness, values
-
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()

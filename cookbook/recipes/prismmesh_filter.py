@@ -24,8 +24,7 @@ even = vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
 vis.vtk.figure()
-vis.vtk.prisms(odd, extract('density', odd), vmin=-1, vmax=1)
-vis.vtk.prisms(even, extract('density', even), style='wireframe',
-    vmin=-1, vmax=1)
+vis.vtk.prisms(odd, prop='density', vmin=-1, vmax=1)
+vis.vtk.prisms(even, prop='density', style='wireframe', vmin=-1, vmax=1)
 vis.vtk.add_axes(vis.vtk.add_outline(bounds))
 vis.vtk.mlab.show()

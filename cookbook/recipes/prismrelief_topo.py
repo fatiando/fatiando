@@ -25,7 +25,7 @@ relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Plotting")
 vis.vtk.figure()
-vis.vtk.prisms(relief, relief.props['density'], edges=False)
+vis.vtk.prisms(relief, prop='density', edges=False)
 axes = vis.vtk.add_axes(vis.vtk.add_outline())
 vis.vtk.wall_bottom(axes.axes.bounds, opacity=0.2)
 vis.vtk.wall_north(axes.axes.bounds)

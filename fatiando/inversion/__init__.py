@@ -1,29 +1,13 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Everything you need to solve inverse problems.
+Everything you need to solve inverse problems!
 
 The main components of this package are:
 
-**REGULARIZING FUNCTIONS**
+**Regularizing functions**
 
-* :mod:`fatiando.inversion.regularizer`
+* :mod:`~fatiando.inversion.regularizer`
 
-This module has many classes that implement a range of regularzing functions.
+This module has many classes that implement a range of regularizing functions.
 These classes know how to calculate the Hessian matrix, gradient vector, and
 value of the regularizing function for a given parameter vector. Most of these
 classes are generic and can be applied to any inverse problem, though some are
@@ -31,37 +15,38 @@ designed for a specific parametrization (2D or 3D grids, for example).
 
 The regularizer classes can be passed to any inverse problem solver (bellow).
 
-See the :class:`fatiando.inversion.regularizer.Regularizer` class for the
+See the :class:`~fatiando.inversion.regularizer.Regularizer` class for the
 general structure the solvers expect from regularizer classes.
 
-**INVERSE PROBLEM SOLVERS**
+**Inverse problem solvers**
 
-* :mod:`fatiando.inversion.linear`
-* :mod:`fatiando.inversion.gradient`
-* :mod:`fatiando.inversion.heuristic`
+* :mod:`~fatiando.inversion.linear`
+* :mod:`~fatiando.inversion.gradient`
+* :mod:`~fatiando.inversion.heuristic`
 
 These modules have factory functions that generate generic inverse problem
 solvers. Instead of solving the inverse problem, they return a solver function
 with they solver parameters (step size, maximum iterations, etc) already set.
-The solver functions are actually Python
-`generators <http://wiki.python.org/moin/Generators>`_.
-Generators are Python functions that have a ``yield`` statement instead of a
-``return``. The difference is that generators should be used in
-``for`` loops and return one iteration of the solving process per loop
-iteration.
+The solver functions are actually Python generators_. Generators are special
+Python functions that have a ``yield`` statement instead of a ``return``. The
+difference is that generators should be used in ``for`` loops and return one
+iteration of the solving process per loop iteration.
+
 The solver functions receive only two parameters: a list of data modules
-(:mod:`fatiando.inversion.datamodule`) and a list of regularizers
-(:mod:`fatiando.inversion.regularizer`).
-Data modules know how to calculate things like the Hessian matrix and gradient
-vector for a given data set and parametrization (specific to a given inverse
-problem). Regularizers know how to calculate the same things but for a given
-regularizing function and parametrization. This way, the user can combine any
-number of data sets and regularizers as he/she wants. So we can program the
-solvers and regularizers once and use them in any inverse problem!
+(see :mod:`~fatiando.inversion.datamodule`) and a list of regularizers
+(see :mod:`~fatiando.inversion.regularizer`). Data modules know how to calculate
+things like the Hessian matrix and gradient vector for a given data set and
+parametrization (specific to a given inverse problem). Regularizers know how to
+calculate the same things but for a given regularizing function and
+parametrization. This way, the user can combine any number of data sets and
+regularizers as he/she wants. So we can program the solvers and regularizers
+once and use them in any inverse problem!
+
+.. _generators: http://wiki.python.org/moin/Generators
 
 A typical factory function for an iterative solver looks like::
 
-    def factory(inital, step, maxit):
+    def factory(initial, step, maxit):
         # Define the solver generator. The parameters need by this specific
         # solver are passed to it as optional parameters.
         # dms is a list of data modules and regs is a list of regularizers
@@ -81,6 +66,9 @@ A typical factory function for an iterative solver looks like::
         # The factory function returns the solver function (Python magic) which
         # can be passed to a particular inverse problem.
         return solver
+
+
+**Example of using a solver**
 
 Lets say I have a module that solves a particular inverse problem called
 ``myinvprob.py``. This module would look something like this::
@@ -148,14 +136,21 @@ These solvers can then be called from scripts, like so::
     for estimate in myinvprob.iterate(data, solver, damping=0.1):
         # Plot estimate
         ...
-            
+
+
+**Real usage examples**
+
+Some modules that use the :mod:`~fatiando.inversion` API:
+
+* :mod:`fatiando.seismic.profile`
+* :mod:`fatiando.seismic.srtomo`
+* :mod:`fatiando.seismic.epicenter`
+* :mod:`fatiando.heat.climsig`
+* :mod:`fatiando.potential.basin2d`
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 02-Apr-2010'
-
 
 from fatiando.inversion import (datamodule,
                                 regularizer,

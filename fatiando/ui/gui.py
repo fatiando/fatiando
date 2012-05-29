@@ -1,80 +1,62 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Classes for graphical user interfaces (GUIs).
 
 **Interactive gravimetric modeling**
 
-* :class:`fatiando.ui.gui.Moulder`
-* :class:`fatiando.ui.gui.BasinTrap`
-* :class:`fatiando.ui.gui.BasinTri`
+* :class:`~fatiando.ui.gui.Moulder`
+* :class:`~fatiando.ui.gui.BasinTrap`
+* :class:`~fatiando.ui.gui.BasinTri`
 
 **Interactive modeling of layered media**
 
-* :class:`fatiando.ui.gui.Lasagne`
+* :class:`~fatiando.ui.gui.Lasagne`
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 01-Feb-2012'
-
-
 import bisect
 
 import numpy
 from matplotlib import pyplot, widgets, nxutils
 
 from fatiando.potential import talwani
-from fatiando import seismic
 from fatiando.mesher.dd import Polygon
-from fatiando import utils
+from fatiando import utils, seismic, logger
 
+
+log = logger.dummy('fatiando.ui.gui')
 
 class Moulder():
     """
-    Interactive potential field direct modeling in 2D using polygons (and module
-    :mod:`fatiando.potential.talwani` for computations).
+    Interactive potential field direct modeling in 2D using polygons.
+
+    Uses module :mod:`~fatiando.potential.talwani` for computations.
 
     For the moment only works for the gravity anomaly.
 
     To run this in a script, use::
 
-        # Define the area of modeling
-        area = (0, 1000, 0, 1000)
-        # Where the gravity effect is calculated
-        xp = range(0, 1000, 10)
-        zp = [0]*len(xp)
-        # Create the application
-        app = Moulder(area, xp, zp)
-        # Run it (close the window to finish)
-        app.run()
-        # and save the calculated gravity anomaly profile
-        app.savedata("mydata.txt")
+        >>> # Define the area of modeling
+        >>> area = (0, 1000, 0, 1000)
+        >>> # Where the gravity effect is calculated
+        >>> xp = range(0, 1000, 10)
+        >>> zp = [0]*len(xp)
+        >>> # Create the application
+        >>> app = Moulder(area, xp, zp)
+        >>> # Run it (close the window to finish)
+        >>> app.run()
+        >>> # and save the calculated gravity anomaly profile
+        >>> app.savedata("mydata.txt")
 
     Parameters:
 
-    * area
-        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
-        Remember, z is positive downward
-    * xp, zp
-        Array with the x and z coordinates of the computation points
-    * gz
-        The array with the observed gravity values at the computation points.
+    * area : list = [xmin, xmax, zmin, zmax]
+        Are of the subsuface to use for modeling. Remember, z is positive
+        downward
+    * xp, zp : array
+        Arrays with the x and z coordinates of the computation points
+    * gz : array
+        The observed gravity values at the computation points.
         Will be plotted as black points together with the modeled (predicted)
         data. If None, will ignore this.
 
@@ -131,7 +113,8 @@ class Moulder():
         self.predplot, = self.dcanvas.plot([], [], '-r', linewidth=2)
         if self.gz is not None:
             self.gzplot, = self.dcanvas.plot(xp*0.001, gz, 'ok')
-        self.nextdens = 0.
+        self.nextdens = 1000.
+        self.densslider.set_val(self.nextdens*0.001)
         self.error = 0.
         self.densities = []
         self.polygons = []
@@ -262,33 +245,32 @@ class BasinTrap(Moulder):
 
     Example::
 
-        # Define the area of modeling
-        area = (0, 1000, 0, 1000)
-        # Where the gravity effect is calculated
-        xp = range(0, 1000, 10)
-        zp = [0]*len(xp)
-        # Where the two surface nodes are. Use depth = 1 because direct modeling
-        # doesn't like it when the model and computation points coincide
-        nodes = [[100, 1], [900, 1]]
-        # Create the application
-        app = BasinTrap(area, nodes, xp, zp)
-        # Run it (close the window to finish)
-        app.run()
-        # and save the calculated gravity anomaly profile
-        app.savedata("mydata.txt")
+        >>> # Define the area of modeling
+        >>> area = (0, 1000, 0, 1000)
+        >>> # Where the gravity effect is calculated
+        >>> xp = range(0, 1000, 10)
+        >>> zp = [0]*len(xp)
+        >>> # Where the two surface nodes are. Use depth = 1 because direct modeling
+        >>> # doesn't like it when the model and computation points coincide
+        >>> nodes = [[100, 1], [900, 1]]
+        >>> # Create the application
+        >>> app = BasinTrap(area, nodes, xp, zp)
+        >>> # Run it (close the window to finish)
+        >>> app.run()
+        >>> # and save the calculated gravity anomaly profile
+        >>> app.savedata("mydata.txt")
 
     Parameters:
 
-    * area
-        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
-        Remember, z is positive downward
-    * nodes
-        [[x1, z1], [x2, z2]]: x and z coordinates of the two top nodes.
-        Must be in clockwise order!
-    * xp, zp
-        Array with the x and z coordinates of the computation points
-    * gz
-        The array with the observed gravity values at the computation points.
+    * area : list = [xmin, xmax, zmin, zmax]
+        Are of the subsuface to use for modeling. Remember, z is positive
+        downward.
+    * nodes : list of lists = [[x1, z1], [x2, z2]]
+        x and z coordinates of the two top nodes. Must be in clockwise order!
+    * xp, zp : array
+        Arrays with the x and z coordinates of the computation points
+    * gz : array
+        The observed gravity values at the computation points.
         Will be plotted as black points together with the modeled (predicted)
         data. If None, will ignore this.
         
@@ -302,7 +284,9 @@ class BasinTrap(Moulder):
         left, right = numpy.array(nodes)*0.001
         z1 = z2 = 0.001*0.5*(area[3] - area[2])
         self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
-        self.densities = [0.]
+        self.nextdens = -1000        
+        self.densslider.set_val(self.nextdens*0.001)
+        self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
         self.ploty = [v[1] for v in self.polygons[0]]
@@ -365,33 +349,32 @@ class BasinTri(Moulder):
 
     Example::
 
-        # Define the area of modeling
-        area = (0, 1000, 0, 1000)
-        # Where the gravity effect is calculated
-        xp = range(0, 1000, 10)
-        zp = [0]*len(xp)
-        # Where the two surface nodes are. Use depth = 1 because direct modeling
-        # doesn't like it when the model and computation points coincide
-        nodes = [[100, 1], [900, 1]]
-        # Create the application
-        app = BasinTri(area, nodes, xp, zp)
-        # Run it (close the window to finish)
-        app.run() 
-        # and save the calculated gravity anomaly profile
-        app.savedata("mydata.txt")
+        >>> # Define the area of modeling
+        >>> area = (0, 1000, 0, 1000)
+        >>> # Where the gravity effect is calculated
+        >>> xp = range(0, 1000, 10)
+        >>> zp = [0]*len(xp)
+        >>> # Where the two surface nodes are. Use depth = 1 because direct modeling
+        >>> # doesn't like it when the model and computation points coincide
+        >>> nodes = [[100, 1], [900, 1]]
+        >>> # Create the application
+        >>> app = BasinTri(area, nodes, xp, zp)
+        >>> # Run it (close the window to finish)
+        >>> app.run() 
+        >>> # and save the calculated gravity anomaly profile
+        >>> app.savedata("mydata.txt")
 
     Parameters:
 
-    * area
-        (xmin, xmax, zmin, zmax): Are of the subsuface to use for modeling.
-        Remember, z is positive downward
-    * nodes
-        [[x1, z1], [x2, z2]]: x and z coordinates of the two top nodes.
-        Must be in clockwise order!
-    * xp, zp
-        Array with the x and z coordinates of the computation points
-    * gz
-        The array with the observed gravity values at the computation points.
+    * area : list = [xmin, xmax, zmin, zmax]
+        Are of the subsuface to use for modeling. Remember, z is positive
+        downward.
+    * nodes : list of lists = [[x1, z1], [x2, z2]]
+        x and z coordinates of the two top nodes. Must be in clockwise order!
+    * xp, zp : array
+        Arrays with the x and z coordinates of the computation points
+    * gz : array
+        The observed gravity values at the computation points.
         Will be plotted as black points together with the modeled (predicted)
         data. If None, will ignore this.
         
@@ -406,7 +389,9 @@ class BasinTri(Moulder):
         z = 0.001*0.5*(area[3] - area[2])
         x = 0.5*(right[0] + left[0])
         self.polygons = [[left, right, [x, z]]]
-        self.densities = [0.]
+        self.nextdens = -1000        
+        self.densslider.set_val(self.nextdens*0.001)
+        self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
         self.ploty = [v[1] for v in self.polygons[0]]
@@ -461,30 +446,30 @@ class Lasagne():
 
     Example::
 
-        # Define the thickness of the layers
-        thickness = [10, 20, 5, 10]
-        # Define the measuring points along the well
-        zp = range(1, sum(thickness), 1)
-        # Define the velocity range
-        vmin, vmax = 0, 10000
-        # Run the application
-        app = Lasagne(thickness, zp, vmin, vmax)
-        app.run()
-        # Save the modeled data
-        app.savedata("mydata.txt")        
+        >>> # Define the thickness of the layers
+        >>> thickness = [10, 20, 5, 10]
+        >>> # Define the measuring points along the well
+        >>> zp = range(1, sum(thickness), 1)
+        >>> # Define the velocity range
+        >>> vmin, vmax = 1, 10000
+        >>> # Run the application
+        >>> app = Lasagne(thickness, zp, vmin, vmax)
+        >>> app.run()
+        >>> # Save the modeled data
+        >>> app.savedata("mydata.txt")        
 
     Parameters:
 
-    * thickness
-        List with the thickness of each layer in order of increasing depth
-    * zp
-        List with the depths of the measurement stations (seismometers)
-    * vmin, vmax
+    * thickness : list
+        The thickness of each layer in order of increasing depth
+    * zp : list
+        The depths of the measurement stations (seismometers)
+    * vmin, vmax : float
         Range of velocities to allow
-    * tts
-        The array with the observed travel-time values at the measurement
-        stations. Will be plotted as black points together with the modeled
-        (predicted) data. If None, will ignore this.
+    * tts : array
+        The observed travel-time values at the measurement stations. Will be
+        plotted as black points together with the modeled (predicted) data.
+        If None, will ignore this.
         
     """
 
@@ -494,7 +479,9 @@ class Lasagne():
     def __init__(self, thickness, zp, vmin, vmax, tts=None):
         if tts is not None:
             if len(tts) != len(zp):
-                raise ValueError, "zp and tts must have same size"
+                raise ValueError("zp and tts must have same size")
+        if vmin <= 0. or vmax <= 0.:
+            raise ValueError("Can't have velocity vmin or vmax <= 0")
         self.tts = tts
         self.zp = zp
         self.thickness = thickness

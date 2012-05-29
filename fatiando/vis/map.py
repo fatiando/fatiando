@@ -1,54 +1,43 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Wrappers for `matplotlib` calls to plot grids (from :mod:`fatiando.gridder`),
-2D objects (from :mod:`fatiando.mesher.dd`) and more.
+Wrappers for :mod:`matplotlib` calls to plot grids, 2D objects, etc.
 
-**WARNING**: avoid importing this module as ``from fatiando.vis import map``
-because it will cause conflicts with Pythons ``map`` function.
+.. tip:: Avoid importing this module using ``from fatiando.vis import map``
+    because it will cause conflicts with Pythons ``map`` function.
 
 **Grids**
 
-* :func:`fatiando.vis.map.contour`
-* :func:`fatiando.vis.map.contourf`
-* :func:`fatiando.vis.map.pcolor`
+* :func:`~fatiando.vis.map.contour`
+* :func:`~fatiando.vis.map.contourf`
+* :func:`~fatiando.vis.map.pcolor`
 
 Grids are automatically reshaped and interpolated if desired or necessary.
 
 **2D objects**
 
-* :func:`fatiando.vis.map.points`
-* :func:`fatiando.vis.map.paths`
-* :func:`fatiando.vis.map.square`
-* :func:`fatiando.vis.map.squaremesh`
-* :func:`fatiando.vis.map.polygon`
-* :func:`fatiando.vis.map.layers`
+* :func:`~fatiando.vis.map.points`
+* :func:`~fatiando.vis.map.paths`
+* :func:`~fatiando.vis.map.square`
+* :func:`~fatiando.vis.map.squaremesh`
+* :func:`~fatiando.vis.map.polygon`
+* :func:`~fatiando.vis.map.layers`
+
+**Auxiliary**
+
+* :func:`~fatiando.vis.map.set_area`
 
 ----
    
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 30-Jan-2012'
 
 import numpy
 from matplotlib import pyplot
 
-import fatiando.gridder
+from fatiando import gridder, logger
 
+__all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
+           'squaremesh', 'polygon', 'layers', 'set_area']
+
+log = logger.dummy('fatiando.vis.map')
 
 def set_area(area):
     """
@@ -56,9 +45,8 @@ def set_area(area):
 
     Parameters:
 
-    * area
-        [x1, x2, y1, y2]: coordinates of the top right and bottom left
-        corners of the area
+    * area : list = [x1, x2, y1, y2]
+        Coordinates of the top right and bottom left corners of the area
          
     """
     x1, x2, y1, y2 = area
@@ -71,18 +59,19 @@ def points(pts, style='.k', size=10, label=None):
 
     Parameters:
 
-    * pts
-        List of (x, y) pairs with the coordinates of the points
-    * style
+    * pts : list of lists
+        List of [x, y] pairs with the coordinates of the points
+    * style : str
         String with the color and line style (as in matplotlib.pyplot.plot)
-    * size
+    * size : int
         Size of the plotted points
-    * label
+    * label : str
         If not None, then the string that will show in the legend
 
     Returns:
     
-    * ``matplitlib.axes`` element of the plot
+    * axes : ``matplitlib.axes``
+        The axes element of the plot
     
     """
     x, y = numpy.array(pts).T
@@ -97,15 +86,15 @@ def paths(pts1, pts2, style='-k', linewidth=1, label=None):
 
     Parameters:
 
-    * pts1
+    * pts1 : list of lists
         List of (x, y) pairs with the coordinates of the points
-    * pts2
+    * pts2 : list of lists
         List of (x, y) pairs with the coordinates of the points
-    * style
+    * style : str
         String with the color and line style (as in matplotlib.pyplot.plot)
-    * linewidth
+    * linewidth : float
         The width of the lines representing the paths
-    * label
+    * label : str
         If not None, then the string that will show in the legend
     
     """
@@ -122,23 +111,24 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
 
     Parameters:
 
-    * thickness
-        List with the thickness of each layer in order of increasing depth
-    * values
-        List with the value associated with each layer in order of increasing
+    * thickness : list
+        The thickness of each layer in order of increasing depth
+    * values : list
+        The value associated with each layer in order of increasing
         depth    
-    * style
+    * style : str
         String with the color and line style (as in matplotlib.pyplot.plot)
-    * z0
+    * z0 : float
         The depth of the top of the first layer 
-    * linewidth
+    * linewidth : float
         Line width
-    * label
+    * label : str
         label associated with the square.
 
     Returns:
-
-    * ``matplitlib.axes`` element of the plot
+    
+    * axes : ``matplitlib.axes``
+        The axes element of the plot
     
     """
     if len(thickness) != len(values):
@@ -166,24 +156,25 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     Parameters:
 
-    * area
-        (x1, x2, y1, y2): Borders of the square
-    * style
+    * area : list = [x1, x2, y1, y2]
+        Borders of the square
+    * style : str
         String with the color and line style (as in matplotlib.pyplot.plot)
-    * linewidth
+    * linewidth : float
         Line width
-    * fill
+    * fill : str
         A color string used to fill the square. If None, the square is not
         filled
-    * alpha
+    * alpha : float
         Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
         opaque
-    * label
+    * label : str
         label associated with the square.
 
     Returns:
 
-    * ``matplitlib.axes`` element of the plot
+    * axes : ``matplitlib.axes``
+        The axes element of the plot
     
     """
     x1, x2, y1, y2 = area
@@ -197,32 +188,35 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         pyplot.fill(xs, ys, color=fill, alpha=alpha)
     return plot
 
-def squaremesh(mesh, scalars, cmap=pyplot.cm.jet, vmin=None, vmax=None):
+def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     """
     Make a pseudo-color plot of a mesh of squares
     
     Parameters:
 
-    * mesh
-        A :func:`fatiando.mesher.dd.SquareMesh` or other compatible mesh
-        (a compatible mesh must implement the methods ``get_xs`` and
+    * mesh : :class:`~fatiando.mesher.dd.SquareMesh` or compatible
+        The mesh (a compatible mesh must implement the methods ``get_xs`` and
         ``get_ys``)
-    * scalars
-        Array with the scalar value assigned to each square in the mesh
-    * cmap
+    * prop : str
+        The physical property of the squares to use as the color scale.
+    * cmap : colormap
         Color map to be used. (see pyplot.cm module)
-    * vmin, vmax
+    * vmin, vmax : float
         Saturation values of the colorbar.
 
     Returns:
 
-    * ``matplitlib.axes`` element of the plot
+    * axes : ``matplitlib.axes``
+        The axes element of the plot
 
     """
+    if prop not in mesh.props:
+        raise ValueError("Can't plot because 'mesh' doesn't have property '%s'"
+                         % (prop))
     xs = mesh.get_xs()
     ys = mesh.get_ys()
     X, Y = numpy.meshgrid(xs, ys)
-    V = numpy.reshape(scalars, mesh.shape)
+    V = numpy.reshape(mesh.props[prop], mesh.shape)
     plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)
     pyplot.xlim(xs.min(), xs.max())
     pyplot.ylim(ys.min(), ys.max())
@@ -234,25 +228,25 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     Parameters:
 
-    * polygon
-        List of :func:`fatiando.mesher.dd.Polygon`
-    * style
+    * polygon : :func:`~fatiando.mesher.dd.Polygon`
+        The polygon
+    * style : str
         Color and line style string (as in matplotlib.pyplot.plot)
-    * linewidth
+    * linewidth : float
         Line width
-    * fill
+    * fill : str
         A color string used to fill the polygon. If None, the polygon is not
         filled
-    * alpha
+    * alpha : float
         Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
         opaque
-    * label
+    * label : str
         String with the label identifying the polygon in the legend 
 
     Returns:
 
-    * lines
-        Line objects corresponding to the polygon plotted
+    * lines : matplotlib Line object
+        Line corresponding to the polygon plotted
 
     """
     tmpx = [x for x in polygon['x']]
@@ -267,41 +261,41 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         pyplot.fill(tmpx, tmpy, color=fill, alpha=alpha)
     return line
 
-def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
+def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
             clabel=True, style='solid', linewidth=1.0):
     """
     Make a contour plot of the data.
 
     Parameters:
 
-    * x, y
+    * x, y : array
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
-    * v
-        Array with the scalar value assigned to the grid points.
-    * shape
-        Shape of the regular grid, ie (ny, nx).
+    * v : array
+        The scalar value assigned to the grid points.
+    * shape : tuple = (ny, nx)
+        Shape of the regular grid.
         If interpolation is not False, then will use *shape* to grid the data.
-    * levels
+    * levels : int or list
         Number of contours to use or a list with the contour values.
-    * interpolate
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
-    * color
+    * color : str
         Color of the contour lines.
-    * label
+    * label : str
         String with the label of the contour that would show in a legend.
-    * clabel
+    * clabel : True or False
         Wether or not to print the numerical value of the contour lines
-    * style
+    * style : str
         The style of the contour lines. Can be ``'dashed'``, ``'solid'`` or
         ``'mixed'`` (solid lines for positive contours and dashed for negative)
-    * linewidth
+    * linewidth : float
         Width of the contour lines
         
     Returns:
 
-    * levels
+    * levels : list
         List with the values of the contour levels
 
     """
@@ -309,8 +303,8 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
         raise ValueError, "Invalid contour style %s" % (style)
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -329,38 +323,38 @@ def contour(x, y, v, shape, levels, interpolate=False, color='k', label=None,
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
+def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet):
     """
     Make a filled contour plot of the data.
 
     Parameters:
 
-    * x, y
+    * x, y : array
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
-    * v
-        Array with the scalar value assigned to the grid points.
-    * shape
-        Shape of the regular grid, ie (ny, nx).
+    * v : array
+        The scalar value assigned to the grid points.
+    * shape : tuple = (ny, nx)
+        Shape of the regular grid.
         If interpolation is not False, then will use *shape* to grid the data.
-    * levels
+    * levels : int or list
         Number of contours to use or a list with the contour values.
-    * interpolate
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
-    * cmap
+    * cmap : colormap
         Color map to be used. (see pyplot.cm module)
 
     Returns:
 
-    * levels
+    * levels : list
         List with the values of the contour levels
 
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -370,38 +364,39 @@ def contourf(x, y, v, shape, levels, interpolate=False, cmap=pyplot.cm.jet):
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
+def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
            vmax=None):
     """
     Make a pseudo-color plot of the data.
 
     Parameters:
 
-    * x, y
+    * x, y : array
         Arrays with the x and y coordinates of the grid points. If the data is
         on a regular grid, then assume x varies first (ie, inner loop), then y.
-    * v
-        Array with the scalar value assigned to the grid points.
-    * shape
-        Shape of the regular grid, ie (ny, nx).
+    * v : array
+        The scalar value assigned to the grid points.
+    * shape : tuple = (ny, nx)
+        Shape of the regular grid.
         If interpolation is not False, then will use *shape* to grid the data.
-    * interpolate
+    * interp : True or False
         Wether or not to interpolate before trying to plot. If data is not on
         regular grid, set to True!
-    * cmap
+    * cmap : colormap
         Color map to be used. (see pyplot.cm module)
     * vmin, vmax
         Saturation values of the colorbar.
 
     Returns:
 
-    * ``matplitlib.axes`` element of the plot
+    * axes : ``matplitlib.axes``
+        The axes element of the plot
 
     """
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
-    if interpolate:
-        X, Y, V = fatiando.gridder.interpolate(x, y, v, shape)
+    if interp:
+        X, Y, V = gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -410,16 +405,7 @@ def pcolor(x, y, v, shape, interpolate=False, cmap=pyplot.cm.jet, vmin=None,
     pyplot.xlim(X.min(), X.max())
     pyplot.ylim(Y.min(), Y.max())
     return plot
-    
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
 
-if __name__ == '__main__':
-    _test()
-#
-#
 #def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
                       #fillcolor='r', fillkey='value', alpha=1, label=''):
     #"""

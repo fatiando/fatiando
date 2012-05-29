@@ -1,25 +1,54 @@
-==========================
-potential.prism benchmarks
-==========================
-
-Benchmarks for the potential.prism module:
-
-Compute effect of one point in C but loop over points in Python
-===============================================================
-
-Tue Sep 13 19:07:53 2011
-Changeset used: 312c0195d09a+ tip
-Time to calculate on 1000000 points, 10 times:
-Total time = 35.180000
-Mean = 3.518000
-Std = 0.008718
-
-Loop over points in C, loop over prisms in Python
-===============================================================
-
-Tue Sep 27 17:45:26 2011
-Changeset used: f1270980d3de+ tip
-Time to calculate on 1000000 points, 10 times:
-Total time = 5.290000
-Mean = 0.529000
-Std = 0.009434
+########################################
+Fatiando a Terra:
+  date: Tue May 29 10:49:29 2012
+  version: 0.1.dev
+  changeset: 709cbd20170f
+########################################
+------------------------------------
+Testing with 1 prism and many points
+------------------------------------
+Average time of 20 runs
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Cython: 0.268767750263
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Python + Numpy: 0.324444949627
+Cython is 17.160754% faster
+---------------------------------------
+Testing with many prism and many points
+---------------------------------------
+Average time of 10 runs
+Generating 3D right rectangular prism mesh:
+  bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
+  shape = (nz, ny, nx) = (10, 10, 10)
+  number of prisms = 1000
+  prism dimensions = (dx, dy, dz) = (400.0, 400.0, 100.0)
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (100, 100)
+  spacing = (dy, dx) = (101.01010101010101, 101.01010101010101)
+  points = nx*ny = 10000
+  z = -100
+Cython: 10.9948318958
+Generating 3D right rectangular prism mesh:
+  bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
+  shape = (nz, ny, nx) = (10, 10, 10)
+  number of prisms = 1000
+  prism dimensions = (dx, dy, dz) = (400.0, 400.0, 100.0)
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (100, 100)
+  spacing = (dy, dx) = (101.01010101010101, 101.01010101010101)
+  points = nx*ny = 10000
+  z = -100
+Python + Numpy: 11.924165988
+Cython is 7.793703% faster

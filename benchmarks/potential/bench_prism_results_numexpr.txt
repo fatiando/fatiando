@@ -1,0 +1,54 @@
+########################################
+Fatiando a Terra:
+  date: Tue May 29 12:54:31 2012
+  version: 0.1.dev
+  changeset: 72757c48122d
+########################################
+------------------------------------
+Testing with 1 prism and many points
+------------------------------------
+Average time of 20 runs
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Cython: 0.268870604038
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Python + Numpy: 0.0887469887733
+Cython is -202.963073% faster
+---------------------------------------
+Testing with prism mesh and many points
+---------------------------------------
+Average time of 10 runs
+Generating 3D right rectangular prism mesh:
+  bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
+  shape = (nz, ny, nx) = (10, 10, 10)
+  number of prisms = 1000
+  prism dimensions = (dx, dy, dz) = (400.0, 400.0, 100.0)
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Cython: 267.2337919
+Generating 3D right rectangular prism mesh:
+  bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
+  shape = (nz, ny, nx) = (10, 10, 10)
+  number of prisms = 1000
+  prism dimensions = (dx, dy, dz) = (400.0, 400.0, 100.0)
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (500, 500)
+  spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
+  points = nx*ny = 250000
+  z = -100
+Python + Numpy: 88.5871068001
+Cython is -201.662174% faster

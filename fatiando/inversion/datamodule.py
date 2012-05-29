@@ -1,34 +1,19 @@
-# Copyright 2012 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
 Base DataModule class with the format expected by all inverse problem solvers.
+
+See the docs for the :mod:`fatiando.inversion` package for more information on
+the role of the data modules.
 
 ----
 
 """
-__author__ = 'Leonardo Uieda (leouieda@gmail.com)'
-__date__ = 'Created 19-Jan-2012'
-
 
 import numpy
 
 from fatiando import logger
 
-log = logger.dummy()
+
+log = logger.dummy('fatiando.inversion.datamodule')
 
 
 class DataModule(object):
@@ -59,8 +44,8 @@ class DataModule(object):
 
     Constructor parameters common to all methods:
 
-    * data
-        Array with the observed data.
+    * data : array
+        The observed data.
                 
     """
 
@@ -74,12 +59,12 @@ class DataModule(object):
 
         Parameters:
 
-        * residuals
-            Array with the residual vector
+        * residuals : array
+            The residual vector
 
         Returns:
 
-        * misfit
+        * misfit : float
             Scalar value of the data-misfit
             
         """
@@ -91,16 +76,16 @@ class DataModule(object):
 
         Parameters:
 
-        * p
-            Array with the parameter vector
+        * p : array
+            The parameter vector
 
         Returns:
 
-        * pred
-            Array with the calculated predicted data vector
+        * pred : array
+            The calculated predicted data vector
             
         """
-        pass
+        raise NotImplementedError("get_predicted method not implemented")
 
     def sum_gradient(self, gradient, p=None, residuals=None):
         """
@@ -109,24 +94,24 @@ class DataModule(object):
 
         Parameters:
 
-        * gradient
-            Array with the old gradient vector
-        * p
-            Array with the parameter vector
-        * residuals
-            Array with the residuals evaluated for parameter vector *p*
+        * gradient : array
+            The old gradient vector
+        * p : array
+            The parameter vector
+        * residuals : array
+            The residuals evaluated for parameter vector *p*
             
-        Solvers for linear problems will use ``p = None`` and
-        ``residuals = None`` so that the class knows how to calculate gradients
-        more efficiently for these cases.
+        .. note:: Solvers for linear problems will use ``p = None`` and
+            ``residuals = None`` so that the class knows how to calculate
+            gradients more efficiently for these cases.
 
         Returns:
 
-        * new_gradient
-            Array with the new gradient vector
+        * new_gradient : array
+            The new gradient vector
         
         """
-        pass
+        raise NotImplementedError("sum_gradient method not implemented")
 
     def sum_hessian(self, hessian, p=None):
         """
@@ -135,18 +120,19 @@ class DataModule(object):
 
         Parameters:
 
-        * hessian
+        * hessian : array
             2D array with the old Hessian matrix
-        * p
-            Array with the parameter vector
+        * p : array
+            The parameter vector
             
-        Solvers for linear problems will use ``p = None`` so that the class
-        knows how to calculate gradients more efficiently for these cases.
+        .. note:: Solvers for linear problems will use ``p = None`` so that the
+            class knows how to calculate gradients more efficiently for these
+            cases.
 
         Returns:
 
-        * new_hessian
+        * new_hessian : array
             2D array with the new Hessian matrix
         
         """
-        pass
+        raise NotImplementedError("sum_hessian method not implemented")

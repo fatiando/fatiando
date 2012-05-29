@@ -1,57 +1,52 @@
-# Copyright 2010 The Fatiando a Terra Development Team
-#
-# This file is part of Fatiando a Terra.
-#
-# Fatiando a Terra is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Fatiando a Terra is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Fatiando a Terra.  If not, see <http://www.gnu.org/licenses/>.
 """
-Robust 3D potential field inversion by planting anomalous densities.
+3D potential field inversion by planting anomalous densities.
 
-Performs the inversion by iteratively growing the estimate around user-specified
-"seeds". Supports various kinds of data (gravity, gravity tensor, magnetic) and
-there are plans to support different kinds of seeds as well.
+Implements the method of Uieda and Barbosa (2011).
+
+A "heuristic" inversion for compact 3D geologic bodies. Performs the inversion
+by iteratively growing the estimate around user-specified "seeds". Supports
+various kinds of data (gravity, gravity tensor).
 
 The inversion is performed by function
 :func:`~fatiando.potential.harvester.harvest`. The required information, such as
 observed data, seeds, and regularization, are passed to the function though
 seed classes and data modules.
 
+**Functions**
+
+* :func:`~fatiando.potential.harvester.harvest`: Performs the inversion
+* :func:`~fatiando.potential.harvester.wrapdata`: Creates the data modules
+  required by ``harvest``
+* :func:`~fatiando.potential.harvester.loadseeds`: Loads a set of points and
+  physical properties that specify the seeds from a file
+* :func:`~fatiando.potential.harvester.sow`: Creates the seeds from a set of
+  points that specify their locations
+
 **Usage**
 
 The recommened way of generating the required seeds and data modules is to use
 the helper functions :func:`~fatiando.potential.harvester.wrapdata`,
 :func:`~fatiando.potential.harvester.loadseeds`, and
-:func:`~fatiando.potential.harvester.sow_prisms`.
+:func:`~fatiando.potential.harvester.sow`.
 
 A typical script to run the inversion on a data set looks like::
     
     import numpy
-    from fatiando.mesher.ddd import PrismMesh
-    from fatiando.potential import harvester
+    import fatiando as ft
     # Load the data from a file
     xp, yp, zp, gz = numpy.loadtxt('mydata.xyz', unpack=True)
     # Create a mesh assuming that 'bounds' are the limits of the mesh and
     # 'shape' is the number of prisms in each dimension
     bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
     shape = (nz, ny, nx)
-    mesh = PrismMesh(bounds, shape)
+    mesh = ft.msh.ddd.PrismMesh(bounds, shape)
     # Make the data modules
-    dms = harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
+    dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
     # Read the seeds from a file with 4 columns: x  y  z  density
-    points, densities = harvester.loadseeds('myseedfile.txt')
-    seeds = harvester.sow_prism(points, {'density':densities}, mesh, mu=0.1)
+    points, densities = ft.pot.harvester.loadseeds('myseedfile.txt')
+    seeds = ft.pot.harvester.sow(points, {'density':densities}, mesh, mu=0.1)
     # Run the inversion
-    estimate, goals, misfits = harvest(dms, seeds)
+    estimate, goals, misfits = ft.pot.harvester.harvest(dms, seeds)
     # fill the mesh with the density values
     mesh.addprop('density', estimate['density'])
     # Save the mesh in UBC-GIF format
@@ -80,21 +75,21 @@ parametrization.
 * :class:`~fatiando.potential.harvester.DMPrismGyz`
 * :class:`~fatiando.potential.harvester.DMPrismGzz`
 
-:author: Leonardo Uieda (leouieda@gmail.com)
-:date: Created 17-Nov-2010
-:license: GNU Lesser General Public License v3 (http://www.gnu.org/licenses/)
+**References**
+
+Uieda, L., and V. C. F. Barbosa, 2011, Robust 3D gravity gradient inversion by
+planting anomalous densities: SEG Expanded Abstracts, v. 30, 820-824.
 
 ----
 
 """
-
 import time
 import math
 import bisect
 
 import numpy
 
-from fatiando.potential import _prism
+from fatiando.potential import prism as pot_prism
 from fatiando import utils, logger
 
 log = logger.dummy('fatiando.potential.harvester')
@@ -165,7 +160,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     log.info("  total number of observations: %d" % (len(xp)*len(fields)))
     return dms
 
-def sow_prisms(points, props, mesh, mu=0., delta=0.0001, reldist=False):
+def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
     """
     Generate a set of :class:`~fatiando.potential.harvester.SeedPrism` from a
     list of points.
@@ -275,7 +270,7 @@ def loadseeds(fname):
         >>> print props1
         [ 4.]
         >>> print props2
-        [ 5.]        
+        [ 5.]
     
     """
     data = numpy.loadtxt(fname, unpack=True)
@@ -478,9 +473,8 @@ class DMPrismGz(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gz(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gz(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGxx(DMPrism):
     """
@@ -500,9 +494,8 @@ class DMPrismGxx(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gxx(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gxx(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGxy(DMPrism):
     """
@@ -522,9 +515,8 @@ class DMPrismGxy(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gxy(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gxy(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGxz(DMPrism):
     """
@@ -544,9 +536,8 @@ class DMPrismGxz(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gxz(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gxz(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGyy(DMPrism):
     """
@@ -566,9 +557,8 @@ class DMPrismGyy(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gyy(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gyy(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGyz(DMPrism):
     """
@@ -588,9 +578,8 @@ class DMPrismGyz(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gyz(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gyz(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class DMPrismGzz(DMPrism):
     """
@@ -610,9 +599,8 @@ class DMPrismGzz(DMPrism):
         self.prop_type = 'density'
 
     def _effect_of_prism(self, index, props):
-        p = self.mesh[index]
-        return _prism.prism_gzz(float(props[self.prop_type]), p['x1'], p['x2'],
-            p['y1'], p['y2'], p['z1'], p['z2'], self.xp, self.yp, self.zp)
+        return pot_prism.gzz(self.xp, self.yp, self.zp, [self.mesh[index]],
+            dens=props[self.prop_type])
 
 class SeedPrism(object):
     """
@@ -625,7 +613,7 @@ class SeedPrism(object):
     estimate it produced.
 
     **It is highly recommended** that you use function
-    :func:`~fatiando.potential.harvester.sow_prisms` to generate the seeds
+    :func:`~fatiando.potential.harvester.sow` to generate the seeds
     because it checks for duplicate seeds. 
 
     Parameters:
@@ -691,7 +679,7 @@ class SeedPrism(object):
         index, props = self.seed
         prism = self.mesh[index]
         for p in props:
-            prism[p] = props[p]
+            prism.addprop(p, props[p])
         return prism
 
     def initialize(self, seeds):
@@ -711,7 +699,6 @@ class SeedPrism(object):
         """
         Add the relative distance of the neighbors to the distance dictionary.
         """
-        scell = self.mesh[self.index]
         for n in neighbors:
             nz, ny, nx = self.mesh.shape
             # The i, j, k index of the neighbor in the mesh
@@ -722,7 +709,7 @@ class SeedPrism(object):
             dx = isd - inbr
             dy = jsd - jnbr
             dz = ksd - knbr
-            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)    
+            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)
 
     def _get_absolute_distances(self, neighbors):
         """
@@ -731,9 +718,9 @@ class SeedPrism(object):
         scell = self.mesh[self.index]
         for n in neighbors:
             ncell = self.mesh[n]
-            dx = abs(ncell['x1'] - scell['x1'])
-            dy = abs(ncell['y1'] - scell['y1'])
-            dz = abs(ncell['z1'] - scell['z1'])        
+            dx = abs(ncell.x1 - scell.x1)
+            dy = abs(ncell.y1 - scell.y1)
+            dz = abs(ncell.z1 - scell.z1)        
             self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)    
 
     def _get_index(self, point, mesh):
