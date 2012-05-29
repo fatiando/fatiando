@@ -8,6 +8,32 @@ import fatiando as ft
 log = ft.log.get(stream=sys.stdout)
 print ft.log.header()
 
+print "-----------------------------------"
+print "Testing with 1 prism and few points"
+print "-----------------------------------"
+setup = """
+import fatiando as ft
+prisms = [ft.msh.ddd.Prism(-2000,2000,-2000,2000,0,1000, {'density':1000})]
+shape = (50, 50)
+xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
+from fatiando.potential import _prism
+from fatiando.potential import _cprism
+from fatiando.potential import _neprism
+"""
+n = 20
+print "Average time of %d runs" % (n)
+ctime = timeit.timeit("_cprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
+print "Cython:", ft.utils.sec2hms(ctime)
+pytime = timeit.timeit("_prism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
+print "Python + Numpy:", ft.utils.sec2hms(pytime)
+netime = timeit.timeit("_neprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
+print "Python + Numpy + Numexpr:", ft.utils.sec2hms(netime)
+print "RESULTS:"
+print "  Cython is %lf%s faster than Python + Numpy" \
+    % (100.*(pytime - ctime)/pytime, r'%')
+print "  Cython is %lf%s faster than Python + Numpy + Numexpr" \
+    % (100.*(netime - ctime)/netime, r'%')
+
 print "------------------------------------"
 print "Testing with 1 prism and many points"
 print "------------------------------------"
@@ -18,31 +44,46 @@ shape = (500, 500)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
 from fatiando.potential import _prism
 from fatiando.potential import _cprism
+from fatiando.potential import _neprism
 """
 n = 20
 print "Average time of %d runs" % (n)
 ctime = timeit.timeit("_cprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
-print "Cython:", ctime
+print "Cython:", ft.utils.sec2hms(ctime)
 pytime = timeit.timeit("_prism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
-print "Python + Numpy:", pytime
-print "Cython is %lf%s faster" % (100.*(pytime - ctime)/pytime, r'%')
-
+print "Python + Numpy:", ft.utils.sec2hms(pytime)
+netime = timeit.timeit("_neprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
+print "Python + Numpy + Numexpr:", ft.utils.sec2hms(netime)
+print "RESULTS:"
+print "  Cython is %lf%s faster than Python + Numpy" \
+    % (100.*(pytime - ctime)/pytime, r'%')
+print "  Cython is %lf%s faster than Python + Numpy + Numexpr" \
+    % (100.*(netime - ctime)/netime, r'%')
+    
 print "---------------------------------------"
-print "Testing with many prism and many points"
+print "Testing with prism mesh and many points"
 print "---------------------------------------"
 setup = """
 import fatiando as ft
 prisms = ft.msh.ddd.PrismMesh((-2000,2000,-2000,2000,0,1000), (10, 10, 10))
 prisms.addprop('density', [1000]*prisms.size)
-shape = (100, 100)
+shape = (500, 500)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
 from fatiando.potential import _prism
 from fatiando.potential import _cprism
+from fatiando.potential import _neprism
 """
 n = 10
 print "Average time of %d runs" % (n)
 ctime = timeit.timeit("_cprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
-print "Cython:", ctime
+print "Cython:", ft.utils.sec2hms(ctime)
 pytime = timeit.timeit("_prism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
-print "Python + Numpy:", pytime
-print "Cython is %lf%s faster" % (100.*(pytime - ctime)/pytime, r'%')
+print "Python + Numpy:", ft.utils.sec2hms(pytime)
+netime = timeit.timeit("_neprism.gz(xp, yp, zp, prisms)", setup, number=n)/float(n)
+print "Python + Numpy + Numexpr:", ft.utils.sec2hms(netime)
+print "RESULTS:"
+print "  Cython is %lf%s faster than Python + Numpy" \
+    % (100.*(pytime - ctime)/pytime, r'%')
+print "  Cython is %lf%s faster than Python + Numpy + Numexpr" \
+    % (100.*(netime - ctime)/netime, r'%')
+
