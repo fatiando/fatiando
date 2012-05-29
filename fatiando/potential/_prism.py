@@ -1,37 +1,14 @@
 """
-Calculate the potential fields of the 3D right rectangular prism.
+.. topic:: Python + Numpy implementation.
 
-**Gravity**
- 
-The gravitational fields are calculated using the forumla of Nagy et al. (2000)
-
-* :func:`~fatiando.potential.prism.pot`
-* :func:`~fatiando.potential.prism.gx`
-* :func:`~fatiando.potential.prism.gy`
-* :func:`~fatiando.potential.prism.gz`
-* :func:`~fatiando.potential.prism.gxx`
-* :func:`~fatiando.potential.prism.gxy`
-* :func:`~fatiando.potential.prism.gxz`
-* :func:`~fatiando.potential.prism.gyy`
-* :func:`~fatiando.potential.prism.gyz`
-* :func:`~fatiando.potential.prism.gzz`
-
-**Magnetic**
-
-
-**References**
-
-Nagy, D., G. Papp, and J. Benedek, 2000, The gravitational potential and its
-derivatives for the prism: Journal of Geodesy, 74, 552--560,
-doi: 10.1007/s001900000116.
+    Module :mod:`fatiando.potential.prism` loads all functions from
+    ``fatiando.potential._prism``, which contain the Python + Numpy
+    implementation. There is also the slightly faster Cython module
+    ``fatiando.potentia._cprism``. If it is available, then will substitude
+    the Python + Numpy functions with its functions. All input and output are
+    the same but there is a 50% speed increase.
     
-----
-
 """
-
-# This is the Python + Numpy implementation. If the Cython module is available
-# (module _cprism) then will substitude these with its functions in the end of
-# the file
 import numpy
 from numpy import sqrt, log, arctan2
 
@@ -568,10 +545,3 @@ def gzz(xp, yp, zp, prisms):
     # convert it to Eotvos units 
     res *= G*SI2EOTVOS;
     return res
-
-# Overwrite the functions here if a Cython implementation is available
-try:
-    from fatiando.potential._cprism import *
-except ImportError:
-    pass
-

@@ -4,13 +4,18 @@ Cython implementation of the potential field effects of right rectangular prisms
 __all__ = ['pot', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 
 import numpy
-from fatiando.potential._prism import G, SI2EOTVOS, SI2MGAL
+
 from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
+
+SI2EOTVOS = 1000000000.0
+SI2MGAL = 100000.0
+G = 0.00000000006673
+
 
 def pot(xp, yp, zp, prisms):
     """
@@ -40,6 +45,7 @@ def pot(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    cdef int i, j, k
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -95,6 +101,7 @@ def gx(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    cdef int i, j, k
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -147,6 +154,7 @@ def gy(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    cdef int i, j, k
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -199,7 +207,7 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -219,10 +227,9 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += (dx1*log(dy1 + r) + dy1*log(dx1 + r) -
-                       dz1*atan2(dx1*dy1, dz1*r))
+            kernel = (dx1*log(dy1 + r) + dy1*log(dx1 + r) -
+                      dz1*atan2(dx1*dy1, dz1*r))
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += -(dx2*log(dy1 + r) + dy1*log(dx2 + r) -
                         dz1*atan2(dx2*dy1, dz1*r))
@@ -278,7 +285,7 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -298,9 +305,8 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits 
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += atan2(dy1*dz1, dx1*r)
+            kernel = atan2(dy1*dz1, dx1*r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += -atan2(dy1*dz1, dx2*r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
@@ -349,7 +355,7 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -369,9 +375,8 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += -log(dz1 + r)
+            kernel = -log(dz1 + r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += log(dz1 + r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
@@ -420,7 +425,7 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -440,9 +445,8 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits 
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += -log(dy1 + r)
+            kernel = -log(dy1 + r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += log(dy1 + r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
@@ -491,7 +495,7 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -511,9 +515,8 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits 
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += atan2(dz1*dx1, dy1*r)
+            kernel = atan2(dz1*dx1, dy1*r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += -atan2(dz1*dx2, dy1*r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
@@ -562,7 +565,7 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -582,9 +585,8 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits 
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += -log(dx1 + r)
+            kernel = -log(dx1 + r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += log(dx2 + r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
@@ -633,7 +635,7 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int i, j, k, l, size
+    cdef int l, size
     cdef numpy.ndarray[DTYPE_T, ndim=1] res
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
@@ -653,9 +655,8 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits 
-            kernel = 0
             r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
-            kernel += atan2(dx1*dy1, dz1*r)
+            kernel = atan2(dx1*dy1, dz1*r)
             r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
             kernel += -atan2(dx2*dy1, dz1*r)
             r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
