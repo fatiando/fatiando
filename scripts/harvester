@@ -1,0 +1,184 @@
+#!/usr/bin/env python
+"""
+Usage: harvester inputfile.py
+
+3D potential field inversion by planting anomalous densities.
+
+
+
+
+
+Part of Fatiando a Terra <http://fatiando.org>.
+Submit bug reports at <https://bitbucket.org/fatiando/fatiando/issues>.
+
+# Example parameter file of harvester
+#
+# This is a comment. It will be ignored
+#
+# The name of the file with the data in x, y, z format.
+# 
+data_file = 'dados.txt'
+# Escolha as colunas do arquivo de dados que quer usar. Se nao quiser usar a
+# quinta coluna (coluna 4):
+use_cols = [0, 1, 2, 3, 5]
+# Informe o formato das colunas (o que eh o que)
+# So coloque o nome das colunas que aparecem em use_cols.
+# Como nao usou a coluna 4, ela nao aparece aqui.
+# Se tiver a topografia da area, a coluna dele deve chamar 'height'
+# Cada string eh o nome de uma coluna.
+column_fmt = ['x', 'y', 'z', 'gxx', 'gxz']
+# Se isso for True, antes de rodar a inversao o programa vai trocar o sinal de z
+# Isso pois z eh positivo pra baixo. Entao se o seu z eh positivo, ele
+# provavelmente precisa trocar o sinal. Se nao quiser que isso aconteca, use
+# inv_z = False
+inv_z = False
+# As dimensoes do mesh em x, y e z, respectivamente (em metros)
+mesh_bounds = [0, 1000, 0, 1000, 0, 1000]
+# Se mesh_bounds = None   entao pega os limites dos dados e topografia e so
+# precisa passar a base do mesh (mesh_bottom)
+#mesh_bottom = -500
+# O numero de prismas no mesh (nz, ny, nx)
+mesh_shape = (10, 10, 10)
+# O arquivo com as sementes
+seed_file = 'sementes.txt'
+# O valor do parametro de regularizacao
+regul_param = 10**(1)
+# O valor do threshold delta (quao pequenas sao as mudancas aceitas)
+delta = 10**(-5)
+# Nome do arquivo de saida em formato UBC-GIF Meshtools
+res_file = 'resultado'
+# Vai gerar 2 arquivos: resultado.den e resultado.msh
+# Nome do arquivo onde salvar o dado predito
+pred_file = 'dadopredito.txt'
+# O formato sera: x, y, z, gxx, etc
+# As componentes vao estar na mesma ordem que o arquivo de entrada
+
+
+
+"""
+import sys
+import numpy
+import fatiando as ft
+
+def main():
+    log = logger.get()
+
+    if len(sys.argv) ==  1 or len(sys.argv) > 2:
+        log.error("Invalid arguments. Use 'python harvest.py param_file.py'")
+        sys.exit()
+
+    # Get the parameters form the input file
+    params = __import__(sys.argv[1].split('.')[0])
+    data_file = params.data_file
+    use_cols = params.use_cols
+    column_fmt = params.column_fmt
+    inv_z = params.inv_z
+    mesh_bounds = params.mesh_bounds
+    if mesh_bounds is None:
+        mesh_bottom = params.mesh_bottom
+    mesh_shape = params.mesh_shape
+    seed_file = params.seed_file
+    regul_param = params.regul_param
+    delta = params.delta
+    res_file = params.res_file
+    pred_file = params.pred_file
+
+    logger.tofile('%s.log' % (sys.argv[1].split('.')[0]))
+    log.info(logger.header())
+
+    # Read the data from the file and make the DataMods
+    log.info("Using data file: %s" % (data_file))
+    log.info("Using columns: %s" % (use_cols))
+    data = numpy.loadtxt(data_file, unpack=True, usecols=use_cols)
+    log.info("Data file column format: %s" % (column_fmt))
+    valid = ['x', 'y', 'z', 'height', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
+    datamods = []
+    for col, val in zip(column_fmt, data):
+        if col not in valid:
+            log.error("ERROR: Invalid column name % s" % (col))
+            log.info("Valid names are: %s" % (str(valid)))
+            sys.exit()
+        if col == 'x':
+            xp = val
+        if col == 'y':
+            yp = val
+        if col == 'z':
+            if inv_z:
+                zp = -val
+            else:
+                zp = val
+        if col == 'height':
+            height = val
+        if col == 'gxx':
+            datamods.append(harvester.PrismGxxModule(xp, yp, zp, val, norm=1))
+        if col == 'gxy':
+            datamods.append(harvester.PrismGxyModule(xp, yp, zp, val, norm=1))
+        if col == 'gxz':
+            datamods.append(harvester.PrismGxzModule(xp, yp, zp, val, norm=1))
+        if col == 'gyy':
+            datamods.append(harvester.PrismGyyModule(xp, yp, zp, val, norm=1))
+        if col == 'gyz':
+            datamods.append(harvester.PrismGyzModule(xp, yp, zp, val, norm=1))
+        if col == 'gzz':
+            datamods.append(harvester.PrismGzzModule(xp, yp, zp, val, norm=1))
+    # Get the mesh bounds from the data is that is the case
+    if mesh_bounds is None:    
+        x1, x2 = xp.min(), xp.max()
+        y1, y2 = yp.min(), yp.max()
+        z1, z2 = -height.max(), mesh_bottom
+        mesh_bounds = [x1, x2, y1, y2, z1, z2]
+    # Make the mesh
+    mesh = PrismMesh3D(mesh_bounds, mesh_shape)
+    if 'height' in column_fmt:
+        mesh.carvetopo(xp, yp, height)
+    # Load the seeds
+    log.info("Loading seeds from file: %s" % (seed_file))
+    sdata = numpy.loadtxt(seed_file)
+    if len(sdata.shape) == 1:
+        sdata = [sdata]
+    seeds = harvester.sow(mesh,
+        ([(x, y, z), {'density':d}]
+            for x, y, z, d in sdata))
+    # Plot the seeds
+    vis.mayavi_figure()
+    pseeds = [mesh[s] for s in extract('index', seeds)]
+    vis.prisms3D(pseeds, [d for x, y, z, d in sdata], vmin=0)
+    vis.add_axes3d(vis.add_outline3d(mesh_bounds))
+    vis.mlab.show()
+    # Run the inversion
+    log.info("Running the inversion...")
+    log.info("  Regularizing parameter: %g" % (regul_param))
+    log.info("  Delta threshold value: %g" % (delta))
+    regul = harvester.ConcentrationRegularizer(seeds, mesh, regul_param, 1.)
+    jury = harvester.standard_jury(regul, thresh=delta)
+    results, goals = harvester.harvest(seeds, mesh, datamods, jury)
+
+    log.info("Saving results to '%s.den' and .msh" % (res_file))
+    dens = (v if i not in mesh.mask else -100
+            for i, v in enumerate(results['estimate']['density']))
+    with open('.'.join([res_file, 'den']), 'w') as f:    
+        numpy.savetxt(
+            f,
+            numpy.ravel(numpy.reshape(numpy.fromiter(dens, 'f'), mesh.shape),
+                order='F'),
+            fmt='%.4f')
+    with open('.'.join([res_file, 'msh']), 'w') as f:
+        nz, ny, nx = mesh.shape
+        x1, x2, y1, y2, z1, z2 = mesh.bounds
+        dx, dy, dz = mesh.dims
+        f.write("%d %d %d\n" % (ny, nx, nz))
+        f.write("%g %g %g\n" % (y1, x1, -z1))
+        f.write("%d*%g\n" % (ny, dy))
+        f.write("%d*%g\n" % (nx, dx))
+        f.write("%d*%g\n" % (nz, dz))
+
+    log.info("Saving predicted data to '%s'" % (pred_file))
+    with open(pred_file, 'w') as f:
+        data = [xp, yp, zp]
+        data.extend([dm.predicted for dm in datamods])
+        numpy.savetxt(f, numpy.transpose(data), fmt='%5.4f')
+
+    log.info("Done")
+
+if __name__ == '__main__':
+    main()

@@ -9,4 +9,5 @@ User Guide
     
     install.rst
     overview.rst
+    cmd-progs.rst
     api/fatiando.rst

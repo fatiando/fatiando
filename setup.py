@@ -40,7 +40,7 @@ AUTHOR_EMAIL = 'leouieda@gmail.com'
 LICENSE = 'BSD License'
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
-SCRIPTS = []
+SCRIPTS = ['scripts/harvester']
 CLASSIFIERS = ["Intended Audience :: Science/Research",
                "Intended Audience :: Developers",
                "Intended Audience :: Education",

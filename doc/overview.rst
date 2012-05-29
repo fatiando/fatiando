@@ -1,6 +1,7 @@
 .. overview:
 
-Using fatiando
-==============
+Overview
+========
+
 
 Coming soon...
