@@ -23,7 +23,7 @@ data_file = 'data.txt'
 
 # Used to specify which columns of the data file should be used
 #use_cols = None
-use_cols = [0, 1, 2, 3, 4, -1] # -1 is the last. You can iterate backwards
+use_cols = [0, 1, 2, 3, 4, 6, -1] # -1 is the last. You can iterate backwards
 # If it is None, will use all columns. If you want to leave out a column use
 # something like (0 is the first column):
 #   use_cols = [0, 1, 2, 3, 5]
@@ -34,7 +34,7 @@ use_cols = [0, 1, 2, 3, 4, -1] # -1 is the last. You can iterate backwards
 # will be used (i.e., if you removed some with use_cols, don't include them)!
 # Possible names are: 'x', 'y', 'z', 'height', 'gz', 'gxx', 'gxy', 'gxz', 'gyy',
 # 'gyz', 'gzz'
-column_fmt = ['x', 'y', 'z', 'height', 'gz', 'gzz']
+column_fmt = ['x', 'y', 'z', 'height', 'gz', 'gxy', 'gzz']
 
 # Whether of not to invert the sign of z before running the inversion
 inv_z = False

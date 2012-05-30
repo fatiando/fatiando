@@ -26,10 +26,8 @@ shape = (25, 25)
 area = bounds[0:4]
 x, y = ft.grd.regular(area, shape)
 # Generate synthetic topography
-height = ft.utils.contaminate(
-          300*ft.utils.gaussian2d(x, y, 1000, 3000, x0=500, y0=1000, angle=-60)
-          + 1000*ft.utils.gaussian2d(x, y, 500, 2000, x0=3000, y0=3000),
-        0.05, percent=True)
+height = (300*ft.utils.gaussian2d(x, y, 1000, 3000, x0=500, y0=1000, angle=-60)
+          + 1000*ft.utils.gaussian2d(x, y, 500, 2000, x0=3000, y0=3000))
 # Calculate the data
 noise = 1
 noisegz = 0.1

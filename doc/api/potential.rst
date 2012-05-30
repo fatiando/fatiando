@@ -9,9 +9,9 @@ Potential Fields (``fatiando.potential``)
 
 .. toctree::
 
+    potential.harvester.rst
     potential.trans.rst
     potential.prism.rst
     potential.polyprism.rst
     potential.talwani.rst
     potential.basin2d.rst
-    potential.harvester.rst

@@ -25,6 +25,8 @@ import numpy
 import fatiando as ft
 
 
+exitmsg = "To get help, use: harvester --help"
+
 sample_paramfile = \
 """# Template parameter file for program harvester
 
@@ -138,7 +140,7 @@ Submit bugs to <https://bitbucket.org/fatiando/fatiando/issues>.
 """,
     formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-f', metavar='INPUTFILE', type=str,
-    help='Load input paramters from INPUTFILE instead of Harvestfile.py')
+    help='Load input paramters from INPUTFILE')
 parser.add_argument('--template', action='store_true',
     help='Print a template of the input file instead of calculating')
 parser.add_argument('-v', '--verbose', action='store_true',
@@ -156,18 +158,37 @@ if args.template:
     print sample_paramfile
     sys.exit()
 inputfile = 'Harvestfile'
+inputpath = os.path.abspath(os.path.curdir)
 if args.f:
-    log.error("Sorry, not implemented yet.")
-    sys.exit()
+    if not os.path.isfile(args.f):
+        log.error("Invalid/nonexistent input file %s" % (args.f))
+        log.error(exitmsg)
+        sys.exit()        
+    inputpath, inputfile = os.path.split(os.path.abspath(args.f))
+    inputfile, ext = os.path.splitext(inputfile)
+    if ext != '.py':
+        log.error("Invalid input file %s" % (args.f))
+        log.error("The input file must end in .py")
+        log.error(exitmsg)
+        sys.exit()
+    if inputpath != os.path.abspath(os.path.curdir):
+        os.chdir(inputpath)       
+
 log.info(ft.log.header())
 
 # Get the parameters form the input file
-log.info("Reading parameters from file %s.py" % (inputfile))
 try:
+    # Remove all the other paths so that the only module that can be loaded is
+    # in the current dir
+    backup = sys.path
+    sys.path = [inputpath]
     params = importlib.import_module(inputfile)
+    sys.path = backup
 except ImportError:
     log.error("Couldn't find input file %s.py" % (inputfile))
+    log.error(exitmsg)
     sys.exit()
+log.info("Reading parameters from file %s.py" % (inputfile))
 data_file = params.data_file
 use_cols = params.use_cols
 column_fmt = params.column_fmt
@@ -190,6 +211,7 @@ if 'x' not in column_fmt or 'y' not in column_fmt or 'z' not in column_fmt or \
     True not in (col in column_fmt for col in valid[4:]):
     log.error("Invalid column format %s" % (column_fmt))
     log.error("Need at least 'x', 'y', 'z', and a data component.")
+    log.error(exitmsg)
     sys.exit()
 
 log.info("Loading data file %s:" % (data_file))
@@ -198,12 +220,15 @@ try:
     rawdata = numpy.loadtxt(data_file, unpack=True, usecols=use_cols)
 except IOError:
     log.error("Couldn't find data file %s" % (data_file))
+    log.error(exitmsg)
+    sys.exit()
 log.info("  column format: %s" % (column_fmt))
 data = dict((n, None) for n in valid)
 for col, val in zip(column_fmt, rawdata):
     if col not in valid:
         log.error("ERROR: Invalid column name % s" % (col))
         log.info("Valid names are: %s" % (str(valid)))
+        log.error(exitmsg)
         sys.exit()
     data[col] = val
     
@@ -212,6 +237,7 @@ if mesh_top is None:
     if data['height'] is None:
         log.error("ERROR: If mesh_top = None you must provide a height " + \
             "in the data file.")
+        log.error(exitmsg)
         sys.exit()
     mesh_top = -data['height'].max()
 if mesh_bounds is None:
@@ -223,8 +249,8 @@ mesh = ft.msh.ddd.PrismMesh(mesh_bounds, mesh_shape)
 if data['height'] is not None:
     log.info("  using topography information")
     mesh.carvetopo(data['x'], data['y'], data['height'])
-    
-log.info("Creating data modules:")
+
+# Create the data modules
 datamods = ft.pot.harvester.wrapdata(mesh, data['x'], data['y'], data['z'],
     gz=data['gz'], gxx=data['gxx'], gxy=data['gxy'], gxz=data['gxz'],
     gyy=data['gyy'], gyz=data['gyz'], gzz=data['gzz'], norm=1)
@@ -234,21 +260,26 @@ points, densities = ft.pot.harvester.loadseeds(seed_file)
 seeds = ft.pot.harvester.sow(points, {'density':densities}, mesh, mu=regul)
 
 # Try showing the seeds using mayavi, if it is installed
-try:
-    ft.vis.figure3d()
-    ft.vis.prisms([s.get_prism() for s in seeds], 'density')
-    ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
-                  ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
-    ft.vis.wall_bottom(mesh.bounds)
-    ft.vis.wall_north(mesh.bounds)
-    ft.vis.show3d()    
-except ImportError:
-    log.info("Couldn't show the seeds because Mayavi is not installed.")
-    log.info("Moving on.")
+#try:
+    #ft.vis.figure3d()
+    #ft.vis.prisms([s.get_prism() for s in seeds], 'density')
+    #ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
+                  #ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
+    #ft.vis.wall_bottom(mesh.bounds)
+    #ft.vis.wall_north(mesh.bounds)
+    #ft.vis.show3d()
+#except ImportError:
+    #log.info("Couldn't show the seeds because Mayavi is not installed.")
+    #log.info("Moving on.")
+ft.vis.figure3d()
+ft.vis.prisms([s.get_prism() for s in seeds], 'density')
+ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
+              ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
+ft.vis.wall_bottom(mesh.bounds)
+ft.vis.wall_north(mesh.bounds)
+ft.vis.show3d()
 
-log.info("Running the inversion...")
-log.info("  regularizing parameter: %g" % (regul))
-log.info("  delta threshold value: %g" % (delta))
+log.info("Running the inversion:")
 estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
 # Need to add the reference density because Meshtools doesn't like negative
 # density. 

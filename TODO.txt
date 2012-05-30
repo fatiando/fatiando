@@ -18,10 +18,7 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
-* Merge potential.harvester
 * Optimize PrismMesh.dump (using Cython?)
-* In PrismMesh.dump: take a mesh file and a dict of prop:propfile pairs instead
-  of creating files. This is better to mock with StringIO.
 * Implement C extensions in Python + Numpy. If needed, use Cython for optional
   speed gain. This way compiling is not a prerequisite to installing
 * Add vis.vtk.savefig3d to save a Mayavi scene
@@ -40,6 +37,7 @@ GOALS FOR 0.1:
 
 URGENT:
 
+* harvester causes pdf docs not to build
 
 TODO:
 
@@ -111,5 +109,4 @@ HARVESTER:
 * Replace hand setting of physical properties of a prism with an actual addprop function
 * Initial goal is actually initial misfit. so change goal for
 * Make harvest dump a list of prisms
-* Make a script to run the inversion without scripting
     

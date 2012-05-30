@@ -15,3 +15,9 @@ Changes in v0.1
   changeset hash in a file. Then logger.header loads the hash from file and put
   a "Unknown" if it can't read. This way importing fatiando won't fail if the
   there is no changeset information available.
+* In fatiando.mesher.ddd.PrismMesh.dump: takes a mesh file, a property file and
+  a property name. Saves the output to these files.
+* Implemented "Robust 3D gravity gradient inversion by planting anomalous
+  densities" by Uieda and Barbosa, 2011
+* Added harvester script that runs this new inversion
+* Added tutorial to the documentation

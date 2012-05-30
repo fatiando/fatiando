@@ -79,6 +79,7 @@ have a look at the rest of this documentation.
     license.rst
     changelog.rst
     userguide.rst
+    tutorial.rst
     cookbook.rst
 
 
