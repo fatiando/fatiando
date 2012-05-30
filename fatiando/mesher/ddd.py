@@ -523,58 +523,69 @@ class PrismMesh(object):
             return zs[:-1]
         return zs
 
-    def dump(self, name):
+    def dump(self, meshfile, propfile, prop):
         r"""
         Dump the mesh to a file in the format required by UBC-GIF program
         MeshTools3D.
 
         Parameters:
         
-        * fname : str
-            Output file name without extension. Will save the mesh to *name*.msh
-            and the physical properties *name*-*prop*.den, where *prop* is the
-            name of each physical property in the mesh. For example, if the mesh
-            has properties ``'density'`` and ``'conductivity'`` and
-            ``name = 'result'``, the output files will be: result.msh,
-            result-density.den, and result-conductivity.den
+        * meshfile : str or file
+            Output file to save the mesh. Can be a file name or an open file.
+        * propfile : str or file
+            Output file to save the physical properties *prop*. Can be a file
+            name or an open file.
+        * prop : str
+            The name of the physical property in the mesh that will be saved to
+            *propfile*.
 
         .. note:: Uses -100 as the dummy value for plotting topography
 
         Examples:
 
+            >>> from StringIO import StringIO
+            >>> meshfile = StringIO()
+            >>> densfile = StringIO()
             >>> mesh = PrismMesh((0, 10, 0, 20, 0, 5), (1, 2, 2))
             >>> mesh.addprop('density', [1, 2, 3, 4])
-            >>> mesh.dump('myresultsfile')
-            >>> with open('myresultsfile.msh') as f:
-            ...     print '\n'.join(l.strip() for l in f.readlines())
+            >>> mesh.dump(meshfile, densfile, 'density')
+            >>> print meshfile.getvalue().strip()
             2 2 1
             0 0 0
             2*10
             2*5
             1*5
-            >>> with open('myresultsfile-density.den') as f:
-            ...     print ' '.join(l.strip() for l in f.readlines())
-            1.0000 3.0000 2.0000 4.0000
+            >>> print densfile.getvalue().strip()
+            1.0000
+            3.0000
+            2.0000
+            4.0000
             
-        """        
-        with open('%s.msh' % name, 'w') as f:
-            nz, ny, nx = self.shape
-            x1, x2, y1, y2, z1, z2 = self.bounds
-            dx, dy, dz = self.dims
-            f.write("%d %d %d\n" % (ny, nx, nz))
-            f.write("%g %g %g\n" % (y1, x1, -z1))
-            f.write("%d*%g\n" % (ny, dy))
-            f.write("%d*%g\n" % (nx, dx))
-            f.write("%d*%g\n" % (nz, dz))
-        for p in self.props:
-            values = (v if i not in self.mask else -100
-                      for i, v in enumerate(self.props[p]))
-            with open('%s-%s.den' % (name, p), 'w') as f:
-                numpy.savetxt(
-                    f,
-                    numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
-                        self.shape), order='F'),
-                    fmt='%.4f')
+        """
+        if prop not in self.props:
+            raise ValueError("mesh doesn't have a '%s' property." % (prop))
+        isstr = False
+        if isinstance(meshfile, str):
+            isstr = True
+            meshfile = open(meshfile, 'w')
+        nz, ny, nx = self.shape
+        x1, x2, y1, y2, z1, z2 = self.bounds
+        dx, dy, dz = self.dims
+        meshfile.writelines([
+            "%d %d %d\n" % (ny, nx, nz),
+            "%g %g %g\n" % (y1, x1, -z1),
+            "%d*%g\n" % (ny, dy),
+            "%d*%g\n" % (nx, dx),
+            "%d*%g" % (nz, dz)])
+        if isstr:
+            meshfile.close()
+        values = (v if i not in self.mask else -100
+                  for i, v in enumerate(self.props[prop]))
+        numpy.savetxt(
+            propfile,
+            numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
+                self.shape), order='F'),
+            fmt='%.4f')
 
 def extract(prop, prisms):
     """
