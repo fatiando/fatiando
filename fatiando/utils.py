@@ -15,20 +15,17 @@ Miscellaneous utility functions and classes.
 
 **Others**
 
-* :func:`~fatiando.utils.contaminate`
-    Contaminate a vector with pseudo-random Gaussian noise
-* :func:`~fatiando.utils.vecmean`
-    Take the mean array out of a list of arrays
-* :func:`~fatiando.utils.vecstd`
-    Take the standard deviation array out of a list of arrays
-* :class:`~fatiando.utils.SparseList`
-    Store only non-zero elements on an immutable list
-* :func:`~fatiando.utils.sec2hms`
-    Convert seconds to hours, minutes, and seconds
-* :func:`~fatiando.utils.sec2year`
-    Convert seconds to Julian years
-* :func:`~fatiando.utils.year2sec`
-    Convert Julian years to seconds
+* :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
+  Gaussian noise
+* :func:`~fatiando.utils.vecmean`: Take the mean array out of a list of arrays
+* :func:`~fatiando.utils.vecstd` Take the standard deviation array out of a list
+  of arrays
+* :class:`~fatiando.utils.SparseList`: Store only non-zero elements on an
+  immutable list
+* :func:`~fatiando.utils.sec2hms`: Convert seconds to hours, minutes, and
+  seconds
+* :func:`~fatiando.utils.sec2year`: Convert seconds to Julian years
+* :func:`~fatiando.utils.year2sec`: Convert Julian years to seconds
 
 ----
 

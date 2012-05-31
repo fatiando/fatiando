@@ -110,15 +110,14 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
         
     Parameters:
     
-    * mesh
-        The model space mesh (or interpretative model). A
-        :class:`~fatiando.mesher.ddd.PrismMesh`
-    * xp, yp, zp
-        Arrays with the x, y, and z coordinates of the observation points.
-    * gz, gxx, gxy, etc.
-        Arrays with the observed data, measured at xp, yp, and zp, of the
-        respective components.
-    * norm
+    * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
+        The model space mesh (or interpretative model)        
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates of the observation points.
+    * gz, gxx, gxy, etc. : arrays
+        The observed data, measured at xp, yp, and zp, of the respective
+        components.
+    * norm : int
         Order of the norm of the residual vector to use. Can be:
         
         * 1 -> l1 norm
@@ -126,7 +125,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
 
     Returns
 
-    * dms
+    * dms : list
         List of data modules    
     
     """
@@ -171,21 +170,20 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
 
     Parameters:
 
-    * points
+    * points : list of lists
         List of ``[x, y, z]`` coordinates where the seeds should be placed. Each
         point generates a seed (prism in *mesh*) that has the point inside it.
-    * props
+    * props : dict
         Dictionary with the physical properties assigned to each seed.
         Ex: ``props={'density':[10, 28, ...], 'susceptibility':[100, 23, ...]}``
-    * mesh
-        The model space mesh (or interpretative model). A
-        :class:`~fatiando.mesher.ddd.PrismMesh`
-    * mu
+    * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
+        The model space mesh (or interpretative model). 
+    * mu : float
         Compactness regularizing parameters. Positive scalar that measures the
         trade-off between fit and regularization. This applies only to this
         seeds contribution to the total regularizing function. This way you can
         assign different mus to different seeds.
-    * delta
+    * delta : float
         Minimum percentage of change required in the goal function to perform
         an accretion. The smaller this is, the less the solution is able to
         grow. If None, will use the values passed to each seed. If not None,
@@ -199,7 +197,7 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
 
     Returns:
 
-    * seeds
+    * seeds : list
         List of :class:`~fatiando.potential.harvester.SeedPrism`
     
     """
@@ -239,7 +237,7 @@ def loadseeds(fname):
 
     Parameters:
     
-    * fname
+    * fname : str or file
         Open file object or filename string
 
     Returns:
@@ -319,15 +317,13 @@ class DMPrism(object):
 
     Parameters:
 
-    * data
-        Array with the observed data values of the component of the potential
-        field
-    * xp, yp, zp
+    * data : array
+        The observed data values of the component of the potential field
+    * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the observation points.
-    * mesh
-        The model space mesh (or interpretative model). A
-        :class:`~fatiando.mesher.ddd.PrismMesh`
-    * norm
+    * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
+        The model space mesh (or interpretative model).
+    * norm : int
         Order of the norm of the residual vector to use. Can be:
         
         * 1 -> l1 norm
@@ -359,14 +355,14 @@ class DMPrism(object):
 
         Parameters:
 
-        * index
+        * index : int
             Index of the prism in the mesh
-        * props
+        * props : dict
             A dictionary with the physical properties of the prism.
 
         Returns:
 
-        * effect
+        * effect : array
             Array with the values of the effect of the *index*th prism
         
         """
@@ -379,7 +375,7 @@ class DMPrism(object):
 
         Parameters:
 
-        * element
+        * element : list
             List ``[index, props]`` where ``index`` is the index of the element
             in the mesh and ``props`` is a dictionary with the physical
             properties of the element.
@@ -401,14 +397,14 @@ class DMPrism(object):
 
         Parameters:
          
-        * element
+        * element : list
             List ``[index, props]`` where ``index`` is the index of the element
             in the mesh and ``props`` is a dictionary with the physical
             properties of the element.
 
         Returns:
 
-        * misfit
+        * misfit : float
             The misfit value
             
         """
@@ -430,12 +426,12 @@ class DMPrism(object):
 
         Parameters:
 
-        * predicted
+        * predicted : array
             Array with the predicted data
 
         Returns:
 
-        * misfit
+        * misfit : float
             The misfit value
                         
         """
@@ -450,7 +446,7 @@ class DMPrism(object):
 
         Returns:
 
-        * predicted
+        * predicted : array
             Array with the predicted data
             
         """
@@ -618,21 +614,20 @@ class SeedPrism(object):
 
     Parameters:
 
-    * point
+    * point : tuple or list
         ``(x, y, z)``: x, y, z coordinates of where you want to place the seed.
         The seed will be a prism of the mesh that has this point inside it.
-    * props
+    * props : dict
         Dictionary with the physical properties assigned to the seed.
         Ex: ``props={'density':10, 'susceptibility':10000}``
-    * mesh
-        The model space mesh (or interpretative model). A
-        :class:`~fatiando.mesher.ddd.PrismMesh`
-    * mu
+    * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
+        The model space mesh (or interpretative model).
+    * mu : float
         Compactness regularizing parameters. Positive scalar that measures the
         trade-off between fit and regularization. This applies only to this
         seeds contribution to the total regularizing function. This way you can
         assign different mus to different seeds.
-    * delta
+    * delta : float
         Minimum percentage of change required in the goal function to perform
         an accretion. The smaller this is, the less the solution is able to grow
     * reldist : True or False
@@ -751,14 +746,14 @@ class SeedPrism(object):
     
         Parameters:
         
-        * n
+        * n : int
             The index of the neighbor in the mesh.
-        * full
+        * full : True or False
             If True, return also the prisms on the diagonal
     
         Returns:
 
-        * neighbors
+        * neighbors : list
             List with the index of the neighbors in the mesh
         
         """
@@ -998,35 +993,37 @@ def harvest(dms, seeds, iterate=False):
 
     Parameters:
 
-    * dms
-        List of data modules (see the docs of
-        :mod:`~fatiando.potential.harvester` for information on data modules)
-    * seeds
-        List of seeds (see the docs of :mod:`~fatiando.potential.harvester` for
-        information on seeds)
-    * iterate
+    * dms : list
+        List of data modules
+    * seeds : list
+        List of seeds
+    * iterate : True or False
         If True, will return an iterator object that yields one growth iteration
         at a time.
 
+    .. note:: See the docs of this module, :mod:`fatiando.potential.harvester`,
+        for information on data modules and seeds.
+
     Returns:
-
-    * if ``iterate == False``: [estimate, goals, misfits]
-        goals is a list with the goal function value per iteration.
-        misfits is a list with the data misfit value per iteration.
-        The contents of *estimate* depend on the type of seed used:
-
-        * Prisms
-            A dictionary of physical properties. Each key is a physical property
-            name, like ``'density'``, and each value is a list of values of
-            that physical property for each element in the given model space
-            mesh (interpretative model). Example::
-
-                estimate = {'density':[1, 0, 6, 9, 7, 8, ...],
-                            'susceptibility':[0, 4, 8, 3, 4, 5.4, ...]}
-    * else: iterator
+ 
+    * if ``iterate == True``: iterator
         An iterator that yields one growth iteration at a time. A growth
         iteration consists of trying to grow each seed.
         **Not implemented!**
+        
+    * else: [estimate, goals, misfits]
+        *goals* is a list with the goal function value per iteration.
+        *misfits* is a list with the data misfit value per iteration.
+        *estimate* is a dictionary of physical properties. Each key is a
+        physical property name, like ``'density'``, and each value is a list
+        of values of that physical property for each element in the given
+        model space mesh (interpretative model).
+
+    Example::
+
+        estimate = {'density':[1, 0, 6, 9, 7, 8, ...],
+                    'susceptibility':[0, 4, 8, 3, 4, 5.4, ...]}
+                    
 
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
@@ -1066,12 +1063,4 @@ def harvest(dms, seeds, iterate=False):
             (utils.sec2hms(float(tfinish)/its)))
         log.info("  total time for inversion: %s" % (utils.sec2hms(tfinish)))
         return results
-        
-def _test():
-    import doctest
-    doctest.testmod()
-    print "doctest finished"
-
-if __name__ == '__main__':
-    _test()
-    
+      

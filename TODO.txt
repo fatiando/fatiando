@@ -37,8 +37,6 @@ GOALS FOR 0.1:
 
 URGENT:
 
-* harvester causes pdf docs not to build
-* Remake the plots for harvester tutorial
 
 TODO:
 

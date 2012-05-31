@@ -213,7 +213,7 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '\setcounter{tocdepth}{2}',
+'preamble': '\setcounter{tocdepth}{3}',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

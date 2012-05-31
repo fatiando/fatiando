@@ -29,17 +29,17 @@ Modules for gridding, meshing, visualization, user interface, etc:
 See the documentation for each module to find out more about what they do and
 how to use them.
 
-.. note:: Some modules have "nicknames" for easier access when importing
-    the ``fatiando`` package directly. To import each module separately,
-    use the full names, e.g., ``from fatiando.mesher.ddd import PrismMesh`` or
-    ``from fatiando.potential import talwani``.
-
 Also included is the :mod:`fatiando.inversion` package with utilities for
 implementing inverse problems. There you'll find common regularizing functions,
 linear inverse problem solvers, and non-linear gradient solvers. This package
 is generaly only used from inside Fatiando itself, not when using Fatiando in
 scripts. For usage examples, see the source of modules
 :mod:`fatiando.seismic.epic2d` and :mod:`fatiando.potential.basin2d`.
+
+.. note:: Some modules have "nicknames" for easier access when importing
+    the ``fatiando`` package directly. To import each module separately,
+    use the full names, e.g., ``from fatiando.mesher.ddd import PrismMesh`` or
+    ``from fatiando.potential import talwani``.
 
 ----
 

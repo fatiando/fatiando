@@ -1,7 +1,7 @@
 .. _fatiando:
 
-The ``fatiando`` package
-========================
+API Reference: The ``fatiando`` package
+=======================================
 
 .. automodule:: fatiando
    :members:
@@ -12,11 +12,11 @@ The ``fatiando`` package
     potential.rst
     seismic.rst
     heat.rst
-    inversion.rst
     mesher.rst
+    gridder.rst
     vis.rst
     ui.rst
-    gridder.rst
     utils.rst
     logger.rst
+    inversion.rst
 

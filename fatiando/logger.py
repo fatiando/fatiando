@@ -3,6 +3,18 @@ Logging utilities for fatiando.
 
 This module is basically a wrapper around Pythons `logging` module.
 
+**Functions**
+
+* :func:`~fatiando.logger.get`: Create a logger and enable logging using the
+  default settings
+* :func:`~fatiando.logger.tofile`: Enable logging to a file
+* :func:`~fatiando.logger.header`: Generate a header message string with the
+  current version, changeset information and date
+* :func:`~fatiando.logger.dummy`: Get a logger without any handlers (for use in
+  modules)
+
+**Usage**
+
 In a module, use a logger without any handlers so that it only logs if a script
 wants to log::
 

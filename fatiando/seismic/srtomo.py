@@ -4,7 +4,7 @@ reflection or refraction)
 
 **Functions**
 
-* :func:`~fatiando.seismic.srtomo.run`
+* :func:`~fatiando.seismic.srtomo.run`: Run the tomography on a given data set
 
 **Examples**
 

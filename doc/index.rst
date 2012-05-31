@@ -75,11 +75,14 @@ have a look at the rest of this documentation.
 .. toctree::
     :maxdepth: 3
 
+    overview.rst
     contributors.rst
     license.rst
     changelog.rst
-    userguide.rst
+    install.rst
+    using.rst
     tutorial.rst
     cookbook.rst
+    api/fatiando.rst
 
 

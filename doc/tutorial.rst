@@ -4,5 +4,6 @@ Tutorials
 =========
 
 .. toctree::
+    :glob:
     
-    tutorial/tutorial-harvester.rst
+    tutorial/*
