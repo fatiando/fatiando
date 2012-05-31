@@ -95,11 +95,6 @@ seed_file = 'seeds.txt'
 # x, y, z are the coordinates where you want a seed to placed. density is the
 # density contrast of the seed. Again, the file extension can be anything.
 
-# The reference density in kg/m3
-ref_dens = 2670
-# The reference density is required to convert the output to densities instead
-# of density contrasts.
-
 # The value of the regularizing parameter. Must be >= 0.
 regul = 1.0
 # The regularizing parameter controls how strongly the compactness
@@ -198,7 +193,6 @@ mesh_bottom = params.mesh_bottom
 mesh_top = params.mesh_top
 mesh_shape = [i for i in reversed(params.mesh_shape)]
 seed_file = params.seed_file
-ref_dens = params.ref_dens
 regul = params.regul
 delta = params.delta
 mesh_file = params.mesh_file
@@ -260,31 +254,21 @@ points, densities = ft.pot.harvester.loadseeds(seed_file)
 seeds = ft.pot.harvester.sow(points, {'density':densities}, mesh, mu=regul)
 
 # Try showing the seeds using mayavi, if it is installed
-#try:
-    #ft.vis.figure3d()
-    #ft.vis.prisms([s.get_prism() for s in seeds], 'density')
-    #ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
-                  #ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
-    #ft.vis.wall_bottom(mesh.bounds)
-    #ft.vis.wall_north(mesh.bounds)
-    #ft.vis.show3d()
-#except ImportError:
-    #log.info("Couldn't show the seeds because Mayavi is not installed.")
-    #log.info("Moving on.")
-ft.vis.figure3d()
-ft.vis.prisms([s.get_prism() for s in seeds], 'density')
-ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
-              ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
-ft.vis.wall_bottom(mesh.bounds)
-ft.vis.wall_north(mesh.bounds)
-ft.vis.show3d()
+try:
+    ft.vis.figure3d()
+    ft.vis.prisms([s.get_prism() for s in seeds], 'density')
+    ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
+                  ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
+    ft.vis.wall_bottom(mesh.bounds)
+    ft.vis.wall_north(mesh.bounds)
+    ft.vis.show3d()
+except ImportError:
+    log.info("Couldn't show the seeds because Mayavi is not installed.")
+    log.info("Moving on.")
 
 log.info("Running the inversion:")
 estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
-# Need to add the reference density because Meshtools doesn't like negative
-# density. 
-mesh.addprop('density',
-    ref_dens + numpy.fromiter(estimate['density'], dtype='f'))
+mesh.addprop('density', estimate['density'])
 
 log.info("Saving estimate to files %s and %s" % (mesh_file, density_file))
 mesh.dump(mesh_file, density_file, 'density')

@@ -539,7 +539,7 @@ class PrismMesh(object):
             The name of the physical property in the mesh that will be saved to
             *propfile*.
 
-        .. note:: Uses -100 as the dummy value for plotting topography
+        .. note:: Uses -10000000 as the dummy value for plotting topography
 
         Examples:
 
@@ -579,7 +579,7 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = (v if i not in self.mask else -100
+        values = (v if i not in self.mask else -10000000
                   for i, v in enumerate(self.props[prop]))
         numpy.savetxt(
             propfile,
