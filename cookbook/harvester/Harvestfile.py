@@ -66,11 +66,6 @@ seed_file = 'seeds.txt'
 # x, y, z are the coordinates where you want a seed to placed. density_contrast
 # is the density contrast of the seed in kg/m3. Again, the file extension can be anything.
 
-# The reference density in kg/m3
-ref_dens = 2670
-# The reference density is required to convert the output to densities instead
-# of density contrasts.
-
 # The value of the regularizing parameter. Must be >= 0.
 regul = 10000
 # The regularizing parameter controls how strongly the compactness

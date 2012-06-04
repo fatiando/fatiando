@@ -6,6 +6,7 @@ tesseroids, etc.
 
 * :class:`~fatiando.mesher.ddd.Prism`
 * :func:`~fatiando.mesher.ddd.PolygonalPrism`
+* :func:`~fatiando.mesher.ddd.Sphere`
 
 **Meshes**
 
@@ -33,6 +34,8 @@ class Prism(object):
     """
     Create a 3D right rectangular prism.
 
+    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
+    
     Parameters:
     
     * x1, x2 : float
@@ -43,7 +46,7 @@ class Prism(object):
         Top and bottom of the prism
     * props : dict
         Physical properties assigned to the prism.
-        Ex: ``props={'density':10, 'susceptibility':10000}``
+        Ex: ``props={'density':10, 'magnetization':10000}``
         
     Examples:
 
@@ -141,10 +144,82 @@ class Prism(object):
         yc = 0.5*(self.y1 + self.y2)
         zc = 0.5*(self.z1 + self.z2)
         return [xc, yc, zc]
+    
+class Sphere(object):
+    """
+    Create a sphere.
 
+    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
+
+    Parameters:
+    
+    * x, y, z : float
+        The coordinates of the center of the sphere
+    * props : dict
+        Physical properties assigned to the prism.
+        Ex: ``props={'density':10, 'magnetization':10000}``
+        
+    Examples:
+
+        >>> s = Sphere(1, 2, 3, 10, {'magnetization':200})
+        >>> s.props['magnetization']
+        200
+        >>> s.addprop('density', 20)
+        >>> print s.props['density']
+        20
+        >>> print s
+        x:1 | y:2 | z:3 | radius:10 | density:20 | magnetization:200
+
+    """
+
+    def __init__(self, x, y, z, radius, props=None):
+        self.x = float(x)
+        self.y = float(y)
+        self.z = float(z)
+        self.radius = float(radius)
+        self.props = {}
+        if props is not None:
+            for p in props:
+                self.props[p] = props[p]
+
+    def __str__(self):
+        """Return a string representation of the sphere."""
+        names = [('x', self.x), ('y', self.y), ('z', self.z),
+                 ('radius', self.radius)]
+        names.extend((p, self.props[p]) for p in sorted(self.props))
+        return ' | '.join('%s:%g' % (n, v) for n, v in names)
+
+    def addprop(self, prop, value):
+        """
+        Add a physical property to the sphere.
+
+        If the sphere already has the property, the given value will overwrite
+        the existing one.
+
+        Parameters:
+        
+        * prop : str
+            Name of the physical property.
+        * value : float
+            The value of this physical property.
+
+        Example:
+
+            >>> s = Sphere(1, 2, 3, 4)
+            >>> print s
+            x:1 | y:2 | z:3 | radius:4
+            >>> s.addprop('density', 2670)
+            >>> print s
+            x:1 | y:2 | z:3 | radius:4 | density:2670
+            
+        """
+        self.props[prop] = value
+        
 def PolygonalPrism(vertices, z1, z2, props=None):
     """
     Create a 3D prism with polygonal crossection.
+
+    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
 
     .. note:: *vertices* must be **CLOCKWISE** or will give inverse result.
         
@@ -156,7 +231,7 @@ def PolygonalPrism(vertices, z1, z2, props=None):
         Top and bottom of the prism
     * props :  dict
         Physical properties assigned to the prism.
-        Ex: ``props={'density':10, 'susceptibility':10000}``
+        Ex: ``props={'density':10, 'magnetization':10000}``
         
     Returns:
     

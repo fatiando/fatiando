@@ -34,12 +34,14 @@ GOALS FOR 0.1:
 * Make unit test for polyprism comparing with prism
 * Port polyprism tensor components to fatiando
 * Make a plotter for PolygonalPrism
+* Make mesher load all from dd and ddd (propably no name conflicts)
 
 URGENT:
 
 
 TODO:
 
+* Add data custom data weights to harvester data modules
 * Sparse Jacobian computation in SrTomo still too slow (much slower than dense
   version)
 * Consider getting rid of use_sparse functions and DampingSparse type regularizers.

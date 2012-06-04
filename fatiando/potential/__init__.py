@@ -9,6 +9,7 @@ magnetic field of various types of geometric objects:
 * :mod:`~fatiando.potential.prism`: 3D right rectangular prisms
 * :mod:`~fatiando.potential.polyprism`: 3D prisms with polygonal horizontal
   cross-sections
+* :mod:`~fatiando.potential.sphere`: Homogeneous spheres 
 * :mod:`~fatiando.potential.talwani`: 2D bodies with polygonal vertical
   cross-sections
 
@@ -39,4 +40,5 @@ from fatiando.potential import (basin2d,
                                 prism,
                                 talwani,
                                 trans,
-                                harvester)
+                                harvester,
+                                sphere)
