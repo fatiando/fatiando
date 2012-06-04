@@ -35,6 +35,7 @@ GOALS FOR 0.1:
 * Port polyprism tensor components to fatiando
 * Make a plotter for PolygonalPrism
 * Make mesher load all from dd and ddd (propably no name conflicts)
+* Make plot for spheres in 3D
 
 URGENT:
 

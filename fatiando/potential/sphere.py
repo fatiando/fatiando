@@ -3,12 +3,8 @@ Calculate the potential fields of a homogeneous sphere.
 
 **Magnetic**
 
-Calculates the 3 components of the magnetic induction and the total field
-anomaly. Uses the formula in Blakely (1995).
+Calculates the total field anomaly. Uses the formula in Blakely (1995).
 
-* :func:`~fatiando.potential.sphere.bx`: calculates the x component of B
-* :func:`~fatiando.potential.sphere.by`: calculates the y component of B
-* :func:`~fatiando.potential.sphere.bz`: calculates the z component of B
 * :func:`~fatiando.potential.sphere.tf`: calculates the total-field anomaly
 
 Remember that:
@@ -42,6 +38,7 @@ Then the total-field anomaly caused by the sphere is
 
     \Delta T \approx \hat{\mathbf{F}}\cdot\Delta\mathbf{F}.
 
+
 **Gravity**
 
 
@@ -54,8 +51,11 @@ Then the total-field anomaly caused by the sphere is
 import numpy
 from numpy import pi
 
-_Cm = 10.**(-7) # henry/meter (SI)
-_T2NT = 10.**(9) # tesla to nanotesla
+CM = 10.**(-7) # henry/meter (SI)
+T2NT = 10.**(9) # tesla to nanotesla
+SI2EOTVOS = 1000000000.0
+SI2MGAL = 100000.0
+G = 0.00000000006673 # The gravitational constant (SI)
 
 
 def _dircos(inc, dec):
@@ -96,7 +96,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
         The spheres. Spheres must have the properties ``'magnetization'``,
         ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
         ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead.
+        *dec* instead. Those without ``'magnetization'`` will be ignored.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
@@ -142,4 +142,46 @@ def tf(xp, yp, zp, spheres, inc, dec):
         by = moment*(3*dotprod*y - r_sqr*my)/r5
         bz = moment*(3*dotprod*z - r_sqr*mz)/r5        
         tf = tf + (fx*bx + fy*by + fz*bz)
-    return _Cm*_T2NT*tf
+    return CM*T2NT*tf
+
+def gz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_z` gravity acceleration component.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in mGal!
+
+    Parameters:
+    
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.ddd.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those without
+        will be ignored.
+
+    Returns:
+    
+    * res : array
+        The field calculated on xp, yp, zp
+        
+    """
+    
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        # First thing to do is make the computation point P the origin of the
+        # coordinate system
+        x = xp - sphere.x
+        y = yp - sphere.y
+        z = zp - sphere.z
+        r_cb = (x**2 + y**2 + z**2)**(1.5)
+        mass = density*4.*pi*(radius**3)/3.
+        res = res + mass*z/r_cb
+    return G*SI2MGAL*res

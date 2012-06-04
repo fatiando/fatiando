@@ -14,7 +14,7 @@ from numpy import sqrt, log, arctan2
 
 SI2EOTVOS = 1000000000.0
 SI2MGAL = 100000.0
-G = 0.00000000006673
+G = 0.00000000006673 # The gravitational constant (SI)
 
 
 def pot(xp, yp, zp, prisms, dens=None):
