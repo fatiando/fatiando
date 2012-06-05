@@ -5,7 +5,7 @@ Fatiando a Terra: Geophysical modeling and inversion
 
     Fatiando provides an easy and flexible way to perform common tasks like:
     generating synthetic data, forward modeling, inversion, 3D visualization,
-    and more! All from inside the powerfull Python_ language.
+    and more! All from inside the powerful Python_ language.
 
 For more information visit the http://www.fatiando.org
 
