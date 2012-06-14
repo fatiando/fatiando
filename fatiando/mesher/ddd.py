@@ -5,7 +5,7 @@ tesseroids, etc.
 **Elements**
 
 * :class:`~fatiando.mesher.ddd.Prism`
-* :func:`~fatiando.mesher.ddd.PolygonalPrism`
+* :func:`~fatiando.mesher.ddd.PolygonalPrism`: 
 * :func:`~fatiando.mesher.ddd.Sphere`
 
 **Meshes**
@@ -15,8 +15,12 @@ tesseroids, etc.
 
 **Utility functions**
 
-* :func:`~fatiando.mesher.ddd.extract`
-* :func:`~fatiando.mesher.ddd.vfilter`
+* :func:`~fatiando.mesher.ddd.extract`: Extract the values of a physical
+  property from the cells in a list
+* :func:`~fatiando.mesher.ddd.vfilter`: Remove cells whose physical property
+  value falls outside a given range
+* :func:`~fatiando.mesher.ddd.vremove`: Remove the cells with a given physical
+  property value
 
 ----
 
@@ -700,8 +704,7 @@ def extract(prop, prisms):
 
 def vfilter(vmin, vmax, prop, cells):
     """
-    Returns a list of cells that whose physical property fall within the range
-    [vmin, vmax].
+    Remove cells whose physical property value falls outside a given range.
 
     If a cell is `None` or doesn't have the physical property, it will be not
     be included in the result.
@@ -740,8 +743,58 @@ def vfilter(vmin, vmax, prop, cells):
 
     """
     def isin(cell):
-        if (cell is None or prop not in cell.props or cell.props[prop] < vmin or
-            cell.props[prop] > vmax):
+        if (cell is None or prop not in cell.props or cell.props[prop] < vmin
+            or cell.props[prop] > vmax):
             return False
         return True
     return [c for c in cells if isin(c)]
+
+def vremove(value, prop, cells):
+    """
+    Remove the cells with a given physical property value.
+
+    If a cell is `None` it will be not be included in the result.
+
+    If a cell doesn't have the physical property, it will be included in the
+    result.
+    
+    Parameters:
+    
+    * value : float
+        The value of the physical property to remove
+    * prop : str
+        The name of the physicaRemove cells whose physical property value falls outside a given rangel property
+    * cells : list
+        A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
+        :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
+        
+    Returns:
+    
+    * removed : list
+        A list of cells that have *prop* != *value*
+
+    Examples:
+
+        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':20}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':3}),
+        ...          None,
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':200}),
+        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':1000})]
+        >>> for cell in vremove(1, 'foo', cells):
+        ...     print cell
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:20
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:3
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:200
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | bar:1000
+
+    """
+    def keep(c):
+        if c is None:
+            return False
+        if prop not in c.props:
+            return True
+        if c.props[prop] != value:
+            return True
+    return [c for c in cells if keep(c)]
