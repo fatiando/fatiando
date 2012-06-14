@@ -5,7 +5,7 @@ tesseroids, etc.
 **Elements**
 
 * :class:`~fatiando.mesher.ddd.Prism`
-* :class:`~fatiando.mesher.ddd.PolygonalPrism`: 
+* :class:`~fatiando.mesher.ddd.PolygonalPrism`
 * :class:`~fatiando.mesher.ddd.Sphere`
 
 **Meshes**
@@ -31,40 +31,13 @@ import matplotlib.mlab
 
 from fatiando import logger
 from fatiando.mesher.dd import Polygon
+from fatiando.mesher.base import GeometricElement
 
 
 log = logger.dummy('fatiando.mesher.ddd')
-
-class Object3D(object):
-    """
-    Base class for all 3D geometric elements.
-    """
-
-    def __init__(self, props):
-        self.props = {}
-        if props is not None:
-            for p in props:
-                self.props[p] = props[p]
-                
-    def addprop(self, prop, value):
-        """
-        Add a physical property to this geometric element.
-
-        If it already has the property, the given value will overwrite the
-        existing one.
-
-        Parameters:
-        
-        * prop : str
-            Name of the physical property.
-        * value : float
-            The value of this physical property.
-            
-        """
-        self.props[prop] = value
         
 
-class Prism(Object3D):
+class Prism(GeometricElement):
     """
     Create a 3D right rectangular prism.
 
@@ -102,7 +75,7 @@ class Prism(Object3D):
     """
 
     def __init__(self, x1, x2, y1, y2, z1, z2, props=None):
-        Object3D.__init__(self, props)
+        GeometricElement.__init__(self, props)
         self.x1 = float(x1)
         self.x2 = float(x2)
         self.y1 = float(y1)
@@ -156,7 +129,7 @@ class Prism(Object3D):
         zc = 0.5*(self.z1 + self.z2)
         return [xc, yc, zc]
     
-class Sphere(Object3D):
+class Sphere(GeometricElement):
     """
     Create a sphere.
 
@@ -190,7 +163,7 @@ class Sphere(Object3D):
     """
 
     def __init__(self, x, y, z, radius, props=None):
-        Object3D.__init__(self, props)
+        GeometricElement.__init__(self, props)
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
@@ -203,7 +176,7 @@ class Sphere(Object3D):
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
         
-class PolygonalPrism(Object3D):
+class PolygonalPrism(GeometricElement):
     """
     Create a 3D prism with polygonal crossection.
 
@@ -239,7 +212,7 @@ class PolygonalPrism(Object3D):
 
     """
     def __init__(self, vertices, z1, z2, props=None):
-        Object3D.__init__(self, props)
+        GeometricElement.__init__(self, props)
         x, y = numpy.array(vertices, dtype='f').T
         self.x = x
         self.y = y
@@ -260,9 +233,9 @@ class PolygonalPrism(Object3D):
             >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
             >>> p = PolygonalPrism(verts, 0, 100)
             >>> poly = p.topolygon()
-            >>> print poly['x']
+            >>> print poly.x
             [ 1.  1.  2.  2.]
-            >>> print poly['y']
+            >>> print poly.y
             [ 1.  2.  2.  1.]
             
         """
@@ -300,6 +273,7 @@ class PrismRelief(object):
     """
 
     def __init__(self, ref, dims, nodes):
+        object.__init__(self)
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError, "nodes has x,y,z coordinates of different lengths"

@@ -21,3 +21,4 @@ Changes in v0.1
   densities" by Uieda and Barbosa, 2011
 * Added harvester script that runs this new inversion
 * Added tutorial to the documentation
+* Transformed all geometric elements (like Prism, Polygon, etc) into classes

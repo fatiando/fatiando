@@ -61,12 +61,12 @@ def gz(xp, zp, polygons):
     # Extract the indexes of an array that have cond == True
     subset = lambda cond: [i for i, istrue in enumerate(cond) if istrue]
     for polygon in polygons:
-        if polygon is None or 'density' not in polygon:
+        if polygon is None or 'density' not in polygon.props:
             continue
-        density = polygon['density']
-        x = polygon['x']
-        z = polygon['y']
-        nverts = len(polygon['x'])
+        density = polygon.props['density']
+        x = polygon.x
+        z = polygon.y
+        nverts = polygon.nverts
         for v in xrange(nverts):
             # Change the coordinates of this vertice
             xv = x[v] - xp

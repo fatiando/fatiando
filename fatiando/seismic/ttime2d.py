@@ -78,11 +78,11 @@ def straight(cells, prop, srcs, recs, velocity=None):
         minx = min(x_src, x_rec)
         miny = min(y_src, y_rec)
         for cell in cells:
-            if cell is None or (prop not in cell and velocity is None):
+            if cell is None or (prop not in cell.props and velocity is None):
                 continue
-            x1, x2, y1, y2 = cell['x1'], cell['x2'], cell['y1'], cell['y2']
+            x1, x2, y1, y2 = cell.x1, cell.x2, cell.y1, cell.y2
             if velocity is None:
-                vel = cell[prop]
+                vel = cell.props[prop]
             else:
                 vel = velocity
             # Check if the cell is in the rectangle with the ray path as a

@@ -18,7 +18,6 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
-* Transform all geometric elements into classes
 * Implement C extensions in Python + Numpy. If needed, use Cython for optional
   speed gain. This way compiling is not a prerequisite to installing
 * Add vis.vtk.savefig3d to save a Mayavi scene

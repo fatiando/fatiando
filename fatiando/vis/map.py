@@ -194,7 +194,7 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     
     Parameters:
 
-    * mesh : :class:`~fatiando.mesher.dd.SquareMesh` or compatible
+    * mesh : :class:`fatiando.mesher.dd.SquareMesh` or compatible
         The mesh (a compatible mesh must implement the methods ``get_xs`` and
         ``get_ys``)
     * prop : str
@@ -228,7 +228,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     Parameters:
 
-    * polygon : :func:`~fatiando.mesher.dd.Polygon`
+    * polygon : :class:`fatiando.mesher.dd.Polygon`
         The polygon
     * style : str
         Color and line style string (as in matplotlib.pyplot.plot)
@@ -249,10 +249,10 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         Line corresponding to the polygon plotted
 
     """
-    tmpx = [x for x in polygon['x']]
-    tmpx.append(polygon['x'][0])
-    tmpy = [y for y in polygon['y']]
-    tmpy.append(polygon['y'][0])
+    tmpx = [x for x in polygon.x]
+    tmpx.append(polygon.x[0])
+    tmpy = [y for y in polygon.y]
+    tmpy.append(polygon.y[0])
     kwargs = {'linewidth':linewidth}
     if label is not None:
         kwargs['label'] = label

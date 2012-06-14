@@ -4,8 +4,8 @@ triangles.
 
 **Elements**
 
-* :func:`~fatiando.mesher.dd.Polygon`
-* :func:`~fatiando.mesher.dd.Square`
+* :class:`~fatiando.mesher.dd.Polygon`
+* :class:`~fatiando.mesher.dd.Square`
 
 **Meshes**
 
@@ -13,7 +13,6 @@ triangles.
 
 **Utility functions**
 
-* :func:`~fatiando.mesher.dd.square2polygon`
 
 ----
 
@@ -24,11 +23,13 @@ import numpy
 import scipy.misc
 
 from fatiando import logger, gridder
+from fatiando.mesher.base import GeometricElement
 
 
 log = logger.dummy('fatiando.mesher.dd')
 
-def Polygon(vertices, props=None):
+    
+class Polygon(GeometricElement):
     """
     Create a polygon object.
 
@@ -41,21 +42,17 @@ def Polygon(vertices, props=None):
     * props : dict
         Physical properties assigned to the polygon.
         Ex: ``props={'density':10, 'susceptibility':10000}``
-
-    Returns:
-
-    * polygon : dict
-        A polygon
     
-    """    
-    x, y = numpy.array(vertices, dtype='f').T
-    poly = {'x':x, 'y':y}
-    if props is not None:
-        for prop in props:
-            poly[prop] = props[prop]
-    return poly
+    """
 
-def Square(bounds, props=None):
+    def __init__(self, vertices, props=None):
+        GeometricElement.__init__(self, props)
+        x, y = numpy.array(vertices, dtype='f').T
+        self.x = x
+        self.y = y
+        self.nverts = len(vertices)
+
+class Square(GeometricElement):
     """
     Create a square object.
 
@@ -68,37 +65,62 @@ def Square(bounds, props=None):
         Physical properties assigned to the square.
         Ex: ``props={'density':10, 'slowness':10000}``
 
-    Returns:
-
-    * square : dict
-        A square
-    
     Example::
 
-        >>> from fatiando.mesher.dd import Square
         >>> sq = Square([0, 1, 2, 4], {'density':750})
-        >>> for k in sorted(sq):
-        ...     print k, '=', sq[k]
-        density = 750
-        x1 = 0
-        x2 = 1
-        y1 = 2
-        y2 = 4
-    
+        >>> print sq
+        x1:0 | x2:1 | y1:2 | y2:4 | density:750
+        >>> sq.addprop('magnetization', 100)
+        >>> print sq    
+        x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
+        
     """
-    x1, x2, y1, y2 = bounds
-    square = {'x1':x1, 'x2':x2, 'y1':y1, 'y2':y2}
-    if props is not None:
-        for prop in props:
-            square[prop] = props[prop]
-    return square
+    def __init__(self, bounds, props=None):
+        GeometricElement.__init__(self, props)
+        self.bounds = bounds    
+        self.x1, self.x2, self.y1, self.y2 = bounds
+    
+    def __str__(self):
+        """Return a string representation of the square."""
+        names = [('x1', self.x1), ('x2', self.x2), ('y1', self.y1),
+                 ('y2', self.y2)]
+        names.extend((p, self.props[p]) for p in sorted(self.props))
+        return ' | '.join('%s:%g' % (n, v) for n, v in names)
+
+    def topolygon(self):
+        """
+        Convert this square into a polygon representation.
+
+        Vertices are ordered clockwise considering that x is North.
+
+        Returns:
+
+        * polygon : :class:`~fatiando.mesher.dd.Polygon`
+            The polygon equivalente of the square
+
+        Example::
+
+            >>> square = Square((0, 1, 0, 3), {'vp':1000})
+            >>> poly = square.topolygon()
+            >>> print poly.x
+            [ 0.  1.  1.  0.]
+            >>> print poly.y
+            [ 0.  0.  3.  3.]
+            >>> print poly.props['vp']
+            1000
+            
+        """
+        verts = [[self.x1, self.y1], [self.x2, self.y1],
+                 [self.x2, self.y2], [self.x1, self.y2]]
+        props = dict(self.props)
+        return Polygon(verts, props)
 
 class SquareMesh(object):
     """
     Generate a 2D regular mesh of squares.
 
     For all purposes, :class:`~fatiando.mesher.dd.SquareMesh` can be used as a
-    list of :func:`~fatiando.mesher.dd.Square`. The order of the squares in the
+    list of :class:`~fatiando.mesher.dd.Square`. The order of the squares in the
     list is: x directions varies first, then y.
 
     Parameters:
@@ -115,42 +137,34 @@ class SquareMesh(object):
         
     Examples:
 
-        >>> from fatiando.mesher.dd import SquareMesh
-        >>> def show(p):
-        ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
         >>> mesh = SquareMesh((0, 4, 0, 6), (2, 2))
         >>> for s in mesh:
-        ...     show(s)
-        x1 : 0.0 | x2 : 2.0 | y1 : 0.0 | y2 : 3.0
-        x1 : 2.0 | x2 : 4.0 | y1 : 0.0 | y2 : 3.0
-        x1 : 0.0 | x2 : 2.0 | y1 : 3.0 | y2 : 6.0
-        x1 : 2.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
-        >>> show(mesh[1])
-        x1 : 2.0 | x2 : 4.0 | y1 : 0.0 | y2 : 3.0
-        >>> show(mesh[-1])
-        x1 : 2.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
+        ...     print s
+        x1:0 | x2:2 | y1:0 | y2:3
+        x1:2 | x2:4 | y1:0 | y2:3
+        x1:0 | x2:2 | y1:3 | y2:6
+        x1:2 | x2:4 | y1:3 | y2:6
+        >>> print mesh[1]
+        x1:2 | x2:4 | y1:0 | y2:3
+        >>> print mesh[-1]
+        x1:2 | x2:4 | y1:3 | y2:6
         
     With physical properties::
 
-        >>> def show(p):
-        ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
-        >>> props = {'slowness':[3.4, 8.6]}
-        >>> mesh = SquareMesh((0, 4, 0, 6), (2, 1), props)
+        >>> mesh = SquareMesh((0, 4, 0, 6), (2, 1), {'slowness':[3.4, 8.6]})
         >>> for s in mesh:
-        ...     show(s)
-        slowness : 3.4 | x1 : 0.0 | x2 : 4.0 | y1 : 0.0 | y2 : 3.0
-        slowness : 8.6 | x1 : 0.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
+        ...     print s
+        x1:0 | x2:4 | y1:0 | y2:3 | slowness:3.4
+        x1:0 | x2:4 | y1:3 | y2:6 | slowness:8.6
 
     Or::
 
-        >>> def show(p):
-        ...     print ' | '.join('%s : %.1f' % (k, p[k]) for k in sorted(p))
         >>> mesh = SquareMesh((0, 4, 0, 6), (2, 1))
         >>> mesh.addprop('slowness', [3.4, 8.6])
         >>> for s in mesh:
-        ...     show(s)
-        slowness : 3.4 | x1 : 0.0 | x2 : 4.0 | y1 : 0.0 | y2 : 3.0
-        slowness : 8.6 | x1 : 0.0 | x2 : 4.0 | y1 : 3.0 | y2 : 6.0
+        ...     print s
+        x1:0 | x2:4 | y1:0 | y2:3 | slowness:3.4
+        x1:0 | x2:4 | y1:3 | y2:6 | slowness:8.6
         
     """
 
@@ -324,38 +338,3 @@ class SquareMesh(object):
             return numpy.array(ys)
         else:
             return ys
-
-def square2polygon(square):
-    """
-    Convert a square into a polygon.
-
-    Vertices are ordered clockwise considering that x is North.
-
-    Parameters:
-
-    * square : :func:`~fatiando.mesher.dd.Square`
-        A square
-
-    Returns:
-
-    * polygon : :func:`~fatiando.mesher.dd.Polygon`
-        The polygon equivalente of *square*
-
-    Example::
-
-        >>> from fatiando.mesher.dd import Square, square2polygon
-        >>> square = Square((0, 1, 0, 3), {'vp':1000})
-        >>> poly = square2polygon(square)
-        >>> print poly['x']
-        [ 0.  1.  1.  0.]
-        >>> print poly['y']
-        [ 0.  0.  3.  3.]
-        >>> print poly['vp']
-        1000
-        
-    """
-    verts = [[square['x1'], square['y1']], [square['x2'], square['y1']],
-             [square['x2'], square['y2']], [square['x1'], square['y2']]]
-    notprops = ['x1', 'x2', 'y1', 'y2']
-    props = dict([p, square[p]] for p in square if p not in notprops)
-    return Polygon(verts, props)

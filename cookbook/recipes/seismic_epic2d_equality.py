@@ -23,8 +23,8 @@ log.info("Generating synthetic travel-time data")
 src = (8, 7)
 stations = 10
 srcs, recs = ft.utils.connect_points([src], [(4, 6), (5, 5.9), (6, 6)])
-ptime = ft.seis.traveltime.straight_ray_2d(model, 'vp', srcs, recs)
-stime = ft.seis.traveltime.straight_ray_2d(model, 'vs', srcs, recs)
+ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
 error_level = 0.05
 ttr_true = stime - ptime
 ttr, error = ft.utils.contaminate(ttr_true, error_level, percent=True,
