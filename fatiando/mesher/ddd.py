@@ -5,8 +5,8 @@ tesseroids, etc.
 **Elements**
 
 * :class:`~fatiando.mesher.ddd.Prism`
-* :func:`~fatiando.mesher.ddd.PolygonalPrism`: 
-* :func:`~fatiando.mesher.ddd.Sphere`
+* :class:`~fatiando.mesher.ddd.PolygonalPrism`: 
+* :class:`~fatiando.mesher.ddd.Sphere`
 
 **Meshes**
 
@@ -30,11 +30,41 @@ import numpy
 import matplotlib.mlab
 
 from fatiando import logger
+from fatiando.mesher.dd import Polygon
 
 
 log = logger.dummy('fatiando.mesher.ddd')
-    
-class Prism(object):
+
+class Object3D(object):
+    """
+    Base class for all 3D geometric elements.
+    """
+
+    def __init__(self, props):
+        self.props = {}
+        if props is not None:
+            for p in props:
+                self.props[p] = props[p]
+                
+    def addprop(self, prop, value):
+        """
+        Add a physical property to this geometric element.
+
+        If it already has the property, the given value will overwrite the
+        existing one.
+
+        Parameters:
+        
+        * prop : str
+            Name of the physical property.
+        * value : float
+            The value of this physical property.
+            
+        """
+        self.props[prop] = value
+        
+
+class Prism(Object3D):
     """
     Create a 3D right rectangular prism.
 
@@ -62,20 +92,23 @@ class Prism(object):
         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
         >>> print p
         x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:200
+        >>> p = Prism(1, 2, 3, 4, 5, 6)
+        >>> print p
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6
+        >>> p.addprop('density', 2670)
+        >>> print p
+        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:2670
 
     """
 
     def __init__(self, x1, x2, y1, y2, z1, z2, props=None):
+        Object3D.__init__(self, props)
         self.x1 = float(x1)
         self.x2 = float(x2)
         self.y1 = float(y1)
         self.y2 = float(y2)
         self.z1 = float(z1)
         self.z2 = float(z2)
-        self.props = {}
-        if props is not None:
-            for p in props:
-                self.props[p] = props[p]
 
     def __str__(self):
         """Return a string representation of the prism."""
@@ -101,32 +134,6 @@ class Prism(object):
             
         """
         return [self.x1, self.x2, self.y1, self.y2, self.z1, self.z2]        
-
-    def addprop(self, prop, value):
-        """
-        Add a physical property to the prism.
-
-        If the prism already has the property, the given value will overwrite
-        the existing one.
-
-        Parameters:
-        
-        * prop : str
-            Name of the physical property.
-        * value : float
-            The value of this physical property.
-
-        Example:
-
-            >>> prism = Prism(1, 2, 3, 4, 5, 6)
-            >>> print prism
-            x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6
-            >>> prism.addprop('density', 2670)
-            >>> print prism
-            x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:2670
-            
-        """
-        self.props[prop] = value
         
     def center(self):
         """
@@ -149,7 +156,7 @@ class Prism(object):
         zc = 0.5*(self.z1 + self.z2)
         return [xc, yc, zc]
     
-class Sphere(object):
+class Sphere(Object3D):
     """
     Create a sphere.
 
@@ -173,18 +180,21 @@ class Sphere(object):
         20
         >>> print s
         x:1 | y:2 | z:3 | radius:10 | density:20 | magnetization:200
+        >>> s = Sphere(1, 2, 3, 4)
+        >>> print s
+        x:1 | y:2 | z:3 | radius:4
+        >>> s.addprop('density', 2670)
+        >>> print s
+        x:1 | y:2 | z:3 | radius:4 | density:2670
 
     """
 
     def __init__(self, x, y, z, radius, props=None):
+        Object3D.__init__(self, props)
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
         self.radius = float(radius)
-        self.props = {}
-        if props is not None:
-            for p in props:
-                self.props[p] = props[p]
 
     def __str__(self):
         """Return a string representation of the sphere."""
@@ -192,34 +202,8 @@ class Sphere(object):
                  ('radius', self.radius)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def addprop(self, prop, value):
-        """
-        Add a physical property to the sphere.
-
-        If the sphere already has the property, the given value will overwrite
-        the existing one.
-
-        Parameters:
         
-        * prop : str
-            Name of the physical property.
-        * value : float
-            The value of this physical property.
-
-        Example:
-
-            >>> s = Sphere(1, 2, 3, 4)
-            >>> print s
-            x:1 | y:2 | z:3 | radius:4
-            >>> s.addprop('density', 2670)
-            >>> print s
-            x:1 | y:2 | z:3 | radius:4 | density:2670
-            
-        """
-        self.props[prop] = value
-        
-def PolygonalPrism(vertices, z1, z2, props=None):
+class PolygonalPrism(Object3D):
     """
     Create a 3D prism with polygonal crossection.
 
@@ -237,34 +221,55 @@ def PolygonalPrism(vertices, z1, z2, props=None):
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
         
-    Returns:
-    
-    * prism :  dict
-        Dictionary describing the prism
-
     Examples:
 
-        >>> from fatiando.mesher.ddd import PolygonalPrism
         >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
         >>> p = PolygonalPrism(verts, 0, 3, props={'temperature':25})
-        >>> p['temperature']
+        >>> p.props['temperature']
         25
-        >>> print p['x']
+        >>> print p.x
         [ 1.  1.  2.  2.]
-        >>> print p['y']
+        >>> print p.y
         [ 1.  2.  2.  1.]
-        >>> print p['z1'], p['z2']
+        >>> print p.z1, p.z2
         0.0 3.0
+        >>> p.addprop('density', 2670)
+        >>> print p.props['density']
+        2670
 
     """
-    x, y = numpy.array(vertices, dtype='f').T
-    prism = {'x':x, 'y':y, 'z1':float(z1), 'z2':float(z2)}
-    if props is not None:
-        for prop in props:
-            prism[prop] = props[prop]
-    return prism
+    def __init__(self, vertices, z1, z2, props=None):
+        Object3D.__init__(self, props)
+        x, y = numpy.array(vertices, dtype='f').T
+        self.x = x
+        self.y = y
+        self.z1 = float(z1)
+        self.z2 = float(z2)
+
+    def topolygon(self):
+        """
+        Get the polygon describing the prism viewed from above.
+
+        Returns:
+
+        * polygon : :func:`fatiando.mesher.dd.Polygon`
+            The polygon
+
+        Example:
+
+            >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
+            >>> p = PolygonalPrism(verts, 0, 100)
+            >>> poly = p.topolygon()
+            >>> print poly['x']
+            [ 1.  1.  2.  2.]
+            >>> print poly['y']
+            [ 1.  2.  2.  1.]
+            
+        """
+        verts = numpy.transpose([self.x, self.y])
+        return Polygon(verts, self.props)
     
-class PrismRelief():
+class PrismRelief(object):
     """
     Generate a 3D model of a relief (topography) using prisms.
     

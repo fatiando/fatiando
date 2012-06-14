@@ -9,3 +9,7 @@ _*.c
 build
 dist
 fatiando/changeset.txt
+cookbook/harvester/data.txt
+cookbook/harvester/predicted.txt
+cookbook/harvester/result.den
+cookbook/harvester/result.msh

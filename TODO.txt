@@ -14,11 +14,11 @@ GOALS FOR 1.0:
 GOALS FOR 0.2:
 
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
-* Transform all geometric elements into classes
+* Optimize PrismMesh.dump (using Cython?)
 
 GOALS FOR 0.1:
 
-* Optimize PrismMesh.dump (using Cython?)
+* Transform all geometric elements into classes
 * Implement C extensions in Python + Numpy. If needed, use Cython for optional
   speed gain. This way compiling is not a prerequisite to installing
 * Add vis.vtk.savefig3d to save a Mayavi scene
@@ -37,6 +37,7 @@ GOALS FOR 0.1:
 * Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
 * Magnetic compact inversion in 2D
+* Move all constants used to a module constants
 
 URGENT:
 
