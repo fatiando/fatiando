@@ -13,10 +13,8 @@ import numpy
 from numpy import arctan2, log, sqrt, arctan
 
 from fatiando import logger
+from fatiando.constants import SI2MGAL, G
 
-
-SI2MGAL = 100000.0
-G = 0.00000000006673 # The gravitational constant (SI)
 
 def gz(xp, yp, zp, prisms):
     """

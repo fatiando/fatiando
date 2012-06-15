@@ -51,11 +51,7 @@ Then the total-field anomaly caused by the sphere is
 import numpy
 from numpy import pi
 
-CM = 10.**(-7) # henry/meter (SI)
-T2NT = 10.**(9) # tesla to nanotesla
-SI2EOTVOS = 1000000000.0
-SI2MGAL = 100000.0
-G = 0.00000000006673 # The gravitational constant (SI)
+from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 
 
 def _dircos(inc, dec):

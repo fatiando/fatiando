@@ -27,3 +27,5 @@ Changes in v0.1
 * Using `Cython <http://www.cython.org>`_ for optional extension modules. If
   they exist, they are loaded to replace the Python + Numpy versions. This all
   happens at runtime.
+* Move all physical constants used in :ref:`fatiando <fatiando>` to module
+  :ref:`fatiando.constants <constants>`

@@ -1,0 +1,30 @@
+"""
+Holds all physical constants and unit conversions used in :mod:`fatiando`.
+
+All modules should import the constants from here!
+
+All constants should be in SI, unless otherwise stated!
+
+----
+"""
+
+#: The default thermal diffusivity in m^2/s
+THERMAL_DIFFUSIVITY = 0.000001
+
+#: The default thermal diffusivity but in m^2/year
+THERMAL_DIFFUSIVITY_YEAR = 31.5576
+
+#: Conversion factor from SI units to Eotvos: 1/s**2 = 10**9 Eotvos
+SI2EOTVOS = 1000000000.0
+
+#: Conversion factor from SI units to mGal: 1 m/s**2 = 10**5 mGal
+SI2MGAL = 100000.0
+
+#: The gravitational constant in m^3*kg^-1*s^-1
+G = 0.00000000006673
+
+#: Proportionality constant used in the magnetic method in henry/m (SI)
+CM = 10.**(-7)
+
+#: Conversion factor from tesla to nanotesla
+T2NT = 10.**(9)

@@ -12,9 +12,7 @@ cimport numpy
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
 
-SI2EOTVOS = 1000000000.0
-SI2MGAL = 100000.0
-G = 0.00000000006673
+from fatiando.constants import SI2EOTVOS, SI2MGAL, G
 
 
 def pot(xp, yp, zp, prisms, dens=None):

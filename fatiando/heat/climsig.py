@@ -84,7 +84,7 @@ import numpy
 import scipy.special
 
 from fatiando import inversion, utils, logger
-
+from fatiando.constants import THERMAL_DIFFUSIVITY_YEAR
 
 log = logger.dummy('fatiando.heat.climsig')
  
@@ -123,8 +123,7 @@ class AbruptDM(inversion.datamodule.DataModule):
 
     """
 
-    # The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
-    def __init__(self, temp, zp, diffus=31.5576):
+    def __init__(self, temp, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         if len(temp) != len(zp):
             raise ValueError, "temp and zp must be of same length"
         inversion.datamodule.DataModule.__init__(self, temp)
@@ -147,7 +146,7 @@ class AbruptDM(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
     
-def abrupt(amp, age, zp, diffus=31.5576):
+def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
     Calculate the residual temperature profile in depth due to an abrupt
     temperature perturbation.
@@ -163,7 +162,8 @@ def abrupt(amp, age, zp, diffus=31.5576):
     * diffus : float
         Thermal diffusivity of the medium (in m^2/year)
 
-    The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
+    See the default values for the thermal diffusivity in
+    :mod:`fatiando.constants`.
 
     Returns
 
@@ -173,7 +173,7 @@ def abrupt(amp, age, zp, diffus=31.5576):
     """
     return amp*(1. - scipy.special.erf(zp/numpy.sqrt(4.*diffus*age)))
     
-def iabrupt(temp, zp, solver=None, diffus=31.5576, iterate=False):
+def iabrupt(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age
     of an abrupt temperature perturbation.
@@ -195,7 +195,8 @@ def iabrupt(temp, zp, solver=None, diffus=31.5576, iterate=False):
         *solver*. In Python terms, ``iterate=True`` transforms this function
         into a generator function.
 
-    The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
+    See the default values for the thermal diffusivity in
+    :mod:`fatiando.constants`.
 
     Returns:
 
@@ -248,8 +249,7 @@ class LinearDM(inversion.datamodule.DataModule):
 
     """
 
-    # The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
-    def __init__(self, temp, zp, diffus=31.5576):
+    def __init__(self, temp, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         if len(temp) != len(zp):
             raise ValueError, "temp and zp must be of same length"
         inversion.datamodule.DataModule.__init__(self, temp)
@@ -273,7 +273,7 @@ class LinearDM(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
     
-def linear(amp, age, zp, diffus=31.5576):
+def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
     Calculate the residual temperature profile in depth due to a linear
     temperature perturbation.
@@ -289,7 +289,8 @@ def linear(amp, age, zp, diffus=31.5576):
     * diffus : float
         Thermal diffusivity of the medium (in m^2/year)
 
-    The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
+    See the default values for the thermal diffusivity in
+    :mod:`fatiando.constants`.
 
     Returns
 
@@ -302,7 +303,7 @@ def linear(amp, age, zp, diffus=31.5576):
                - 2./numpy.sqrt(numpy.pi)*tmp*numpy.exp(-tmp**2))                    
     return res
     
-def ilinear(temp, zp, solver=None, diffus=31.5576, iterate=False):
+def ilinear(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age
     of a linear temperature perturbation.
@@ -324,7 +325,8 @@ def ilinear(temp, zp, solver=None, diffus=31.5576, iterate=False):
         *solver*. In Python terms, ``iterate=True`` transforms this function
         into a generator function.
 
-    The default diffusivity is 0.000001 m^2/s = 31.5576 m^2/year
+    See the default values for the thermal diffusivity in
+    :mod:`fatiando.constants`.
 
     Returns:
 

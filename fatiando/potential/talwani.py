@@ -23,10 +23,7 @@ Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
 import numpy
 from numpy import arctan2, pi, sin, cos, log, tan
 
-# The gravitational constant (m^3*kg^-1*s^-1)
-G = 0.00000000006673
-# Conversion factor from SI units to mGal: 1 m/s**2 = 10**5 mGal
-SI2MGAL = 100000.0
+from fatiando.constants import G, SI2MGAL
 
 
 def gz(xp, zp, polygons):

@@ -18,5 +18,6 @@ API Reference: The ``fatiando`` package
     ui.rst
     utils.rst
     logger.rst
+    constants.rst
     inversion.rst
 
