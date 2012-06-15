@@ -109,12 +109,13 @@ def tf(xp, yp, zp, spheres, inc, dec):
         dotprod = mx*x + my*y + mz*z
         r_sqr = x**2 + y**2 + z**2
         r5 = r_sqr**(2.5)
-        moment = mag*4.*numpy.pi*(radius**3)/3.
+        moment = mag*(4.*numpy.pi*(radius**3)/3.)
         bx = moment*(3*dotprod*x - r_sqr*mx)/r5
         by = moment*(3*dotprod*y - r_sqr*my)/r5
         bz = moment*(3*dotprod*z - r_sqr*mz)/r5        
         tf = tf + (fx*bx + fy*by + fz*bz)
-    return CM*T2NT*tf
+    tf *= CM*T2NT
+    return tf
 
 def gz(xp, yp, zp, spheres):
     """

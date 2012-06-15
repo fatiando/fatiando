@@ -666,6 +666,9 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
+    # Calculate the 3 components of the unit vector in the direction of the
+    # regional field
+    fx, fy, fz = utils.dircos(inc, dec)
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props
                               and pmag is None):
@@ -685,22 +688,30 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         if pinc is not None and pdec is not None:
             mx, my, mz = utils.dircos(pinc, pdec)
         # 2) given by the prism
-        elif 'inclination' in sphere.props and 'declination' in sphere.props:
-            mx, my, mz = utils.dircos(sphere.props['inclination'],
-                                 sphere.props['declination'])
+        elif 'inclination' in prism.props and 'declination' in prism.props:
+            mx, my, mz = utils.dircos(prism.props['inclination'],
+                                      prism.props['declination'])
         # 3) Use in the direction of the regional field
         else:
             mx, my, mz = fx, fy, fz
         # Now calculate the total field anomaly
-        #for k in range(2):
-            #for j in range(2):
-                #for i in range(2):
-                    #r_sqr = x[i]**2 + y[j]**2 + z[k]**2
-                    #r = sqrt(r_sqr)
-                    #res += ((-1.)**(i + j))*magnetization*(
-                        #0.5*(my*fz + mz*fy)*log((
-#
-                        #
-            #magnetization *= -1
-    #res = res*CM*T2NT
+        for k in range(2):                   
+            magnetization *= -1
+            z_sqr = z[k]**2
+            for j in range(2):
+                y_sqr = y[j]**2
+                for i in range(2):
+                    x_sqr = x[i]**2
+                    xy = x[i]*y[j]
+                    r_sqr = x_sqr + y_sqr + z_sqr
+                    r = sqrt(r_sqr)
+                    zr = z[k]*r
+                    res += ((-1.)**(i + j))*magnetization*(
+                          0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
+                        + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
+                        - (mx*fy + my*fx)*log(r + z[k])
+                        - mx*fx*arctan2(xy, x_sqr + zr + z_sqr)
+                        - my*fy*arctan2(xy, r_sqr + zr - x_sqr)
+                        + mz*fz*arctan2(xy, zr))
+    res *= CM*T2NT
     return res

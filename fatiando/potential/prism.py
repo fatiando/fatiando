@@ -18,10 +18,16 @@ The gravitational fields are calculated using the forumla of Nagy et al. (2000)
 
 **Magnetic**
 
+The Total Field anomaly is calculated using the formula of Bhattacharyya (1964).
+
+* :func:`~fatiando.potential._prism.tf`
 
 **References**
 
-Nagy, D., G. Papp, and J. Benedek, 2000, The gravitational potential and its
+Bhattacharyya, B. K. (1964), Magnetic anomalies due to prism-shaped bodies with
+arbitrary polarization, Geophysics, 29(4), 517, doi: 10.1190/1.1439386.
+
+Nagy, D., G. Papp, and J. Benedek (2000), The gravitational potential and its
 derivatives for the prism: Journal of Geodesy, 74, 552--560,
 doi: 10.1007/s001900000116.
     
