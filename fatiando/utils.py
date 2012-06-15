@@ -17,6 +17,7 @@ Miscellaneous utility functions and classes.
 
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
   Gaussian noise
+* :func:`~fatiando.utils.dircos`: Get the 3 coordinates of a unit vector
 * :func:`~fatiando.utils.vecmean`: Take the mean array out of a list of arrays
 * :func:`~fatiando.utils.vecstd` Take the standard deviation array out of a list
   of arrays
@@ -39,6 +40,35 @@ from fatiando import logger
 
 log = logger.dummy('fatiando.utils')
   
+
+def dircos(inc, dec):
+    """
+    Returns the 3 coordinates of a unit vector given its inclination and
+    declination.
+
+    .. note:: Coordinate system is assumed to be x->North, y->East, z->Down.
+        Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Parameter:
+
+    * inc : float
+        The inclination of the vector (in degrees)
+    * dec : float
+        The declination of the vector (in degrees)
+
+    Returns:
+
+    * vect : list = [x, y, z]
+        The unit vector
+        
+    """
+    d2r = numpy.pi/180.
+    vect = [numpy.cos(d2r*inc)*numpy.cos(d2r*dec),
+            numpy.cos(d2r*inc)*numpy.sin(d2r*dec),
+            numpy.sin(d2r*inc)]
+    return vect
+    
 def vecmean(arrays):
     """
     Take the mean array out of a list of arrays.

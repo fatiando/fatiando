@@ -12,7 +12,8 @@
 import numpy
 from numpy import sqrt, log, arctan2
 
-from fatiando.constants import SI2EOTVOS, SI2MGAL, G
+from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
+from fatiando import utils
 
 
 def pot(xp, yp, zp, prisms, dens=None):
@@ -59,24 +60,24 @@ def pot(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (-x[i]*y[j]*log(z[k] + r)
-                              - y[j]*z[k]*log(x[i] + r)
-                              - x[i]*z[k]*log(y[j] + r)
-                              + 0.5*x[i]*x[i]*arctan2(z[k]*y[j], x[i]*r)
-                              + 0.5*y[j]*y[j]*arctan2(z[k]*x[i], y[j]*r)
-                              + 0.5*z[k]*z[k]*arctan2(x[i]*y[j], z[k]*r))
+                    kernel = (x[i]*y[j]*log(z[k] + r)
+                              + y[j]*z[k]*log(x[i] + r)
+                              + x[i]*z[k]*log(y[j] + r)
+                              - 0.5*x[i]*x[i]*arctan2(z[k]*y[j], x[i]*r)
+                              - 0.5*y[j]*y[j]*arctan2(z[k]*x[i], y[j]*r)
+                              - 0.5*z[k]*z[k]*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G;
+    res *= G
     return res
 
 def gx(xp, yp, zp, prisms, dens=None):
@@ -123,21 +124,23 @@ def gx(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (y[j]*log(z[k] + r) +
-                              z[k]*log(y[j] + r) -
-                              x[i]*arctan2(z[k]*y[j], x[i]*r))
+                    # Minus because Nagy et al (2000) give the formula for the
+                    # gradient of the potential. Gravity is -grad(V)
+                    kernel = -(y[j]*log(z[k] + r)
+                               + z[k]*log(y[j] + r)
+                               - x[i]*arctan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G*SI2MGAL;
+    res *= G*SI2MGAL
     return res
 
 def gy(xp, yp, zp, prisms, dens=None):
@@ -184,21 +187,23 @@ def gy(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (z[k]*log(x[i] + r) +
-                              x[i]*log(z[k] + r) -
-                              y[j]*arctan2(x[i]*z[k], y[j]*r))
+                    # Minus because Nagy et al (2000) give the formula for the
+                    # gradient of the potential. Gravity is -grad(V)
+                    kernel = -(z[k]*log(x[i] + r)
+                               + x[i]*log(z[k] + r)
+                               - y[j]*arctan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G*SI2MGAL;
+    res *= G*SI2MGAL
     return res
 
 def gz(xp, yp, zp, prisms, dens=None):
@@ -245,21 +250,23 @@ def gz(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (x[i]*log(y[j] + r) +
-                              y[j]*log(x[i] + r) -
-                              z[k]*arctan2(x[i]*y[j], z[k]*r))
+                    # Minus because Nagy et al (2000) give the formula for the
+                    # gradient of the potential. Gravity is -grad(V)
+                    kernel = -(x[i]*log(y[j] + r)
+                               + y[j]*log(x[i] + r)
+                               - z[k]*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
-    res *= G*SI2MGAL;
+    res *= G*SI2MGAL
     return res
 
 def gxx(xp, yp, zp, prisms, dens=None):
@@ -306,22 +313,19 @@ def gxx(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should be a - sign with arctan
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I took them out
-                    kernel = arctan2(z[k]*y[j], x[i]*r)
+                    kernel = -arctan2(z[k]*y[j], x[i]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
     return res
 
 def gxy(xp, yp, zp, prisms, dens=None):
@@ -368,22 +372,19 @@ def gxy(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should not be a - sign with log
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I put them in
-                    kernel = -log(z[k] + r)
+                    kernel = log(z[k] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
     return res
 
 def gxz(xp, yp, zp, prisms, dens=None):
@@ -430,22 +431,19 @@ def gxz(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should not be a - sign with log
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I put them in
-                    kernel = -log(y[j] + r)
+                    kernel = log(y[j] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
     return res
 
 def gyy(xp, yp, zp, prisms, dens=None):
@@ -492,22 +490,19 @@ def gyy(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should be a - sign with arctan
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I took them out
-                    kernel = arctan2(z[k]*x[i], y[j]*r)
+                    kernel = -arctan2(z[k]*x[i], y[j]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
     return res
 
 def gyz(xp, yp, zp, prisms, dens=None):
@@ -554,22 +549,19 @@ def gyz(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should not be a - sign with log
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I put them in
-                    kernel = -log(x[i] + r)
+                    kernel = log(x[i] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
     return res
 
 def gzz(xp, yp, zp, prisms, dens=None):
@@ -616,20 +608,99 @@ def gzz(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    # In Nagy et al (2000) there should be a - sign with arctan
-                    # but the tensor components seemed to be with the wrong sign
-                    # so I took them out
-                    kernel = arctan2(x[i]*y[j], z[k]*r)
+                    kernel = -arctan2(x[i]*y[j], z[k]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units 
-    res *= G*SI2EOTVOS;
+    res *= G*SI2EOTVOS
+    return res
+
+def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
+    """
+    Calculate the total-field anomaly of prisms.
+
+    .. note:: Input units are SI. Output is in nT
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    Parameters:
+    
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
+        The model used to calculate the total field anomaly.
+        Prisms must have the properties ``'magnetization'``,
+        ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
+        ``'declination'`` are not present, will use the values of *inc* and
+        *dec* instead. Those without ``'magnetization'`` will be ignored.
+        *prisms* can also be a :class:`~fatiando.mesher.ddd.PrismMesh`.
+    * inc : float
+        The inclination of the regional field (in degrees)
+    * dec : float
+        The declination of the regional field (in degrees)
+    * pmag : float or None
+        If not None, will use this value instead of the ``'magnetization'``
+        property of the prisms. Use this, e.g., for sensitivity matrix building.
+    * pinc : float or None
+        If not None, will use this value instead of the ``'inclination'``
+        property of the prisms. Use this, e.g., for sensitivity matrix building.
+    * pdec : float or None
+        If not None, will use this value instead of the ``'declination'``
+        property of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+    
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props
+                              and pmag is None):
+            continue
+        if pmag is None:
+            magnetization = prism.props['magnetization']
+        else:
+            magnetization = pmag
+        # First thing to do is make the computation point P the origin of the
+        # coordinate system
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
+        # Get the 3 components of the unit vector in the direction of the
+        # magnetization from the inclination and declination
+        # 1) given by the function
+        if pinc is not None and pdec is not None:
+            mx, my, mz = utils.dircos(pinc, pdec)
+        # 2) given by the prism
+        elif 'inclination' in sphere.props and 'declination' in sphere.props:
+            mx, my, mz = utils.dircos(sphere.props['inclination'],
+                                 sphere.props['declination'])
+        # 3) Use in the direction of the regional field
+        else:
+            mx, my, mz = fx, fy, fz
+        # Now calculate the total field anomaly
+        #for k in range(2):
+            #for j in range(2):
+                #for i in range(2):
+                    #r_sqr = x[i]**2 + y[j]**2 + z[k]**2
+                    #r = sqrt(r_sqr)
+                    #res += ((-1.)**(i + j))*magnetization*(
+                        #0.5*(my*fz + mz*fy)*log((
+#
+                        #
+            #magnetization *= -1
+    #res = res*CM*T2NT
     return res

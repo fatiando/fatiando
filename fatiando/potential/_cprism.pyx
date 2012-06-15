@@ -57,20 +57,20 @@ def pot(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = numpy.sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (-x[i]*y[j]*numpy.log(z[k] + r)
-                              - y[j]*z[k]*numpy.log(x[i] + r)
-                              - x[i]*z[k]*numpy.log(y[j] + r)
-                              + 0.5*x[i]*x[i]*numpy.arctan2(z[k]*y[j], x[i]*r)
-                              + 0.5*y[j]*y[j]*numpy.arctan2(z[k]*x[i], y[j]*r)
-                              + 0.5*z[k]*z[k]*numpy.arctan2(x[i]*y[j], z[k]*r))
+                    kernel = (x[i]*y[j]*numpy.log(z[k] + r)
+                              + y[j]*z[k]*numpy.log(x[i] + r)
+                              + x[i]*z[k]*numpy.log(y[j] + r)
+                              - 0.5*x[i]*x[i]*numpy.arctan2(z[k]*y[j], x[i]*r)
+                              - 0.5*y[j]*y[j]*numpy.arctan2(z[k]*x[i], y[j]*r)
+                              - 0.5*z[k]*z[k]*numpy.arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
@@ -119,17 +119,17 @@ def gx(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = numpy.sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (y[j]*numpy.log(z[k] + r) +
-                              z[k]*numpy.log(y[j] + r) -
-                              x[i]*numpy.arctan2(z[k]*y[j], x[i]*r))
+                    kernel = -(y[j]*numpy.log(z[k] + r) +
+                               z[k]*numpy.log(y[j] + r) -
+                               x[i]*numpy.arctan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
@@ -178,17 +178,17 @@ def gy(xp, yp, zp, prisms, dens=None):
             density = dens
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [prism.x1 - xp, prism.x2 - xp]
-        y = [prism.y1 - yp, prism.y2 - yp]
-        z = [prism.z1 - zp, prism.z2 - zp]
+        x = [prism.x2 - xp, prism.x1 - xp]
+        y = [prism.y2 - yp, prism.y1 - yp]
+        z = [prism.z2 - zp, prism.z1 - zp]
         # Evaluate the integration limits 
         for k in range(2):
             for j in range(2):
                 for i in range(2):
                     r = numpy.sqrt(x[i]*x[i] + y[j]*y[j] + z[k]*z[k])
-                    kernel = (z[k]*numpy.log(x[i] + r) +
-                              x[i]*numpy.log(z[k] + r) -
-                              y[j]*numpy.arctan2(x[i]*z[k], y[j]*r))
+                    kernel = -(z[k]*numpy.log(x[i] + r) +
+                               x[i]*numpy.log(z[k] + r) -
+                               y[j]*numpy.arctan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units 
@@ -245,6 +245,9 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -329,6 +332,9 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -405,6 +411,9 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -481,6 +490,9 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -557,6 +569,9 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -633,6 +648,9 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
@@ -709,6 +727,9 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
+            # Note: doing x1, x2 instead of x2, x1 because this cancels the
+            # changed sign of the equations bellow with respect to the formula
+            # of Nagy et al (2000)
             dx1, dx2 = x1 - xp[l], x2 - xp[l]
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]

@@ -8,13 +8,13 @@ log = ft.log.get()
 log.info(ft.log.header())
 log.info(__doc__)
 
-spheres = [ft.msh.ddd.Sphere(0, 0, -3000, 1000, {'magnetization':1})]
+spheres = [ft.msh.ddd.Sphere(0, 0, 3000, 1000, {'magnetization':1})]
 # Create a regular grid at 100m height
 shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)
 xp, yp, zp = ft.grd.regular(area, shape, z=-100)
 # Calculate the anomaly for a given regional field
-tf = ft.pot.sphere.tf(xp, yp, zp, spheres, -30, 23)
+tf = ft.pot.sphere.tf(xp, yp, zp, spheres, 90, 0)
 # Plot
 ft.vis.figure()
 ft.vis.title("Total-field anomaly (nT)")
