@@ -29,3 +29,5 @@ Changes in v0.1
   happens at runtime.
 * Move all physical constants used in :ref:`fatiando <fatiando>` to module
   :ref:`fatiando.constants <constants>`
+* Added magnetic total field anomaly function to
+  :ref:`potential.prism <potential.prism>`
