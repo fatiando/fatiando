@@ -218,6 +218,7 @@ class PolygonalPrism(GeometricElement):
         self.y = y
         self.z1 = float(z1)
         self.z2 = float(z2)
+        self.nverts = len(vertices)
 
     def topolygon(self):
         """

@@ -18,8 +18,6 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
-* Implement C extensions in Python + Numpy. If needed, use Cython for optional
-  speed gain. This way compiling is not a prerequisite to installing
 * Add vis.vtk.savefig3d to save a Mayavi scene
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion

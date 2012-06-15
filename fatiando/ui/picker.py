@@ -27,7 +27,7 @@ from fatiando import logger
 log = logger.dummy('fatiando.ui.picker')
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
-    alpha=0.5):
+    alpha=0.5, xy2ne=False):
     """
     Draw a polygon by clicking with the mouse.
 
@@ -63,6 +63,10 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     * alpha : float
         Transparency of the fill of the polygon. 0 for transparent, 1 for opaque
         (fills the polygon once done drawing)
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that x points north.
+        Use this when drawing on a map viewed from above. If the y-axis of the
+        plot is supposed to be z (depth), then use ``xy2ne=False``.
         
     Returns:
     
@@ -78,8 +82,12 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     log.info("  * Right click to close the polygon;")
     log.info("  * Close the figure window to finish;")
     axes.set_title("Click to draw polygon. Right click when done.")
-    axes.set_xlim(area[0], area[1])
-    axes.set_ylim(area[2], area[3])
+    if xy2ne:
+        axes.set_xlim(area[2], area[3])
+        axes.set_ylim(area[0], area[1])
+    else:
+        axes.set_xlim(area[0], area[1])
+        axes.set_ylim(area[2], area[3])
     # start with an empty line
     line, = axes.plot([],[], marker=marker, linestyle=style, color=color,
                       linewidth=width)
@@ -139,7 +147,11 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     pyplot.show()
     if len(x) < 3:
         raise ValueError, "Need at least 3 points to make a polygon"
-    return numpy.array([x, y]).T
+    if xy2ne:
+        verts = numpy.transpose([y, x])
+    else:
+        verts = numpy.transpose([x, y])
+    return verts
 
 def points(area, axes, marker='o', color='k', size=8):
     """

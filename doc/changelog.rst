@@ -19,6 +19,11 @@ Changes in v0.1
   a property name. Saves the output to these files.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
   densities" by Uieda and Barbosa, 2011
-* Added harvester script that runs this new inversion
+* Added harvester command line program that runs this new inversion
 * Added tutorial to the documentation
 * Transformed all geometric elements (like Prism, Polygon, etc) into classes
+* Ported all C extensions to Python + Numpy. This way compiling is not a
+  prerequisite to installing
+* Using `Cython <http://www.cython.org>`_ for optional extension modules. If
+  they exist, they are loaded to replace the Python + Numpy versions. This all
+  happens at runtime.

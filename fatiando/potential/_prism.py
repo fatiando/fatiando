@@ -6,7 +6,7 @@
     implementation. There is also the slightly faster Cython module
     ``fatiando.potentia._cprism``. If it is available, then will substitude
     the Python + Numpy functions with its functions. All input and output are
-    the same but there is a 50% speed increase.
+    the same but there is a 15% speed increase.
     
 """
 import numpy

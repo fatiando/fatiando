@@ -222,7 +222,8 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     pyplot.ylim(ys.min(), ys.max())
     return plot
 
-def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
+def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
+    xy2ne=False):
     """
     Plot a polygon.
 
@@ -242,6 +243,11 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         opaque
     * label : str
         String with the label identifying the polygon in the legend 
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that the x coordinates of the
+        polygon are north. Use this when drawing on a map viewed from above. If
+        the y-axis of the plot is supposed to be z (depth), then use
+        ``xy2ne=False``.
 
     Returns:
 
@@ -249,10 +255,16 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         Line corresponding to the polygon plotted
 
     """
-    tmpx = [x for x in polygon.x]
-    tmpx.append(polygon.x[0])
-    tmpy = [y for y in polygon.y]
-    tmpy.append(polygon.y[0])
+    if xy2ne:
+        tmpx = [y for y in polygon.y]
+        tmpx.append(polygon.y[0])
+        tmpy = [x for x in polygon.x]
+        tmpy.append(polygon.x[0])
+    else:
+        tmpx = [x for x in polygon.x]
+        tmpx.append(polygon.x[0])
+        tmpy = [y for y in polygon.y]
+        tmpy.append(polygon.y[0])
     kwargs = {'linewidth':linewidth}
     if label is not None:
         kwargs['label'] = label
