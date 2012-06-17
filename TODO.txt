@@ -34,6 +34,7 @@ GOALS FOR 0.1:
 * Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
 * Magnetic compact inversion in 2D
+* Add option for scalar visibility in vis.vtk.prisms
 
 URGENT:
 
