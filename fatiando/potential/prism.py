@@ -35,7 +35,9 @@ doi: 10.1007/s001900000116.
 
 """
 
+from fatiando.potential._prism import *
+
 try:
     from fatiando.potential._cprism import *
 except ImportError:
-    from fatiando.potential._prism import *
+    pass

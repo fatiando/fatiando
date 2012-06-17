@@ -15,8 +15,9 @@ applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 
 """
 
+from fatiando.potential._polyprism import *
+
 try:
     from fatiando.potential._cpolyprism import *
 except ImportError:
-    from fatiando.potential._polyprism import *
-
+    pass
