@@ -9,6 +9,10 @@
     the same but there is a 15% speed increase.
     
 """
+
+__all__ = ['pot', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz',
+           'tf']
+
 import numpy
 from numpy import sqrt, log, arctan2
 
