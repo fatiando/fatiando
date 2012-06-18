@@ -23,10 +23,11 @@ for i in range(1, len(depths)):
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-150)
+xp, yp, zp = ft.grd.regular(area, shape, z=-500)
 tensor = [
     ft.pot.polyprism.gxx(xp, yp, zp, prisms),
-    ft.pot.polyprism.gxy(xp, yp, zp, prisms)]
+    ft.pot.polyprism.gxy(xp, yp, zp, prisms),
+    ft.pot.polyprism.gxz(xp, yp, zp, prisms)]
 # and plot it
 titles = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 ft.vis.figure()

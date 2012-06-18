@@ -174,18 +174,23 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     mesh = tvtk.PolyData(points=points, polys=polygons)
     mesh.point_data.scalars = numpy.array(scalars)
     mesh.point_data.scalars.name = label
-    dataset = mlab.pipeline.add_dataset(mesh)
+    # The triangle filter is needed because VTK doesnt seem to handle convex
+    # polygons too well
+    dataset = mlab.pipeline.triangle_filter(mlab.pipeline.add_dataset(mesh))
     if vmin is None:
         vmin = min(scalars)
     if vmax is None:
         vmax = max(scalars)
     surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, colormap=cmap)
+    surf.actor.property.edge_visibility = 0
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
     if style == 'surface':
         surf.actor.property.representation = 'surface'
         if edges:
-            surf.actor.property.edge_visibility = 1
+            edge = mlab.pipeline.surface(mlab.pipeline.add_dataset(mesh))
+            edge.actor.property.representation = 'wireframe'
+            edge.actor.mapper.scalar_visibility = 0
     surf.actor.property.opacity = opacity
     return surf        
 
