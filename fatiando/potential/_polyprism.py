@@ -13,7 +13,7 @@ import numpy
 from numpy import arctan2, log, sqrt, arctan
 
 from fatiando import logger
-from fatiando.constants import SI2MGAL, G
+from fatiando.constants import SI2MGAL, SI2EOTVOS, G
 
 
 def gz(xp, yp, zp, prisms):
@@ -29,13 +29,13 @@ def gz(xp, yp, zp, prisms):
     
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
+    * prisms : listSI2MGAL
         List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
 
     Returns:
     
-    * gz : array
-        The :math:`g_z` component calculated on the computation points.
+    * res : array
+        The effect calculated on the computation points.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -93,3 +93,78 @@ def gz(xp, yp, zp, prisms):
         res = res + kernel*density
     res *= G*SI2MGAL
     return res 
+
+def gxx(xp, yp, zp, prisms):
+    """
+    Calculates the :math:`g_xx` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
+
+    Parameters:
+    
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates of the computation points.
+    * prisms : list
+        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+
+    Returns:
+    
+    * res : array
+        The effect calculated on the computation points.
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    dummy = 10**(-10)
+    res = numpy.zeros(len(xp), dtype='f')
+    for prism in prisms:
+        if prism is None or 'density' not in prism.props:
+            continue
+        density = prism.props['density']
+        nverts = prism.nverts
+        x, y = prism.x, prism.y
+        z1, z2 = prism.z1, prism.z2
+        # Calculate the effect of the prism
+        Z1 = z1 - zp
+        Z2 = z2 - zp
+        for k in range(nverts):
+            res += density*_integral_v1(x[k] - xp, x[(k + 1)%nverts] - xp,
+                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+    res *= G*SI2EOTVOS
+    return res
+                    
+def _integral_v1(x1, x2, y1, y2, z1, z2):
+    """
+    Calculates the first element of the V matrix (gxx components)
+    """    
+    dummy = 10.**(-10) # Used to avoid singularities
+    dx = x2 - x1
+    dy = y2 - y1
+    dr = sqrt(dx**2 + dy**2)
+    z1_sqr = z1**2
+    z2_sqr = z2**2
+    n = dx/(dy + dummy)
+    g = x1 - y1*n
+    p = (x1*y2 - x2*y1)/(dr + dummy)    
+    
+    r2_sqr = x2**2 + y2**2
+    R21 = sqrt(r2_sqr + z1_sqr)
+    R22 = sqrt(r2_sqr + z2_sqr)
+    d2 = (dx*x2 + dy*y2)/(dr + dummy)
+    aux = arctan2(z2*d2, p*R22) - arctan2(z1*d2, p*R21)
+    res = g*y2*aux/(p*d2 + dummy) + n*p*aux/(d2 + dummy)
+    
+    r1_sqr = x1**2 + y1**2
+    R11 = sqrt(r1_sqr + z1_sqr)
+    R12 = sqrt(r1_sqr + z2_sqr)
+    d1 = dx*x1 + dy*y1/(dr + dummy)
+    aux = arctan2(z2*d1, p*R12) - arctan2(z1*d1, p*R11)
+    res -= g*y1*aux/(p*d1 + dummy) + n*p*aux/(d1 + dummy)
+    
+    res += n*(log(z2 + R12 + dummy) - log(z1 + R11 + dummy)
+           - log(z2 + R22 + dummy) + log(z1 + R21 + dummy))
+    res *= -(1.0/(1.0 + n*n + dummy))
+    return res

@@ -1,5 +1,5 @@
 """
-Create synthetic gravity data from a 3D model of polygonal prisms.
+Create synthetic gradient tensor data from a 3D model of polygonal prisms.
 """
 import fatiando as ft
 
@@ -10,7 +10,7 @@ log.info(__doc__)
 log.info("Draw the polygons one by one")
 bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
-depths = [0, 1000, 2000, 3000, 4000]
+depths = [0, 1000]
 prisms = []
 for i in range(1, len(depths)): 
     axes = ft.vis.figure().gca()
@@ -23,8 +23,8 @@ for i in range(1, len(depths)):
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-1)
-gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)
+xp, yp, zp = ft.grd.regular(area, shape, z=-550)
+gz = ft.pot.polyprism.gxx(xp, yp, zp, prisms)
 # and plot it
 ft.vis.figure()
 ft.vis.axis('scaled')
