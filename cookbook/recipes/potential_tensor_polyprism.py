@@ -23,17 +23,24 @@ for i in range(1, len(depths)):
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-550)
-gz = ft.pot.polyprism.gxx(xp, yp, zp, prisms)
+xp, yp, zp = ft.grd.regular(area, shape, z=-150)
+tensor = [
+    ft.pot.polyprism.gxx(xp, yp, zp, prisms),
+    ft.pot.polyprism.gxy(xp, yp, zp, prisms)]
 # and plot it
+titles = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.title("gz produced by prism model (mGal)")
-ft.vis.contourf(yp, xp, gz, shape, 20)
-ft.vis.colorbar()
-for p in prisms:
-    ft.vis.polygon(p, '.-k', xy2ne=True)
-ft.vis.set_area(area)
+ft.vis.suptitle("Gravity tensor produced by prism model (Eotvos)")
+for i in xrange(len(tensor)):
+    ft.vis.subplot(3, 3, i + 1)
+    ft.vis.title(titles[i])
+    ft.vis.contourf(yp, xp, tensor[i], shape, 20)
+    ft.vis.colorbar()
+    for p in prisms:
+        ft.vis.polygon(p, '.-k', xy2ne=True)
+    ft.vis.set_area(area)
+    ft.vis.m2km()
 ft.vis.show()
 # Show the prisms
 ft.vis.figure3d()

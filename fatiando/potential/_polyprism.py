@@ -135,36 +135,154 @@ def gxx(xp, yp, zp, prisms):
                 y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
     res *= G*SI2EOTVOS
     return res
+    return res 
+
+def gxy(xp, yp, zp, prisms):
+    """
+    Calculates the :math:`g_xy` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
+
+    Parameters:
+    
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates of the computation points.
+    * prisms : list
+        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+
+    Returns:
+    
+    * res : array
+        The effect calculated on the computation points.
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    dummy = 10**(-10)
+    res = numpy.zeros(len(xp), dtype='f')
+    for prism in prisms:
+        if prism is None or 'density' not in prism.props:
+            continue
+        density = prism.props['density']
+        nverts = prism.nverts
+        x, y = prism.x, prism.y
+        z1, z2 = prism.z1, prism.z2
+        # Calculate the effect of the prism
+        Z1 = z1 - zp
+        Z2 = z2 - zp
+        for k in range(nverts):
+            res += density*_integral_v2(x[k] - xp, x[(k + 1)%nverts] - xp,
+                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+    res *= G*SI2EOTVOS
+    return res
                     
-def _integral_v1(x1, x2, y1, y2, z1, z2):
+def _integral_v1(X1, X2, Y1, Y2, Z1, Z2):
     """
     Calculates the first element of the V matrix (gxx components)
     """    
+    dummy = 10.**(-10) # Used to avoid singularities    
+    aux0 = X2 - X1 + dummy
+    aux1 = Y2 - Y1 + dummy
+    n = (aux0/aux1)
+    g = X1 - (Y1*n)
+    m = (aux1/aux0)
+    c = Y1 - (X1*m)
+    aux2 = sqrt((aux0*aux0) + (aux1*aux1))
+    aux3 = (X1*Y2) - (X2*Y1)
+    p = ((aux3/aux2)) + dummy
+    aux4 = (aux0*X1) + (aux1*Y1)
+    aux5 = (aux0*X2) + (aux1*Y2)
+    d1 = ((aux4/aux2)) + dummy
+    d2 = ((aux5/aux2)) + dummy
+    aux6 = (X1*X1) + (Y1*Y1)
+    aux7 = (X2*X2) + (Y2*Y2)
+    aux8 = Z1*Z1
+    aux9 = Z2*Z2
+    R11 = sqrt(aux6 + aux8)
+    R12 = sqrt(aux6 + aux9)
+    R21 = sqrt(aux7 + aux8)
+    R22 = sqrt(aux7 + aux9)
+    aux10 = arctan2((Z2*d2), (p*R22))
+    aux11 = arctan2((Z1*d2), (p*R21))
+    aux12 = aux10 - aux11
+    aux13 = (aux12/(p*d2))
+    aux14 = ((p*aux12)/d2)
+    
+    res = (g*Y2*aux13) + (n*aux14)
+    
+    aux10 = arctan2((Z2*d1), (p*R12))
+    aux11 = arctan2((Z1*d1), (p*R11))
+    aux12 = aux10 - aux11
+    aux13 = (aux12/(p*d1))
+    aux14 = ((p*aux12)/d1)
+    
+    res -= (g*Y1*aux13) + (n*aux14)
+    
+    aux10 = log(((Z2 + R22) + dummy))
+    aux11 = log(((Z1 + R21) + dummy))
+    aux12 = log(((Z2 + R12) + dummy))
+    aux13 = log(((Z1 + R11) + dummy))
+    aux14 = aux10 - aux11
+    aux15 = aux12 - aux13
+    
+    res += (n*(aux15 - aux14))
+    aux0 = (1.0/(1.0 + (n*n)))
+    res *= -aux0
+    return res
+                        
+def _integral_v2(X1, X2, Y1, Y2, Z1, Z2):
+    """
+    Calculates the second element of the V matrix (gxy components)
+    """    
     dummy = 10.**(-10) # Used to avoid singularities
-    dx = x2 - x1
-    dy = y2 - y1
-    dr = sqrt(dx**2 + dy**2)
-    z1_sqr = z1**2
-    z2_sqr = z2**2
-    n = dx/(dy + dummy)
-    g = x1 - y1*n
-    p = (x1*y2 - x2*y1)/(dr + dummy)    
+    aux0 = X2 - X1 + dummy
+    aux1 = Y2 - Y1 + dummy
+    n = (aux0/aux1)
+    g = X1 - (Y1*n)
+    m = (aux1/aux0)
+    c = Y1 - (X1*m)
+    aux2 = sqrt((aux0*aux0) + (aux1*aux1))
+    aux3 = (X1*Y2) - (X2*Y1)
+    p = ((aux3/aux2)) + dummy
+    aux4 = (aux0*X1) + (aux1*Y1)
+    aux5 = (aux0*X2) + (aux1*Y2)
+    d1 = ((aux4/aux2)) + dummy
+    d2 = ((aux5/aux2)) + dummy
+    aux6 = (X1*X1) + (Y1*Y1)
+    aux7 = (X2*X2) + (Y2*Y2)
+    aux8 = Z1*Z1
+    aux9 = Z2*Z2
+    R11 = sqrt(aux6 + aux8)
+    R12 = sqrt(aux6 + aux9)
+    R21 = sqrt(aux7 + aux8)
+    R22 = sqrt(aux7 + aux9)
+    aux10 = arctan2((Z2*d2), (p*R22))
+    aux11 = arctan2((Z1*d2), (p*R21))
+    aux12 = aux10 - aux11
+    aux13 = (aux12/(p*d2))
+    aux14 = ((p*aux12)/d2)
     
-    r2_sqr = x2**2 + y2**2
-    R21 = sqrt(r2_sqr + z1_sqr)
-    R22 = sqrt(r2_sqr + z2_sqr)
-    d2 = (dx*x2 + dy*y2)/(dr + dummy)
-    aux = arctan2(z2*d2, p*R22) - arctan2(z1*d2, p*R21)
-    res = g*y2*aux/(p*d2 + dummy) + n*p*aux/(d2 + dummy)
+    res = (((g*g) + (g*n*Y2))*aux13) - aux14
     
-    r1_sqr = x1**2 + y1**2
-    R11 = sqrt(r1_sqr + z1_sqr)
-    R12 = sqrt(r1_sqr + z2_sqr)
-    d1 = dx*x1 + dy*y1/(dr + dummy)
-    aux = arctan2(z2*d1, p*R12) - arctan2(z1*d1, p*R11)
-    res -= g*y1*aux/(p*d1 + dummy) + n*p*aux/(d1 + dummy)
+    aux10 = arctan2((Z2*d1), (p*R12))
+    aux11 = arctan2((Z1*d1), (p*R11))
+    aux12 = aux10 - aux11
+    aux13 = (aux12/(p*d1))
+    aux14 = ((p*aux12)/d1)
     
-    res += n*(log(z2 + R12 + dummy) - log(z1 + R11 + dummy)
-           - log(z2 + R22 + dummy) + log(z1 + R21 + dummy))
-    res *= -(1.0/(1.0 + n*n + dummy))
+    res -= (((g*g) + (g*n*Y1))*aux13) - aux14
+    
+    aux10 = log(((Z2 + R22) + dummy))
+    aux11 = log(((Z1 + R21) + dummy))
+    aux12 = log(((Z2 + R12) + dummy))
+    aux13 = log(((Z1 + R11) + dummy))
+    aux14 = aux10 - aux11
+    aux15 = aux12 - aux13
+    
+    res += (aux14 - aux15)
+    aux0 = (1.0/(1.0 + (n*n)))
+    res *= aux0
     return res

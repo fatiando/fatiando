@@ -154,13 +154,13 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         points.extend(
             reversed(numpy.transpose([x, y, prism.z1*numpy.ones_like(x)])))
         polygons.append(range(offset, offset + nverts))
-        scalars.extend(scalar*numpy.ones(nverts ))
+        scalars.extend(scalar*numpy.ones(nverts))
         offset += nverts
         # The bottom surface    
         points.extend(
             reversed(numpy.transpose([x, y, prism.z2*numpy.ones_like(x)])))
         polygons.append(range(offset, offset + nverts))
-        scalars.extend(scalar*numpy.ones(nverts ))
+        scalars.extend(scalar*numpy.ones(nverts))
         offset += nverts
         # The sides
         for i in xrange(nverts):

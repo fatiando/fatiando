@@ -24,6 +24,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 **Auxiliary**
 
 * :func:`~fatiando.vis.map.set_area`
+* :func:`~fatiando.vis.map.m2km`
 
 ----
    
@@ -35,9 +36,27 @@ from matplotlib import pyplot
 from fatiando import gridder, logger
 
 __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
-           'squaremesh', 'polygon', 'layers', 'set_area']
+           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km']
 
 log = logger.dummy('fatiando.vis.map')
+
+def m2km(axis=None):
+    """
+    Convert the x and y tick labels from meters to kilometers.
+
+    Parameters:
+
+    * axis : matplotlib axis instance
+        The plot.
+
+    .. tip:: Use ``fatiando.vis.gca()`` to get the current axis. Or the value
+        returned by ``fatiando.vis.subplot`` or ``matplotlib.pyplot.subplot``.
+        
+    """
+    if axis is None:
+        axis = pyplot.gca()
+    axis.set_xticklabels([str(0.001*l) for l in axis.get_xticks()])
+    axis.set_yticklabels([str(0.001*l) for l in axis.get_yticks()])    
 
 def set_area(area):
     """
