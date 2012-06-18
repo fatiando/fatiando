@@ -10,17 +10,12 @@ log.info(__doc__)
 log.info("Draw the polygons one by one")
 bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
-depths = [0, 1000]
-prisms = []
-for i in range(1, len(depths)):
-    axes = ft.vis.figure().gca()
-    ft.vis.axis('scaled')
-    for p in prisms:
-        ft.vis.polygon(p, '.-k', xy2ne=True)
-    prisms.append(
-        ft.msh.ddd.PolygonalPrism(
-            ft.ui.picker.draw_polygon(area, axes, xy2ne=True),
-            depths[i - 1], depths[i], {'density':500}))
+axis = ft.vis.figure().gca()
+ft.vis.axis('scaled')
+prisms = [
+    ft.msh.ddd.PolygonalPrism(
+        ft.ui.picker.draw_polygon(area, axis, xy2ne=True),
+        0, 1000, {'density':500})]
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = ft.grd.regular(area, shape, z=-500)
@@ -50,4 +45,6 @@ ft.vis.show()
 ft.vis.figure3d()
 ft.vis.polyprisms(prisms, 'density')
 ft.vis.axes3d(ft.vis.outline3d(bounds), ranges=[i*0.001 for i in bounds])
+ft.vis.wall_north(bounds)
+ft.vis.wall_bottom(bounds)
 ft.vis.show3d()

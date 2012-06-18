@@ -1,5 +1,5 @@
 """
-Create synthetic gravity data from a 3D model of polygonal prisms.
+Create synthetic gravity data from a stack of 3D polygonal prisms.
 """
 import fatiando as ft
 
@@ -12,7 +12,7 @@ bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
 depths = [0, 1000, 2000, 3000, 4000]
 prisms = []
-for i in range(1, len(depths)): 
+for i in range(1, len(depths)):
     axes = ft.vis.figure().gca()
     ft.vis.axis('scaled')
     for p in prisms:
