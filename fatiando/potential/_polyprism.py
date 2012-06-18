@@ -9,28 +9,104 @@
     input and output are the same but there is a slight speed increase.
 
 """
+__all__ = ['tf', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 import numpy
 from numpy import arctan2, log, sqrt, arctan
 
-from fatiando import logger
-from fatiando.constants import SI2MGAL, SI2EOTVOS, G
+from fatiando import utils
+from fatiando.constants import SI2MGAL, SI2EOTVOS, G, CM, T2NT
 
+
+def tf(xp, yp, zp, prisms, inc, dec):
+    """
+    Calculate the total-field anomaly of polygonal prisms.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the total field anomaly.
+        Prisms must have the physical property ``'magnetization'`` will be
+        ignored. If the physical properties ``'inclination'`` and
+        ``'declination'`` are not present, will use the values of *inc* and
+        *dec* instead (regional field).
+    * inc : float
+        The inclination of the regional field (in degrees)
+    * dec : float
+        The declination of the regional field (in degrees)
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    # Calculate the 3 components of the unit vector in the direction of the
+    # regional field
+    fx, fy, fz = utils.dircos(inc, dec)
+    res = numpy.zeros(len(xp), dtype='f')
+    for prism in prisms:
+        if prism is None or 'magnetization' not in prism.props:
+            continue
+        magnetization = prism.props['magnetization']
+        nverts = prism.nverts
+        x, y = prism.x, prism.y
+        z1, z2 = prism.z1, prism.z2
+        # Get the 3 components of the unit vector in the direction of the
+        # magnetization from the inclination and declination
+        # 1) given by the prism
+        if 'inclination' in prism.props and 'declination' in prism.props:
+            mx, my, mz = utils.dircos(prism.props['inclination'],
+                                      prism.props['declination'])
+        # 2) Use in the direction of the regional field
+        else:
+            mx, my, mz = fx, fy, fz
+        # Now calculate the total field anomaly
+        Z1 = z1 - zp
+        Z2 = z2 - zp
+        for k in range(nverts):
+            X1 = x[k] - xp
+            Y1 = y[k] - yp
+            X2 = x[(k + 1)%nverts] - xp
+            Y2 = y[(k + 1)%nverts] - yp
+            v1 = _integral_v1(X1, X2, Y1, Y2, Z1, Z2)
+            v2 = _integral_v2(X1, X2, Y1, Y2, Z1, Z2)
+            v3 = _integral_v3(X1, X2, Y1, Y2, Z1, Z2)
+            v4 = _integral_v4(X1, X2, Y1, Y2, Z1, Z2)
+            v5 = _integral_v5(X1, X2, Y1, Y2, Z1, Z2)
+            v6 = _integral_v6(X1, X2, Y1, Y2, Z1, Z2)
+            res += magnetization*(
+                      mx*(v1*fx + v2*fy + v3*fz)
+                    + my*(v2*fx + v4*fy + v5*fz)
+                    + mz*(v3*fx + v5*fy + v6*fz))
+    res *= CM*T2NT
+    return res
 
 def gz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_z` gravity acceleration component.
+    Calculates the :math:`g_{z}` gravity acceleration component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in mGal!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : listSI2MGAL
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -96,19 +172,21 @@ def gz(xp, yp, zp, prisms):
 
 def gxx(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_xx` gravity gradient tensor component.
+    Calculates the :math:`g_{xx}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -118,7 +196,6 @@ def gxx(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -135,23 +212,24 @@ def gxx(xp, yp, zp, prisms):
                 y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
     res *= G*SI2EOTVOS
     return res
-    return res
 
 def gxy(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_xy` gravity gradient tensor component.
+    Calculates the :math:`g_{xy}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -161,7 +239,6 @@ def gxy(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -181,19 +258,21 @@ def gxy(xp, yp, zp, prisms):
 
 def gxz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_xz` gravity gradient tensor component.
+    Calculates the :math:`g_{xz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -203,7 +282,6 @@ def gxz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -223,19 +301,21 @@ def gxz(xp, yp, zp, prisms):
 
 def gyy(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_yy` gravity gradient tensor component.
+    Calculates the :math:`g_{yy}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -245,7 +325,6 @@ def gyy(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -265,19 +344,21 @@ def gyy(xp, yp, zp, prisms):
 
 def gyz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_yz` gravity gradient tensor component.
+    Calculates the :math:`g_{yz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -287,7 +368,6 @@ def gyz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -307,19 +387,21 @@ def gyz(xp, yp, zp, prisms):
 
 def gzz(xp, yp, zp, prisms):
     """
-    Calculates the :math:`g_zz` gravity gradient tensor component.
+    Calculates the :math:`g_{zz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list
-        List of :class:`fatiando.mesher.ddd.PolygonalPrism` objects.
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The model used to calculate the field.
+        Prisms must have the physical property ``'density'`` will be
+        ignored.
 
     Returns:
 
@@ -329,7 +411,6 @@ def gzz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or 'density' not in prism.props:

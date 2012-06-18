@@ -28,7 +28,6 @@ GOALS FOR 0.1:
 * Make basin2d spit out Polygons, not estimate vectors
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
-* Port polyprism tensor components to fatiando
 * Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
 * Magnetic compact inversion in 2D
@@ -82,7 +81,7 @@ TO-IMPLEMENT:
 * Make a PrismMesh.get_index(i) method that converts index i in raveled array to
   i, j, k 3D index
 * potential.terrain for terrain corrections (automatically find the best density)
-* utils.pickle and utils.upickle to automate pickling 
+* utils.pickle and utils.upickle to automate pickling
 
 IDEAS:
 
@@ -107,4 +106,4 @@ HARVESTER:
 * Replace hand setting of physical properties of a prism with an actual addprop function
 * Initial goal is actually initial misfit. so change goal for
 * Make harvest dump a list of prisms
-    
+

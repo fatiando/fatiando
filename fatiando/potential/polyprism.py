@@ -1,10 +1,24 @@
 """
-Calculate the potential fields and derivatives of the 3D prism with polygonal
-crossection using the forumla of Plouff (1976).
+Calculate the potential fields of the 3D prism with polygonal crossection using
+the formula of Plouff (1976).
 
 **Gravity**
 
+First and second derivatives of the gravitational potential:
+
 * :func:`~fatiando.potential._polyprism.gz`
+* :func:`~fatiando.potential._polyprism.gxx`
+* :func:`~fatiando.potential._polyprism.gxy`
+* :func:`~fatiando.potential._polyprism.gxz`
+* :func:`~fatiando.potential._polyprism.gyy`
+* :func:`~fatiando.potential._polyprism.gyz`
+* :func:`~fatiando.potential._polyprism.gzz`
+
+**Magnetic**
+
+The Total Field magnetic anomaly:
+
+* :func:`~fatiando.potential._polyprism.tf`
 
 **References**
 

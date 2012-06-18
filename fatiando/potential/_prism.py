@@ -7,7 +7,7 @@
     ``fatiando.potentia._cprism``. If it is available, then will substitude
     the Python + Numpy functions with its functions. All input and output are
     the same but there is a 15% speed increase.
-    
+
 """
 
 __all__ = ['pot', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz',
@@ -30,7 +30,7 @@ def pot(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -44,10 +44,10 @@ def pot(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -67,7 +67,7 @@ def pot(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -80,7 +80,7 @@ def pot(xp, yp, zp, prisms, dens=None):
                               - 0.5*z[k]*z[k]*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to mGal units 
+    # convert it to mGal units
     res *= G
     return res
 
@@ -94,7 +94,7 @@ def gx(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -108,10 +108,10 @@ def gx(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -131,7 +131,7 @@ def gx(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -143,7 +143,7 @@ def gx(xp, yp, zp, prisms, dens=None):
                                - x[i]*arctan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to mGal units 
+    # convert it to mGal units
     res *= G*SI2MGAL
     return res
 
@@ -157,7 +157,7 @@ def gy(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -171,10 +171,10 @@ def gy(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -194,7 +194,7 @@ def gy(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -206,7 +206,7 @@ def gy(xp, yp, zp, prisms, dens=None):
                                - y[j]*arctan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to mGal units 
+    # convert it to mGal units
     res *= G*SI2MGAL
     return res
 
@@ -220,7 +220,7 @@ def gz(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -234,10 +234,10 @@ def gz(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -257,7 +257,7 @@ def gz(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -269,7 +269,7 @@ def gz(xp, yp, zp, prisms, dens=None):
                                - z[k]*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to mGal units 
+    # convert it to mGal units
     res *= G*SI2MGAL
     return res
 
@@ -283,7 +283,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -297,10 +297,10 @@ def gxx(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -320,7 +320,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -328,7 +328,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
                     kernel = -arctan2(z[k]*y[j], x[i]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -342,7 +342,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -356,10 +356,10 @@ def gxy(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -379,7 +379,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -387,7 +387,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
                     kernel = log(z[k] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -401,7 +401,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -415,10 +415,10 @@ def gxz(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -438,7 +438,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -446,7 +446,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
                     kernel = log(y[j] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -460,7 +460,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -474,10 +474,10 @@ def gyy(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -497,7 +497,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -505,7 +505,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
                     kernel = -arctan2(z[k]*x[i], y[j]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -519,7 +519,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -533,10 +533,10 @@ def gyz(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -556,7 +556,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -564,7 +564,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
                     kernel = log(x[i] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -578,7 +578,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
@@ -592,10 +592,10 @@ def gzz(xp, yp, zp, prisms, dens=None):
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
         .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.        
+            have ``'density'`` as a property.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -615,7 +615,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
         x = [prism.x2 - xp, prism.x1 - xp]
         y = [prism.y2 - yp, prism.y1 - yp]
         z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits 
+        # Evaluate the integration limits
         for k in range(2):
             for j in range(2):
                 for i in range(2):
@@ -623,7 +623,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
                     kernel = -arctan2(x[i]*y[j], z[k]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to Eotvos units 
+    # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
 
@@ -637,15 +637,15 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         y -> East and z -> Down.
 
     Parameters:
-    
+
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.ddd.Prism`
         The model used to calculate the total field anomaly.
-        Prisms must have the properties ``'magnetization'``,
-        ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
+        Prisms must have the physical property ``'magnetization'`` will be
+        ignored. If the physical properties ``'inclination'`` and
         ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead. Those without ``'magnetization'`` will be ignored.
+        *dec* instead (regional field).
         *prisms* can also be a :class:`~fatiando.mesher.ddd.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
@@ -662,7 +662,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         property of the prisms. Use this, e.g., for sensitivity matrix building.
 
     Returns:
-    
+
     * res : array
         The field calculated on xp, yp, zp
 
@@ -699,7 +699,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         else:
             mx, my, mz = fx, fy, fz
         # Now calculate the total field anomaly
-        for k in range(2):                   
+        for k in range(2):
             magnetization *= -1
             z_sqr = z[k]**2
             for j in range(2):

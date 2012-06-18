@@ -33,3 +33,5 @@ Changes in v0.1
   :ref:`potential.prism <potential.prism>`
 * Added vis.vtk.savefig3d to save a Mayavi scene
 * Added a 3D plotter function for PolygonalPrism
+* Added gravity gradient tensor components and magnetic total field anomaly to
+  :ref:`potential.polyprism <potential.polyprism>`
