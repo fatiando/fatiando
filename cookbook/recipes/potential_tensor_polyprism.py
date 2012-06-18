@@ -12,7 +12,7 @@ bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
 depths = [0, 1000]
 prisms = []
-for i in range(1, len(depths)): 
+for i in range(1, len(depths)):
     axes = ft.vis.figure().gca()
     ft.vis.axis('scaled')
     for p in prisms:
@@ -27,14 +27,17 @@ xp, yp, zp = ft.grd.regular(area, shape, z=-500)
 tensor = [
     ft.pot.polyprism.gxx(xp, yp, zp, prisms),
     ft.pot.polyprism.gxy(xp, yp, zp, prisms),
-    ft.pot.polyprism.gxz(xp, yp, zp, prisms)]
+    ft.pot.polyprism.gxz(xp, yp, zp, prisms),
+    ft.pot.polyprism.gyy(xp, yp, zp, prisms),
+    ft.pot.polyprism.gyz(xp, yp, zp, prisms),
+    ft.pot.polyprism.gzz(xp, yp, zp, prisms)]
 # and plot it
 titles = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 ft.vis.figure()
 ft.vis.axis('scaled')
 ft.vis.suptitle("Gravity tensor produced by prism model (Eotvos)")
 for i in xrange(len(tensor)):
-    ft.vis.subplot(3, 3, i + 1)
+    ft.vis.subplot(3, 2, i + 1)
     ft.vis.title(titles[i])
     ft.vis.contourf(yp, xp, tensor[i], shape, 20)
     ft.vis.colorbar()
