@@ -31,3 +31,5 @@ Changes in v0.1
   :ref:`fatiando.constants <constants>`
 * Added magnetic total field anomaly function to
   :ref:`potential.prism <potential.prism>`
+* Added vis.vtk.savefig3d to save a Mayavi scene
+* Added a 3D plotter function for PolygonalPrism

@@ -5,10 +5,12 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 **Objects**
 
 * :func:`~fatiando.vis.vtk.prisms`
+* :func:`~fatiando.vis.vtk.polyprisms`
 
 **Helpers**
 
 * :func:`~fatiando.vis.vtk.show3d`
+* :func:`~fatiando.vis.vtk.savefig3d`
 * :func:`~fatiando.vis.vtk.figure3d`
 * :func:`~fatiando.vis.vtk.outline3d`
 * :func:`~fatiando.vis.vtk.axes3d`
@@ -28,7 +30,8 @@ import numpy
 from fatiando import logger
 
 __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
-           'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom']
+           'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
+           'savefig3d', 'polyprisms']
 
 log = logger.dummy('fatiando.vis.vtk')
         
@@ -61,6 +64,25 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
+def savefig3d(fname, magnification=None):
+    """
+    Save a snapshot the current Mayavi figure to a file.
+
+    Parameters:
+
+    * fname : str
+        The name of the file. The format is deduced from the extension.
+    * magnification : int or None
+        If not None, then the scaling between the pixels on the screen, and the
+        pixels in the file saved.
+        
+    """
+    _lazy_import_mlab()
+    if magnification is None:
+        mlab.savefig(fname)
+    else:
+        mlab.savefig(fname, magnification=magnification)
+
 def show3d():
     """
     Show the 3D plot of Mayavi2.
@@ -70,8 +92,105 @@ def show3d():
     _lazy_import_mlab()
     mlab.show()
 
-def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
-    vmax=None, cmap='blue-red'):
+def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
+    vmin=None, vmax=None, cmap='blue-red'):
+    """
+    Plot a list of 3D polygonal prisms using Mayavi2.
+    
+    Will not plot a value None in *prisms*.
+
+    Parameters:
+    
+    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+        The prisms
+    * prop : str or None
+        The physical property of the prisms to use as the color scale. If a
+        prism doesn't have *prop*, or if it is None, then it will not be plotted
+    * style : str
+        Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
+        contour
+    * opacity : float
+        Decimal percentage of opacity
+    * edges : True or False
+        Wether or not to display the edges of the prisms in black lines. Will
+        ignore this if ``style='wireframe'``
+    * vmin, vmax : float
+        Min and max values for the color scale. If *None* will default to
+        the min and max of *prop* in the prisms.
+    * cmap : Mayavi colormap
+        Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
+        for valid color maps.
+        
+    Returns:
+    
+    * surface
+        the last element on the pipeline
+    
+    """
+    if style not in ['surface', 'wireframe']:
+        raise ValueError, "Invalid style '%s'" % (style)
+    if opacity > 1. or opacity < 0:
+        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
+        raise ValueError, msg
+    # mlab and tvtk are really slow to import
+    _lazy_import_mlab()
+    _lazy_import_tvtk()
+
+    if prop is None:
+        label = 'scalar'
+    else:
+        label = prop
+    points = []
+    polygons = []
+    scalars = []
+    offset = 0
+    for prism in prisms:
+        if prism is None or (prop is not None and prop not in prism.props):
+            continue        
+        x, y = prism.x, prism.y
+        nverts = prism.nverts
+        scalar = prism.props[prop]
+        # The top surface
+        points.extend(
+            reversed(numpy.transpose([x, y, prism.z1*numpy.ones_like(x)])))
+        polygons.append(range(offset, offset + nverts))
+        scalars.extend(scalar*numpy.ones(nverts ))
+        offset += nverts
+        # The bottom surface    
+        points.extend(
+            reversed(numpy.transpose([x, y, prism.z2*numpy.ones_like(x)])))
+        polygons.append(range(offset, offset + nverts))
+        scalars.extend(scalar*numpy.ones(nverts ))
+        offset += nverts
+        # The sides
+        for i in xrange(nverts):
+            x1, y1 = x[i], y[i]
+            x2, y2 = x[(i + 1)%nverts], y[(i + 1)%nverts]
+            points.extend([[x1, y1, prism.z1], [x2, y2, prism.z1],
+                           [x2, y2, prism.z2], [x1, y1, prism.z2]])
+            polygons.append(range(offset, offset + 4))
+            scalars.extend(scalar*numpy.ones(4))
+            offset += 4
+    mesh = tvtk.PolyData(points=points, polys=polygons)
+    mesh.point_data.scalars = numpy.array(scalars)
+    mesh.point_data.scalars.name = label
+    dataset = mlab.pipeline.add_dataset(mesh)
+    if vmin is None:
+        vmin = min(scalars)
+    if vmax is None:
+        vmax = max(scalars)
+    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, colormap=cmap)
+    if style == 'wireframe':
+        surf.actor.property.representation = 'wireframe'
+    if style == 'surface':
+        surf.actor.property.representation = 'surface'
+        if edges:
+            surf.actor.property.edge_visibility = 1
+    surf.actor.property.opacity = opacity
+    return surf        
+
+def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
+    vmin=None, vmax=None, cmap='blue-red'):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -79,8 +198,8 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True, vmin=None,
 
     Parameters:
     
-    * prisms : list
-        Prisms (see :class:`~fatiando.mesher.ddd.Prism`)
+    * prisms : list of :class:`fatiando.mesher.ddd.Prism`
+        The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
         prism doesn't have *prop*, or if it is None, then it will not be plotted

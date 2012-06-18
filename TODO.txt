@@ -18,7 +18,6 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
-* Add vis.vtk.savefig3d to save a Mayavi scene
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Rename utils.comtaminate to contam
@@ -30,17 +29,16 @@ GOALS FOR 0.1:
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
 * Port polyprism tensor components to fatiando
-* Make a plotter for PolygonalPrism
 * Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
 * Magnetic compact inversion in 2D
-* Add option for scalar visibility in vis.vtk.prisms
 
 URGENT:
 
 
 TODO:
 
+* Add option for scalar visibility in vis.vtk.prisms
 * Add data custom data weights to harvester data modules
 * Sparse Jacobian computation in SrTomo still too slow (much slower than dense
   version)
