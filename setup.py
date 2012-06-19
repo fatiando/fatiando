@@ -41,11 +41,19 @@ LICENSE = 'BSD License'
 URL = "http://www.fatiando.org/software/fatiando"
 PLATFORMS = "Any"
 SCRIPTS = ['scripts/harvester']
-CLASSIFIERS = ["Intended Audience :: Science/Research",
+CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
+               "Intended Audience :: Science/Research",
                "Intended Audience :: Developers",
                "Intended Audience :: Education",
-               "Programming Language :: Python",
-               "Topic :: Scientific/Engineering"]
+               "Topic :: Scientific/Engineering",
+               "Topic :: Software Development :: Libraries",
+               "Environment :: Console",
+               "Programming Language :: Python :: 2.7",
+               "Programming Language :: Cython",
+               "License :: OSI Approved :: BSD License",
+               "Development Status :: 3 - Alpha",
+               "Natural Language :: English",
+               ]
 
 def setrevison():
     # Check if the script is building/packaging or if this is a src dist
