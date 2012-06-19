@@ -1,37 +1,48 @@
 """
-Example of inverting synthetic gz data from a single prism using harvester
+Example of inverting synthetic gz data from a complex source using harvester
 """
 import fatiando as ft
+import numpy
 
 log = ft.log.get()
 log.info(ft.log.header())
 
 # Create a synthetic model
-model = [ft.msh.ddd.Prism(250, 750, 250, 750, 200, 700, {'density':1000})]
+bounds = [-10000, 10000, -10000, 10000, 0, 10000]
+vertices = [[-4948.97959184, -6714.64019851],
+           [-2448.97959184, -3141.43920596],
+           [ 2448.97959184,   312.65508685],
+           [ 6938.7755102 ,  5394.54094293],
+           [ 4846.93877551,  6228.28784119],
+           [ 2653.06122449,  3409.4292804 ],
+           [-3520.40816327, -1434.24317618],
+           [-6632.65306122, -6079.4044665 ]]
+model = [ft.msh.ddd.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
-bounds = [0, 1000, 0, 1000, 0, 1000]
 area = bounds[0:4]
 xp, yp, zp = ft.grd.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
-gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, model), noise)
-# plot the data
+gz = ft.utils.contaminate(ft.pot.polyprism.gz(xp, yp, zp, model), noise)
+# Plot the data and pick the seeds
 ft.vis.figure()
-ft.vis.title("Synthetic gravity anomaly (mGal)")
+ft.vis.suptitle("Pick the seeds (polygon is the true source)")
 ft.vis.axis('scaled')
 levels = ft.vis.contourf(yp, xp, gz, shape, 12)
 ft.vis.colorbar()
+ft.vis.polygon(model[0], xy2ne=True)
 ft.vis.xlabel('Horizontal coordinate y (km)')
 ft.vis.ylabel('Horizontal coordinate x (km)')
-ft.vis.m2km()
+seedx, seedy = ft.ui.picker.points(area, ft.vis.gca(), xy2ne=True).T
+spoints = numpy.transpose([seedx, seedy, 2500*numpy.ones_like(seedx)])
 ft.vis.show()
 # Create a mesh
-mesh = ft.msh.ddd.PrismMesh(bounds, (25, 25, 25))
+mesh = ft.msh.ddd.PrismMesh(bounds, (50, 50, 50))
 # Make the data modules
 dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Make the seed and set the compactness regularizing parameter mu
-seeds = ft.pot.harvester.sow([[500, 500, 450]], {'density':[1000]},
-    mesh, mu=0.01, delta=0.0001)
+seeds = ft.pot.harvester.sow(spoints, {'density':[1000]*len(spoints)},
+    mesh, mu=0.1, delta=0.0001)
 # Run the inversion
 estimate, goals, misfits = ft.pot.harvester.harvest(dms, seeds)
 # Put the estimated density values in the mesh
@@ -39,7 +50,7 @@ mesh.addprop('density', estimate['density'])
 # Plot the adjustment and the result
 predicted = dms[0].get_predicted()
 ft.vis.figure()
-ft.vis.title("True: color | Inversion: contour")
+ft.vis.title("True: color | Predicted: contour")
 ft.vis.axis('scaled')
 levels = ft.vis.contourf(yp, xp, gz, shape, 12)
 ft.vis.colorbar()
@@ -50,7 +61,7 @@ ft.vis.m2km()
 ft.vis.show()
 # Plot the result
 ft.vis.figure3d()
-ft.vis.prisms(model, 'density', style='wireframe')
+ft.vis.polyprisms(model, 'density', opacity=0.6)
 ft.vis.prisms(ft.msh.ddd.vremove(0, 'density', mesh), 'density')
 ft.vis.axes3d(ft.vis.outline3d(bounds),
               ranges=[i*0.001 for i in bounds], fmt='%.1f', nlabels=6)

@@ -32,7 +32,7 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     Draw a polygon by clicking with the mouse.
 
     INSTRUCTIONS:
-    
+
     * Left click to pick the edges of the polygon;
     * Draw edges CLOCKWISE;
     * Press 'e' to erase the last edge;
@@ -40,13 +40,13 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     * Close the figure window to finish;
 
     Parameters:
-    
+
     * area : list = [x1, x2, y1, y2]
         Borders of the area containing the polygon
     * axes : matplotlib Axes
         The figure to use for drawing the polygon.
         To get an Axes instace, just do::
-        
+
             from matplotlib import pyplot
             axes = pyplot.figure().add_subplot(1,1,1)
 
@@ -67,9 +67,9 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
         If True, will exchange the x and y axis so that x points north.
         Use this when drawing on a map viewed from above. If the y-axis of the
         plot is supposed to be z (depth), then use ``xy2ne=False``.
-        
+
     Returns:
-    
+
     * edges : list of lists
         List of ``[x, y]`` pairs with the edges of the polygon
 
@@ -153,24 +153,24 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
         verts = numpy.transpose([x, y])
     return verts
 
-def points(area, axes, marker='o', color='k', size=8):
+def points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     """
     Get the coordinates of points by clicking with the mouse.
 
     INSTRUCTIONS:
-    
+
     * Left click to pick the points;
     * Press 'e' to erase the last point picked;
     * Close the figure window to finish;
 
     Parameters:
-    
+
     * area : list = [x1, x2, y1, y2]
         Borders of the area containing the points
     * axes : matplotlib Axes
         The figure to use for drawing the polygon.
         To get an Axes instace, just do::
-        
+
             from matplotlib import pyplot
             axes = pyplot.figure().add_subplot(1,1,1)
 
@@ -182,9 +182,13 @@ def points(area, axes, marker='o', color='k', size=8):
         Line color (as in matplotlib.pyplot.plot)
     * size : float
         Marker size (as in matplotlib.pyplot.plot)
-        
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that x points north.
+        Use this when drawing on a map viewed from above. If the y-axis of the
+        plot is supposed to be z (depth), then use ``xy2ne=False``.
+
     Returns:
-    
+
     * points : list of lists
         List of ``[x, y]`` coordinates of the points
 
@@ -195,8 +199,12 @@ def points(area, axes, marker='o', color='k', size=8):
     log.info("  * Press 'e' to erase the last point picked;")
     log.info("  * Close the figure window to finish;")
     axes.set_title("Click to pick points. Close window when done.")
-    axes.set_xlim(area[0], area[1])
-    axes.set_ylim(area[2], area[3])
+    if xy2ne:
+        axes.set_xlim(area[2], area[3])
+        axes.set_ylim(area[0], area[1])
+    else:
+        axes.set_xlim(area[0], area[1])
+        axes.set_ylim(area[2], area[3])
     # start with an empty set
     line, = axes.plot([],[], marker=marker, color=color, markersize=size)
     line.figure.canvas.draw()
@@ -234,8 +242,12 @@ def points(area, axes, marker='o', color='k', size=8):
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
     pyplot.show()
-    return numpy.array([x, y]).T
-    
+    if xy2ne:
+        points = numpy.transpose([y, x])
+    else:
+        points = numpy.transpose([x, y])
+    return points
+
 def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     """
     Draw series of horizontal layers by clicking with the mouse.
@@ -244,19 +256,19 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     each layer.
 
     INSTRUCTIONS:
-    
+
     * Click to make a new layer;
     * Press 'e' to erase the last layer;
     * Close the figure window to finish;
 
     Parameters:
-    
+
     * area : list = [x1, x2, y1, y2]
         Borders of the area containing the polygon
     * axes : matplotlib Axes
         The figure to use for drawing the polygon.
         To get an Axes instace, just do::
-        
+
             from matplotlib import pyplot
             axes = pyplot.figure().add_subplot(1,1,1)
 
@@ -270,15 +282,15 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
         Line color (as in matplotlib.pyplot.plot)
     * width : float
         The line width (as in matplotlib.pyplot.plot)
-        
+
     Returns:
-    
+
     * layers : list = [thickness, values]
 
         * thickness : list
             The thickness of each layer, in order of increasing depth
         * values : list
-            The physical property value of each layer, in the same order        
+            The physical property value of each layer, in the same order
 
     """
     log.info("Drawing layers...")
@@ -312,9 +324,9 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
         if len(values) == 0:
             tmpline.set_data([v, v], [tmpz[0], z])
         else:
-            if z > tmpz[0]:                
+            if z > tmpz[0]:
                 tmpline.set_data([values[-1], v, v], [tmpz[0], tmpz[0], z])
-            else:                
+            else:
                 tmpline.set_data([values[-1], v], [tmpz[0], tmpz[0]])
     def move(event):
         if event.inaxes != axes:

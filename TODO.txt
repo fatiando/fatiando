@@ -21,8 +21,6 @@ GOALS FOR 0.1:
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Rename utils.comtaminate to contam
-* Make logger get the level from string instead of having to import logging
-* logger.get should receive a list of streams and add handlers to all
 * Make unit tests to test Cython prism against numpy prism
 * Hide data modules inside inversion functions: basin2d
 * Make basin2d spit out Polygons, not estimate vectors
@@ -37,6 +35,8 @@ URGENT:
 
 TODO:
 
+* logger.get should receive a list of streams and add handlers to all
+* Make logger get the level from string instead of having to import logging
 * Add option for scalar visibility in vis.vtk.prisms
 * Add data custom data weights to harvester data modules
 * Sparse Jacobian computation in SrTomo still too slow (much slower than dense
