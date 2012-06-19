@@ -20,6 +20,7 @@ Fatiando requires the following packages:
 Optional packages:
 
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_ (for 3D plots)
+* `Cython <http://cython.org/>`_ (to build faster replacements to a few modules)
 
 All of these can be found on most GNU/Linux distros. On Windows, we recommend
 downloading PythonXY_. It comes with Python, all of our dependencies, plus a
@@ -36,19 +37,27 @@ using pip_ (remember to install pip before if don't have it)::
 
     pip install fatiando
 
-That's it! Alternatively, you can download a source distribution from PyPI_,
+That's it! If you already have Fatiando installed and want to upgrade to a newer
+version, use::
+
+    pip install fatiando --upgrade
+
+To uninstall simply run::
+
+    pip uninstall fatiando
+
+Alternatively, you can download a source distribution from PyPI_,
 unpack it, and run the ``setup.py`` script::
 
     python setup.py install
 
+.. note:: **Using pip is the preferred option** since it's the most modern way
+    (see `the packaging guide`_ for more information about this). Using
+    ``setup.py`` doesn't give you an uninstall option.
 
-.. note:: Using ``pip`` is the preferred option since it's the most modern way
-    (see `The Guide`_ for more information about this).
-    Using ``setup.py`` doesn't give you an uninstall option.
-    
 .. _pip: http://www.pip-installer.org
 .. _PyPI: http://pypi.python.org/pypi/fatiando
-.. _The Guide: http://guide.python-distribute.org/index.html
+.. _the packaging guide: http://guide.python-distribute.org/index.html
 
 Compiling Cython extension modules for better performance
 ---------------------------------------------------------
