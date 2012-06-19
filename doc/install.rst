@@ -58,8 +58,3 @@ unpack it, and run the ``setup.py`` script::
 .. _pip: http://www.pip-installer.org
 .. _PyPI: http://pypi.python.org/pypi/fatiando
 .. _the packaging guide: http://guide.python-distribute.org/index.html
-
-Compiling Cython extension modules for better performance
----------------------------------------------------------
-
-More on this later.

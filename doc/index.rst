@@ -15,7 +15,7 @@ The source code of Fatiando is hosted on several online repositories:
 * `fatiando-dev on Bitbucket`_ with the development version (this is where
   development happens)
 * `fatiando on GoogleCode`_ with a mirror of the stable version
-  
+
 .. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
 .. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
 .. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
@@ -81,6 +81,7 @@ have a look at the rest of this documentation.
     changelog.rst
     install.rst
     using.rst
+    advanced.rst
     tutorial.rst
     cookbook.rst
     api/fatiando.rst
