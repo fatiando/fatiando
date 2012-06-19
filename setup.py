@@ -20,7 +20,7 @@ except ImportError:
     print ("Couldn't find Cython to build C extension.\n" +
         "Don't panic! Will use Python alternatives instead.")
     CYTHON = False
-    
+
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Fatiando a Terra - Geophysical modeling and inversion"
@@ -38,16 +38,15 @@ PACKAGES = ['fatiando',
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'
 LICENSE = 'BSD License'
-URL = "http://www.fatiando.org"
+URL = "http://www.fatiando.org/software/fatiando"
 PLATFORMS = "Any"
 SCRIPTS = ['scripts/harvester']
 CLASSIFIERS = ["Intended Audience :: Science/Research",
                "Intended Audience :: Developers",
                "Intended Audience :: Education",
-               "Programming Language :: C",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
-         
+
 def setrevison():
     # Check if the script is building/packaging or if this is a src dist
     if os.path.exists('.hg'):
@@ -93,4 +92,4 @@ if __name__ == '__main__':
               scripts=SCRIPTS,
               packages=PACKAGES,
               classifiers=CLASSIFIERS)
-    
+
