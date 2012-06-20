@@ -61,7 +61,7 @@ ft.vis.m2km()
 ft.vis.show()
 # Plot the result
 ft.vis.figure3d()
-ft.vis.polyprisms(model, 'density', opacity=0.6)
+ft.vis.polyprisms(model, 'density', opacity=0.6, linewidth=5)
 ft.vis.prisms(ft.msh.ddd.vremove(0, 'density', mesh), 'density')
 ft.vis.axes3d(ft.vis.outline3d(bounds),
               ranges=[i*0.001 for i in bounds], fmt='%.1f', nlabels=6)

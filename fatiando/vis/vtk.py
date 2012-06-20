@@ -22,7 +22,7 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.vtk.wall_bottom`
 
 ----
-   
+
 """
 
 import numpy
@@ -34,7 +34,7 @@ __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
            'savefig3d', 'polyprisms']
 
 log = logger.dummy('fatiando.vis.vtk')
-        
+
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
 mlab = None
@@ -75,7 +75,7 @@ def savefig3d(fname, magnification=None):
     * magnification : int or None
         If not None, then the scaling between the pixels on the screen, and the
         pixels in the file saved.
-        
+
     """
     _lazy_import_mlab()
     if magnification is None:
@@ -93,14 +93,14 @@ def show3d():
     mlab.show()
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red'):
+    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
-    
+
     Will not plot a value None in *prisms*.
 
     Parameters:
-    
+
     * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
         The prisms
     * prop : str or None
@@ -120,12 +120,14 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
-        
+    * linewidth : float
+        The width of the lines (edges) of the prisms.
+
     Returns:
-    
+
     * surface
         the last element on the pipeline
-    
+
     """
     if style not in ['surface', 'wireframe']:
         raise ValueError, "Invalid style '%s'" % (style)
@@ -146,7 +148,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     offset = 0
     for prism in prisms:
         if prism is None or (prop is not None and prop not in prism.props):
-            continue        
+            continue
         x, y = prism.x, prism.y
         nverts = prism.nverts
         scalar = prism.props[prop]
@@ -156,7 +158,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         polygons.append(range(offset, offset + nverts))
         scalars.extend(scalar*numpy.ones(nverts))
         offset += nverts
-        # The bottom surface    
+        # The bottom surface
         points.extend(
             reversed(numpy.transpose([x, y, prism.z2*numpy.ones_like(x)])))
         polygons.append(range(offset, offset + nverts))
@@ -174,35 +176,41 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     mesh = tvtk.PolyData(points=points, polys=polygons)
     mesh.point_data.scalars = numpy.array(scalars)
     mesh.point_data.scalars.name = label
-    # The triangle filter is needed because VTK doesnt seem to handle convex
-    # polygons too well
-    dataset = mlab.pipeline.triangle_filter(mlab.pipeline.add_dataset(mesh))
     if vmin is None:
         vmin = min(scalars)
     if vmax is None:
         vmax = max(scalars)
-    surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, colormap=cmap)
-    surf.actor.property.edge_visibility = 0
     if style == 'wireframe':
+        surf = mlab.pipeline.surface(mlab.pipeline.add_dataset(mesh),
+                                     vmax=vmax, vmin=vmin, colormap=cmap)
         surf.actor.property.representation = 'wireframe'
+        surf.actor.property.line_width = linewidth
     if style == 'surface':
+        # The triangle filter is needed because VTK doesnt seem to handle convex
+        # polygons too well
+        dataset = mlab.pipeline.triangle_filter(mlab.pipeline.add_dataset(mesh))
+        surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin,
+                                     colormap=cmap)
         surf.actor.property.representation = 'surface'
+        surf.actor.property.edge_visibility = 0
         if edges:
             edge = mlab.pipeline.surface(mlab.pipeline.add_dataset(mesh))
             edge.actor.property.representation = 'wireframe'
             edge.actor.mapper.scalar_visibility = 0
+            edge.actor.property.line_width = linewidth
+            edge.actor.property.opacity = opacity
     surf.actor.property.opacity = opacity
-    return surf        
+    return surf
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red'):
+    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
     Will not plot a value None in *prisms*
 
     Parameters:
-    
+
     * prisms : list of :class:`fatiando.mesher.ddd.Prism`
         The prisms
     * prop : str or None
@@ -222,9 +230,11 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * linewidth : float
+        The width of the lines (edges) of the prisms.
 
     Returns:
-    
+
     * surface
         the last element on the pipeline
 
@@ -284,10 +294,12 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, colormap=cmap)
     if style == 'wireframe':
         surf.actor.property.representation = 'wireframe'
+        surf.actor.property.line_width = linewidth
     if style == 'surface':
         surf.actor.property.representation = 'surface'
         if edges:
             surf.actor.property.edge_visibility = 1
+            surf.actor.property.line_width = linewidth
     surf.actor.property.opacity = opacity
     surf.actor.property.backface_culling = 1
     return surf
@@ -302,7 +314,7 @@ def figure3d(size=None):
         The size of the figure. If ``None`` will use the default size.
 
     Return:
-    
+
     * fig : Mayavi figure object
         The figure
 
@@ -322,7 +334,7 @@ def outline3d(extent=None, color=(0,0,0), width=2):
     Create a default outline in Mayavi2.
 
     Parameters:
-    
+
     * extent : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         Default if the objects extent.
     * color : tuple = (r, g, b)
@@ -331,7 +343,7 @@ def outline3d(extent=None, color=(0,0,0), width=2):
         Line width
 
     Returns:
-    
+
     * outline : Mayavi outline instace
         The outline in the pipeline
 
@@ -348,7 +360,7 @@ def axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     Add an Axes module to a Mayavi2 plot or dataset.
 
     Parameters:
-    
+
     * plot
         Either the plot (as returned by one of the plotting functions of this
         module) or a TVTK dataset.
@@ -366,7 +378,7 @@ def axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
         Label number format
 
     Returns:
-    
+
     * axes : Mayavi axes instace
         The axes object in the pipeline
 
@@ -392,7 +404,7 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)
@@ -414,7 +426,7 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)
@@ -436,7 +448,7 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)
@@ -458,7 +470,7 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)
@@ -480,7 +492,7 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)
@@ -502,7 +514,7 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
     .. note:: Remember that x->North, y->East and z->Down
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         The extent of the region where the wall is placed
     * color : tuple = (r, g, b)

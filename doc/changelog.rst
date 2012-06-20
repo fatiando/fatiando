@@ -35,3 +35,5 @@ Changes in v0.1
 * Added a 3D plotter function for PolygonalPrism
 * Added gravity gradient tensor components and magnetic total field anomaly to
   :ref:`potential.polyprism <potential.polyprism>`
+* Added option to control the line width to `prisms` and `polyprisms` in
+  :ref:`vis.vtk <vis.vtk>`
