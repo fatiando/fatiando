@@ -12,7 +12,8 @@ Potential Fields (``fatiando.potential``)
     potential.harvester.rst
     potential.prism.rst
     potential.polyprism.rst
-    potential.sphere.rst    
+    potential.sphere.rst
     potential.talwani.rst
     potential.basin2d.rst
     potential.trans.rst
+    potential.tensor.rst
