@@ -7,7 +7,7 @@ Fatiando a Terra: Geophysical modeling and inversion
     generating synthetic data, forward modeling, inversion, 3D visualization,
     and more! All from inside the powerful Python_ language.
 
-For more information visit the http://www.fatiando.org
+For more information visit `the official site`_.
 
 The source code of Fatiando is hosted on several online repositories:
 
@@ -19,6 +19,7 @@ The source code of Fatiando is hosted on several online repositories:
 .. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
 .. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
 .. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
+.. _the official site: http://www.fatiando.org/software/fatiando
 
 **License**: Fatiando is licensed under the **BSD license**.
 This means that it can be reused and remixed
