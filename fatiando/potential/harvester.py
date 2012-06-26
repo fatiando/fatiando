@@ -30,7 +30,7 @@ the helper functions :func:`~fatiando.potential.harvester.wrapdata`,
 :func:`~fatiando.potential.harvester.sow`.
 
 A typical script to run the inversion on a data set looks like::
-    
+
     import numpy
     import fatiando as ft
     # Load the data from a file
@@ -51,7 +51,7 @@ A typical script to run the inversion on a data set looks like::
     mesh.addprop('density', estimate['density'])
     # Save the mesh in UBC-GIF format
     mesh.dump('result')
-    
+
 
 **Seeds**
 
@@ -74,6 +74,7 @@ parametrization.
 * :class:`~fatiando.potential.harvester.DMPrismGyy`
 * :class:`~fatiando.potential.harvester.DMPrismGyz`
 * :class:`~fatiando.potential.harvester.DMPrismGzz`
+* :class:`~fatiando.potential.harvester.DMPrismI2`
 
 **References**
 
@@ -96,7 +97,7 @@ log = logger.dummy('fatiando.potential.harvester')
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
-    gyz=None, gzz=None, norm=1):
+    gyz=None, gzz=None, inv2=None, norm=1):
     """
     Takes the observed data vectors (measured at the same points) and generates
     the data modules required by :func:`~fatiando.potential.harvester.harvest`.
@@ -107,11 +108,19 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
 
         dms = wrapdata(mesh, x1, y1, z1, gz=gz)
         dms.extend(wrapdata(mesh, x2, y2, z2, gxx=gxx, gzz=gzz))
-        
+
+    Accepted data:
+
+    * gz: vertical component of the gravitational attraction (i.e., gravity
+      anomaly)
+    * gxx, gxy, etc: the components of the gravity gradient tensor
+    * inv2: the second invariant of the gravity gradient tensor (see
+      :mod:`fatiando.potential.tensor`)
+
     Parameters:
-    
+
     * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
-        The model space mesh (or interpretative model)        
+        The model space mesh (or interpretative model)
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the observation points.
     * gz, gxx, gxy, etc. : arrays
@@ -119,15 +128,15 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
         components.
     * norm : int
         Order of the norm of the residual vector to use. Can be:
-        
+
         * 1 -> l1 norm
         * 2 -> l2 norm
 
     Returns
 
     * dms : list
-        List of data modules    
-    
+        List of data modules
+
     """
     log.info("Creating prism data modules:")
     log.info("  data misfit norm: %d" % (norm))
@@ -155,6 +164,9 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     if gzz is not None:
         dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, norm))
         fields.append('gzz')
+    if inv2 is not None:
+        dms.append(DMPrismI2(inv2, xp, yp, zp, mesh, norm))
+        fields.append('second invariant')
     log.info("  data types: %s" % (', '.join(fields)))
     log.info("  total number of observations: %d" % (len(xp)*len(fields)))
     return dms
@@ -177,7 +189,7 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
         Dictionary with the physical properties assigned to each seed.
         Ex: ``props={'density':[10, 28, ...], 'susceptibility':[100, 23, ...]}``
     * mesh : :class:`fatiando.mesher.ddd.PrismMesh`
-        The model space mesh (or interpretative model). 
+        The model space mesh (or interpretative model).
     * mu : float
         Compactness regularizing parameters. Positive scalar that measures the
         trade-off between fit and regularization. This applies only to this
@@ -199,7 +211,7 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
 
     * seeds : list
         List of :class:`~fatiando.potential.harvester.SeedPrism`
-    
+
     """
     log.info("Generating prism seeds:")
     log.info("  regularizing parameter (mu): %g" % (mu))
@@ -215,7 +227,7 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
             sprops[p] = props[p][i]
         seed = SeedPrism(point, sprops, mesh, mu=mu, delta=delta,
                          reldist=reldist)
-        if seed.seed[0] not in (s.seed[0] for s in seeds):            
+        if seed.seed[0] not in (s.seed[0] for s in seeds):
             seeds.append(seed)
         else:
             log.warning(
@@ -236,12 +248,12 @@ def loadseeds(fname):
     Remember: the coordinate system is x->North, y->East, and z->Down
 
     Parameters:
-    
+
     * fname : str or file
         Open file object or filename string
 
     Returns:
-    
+
     * [points, props1, props2, ...]
         *points* is a list of (x, y, z) points where the seeds will be placed
         and *props1* is list with the values of the first physical property,
@@ -269,7 +281,7 @@ def loadseeds(fname):
         [ 4.]
         >>> print props2
         [ 5.]
-    
+
     """
     data = numpy.loadtxt(fname, unpack=True)
     # In case there is only one seed
@@ -288,7 +300,7 @@ class DMPrism(object):
     This class wraps the observed data and measurement points. Its derived
     classes should knows how to calculate the predicted data for their
     respective components.
-    
+
     Use this class as a base for developing data modules for individual
     components, like gz, gzz, etc.
 
@@ -306,7 +318,7 @@ class DMPrism(object):
     To build a prism data module for the gravity anomaly::
 
         class DMPrismGz(DMPrism):
-        
+
             def __init__(self, data, xp, yp, zp, mesh, norm=1):
                 DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
                 self.prop_type = 'density'
@@ -325,10 +337,10 @@ class DMPrism(object):
         The model space mesh (or interpretative model).
     * norm : int
         Order of the norm of the residual vector to use. Can be:
-        
+
         * 1 -> l1 norm
-        * 2 -> l2 norm    
-    
+        * 2 -> l2 norm
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm):
@@ -339,10 +351,10 @@ class DMPrism(object):
         self.data = data
         self.predicted = numpy.zeros_like(data)
         self.xp, self.yp, self.zp = xp, yp, zp
-        self.mesh = mesh            
+        self.mesh = mesh
         self.norm = norm
         self.weight = 1./numpy.linalg.norm(data, norm)
-        self.effect = {}        
+        self.effect = {}
         self.prop_type = None
 
     def _effect_of_prism(self, index, props):
@@ -364,7 +376,7 @@ class DMPrism(object):
 
         * effect : array
             Array with the values of the effect of the *index*th prism
-        
+
         """
         msg = "Oops, effect calculation not implemented"
         raise NotImplementedError(msg)
@@ -379,14 +391,14 @@ class DMPrism(object):
             List ``[index, props]`` where ``index`` is the index of the element
             in the mesh and ``props`` is a dictionary with the physical
             properties of the element.
-            
+
         """
         index, props = element
         # Only updated if the element doesn't have a physical property that
         # influences this data module
         if self.prop_type in props:
             if index not in self.effect:
-                self.effect[index] = self._effect_of_prism(index, props)            
+                self.effect[index] = self._effect_of_prism(index, props)
             self.predicted += self.effect[index]
             del self.effect[index]
 
@@ -396,7 +408,7 @@ class DMPrism(object):
         included in the estimate.
 
         Parameters:
-         
+
         * element : list
             List ``[index, props]`` where ``index`` is the index of the element
             in the mesh and ``props`` is a dictionary with the physical
@@ -406,7 +418,7 @@ class DMPrism(object):
 
         * misfit : float
             The misfit value
-            
+
         """
         index, props = element
         # If the element doesn't have a physical property that influences this
@@ -433,10 +445,10 @@ class DMPrism(object):
 
         * misfit : float
             The misfit value
-                        
+
         """
         return self.weight*numpy.linalg.norm(self.data - predicted, self.norm)
-        
+
     def get_predicted(self):
         """
         Get the predicted data vector out of this data module.
@@ -448,9 +460,88 @@ class DMPrism(object):
 
         * predicted : array
             Array with the predicted data
-            
+
         """
         return self.predicted
+
+class DMPrismI2(DMPrism):
+    """
+    Data module for the second invariant of the gravity gradient tensor of a
+    right rectangular prism. (see :mod:`fatiando.potential.tensor`)
+
+    See :class:`~fatiando.potential.harvester.DMPrism` for details.
+
+    **WARNING**: It is not recommended that you use this class directly. Use
+    function :func:`~fatiando.potential.harvester.wrapdata` to generate data
+    modules instead.
+
+    """
+
+    def __init__(self, data, xp, yp, zp, mesh, norm=1):
+        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
+        self.prop_type = 'density'
+        self.estimate = []
+
+    def _effect_of_cells(self, cells):
+        gxx = pot_prism.gxx(self.xp, self.yp, self.zp, cells)
+        gxy = pot_prism.gxy(self.xp, self.yp, self.zp, cells)
+        gxz = pot_prism.gxz(self.xp, self.yp, self.zp, cells)
+        gyy = pot_prism.gyy(self.xp, self.yp, self.zp, cells)
+        gyz = pot_prism.gyz(self.xp, self.yp, self.zp, cells)
+        gzz = pot_prism.gzz(self.xp, self.yp, self.zp, cells)
+        inv2 = (gxx*(gyy*gzz - gyz**2) + gxy*(gyz*gxz - gxy*gzz)
+                + gxz*(gxy*gyz - gxz*gyy))
+        return inv2
+
+    def update(self, element):
+        """
+        Updated the precited data to include element.
+
+        Parameters:
+
+        * element : list
+            List ``[index, props]`` where ``index`` is the index of the element
+            in the mesh and ``props`` is a dictionary with the physical
+            properties of the element.
+
+        """
+        index, props = element
+        cell = self.mesh[index]
+        for p in props:
+            cell.addprop(p, props[p])
+        self.estimate.append(cell)
+        self.predicted = self._effect_of_cells(self.estimate)
+
+    def testdrive(self, element):
+        """
+        Calculate the value that the data misfit would have if *element* was
+        included in the estimate.
+
+        Parameters:
+
+        * element : list
+            List ``[index, props]`` where ``index`` is the index of the element
+            in the mesh and ``props`` is a dictionary with the physical
+            properties of the element.
+
+        Returns:
+
+        * misfit : float
+            The misfit value
+
+        """
+        index, props = element
+        # If the element doesn't have a physical property that influences this
+        # data module, then return the previous misfit
+        if self.prop_type not in props:
+            # TODO: keep track of the misfit value on update so that don't have
+            # to calculate it every time.
+            return self.misfit(self.predicted)
+        cell = self.mesh[index]
+        for p in props:
+            cell.addprop(p, props[p])
+        tmp = self._effect_of_cells(self.estimate + [cell])
+        return self.misfit(tmp)
 
 class DMPrismGz(DMPrism):
     """
@@ -461,7 +552,7 @@ class DMPrismGz(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -482,7 +573,7 @@ class DMPrismGxx(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -503,7 +594,7 @@ class DMPrismGxy(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -524,7 +615,7 @@ class DMPrismGxz(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -545,7 +636,7 @@ class DMPrismGyy(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -566,7 +657,7 @@ class DMPrismGyz(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -587,7 +678,7 @@ class DMPrismGzz(DMPrism):
     **WARNING**: It is not recommended that you use this class directly. Use
     function :func:`~fatiando.potential.harvester.wrapdata` to generate data
     modules instead.
-    
+
     """
 
     def __init__(self, data, xp, yp, zp, mesh, norm=1):
@@ -610,7 +701,7 @@ class SeedPrism(object):
 
     **It is highly recommended** that you use function
     :func:`~fatiando.potential.harvester.sow` to generate the seeds
-    because it checks for duplicate seeds. 
+    because it checks for duplicate seeds.
 
     Parameters:
 
@@ -636,7 +727,7 @@ class SeedPrism(object):
         the respective seed. If ``reldist == True``, will use distance in number
         of cells instead (e.g., the prism right on top is ``dist = 1`` away).
         Using this is when mesh cells are not cubic (flattened or rectangular).
-    
+
     """
 
     kind = 'prism'
@@ -715,8 +806,8 @@ class SeedPrism(object):
             ncell = self.mesh[n]
             dx = abs(ncell.x1 - scell.x1)
             dy = abs(ncell.y1 - scell.y1)
-            dz = abs(ncell.z1 - scell.z1)        
-            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)    
+            dz = abs(ncell.z1 - scell.z1)
+            self.distance[n] = math.sqrt(dx**2 + dy**2 + dz**2)
 
     def _get_index(self, point, mesh):
         """
@@ -737,36 +828,36 @@ class SeedPrism(object):
             i = bisect.bisect_left(xs, x) - 1
             s = i + j*nx + k*nx*ny
             if mesh[s] is not None:
-                return s                
+                return s
         raise ValueError("Couldn't find seed at location %s" % (str(point)))
 
     def _find_neighbors(self, n, full=False, up=True, down=True):
         """
         Return a list of neighboring prisms (that share a face) of *neighbor*.
-    
+
         Parameters:
-        
+
         * n : int
             The index of the neighbor in the mesh.
         * full : True or False
             If True, return also the prisms on the diagonal
-    
+
         Returns:
 
         * neighbors : list
             List with the index of the neighbors in the mesh
-        
+
         """
-        nz, ny, nx = self.mesh.shape 
+        nz, ny, nx = self.mesh.shape
         above, bellow, front, back, left, right = [None]*6
         # The guy above
-        tmp = n - nx*ny    
-        if up and tmp > 0:        
+        tmp = n - nx*ny
+        if up and tmp > 0:
             above = tmp
         # The guy bellow
         tmp = n + nx*ny
         if down and tmp < self.mesh.size:
-            bellow = tmp    
+            bellow = tmp
         # The guy in front
         tmp = n + 1
         if n%nx < nx - 1:
@@ -787,9 +878,9 @@ class SeedPrism(object):
         # The diagonal neighbors
         if full:
             append = indexes.append
-            if front is not None and left is not None:        
-                append(left + 1)    
-            if front is not None and right is not None:        
+            if front is not None and left is not None:
+                append(left + 1)
+            if front is not None and right is not None:
                 append(right + 1)
             if back is not None and left is not None:
                 append(left - 1)
@@ -884,7 +975,7 @@ class SeedPrism(object):
 
         1. Must decrease the misfit
         2. Must produce the smallest goal function out of all that pass 1.
-            
+
         """
         decreased = [i for i, m in enumerate(misfits)
                      if m < misfit and abs(m - misfit)/misfit >= self.delta]
@@ -931,7 +1022,7 @@ def _cat_estimate(seeds):
                     estimate[prop].extend(values)
         size = seeds[0].mesh.size
         for prop in estimate:
-            estimate[prop] = utils.SparseList(size, dict(estimate[prop]))        
+            estimate[prop] = utils.SparseList(size, dict(estimate[prop]))
     return estimate
 
 def _harvest_iterator(dms, seeds, first_goal):
@@ -952,15 +1043,15 @@ def _harvest_iterator(dms, seeds, first_goal):
             Goal function value at this growth iteration
         * 'misfit'
             Data misfit value at this growth iteration
-            
+
     """
     pass
-    
+
 def _harvest_solver(dms, seeds, first_goal):
     """
     Solve a 3D potential field inversion by planting anomalous densities.
     For more details on the parameters and return values, see
-    :func:`~fatiando.potential.harvester.harvest`.           
+    :func:`~fatiando.potential.harvester.harvest`.
     """
     goals = [first_goal]
     upgoal = goals.append
@@ -1005,12 +1096,12 @@ def harvest(dms, seeds, iterate=False):
         for information on data modules and seeds.
 
     Returns:
- 
+
     * if ``iterate == True``: iterator
         An iterator that yields one growth iteration at a time. A growth
         iteration consists of trying to grow each seed.
         **Not implemented!**
-        
+
     * else: [estimate, goals, misfits]
         *goals* is a list with the goal function value per iteration.
         *misfits* is a list with the data misfit value per iteration.
@@ -1023,7 +1114,7 @@ def harvest(dms, seeds, iterate=False):
 
         estimate = {'density':[1, 0, 6, 9, 7, 8, ...],
                     'susceptibility':[0, 4, 8, 3, 4, 5.4, ...]}
-                    
+
 
     """
     log.info("Harvesting inversion results from planting anomalous densities:")
@@ -1048,7 +1139,7 @@ def harvest(dms, seeds, iterate=False):
             dm.update(seed.seed)
     # Calculate the initial goal function
     goal = sum(dm.misfit(dm.predicted) for dm in dms)
-    log.info("  initial goal function: %g" % (goal))   
+    log.info("  initial goal function: %g" % (goal))
     # Now run the actual inversion
     if iterate:
         return _harvest_iterator(dms, seeds, goal)
@@ -1057,10 +1148,10 @@ def harvest(dms, seeds, iterate=False):
         results = _harvest_solver(dms, seeds, goal)
         tfinish = time.clock() - tstart
         its = len(results[1])
-        log.info("  final goal function: %g" % (results[1][-1]))   
+        log.info("  final goal function: %g" % (results[1][-1]))
         log.info("  total number of accretions: %d" % (its))
         log.info("  average time per accretion: %s" %
             (utils.sec2hms(float(tfinish)/its)))
         log.info("  total time for inversion: %s" % (utils.sec2hms(tfinish)))
         return results
-      
+
