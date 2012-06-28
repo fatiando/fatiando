@@ -32,6 +32,8 @@ GOALS FOR 0.1:
 
 URGENT:
 
+* potential.prism: change all x[i]*x[i] for x[i]**2
+* potential.prism (maybe others): change all res = res*x for res *= x (its faster)
 
 TODO:
 
