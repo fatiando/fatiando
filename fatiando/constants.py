@@ -28,3 +28,6 @@ CM = 10.**(-7)
 
 #: Conversion factor from tesla to nanotesla
 T2NT = 10.**(9)
+
+#: The mean earth radius in meters */
+MEAN_EARTH_RADIUS = 6378137.0
