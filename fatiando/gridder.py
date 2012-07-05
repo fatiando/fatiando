@@ -34,7 +34,7 @@ def regular(area, shape, z=None):
     Create a regular grid. Order of the output grid is x varies first, then y.
 
     Parameters:
-    
+
     * area
         ``(x1, x2, y1, y2)``: Borders of the grid
     * shape
@@ -44,7 +44,7 @@ def regular(area, shape, z=None):
         array with the value *z*.
 
     Returns:
-    
+
     * ``[xcoords, ycoords]``
         Numpy arrays with the x and y coordinates of the grid points
     * ``[xcoords, ycoords, zcoords]``
@@ -84,7 +84,7 @@ def scatter(area, n, z=None):
     Create an irregular grid with a random scattering of points.
 
     Parameters:
-    
+
     * area
         ``(x1, x2, y1, y2)``: Borders of the grid
     * n
@@ -94,7 +94,7 @@ def scatter(area, n, z=None):
         array with the value *z*.
 
     Returns:
-    
+
     * ``[xcoords, ycoords]``
         Numpy arrays with the x and y coordinates of the points
     * ``[xcoords, ycoords, zcoords]``
@@ -119,14 +119,14 @@ def spacing(area, shape):
     Returns the spacing between grid nodes
 
     Parameters:
-    
+
     * area
         ``(x1, x2, y1, y2)``: Borders of the grid
     * shape
         Shape of the regular grid, ie ``(ny, nx)``.
 
     Returns:
-    
+
     * ``[dy, dx]``
         Spacing the y and x directions
 
@@ -142,7 +142,7 @@ def interp(x, y, v, shape, algorithm='nn'):
     Interpolate data onto a regular grid.
 
     Parameters:
-    
+
     * x, y
         Arrays with the x and y coordinates of the data points.
     * v
@@ -152,9 +152,9 @@ def interp(x, y, v, shape, algorithm='nn'):
     * algorithm
         Interpolation algorithm. Either ``'nn'`` for natural neighbor interpolation
         or ``'linear'`` for linear interpolation. (see numpy.griddata)
-        
+
     Returns:
-    
+
     * ``[X, Y, V]``
         Three 2D arrays with the interpolated x, y, and v
 
@@ -162,6 +162,7 @@ def interp(x, y, v, shape, algorithm='nn'):
     if algorithm != 'nn' and algorithm != 'linear':
         raise ValueError("Invalid interpolation: %s" % (str(algorithm)))
     ny, nx = shape
+    # TODO: Change this for numpy.linspace
     dx = float(x.max() - x.min())/(nx - 1)
     dy = float(y.max() - y.min())/(ny - 1)
     xs = numpy.arange(x.min(), x.max() + dx, dx, 'f')
@@ -179,16 +180,16 @@ def cut(x, y, scalars, area):
     Remove a subsection of the grid.
 
     Parameters:
-    
+
     * x, y
         Arrays with the x and y coordinates of the data points.
     * scalars
         List of arrays with the scalar values assigned to the grid points.
     * area
         ``(x1, x2, y1, y2)``: Borders of the subsection
-        
+
     Returns:
-    
+
     * ``[subx, suby, subscalars]``
         Arrays with x and y coordinates and scalar values of the subsection.
 

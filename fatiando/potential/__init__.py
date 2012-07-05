@@ -28,8 +28,10 @@ The inversion modules use the forward modeling models and the
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
-* :mod:`~fatiando.potential.trans`: Potential field transformations, like
-  upward continuation
+* :mod:`~fatiando.potential.trans`: Analytical potential field transformations,
+  like upward continuation
+* :mod:`~fatiando.potential.fourier`: Potential field transformations using the
+  FFT
 * :mod:`~fatiando.potential.tensor`: Utilities for operating on the gradient
   tensor
 
@@ -44,4 +46,5 @@ from fatiando.potential import (basin2d,
                                 trans,
                                 harvester,
                                 sphere,
-                                tensor)
+                                tensor,
+                                fourier)
