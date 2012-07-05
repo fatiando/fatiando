@@ -16,4 +16,5 @@ Potential Fields (``fatiando.potential``)
     potential.talwani.rst
     potential.basin2d.rst
     potential.trans.rst
+    potential.fourier.rst
     potential.tensor.rst
