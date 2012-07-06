@@ -15,8 +15,7 @@ area = (-5000, 5000, -5000, 5000)
 shape = (51, 51)
 z0 = -500
 xp, yp, zp = ft.grd.regular(area, shape, z=z0)
-#gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.001)
-gz = ft.pot.prism.gz(xp, yp, zp, prisms)
+gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.001)
 
 log.info("Calculating the x-derivative")
 gxz = ft.pot.fourier.derivx(xp, yp, gz/SI2MGAL, shape)*SI2EOTVOS
