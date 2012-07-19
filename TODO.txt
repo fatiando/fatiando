@@ -39,6 +39,9 @@ URGENT:
 
 TODO:
 
+* Make fatiando.vis.map functions for plotting with projections
+* Make fatiando.io for easy pickling, json, grid IO, etc
+* utils.pickle and utils.upickle to automate pickling
 * logger.get should receive a list of streams and add handlers to all
 * Make logger get the level from string instead of having to import logging
 * Add option for scalar visibility in vis.vtk.prisms
@@ -85,10 +88,10 @@ TO-IMPLEMENT:
 * Make a PrismMesh.get_index(i) method that converts index i in raveled array to
   i, j, k 3D index
 * potential.terrain for terrain corrections (automatically find the best density)
-* utils.pickle and utils.upickle to automate pickling
 
 IDEAS:
 
+* Make unit conversion functions in utils
 * Get rid of the DataModule class. Provide a specification of it in the docs on
   fatiando.inversion
 * Add decorator to logging that logs a functions name and parameters in debug
