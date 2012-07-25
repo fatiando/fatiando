@@ -32,6 +32,8 @@ maps, Geophysics, 55(12), 1558, doi:10.1190/1.1442807
 ----
 
 """
+import numpy
+import numpy.linalg
 
 
 def invariants(tensor):
@@ -62,3 +64,55 @@ def invariants(tensor):
             + gxz*(gxy*gyz - gxz*gyy))
     inv = -((0.5*inv2)**2)/((inv1/3.)**3)
     return [inv1, inv2, inv]
+
+def eigen(tensor):
+    """
+    Calculates the eigenvalues and eigenvectors of the gradient tensor.
+
+    .. note:: The coordinate system used is x->North, y->East, z->Down
+
+    Parameters:
+
+    * tensor : list
+        A list of arrays with the 6 components of the gradient tensor measured
+        on a set of points. The order of the list should be:
+        [gxx, gxy, gxz, gyy, gyz, gzz]
+
+    Returns:
+
+    * result : list = [eigval1, eigval2, eigval3, eigvec1, eigvec2, eigvec3]
+        The eigenvalues and eigenvectors at each observation point.
+
+        * eigval1,2,3 : array
+            The first, second, and third eigenvalues
+        * eigvec1,2,3 : array (shape = (N, 3) where N is the number of points)
+            The first, second, and third eigenvectors
+
+    Example::
+
+        >>> tensor = [[2], [0], [0], [3], [0], [1]]
+        >>> evl1, evl2, evl3, evc1, evc2, evc3 = eigen(tensor)
+        >>> print evl1
+        [ 3. ]
+
+    """
+    eigvals = []
+    eigvec1 = []
+    eigvec2 = []
+    eigvec3 = []
+    for gxx, gxy, gxz, gyy, gyz, gzz in numpy.transpose(tensor):
+        matrix = numpy.array([[gxx, gxy, gxz],
+                              [gxy, gyy, gyz],
+                              [gxz, gyz, gzz]])
+        eigval, eigvec = numpy.linalg.eig(matrix)
+        args = numpy.argsort(eigval)[::-1]
+        eigvals.append([eigval[i] for i in args])
+        eigvec1.append(eigvec[:,args[0]])
+        eigvec2.append(eigvec[:,args[1]])
+        eigvec3.append(eigvec[:,args[2]])
+    eigval1, eigval2, eigval3 = numpy.transpose(eigvals)
+    eigvec1 = numpy.array(eigvec1)
+    eigvec2 = numpy.array(eigvec2)
+    eigvec3 = numpy.array(eigvec3)
+    return eigval1, eigval2, eigval3, eigvec1, eigvec2, eigvec3
+
