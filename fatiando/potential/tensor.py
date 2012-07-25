@@ -92,8 +92,12 @@ def eigen(tensor):
 
         >>> tensor = [[2], [0], [0], [3], [0], [1]]
         >>> evl1, evl2, evl3, evc1, evc2, evc3 = eigen(tensor)
-        >>> print evl1
-        [ 3. ]
+        >>> print evl1, evc1
+        [ 3.] [[ 0.  1.  0.]]
+        >>> print evl2, evc2
+        [ 2.] [[ 1.  0.  0.]]
+        >>> print evl3, evc3
+        [ 1.] [[ 0.  0.  1.]]
 
     """
     eigvals = []
