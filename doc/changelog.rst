@@ -37,3 +37,6 @@ Changes in v0.1
   :ref:`potential.polyprism <potential.polyprism>`
 * Added option to control the line width to `prisms` and `polyprisms` in
   :ref:`vis.vtk <vis.vtk>`
+* Added module :ref:`fatiando.potential.tensor <potential.tensor>` for
+  processing gradient tensor data. Includes eigenvalues and eigenvectors,
+  tensor invariants, center of mass estimation, etc.

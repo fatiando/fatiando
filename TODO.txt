@@ -81,7 +81,6 @@ TO-IMPLEMENT:
 * gridder.stream to return an interator that reads one grid point at a time
 * gridder.profile to extract (interpolate) a profile from a grid
 * mesher.ddd.prism2vtk to convert prisms to VTK and dump it to a file
-* potential.tensor for processing gradient tensors (invariants, center of mass estimation, etc)
 * inversion.linear.undet underdetermined solver for linear problems
 * Refactor ui.picker.draw_polygon to draw many polygons
 * utils.erange A range generator function with exponentially increasing intervals
