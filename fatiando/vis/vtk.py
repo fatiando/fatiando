@@ -6,6 +6,7 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 
 * :func:`~fatiando.vis.vtk.prisms`
 * :func:`~fatiando.vis.vtk.polyprisms`
+* :func:`~fatiando.vis.vtk.points3d`
 
 **Helpers**
 
@@ -31,7 +32,7 @@ from fatiando import logger
 
 __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
            'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
-           'savefig3d', 'polyprisms']
+           'savefig3d', 'polyprisms', 'points3d']
 
 log = logger.dummy('fatiando.vis.vtk')
 
@@ -91,6 +92,14 @@ def show3d():
     """
     _lazy_import_mlab()
     mlab.show()
+
+def points3d(points, color=(0, 0, 0), opacity=1, size=200.):
+    """
+    Plot a series of 3D points.
+    """
+    _lazy_import_mlab()
+    x, y, z = numpy.transpose(points)
+    mlab.points3d(x, y, z, color=color, opacity=opacity, scale_factor=size)
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
