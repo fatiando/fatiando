@@ -10,7 +10,7 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 # Generate some synthetic data
-prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,3000,{'density':1000})]
+prisms = [ft.msh.ddd.Prism(-4000,4000,-500,500,500,1000,{'density':1000})]
 shape = (100, 100)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-150)
 noise = 2

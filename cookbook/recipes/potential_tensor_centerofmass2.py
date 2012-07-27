@@ -10,10 +10,12 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 # Generate some synthetic data
-prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,3000,{'density':1000})]
+prisms = [ft.msh.ddd.Prism(-2000,2000,-2000,2000,500,1000,{'density':1000}),
+          ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,1500,{'density':1000}),
+          ft.msh.ddd.Prism(-500,500,-500,500,1500,2000,{'density':1000})]
 shape = (100, 100)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-150)
-noise = 2
+noise = 1
 tensor = [ft.utils.contaminate(ft.pot.prism.gxx(xp, yp, zp, prisms), noise),
           ft.utils.contaminate(ft.pot.prism.gxy(xp, yp, zp, prisms), noise),
           ft.utils.contaminate(ft.pot.prism.gxz(xp, yp, zp, prisms), noise),
