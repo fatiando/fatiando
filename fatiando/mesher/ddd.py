@@ -7,6 +7,7 @@ tesseroids, etc.
 * :class:`~fatiando.mesher.ddd.Prism`
 * :class:`~fatiando.mesher.ddd.PolygonalPrism`
 * :class:`~fatiando.mesher.ddd.Sphere`
+* :class:`~fatiando.mesher.ddd.Tesseroid`
 
 **Meshes**
 
@@ -35,16 +36,16 @@ from fatiando.mesher.base import GeometricElement
 
 
 log = logger.dummy('fatiando.mesher.ddd')
-        
+
 
 class Prism(GeometricElement):
     """
     Create a 3D right rectangular prism.
 
     .. note:: The coordinate system used is x -> North, y -> East and z -> Down
-    
+
     Parameters:
-    
+
     * x1, x2 : float
         South and north borders of the prism
     * y1, y2 : float
@@ -54,7 +55,7 @@ class Prism(GeometricElement):
     * props : dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
-        
+
     Examples:
 
         >>> from fatiando.mesher.ddd import Prism
@@ -104,16 +105,16 @@ class Prism(GeometricElement):
             >>> p = Prism(1, 2, 3, 4, 5, 6)
             >>> print p.get_bounds()
             [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-            
+
         """
-        return [self.x1, self.x2, self.y1, self.y2, self.z1, self.z2]        
-        
+        return [self.x1, self.x2, self.y1, self.y2, self.z1, self.z2]
+
     def center(self):
         """
         Return the coordinates of the center of the prism.
 
         Returns:
-        
+
         * coords : list = [xc, yc, zc]
             Coordinates of the center
 
@@ -122,13 +123,84 @@ class Prism(GeometricElement):
             >>> prism = Prism(1, 2, 1, 3, 0, 2)
             >>> print prism.center()
             [1.5, 2.0, 1.0]
-            
+
         """
         xc = 0.5*(self.x1 + self.x2)
         yc = 0.5*(self.y1 + self.y2)
         zc = 0.5*(self.z1 + self.z2)
         return [xc, yc, zc]
-    
+
+class Tesseroid(GeometricElement):
+    """
+    Create a tesseroid (spherical prism).
+
+    Parameters:
+
+    * w, e : float
+        West and east borders of the tesseroid in decimal degrees
+    * s, n : float
+        South and north borders of the tesseroid in decimal degrees
+    * bottom, top : float
+        Bottom and top of the tesseroid with respect to the mean earth radius
+        in meters. Ex: if the top is 100 meters above the mean earth radius,
+        ``top=100``, if 100 meters bellow ``top=-100``.
+    * props : dict
+        Physical properties assigned to the tesseroid.
+        Ex: ``props={'density':10, 'magnetization':10000}``
+
+    Examples:
+
+        >>> from fatiando.mesher.ddd import Tesseroid
+        >>> t = Tesseroid(1, 2, 3, 4, 5, 6, {'density':200})
+        >>> t.props['density']
+        200
+        >>> print t.get_bounds()
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        >>> print t
+        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6 | density:200
+        >>> t = Tesseroid(1, 2, 3, 4, 5, 6)
+        >>> print t
+        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6
+        >>> t.addprop('density', 2670)
+        >>> print t
+        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6 | density:2670
+
+    """
+
+    def __init__(self, w, e, s, n, bottom, top, props=None):
+        GeometricElement.__init__(self, props)
+        self.w = float(w)
+        self.e = float(e)
+        self.s = float(s)
+        self.n = float(n)
+        self.bottom = float(bottom)
+        self.top = float(top)
+
+    def __str__(self):
+        """Return a string representation of the tesseroid."""
+        names = [('w', self.w), ('e', self.e), ('s', self.s),
+                 ('n', self.n), ('bottom', self.bottom), ('top', self.top)]
+        names.extend((p, self.props[p]) for p in sorted(self.props))
+        return ' | '.join('%s:%g' % (n, v) for n, v in names)
+
+    def get_bounds(self):
+        """
+        Get the bounding box of the tesseroid (i.e., the borders).
+
+        Returns:
+
+        * bounds : list
+            ``[w, e, s, n, bottom, top]``, the bounds of the tesseroid
+
+        Examples:
+
+            >>> t = Tesseroid(1, 2, 3, 4, 5, 6)
+            >>> print t.get_bounds()
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+        """
+        return [self.w, self.e, self.s, self.n, self.bottom, self.top]
+
 class Sphere(GeometricElement):
     """
     Create a sphere.
@@ -136,13 +208,13 @@ class Sphere(GeometricElement):
     .. note:: The coordinate system used is x -> North, y -> East and z -> Down
 
     Parameters:
-    
+
     * x, y, z : float
         The coordinates of the center of the sphere
     * props : dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
-        
+
     Examples:
 
         >>> s = Sphere(1, 2, 3, 10, {'magnetization':200})
@@ -175,7 +247,7 @@ class Sphere(GeometricElement):
                  ('radius', self.radius)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
-        
+
 class PolygonalPrism(GeometricElement):
     """
     Create a 3D prism with polygonal crossection.
@@ -183,9 +255,9 @@ class PolygonalPrism(GeometricElement):
     .. note:: The coordinate system used is x -> North, y -> East and z -> Down
 
     .. note:: *vertices* must be **CLOCKWISE** or will give inverse result.
-        
+
     Parameters:
-    
+
     * vertices : list of lists
         Coordinates of the vertices. A list of ``[x, y]`` pairs.
     * z1, z2 : float
@@ -193,7 +265,7 @@ class PolygonalPrism(GeometricElement):
     * props :  dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
-        
+
     Examples:
 
         >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
@@ -238,15 +310,15 @@ class PolygonalPrism(GeometricElement):
             [ 1.  1.  2.  2.]
             >>> print poly.y
             [ 1.  2.  2.  1.]
-            
+
         """
         verts = numpy.transpose([self.x, self.y])
         return Polygon(verts, self.props)
-    
+
 class PrismRelief(object):
     """
     Generate a 3D model of a relief (topography) using prisms.
-    
+
     Use to generate:
     * topographic model
     * basin model
@@ -260,7 +332,7 @@ class PrismRelief(object):
     asks for a list of prisms, like :func:`fatiando.potential.prism.gz`.
 
     Parameters:
-    
+
     * ref : float
         Reference level. Prisms will have:
             * bottom on zref and top on z if z > zref;
@@ -310,12 +382,12 @@ class PrismRelief(object):
         if zc <= self.ref:
             z1 = zc
             z2 = self.ref
-        else:            
+        else:
             z1 = self.ref
             z2 = zc
         props = dict([p, self.props[p][index]] for p in self.props)
         return Prism(x1, x2, y1, y2, z1, z2, props=props)
-        
+
     def next(self):
         if self.i >= self.size:
             raise StopIteration
@@ -332,13 +404,13 @@ class PrismRelief(object):
             property value with oposite sign than was assigned to it.
 
         Parameters:
-        
+
         * prop : str
             Name of the physical property.
         * values : list
             List or array with the value of this physical property in each
             prism of the relief.
-            
+
         """
         def correct(v, i):
             if self.z[i] > self.ref:
@@ -364,14 +436,14 @@ class PrismMesh(object):
     as an iteratior (so you can loop over prisms). It also has a ``__getitem__``
     method to access individual elements in the mesh.
     In practice, :class:`~fatiando.mesher.ddd.PrismMesh` should be able to be
-    passed to any function that asks for a list of prisms, like 
+    passed to any function that asks for a list of prisms, like
     :func:`fatiando.potential.prism.gz`.
 
     To make the mesh incorporate a topography, use
     :meth:`~fatiando.mesher.ddd.PrismMesh.carvetopo`
 
     Parameters:
-    
+
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         Boundaries of the mesh.
     * shape : tuple = (nz, ny, nx)
@@ -416,7 +488,7 @@ class PrismMesh(object):
         [ 0.  4.]
         >>> print mesh.get_zs()
         [ 0.  3.]
-        
+
     """
 
     def __init__(self, bounds, shape, props=None):
@@ -445,7 +517,7 @@ class PrismMesh(object):
         self.i = 0
         # List of masked prisms. Will return None if trying to access them
         self.mask = []
-        
+
     def __len__(self):
         return self.size
 
@@ -486,34 +558,34 @@ class PrismMesh(object):
         Different physical properties of the mesh are stored in a dictionary.
 
         Parameters:
-        
+
         * prop : str
             Name of the physical property.
         * values :  list or array
             Value of this physical property in each prism of the mesh. For the
             ordering of prisms in the mesh see
             :class:`~fatiando.mesher.ddd.PrismMesh`
-            
+
         """
         self.props[prop] = values
-        
+
     def carvetopo(self, x, y, height):
         """
         Mask (remove) prisms from the mesh that are above the topography.
-        
+
         Accessing the ith prism will return None if it was masked (above the
         topography).
         Also mask prisms outside of the topography grid provided.
         The topography height information does not need to be on a regular grid,
         it will be interpolated.
-    
+
         Parameters:
-           
+
         * x, y : lists
             x and y coordinates of the grid points
         * height : list or array
             Array with the height of the topography
-                
+
         """
         nz, ny, nx = self.shape
         x1, x2, y1, y2, z1, z2 = self.bounds
@@ -588,7 +660,7 @@ class PrismMesh(object):
         MeshTools3D.
 
         Parameters:
-        
+
         * meshfile : str or file
             Output file to save the mesh. Can be a file name or an open file.
         * propfile : str or file
@@ -619,7 +691,7 @@ class PrismMesh(object):
             3.0000
             2.0000
             4.0000
-            
+
         """
         if prop not in self.props:
             raise ValueError("mesh doesn't have a '%s' property." % (prop))
@@ -654,15 +726,15 @@ def extract(prop, prisms):
     will be put in it's place.
 
     Parameters:
-    
+
     * prop : str
         The name of the physical property to extract
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
         :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
-        
+
     Returns:
-    
+
     * values : array
         The extracted values
 
@@ -688,9 +760,9 @@ def vfilter(vmin, vmax, prop, cells):
 
     If a cell is `None` or doesn't have the physical property, it will be not
     be included in the result.
-    
+
     Parameters:
-    
+
     * vmin : float
         Minimum value
     * vmax : float
@@ -700,9 +772,9 @@ def vfilter(vmin, vmax, prop, cells):
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
         :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
-        
+
     Returns:
-    
+
     * filtered : list
         The cells that fall within the desired range
 
@@ -737,9 +809,9 @@ def vremove(value, prop, cells):
 
     If a cell doesn't have the physical property, it will be included in the
     result.
-    
+
     Parameters:
-    
+
     * value : float
         The value of the physical property to remove
     * prop : str
@@ -747,9 +819,9 @@ def vremove(value, prop, cells):
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.ddd.Prism`,
         :class:`~fatiando.mesher.ddd.PolygonalPrism`, etc)
-        
+
     Returns:
-    
+
     * removed : list
         A list of cells that have *prop* != *value*
 
