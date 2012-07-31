@@ -25,9 +25,10 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 * :func:`~fatiando.vis.map.set_area`
 * :func:`~fatiando.vis.map.m2km`
+* :func:`~fatiando.vis.map.basemap`
 
 ----
-   
+
 """
 
 import numpy
@@ -35,10 +36,84 @@ from matplotlib import pyplot
 
 from fatiando import gridder, logger
 
+# Dummy variable to laizy import the basemap toolkit (slow)
+Basemap = None
+
 __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
-           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km']
+           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap']
 
 log = logger.dummy('fatiando.vis.map')
+
+def basemap(area, projection, resolution='c'):
+    """
+    Make a basemap to use when plotting with map projections.
+
+    Uses the matplotlib basemap toolkit.
+
+    Parameters:
+
+    * area : list
+        ``[west, east, south, north]``, i.e., the area of the data that is going
+        to be plotted
+    * projection : str
+        The name of the projection you want to use. Choose from:
+
+        * 'ortho': Orthographic
+        * 'geos': Geostationary
+        * 'robin': Robinson
+        * 'cass': Cassini
+        * 'merc': Mercator
+        * 'poly': Polyconic
+        * 'lcc': Lambert Conformal
+        * 'stere': Stereographic
+
+    * resolution : str
+        The resolution for the coastlines. Can be 'c' for crude, 'l' for low,
+        'i' for intermediate, 'h' for high
+
+    Returns:
+
+    * basemap : mpl_toolkits.basemap.Basemap
+        The basemap
+
+    """
+    if projection not in ['ortho', 'aeqd', 'geos', 'robin', 'cass', 'merc',
+        'poly', 'lcc', 'stere']:
+        raise ValueError("Unsuported projection '%s'" % (projection))
+    global Basemap
+    if Basemap is None:
+        try:
+            from mpl_toolkits.basemap import Basemap
+        except ImportError:
+            log.error("matplotlib basemap toolkit not found")
+            raise
+    west, east, south, north = area
+    lon_0 = 0.5*(east + west)
+    lat_0 = 0.5*(north + south)
+    if projection == 'ortho':
+        bm = Basemap(projection=projection, lon_0=lon_0, lat_0=lat_0,
+                     resolution=resolution)
+    elif projection == 'geos' or projection == 'robin':
+        bm = Basemap(projection=projection,lon_0=lon_0, resolution=resolution)
+    elif (projection == 'cass' or
+           projection == 'poly'):
+        bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
+                     llcrnrlat=south, urcrnrlat=north, lat_0=lat_0, lon_0=lon_0,
+                     resolution=resolution)
+    elif projection == 'merc':
+        bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
+                     llcrnrlat=south, urcrnrlat=north, lat_ts=lat_0,
+                     resolution=resolution)
+    elif projection == 'lcc':
+        bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
+                     llcrnrlat=south, urcrnrlat=north, lat_0=lat_0, lon_0=lon_0,
+                     rsphere=(6378137.00,6356752.3142), lat_1=lat_0,
+                     resolution=resolution)
+    elif projection == 'stere':
+        bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
+                     llcrnrlat=south, urcrnrlat=north, lat_0=lat_0,lon_0=lon_0,
+                     lat_ts=lat_0, resolution=resolution)
+    return bm
 
 def m2km(axis=None):
     """
@@ -51,12 +126,12 @@ def m2km(axis=None):
 
     .. tip:: Use ``fatiando.vis.gca()`` to get the current axis. Or the value
         returned by ``fatiando.vis.subplot`` or ``matplotlib.pyplot.subplot``.
-        
+
     """
     if axis is None:
         axis = pyplot.gca()
     axis.set_xticklabels([str(0.001*l) for l in axis.get_xticks()])
-    axis.set_yticklabels([str(0.001*l) for l in axis.get_yticks()])    
+    axis.set_yticklabels([str(0.001*l) for l in axis.get_yticks()])
 
 def set_area(area):
     """
@@ -66,12 +141,12 @@ def set_area(area):
 
     * area : list = [x1, x2, y1, y2]
         Coordinates of the top right and bottom left corners of the area
-         
+
     """
     x1, x2, y1, y2 = area
     pyplot.xlim(x1, x2)
     pyplot.ylim(y1, y2)
-    
+
 def points(pts, style='.k', size=10, label=None):
     """
     Plot a list of points.
@@ -88,17 +163,17 @@ def points(pts, style='.k', size=10, label=None):
         If not None, then the string that will show in the legend
 
     Returns:
-    
+
     * axes : ``matplitlib.axes``
         The axes element of the plot
-    
+
     """
     x, y = numpy.array(pts).T
     kwargs = {}
     if label is not None:
         kwargs['label'] = label
     return pyplot.plot(x, y, style, markersize=size, **kwargs)
-    
+
 def paths(pts1, pts2, style='-k', linewidth=1, label=None):
     """
     Plot paths between the two sets of points.
@@ -115,7 +190,7 @@ def paths(pts1, pts2, style='-k', linewidth=1, label=None):
         The width of the lines representing the paths
     * label : str
         If not None, then the string that will show in the legend
-    
+
     """
     kwargs = {'linewidth':linewidth}
     if label is not None:
@@ -134,21 +209,21 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
         The thickness of each layer in order of increasing depth
     * values : list
         The value associated with each layer in order of increasing
-        depth    
+        depth
     * style : str
         String with the color and line style (as in matplotlib.pyplot.plot)
     * z0 : float
-        The depth of the top of the first layer 
+        The depth of the top of the first layer
     * linewidth : float
         Line width
     * label : str
         label associated with the square.
 
     Returns:
-    
+
     * axes : ``matplitlib.axes``
         The axes element of the plot
-    
+
     """
     if len(thickness) != len(values):
         raise ValueError, "thickness and values must have same length"
@@ -168,7 +243,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     return plot
-    
+
 def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
     """
     Plot a square.
@@ -194,7 +269,7 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     * axes : ``matplitlib.axes``
         The axes element of the plot
-    
+
     """
     x1, x2, y1, y2 = area
     xs = [x1, x1, x2, x2, x1]
@@ -210,7 +285,7 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     """
     Make a pseudo-color plot of a mesh of squares
-    
+
     Parameters:
 
     * mesh : :class:`fatiando.mesher.dd.SquareMesh` or compatible
@@ -261,7 +336,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
         opaque
     * label : str
-        String with the label identifying the polygon in the legend 
+        String with the label identifying the polygon in the legend
     * xy2ne : True or False
         If True, will exchange the x and y axis so that the x coordinates of the
         polygon are north. Use this when drawing on a map viewed from above. If
@@ -323,7 +398,7 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
         ``'mixed'`` (solid lines for positive contours and dashed for negative)
     * linewidth : float
         Width of the contour lines
-        
+
     Returns:
 
     * levels : list
@@ -354,7 +429,8 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
     pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
-def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet):
+def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
+    basemap=None):
     """
     Make a filled contour plot of the data.
 
@@ -390,9 +466,13 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet):
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
         V = numpy.reshape(v, shape)
-    ct_data = pyplot.contourf(X, Y, V, levels, cmap=cmap, picker=True)
-    pyplot.xlim(X.min(), X.max())
-    pyplot.ylim(Y.min(), Y.max())
+    if basemap is None:
+        ct_data = pyplot.contourf(X, Y, V, levels, cmap=cmap, picker=True)
+        pyplot.xlim(X.min(), X.max())
+        pyplot.ylim(Y.min(), Y.max())
+    else:
+        lon, lat = basemap(X, Y)
+        ct_data = basemap.contourf(lon, lat, V, levels, cmap=cmap, picker=True)
     return ct_data.levels
 
 def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
