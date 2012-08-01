@@ -21,11 +21,15 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.map.polygon`
 * :func:`~fatiando.vis.map.layers`
 
+**Basemap (map projections)**
+
+* :func:`~fatiando.vis.map.basemap`
+* :func:`~fatiando.vis.map.draw_geolines`
+
 **Auxiliary**
 
 * :func:`~fatiando.vis.map.set_area`
 * :func:`~fatiando.vis.map.m2km`
-* :func:`~fatiando.vis.map.basemap`
 
 ----
 
@@ -40,9 +44,32 @@ from fatiando import gridder, logger
 Basemap = None
 
 __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
-           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap']
+           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap',
+           'draw_geolines']
 
 log = logger.dummy('fatiando.vis.map')
+
+def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
+    """
+    Draw the parallels and meridians on a basemap plot.
+
+    Parameters:
+
+    * area : list
+        ``[west, east, south, north]``, i.e., the area where the lines will
+        be plotted
+    * dlon, dlat : float
+        The spacing between the lines in the longitude and latitude directions,
+        respectively (in decimal degrees)
+    * basemap : mpl_toolkits.basemap.Basemap
+        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+    * linewidth : float
+        The width of the lines
+
+    """
+    west, east, south, north = area
+    basemap.drawmeridians(numpy.arange(west, east, dlon), labels=[0,0,0,1])
+    basemap.drawparallels(numpy.arange(south, north, dlat), labels=[1,0,0,0])
 
 def basemap(area, projection, resolution='c'):
     """
@@ -368,7 +395,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
     return line
 
 def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
-            clabel=True, style='solid', linewidth=1.0):
+            clabel=True, style='solid', linewidth=1.0, basemap=None):
     """
     Make a contour plot of the data.
 
@@ -398,6 +425,9 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
         ``'mixed'`` (solid lines for positive contours and dashed for negative)
     * linewidth : float
         Width of the contour lines
+    * basemap : mpl_toolkits.basemap.Basemap
+        If not None, will use this basemap for plotting with a map projection
+        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
 
     Returns:
 
@@ -415,7 +445,14 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
         V = numpy.reshape(v, shape)
-    ct_data = pyplot.contour(X, Y, V, levels, colors=color, picker=True)
+    if basemap is None:
+        ct_data = pyplot.contour(X, Y, V, levels, colors=color, picker=True)
+        pyplot.xlim(X.min(), X.max())
+        pyplot.ylim(Y.min(), Y.max())
+    else:
+        lon, lat = basemap(X, Y)
+        ct_data = basemap.contour(lon, lat, V, levels, colors=color,
+                                  picker=True)
     if clabel:
         ct_data.clabel(fmt='%g')
     if label is not None:
@@ -425,8 +462,6 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
             c.set_linestyle(style)
     for c in ct_data.collections:
         c.set_linewidth(linewidth)
-    pyplot.xlim(X.min(), X.max())
-    pyplot.ylim(Y.min(), Y.max())
     return ct_data.levels
 
 def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
@@ -451,6 +486,9 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
         regular grid, set to True!
     * cmap : colormap
         Color map to be used. (see pyplot.cm module)
+    * basemap : mpl_toolkits.basemap.Basemap
+        If not None, will use this basemap for plotting with a map projection
+        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
 
     Returns:
 
@@ -476,7 +514,7 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
     return ct_data.levels
 
 def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
-           vmax=None):
+           vmax=None, basemap=None):
     """
     Make a pseudo-color plot of the data.
 
@@ -497,6 +535,9 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
         Color map to be used. (see pyplot.cm module)
     * vmin, vmax
         Saturation values of the colorbar.
+    * basemap : mpl_toolkits.basemap.Basemap
+        If not None, will use this basemap for plotting with a map projection
+        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
 
     Returns:
 
@@ -512,9 +553,15 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
         V = numpy.reshape(v, shape)
-    plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax, picker=True)
-    pyplot.xlim(X.min(), X.max())
-    pyplot.ylim(Y.min(), Y.max())
+    if basemap is None:
+        plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax,
+                             picker=True)
+        pyplot.xlim(X.min(), X.max())
+        pyplot.ylim(Y.min(), Y.max())
+    else:
+        lon, lat = basemap(X, Y)
+        plot = basemap.pcolor(lon, lat, V, cmap=cmap, vmin=vmin, vmax=vmax,
+                              picker=True)
     return plot
 
 #def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
