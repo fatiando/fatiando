@@ -25,6 +25,8 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 * :func:`~fatiando.vis.map.basemap`
 * :func:`~fatiando.vis.map.draw_geolines`
+* :func:`~fatiando.vis.map.draw_countries`
+* :func:`~fatiando.vis.map.draw_coastlines`
 
 **Auxiliary**
 
@@ -45,7 +47,7 @@ Basemap = None
 
 __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
            'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap',
-           'draw_geolines']
+           'draw_geolines', 'draw_countries', 'draw_coastlines']
 
 log = logger.dummy('fatiando.vis.map')
 
@@ -68,8 +70,44 @@ def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
 
     """
     west, east, south, north = area
-    basemap.drawmeridians(numpy.arange(west, east, dlon), labels=[0,0,0,1])
-    basemap.drawparallels(numpy.arange(south, north, dlat), labels=[1,0,0,0])
+    meridians = basemap.drawmeridians(numpy.arange(west, east, dlon),
+        labels=[0,0,0,1], linewidth=linewidth)
+    parallels = basemap.drawparallels(numpy.arange(south, north, dlat),
+        labels=[1,0,0,0], linewidth=linewidth)
+
+def draw_countries(basemap, linewidth=1, style='dashed'):
+    """
+    Draw the country borders using the given basemap.
+
+    Parameters:
+
+    * basemap : mpl_toolkits.basemap.Basemap
+        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+    * linewidth : float
+        The width of the lines
+    * style : str
+        The style of the lines. Can be: 'solid', 'dashed', 'dashdot' or 'dotted'
+
+    """
+    lines = basemap.drawcountries(linewidth=linewidth)
+    lines.set_linestyles(style)
+
+def draw_coastlines(basemap, linewidth=1, style='solid'):
+    """
+    Draw the coastlines using the given basemap.
+
+    Parameters:
+
+    * basemap : mpl_toolkits.basemap.Basemap
+        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+    * linewidth : float
+        The width of the lines
+    * style : str
+        The style of the lines. Can be: 'solid', 'dashed', 'dashdot' or 'dotted'
+
+    """
+    lines = basemap.drawcoastlines(linewidth=linewidth)
+    lines.set_linestyles(style)
 
 def basemap(area, projection, resolution='c'):
     """
