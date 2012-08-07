@@ -13,6 +13,6 @@ xp, yp, zp = ft.grd.regular(area, shape, z=-1)
 gz = ft.pot.prism.gz(xp, yp, zp, model)
 mesh = ft.msh.ddd.PrismMesh(bounds, (25, 25, 25))
 dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
-seeds = ft.pot.harvester.sow_prisms([[500, 500, 450]], {'density':[1000]},
+seeds = ft.pot.harvester.sow([[500, 500, 450]], {'density':[1000]},
     mesh, mu=0.1, delta=0.00001)
-cProfile.run('potential.harvester.harvest(dms, seeds)')
+cProfile.run('ft.pot.harvester.harvest(dms, seeds)')

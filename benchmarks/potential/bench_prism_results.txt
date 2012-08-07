@@ -1,8 +1,8 @@
 ########################################
 Fatiando a Terra:
-  date: Tue May 29 14:42:15 2012
+  date: Tue Aug  7 13:58:28 2012
   version: 0.1.dev
-  changeset: e5d4b5d55a4b
+  changeset: 1efc414b480d
 ########################################
 -----------------------------------
 Testing with 1 prism and few points
@@ -14,24 +14,52 @@ Generating regular grid:
   spacing = (dy, dx) = (204.08163265306123, 204.08163265306123)
   points = nx*ny = 2500
   z = -100
-Cython: 0h 0m 0.00307s
+Cython: 0h 0m 0.00303s
 Generating regular grid:
   area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
   shape = (ny, nx) = (50, 50)
   spacing = (dy, dx) = (204.08163265306123, 204.08163265306123)
   points = nx*ny = 2500
   z = -100
-Python + Numpy: 0h 0m 0.00331s
+Python + Numpy: 0h 0m 0.00315s
 Generating regular grid:
   area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
   shape = (ny, nx) = (50, 50)
   spacing = (dy, dx) = (204.08163265306123, 204.08163265306123)
   points = nx*ny = 2500
   z = -100
-Python + Numpy + Numexpr: 0h 0m 0.00643s
+Python + Numpy + Numexpr: 0h 0m 0.00431s
 RESULTS:
-  Cython is 7.336950% faster than Python + Numpy
-  Cython is 52.263245% faster than Python + Numpy + Numexpr
+  Cython is 3.878914% faster than Python + Numpy
+  Cython is 29.697701% faster than Python + Numpy + Numexpr
+--------------------------------------------
+Testing with 1 prism and intermediate points
+--------------------------------------------
+Average time of 20 runs
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (200, 200)
+  spacing = (dy, dx) = (50.25125628140704, 50.25125628140704)
+  points = nx*ny = 40000
+  z = -100
+Cython: 0h 0m 0.04230s
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (200, 200)
+  spacing = (dy, dx) = (50.25125628140704, 50.25125628140704)
+  points = nx*ny = 40000
+  z = -100
+Python + Numpy: 0h 0m 0.04523s
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (200, 200)
+  spacing = (dy, dx) = (50.25125628140704, 50.25125628140704)
+  points = nx*ny = 40000
+  z = -100
+Python + Numpy + Numexpr: 0h 0m 0.01538s
+RESULTS:
+  Cython is 6.462157% faster than Python + Numpy
+  Cython is -175.112877% faster than Python + Numpy + Numexpr
 ------------------------------------
 Testing with 1 prism and many points
 ------------------------------------
@@ -42,24 +70,52 @@ Generating regular grid:
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Cython: 0h 0m 0.26976s
+Cython: 0h 0m 0.26983s
 Generating regular grid:
   area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
   shape = (ny, nx) = (500, 500)
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Python + Numpy: 0h 0m 0.31992s
+Python + Numpy: 0h 0m 0.33497s
 Generating regular grid:
   area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
   shape = (ny, nx) = (500, 500)
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Python + Numpy + Numexpr: 0h 0m 0.08604s
+Python + Numpy + Numexpr: 0h 0m 0.08018s
 RESULTS:
-  Cython is 15.677884% faster than Python + Numpy
-  Cython is -213.535461% faster than Python + Numpy + Numexpr
+  Cython is 19.446876% faster than Python + Numpy
+  Cython is -236.547144% faster than Python + Numpy + Numexpr
+-----------------------------------------
+Testing with 1 prism and even more points
+-----------------------------------------
+Average time of 20 runs
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (1000, 1000)
+  spacing = (dy, dx) = (10.01001001001001, 10.01001001001001)
+  points = nx*ny = 1000000
+  z = -100
+Cython: 0h 0m 1.03594s
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (1000, 1000)
+  spacing = (dy, dx) = (10.01001001001001, 10.01001001001001)
+  points = nx*ny = 1000000
+  z = -100
+Python + Numpy: 0h 0m 1.37547s
+Generating regular grid:
+  area = (x1, x2, y1, y2) = (-5000, 5000, -5000, 5000)
+  shape = (ny, nx) = (1000, 1000)
+  spacing = (dy, dx) = (10.01001001001001, 10.01001001001001)
+  points = nx*ny = 1000000
+  z = -100
+Python + Numpy + Numexpr: 0h 0m 0.28708s
+RESULTS:
+  Cython is 24.684089% faster than Python + Numpy
+  Cython is -260.857266% faster than Python + Numpy + Numexpr
 ---------------------------------------
 Testing with prism mesh and many points
 ---------------------------------------
@@ -75,7 +131,7 @@ Generating regular grid:
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Cython: 0h 4m 27.12031s
+Cython: 0h 4m 25.01033s
 Generating 3D right rectangular prism mesh:
   bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
   shape = (nz, ny, nx) = (10, 10, 10)
@@ -87,7 +143,7 @@ Generating regular grid:
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Python + Numpy: 0h 5m 9.97934s
+Python + Numpy: 0h 4m 56.21407s
 Generating 3D right rectangular prism mesh:
   bounds = (x1, x2, y1, y2, z1, z2) = (-2000, 2000, -2000, 2000, 0, 1000)
   shape = (nz, ny, nx) = (10, 10, 10)
@@ -99,7 +155,7 @@ Generating regular grid:
   spacing = (dy, dx) = (20.04008016032064, 20.04008016032064)
   points = nx*ny = 250000
   z = -100
-Python + Numpy + Numexpr: 0h 1m 26.82023s
+Python + Numpy + Numexpr: 0h 1m 14.02484s
 RESULTS:
-  Cython is 13.826413% faster than Python + Numpy
-  Cython is -207.670589% faster than Python + Numpy + Numexpr
+  Cython is 10.534185% faster than Python + Numpy
+  Cython is -258.001888% faster than Python + Numpy + Numexpr
