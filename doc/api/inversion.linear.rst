@@ -1,4 +1,4 @@
-.. _inversion.linear:
+.. _fatiando_inversion_linear:
 
 Solvers for linear problems (``fatiando.inversion.linear``)
 =====================================================================

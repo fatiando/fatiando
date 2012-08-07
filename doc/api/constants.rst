@@ -1,4 +1,4 @@
-.. _constants:
+.. _fatiando_constants:
 
 Physical constants and unit conversions (``fatiando.constants``)
 ================================================================
@@ -6,6 +6,6 @@ Physical constants and unit conversions (``fatiando.constants``)
 .. automodule:: fatiando.constants
    :members:
    :show-inheritance:
-   
+
 
 

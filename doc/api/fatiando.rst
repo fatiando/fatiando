@@ -8,16 +8,16 @@ API Reference: The ``fatiando`` package
    :show-inheritance:
 
 .. toctree::
-    
-    potential.rst
-    seismic.rst
+
+    pot.rst
+    seis.rst
     heat.rst
-    mesher.rst
-    gridder.rst
+    msh.rst
+    grd.rst
     vis.rst
     ui.rst
     utils.rst
-    logger.rst
+    log.rst
     constants.rst
     inversion.rst
 

@@ -1,16 +1,15 @@
 """
 Filter values from a 3D prism mesh with alternating density contrasts.
 """
-from fatiando import logger, vis
-from fatiando.mesher.ddd import PrismMesh, vfilter, extract
+import fatiando as ft
 
-log = logger.get()
-log.info(logger.header())
+log = ft.log.get()
+log.info(ft.log.header())
 log.info(__doc__)
 
 shape = (5, 20, 10)
 bounds = (0, 100, 0, 200, 0, 50)
-mesh = PrismMesh(bounds, shape)
+mesh = ft.msh.ddd.PrismMesh(bounds, shape)
 # Fill the even prisms with 1 and odd with -1
 def fill(i):
     if i%2 == 0:
@@ -19,12 +18,12 @@ def fill(i):
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
 # Separate even and odd prisms
-odd = vfilter(-1, 0, 'density', mesh)
-even = vfilter(0, 1, 'density', mesh)
+odd = ft.msh.ddd.vfilter(-1, 0, 'density', mesh)
+even = ft.msh.ddd.vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
-vis.vtk.figure()
-vis.vtk.prisms(odd, prop='density', vmin=-1, vmax=1)
-vis.vtk.prisms(even, prop='density', style='wireframe', vmin=-1, vmax=1)
-vis.vtk.add_axes(vis.vtk.add_outline(bounds))
-vis.vtk.mlab.show()
+ft.vis.figure3d()
+ft.vis.prisms(odd, prop='density', vmin=-1, vmax=1)
+ft.vis.prisms(even, prop='density', style='wireframe', vmin=-1, vmax=1)
+ft.vis.axes3d(ft.vis.outline3d(bounds))
+ft.vis.show3d()

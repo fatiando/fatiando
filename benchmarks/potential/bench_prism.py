@@ -16,9 +16,9 @@ import fatiando as ft
 prisms = [ft.msh.ddd.Prism(-2000,2000,-2000,2000,0,1000, {'density':1000})]
 shape = (50, 50)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
-from fatiando.potential import _prism
-from fatiando.potential import _cprism
-from fatiando.potential import _neprism
+from fatiando.pot import _prism
+from fatiando.pot import _cprism
+from fatiando.pot import _neprism
 """
 n = 20
 print "Average time of %d runs" % (n)
@@ -42,9 +42,9 @@ import fatiando as ft
 prisms = [ft.msh.ddd.Prism(-2000,2000,-2000,2000,0,1000, {'density':1000})]
 shape = (500, 500)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
-from fatiando.potential import _prism
-from fatiando.potential import _cprism
-from fatiando.potential import _neprism
+from fatiando.pot import _prism
+from fatiando.pot import _cprism
+from fatiando.pot import _neprism
 """
 n = 20
 print "Average time of %d runs" % (n)
@@ -59,7 +59,7 @@ print "  Cython is %lf%s faster than Python + Numpy" \
     % (100.*(pytime - ctime)/pytime, r'%')
 print "  Cython is %lf%s faster than Python + Numpy + Numexpr" \
     % (100.*(netime - ctime)/netime, r'%')
-    
+
 print "---------------------------------------"
 print "Testing with prism mesh and many points"
 print "---------------------------------------"
@@ -69,9 +69,9 @@ prisms = ft.msh.ddd.PrismMesh((-2000,2000,-2000,2000,0,1000), (10, 10, 10))
 prisms.addprop('density', [1000]*prisms.size)
 shape = (500, 500)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-100)
-from fatiando.potential import _prism
-from fatiando.potential import _cprism
-from fatiando.potential import _neprism
+from fatiando.pot import _prism
+from fatiando.pot import _cprism
+from fatiando.pot import _neprism
 """
 n = 10
 print "Average time of %d runs" % (n)

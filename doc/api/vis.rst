@@ -1,4 +1,4 @@
-.. _vis:
+.. _fatiando_vis:
 
 Visualization (``fatiando.vis``)
 ================================

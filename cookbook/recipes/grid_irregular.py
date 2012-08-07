@@ -1,24 +1,22 @@
 """
 Generate and plot irregular grids.
 """
-from matplotlib import pyplot
-import numpy
-from fatiando import utils, gridder, logger, vis
+import fatiando as ft
 
-log = logger.get()
-log.info(logger.header())
+log = ft.log.get()
+log.info(ft.log.header())
 log.info(__doc__)
 
 log.info("Calculating...")
-x, y = gridder.scatter((-2, 2, -2, 2), n=200)
-z = utils.gaussian2d(x, y, 1, 1)
+x, y = ft.grd.scatter((-2, 2, -2, 2), n=200)
+z = ft.utils.gaussian2d(x, y, 1, 1)
 
 log.info("Plotting...")
 shape = (100, 100)
-pyplot.axis('scaled')
-pyplot.title("Irregular grid")
-pyplot.plot(x, y, '.k', label='Grid points')
-levels = vis.map.contourf(x, y, z, shape, 12, interp=True)
-vis.map.contour(x, y, z, shape, levels, interp=True)
-pyplot.legend(loc='lower right', numpoints=1)
-pyplot.show()
+ft.vis.axis('scaled')
+ft.vis.title("Irregular grid")
+ft.vis.plot(x, y, '.k', label='Grid points')
+levels = ft.vis.contourf(x, y, z, shape, 12, interp=True)
+ft.vis.contour(x, y, z, shape, levels, interp=True)
+ft.vis.legend(loc='lower right', numpoints=1)
+ft.vis.show()

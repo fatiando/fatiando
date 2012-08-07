@@ -3,7 +3,7 @@ Generate the test data.
 """
 import numpy
 import fatiando as ft
-from fatiando.mesher.ddd import Prism
+from fatiando.msh.ddd import Prism
 
 log = ft.log.get()
 log.info(ft.log.header())
@@ -60,6 +60,6 @@ for i, comp in enumerate(data[2:]):
     ft.vis.contour(y*0.001, x*0.001, comp, shape, levels)
     if i == 3:
         ft.vis.ylabel('North = x (km)')
-    if i == 7:        
+    if i == 7:
         ft.vis.xlabel('East = y (km)')
 ft.vis.show()

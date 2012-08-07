@@ -27,7 +27,7 @@ synthetic data::
 
     >>> import numpy
     >>> import fatiando as ft
-    >>> # Generate the sythetic data along a well 
+    >>> # Generate the sythetic data along a well
     >>> zp = numpy.arange(0, 100, 1)
     >>> amp = 2
     >>> age = 100 # Uses years to avoid overflows
@@ -64,7 +64,7 @@ synthetic data::
 
     >>> import numpy
     >>> import fatiando as ft
-    >>> # Generate the sythetic data along a well 
+    >>> # Generate the sythetic data along a well
     >>> zp = numpy.arange(0, 100, 1)
     >>> amp = 3.45
     >>> age = 52.5 # Uses years to avoid overflows
@@ -83,15 +83,16 @@ import itertools
 import numpy
 import scipy.special
 
-from fatiando import inversion, utils, logger
+import fatiando.log
+from fatiando import inversion, utils
 from fatiando.constants import THERMAL_DIFFUSIVITY_YEAR
 
-log = logger.dummy('fatiando.heat.climsig')
- 
+log = fatiando.log.dummy('fatiando.heat.climsig')
+
 class AbruptDM(inversion.datamodule.DataModule):
     """
     Data module for a single abrupt temperature perturbation.
-    
+
     Packs the necessary data for the inversion.
 
     Derivatives with respect to the amplitude and age are calculated using the
@@ -103,17 +104,17 @@ class AbruptDM(inversion.datamodule.DataModule):
         \\frac{z_i}{\\sqrt{4\\lambda t}}\\right)
 
     and
-    
+
     .. math::
 
         \\frac{\\partial T_i}{\\partial t} = \\frac{A}{t\\sqrt{\\pi}}
         \\left(\\frac{z_i}{\\sqrt{4\\lambda t}}\\right)
         \\exp\\left[-\\left(\\frac{z_i}{\\sqrt{4\\lambda t}}\\right)^2\\right]
-       
+
     The Hessian matrix is calculated using a Gauss-Newton approximation.
 
     Parameters:
-    
+
     * temp : array
         The temperature profile
     * zp : array
@@ -129,7 +130,7 @@ class AbruptDM(inversion.datamodule.DataModule):
         inversion.datamodule.DataModule.__init__(self, temp)
         self.temp = numpy.array(temp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
-        self.diffus = float(diffus)        
+        self.diffus = float(diffus)
 
     def get_predicted(self, p):
         amp, age = p
@@ -137,7 +138,7 @@ class AbruptDM(inversion.datamodule.DataModule):
 
     def sum_gradient(self, gradient, p, residuals):
         amp, age = p
-        tmp = self.zp/numpy.sqrt(4.*self.diffus*age)        
+        tmp = self.zp/numpy.sqrt(4.*self.diffus*age)
         jact = amp*tmp*numpy.exp(-(tmp**2))/(numpy.sqrt(numpy.pi)*age)
         jacA = 1. - scipy.special.erf(tmp)
         self.jac_T = numpy.array([jacA, jact])
@@ -145,7 +146,7 @@ class AbruptDM(inversion.datamodule.DataModule):
 
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
-    
+
 def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
     Calculate the residual temperature profile in depth due to an abrupt
@@ -169,10 +170,10 @@ def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
 
     * temp : array
         The residual temperatures measured along the well
-        
+
     """
     return amp*(1. - scipy.special.erf(zp/numpy.sqrt(4.*diffus*age)))
-    
+
 def iabrupt(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age
@@ -217,11 +218,11 @@ def iabrupt(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=Fals
         return _iterator(dms, solver, log)
     else:
         return _solver(dms, solver, log)
- 
+
 class LinearDM(inversion.datamodule.DataModule):
     """
     Data module for a single linear temperature perturbation.
-    
+
     Packs the necessary data for the inversion.
 
     Derivatives with respect to the age are calculated using a 2-point finite
@@ -230,16 +231,16 @@ class LinearDM(inversion.datamodule.DataModule):
 
     .. math::
 
-        \\frac{\\partial T_i}{\\partial A} = 
+        \\frac{\\partial T_i}{\\partial A} =
         \\left(1 + 2\\frac{z_i^2}{4\\lambda t}\\right)
         \\mathrm{erfc}\\left(\\frac{z_i}{\\sqrt{4\\lambda t}}\\right) -
         \\frac{2}{\\sqrt{\\pi}}\\left(\\frac{z_i}{\\sqrt{4\\lambda t}}\\right)
         \\mathrm{exp}\\left(-\\frac{z_i^2}{4\\lambda t}\\right)
-       
+
     The Hessian matrix is calculated using a Gauss-Newton approximation.
 
     Parameters:
-    
+
     * temp : array
         The temperature profile
     * zp : array
@@ -255,7 +256,7 @@ class LinearDM(inversion.datamodule.DataModule):
         inversion.datamodule.DataModule.__init__(self, temp)
         self.temp = numpy.array(temp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
-        self.diffus = float(diffus)        
+        self.diffus = float(diffus)
 
     def get_predicted(self, p):
         amp, age = p
@@ -272,7 +273,7 @@ class LinearDM(inversion.datamodule.DataModule):
 
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
-    
+
 def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
     Calculate the residual temperature profile in depth due to a linear
@@ -296,13 +297,13 @@ def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
 
     * temp : array
         The residual temperatures measured along the well
-        
-    """    
+
+    """
     tmp = zp/numpy.sqrt(4.*diffus*age)
     res = amp*((1. + 2*tmp**2)*scipy.special.erfc(tmp)
-               - 2./numpy.sqrt(numpy.pi)*tmp*numpy.exp(-tmp**2))                    
+               - 2./numpy.sqrt(numpy.pi)*tmp*numpy.exp(-tmp**2))
     return res
-    
+
 def ilinear(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=False):
     """
     Invert the residual temperature profile to estimate the amplitude and age

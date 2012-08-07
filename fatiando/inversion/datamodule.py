@@ -10,10 +10,10 @@ the role of the data modules.
 
 import numpy
 
-from fatiando import logger
+import fatiando.log
 
 
-log = logger.dummy('fatiando.inversion.datamodule')
+log = fatiando.log.dummy('fatiando.inversion.datamodule')
 
 
 class DataModule(object):
@@ -46,7 +46,7 @@ class DataModule(object):
 
     * data : array
         The observed data.
-                
+
     """
 
     def __init__(self, data):
@@ -66,7 +66,7 @@ class DataModule(object):
 
         * misfit : float
             Scalar value of the data-misfit
-            
+
         """
         return numpy.linalg.norm(residuals)
 
@@ -83,7 +83,7 @@ class DataModule(object):
 
         * pred : array
             The calculated predicted data vector
-            
+
         """
         raise NotImplementedError("get_predicted method not implemented")
 
@@ -100,7 +100,7 @@ class DataModule(object):
             The parameter vector
         * residuals : array
             The residuals evaluated for parameter vector *p*
-            
+
         .. note:: Solvers for linear problems will use ``p = None`` and
             ``residuals = None`` so that the class knows how to calculate
             gradients more efficiently for these cases.
@@ -109,7 +109,7 @@ class DataModule(object):
 
         * new_gradient : array
             The new gradient vector
-        
+
         """
         raise NotImplementedError("sum_gradient method not implemented")
 
@@ -124,7 +124,7 @@ class DataModule(object):
             2D array with the old Hessian matrix
         * p : array
             The parameter vector
-            
+
         .. note:: Solvers for linear problems will use ``p = None`` so that the
             class knows how to calculate gradients more efficiently for these
             cases.
@@ -133,6 +133,6 @@ class DataModule(object):
 
         * new_hessian : array
             2D array with the new Hessian matrix
-        
+
         """
         raise NotImplementedError("sum_hessian method not implemented")

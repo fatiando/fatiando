@@ -1,4 +1,4 @@
-.. _utils:
+.. _fatiando_utils:
 
 Miscellaneous Utilities (``fatiando.utils``)
 ============================================

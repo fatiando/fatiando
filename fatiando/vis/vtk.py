@@ -1,6 +1,6 @@
 """
 Wrappers for calls to Mayavi2's `mlab` module for plotting
-:mod:`~fatiando.mesher.ddd` objects and automating common tasks.
+:mod:`~fatiando.msh.ddd` objects and automating common tasks.
 
 **Objects**
 
@@ -28,13 +28,13 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 
 import numpy
 
-from fatiando import logger
+import fatiando.log
 
 __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
            'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
            'savefig3d', 'polyprisms', 'points3d']
 
-log = logger.dummy('fatiando.vis.vtk')
+log = fatiando.log.dummy('fatiando.vis.vtk')
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -110,7 +110,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     Parameters:
 
-    * prisms : list of :class:`fatiando.mesher.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
@@ -220,7 +220,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     Parameters:
 
-    * prisms : list of :class:`fatiando.mesher.ddd.Prism`
+    * prisms : list of :class:`fatiando.msh.ddd.Prism`
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a

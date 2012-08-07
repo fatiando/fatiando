@@ -36,14 +36,14 @@ Parameters:
     :class:`~fatiando.inversion.regularizer.Regularizer` class.
 
     .. note:: The regularizing functions must also be linear!
-    
+
 Yields:
 
 * changeset : dict
-    A dictionary with the final solution:    
+    A dictionary with the final solution:
     ``changeset = {'estimate':p, 'misfits':[misfit], 'goals':[goal],
     'residuals':residuals}``
-    
+
     * p : array
         The parameter vector.
     * misfit : list
@@ -64,10 +64,10 @@ from numpy.linalg import solve as linsys_solver
 import scipy.sparse
 import scipy.sparse.linalg
 
-from fatiando import logger
+import fatiando.log
 
 
-log = logger.dummy('fatiando.inversion.linear')
+log = fatiando.log.dummy('fatiando.inversion.linear')
 
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
@@ -82,7 +82,7 @@ def _zerovector(n):
 
 def _zeromatrix(shape):
     return numpy.zeros(shape)
-    
+
 def use_sparse():
     """
     Configure the gradient solvers to use the sparse conjugate gradient linear
@@ -90,13 +90,13 @@ def use_sparse():
 
     .. note:: This does not make the data modules use sparse matrices! That must
         be implemented for each inverse problem separately.
-        
+
     """
     log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
     linsys_solver = _sparse_linsys_solver
     _zeromatrix = scipy.sparse.csr_matrix
-    
+
 def overdet(nparams):
     r"""
     Factory function for a linear least-squares solver to an overdetermined
@@ -141,7 +141,7 @@ def overdet(nparams):
     :math:`\hat{\bar{p}}` is the estimated parameter vector.
 
     The Hessian of the goal function is given by
-    
+
     .. math::
 
         \bar{\bar{H}} = 2\bar{\bar{G}}^T\bar{\bar{G}} + \sum\limits_{k=1}^L
@@ -156,10 +156,10 @@ def overdet(nparams):
 
         \bar{g} = -2\bar{\bar{G}}^T\bar{d}^o + \sum\limits_{k=1}^L
         \mu_k \bar{g}_k
-        
+
     where :math:`\bar{g}_k` are the gradient vectors of the regularizing
     functions.
-    
+
     Parameters:
 
     * nparams : int
@@ -167,11 +167,11 @@ def overdet(nparams):
         like ``mesh.size``)
 
     Returns
-    
+
     * solver : function
         A Python generator function that solves an linear overdetermined inverse
         problem using the parameters given above.
-    
+
     """
     if nparams <= 0:
         raise ValueError("nparams must be > 0")

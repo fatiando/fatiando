@@ -1,4 +1,4 @@
-.. _inversion.gradient:
+.. _fatiando_inversion_gradient:
 
 Gradient solvers (``fatiando.inversion.gradient``)
 =====================================================================

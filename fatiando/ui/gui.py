@@ -19,18 +19,20 @@ import bisect
 import numpy
 from matplotlib import pyplot, widgets, nxutils
 
-from fatiando.potential import talwani
-from fatiando.mesher.dd import Polygon
-from fatiando import utils, seismic, logger
+from fatiando.pot import talwani
+from fatiando.msh.dd import Polygon
+from fatiando import utils
+import fatiando.seis
+import fatiando.log
 
 
-log = logger.dummy('fatiando.ui.gui')
+log = fatiando.log.dummy('fatiando.ui.gui')
 
 class Moulder():
     """
     Interactive potential field direct modeling in 2D using polygons.
 
-    Uses module :mod:`~fatiando.potential.talwani` for computations.
+    Uses module :mod:`~fatiando.pot.talwani` for computations.
 
     For the moment only works for the gravity anomaly.
 
@@ -61,7 +63,7 @@ class Moulder():
         data. If None, will ignore this.
 
     "The truth is out there"
-    
+
     """
 
     instructions = ("Click to start drawing - Choose density using the slider" +
@@ -167,7 +169,7 @@ class Moulder():
 
     def set_density(self, value):
         self.nextdens = 1000.*value
-        
+
     def set_error(self, value):
         self.error = value
         self.update()
@@ -200,7 +202,7 @@ class Moulder():
                 self.polyline.set_label('%1.2f' % (0.001*self.nextdens))
                 self.legend()
                 self.draw()
-                self.polyplots.append([self.polyline, fill])  
+                self.polyplots.append([self.polyline, fill])
                 self.plotx, self.ploty = [], []
                 self.nextpoly = []
                 self.polyline, = self.mcanvas.plot([], [], marker='o',
@@ -209,9 +211,9 @@ class Moulder():
     def legend(self):
         self.leg = self.mcanvas.legend(loc='lower right', numpoints=1,
                                   prop={'size':9})
-        self.leg.get_frame().set_alpha(0.5)      
-        
-    def key_press(self, event):        
+        self.leg.get_frame().set_alpha(0.5)
+
+    def key_press(self, event):
         if event.key == 'e':
             if self.picking:
                 if len(self.nextpoly) == 0:
@@ -273,7 +275,7 @@ class BasinTrap(Moulder):
         The observed gravity values at the computation points.
         Will be plotted as black points together with the modeled (predicted)
         data. If None, will ignore this.
-        
+
     """
 
     instructions = "Click to set node depth - Left click to change nodes"
@@ -284,7 +286,7 @@ class BasinTrap(Moulder):
         left, right = numpy.array(nodes)*0.001
         z1 = z2 = 0.001*0.5*(area[3] - area[2])
         self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
-        self.nextdens = -1000        
+        self.nextdens = -1000
         self.densslider.set_val(self.nextdens*0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
@@ -303,15 +305,15 @@ class BasinTrap(Moulder):
             x1, z1 = self.polygons[0][2]
         else:
             x0, z0 = self.polygons[0][2]
-            x1, z1 = self.polygons[0][3]            
+            x1, z1 = self.polygons[0][3]
         self.guide.set_data([x0, x0, x1], [z0, z, z1])
-                
+
     def move(self, event):
         if event.inaxes != self.mcanvas:
             return 0
         self.draw_guide(event.xdata, event.ydata)
         self.draw()
-        
+
     def set_density(self, value):
         self.densities[0] = 1000.*value
         self.update()
@@ -336,7 +338,7 @@ class BasinTrap(Moulder):
             self.isleft = not self.isleft
             self.draw_guide(x, y)
             self.draw()
-        
+
     def key_press(self, event):
         pass
 
@@ -360,7 +362,7 @@ class BasinTri(Moulder):
         >>> # Create the application
         >>> app = BasinTri(area, nodes, xp, zp)
         >>> # Run it (close the window to finish)
-        >>> app.run() 
+        >>> app.run()
         >>> # and save the calculated gravity anomaly profile
         >>> app.savedata("mydata.txt")
 
@@ -377,7 +379,7 @@ class BasinTri(Moulder):
         The observed gravity values at the computation points.
         Will be plotted as black points together with the modeled (predicted)
         data. If None, will ignore this.
-        
+
     """
 
     instructions = "Click to set node location"
@@ -389,7 +391,7 @@ class BasinTri(Moulder):
         z = 0.001*0.5*(area[3] - area[2])
         x = 0.5*(right[0] + left[0])
         self.polygons = [[left, right, [x, z]]]
-        self.nextdens = -1000        
+        self.nextdens = -1000
         self.densslider.set_val(self.nextdens*0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
@@ -403,15 +405,15 @@ class BasinTri(Moulder):
 
     def draw_guide(self, x, z):
         x0, z0 = self.polygons[0][0]
-        x1, z1 = self.polygons[0][1]            
+        x1, z1 = self.polygons[0][1]
         self.guide.set_data([x0, x, x1], [z0, z, z1])
-                
+
     def move(self, event):
         if event.inaxes != self.mcanvas:
             return 0
         self.draw_guide(event.xdata, event.ydata)
         self.draw()
-        
+
     def set_density(self, value):
         self.densities[0] = 1000.*value
         self.update()
@@ -429,7 +431,7 @@ class BasinTri(Moulder):
             self.guide.set_data([], [])
             self.update()
             self.draw()
-        
+
     def key_press(self, event):
         pass
 
@@ -456,7 +458,7 @@ class Lasagne():
         >>> app = Lasagne(thickness, zp, vmin, vmax)
         >>> app.run()
         >>> # Save the modeled data
-        >>> app.savedata("mydata.txt")        
+        >>> app.savedata("mydata.txt")
 
     Parameters:
 
@@ -470,7 +472,7 @@ class Lasagne():
         The observed travel-time values at the measurement stations. Will be
         plotted as black points together with the modeled (predicted) data.
         If None, will ignore this.
-        
+
     """
 
     instructions = "Click to set the velocity of the layers"
@@ -512,7 +514,8 @@ class Lasagne():
         # Initialize the data
         self.error = 0.
         self.velocity = vmin*numpy.ones_like(thickness)
-        self.predtts = seismic.profile.vertical(thickness, self.velocity, zp)
+        self.predtts = fatiando.seis.profile.vertical(thickness, self.velocity,
+                                                      zp)
         self.layers = [sum(thickness[:i]) for i in xrange(len(thickness) + 1)]
         self.predplot, = self.dcanvas.plot(self.predtts, zp, '-r', linewidth=2)
         if self.tts is not None:
@@ -524,9 +527,9 @@ class Lasagne():
         self.ploty.append(self.layers[-1])
         self.plotx = numpy.zeros_like(self.ploty)
         self.layerplot, = self.mcanvas.plot(self.plotx, self.ploty, 'o-k',
-            linewidth=2)       
+            linewidth=2)
         self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
-                 color='red', linewidth=2) 
+                 color='red', linewidth=2)
 
     def run(self):
         self.connect()
@@ -549,10 +552,11 @@ class Lasagne():
         self.error = 0.01*value
         self.update()
         self.draw()
-        
+
     def update(self):
         self.predtts = utils.contaminate(
-            seismic.profile.vertical(self.thickness, self.velocity, self.zp),
+            fatiando.seis.profile.vertical(self.thickness, self.velocity,
+                self.zp),
             self.error, percent=True)
         self.predplot.set_data(self.predtts, self.zp)
         if self.tts is not None:
@@ -571,13 +575,13 @@ class Lasagne():
             z2 = self.layers[i]
             x1 = self.velocity[i - 1]
             self.guide.set_data([x1, x, x, x1], [z1, z1, z2, z2])
-                
+
     def move(self, event):
         if event.inaxes != self.mcanvas:
             return 0
         self.draw_guide(event.xdata, event.ydata)
         self.draw()
-        
+
     def pick(self, event):
         if event.inaxes != self.mcanvas:
             return 0
@@ -591,6 +595,6 @@ class Lasagne():
             self.guide.set_data([], [])
             self.update()
             self.draw()
-        
+
     def key_press(self, event):
         pass

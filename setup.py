@@ -11,8 +11,8 @@ from distutils.extension import Extension
 try:
     from Cython.Distutils import build_ext
     ext_modules = [
-        Extension("fatiando.potential._cprism",
-                  [join('fatiando', join('potential', '_cprism.pyx'))],
+        Extension("fatiando.pot._cprism",
+                  [join('fatiando', join('pot', '_cprism.pyx'))],
                   libraries=['m'],
                   extra_compile_args=['-O3'])]
     CYTHON = True
@@ -28,12 +28,12 @@ VERSION = '0.1.dev'
 with open("README.txt") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
-            'fatiando.potential',
-            'fatiando.seismic',
+            'fatiando.pot',
+            'fatiando.seis',
             'fatiando.heat',
             'fatiando.vis',
             'fatiando.ui',
-            'fatiando.mesher',
+            'fatiando.msh',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'

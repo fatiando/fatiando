@@ -1,4 +1,4 @@
-.. _inversion.datamodule:
+.. _fatiando_inversion_datamodule:
 
 Base data module class (``fatiando.inversion.datamodule``)
 =====================================================================

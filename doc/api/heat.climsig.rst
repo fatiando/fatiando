@@ -1,4 +1,4 @@
-.. _heat.climsig:
+.. _fatiando_heat_climsig:
 
 Climate change signal in well temperature logs (``fatiando.heat.climsig``)
 ==========================================================================

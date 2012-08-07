@@ -3,21 +3,19 @@ Example of how to generate a SquareMesh and get the physical properties from an
 image file.
 """
 from os import path
-from matplotlib import pyplot
-from fatiando.mesher.dd import SquareMesh
-from fatiando import vis, logger
+import fatiando as ft
 
-log = logger.get()
-log.info(logger.header())
+log = ft.log.get()
+log.info(ft.log.header())
 log.info(__doc__)
 
 imgfile = path.join(path.dirname(path.abspath(__file__)), 'fat-logo.png')
-mesh = SquareMesh((0, 5000, 0, 5000), (150, 150))
+mesh = ft.msh.dd.SquareMesh((0, 5000, 0, 5000), (150, 150))
 mesh.img2prop(imgfile, 5, 10, 'slowness')
 
-pyplot.figure()
-pyplot.title('Slowness model of the Earth')
-vis.map.squaremesh(mesh, prop='slowness')
-cb = pyplot.colorbar()
+ft.vis.figure()
+ft.vis.title('Slowness model of the Earth')
+ft.vis.squaremesh(mesh, prop='slowness')
+cb = ft.vis.colorbar()
 cb.set_label("Slowness")
-pyplot.show()
+ft.vis.show()

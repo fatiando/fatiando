@@ -1,4 +1,4 @@
-.. _vis.map:
+.. _fatiando_vis_map:
 
 Map grids and plot 2D objects (``fatiando.vis.map``)
 ================================================================================

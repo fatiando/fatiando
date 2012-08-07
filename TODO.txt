@@ -39,6 +39,8 @@ URGENT:
 
 TODO:
 
+* Put all calls to matplotlib in try blocks in harvest script so that mpl is not
+  a required dependency
 * Make fatiando.vis.map functions for plotting with projections
 * Make fatiando.io for easy pickling, json, grid IO, etc
 * utils.pickle and utils.upickle to automate pickling

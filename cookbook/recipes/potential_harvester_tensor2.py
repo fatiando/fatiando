@@ -3,7 +3,7 @@ Example of 3D inversion of synthetic gravity gradient data using Harvester
 """
 import numpy
 import fatiando as ft
-from fatiando.mesher.ddd import Prism, PrismMesh
+from fatiando.msh.ddd import Prism, PrismMesh
 
 log = ft.log.get()
 log.info(ft.log.header())
@@ -45,7 +45,7 @@ points =[(901, 701, 750),
          (3701, 1701, 501),
          (3201, 1701, 501),
          (2951, 3951, 301),
-         (2951, 3951, 701)]         
+         (2951, 3951, 701)]
 densities = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1000, 1000, 1000, 1000,
              800, 800]
 seeds = ft.pot.harvester.sow(points, {'density':densities},

@@ -1,4 +1,4 @@
-.. _heat:
+.. _fatiando_heat:
 
 Geothermics (``fatiando.heat``)
 ===============================================
@@ -8,5 +8,5 @@ Geothermics (``fatiando.heat``)
    :show-inheritance:
 
 .. toctree::
-    
+
     heat.climsig.rst

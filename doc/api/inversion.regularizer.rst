@@ -1,4 +1,4 @@
-.. _inversion.regularizer:
+.. _fatiando_inversion_regularizer:
 
 Regularizing functions (``fatiando.inversion.regularizer``)
 =====================================================================

@@ -36,10 +36,10 @@ import math
 
 import numpy
 
-from fatiando import logger
+import fatiando.log
 
-log = logger.dummy('fatiando.utils')
-  
+log = fatiando.log.dummy('fatiando.utils')
+
 
 def dircos(inc, dec):
     """
@@ -61,14 +61,14 @@ def dircos(inc, dec):
 
     * vect : list = [x, y, z]
         The unit vector
-        
+
     """
     d2r = numpy.pi/180.
     vect = [numpy.cos(d2r*inc)*numpy.cos(d2r*dec),
             numpy.cos(d2r*inc)*numpy.sin(d2r*dec),
             numpy.sin(d2r*inc)]
     return vect
-    
+
 def vecmean(arrays):
     """
     Take the mean array out of a list of arrays.
@@ -87,7 +87,7 @@ def vecmean(arrays):
 
         >>> print vecmean([[1, 1, 2], [2, 3, 5]])
         [ 1.5  2.   3.5]
-        
+
     """
     return numpy.mean(arrays, axis=0)
 
@@ -104,15 +104,15 @@ def vecstd(arrays):
 
     * std : array
         Standard deviation of each element in the arrays
-        
+
     Example::
 
         >>> print vecstd([[1, 1, 2], [2, 3, 5]])
         [ 0.5  1.   1.5]
-        
+
     """
     return numpy.std(arrays, axis=0)
-    
+
 class SparseList(object):
     """
     Store only non-zero elements on an immutable list.
@@ -120,7 +120,7 @@ class SparseList(object):
     Can iterate over and access elements just like if it were a list.
 
     Parameters:
-    
+
     * size : int
         Size of the list.
     * elements : dict
@@ -143,7 +143,7 @@ class SparseList(object):
         >>> for i in l2:
         ...     print i,
         0.0 3.2 0.0 2.8
-        
+
     """
 
     def __init__(self, size, elements=None):
@@ -177,7 +177,7 @@ class SparseList(object):
         if key >= self.size:
             raise IndexError('index out of range')
         self.elements[key] = value
-        
+
     def next(self):
         if self.i == self.size:
             raise StopIteration()
@@ -190,22 +190,22 @@ def sec2hms(seconds):
     Convert seconds into a string with hours, minutes and seconds.
 
     Parameters:
-    
+
     * seconds : float
         Time in seconds
 
     Returns:
-    
+
     * time : str
         String in the format ``'%dh %dm %2.5fs'``
 
     Example::
-    
+
         >>> print sec2hms(62.2)
         0h 1m 2.20000s
         >>> print sec2hms(3862.12345678)
         1h 4m 22.12346s
-    
+
     """
     h = int(seconds/3600)
     m = int((seconds - h*3600)/60)
@@ -219,20 +219,20 @@ def sec2year(seconds):
     Julian years have 365.25 days.
 
     Parameters:
-    
+
     * seconds : float
         Time in seconds
 
     Returns:
-    
+
     * years : float
         Time in years
 
     Example::
-    
+
         >>> print sec2year(31557600)
         1.0
-    
+
     """
     return float(seconds)/31557600.0
 
@@ -243,20 +243,20 @@ def year2sec(years):
     Julian years have 365.25 days.
 
     Parameters:
-    
+
     * years : float
         Time in years
 
     Returns:
-    
+
     * seconds : float
         Time in seconds
 
     Example::
-    
+
         >>> print year2sec(1)
         31557600.0
-    
+
     """
     return 31557600.0*float(years)
 
@@ -267,7 +267,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     Noise added is normally distributed.
 
     Parameters:
-    
+
     * data : list or array
         Data to contaminate
     * stddev : float
@@ -279,11 +279,11 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     * return_stddev : True or False
         If ``True``, will return also the standard deviation used to contaminate
         *data*
-        
+
     Returns:
-    
+
     if *return_stddev* is ``False``:
-    
+
     * contam : array
         The contaminated data array
 
@@ -293,7 +293,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         The contaminated data array and the standard deviation used to
         contaminate it.
 
-    """    
+    """
     log.info("Contaminating data with Gaussian noise:")
     if percent:
         log.info("  noise level = %g percent" % (100*stddev))
@@ -320,16 +320,16 @@ def normal(x, mean, std):
         \exp\\left(-\\frac{(x-\\bar{x})^2}{\sigma^2}\\right)
 
     Parameters:
-    
+
     * x : float or array
         Value at which to calculate the normal distribution
     * mean : float
         The mean of the distribution :math:`\\bar{x}`
     * std : float
         The standard deviation of the distribution :math:`\sigma`
-        
+
     Returns:
-    
+
     * normal : array
         Normal distribution evaluated at *x*
 
@@ -346,16 +346,16 @@ def gaussian(x, mean, std):
         \\right)
 
     Parameters:
-    
+
     * x : float or array
         Values at which to calculate the Gaussian function
     * mean : float
         The mean of the distribution :math:`\\bar{x}`
     * std : float
         The standard deviation of the distribution :math:`\sigma`
-        
+
     Returns:
-    
+
     * gauss : array
         Gaussian function evaluated at *x*
 
@@ -367,7 +367,7 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     Non-normalized 2D Gaussian function
 
     Parameters:
-    
+
     * x, y : float or arrays
         Coordinates at which to calculate the Gaussian function
     * sigma_x, sigma_y : float
@@ -377,9 +377,9 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     * angle : float
         Rotation angle of the gaussian measure from the x axis (north) growing
         positive to the east (positive y axis)
-        
+
     Returns:
-    
+
     * gauss : array
         Gaussian function evaluated at *x*, *y*
 
@@ -399,7 +399,7 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
 def random_points(area, n):
     """
     Generate a set of n random points.
- 
+
     Parameters:
 
     * area : list = [x1, x2, y1, y2]
@@ -411,7 +411,7 @@ def random_points(area, n):
 
     * points : list
         List of (x, y) coordinates of the points
-        
+
     """
     x1, x2, y1, y2 = area
     xs = numpy.random.uniform(x1, x2, n)
@@ -421,9 +421,9 @@ def random_points(area, n):
 def circular_points(area, n, random=False):
     """
     Generate a set of n points positioned in a circular array.
-    
+
     The diameter of the circle is equal to the smallest dimension of the area
- 
+
     Parameters:
 
     * area : list = [x1, x2, y1, y2]
@@ -437,7 +437,7 @@ def circular_points(area, n, random=False):
 
     * points : list
         List of (x, y) coordinates of the points
-        
+
     """
     x1, x2, y1, y2 = area
     radius = 0.5*min(x2 - x1, y2 - y1)
@@ -467,7 +467,7 @@ def connect_points(pts1, pts2):
 
     * results : lists of lists = [connect1, connect2]
         2 lists with the connected points
-        
+
     """
     connect1 = []
     append1 = connect1.append

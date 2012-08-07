@@ -9,7 +9,3 @@ Heuristic solvers for generic inverse problems.
 
 import numpy
 
-from fatiando import logger
-
-
-log = logger.dummy('fatiando.inversion.heuristic')

@@ -75,7 +75,7 @@ Lets say I have a module that solves a particular inverse problem called
 
     # myinvprob.py
     from fatiando import inversion
-    
+
     class MyDataModule(inversion.datamodule.DataModule):
         \"""
         My personal data module. Implements the methods in the DataModule class
@@ -94,7 +94,7 @@ Lets say I have a module that solves a particular inverse problem called
         ...
         * solver
             A solver generator produced by a factory function
-        
+
         \"""
         dms = [MyDataModule(data)]
         regs = [inversion.regularizer.Damping(damping)]
@@ -142,11 +142,11 @@ These solvers can then be called from scripts, like so::
 
 Some modules that use the :mod:`~fatiando.inversion` API:
 
-* :mod:`fatiando.seismic.profile`
-* :mod:`fatiando.seismic.srtomo`
-* :mod:`fatiando.seismic.epicenter`
+* :mod:`fatiando.seis.profile`
+* :mod:`fatiando.seis.srtomo`
+* :mod:`fatiando.seis.epicenter`
 * :mod:`fatiando.heat.climsig`
-* :mod:`fatiando.potential.basin2d`
+* :mod:`fatiando.pot.basin2d`
 
 ----
 
@@ -157,4 +157,4 @@ from fatiando.inversion import (datamodule,
                                 gradient,
                                 heuristic,
                                 linear)
-   
+

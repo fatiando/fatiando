@@ -1,4 +1,4 @@
-.. _ui:
+.. _fatiando_ui:
 
 User interfaces (``fatiando.ui``)
 ==================================

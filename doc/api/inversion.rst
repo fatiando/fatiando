@@ -1,4 +1,4 @@
-.. _inversion:
+.. _fatiando_inversion:
 
 Inverse problem solving tools (``fatiando.inversion``)
 ==============================================================

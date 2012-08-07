@@ -1,27 +1,26 @@
 """
 Cut a section from a grid.
 """
-from matplotlib import pyplot
-from fatiando import gridder, utils, vis, logger
+import fatiando as ft
 
-log = logger.get()
-log.info(logger.header())
+log = ft.log.get()
+log.info(ft.log.header())
 log.info(__doc__)
 
-x, y = gridder.regular((-10, 10, -10, 10), (100,100))
-z = utils.gaussian2d(x, y, 1, 1)
+x, y = ft.grd.regular((-10, 10, -10, 10), (100,100))
+z = ft.utils.gaussian2d(x, y, 1, 1)
 subarea = [-2, 2, -3, 3]
-subx, suby, subscalar = gridder.cut(x, y, [z], subarea)
+subx, suby, subscalar = ft.grd.cut(x, y, [z], subarea)
 
-pyplot.figure(figsize=(12, 5))
-pyplot.subplot(1, 2, 1)
-pyplot.title("Whole grid")
-pyplot.axis('scaled')
-vis.map.pcolor(x, y, z, (100,100))
-vis.map.square(subarea, 'k', linewidth=2, label='Cut this region')
-pyplot.legend(loc='lower left')
-pyplot.subplot(1, 2, 2)
-pyplot.title("Cut grid")
-pyplot.axis('scaled')
-vis.map.pcolor(subx, suby, subscalar[0], (40,60), interp=True)
-pyplot.show()
+ft.vis.figure(figsize=(12, 5))
+ft.vis.subplot(1, 2, 1)
+ft.vis.title("Whole grid")
+ft.vis.axis('scaled')
+ft.vis.pcolor(x, y, z, (100,100))
+ft.vis.square(subarea, 'k', linewidth=2, label='Cut this region')
+ft.vis.legend(loc='lower left')
+ft.vis.subplot(1, 2, 2)
+ft.vis.title("Cut grid")
+ft.vis.axis('scaled')
+ft.vis.pcolor(subx, suby, subscalar[0], (40,60), interp=True)
+ft.vis.show()

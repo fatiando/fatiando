@@ -1,4 +1,4 @@
-.. _inversion.heuristic:
+.. _fatiando_inversion_heuristic:
 
 Heuristic solvers (``fatiando.inversion.heuristic``)
 =====================================================================

@@ -1,4 +1,4 @@
-.. _ui.picker:
+.. _fatiando_ui_picker:
 
 Picking points off 2D plots (``fatiando.ui.picker``)
 ======================================================

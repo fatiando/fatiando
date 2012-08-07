@@ -40,7 +40,8 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 import numpy
 from matplotlib import pyplot
 
-from fatiando import gridder, logger
+import fatiando.log
+import fatiando.grd
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -49,7 +50,7 @@ __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
            'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap',
            'draw_geolines', 'draw_countries', 'draw_coastlines']
 
-log = logger.dummy('fatiando.vis.map')
+log = fatiando.log.dummy('fatiando.vis.map')
 
 def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
     """
@@ -353,7 +354,7 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
 
     Parameters:
 
-    * mesh : :class:`fatiando.mesher.dd.SquareMesh` or compatible
+    * mesh : :class:`fatiando.msh.dd.SquareMesh` or compatible
         The mesh (a compatible mesh must implement the methods ``get_xs`` and
         ``get_ys``)
     * prop : str
@@ -388,7 +389,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
 
     Parameters:
 
-    * polygon : :class:`fatiando.mesher.dd.Polygon`
+    * polygon : :class:`fatiando.msh.dd.Polygon`
         The polygon
     * style : str
         Color and line style string (as in matplotlib.pyplot.plot)
@@ -478,7 +479,7 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = gridder.interp(x, y, v, shape)
+        X, Y, V = fatiando.grd.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -537,7 +538,7 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = gridder.interp(x, y, v, shape)
+        X, Y, V = fatiando.grd.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -586,7 +587,7 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = gridder.interp(x, y, v, shape)
+        X, Y, V = fatiando.grd.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)

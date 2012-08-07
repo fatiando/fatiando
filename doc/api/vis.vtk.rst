@@ -1,4 +1,4 @@
-.. _vis.vtk:
+.. _fatiando_vis_vtk:
 
 Plot 3D objects in Mayavi2 using VTK (``fatiando.vis.vtk``)
 ================================================================================

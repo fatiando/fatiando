@@ -41,10 +41,10 @@ Parameters:
 Yields:
 
 * changeset : dict
-    A dictionary with the solution at the current iteration:    
+    A dictionary with the solution at the current iteration:
     ``changeset = {'estimate':p, 'misfits':misfits, 'goals':goals,
     'residuals':residuals}``
-    
+
     * p : array
         The parameter vector.
     * misfits : list
@@ -65,10 +65,10 @@ from numpy.linalg import solve as linsys_solver
 import scipy.sparse
 import scipy.sparse.linalg
 
-from fatiando import logger
+import fatiando.log
 
 
-log = logger.dummy('fatiando.inversion.gradient')
+log = fatiando.log.dummy('fatiando.inversion.gradient')
 
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
@@ -83,7 +83,7 @@ def _zerovector(n):
 
 def _zeromatrix(shape):
     return numpy.zeros(shape)
-    
+
 def use_sparse():
     """
     Configure the gradient solvers to use the sparse conjugate gradient linear
@@ -91,7 +91,7 @@ def use_sparse():
 
     .. note:: This does not make the data modules use sparse matrices! That must
         be implemented for each inverse problem separately.
-    
+
     """
     log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
@@ -106,7 +106,7 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
 
     The increment to the parameter vector :math:`\\bar{p}` is calculated by
     (Kelley, 1999)
-        
+
     .. math::
 
         \\Delta\\bar{p} = -\\lambda\\bar{g}
@@ -118,7 +118,7 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
     using the Armijo rule (Kelley, 1999). In this case
 
     .. math::
-    
+
         \\lambda = \\beta^m
 
     where :math:`1 > \\beta > 0` and :math:`m \\ge 0` is an interger that
@@ -132,12 +132,12 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
         \\alpha\\beta^m ||\\bar{g}(\\bar{p})||^2
 
     where :math:`\\Gamma(\\bar{p})` is the goal function evaluated for parameter
-    vector :math:`\\bar{p}`, :math:`\\alpha = 10^{-4}`, and 
+    vector :math:`\\bar{p}`, :math:`\\alpha = 10^{-4}`, and
     :math:`\\bar{g}(\\bar{p})` is the gradient vector of
     :math:`\\Gamma(\\bar{p})`.
 
     Parameters:
-    
+
     * initial : array
         The initial estimate of the parameters
     * step : float
@@ -164,7 +164,7 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
     References:
 
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
-    
+
     """
     if tol <= 0.0:
         raise ValueError("tol parameter should be > 0")
@@ -217,7 +217,7 @@ def _steepest(initial, step, maxit, tol):
                          residuals))
             goal = misfit + sum(r.value(p) for r in regs)
             misfits.append(misfit)
-            goals.append(goal)            
+            goals.append(goal)
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
@@ -272,9 +272,9 @@ def _steepest_armijo(initial, step, maxsteps, maxit, tol):
                 log.warning(msg)
                 break
             p = ptmp
-            residuals = restmp     
+            residuals = restmp
             misfits.append(misfit)
-            goals.append(goal)            
+            goals.append(goal)
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
@@ -290,7 +290,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
 
     The increment to the parameter vector :math:`\\bar{p}` is calculated by
     (Kelley, 1999)
-    
+
     .. math::
 
         \\Delta\\bar{p} = -[\\bar{\\bar{H}} +
@@ -302,7 +302,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
     and :math:`\\bar{g}` is the gradient vector.
 
     Parameters:
-    
+
     * initial : array
         The initial estimate of the parameters
     * damp : float
@@ -331,7 +331,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
     References:
 
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
-    
+
     """
     if tol <= 0.0:
         raise ValueError("tol parameter should be > 0")
@@ -351,7 +351,7 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
     log.info("  max iterations: %d" % (maxit))
     log.info("  convergence tolerance: %g" % (tol))
     log.info("  use diagonal of Hessian: %s" % (diag))
-    if diag:        
+    if diag:
         return _levmarq_diag(initial_array, float(damp), float(factor),
             maxsteps, maxit, float(tol))
     else:
@@ -418,16 +418,16 @@ def _levmarq(initial, damp, factor, maxsteps, maxit, tol):
                 log.warning(msg)
                 break
             p = ptmp
-            residuals = restmp     
+            residuals = restmp
             misfits.append(misfit)
-            goals.append(goal)            
+            goals.append(goal)
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
             if abs((goals[-1] - goals[-2])/goals[-2]) <= tol:
                 break
     return solver
-    
+
 def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
     """
     Factory function for the Levenberg-Marquardt solver using the diagonal of
@@ -488,9 +488,9 @@ def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
                 log.warning(msg)
                 break
             p = ptmp
-            residuals = restmp     
+            residuals = restmp
             misfits.append(misfit)
-            goals.append(goal)            
+            goals.append(goal)
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
@@ -505,16 +505,16 @@ def newton(initial, maxit=100, tol=10**(-5)):
 
     The increment to the parameter vector :math:`\\bar{p}` is calculated by
     (Kelley, 1999)
-    
+
     .. math::
 
         \\Delta\\bar{p} = -\\bar{\\bar{H}}^{-1}\\bar{g}
 
     where :math:`\\bar{\\bar{H}}` is the Hessian matrix and :math:`\\bar{g}` is
     the gradient vector.
-    
+
     Parameters:
-    
+
     * initial : array
         The initial estimate of the parameters
     * maxit : int
@@ -532,7 +532,7 @@ def newton(initial, maxit=100, tol=10**(-5)):
     References:
 
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
-    
+
     """
     if tol <= 0.0:
         raise ValueError("tol parameter should be > 0")
@@ -573,7 +573,7 @@ def newton(initial, maxit=100, tol=10**(-5)):
                          residuals))
             goal = misfit + sum(r.value(p) for r in regs)
             misfits.append(misfit)
-            goals.append(goal)            
+            goals.append(goal)
             yield {'estimate':p, 'misfits':misfits, 'goals':goals,
                    'residuals':residuals}
             # Check if goal function decreases more than a threshold
