@@ -15,6 +15,8 @@ import sys
 import os
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append('..')
+# and the recipes to build the cookbook
+sys.path.append('../cookbook/recipes')
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
