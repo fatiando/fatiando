@@ -59,14 +59,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     Fx, Fy = _getfreqs(x, y, data, shape)
     freq = numpy.sqrt(Fx**2 + Fy**2)
     dataft = (2.*numpy.pi)*numpy.fft.fft2(numpy.reshape(data, shape))
-    # Make a mesh fill with densities
-    ny, nx = shape
-    bounds = [x.min(), x.max(), y.min(), y.max(), zmin, zmax]
-    mesh = PrismMesh(bounds, (nlayers, ny, nx))
-    # Find the depth of the layers (middle of the prisms)
-    zs = mesh.get_zs()
-    dz = zs[1] - zs[0]
-    depths = zs + 0.5*dz # Offset by the data height
+    mesh, depths = _makemesh(x, y, z, shape, zmin, zmax, nlayers)
     density = []
     for depth in depths:
         density.extend(
@@ -77,4 +70,15 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
             ))
     mesh.addprop('density', numpy.array(density))
     return mesh
+
+def _makemesh(x, y, z, shape, zmin, zmax, nlayers):
+    # Make a mesh fill with densitiescd cd
+    ny, nx = shape
+    bounds = [x.min(), x.max(), y.min(), y.max(), zmin, zmax]
+    mesh = PrismMesh(bounds, (nlayers, ny, nx))
+    # Find the depth of the layers (middle of the prisms)
+    zs = mesh.get_zs()
+    dz = zs[1] - zs[0]
+    depths = zs + 0.5*dz - z # Offset by the data height
+    return mesh, depths
 
