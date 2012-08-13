@@ -295,7 +295,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
     vtkmesh.cell_data.scalars = numpy.array(celldata)
     vtkmesh.cell_data.scalars.name = label
-    dataset = mlab.pipeline.add_dataset(vtkmesh)
+    dataset = mlab.pipeline.threshold(mlab.pipeline.add_dataset(vtkmesh))
     if vmin is None:
         vmin = min(vtkmesh.cell_data.scalars)
     if vmax is None:

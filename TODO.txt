@@ -35,11 +35,12 @@ GOALS FOR 0.1:
 
 URGENT:
 
+* Add rst file for the new pot.imaging module
+* Delegate all unit transformations to input and output (including plots). Work
+  only with SI to avoid headaches (like in potential.fourier)
 * Make the build_cookbook.py script get the docstrings without importing the
   recipe. This way it doesn't get executed
 * Add titles, figures and better description to recipe docstrings
-* Delegate all unit transformations to input and output (including plots). Work
-  only with SI to avoid headaches (like in potential.fourier)
 * potential.prism: change all x[i]*x[i] for x[i]**2
 * potential.prism (maybe others): change all res = res*x for res *= x (its faster)
 
