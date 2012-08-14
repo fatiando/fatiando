@@ -32,6 +32,8 @@ Version 0.1
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
 * Added :ref:`tutorials <tutorial>` to the documentation
+* Add module :ref:`fatiando.pot.imaging <fatiando_pot_imaging>` with imaging
+  methods for potential fields
 
 **Improved features**:
 

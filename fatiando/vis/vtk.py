@@ -32,7 +32,7 @@ import fatiando.log
 
 __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
            'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
-           'savefig3d', 'polyprisms', 'points3d']
+           'savefig3d', 'polyprisms', 'points3d', 'title3d']
 
 log = fatiando.log.dummy('fatiando.vis.vtk')
 
@@ -64,6 +64,23 @@ def _lazy_import_tvtk():
             from tvtk.api import tvtk
         except ImportError:
             from enthought.tvtk.api import tvtk
+
+def title3d(text, color=(0, 0, 0),  size=0.5):
+    """
+    Draw a title on a Mayavi figure.
+
+    Parameters:
+
+    * text : str
+        The title
+    * color : tuple = (r, g, b)
+        RGB of the color of the text
+    * size : float
+        The size of the text
+
+    """
+    _lazy_import_mlab()
+    mlab.title(text, color=color, size=size)
 
 def savefig3d(fname, magnification=None):
     """

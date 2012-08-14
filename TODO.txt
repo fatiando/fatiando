@@ -31,11 +31,10 @@ GOALS FOR 0.1:
 * Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
 * Magnetic compact inversion in 2D
-* Implement imaging methods for potential fields
 
 URGENT:
 
-* Add rst file for the new pot.imaging module
+* Add docstring for vis.vtk.points3d
 * Delegate all unit transformations to input and output (including plots). Work
   only with SI to avoid headaches (like in potential.fourier)
 * Make the build_cookbook.py script get the docstrings without importing the
@@ -65,6 +64,7 @@ TODO:
 
 BUGS:
 
+* title3d needs be called after a call to a data plotter (e.g., prisms)
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
 
 

@@ -1,0 +1,70 @@
+"""
+Run the all imaging methods on synthetic gravity data to compare their
+performance.
+"""
+from multiprocessing import Pool
+import fatiando as ft
+
+log = ft.log.get()
+log.info(ft.log.header())
+log.info(__doc__)
+
+# Make some synthetic gravity data from a polygonal prism model
+log.info("Draw the polygons one by one")
+bounds = [-10000, 10000, -10000, 10000, 0, 10000]
+area = bounds[:4]
+depths = [0, 1000, 3000, 7000]
+prisms = []
+for i in range(1, len(depths)):
+    # Plot previous prisms
+    axes = ft.vis.figure().gca()
+    ft.vis.axis('scaled')
+    for p in prisms:
+        ft.vis.polygon(p, '.-k', xy2ne=True)
+    # Draw a new polygon
+    polygon = ft.ui.picker.draw_polygon(area, axes, xy2ne=True)
+    # append the newly drawn one
+    prisms.append(
+        ft.msh.ddd.PolygonalPrism(polygon, depths[i - 1], depths[i],
+            {'density':500}))
+shape = (25, 25)
+xp, yp, zp = ft.grd.regular(area, shape, z=-10)
+gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
+
+# Plot the data
+ft.vis.figure()
+ft.vis.axis('scaled')
+ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, shape, 30)
+ft.vis.colorbar()
+ft.vis.xlabel('East (km)')
+ft.vis.ylabel('North (km)')
+ft.vis.m2km()
+ft.vis.show()
+
+# A function to the imaging methods and make the 3D plots
+def run(title):
+    if title == 'Migration':
+        result = ft.pot.imaging.migrate(xp, yp, zp, gz, shape, bounds[-2],
+            bounds[-1], 25, power=0.8)
+    elif title == 'Generalized Inverse':
+        result = ft.pot.imaging.geninv(xp, yp, zp, gz, shape, bounds[-2],
+            bounds[-1], 25)
+    elif title == 'Sandwich':
+        result = ft.pot.imaging.sandwich(xp, yp, zp, gz, shape, bounds[-2],
+            bounds[-1], 25)
+    # Plot the results
+    ft.vis.figure3d()
+    ft.vis.polyprisms(prisms, 'density', style='wireframe', linewidth=2)
+    ft.vis.prisms(result, 'density', edges=False)
+    axes = ft.vis.axes3d(ft.vis.outline3d())
+    ft.vis.wall_bottom(axes.axes.bounds)
+    ft.vis.wall_north(axes.axes.bounds)
+    ft.vis.title3d(title, size=0.5)
+    ft.vis.show3d()
+
+titles = ['Migration', 'Generalized Inverse', 'Sandwich']
+# Use a pool of workers to run each method in a different process
+pool = Pool(3)
+# Use map to apply the run function to each title
+pool.map(run, titles)
+
