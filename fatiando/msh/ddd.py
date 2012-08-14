@@ -654,6 +654,47 @@ class PrismMesh(object):
             return zs[:-1]
         return zs
 
+    def get_layer(self, i):
+        """
+        Return the set of prisms corresponding to the ith layer of the mesh.
+
+        Parameters:
+
+        * i : int
+            The index of the layer
+
+        Returns:
+
+        * prisms : list of :class:`~fatiando.msh.ddd.Prism`s
+            The prisms in the ith layer
+
+        Examples::
+
+            >>> mesh = PrismMesh((0, 2, 0, 2, 0, 2), (2, 2, 2))
+            >>> layer = mesh.get_layer(0)
+            >>> for p in layer:
+            ...     print p
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:0 | z2:1
+            >>> layer = mesh.get_layer(1)
+            >>> for p in layer:
+            ...     print p
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:1 | z2:2
+
+        """
+        nz, ny, nx = self.shape
+        if i >= nz or i < 0:
+            raise IndexError('Layer index %d is out of range.' % (i))
+        start = i*nx*ny
+        end = (i + 1)*nx*ny
+        layer = [self.__getitem__(p) for p in xrange(start, end)]
+        return layer
+
     def dump(self, meshfile, propfile, prop):
         r"""
         Dump the mesh to a file in the format required by UBC-GIF program

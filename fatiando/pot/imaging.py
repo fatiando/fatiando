@@ -10,6 +10,9 @@ gridded data to work.
   frequency domain (Cribb, 1976)
 * :func:`~fatiando.pot.imaging.sandwich`: Sandwich model (Pedersen, 1991). Uses
   depth weighting as in Pilkington (1997)
+* :func:`~fatiando.pot.imaging.migrate`: 3D potential field migration
+  (Zhdanov et al., 2011). Actually uses the formulation of Fedi and Pilkington
+  (2012), which is comprehensible.
 
 
 **References**
@@ -26,6 +29,10 @@ sources, Geophysics, 56(7), 961, doi:10.1190/1.1443129
 Pilkington, M. (1997), 3-D magnetic imaging using conjugate gradients,
 Geophysics, 62(4), 1132, doi:10.1190/1.1444214
 
+Zhdanov, M. S., X. Liu, G. A. Wilson, and L. Wan (2011), Potential field
+migration for rapid imaging of gravity gradiometry data, Geophysical
+Prospecting, 59(6), 1052-1071, doi:10.1111/j.1365-2478.2011.01005.x
+
 ----
 """
 import time
@@ -40,6 +47,50 @@ import fatiando.log
 
 log = fatiando.log.dummy('fatiando.pot.imaging')
 
+
+def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
+    """
+    3D potential field migration (Zhdanov et al., 2011).
+
+    Actually uses the formulation of Fedi and Pilkington (2012), which is
+    comprehensible.
+
+    .. note:: Only works on **gravity** data for now.
+
+    .. note:: The data **must** be leveled, i.e., on the same height!
+
+    .. note:: The coordinate system adopted is x->North, y->East, and z->Down
+
+    Parameters:
+
+    * x, y : 1D-arrays
+        The x and y coordinates of the grid points
+    * z : float or 1D-array
+        The z coordinate of the grid points
+    * gz : 1D-array
+        The gravity anomaly data at the grid points
+    * shape : tuple = (ny, nx)
+        The shape of the grid
+    * zmin, zmax : float
+        The top and bottom, respectively, of the region where the physical
+        property distribution is calculated
+    * nlayers : int
+        The number of layers used to divide the region where the physical
+        property distribution is calculated
+    * power : float
+        The power law used for the depth weighting. This controls what depth
+        the bulk of the solution will be.
+    * scale : float
+        A scale factor for the depth weights.
+
+    Returns:
+
+    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+        The estimated physical property distribution set in a prism mesh (for
+        easy 3D plotting)
+
+    """
+    pass
 
 def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     """
