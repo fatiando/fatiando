@@ -11,7 +11,7 @@ log.info(__doc__)
 # Make some synthetic gravity data from a simple prism model
 prisms = [ft.msh.ddd.Prism(-4000,0,-4000,-2000,2000,5000,{'density':1200}),
           ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,7000,{'density':-300}),
-          ft.msh.ddd.Prism(2000,4000,3000,4000,500,2000,{'density':600})]
+          ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':600})]
 shape = (25, 25)
 xp, yp, zp = ft.grd.regular((-10000, 10000, -10000, 10000), shape, z=-10)
 gz = ft.pot.prism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL

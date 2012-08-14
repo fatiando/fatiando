@@ -17,4 +17,5 @@ Potential Fields (``fatiando.pot``)
     pot.basin2d.rst
     pot.trans.rst
     pot.fourier.rst
+    pot.imaging.rst
     pot.tensor.rst

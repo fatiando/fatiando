@@ -32,6 +32,8 @@ after modeling.
   like upward continuation
 * :mod:`~fatiando.pot.fourier`: Potential field transformations using the
   FFT
+* :mod:`~fatiando.pot.imaging`: Imaging methods for potential fields for
+  estimating physical property distributions
 * :mod:`~fatiando.pot.tensor`: Utilities for operating on the gradient
   tensor
 

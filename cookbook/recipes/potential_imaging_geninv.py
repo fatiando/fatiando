@@ -9,7 +9,7 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model
-prisms = [ft.msh.ddd.Prism(-1000,1000,-3000,3000,2000,5000,{'density':1000})]
+prisms = [ft.msh.ddd.Prism(-1000,1000,-3000,3000,0,5000,{'density':1000})]
 shape = (25, 25)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-10)
 gz = ft.pot.prism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL

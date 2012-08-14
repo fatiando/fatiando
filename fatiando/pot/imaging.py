@@ -8,7 +8,8 @@ gridded data to work.
 
 * :func:`~fatiando.pot.imaging.geninv`: The Generalized Inverse solver in the
   frequency domain (Cribb, 1976)
-* :func:`~fatiando.pot.imaging.sandwich`: Sandwich model (Pedersen, 1991)
+* :func:`~fatiando.pot.imaging.sandwich`: Sandwich model (Pedersen, 1991). Uses
+  depth weighting as in Pilkington (1997)
 
 
 **References**
@@ -22,6 +23,10 @@ field data, Geophysics, 77(1), G13, doi:10.1190/geo2011-0078.1
 Pedersen, L. B. (1991), Relations between potential fields and some equivalent
 sources, Geophysics, 56(7), 961, doi:10.1190/1.1443129
 
+Pilkington, M. (1997), 3-D magnetic imaging using conjugate gradients,
+Geophysics, 62(4), 1132, doi:10.1190/1.1444214
+
+----
 """
 import time
 
@@ -43,11 +48,11 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     Calculates a physical property distribution given potential field data on a
     **regular grid**. Uses depth weights.
 
-    ..note:: Only works on **gravity** data for now.
+    .. note:: Only works on **gravity** data for now.
 
-    ..note:: The data **must** be leveled, i.e., on the same height!
+    .. note:: The data **must** be leveled, i.e., on the same height!
 
-    ..note:: The coordinate system adopted is x->North, y->East, and z->Down
+    .. note:: The coordinate system adopted is x->North, y->East, and z->Down
 
     Parameters:
 
@@ -112,16 +117,19 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
 
 def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     """
-    Generalized Inverse solver in the frequency domain (Cribb, 1976).
+    Generalized Inverse imaging in the frequency domain (Cribb, 1976).
 
     Calculates a physical property distribution given potential field data on a
     **regular grid**.
 
-    ..note:: Only works on **gravity** data for now.
+    .. note:: Only works on **gravity** data for now.
 
-    ..note:: The data **must** be leveled, i.e., on the same height!
+    .. note:: The data **must** be leveled, i.e., on the same height!
 
-    ..note:: The coordinate system adopted is x->North, y->East, and z->Down
+    .. note:: The coordinate system adopted is x->North, y->East, and z->Down
+
+    .. warning:: The Generalized Inverse does **not** use depth weights. This
+        means that the solution will tend to be concentrated on the surface!
 
     Parameters:
 

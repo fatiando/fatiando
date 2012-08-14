@@ -50,7 +50,7 @@ cookbook:
 	python build_cookbook.py
 	@echo
 
-html: cookbook
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
