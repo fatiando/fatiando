@@ -665,7 +665,7 @@ class PrismMesh(object):
 
         Returns:
 
-        * prisms : list of :class:`~fatiando.msh.ddd.Prism`s
+        * prisms : list of :class:`~fatiando.msh.ddd.Prism`
             The prisms in the ith layer
 
         Examples::
@@ -685,6 +685,7 @@ class PrismMesh(object):
             x1:1 | x2:2 | y1:0 | y2:1 | z1:1 | z2:2
             x1:0 | x2:1 | y1:1 | y2:2 | z1:1 | z2:2
             x1:1 | x2:2 | y1:1 | y2:2 | z1:1 | z2:2
+
 
         """
         nz, ny, nx = self.shape

@@ -11,8 +11,8 @@ gridded data to work.
 * :func:`~fatiando.pot.imaging.sandwich`: Sandwich model (Pedersen, 1991). Uses
   depth weighting as in Pilkington (1997)
 * :func:`~fatiando.pot.imaging.migrate`: 3D potential field migration
-  (Zhdanov et al., 2011). Actually uses the formulation of Fedi and Pilkington
-  (2012), which is comprehensible.
+  (Zhdanov et al., 2011). Actually uses the formula of Fedi and Pilkington
+  (2012), which are comprehensible.
 
 
 **References**
@@ -39,8 +39,9 @@ import time
 
 import numpy
 
-from fatiando.pot.fourier import _getfreqs
 from fatiando.msh.ddd import PrismMesh
+from fatiando.pot import fourier
+from fatiando.pot import prism as pot_prism
 from fatiando.constants import G
 from fatiando import utils
 import fatiando.log
@@ -54,6 +55,10 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
 
     Actually uses the formulation of Fedi and Pilkington (2012), which is
     comprehensible.
+
+    .. warning:: Due to depth weighting, the values of the estimated physical
+        property distribuition are out of scale. They should not be used as
+        actual values of density or magnetization.
 
     .. note:: Only works on **gravity** data for now.
 
@@ -81,7 +86,8 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
         The power law used for the depth weighting. This controls what depth
         the bulk of the solution will be.
     * scale : float
-        A scale factor for the depth weights.
+        A scale factor for the depth weights. Simply changes the scale of the
+        physical property values.
 
     Returns:
 
@@ -90,7 +96,33 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
         easy 3D plotting)
 
     """
-    pass
+    mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
+    log.info("3D migration of gravity data:")
+    if not isinstance(z, float) and not isinstance(z, int):
+        z = z[0]
+    else:
+        z = z*numpy.ones_like(x)
+    log.info("  data z coordinate: %g" % (z))
+    log.info("  data shape: %s" % (str(shape)))
+    log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
+    log.info("  number of layers in the mesh: %d" % (nlayers))
+    log.info("  depth weighting power law: %g" % (power))
+    log.info("  depth weighting scale factor: %g" % (scale))
+    tstart = time.clock()
+    dx, dy, dz = mesh.dims
+    # Synthetic tests show that its not good to offset the weights with the data
+    # z coordinate. No idea why
+    depths = mesh.get_zs()[:-1] + 0.5*dz
+    weights = numpy.abs(depths)**power/(2*G*numpy.sqrt(numpy.pi))
+    density = []
+    for l in xrange(nlayers):
+        sensibility_T = numpy.array(
+            [pot_prism.gz(x, y, z, [p], dens=1) for p in mesh.get_layer(l)])
+        density.extend(scale*weights[l]*numpy.dot(sensibility_T, gz))
+    tend = time.clock()
+    log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
+    mesh.addprop('density', numpy.array(density))
+    return mesh
 
 def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     """
@@ -132,6 +164,7 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
         easy 3D plotting)
 
     """
+    mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     log.info("Sandwich model of gravity data:")
     if not isinstance(z, float) and not isinstance(z, int):
         z = z[0]
@@ -142,13 +175,13 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     log.info("  depth weighting power law: %g" % (power))
     tstart = time.clock()
     freq, dataft = _getdataft(x, y, data, shape)
-    # Offset by the data z because in the paper the data is at z=0
-    # Remove the last depth because I only want depths to the top of the layers
-    depths = numpy.linspace(zmin, zmax, nlayers + 1)[:-1] - z
-    dz = depths[1] - depths[0]
+    dx, dy, dz = mesh.dims
+    # Remove the last z because I only want depths to the top of the layers
+    depths = mesh.get_zs()[:-1]
     weights = (numpy.abs(depths) + 0.5*dz)**(power)
     density = []
-    for depth, weight in zip(depths, weights):
+    # Offset by the data z because in the paper the data is at z=0
+    for depth, weight in zip(depths - z, weights):
         density.extend(
             numpy.real(numpy.fft.ifft2(
                 weight*(numpy.exp(-freq*depth) - numpy.exp(-freq*(depth + dz)))
@@ -162,7 +195,6 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
             ).ravel()))
     tend = time.clock()
     log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
-    mesh = _makemesh(x, y, z, shape, zmin, zmax, nlayers)
     mesh.addprop('density', numpy.array(density))
     return mesh
 
@@ -206,6 +238,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
         easy 3D plotting)
 
     """
+    mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     log.info("Generalized Inverse imaging of gravity data:")
     if not isinstance(z, float) and not isinstance(z, int):
         z = z[0]
@@ -215,9 +248,9 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     log.info("  number of layers in the mesh: %d" % (nlayers))
     tstart = time.clock()
     freq, dataft = _getdataft(x, y, data, shape)
-    zs = numpy.linspace(zmin, zmax, nlayers + 1)
-    dz = zs[1] - zs[0]
-    depths = zs + 0.5*dz - z # Offset by the data height
+    dx, dy, dz = mesh.dims
+    # Remove the last z because I only want depths to the top of the layers
+    depths = mesh.get_zs()[:-1] + 0.5*dz - z # Offset by the data height
     density = []
     for depth in depths:
         density.extend(
@@ -228,7 +261,6 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
             ))
     tend = time.clock()
     log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
-    mesh = _makemesh(x, y, z, shape, zmin, zmax, nlayers)
     mesh.addprop('density', numpy.array(density))
     return mesh
 
@@ -236,12 +268,12 @@ def _getdataft(x, y, data, shape):
     """
     Get the Fourier transform of the data and the norm of the wavenumber vector
     """
-    Fx, Fy = _getfreqs(x, y, data, shape)
+    Fx, Fy = fourier._getfreqs(x, y, data, shape)
     freq = numpy.sqrt(Fx**2 + Fy**2)
     dataft = (2.*numpy.pi)*numpy.fft.fft2(numpy.reshape(data, shape))
     return freq, dataft
 
-def _makemesh(x, y, z, shape, zmin, zmax, nlayers):
+def _makemesh(x, y, shape, zmin, zmax, nlayers):
     """
     Make a prism mesh bounded by the data.
     """
