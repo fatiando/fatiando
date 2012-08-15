@@ -13,6 +13,15 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.circular_points`
 * :func:`~fatiando.utils.connect_points`
 
+**Unit conversion**
+
+* :func:`~fatiando.utils.si2mgal`
+* :func:`~fatiando.utils.mgal2si`
+* :func:`~fatiando.utils.si2eotvos`
+* :func:`~fatiando.utils.eotvos2si`
+* :func:`~fatiando.utils.si2nt`
+* :func:`~fatiando.utils.nt2si`
+
 **Others**
 
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
@@ -36,10 +45,113 @@ import math
 
 import numpy
 
+import fatiando.constants
 import fatiando.log
 
 log = fatiando.log.dummy('fatiando.utils')
 
+
+def si2nt(value):
+    """
+    Convert a value from SI units to nanoTesla.
+
+    Parameters:
+
+    * value : number or array
+        The value in SI
+
+    Returns:
+
+    * value : number or array
+        The value in nanoTesla
+    
+    """
+    return value*fatiando.constants.T2NT
+
+def nt2si(value):
+    """
+    Convert a value from nanoTesla to SI units.
+
+    Parameters:
+
+    * value : number or array
+        The value in nanoTesla
+
+    Returns:
+
+    * value : number or array
+        The value in SI
+    
+    """
+    return value/fatiando.constants.T2NT
+
+def si2eotvos(value):
+    """
+    Convert a value from SI units to Eotvos.
+
+    Parameters:
+
+    * value : number or array
+        The value in SI
+
+    Returns:
+
+    * value : number or array
+        The value in Eotvos
+    
+    """
+    return value*fatiando.constants.SI2EOTVOS
+
+def eotvos2si(value):
+    """
+    Convert a value from Eotvos to SI units.
+
+    Parameters:
+
+    * value : number or array
+        The value in Eotvos
+
+    Returns:
+
+    * value : number or array
+        The value in SI
+    
+    """
+    return value/fatiando.constants.SI2EOTVOS
+
+def si2mgal(value):
+    """
+    Convert a value from SI units to mGal.
+
+    Parameters:
+
+    * value : number or array
+        The value in SI
+
+    Returns:
+
+    * value : number or array
+        The value in mGal
+    
+    """
+    return value*fatiando.constants.SI2MGAL
+
+def mgal2si(value):
+    """
+    Convert a value from mGal to SI units.
+
+    Parameters:
+
+    * value : number or array
+        The value in mGal
+
+    Returns:
+
+    * value : number or array
+        The value in SI
+    
+    """
+    return value/fatiando.constants.SI2MGAL
 
 def dircos(inc, dec):
     """
