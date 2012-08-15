@@ -98,11 +98,9 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     log.info("3D migration of gravity data:")
-    if not isinstance(z, float) and not isinstance(z, int):
-        z = z[0]
-    else:
-        z = z*numpy.ones_like(x)
-    log.info("  data z coordinate: %g" % (z))
+    # This way, if z is not an array, it is now
+    z = z*numpy.ones_like(x)
+    log.info("  data z coordinate: %g" % (z[0]))
     log.info("  data shape: %s" % (str(shape)))
     log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
     log.info("  number of layers in the mesh: %d" % (nlayers))
@@ -141,7 +139,7 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
 
     * x, y : 1D-arrays
         The x and y coordinates of the grid points
-    * z : float
+    * z : float or 1D-array
         The z coordinate of the grid points
     * data : 1D-array
         The potential field at the grid points
@@ -166,9 +164,9 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     log.info("Sandwich model of gravity data:")
-    if not isinstance(z, float) and not isinstance(z, int):
-        z = z[0]
-    log.info("  data z coordinate: %g" % (z))
+    # This way, if z is not an array, it is now
+    z = z*numpy.ones_like(x)
+    log.info("  data z coordinate: %g" % (z[0]))
     log.info("  data shape: %s" % (str(shape)))
     log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
     log.info("  number of layers in the mesh: %d" % (nlayers))
@@ -181,7 +179,7 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     weights = (numpy.abs(depths) + 0.5*dz)**(power)
     density = []
     # Offset by the data z because in the paper the data is at z=0
-    for depth, weight in zip(depths - z, weights):
+    for depth, weight in zip(depths - z[0], weights):
         density.extend(
             numpy.real(numpy.fft.ifft2(
                 weight*(numpy.exp(-freq*depth) - numpy.exp(-freq*(depth + dz)))
@@ -218,7 +216,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
 
     * x, y : 1D-arrays
         The x and y coordinates of the grid points
-    * z : float
+    * z : float or 1D-array
         The z coordinate of the grid points
     * data : 1D-array
         The potential field at the grid points
@@ -240,9 +238,9 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     log.info("Generalized Inverse imaging of gravity data:")
-    if not isinstance(z, float) and not isinstance(z, int):
-        z = z[0]
-    log.info("  data z coordinate: %g" % (z))
+    # This way, if z is not an array, it is now
+    z = z*numpy.ones_like(x)
+    log.info("  data z coordinate: %g" % (z[0]))
     log.info("  data shape: %s" % (str(shape)))
     log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
     log.info("  number of layers in the mesh: %d" % (nlayers))
@@ -250,7 +248,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     freq, dataft = _getdataft(x, y, data, shape)
     dx, dy, dz = mesh.dims
     # Remove the last z because I only want depths to the top of the layers
-    depths = mesh.get_zs()[:-1] + 0.5*dz - z # Offset by the data height
+    depths = mesh.get_zs()[:-1] + 0.5*dz - z[0] # Offset by the data height
     density = []
     for depth in depths:
         density.extend(
@@ -281,5 +279,3 @@ def _makemesh(x, y, shape, zmin, zmax, nlayers):
     bounds = [x.min(), x.max(), y.min(), y.max(), zmin, zmax]
     mesh = PrismMesh(bounds, (nlayers, ny, nx))
     return mesh
-
-

@@ -2,17 +2,14 @@
 Wrappers for calls to Mayavi2's `mlab` module for plotting
 :mod:`~fatiando.msh.ddd` objects and automating common tasks.
 
-**Objects**
+**:mod:`fatiando.msh` objects**
 
 * :func:`~fatiando.vis.vtk.prisms`
 * :func:`~fatiando.vis.vtk.polyprisms`
 * :func:`~fatiando.vis.vtk.points3d`
 
-**Helpers**
+**Misc objects**
 
-* :func:`~fatiando.vis.vtk.show3d`
-* :func:`~fatiando.vis.vtk.savefig3d`
-* :func:`~fatiando.vis.vtk.figure3d`
 * :func:`~fatiando.vis.vtk.outline3d`
 * :func:`~fatiando.vis.vtk.axes3d`
 * :func:`~fatiando.vis.vtk.wall_north`
@@ -21,6 +18,13 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.vtk.wall_west`
 * :func:`~fatiando.vis.vtk.wall_top`
 * :func:`~fatiando.vis.vtk.wall_bottom`
+
+**Helpers**
+
+* :func:`~fatiando.vis.vtk.figure3d`
+* :func:`~fatiando.vis.vtk.title3d`
+* :func:`~fatiando.vis.vtk.show3d`
+* :func:`~fatiando.vis.vtk.savefig3d`
 
 ----
 
@@ -65,9 +69,12 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def title3d(text, color=(0, 0, 0),  size=0.5):
+def title3d(text, color=(0, 0, 0),  size=0.3, height=1):
     """
     Draw a title on a Mayavi figure.
+
+    .. warning:: Must be called **after** you've plotted something (e.g.,
+        prisms) to the figure. This is a bug.
 
     Parameters:
 
@@ -77,10 +84,12 @@ def title3d(text, color=(0, 0, 0),  size=0.5):
         RGB of the color of the text
     * size : float
         The size of the text
+    * height : float
+        The height where the title will be placed on the screen
 
     """
     _lazy_import_mlab()
-    mlab.title(text, color=color, size=size)
+    mlab.title(text, color=color, size=size, height=height)
 
 def savefig3d(fname, magnification=None):
     """
@@ -113,6 +122,21 @@ def show3d():
 def points3d(points, color=(0, 0, 0), opacity=1, size=200.):
     """
     Plot a series of 3D points.
+
+    .. note:: Still doesn't plot points with physical properties.
+
+    Parameters:
+
+    * points : list
+        The list of points to plot. Each point is an [x, y, z] list with the
+        x, y, and z coordinates of the point
+    * color : tuple = (r, g, b)
+        RGB of the color of the text
+    * opacity : float
+        Decimal percentage of opacity
+    * size : float
+        The size of the points (relative to their spacing)
+        
     """
     _lazy_import_mlab()
     x, y, z = numpy.transpose(points)

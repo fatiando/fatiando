@@ -27,14 +27,14 @@ for i in range(1, len(depths)):
     prisms.append(
         ft.msh.ddd.PolygonalPrism(polygon, depths[i - 1], depths[i],
             {'density':500}))
-shape = (25, 25)
-xp, yp, zp = ft.grd.regular(area, shape, z=-10)
+meshshape = (30, 30, 30)
+xp, yp, zp = ft.grd.regular(area, meshshape[1:], z=-10)
 gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
 
 # Plot the data
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, shape, 30)
+ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, meshshape[1:], 30)
 ft.vis.colorbar()
 ft.vis.xlabel('East (km)')
 ft.vis.ylabel('North (km)')
@@ -44,22 +44,23 @@ ft.vis.show()
 # A function to the imaging methods and make the 3D plots
 def run(title):
     if title == 'Migration':
-        result = ft.pot.imaging.migrate(xp, yp, zp, gz, shape, bounds[-2],
-            bounds[-1], 25, power=0.8)
+        result = ft.pot.imaging.migrate(xp, yp, zp, gz, meshshape[1:],
+            bounds[-2], bounds[-1], meshshape[0], power=0.5)
     elif title == 'Generalized Inverse':
-        result = ft.pot.imaging.geninv(xp, yp, zp, gz, shape, bounds[-2],
-            bounds[-1], 25)
+        result = ft.pot.imaging.geninv(xp, yp, zp, gz, meshshape[1:],
+            bounds[-2], bounds[-1], meshshape[0])
     elif title == 'Sandwich':
-        result = ft.pot.imaging.sandwich(xp, yp, zp, gz, shape, bounds[-2],
-            bounds[-1], 25)
+        result = ft.pot.imaging.sandwich(xp, yp, zp, gz, meshshape[1:],
+            bounds[-2], bounds[-1], meshshape[0], power=0.5)
     # Plot the results
     ft.vis.figure3d()
     ft.vis.polyprisms(prisms, 'density', style='wireframe', linewidth=2)
     ft.vis.prisms(result, 'density', edges=False)
-    axes = ft.vis.axes3d(ft.vis.outline3d())
+    axes = ft.vis.axes3d(ft.vis.outline3d(), ranges=[b*0.001 for b in bounds],
+                         fmt='%.0f')
     ft.vis.wall_bottom(axes.axes.bounds)
     ft.vis.wall_north(axes.axes.bounds)
-    ft.vis.title3d(title, size=0.5)
+    ft.vis.title3d(title)
     ft.vis.show3d()
 
 titles = ['Migration', 'Generalized Inverse', 'Sandwich']
