@@ -144,7 +144,7 @@ Some modules that use the :mod:`~fatiando.inversion` API:
 
 * :mod:`fatiando.seis.profile`
 * :mod:`fatiando.seis.srtomo`
-* :mod:`fatiando.seis.epicenter`
+* :mod:`fatiando.seis.epic2d`
 * :mod:`fatiando.heat.climsig`
 * :mod:`fatiando.pot.basin2d`
 
