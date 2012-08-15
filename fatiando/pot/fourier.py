@@ -22,6 +22,14 @@ def derivx(x, y, data, shape, order=1):
     """
     Calculate the derivative of a potential field in the x direction.
 
+    .. warning::
+
+        If the data is not in SI units, the derivative will be in
+        strange units! I strongly recommend converting the data to SI **before**
+        calculating the derivative (use one of the unit conversion functions of
+        :mod:`fatiando.utils`). This way the derivative will be in SI units
+        and can be easily converted to what unit you want.
+
     Parameters:
 
     * x, y : 1D-arrays
@@ -48,6 +56,14 @@ def derivy(x, y, data, shape, order=1):
     """
     Calculate the derivative of a potential field in the y direction.
 
+    .. warning::
+
+        If the data is not in SI units, the derivative will be in
+        strange units! I strongly recommend converting the data to SI **before**
+        calculating the derivative (use one of the unit conversion functions of
+        :mod:`fatiando.utils`). This way the derivative will be in SI units
+        and can be easily converted to what unit you want.
+        
     Parameters:
 
     * x, y : 1D-arrays
@@ -74,6 +90,14 @@ def derivz(x, y, data, shape, order=1):
     """
     Calculate the derivative of a potential field in the z direction.
 
+    .. warning::
+
+        If the data is not in SI units, the derivative will be in
+        strange units! I strongly recommend converting the data to SI **before**
+        calculating the derivative (use one of the unit conversion functions of
+        :mod:`fatiando.utils`). This way the derivative will be in SI units
+        and can be easily converted to what unit you want.
+        
     Parameters:
 
     * x, y : 1D-arrays

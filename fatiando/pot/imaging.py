@@ -14,6 +14,19 @@ gridded data to work.
   (Zhdanov et al., 2011). Actually uses the formula of Fedi and Pilkington
   (2012), which are comprehensible.
 
+.. warning::
+
+    Most of these methods provide estimates of physical property values that are
+    completely out of scale (mostly due to depth weighting). Therefore, I don't
+    recommend using the actual values of the physical properties for anything
+    other than finding an approximate location for the sources.
+
+.. note::
+
+    If you want the estimate physical property values in SI units, you
+    must pass the data also in SI units! Use the unit conversion functions in
+    :mod:`fatiando.utils`
+
 
 **References**
 
@@ -49,20 +62,16 @@ import fatiando.log
 log = fatiando.log.dummy('fatiando.pot.imaging')
 
 
-def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
+def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
     """
     3D potential field migration (Zhdanov et al., 2011).
 
-    Actually uses the formulation of Fedi and Pilkington (2012), which is
+    Actually uses the formula of Fedi and Pilkington (2012), which are
     comprehensible.
-
-    .. warning:: Due to depth weighting, the values of the estimated physical
-        property distribuition are out of scale. They should not be used as
-        actual values of density or magnetization.
 
     .. note:: Only works on **gravity** data for now.
 
-    .. note:: The data **must** be leveled, i.e., on the same height!
+    .. note:: The data **do not** need to be leveled or on a regular grid.
 
     .. note:: The coordinate system adopted is x->North, y->East, and z->Down
 
@@ -74,14 +83,12 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
         The z coordinate of the grid points
     * gz : 1D-array
         The gravity anomaly data at the grid points
-    * shape : tuple = (ny, nx)
-        The shape of the grid
     * zmin, zmax : float
         The top and bottom, respectively, of the region where the physical
         property distribution is calculated
-    * nlayers : int
-        The number of layers used to divide the region where the physical
-        property distribution is calculated
+    * meshshape : tuple = (nz, ny, nx)
+        Number of prisms in the output mesh in the x, y, and z directions,
+        respectively
     * power : float
         The power law used for the depth weighting. This controls what depth
         the bulk of the solution will be.
@@ -96,14 +103,14 @@ def migrate(x, y, z, gz, shape, zmin, zmax, nlayers, power=0.5, scale=1):
         easy 3D plotting)
 
     """
-    mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
+    nlayers, ny, nx = meshshape
+    mesh = _makemesh(x, y, (ny, nx), zmin, zmax, nlayers)
     log.info("3D migration of gravity data:")
     # This way, if z is not an array, it is now
     z = z*numpy.ones_like(x)
-    log.info("  data z coordinate: %g" % (z[0]))
-    log.info("  data shape: %s" % (str(shape)))
+    log.info("  number of data: %d" % (len(gz)))
     log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
-    log.info("  number of layers in the mesh: %d" % (nlayers))
+    log.info("  mesh shape: %s" % (str(meshshape)))
     log.info("  depth weighting power law: %g" % (power))
     log.info("  depth weighting scale factor: %g" % (scale))
     tstart = time.clock()

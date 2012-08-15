@@ -10,22 +10,21 @@ log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model
 prisms = [ft.msh.ddd.Prism(-1000,1000,-2000,2000,2000,4000,{'density':500})]
-shape = (25, 25)
-xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-10)
-gz = ft.pot.prism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
+shape = (50, 50)
+xp, yp, zp = ft.grd.regular((-10000, 10000, -10000, 10000), shape, z=-10)
+gz = ft.pot.prism.gz(xp, yp, zp, prisms)
 
 # Plot the data
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, shape, 30)
+ft.vis.contourf(yp, xp, gz, shape, 30)
 ft.vis.colorbar()
 ft.vis.xlabel('East (km)')
 ft.vis.ylabel('North (km)')
 ft.vis.m2km()
 ft.vis.show()
 
-# Run the Generalized Inverse
-mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, shape, 0, 10000, 25)
+mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, 0, 10000, (25, 25, 25))
 
 # Plot the results
 ft.vis.figure3d()

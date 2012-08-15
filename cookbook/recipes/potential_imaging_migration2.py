@@ -12,22 +12,24 @@ log.info(__doc__)
 prisms = [ft.msh.ddd.Prism(-4000,0,-4000,-2000,2000,5000,{'density':1200}),
           ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,7000,{'density':-800}),
           ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':600})]
-shape = (30, 30)
-xp, yp, zp = ft.grd.regular((-10000, 10000, -10000, 10000), shape, z=-10)
-gz = ft.pot.prism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
+# Calculate on a scatter of points to show that migration doesn't need gridded
+# data
+xp, yp, zp = ft.grd.scatter((-6000, 6000, -6000, 6000), 1000, z=-10)
+gz = ft.pot.prism.gz(xp, yp, zp, prisms)
 
 # Plot the data
+shape = (50, 50)
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, shape, 30)
+ft.vis.contourf(yp, xp, gz, shape, 30, interp=True)
 ft.vis.colorbar()
+ft.vis.plot(yp, xp, '.k')
 ft.vis.xlabel('East (km)')
 ft.vis.ylabel('North (km)')
 ft.vis.m2km()
 ft.vis.show()
 
-# Run the Generalized Inverse
-mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, shape, 0, 10000, 30)
+mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, 0, 10000, (30, 30, 30))
 
 # Plot the results
 ft.vis.figure3d()

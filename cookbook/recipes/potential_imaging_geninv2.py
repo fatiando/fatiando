@@ -27,7 +27,7 @@ ft.vis.m2km()
 ft.vis.show()
 
 # Run the Generalized Inverse
-mesh = ft.pot.imaging.geninv(xp, yp, zp, gz/ft.constants.SI2MGAL, shape,
+mesh = ft.pot.imaging.geninv(xp, yp, zp, gz, shape,
     0, 10000, 25)
 
 # Plot the results

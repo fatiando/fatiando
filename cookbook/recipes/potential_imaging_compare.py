@@ -29,12 +29,12 @@ for i in range(1, len(depths)):
             {'density':500}))
 meshshape = (30, 30, 30)
 xp, yp, zp = ft.grd.regular(area, meshshape[1:], z=-10)
-gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
+gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)
 
 # Plot the data
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, meshshape[1:], 30)
+ft.vis.contourf(yp, xp, gz, meshshape[1:], 30)
 ft.vis.colorbar()
 ft.vis.xlabel('East (km)')
 ft.vis.ylabel('North (km)')
@@ -44,8 +44,8 @@ ft.vis.show()
 # A function to the imaging methods and make the 3D plots
 def run(title):
     if title == 'Migration':
-        result = ft.pot.imaging.migrate(xp, yp, zp, gz, meshshape[1:],
-            bounds[-2], bounds[-1], meshshape[0], power=0.5)
+        result = ft.pot.imaging.migrate(xp, yp, zp, gz, bounds[-2], bounds[-1],
+            meshshape, power=0.5)
     elif title == 'Generalized Inverse':
         result = ft.pot.imaging.geninv(xp, yp, zp, gz, meshshape[1:],
             bounds[-2], bounds[-1], meshshape[0])

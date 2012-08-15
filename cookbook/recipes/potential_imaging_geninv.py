@@ -12,12 +12,12 @@ log.info(__doc__)
 prisms = [ft.msh.ddd.Prism(-1000,1000,-3000,3000,0,5000,{'density':1000})]
 shape = (25, 25)
 xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-10)
-gz = ft.pot.prism.gz(xp, yp, zp, prisms)/ft.constants.SI2MGAL
+gz = ft.pot.prism.gz(xp, yp, zp, prisms)
 
 # Plot the data
 ft.vis.figure()
 ft.vis.axis('scaled')
-ft.vis.contourf(yp, xp, gz*ft.constants.SI2MGAL, shape, 30)
+ft.vis.contourf(yp, xp, gz, shape, 30)
 ft.vis.colorbar()
 ft.vis.xlabel('East (km)')
 ft.vis.ylabel('North (km)')

@@ -18,9 +18,13 @@ xp, yp, zp = ft.grd.regular(area, shape, z=z0)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.001)
 
 log.info("Calculating the x-derivative")
-gxz = ft.pot.fourier.derivx(xp, yp, gz/SI2MGAL, shape)*SI2EOTVOS
-gyz = ft.pot.fourier.derivy(xp, yp, gz/SI2MGAL, shape)*SI2EOTVOS
-gzz = ft.pot.fourier.derivz(xp, yp, gz/SI2MGAL, shape)*SI2EOTVOS
+# Need to convert gz to SI units so that the result can be converted to Eotvos
+gxz = ft.utils.si2eotvos(
+    ft.pot.fourier.derivx(xp, yp, ft.utils.mgal2si(gz), shape))
+gyz = ft.utils.si2eotvos(
+    ft.pot.fourier.derivy(xp, yp, ft.utils.mgal2si(gz), shape))
+gzz = ft.utils.si2eotvos(
+    ft.pot.fourier.derivz(xp, yp, ft.utils.mgal2si(gz), shape))
 
 log.info("Computing true values of the derivative")
 gxz_true = ft.pot.prism.gxz(xp, yp, zp, prisms)
