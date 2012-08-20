@@ -3,9 +3,9 @@ Finite difference solution of the 2D wave equation for isotropic media.
 
 Simulates both elastic and acoustic waves:
 
-* :func:`~fatiando.seis.wavefd2d.elastic_psv`: Simulates the coupled P and SV
+* :func:`~fatiando.seis._wavefd2d.elastic_psv`: Simulates the coupled P and SV
   elastic waves
-* :func:`~fatiando.seis.wavefd2d.elastic_sh`: Simulates SH elastic waves
+* :func:`~fatiando.seis._wavefd2d.elastic_sh`: Simulates SH elastic waves
 
 **Auxiliary function**
 
@@ -168,6 +168,12 @@ import numpy
 
 import fatiando.log
 
+try:
+    from fatiando.seis._cwavefd2d import *
+except ImportError:
+    from fatiando.seis._wavefd2d import *
+
+
 log = fatiando.log.dummy('fatiando.seis.wavefd2d')
 
 
@@ -227,6 +233,18 @@ class MexHatSource(object):
 
         """
         return (self.i, self.j)
+
+class SinSQRSource(MexHatSource):
+
+    def __init__(self, i, j, amp, std, delay=0):
+        MexHatSource.__init__(self, i, j, amp, std, delay)
+
+    def __call__(self, time):
+        t = time - self.delay
+        if t > self.std:
+            return 0
+        psi = self.amp*numpy.sin(2.*numpy.pi*t/self.std)**2
+        return psi
 
 def lame(pvel, svel, dens):
     r"""
@@ -306,36 +324,26 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
     """
     nz, nx = shape
     dz, dx = spacing
-    dt_sqr = deltat**2
-    dx_sqr = dx**2
-    dz_sqr = dz**2
-    u_tm1 = numpy.zeros(shape)
-    u_t = numpy.zeros(shape)
-    u_tp1 = numpy.zeros(shape)
+    u_tm1 = numpy.zeros(shape, dtype=numpy.float)
+    u_t = numpy.zeros(shape, dtype=numpy.float)
+    u_tp1 = numpy.zeros(shape, dtype=numpy.float)
     for src in sources:
         u_t[src.coords()] = src(0)
-    for t in xrange(iterations - 1):
-        for i in xrange(nz):
-            for j in xrange(nx):
-                u_tp1[i,j] = 2.*u_t[i,j] - u_tm1[i,j] + dt_sqr/dens[i,j]*(
-                    (u_t[i + 1,j] - 2.*u_t[i,j] + u_t[i - 1,j])/dz_sqr +
-                    (u_t[i,j + 1] - 2.*u_t[i,j] + u_t[i,j - 1])/dx_sqr)
+    for t in xrange(1, iterations):
+        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, mu, dens)
         # Update the sources
         for src in sources:
-            pos = src.coords()
-            u_tp1[pos] -= (dt_sqr/dens[pos])*src(t*deltat)
+            i, j = src.coords()
+            u_tp1[i, j] -= (deltat**2/dens[i, j])*src(t*deltat)
+            print u_tp1[i, j]
+            #u_tp1[i, j] = src(t*deltat)
         # Set the boundary conditions
         u_tp1[0,:] = u_tp1[1,:]
         u_tp1[-1,:] = 0
         u_tp1[:,0] = 0
         u_tp1[:,-1] = 0
 
-        yield u_tp1
-
         u_tm1 = u_t
-        u_t = u_tp1
+        u_t = u_tp1[:,:]
+        yield u_t
 
-def elastic_psv():
-    """
-    """
-    pass

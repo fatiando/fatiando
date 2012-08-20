@@ -12,7 +12,11 @@ try:
     from Cython.Distutils import build_ext
     ext_modules = [
         Extension("fatiando.pot._cprism",
-                  [join('fatiando', join('pot', '_cprism.pyx'))],
+                  [join('fatiando', 'pot', '_cprism.pyx')],
+                  libraries=['m'],
+                  extra_compile_args=['-O3']),
+        Extension("fatiando.seis._cwavefd2d",
+                  [join('fatiando', 'seis', '_cwavefd2d.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'])]
     CYTHON = True
