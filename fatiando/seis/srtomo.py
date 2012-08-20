@@ -252,7 +252,7 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
     * sparse : True or False
         If True, will use sparse matrices from `scipy.sparse`.
 
-        ..note:: If you provided a solver function, don't forget to turn on
+        .. note:: If you provided a solver function, don't forget to turn on
             sparcity in the inversion solver module **BEFORE** creating the
             solver function! The usual way of doing this is by calling the
             ``use_sparse`` function. Ex:

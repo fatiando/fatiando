@@ -12,6 +12,10 @@ Simulates both elastic and acoustic waves:
 * :func:`~fatiando.seis.wavefd2d.lame`: Calculate the Lame constants from P and
   S wave velocities and density
 
+**Sources**
+
+* :class:`~fatiando.seis.wavefd2d.MexHatSource`: Mexican hat wavelet source
+
 **Theory**
 
 We start with the wave equation for elastic isotropic media
@@ -158,6 +162,7 @@ The solution for P and SV waves is:
 
 
 ----
+
 """
 import numpy
 
@@ -166,6 +171,43 @@ import fatiando.log
 log = fatiando.log.dummy('fatiando.seis.wavefd2d')
 
 
+class MexHatSource(object):
+    r"""
+    A wave source that vibrates as a mexicam hat (Ricker) wavelet.
+
+    .. math::
+
+        \psi(t) = A\frac{2}{\sqrt{3\sigma}\pi^{\frac{1}{4}}}
+        \left( 1 - \frac{t^2}{\sigma^2} \right)
+        \exp\left(\frac{-t^2}{2\sigma^2}\right)
+
+    """
+
+    def __init__(self, i, j, amp, std, delay=0):
+        self.i = i
+        self.j = j
+        self.amp = amp
+        self.std = std
+        self.delay = delay
+
+    def __call__(self, time):
+        psi = (self.amp*
+            (2./(numpy.sqrt(3.*self.std)*(numpy.pi**0.25)))*
+            (1. - (time**2)/(self.std**2))*
+            numpy.exp(-(time**2)/(2.*self.std**2)))
+        return psi
+
+    def coords(self):
+        """
+        Get the i,j coordinates of the source in the finite difference grid.
+
+        Returns:
+
+        * (i,j) : tuple
+            The i,j coordinates
+
+        """
+        return (self.i, self.j)
 
 def lame(pvel, svel, dens):
     r"""
@@ -214,7 +256,31 @@ def lame(pvel, svel, dens):
     lamb = dens*pvel**2 - 2*mu
     return lamb, mu
 
-def elastic_sh():
+def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
+    """
+    Simulate SH waves using an explicit finite differences scheme.
+
+    Parameters:
+
+    * spacing : (dz, dx)
+        The node spacing of the finite differences grid
+    * shape : (nz, nx)
+        The number of nodes in the grid in the z and x directions
+    * mu : 2D-array (shape = *shape*)
+        The value of the mu Lame constant at all the grid nodes
+    * dens : 2D-array (shape = *shape*)
+        The value of the density at all the grid nodes
+    * deltat : float
+        The time interval between iterations
+    * iterations : int
+        Number of time steps to take
+    * sources : list
+        A list of the sources of waves
+
+    """
+    pass
+
+def elastic_psv():
     """
     """
     pass
