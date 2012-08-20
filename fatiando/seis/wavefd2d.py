@@ -181,6 +181,20 @@ class MexHatSource(object):
         \left( 1 - \frac{t^2}{\sigma^2} \right)
         \exp\left(\frac{-t^2}{2\sigma^2}\right)
 
+    Parameters:
+
+    * i, j : int
+        The i,j coordinates of the source in the target finite difference grid
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * std : float
+        The "wave length" (:math:`\sigma`)
+    * delay : float
+        The delay before the source starts
+
+        .. note:: If you want the source to start with amplitude close to 0, use
+            ``delay = 3.5*std``.
+
     """
 
     def __init__(self, i, j, amp, std, delay=0):
@@ -191,10 +205,11 @@ class MexHatSource(object):
         self.delay = delay
 
     def __call__(self, time):
+        t = time - self.delay
         psi = (self.amp*
             (2./(numpy.sqrt(3.*self.std)*(numpy.pi**0.25)))*
-            (1. - (time**2)/(self.std**2))*
-            numpy.exp(-(time**2)/(2.*self.std**2)))
+            (1. - (t**2)/(self.std**2))*
+            numpy.exp(-(t**2)/(2.*self.std**2)))
         return psi
 
     def coords(self):
@@ -276,9 +291,19 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
         Number of time steps to take
     * sources : list
         A list of the sources of waves
+        (see :class:`~fatiando.seis.wavefd2d.MexHatSource` for an example
+        source)
+
+    Yields:
+
+    * uy : 2D-array
+        The particle movement in the y direction at each time step
 
     """
-    pass
+    u_tm1 = numpy.zeros(shape)
+    u_t = numpy.zeros(shape)
+    u_tp1 = numpy.zeros(shape)
+
 
 def elastic_psv():
     """
