@@ -7,6 +7,10 @@ Simulates both elastic and acoustic waves:
   elastic waves
 * :func:`~fatiando.seis.wavefd2d.elastic_sh`: Simulates SH elastic waves
 
+**Auxiliary function**
+
+* :func:`~fatiando.seis.wavefd2d.lame`: Calculate the Lame constants from P and
+  S wave velocities and density
 
 **Theory**
 
@@ -161,6 +165,54 @@ import fatiando.log
 
 log = fatiando.log.dummy('fatiando.seis.wavefd2d')
 
+
+
+def lame(pvel, svel, dens):
+    r"""
+    Calculate the Lame constants :math:`\lambda` and :math:`\mu` from the
+    P and S wave velocities (:math:`\alpha` and :math:`\beta`) and the density
+    (:math:`\rho`).
+
+    .. math::
+
+        \mu = \beta^2 \rho
+
+    .. math::
+
+        \lambda = \alpha^2 \rho - 2\mu
+
+    Parameters:
+
+    * pvel : float or array
+        The P wave velocity
+    * svel : float or array
+        The S wave velocity
+    * dens : float or array
+        The density
+
+    Returns:
+
+    * [lambda, mu] : floats or arrays
+        The Lame constants
+
+    Examples::
+
+        >>> print lame(2000, 1000, 2700)
+        (5400000000, 2700000000)
+        >>> import numpy as np
+        >>> pv = np.array([2000, 3000])
+        >>> sv = np.array([1000, 1700])
+        >>> dens = np.array([2700, 3100])
+        >>> lamb, mu = lame(pv, sv, dens)
+        >>> print lamb
+        [5400000000 9982000000]
+        >>> print mu
+        [2700000000 8959000000]
+
+    """
+    mu = dens*svel**2
+    lamb = dens*pvel**2 - 2*mu
+    return lamb, mu
 
 def elastic_sh():
     """
