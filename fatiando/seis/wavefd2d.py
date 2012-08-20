@@ -184,7 +184,11 @@ class MexHatSource(object):
     Parameters:
 
     * i, j : int
-        The i,j coordinates of the source in the target finite difference grid
+        The i,j coordinates of the source in the target finite difference grid.
+        i is the index for z, j for x
+
+        .. warning:: Don't put sources in the boundaries of the grid!
+
     * amp : float
         The amplitude of the source (:math:`A`)
     * std : float
@@ -300,10 +304,36 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
         The particle movement in the y direction at each time step
 
     """
+    nz, nx = shape
+    dz, dx = spacing
+    dt_sqr = deltat**2
+    dx_sqr = dx**2
+    dz_sqr = dz**2
     u_tm1 = numpy.zeros(shape)
     u_t = numpy.zeros(shape)
     u_tp1 = numpy.zeros(shape)
+    for src in sources:
+        u_t[src.coords()] = src(0)
+    for t in xrange(iterations - 1):
+        for i in xrange(nz):
+            for j in xrange(nx):
+                u_tp1[i,j] = 2.*u_t[i,j] - u_tm1[i,j] + dt_sqr/dens[i,j]*(
+                    (u_t[i + 1,j] - 2.*u_t[i,j] + u_t[i - 1,j])/dz_sqr +
+                    (u_t[i,j + 1] - 2.*u_t[i,j] + u_t[i,j - 1])/dx_sqr)
+        # Update the sources
+        for src in sources:
+            pos = src.coords()
+            u_tp1[pos] -= (dt_sqr/dens[pos])*src(t*deltat)
+        # Set the boundary conditions
+        u_tp1[0,:] = u_tp1[1,:]
+        u_tp1[-1,:] = 0
+        u_tp1[:,0] = 0
+        u_tp1[:,-1] = 0
 
+        yield u_tp1
+
+        u_tm1 = u_t
+        u_t = u_tp1
 
 def elastic_psv():
     """
