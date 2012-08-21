@@ -3,18 +3,19 @@ Finite difference solution of the 2D wave equation for isotropic media.
 
 Simulates both elastic and acoustic waves:
 
-* :func:`~fatiando.seis._wavefd2d.elastic_psv`: Simulates the coupled P and SV
+* :func:`~fatiando.seis.wavefd.elastic_psv`: Simulates the coupled P and SV
   elastic waves
-* :func:`~fatiando.seis._wavefd2d.elastic_sh`: Simulates SH elastic waves
+* :func:`~fatiando.seis.wavefd.elastic_sh`: Simulates SH elastic waves
 
 **Auxiliary function**
 
-* :func:`~fatiando.seis.wavefd2d.lame`: Calculate the Lame constants from P and
+* :func:`~fatiando.seis.wavefd.lame`: Calculate the Lame constants from P and
   S wave velocities and density
 
 **Sources**
 
-* :class:`~fatiando.seis.wavefd2d.MexHatSource`: Mexican hat wavelet source
+* :class:`~fatiando.seis.wavefd.MexHatSource`: Mexican hat wavelet source
+* :class:`~fatiando.seis.wavefd.SinSqrSource`: Sine squared source
 
 **Theory**
 
@@ -41,7 +42,7 @@ two groups:
 .. math::
 
     \mu\left(\partial_x^2 u_y + \partial_z^2 u_y\right)
-    - \rho \partial_t^2 u_y = f_y
+    - \rho \partial_t^2 u_y = -f_y
 
 and
 
@@ -49,13 +50,13 @@ and
 
     (\lambda + 2\mu)\partial_x^2 u_x + \mu\partial_z^2 u_x
     + (\lambda + \mu)\partial_x\partial_z u_z
-    - \rho \partial_t^2 u_x = f_x
+    - \rho \partial_t^2 u_x = -f_x
 
 .. math::
 
     (\lambda + 2\mu)\partial_z^2 u_z + \mu\partial_x^2 u_z
     + (\lambda + \mu)\partial_x\partial_z u_x
-    - \rho \partial_t^2 u_z = f_z
+    - \rho \partial_t^2 u_z = -f_z
 
 The first equation depends only on :math:`u_y` and represents SH waves.
 The other two depend on :math:`u_x` and :math:`u_z` and are coupled.
@@ -70,7 +71,7 @@ The explicit finite difference solution for the SH waves is:
         u_y[i,j]_{t+1} =& 2u_y[i,j]_{t} - u_y[i,j]_{t-1}
         + \frac{\Delta t^2}{\rho[i,j]}
         \left[
-            -f_y[i,j]_t +
+            f_y[i,j]_t +
             \mu[i,j]
                 \left(
                     \frac{u_y[i+1,j]_{t} - 2u_y[i,j]_{t} + u_y[i-1,j]_{t}}{
@@ -100,7 +101,7 @@ The solution for P and SV waves is:
     \\&
     + \frac{\Delta t^2}{\rho[i,j]}
     \left\lbrace
-        -f_x[i,j]_{t} +
+        f_x[i,j]_{t} +
         (\lambda[i,j] + 2\mu[i,j])
         \left(
             \frac{u_x[i+1,j]_{t} - 2u_x[i,j]_{t} + u_x[i-1,j]_{t}}{
@@ -134,7 +135,7 @@ The solution for P and SV waves is:
     \\&
     + \frac{\Delta t^2}{\rho[i,j]}
     \left\lbrace
-        -f_z[i,j]_{t} +
+        f_z[i,j]_{t} +
         (\lambda[i,j] + 2\mu[i,j])
         \left(
             \frac{u_z[i,j+1]_{t} - 2u_z[i,j]_{t} + u_z[i,j-1]_{t}}{
@@ -169,12 +170,12 @@ import numpy
 import fatiando.log
 
 try:
-    from fatiando.seis._cwavefd2d import *
+    from fatiando.seis._cwavefd import *
 except ImportError:
-    from fatiando.seis._wavefd2d import *
+    from fatiando.seis._wavefd import *
 
 
-log = fatiando.log.dummy('fatiando.seis.wavefd2d')
+log = fatiando.log.dummy('fatiando.seis.wavefd')
 
 
 class MexHatSource(object):
@@ -192,34 +193,31 @@ class MexHatSource(object):
     * i, j : int
         The i,j coordinates of the source in the target finite difference grid.
         i is the index for z, j for x
-
-        .. warning:: Don't put sources in the boundaries of the grid!
-
     * amp : float
         The amplitude of the source (:math:`A`)
-    * std : float
+    * wlength : float
         The "wave length" (:math:`\sigma`)
     * delay : float
         The delay before the source starts
 
         .. note:: If you want the source to start with amplitude close to 0, use
-            ``delay = 3.5*std``.
+            ``delay = 3.5*wlength``.
 
     """
 
-    def __init__(self, i, j, amp, std, delay=0):
+    def __init__(self, i, j, amp, wlength, delay=0):
         self.i = i
         self.j = j
         self.amp = amp
-        self.std = std
+        self.wlength = wlength
         self.delay = delay
 
     def __call__(self, time):
         t = time - self.delay
         psi = (self.amp*
-            (2./(numpy.sqrt(3.*self.std)*(numpy.pi**0.25)))*
-            (1. - (t**2)/(self.std**2))*
-            numpy.exp(-(t**2)/(2.*self.std**2)))
+            (2./(numpy.sqrt(3.*self.wlength)*(numpy.pi**0.25)))*
+            (1. - (t**2)/(self.wlength**2))*
+            numpy.exp(-(t**2)/(2.*self.wlength**2)))
         return psi
 
     def coords(self):
@@ -234,16 +232,39 @@ class MexHatSource(object):
         """
         return (self.i, self.j)
 
-class SinSQRSource(MexHatSource):
+class SinSqrSource(MexHatSource):
+    r"""
+    A wave source that vibrates as a sine squared function.
 
-    def __init__(self, i, j, amp, std, delay=0):
-        MexHatSource.__init__(self, i, j, amp, std, delay)
+    .. math::
+
+        \psi(t) = A\sin\left(t\frac{2\pi}{T}\right)^2
+
+    Parameters:
+
+    * i, j : int
+        The i,j coordinates of the source in the target finite difference grid.
+        i is the index for z, j for x
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * wlength : float
+        The wave length (:math:`T`)
+    * delay : float
+        The delay before the source starts
+
+        .. note:: If you want the source to start with amplitude close to 0, use
+            ``delay = 3.5*wlength``.
+
+    """
+
+    def __init__(self, i, j, amp, wlength, delay=0):
+        MexHatSource.__init__(self, i, j, amp, wlength, delay)
 
     def __call__(self, time):
         t = time - self.delay
-        if t > self.std:
+        if t > self.wlength:
             return 0
-        psi = self.amp*numpy.sin(2.*numpy.pi*t/self.std)**2
+        psi = self.amp*numpy.sin(2.*numpy.pi*t/float(self.wlength))**2
         return psi
 
 def lame(pvel, svel, dens):
@@ -293,7 +314,7 @@ def lame(pvel, svel, dens):
     lamb = dens*pvel**2 - 2*mu
     return lamb, mu
 
-def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
+def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -303,8 +324,8 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
         The node spacing of the finite differences grid
     * shape : (nz, nx)
         The number of nodes in the grid in the z and x directions
-    * mu : 2D-array (shape = *shape*)
-        The value of the mu Lame constant at all the grid nodes
+    * svel : 2D-array (shape = *shape*)
+        The S wave velocity at all the grid nodes
     * dens : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
     * deltat : float
@@ -313,7 +334,7 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
         Number of time steps to take
     * sources : list
         A list of the sources of waves
-        (see :class:`~fatiando.seis.wavefd2d.MexHatSource` for an example
+        (see :class:`~fatiando.seis.wavefd.MexHatSource` for an example
         source)
 
     Yields:
@@ -328,22 +349,20 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources):
     u_t = numpy.zeros(shape, dtype=numpy.float)
     u_tp1 = numpy.zeros(shape, dtype=numpy.float)
     for src in sources:
-        u_t[src.coords()] = src(0)
+        i, j = src.coords()
+        u_t[i, j] += (deltat**2/dens[i, j])*src(0)
     for t in xrange(1, iterations):
-        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, mu, dens)
-        # Update the sources
-        for src in sources:
-            i, j = src.coords()
-            u_tp1[i, j] -= (deltat**2/dens[i, j])*src(t*deltat)
-            print u_tp1[i, j]
-            #u_tp1[i, j] = src(t*deltat)
+        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, svel)
         # Set the boundary conditions
         u_tp1[0,:] = u_tp1[1,:]
         u_tp1[-1,:] = 0
         u_tp1[:,0] = 0
         u_tp1[:,-1] = 0
-
+        # Update the sources
+        for src in sources:
+            i, j = src.coords()
+            u_tp1[i, j] += (deltat**2/dens[i, j])*src(t*deltat)
         u_tm1 = u_t
-        u_t = u_tp1[:,:]
+        u_t = numpy.copy(u_tp1)
         yield u_t
 

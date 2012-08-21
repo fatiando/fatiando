@@ -24,5 +24,5 @@ from fatiando.vis.vtk import *
 # Get some useful things from matplotlib
 from matplotlib.pyplot import (plot, show, figure, xlim, ylim, xlabel, ylabel,
     gca, axis, subplot, savefig, legend, colorbar, grid, hist, title, twinx,
-    twiny, suptitle, bar, subplots_adjust, cm, clf, draw)
+    twiny, suptitle, bar, subplots_adjust, cm, clf, draw, ion, ioff)
 

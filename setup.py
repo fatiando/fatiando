@@ -15,8 +15,8 @@ try:
                   [join('fatiando', 'pot', '_cprism.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3']),
-        Extension("fatiando.seis._cwavefd2d",
-                  [join('fatiando', 'seis', '_cwavefd2d.pyx')],
+        Extension("fatiando.seis._cwavefd",
+                  [join('fatiando', 'seis', '_cwavefd.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'])]
     CYTHON = True

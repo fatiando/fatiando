@@ -7,7 +7,7 @@ Various tools for seismic and seismology, like direct modeling, inversion
 * :mod:`~fatiando.seis.ttime2d`: 2D seismic ray travel-time modeling
 * :mod:`~fatiando.seis.epic2d`: 2D epicenter determination
 * :mod:`~fatiando.seis.profile`: Modeling and inversion of seismic profiling
-* :mod:`~fatiando.seis.wavefd2d`: Finite difference solution of the 2D wave
+* :mod:`~fatiando.seis.wavefd`: Finite difference solution of the 2D wave
   equation
 
 **Tomography**
@@ -18,4 +18,4 @@ Various tools for seismic and seismology, like direct modeling, inversion
 
 """
 
-from fatiando.seis import epic2d, ttime2d, srtomo, profile, wavefd2d
+from fatiando.seis import epic2d, ttime2d, srtomo, profile, wavefd

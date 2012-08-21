@@ -13,4 +13,4 @@ Seismics and seismology (``fatiando.seis``)
     seis.epic2d.rst
     seis.profile.rst
     seis.srtomo.rst
-    seis.wavefd2d.rst
+    seis.wavefd.rst

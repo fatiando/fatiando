@@ -196,8 +196,8 @@ def m2km(axis=None):
     """
     if axis is None:
         axis = pyplot.gca()
-    axis.set_xticklabels([str(0.001*l) for l in axis.get_xticks()])
-    axis.set_yticklabels([str(0.001*l) for l in axis.get_yticks()])
+    axis.set_xticklabels(['%g' % (0.001*l) for l in axis.get_xticks()])
+    axis.set_yticklabels(['%g' % (0.001*l) for l in axis.get_yticks()])
 
 def set_area(area):
     """
