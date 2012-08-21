@@ -314,7 +314,8 @@ def lame(pvel, svel, dens):
     lamb = dens*pvel**2 - 2*mu
     return lamb, mu
 
-def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources):
+def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
+    padding=1.0):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -336,6 +337,9 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources):
         A list of the sources of waves
         (see :class:`~fatiando.seis.wavefd.MexHatSource` for an example
         source)
+    * padding : float
+        The decimal percentage of padding to use in the grid to avoid
+        reflections at the borders
 
     Yields:
 
@@ -345,24 +349,54 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources):
     """
     nz, nx = shape
     dz, dx = spacing
-    u_tm1 = numpy.zeros(shape, dtype=numpy.float)
-    u_t = numpy.zeros(shape, dtype=numpy.float)
-    u_tp1 = numpy.zeros(shape, dtype=numpy.float)
+    # Add some nodes in x and z for padding to avoid reflections
+    pad = int(padding*max(shape))
+    decay = 20*pad
+    nx += 2*pad
+    nz += pad
+    # Pad the velocity as well
+    svel_pad = _add_pad(svel, pad, (nz, nx))
+    # Compute and yield the initial solutions
+    u_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    u_t = numpy.zeros((nz, nx), dtype=numpy.float)
+    u_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
     for src in sources:
         i, j = src.coords()
-        u_t[i, j] += (deltat**2/dens[i, j])*src(0)
+        u_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+    yield u_tm1[:-pad, pad:-pad]
+    yield u_t[:-pad, pad:-pad]
+    # Time steps
     for t in xrange(1, iterations):
-        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, svel)
+        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, svel_pad,
+            pad, decay)
         # Set the boundary conditions
         u_tp1[0,:] = u_tp1[1,:]
-        u_tp1[-1,:] = 0
-        u_tp1[:,0] = 0
-        u_tp1[:,-1] = 0
+        u_tp1[-1,:] *= 0
+        u_tp1[:,0] *= 0
+        u_tp1[:,-1] *= 0
         # Update the sources
         for src in sources:
             i, j = src.coords()
-            u_tp1[i, j] += (deltat**2/dens[i, j])*src(t*deltat)
-        u_tm1 = u_t
+            u_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+        # Damp the amplitudes after the paddings to avoid reflections
+        #for k in xrange(pad):
+            #u_tp1[:,k] *= numpy.exp(-float(pad - k - 1)**2/decay**2)
+            #u_tp1[:,-(pad - k)] *= numpy.exp(-float(k)**2/decay**2)
+            #u_tp1[-(pad - k),:] *= numpy.exp(-float(k)**2/decay**2)
+        u_tm1 = numpy.copy(u_t)
         u_t = numpy.copy(u_tp1)
-        yield u_t
+        yield u_t[:-pad, pad:-pad]
+
+def _add_pad(array, pad, shape):
+    """
+    Pad the array with the values of the borders
+    """
+    array_pad = numpy.zeros(shape, dtype=numpy.float)
+    array_pad[:-pad, pad:-pad] = array
+    for k in xrange(pad):
+        array_pad[:-pad,k] = array[:,0]
+        array_pad[:-pad,-(k + 1)] = array[:,-1]
+    for k in xrange(pad):
+        array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
+    return array_pad
 
