@@ -7,16 +7,16 @@ Simulates both elastic and acoustic waves:
   elastic waves
 * :func:`~fatiando.seis.wavefd.elastic_sh`: Simulates SH elastic waves
 
-**Auxiliary function**
-
-* :func:`~fatiando.seis.wavefd.lame`: Calculate the Lame constants from P and
-  S wave velocities and density
-
 **Sources**
 
 * :class:`~fatiando.seis.wavefd.MexHatSource`: Mexican hat wavelet source
 * :class:`~fatiando.seis.wavefd.SinSqrSource`: Sine squared source
 
+**Auxiliary function**
+
+* :func:`~fatiando.seis.wavefd.lame`: Calculate the Lame constants from P and
+  S wave velocities and density
+  
 **Theory**
 
 We start with the wave equation for elastic isotropic media
@@ -74,7 +74,7 @@ The explicit finite difference solution for the SH waves is:
             f_y[i,j]_t +
             \mu[i,j]
                 \left(
-                    \frac{u_y[i+1,j]_{t} - 2u_y[i,j]_{t} + u_y[i-1,j]_{t}}{
+                    \frac{u_y[i,j+1]_{t} - 2u_y[i,j]_{t} + u_y[i,j-1]_{t}}{
                         \Delta x^2}
                 \right.
         \right.
@@ -82,14 +82,15 @@ The explicit finite difference solution for the SH waves is:
         \left.
             \left.
                 +
-                \frac{u_y[i,j+1]_{t} - 2u_y[i,j]_{t} + u_y[i,j-1]_{t}}{\Delta z^2}
+                \frac{u_y[i+1,j]_{t} - 2u_y[i,j]_{t} + u_y[i-1,j]_{t}}{
+                    \Delta z^2}
             \right)
         \right]
     \end{align*}
 
 
 where :math:`[i,j]_t` is the quantity at the grid node i,j at a
-time t.
+time t. In this formulation, i denotes z coordinates and j x coordinates.
 
 The solution for P and SV waves is:
 
@@ -104,7 +105,7 @@ The solution for P and SV waves is:
         f_x[i,j]_{t} +
         (\lambda[i,j] + 2\mu[i,j])
         \left(
-            \frac{u_x[i+1,j]_{t} - 2u_x[i,j]_{t} + u_x[i-1,j]_{t}}{
+            \frac{u_x[i,j+1]_{t} - 2u_x[i,j]_{t} + u_x[i,j-1]_{t}}{
                 \Delta x^2}
         \right)
     \right.
@@ -112,7 +113,7 @@ The solution for P and SV waves is:
         +
         \mu[i,j]
         \left(
-            \frac{u_x[i,j+1]_{t} - 2u_x[i,j]_{t} + u_x[i,j-1]_{t}}{
+            \frac{u_x[i+1,j]_{t} - 2u_x[i,j]_{t} + u_x[i-1,j]_{t}}{
                 \Delta z^2}
         \right)
     \\[0.3cm]&
@@ -138,7 +139,7 @@ The solution for P and SV waves is:
         f_z[i,j]_{t} +
         (\lambda[i,j] + 2\mu[i,j])
         \left(
-            \frac{u_z[i,j+1]_{t} - 2u_z[i,j]_{t} + u_z[i,j-1]_{t}}{
+            \frac{u_z[i+1,j]_{t} - 2u_z[i,j]_{t} + u_z[i-1,j]_{t}}{
                 \Delta z^2}
         \right)
     \right.
@@ -146,7 +147,7 @@ The solution for P and SV waves is:
         +
         \mu[i,j]
         \left(
-            \frac{u_z[i+1,j]_{t} - 2u_z[i,j]_{t} + u_z[i-1,j]_{t}}{
+            \frac{u_z[i,j+1]_{t} - 2u_z[i,j]_{t} + u_z[i,j-1]_{t}}{
                 \Delta x^2}
         \right)
     \\[0.3cm]&

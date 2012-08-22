@@ -8,7 +8,7 @@
     the pure Python functions with its functions.
 
 """
-__all__ = ['_step_elastic_sh', '_step_elastic_psv_x', '_step_elastic_psv_x']
+__all__ = ['_step_elastic_sh']
 
 import numpy
 
