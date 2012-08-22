@@ -62,7 +62,11 @@ The first equation depends only on :math:`u_y` and represents SH waves.
 The other two depend on :math:`u_x` and :math:`u_z` and are coupled.
 They represent P and SV waves.
 
-The explicit finite difference solution for the SH waves is:
+I'll use an explicit finite difference solution for these equations.
+I'll use a second order approximation for the time derivative
+and a fourth order approximation for the spacial derivatives.
+
+The finite difference solution for SH waves is:
 
 .. math::
    :nowrap:
@@ -70,22 +74,23 @@ The explicit finite difference solution for the SH waves is:
     \begin{align*}
         u_y[i,j]_{t+1} =& 2u_y[i,j]_{t} - u_y[i,j]_{t-1}
         + \frac{\Delta t^2}{\rho[i,j]}
-        \left[
-            f_y[i,j]_t +
-            \mu[i,j]
-                \left(
-                    \frac{u_y[i,j+1]_{t} - 2u_y[i,j]_{t} + u_y[i,j-1]_{t}}{
-                        \Delta x^2}
-                \right.
-        \right.
+        \Biggl[
+            f_y[i,j]_t
         \\[0.3cm] &
-        \left.
-            \left.
-                +
-                \frac{u_y[i+1,j]_{t} - 2u_y[i,j]_{t} + u_y[i-1,j]_{t}}{
-                    \Delta z^2}
-            \right)
-        \right]
+            + \mu[i,j]
+                \left(
+                    \frac{-u_y[i,j+2]_{t} + 16u_y[i,j+1]_{t} -30u_y[i,j]_{t}
+                        + 16u_y[i,j-1]_{t} - u_y[i,j-2]_{t}}{
+                        12\Delta x^2}
+                \right)
+        \\[0.3cm] &
+            + \mu[i,j]
+                \left(
+                    \frac{-u_y[i+2,j]_{t} + 16u_y[i+1,j]_{t} -30u_y[i,j]_{t}
+                        + 16u_y[i-1,j]_{t} - u_y[i-2,j]_{t}}{
+                        12\Delta z^2}
+                \right)
+        \Biggr]
     \end{align*}
 
 
@@ -384,10 +389,14 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, svel_pad,
             pad, decay)
         # Set the boundary conditions
+        u_tp1[1,:] = u_tp1[2,:]
         u_tp1[0,:] = u_tp1[1,:]
         u_tp1[-1,:] *= 0
+        u_tp1[-2,:] *= 0
         u_tp1[:,0] *= 0
+        u_tp1[:,1] *= 0
         u_tp1[:,-1] *= 0
+        u_tp1[:,-2] *= 0
         # Update the sources
         for src in sources:
             i, j = src.coords()

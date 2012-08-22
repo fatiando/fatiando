@@ -26,12 +26,14 @@ def _step_elastic_sh(
     """
     cdef int i, j
     cdef double in_pad
-    for i in xrange(1, nz - 1):
-        for j in xrange(1, nx - 1):
+    for i in xrange(2, nz - 2):
+        for j in xrange(2, nx - 2):
             u_tp1[i,j] = (2.*u_t[i,j] - u_tm1[i,j]
                 + (svel[i,j]**2)*(dt**2)*(
-                    (u_t[i + 1,j] - 2.*u_t[i,j] + u_t[i - 1,j])/dz**2 +
-                    (u_t[i,j + 1] - 2.*u_t[i,j] + u_t[i,j - 1])/dx**2))
+                    (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
+                     16.*u_t[i,j - 1] - u_t[i,j - 2])/(12.*dx**2) +
+                    (-u_t[i + 2,j] +16.*u_t[i + 1,j] - 30.*u_t[i,j] +
+                     16.*u_t[i - 1,j] - u_t[i - 2,j])/(12.*dz**2)))
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1
             if j < pad:
