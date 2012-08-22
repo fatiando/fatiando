@@ -8,12 +8,12 @@
     the pure Python functions with its functions.
 
 """
-__all__ = ['_step_elastic_sh']
+__all__ = ['_step_elastic_sh', '_step_elastic_psv_x', '_step_elastic_psv_x']
 
 import numpy
 
 
-def _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, dt, dx, dz, svel):
+def _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, dt, dx, dz, svel, pad, decay):
     """
     Perform a single time step in the Finite Difference solution for elastic
     SH waves.
@@ -24,3 +24,13 @@ def _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, dt, dx, dz, svel):
                 + (svel[i,j]**2)*(dt**2)*(
                     (u_t[i + 1,j] - 2.*u_t[i,j] + u_t[i - 1,j])/dz**2 +
                     (u_t[i,j + 1] - 2.*u_t[i,j] + u_t[i,j - 1])/dx**2))
+            # Damp the amplitudes after the paddings to avoid reflections
+            in_pad = -1
+            if j < pad:
+                in_pad = pad - j
+            if j >= nx - pad:
+                in_pad = j - nx + pad + 1
+            if i >= nz - pad:
+                in_pad = i - nz + pad + 1
+            if in_pad != -1:
+                u_tp1[i,j] *= numpy.exp(-in_pad**2/decay**2)

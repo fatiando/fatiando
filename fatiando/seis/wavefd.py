@@ -314,6 +314,19 @@ def lame(pvel, svel, dens):
     lamb = dens*pvel**2 - 2*mu
     return lamb, mu
 
+def _add_pad(array, pad, shape):
+    """
+    Pad the array with the values of the borders
+    """
+    array_pad = numpy.zeros(shape, dtype=numpy.float)
+    array_pad[:-pad, pad:-pad] = array
+    for k in xrange(pad):
+        array_pad[:-pad,k] = array[:,0]
+        array_pad[:-pad,-(k + 1)] = array[:,-1]
+    for k in xrange(pad):
+        array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
+    return array_pad
+
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     padding=1.0):
     """
@@ -378,25 +391,98 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         for src in sources:
             i, j = src.coords()
             u_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        # Damp the amplitudes after the paddings to avoid reflections
-        #for k in xrange(pad):
-            #u_tp1[:,k] *= numpy.exp(-float(pad - k - 1)**2/decay**2)
-            #u_tp1[:,-(pad - k)] *= numpy.exp(-float(k)**2/decay**2)
-            #u_tp1[-(pad - k),:] *= numpy.exp(-float(k)**2/decay**2)
         u_tm1 = numpy.copy(u_t)
         u_t = numpy.copy(u_tp1)
         yield u_t[:-pad, pad:-pad]
 
-def _add_pad(array, pad, shape):
+def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
+    zsources, padding=1.0):
     """
-    Pad the array with the values of the borders
+    Simulate SH waves using an explicit finite differences scheme.
+
+    Parameters:
+
+    * spacing : (dz, dx)
+        The node spacing of the finite differences grid
+    * shape : (nz, nx)
+        The number of nodes in the grid in the z and x directions
+    * svel : 2D-array (shape = *shape*)
+        The S wave velocity at all the grid nodes
+    * dens : 2D-array (shape = *shape*)
+        The value of the density at all the grid nodes
+    * deltat : float
+        The time interval between iterations
+    * iterations : int
+        Number of time steps to take
+    * xsources : list
+        A list of the sources of waves for the particle movement in the x
+        direction
+        (see :class:`~fatiando.seis.wavefd.MexHatSource` for an example
+        source)
+    * zsources : list
+        A list of the sources of waves for the particle movement in the z
+        direction
+    * padding : float
+        The decimal percentage of padding to use in the grid to avoid
+        reflections at the borders
+
+    Yields:
+
+    * ux, uz : 2D-arrays
+        The particle movement in the x and z direction at each time step
+
     """
-    array_pad = numpy.zeros(shape, dtype=numpy.float)
-    array_pad[:-pad, pad:-pad] = array
-    for k in xrange(pad):
-        array_pad[:-pad,k] = array[:,0]
-        array_pad[:-pad,-(k + 1)] = array[:,-1]
-    for k in xrange(pad):
-        array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
-    return array_pad
+    nz, nx = shape
+    dz, dx = spacing
+    # Add some nodes in x and z for padding to avoid reflections
+    pad = int(padding*max(shape))
+    decay = 20*pad
+    nx += 2*pad
+    nz += pad
+    # Pad the velocity as well
+    pvel_pad = _add_pad(pvel, pad, (nz, nx))
+    svel_pad = _add_pad(svel, pad, (nz, nx))
+    # Compute and yield the initial solutions
+    ux_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    ux_t = numpy.zeros((nz, nx), dtype=numpy.float)
+    ux_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    uz_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    uz_t = numpy.zeros((nz, nx), dtype=numpy.float)
+    uz_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    for src in xsources:
+        i, j = src.coords()
+        ux_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+    for src in zsources:
+        i, j = src.coords()
+        uz_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+    yield ux_tm1[:-pad, pad:-pad], uz_tm1[:-pad, pad:-pad]
+    yield ux_t[:-pad, pad:-pad], uz_t[:-pad, pad:-pad]
+    # Time steps
+    for t in xrange(1, iterations):
+        _step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t, nx, nz, deltat, dx, dz,
+            pvel_pad, svel_pad, pad, decay)
+        _step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t, nx, nz, deltat, dx, dz,
+            pvel_pad, svel_pad, pad, decay)
+        # Set the boundary conditions
+        ux_tp1[0,:] = ux_tp1[1,:]
+        ux_tp1[-1,:] *= 0
+        ux_tp1[:,0] *= 0
+        ux_tp1[:,-1] *= 0
+        uz_tp1[0,:] = uz_tp1[1,:]
+        uz_tp1[-1,:] *= 0
+        uz_tp1[:,0] *= 0
+        uz_tp1[:,-1] *= 0
+        # Update the sources
+        for src in xsources:
+            i, j = src.coords()
+            ux_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+        for src in zsources:
+            i, j = src.coords()
+            uz_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+        ux_tm1 = numpy.copy(ux_t)
+        ux_t = numpy.copy(ux_tp1)
+        uz_tm1 = numpy.copy(uz_t)
+        uz_t = numpy.copy(uz_tp1)
+        yield ux_t[:-pad, pad:-pad], uz_t[:-pad, pad:-pad]
+
 
