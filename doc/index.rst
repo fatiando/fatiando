@@ -66,6 +66,24 @@ which results in something like this:
 .. image:: _static/sample.png
     :align: center
 
+For those of you not so interested in potential fields,
+there is a new module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>`
+for finite difference simulations
+of seismic waves!
+Check out `this animation`_ of SH wave propagation
+resulting in a Love wave (the seismometer is the blue triangle)!
+
+.. _this animation: http://fatiando.readthedocs.org/en/latest/_static/love-wave.gif
+
+.. raw:: html
+
+    <div class="figure align-center">
+        <img alt="Animation of a Love wave" src="_static/love-wave-lowres.gif"/>
+        <p class="caption">There is also a
+        <a class="reference external" href="_static/love-wave.gif">
+        higher resolution gif</a>.</p>
+    </div>
+
 If you want to find out more,
 have a look at the rest of this documentation.
 
