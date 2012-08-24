@@ -131,7 +131,7 @@ def points3d(points, color=(0, 0, 0), opacity=1, size=200.):
         The list of points to plot. Each point is an [x, y, z] list with the
         x, y, and z coordinates of the point
     * color : tuple = (r, g, b)
-        RGB of the color of the text
+        RGB of the color of the points
     * opacity : float
         Decimal percentage of opacity
     * size : float

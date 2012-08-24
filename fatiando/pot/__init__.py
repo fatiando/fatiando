@@ -42,4 +42,4 @@ after modeling.
 """
 
 from fatiando.pot import (basin2d, polyprism, prism, talwani, trans, harvester,
-                           sphere, tensor, fourier, imaging)
+                           sphere, tensor, fourier, imaging, euler)
