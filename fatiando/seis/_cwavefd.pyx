@@ -13,7 +13,7 @@ DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
 
 
-def _step_elastic_sh(
+def step_elastic_sh(
     numpy.ndarray[DTYPE_T, ndim=2] u_tp1,
     numpy.ndarray[DTYPE_T, ndim=2] u_t,
     numpy.ndarray[DTYPE_T, ndim=2] u_tm1,
@@ -45,7 +45,7 @@ def _step_elastic_sh(
             if in_pad != -1:
                 u_tp1[i,j] *= exp(-in_pad**2/decay**2)
 
-def _step_elastic_psv_x(
+def step_elastic_psv_x(
     numpy.ndarray[DTYPE_T, ndim=2] ux_tp1,
     numpy.ndarray[DTYPE_T, ndim=2] ux_t,
     numpy.ndarray[DTYPE_T, ndim=2] ux_tm1,
@@ -82,7 +82,7 @@ def _step_elastic_psv_x(
             if in_pad != -1:
                 ux_tp1[i,j] *= exp(-in_pad**2/decay**2)
 
-def _step_elastic_psv_z(
+def step_elastic_psv_z(
     numpy.ndarray[DTYPE_T, ndim=2] uz_tp1,
     numpy.ndarray[DTYPE_T, ndim=2] uz_t,
     numpy.ndarray[DTYPE_T, ndim=2] uz_tm1,

@@ -1,6 +1,13 @@
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
+.. warning::
+
+    Due to the high computational demmand of these simulations, there
+    are no pure Python alternatives to the optimized Cython modules. For
+    instructions on using and installing the Cython compiled modules, see
+    :ref:`advanced-usage`.
+
 Simulates both elastic and acoustic waves:
 
 * :func:`~fatiando.seis.wavefd.elastic_psv`: Simulates the coupled P and SV
@@ -173,15 +180,11 @@ The solution for P and SV waves is:
 """
 import numpy
 
+import fatiando.seis._cwavefd
 import fatiando.log
 
-try:
-    from fatiando.seis._cwavefd import *
-except ImportError:
-    from fatiando.seis._wavefd import *
-
-
 log = fatiando.log.dummy('fatiando.seis.wavefd')
+
 
 
 class MexHatSource(object):
@@ -386,8 +389,8 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     yield u_t[:-pad, pad:-pad]
     # Time steps
     for t in xrange(1, iterations):
-        _step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, deltat, dx, dz, svel_pad,
-            pad, decay)
+        fatiando.seis._cwavefd.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
+            deltat, dx, dz, svel_pad, pad, decay)
         # Set the boundary conditions
         u_tp1[1,:] = u_tp1[2,:]
         u_tp1[0,:] = u_tp1[1,:]
@@ -469,10 +472,10 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     yield ux_t[:-pad, pad:-pad], uz_t[:-pad, pad:-pad]
     # Time steps
     for t in xrange(1, iterations):
-        _step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t, nx, nz, deltat, dx, dz,
-            pvel_pad, svel_pad, pad, decay)
-        _step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t, nx, nz, deltat, dx, dz,
-            pvel_pad, svel_pad, pad, decay)
+        fatiando.seis._cwavefd.step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t,
+            nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
+        fatiando.seis._cwavefd.step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t,
+            nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
         # Set the boundary conditions
         ux_tp1[0,:] = ux_tp1[1,:]
         ux_tp1[-1,:] *= 0

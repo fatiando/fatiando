@@ -37,7 +37,7 @@ timesteps = ft.seis.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
 rec = 350
 vmin, vmax = -10*10**(-4), 10*10**(-4)
 # This part makes an animation by updating the plot every few iterations
-#ft.vis.ion()
+ft.vis.ion()
 ft.vis.figure(figsize=(16,7))
 ft.vis.subplots_adjust(left=0.08, right=0.98, top=0.95, bottom=0.08)
 # A plot for the ux field
@@ -96,32 +96,12 @@ zamps = []
 addzamp = zamps.append
 start = time.clock()
 # This part animates the plot
-#for i, update in enumerate(timesteps):
-    #ux, uz = update
-    #addxamp(10.**(6)*ux[0, rec])
-    #addzamp(10.**(6)*uz[0, rec])
-    #addtime(dt*i)
-    #if i%100 == 0:
-        #plotx.set_title('x component | time: %0.1f s' % (i*dt))
-        #xseismogram.set_ydata(xamps)
-        #xseismogram.set_xdata(times)
-        #xwavefield.set_array(ux[0:-1,0:-1].ravel())
-        #plotz.set_title('z component | time: %0.1f s' % (i*dt))
-        #zseismogram.set_ydata(zamps)
-        #zseismogram.set_xdata(times)
-        #zwavefield.set_array(uz[0:-1,0:-1].ravel())
-        #particle_movement.set_xdata(xamps)
-        #particle_movement.set_ydata(zamps)
-        #ft.vis.draw()
-# Comment the above and uncomment bellow to save snapshots of the simulation
-# If you don't want the animation to show on the screen, comment ft.vis.ion()
-# above
 for i, update in enumerate(timesteps):
     ux, uz = update
     addxamp(10.**(6)*ux[0, rec])
     addzamp(10.**(6)*uz[0, rec])
     addtime(dt*i)
-    if i%10 == 0:
+    if i%100 == 0:
         plotx.set_title('x component | time: %0.1f s' % (i*dt))
         xseismogram.set_ydata(xamps)
         xseismogram.set_xdata(times)
@@ -133,7 +113,27 @@ for i, update in enumerate(timesteps):
         particle_movement.set_xdata(xamps)
         particle_movement.set_ydata(zamps)
         ft.vis.draw()
-        ft.vis.savefig('frames-psv/f%06d.png' % ((i)/10 + 1), dpi=60)
+# Comment the above and uncomment bellow to save snapshots of the simulation
+# If you don't want the animation to show on the screen, comment ft.vis.ion()
+# above
+#for i, update in enumerate(timesteps):
+    #ux, uz = update
+    #addxamp(10.**(6)*ux[0, rec])
+    #addzamp(10.**(6)*uz[0, rec])
+    #addtime(dt*i)
+    #if i%10 == 0:
+        #plotx.set_title('x component | time: %0.1f s' % (i*dt))
+        #xseismogram.set_ydata(xamps)
+        #xseismogram.set_xdata(times)
+        #xwavefield.set_array(ux[0:-1,0:-1].ravel())
+        #plotz.set_title('z component | time: %0.1f s' % (i*dt))
+        #zseismogram.set_ydata(zamps)
+        #zseismogram.set_xdata(times)
+        #zwavefield.set_array(uz[0:-1,0:-1].ravel())
+        #particle_movement.set_xdata(xamps)
+        #particle_movement.set_ydata(zamps)
+        #ft.vis.draw()
+        #ft.vis.savefig('frames-psv/f%06d.png' % ((i)/10 + 1), dpi=60)
 ft.vis.ioff()
 print 'Frames per second (FPS):', float(i)/(time.clock() - start)
 ft.vis.show()
