@@ -36,6 +36,7 @@ GOALS FOR 0.1:
 
 URGENT:
 
+* Update formula in the docstring of seis.wavefd (the code is fourth order)
 * Make the build_cookbook.py script get the docstrings without importing the
   recipe. This way it doesn't get executed
 * Add titles, figures and better description to recipe docstrings
