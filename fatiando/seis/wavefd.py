@@ -16,7 +16,7 @@ Simulates both elastic and acoustic waves:
 
 * :func:`~fatiando.seis.wavefd.lame`: Calculate the Lame constants from P and
   S wave velocities and density
-  
+
 **Theory**
 
 We start with the wave equation for elastic isotropic media
@@ -485,10 +485,10 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
         # Update the sources
         for src in xsources:
             i, j = src.coords()
-            ux_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+            ux_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         for src in zsources:
             i, j = src.coords()
-            uz_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+            uz_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         ux_tm1 = numpy.copy(ux_t)
         ux_t = numpy.copy(ux_tp1)
         uz_tm1 = numpy.copy(uz_t)

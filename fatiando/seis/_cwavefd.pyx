@@ -68,8 +68,8 @@ def _step_elastic_psv_x(
                 (svel[i,j]**2)*(dt**2)*(
                     ux_t[i + 1,j] - 2.*ux_t[i,j] + ux_t[i - 1,j])/dz**2 +
                 (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
-                    uz_t[i,j] - uz_t[i - 1,j] -
-                    uz_t[i,j - 1] + uz_t[i - 1,j - 1])/(dx*dz)
+                    uz_t[i + 1,j + 1] - uz_t[i + 1,j - 1] -
+                    uz_t[i - 1,j + 1] + uz_t[i - 1,j - 1])/(4*dx*dz)
                 )
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1
@@ -105,8 +105,8 @@ def _step_elastic_psv_z(
                 (svel[i,j]**2)*(dt**2)*(
                     uz_t[i,j + 1] - 2.*uz_t[i,j] + uz_t[i,j - 1])/dx**2 +
                 (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
-                    ux_t[i,j] - ux_t[i - 1,j] -
-                    ux_t[i,j - 1] + ux_t[i - 1,j - 1])/(dx*dz)
+                    ux_t[i + 1,j + 1] - ux_t[i + 1,j - 1] -
+                    ux_t[i - 1,j + 1] + ux_t[i - 1,j - 1])/(4*dx*dz)
                 )
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1
