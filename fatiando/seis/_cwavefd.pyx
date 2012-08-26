@@ -32,7 +32,7 @@ def step_elastic_sh(
                 + (svel[i,j]**2)*(dt**2)*(
                     (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
                      16.*u_t[i,j - 1] - u_t[i,j - 2])/(12.*dx**2) +
-                    (-u_t[i + 2,j] +16.*u_t[i + 1,j] - 30.*u_t[i,j] +
+                    (-u_t[i + 2,j] + 16.*u_t[i + 1,j] - 30.*u_t[i,j] +
                      16.*u_t[i - 1,j] - u_t[i - 2,j])/(12.*dz**2)))
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1
@@ -60,16 +60,24 @@ def step_elastic_psv_x(
     """
     cdef int i, j
     cdef double in_pad
-    for i in xrange(1, nz - 1):
-        for j in xrange(1, nx - 1):
-            ux_tp1[i,j] = (2.*ux_t[i,j] - ux_tm1[i,j] +
-                (pvel[i,j]**2)*(dt**2)*(
-                    ux_t[i,j + 1] - 2.*ux_t[i,j] + ux_t[i,j - 1])/dx**2 +
-                (svel[i,j]**2)*(dt**2)*(
-                    ux_t[i + 1,j] - 2.*ux_t[i,j] + ux_t[i - 1,j])/dz**2 +
-                (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
-                    uz_t[i + 1,j + 1] - uz_t[i + 1,j - 1] -
-                    uz_t[i - 1,j + 1] + uz_t[i - 1,j - 1])/(4*dx*dz)
+    for i in xrange(2, nz - 2):
+        for j in xrange(2, nx - 2):
+            ux_tp1[i,j] = (2.*ux_t[i,j] - ux_tm1[i,j]
+                + (pvel[i,j]**2)*(dt**2)*(
+                    -ux_t[i,j + 2] + 16.*ux_t[i,j + 1] - 30.*ux_t[i,j] +
+                     16.*ux_t[i,j - 1] - ux_t[i,j - 2])/(12.*dx**2)
+                + (svel[i,j]**2)*(dt**2)*(
+                    -ux_t[i + 2,j] + 16.*ux_t[i + 1,j] - 30.*ux_t[i,j] +
+                     16.*ux_t[i - 1,j] - ux_t[i - 2,j])/(12.*dz**2)
+                + (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
+                    uz_t[i + 2,j + 2] - 8.*uz_t[i + 1,j + 2]
+                    + 8.*uz_t[i - 1,j + 2] - uz_t[i - 2,j + 2]
+                    - 8.*uz_t[i + 2,j + 1] + 64.*uz_t[i + 1,j + 1]
+                    - 64.*uz_t[i - 1,j + 1] + 8.*uz_t[i - 2,j + 1]
+                    + 8.*uz_t[i + 2,j - 1] - 64*uz_t[i + 1,j - 1]
+                    + 64.*uz_t[i - 1,j - 1] - 8*uz_t[i - 2,j - 1]
+                    - uz_t[i + 2,j - 2] + 8.*uz_t[i + 1,j - 2]
+                    - 8.*uz_t[i - 1,j - 2] + uz_t[i - 2,j - 2])/(144*dx*dz)
                 )
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1
@@ -97,16 +105,24 @@ def step_elastic_psv_z(
     """
     cdef int i, j
     cdef double in_pad
-    for i in xrange(1, nz - 1):
-        for j in xrange(1, nx - 1):
-            uz_tp1[i,j] = (2.*uz_t[i,j] - uz_tm1[i,j] +
-                (pvel[i,j]**2)*(dt**2)*(
-                    uz_t[i + 1,j] - 2.*uz_t[i,j] + uz_t[i - 1,j])/dz**2 +
-                (svel[i,j]**2)*(dt**2)*(
-                    uz_t[i,j + 1] - 2.*uz_t[i,j] + uz_t[i,j - 1])/dx**2 +
-                (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
-                    ux_t[i + 1,j + 1] - ux_t[i + 1,j - 1] -
-                    ux_t[i - 1,j + 1] + ux_t[i - 1,j - 1])/(4*dx*dz)
+    for i in xrange(2, nz - 2):
+        for j in xrange(2, nx - 2):
+            uz_tp1[i,j] = (2.*uz_t[i,j] - uz_tm1[i,j]
+                + (pvel[i,j]**2)*(dt**2)*(
+                    -uz_t[i + 2,j] + 16.*uz_t[i + 1,j] - 30.*uz_t[i,j] +
+                     16.*uz_t[i - 1,j] - uz_t[i - 2,j])/(12.*dz**2)
+                + (svel[i,j]**2)*(dt**2)*(
+                    -uz_t[i,j + 2] + 16.*uz_t[i,j + 1] - 30.*uz_t[i,j] +
+                     16.*uz_t[i,j - 1] - uz_t[i,j - 2])/(12.*dx**2)
+                + (pvel[i,j]**2 - svel[i,j]**2)*(dt**2)*(
+                    ux_t[i + 2,j + 2] - 8.*ux_t[i + 1,j + 2]
+                    + 8.*ux_t[i - 1,j + 2] - ux_t[i - 2,j + 2]
+                    - 8.*ux_t[i + 2,j + 1] + 64.*ux_t[i + 1,j + 1]
+                    - 64.*ux_t[i - 1,j + 1] + 8.*ux_t[i - 2,j + 1]
+                    + 8.*ux_t[i + 2,j - 1] - 64*ux_t[i + 1,j - 1]
+                    + 64.*ux_t[i - 1,j - 1] - 8*ux_t[i - 2,j - 1]
+                    - ux_t[i + 2,j - 2] + 8.*ux_t[i + 1,j - 2]
+                    - 8.*ux_t[i - 1,j - 2] + ux_t[i - 2,j - 2])/(144*dx*dz)
                 )
             # Damp the amplitudes after the paddings to avoid reflections
             in_pad = -1

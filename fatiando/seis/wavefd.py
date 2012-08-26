@@ -477,14 +477,22 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
         fatiando.seis._cwavefd.step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t,
             nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
         # Set the boundary conditions
+        ux_tp1[1,:] = ux_tp1[2,:]
         ux_tp1[0,:] = ux_tp1[1,:]
         ux_tp1[-1,:] *= 0
+        ux_tp1[-2,:] *= 0
         ux_tp1[:,0] *= 0
+        ux_tp1[:,1] *= 0
         ux_tp1[:,-1] *= 0
+        ux_tp1[:,-2] *= 0
+        uz_tp1[1,:] = uz_tp1[2,:]
         uz_tp1[0,:] = uz_tp1[1,:]
         uz_tp1[-1,:] *= 0
+        uz_tp1[-2,:] *= 0
         uz_tp1[:,0] *= 0
+        uz_tp1[:,1] *= 0
         uz_tp1[:,-1] *= 0
+        uz_tp1[:,-2] *= 0
         # Update the sources
         for src in xsources:
             i, j = src.coords()
