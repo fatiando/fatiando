@@ -14,7 +14,8 @@ Version 0.1
 * The API is now fully accessible by only importing ``fatiando``. Modules and
   packages have short nicknames for easier access (e.g., pot for potential).
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
-  densities" by `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/>`_
+  densities" by
+  `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/publications/>`_
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
   :ref:`fatiando.pot.prism <fatiando_pot_prism>`
