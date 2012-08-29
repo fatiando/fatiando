@@ -32,8 +32,12 @@ Version 0.1
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
 * Added :ref:`tutorials <tutorial>` to the documentation
-* Add module :ref:`fatiando.pot.imaging <fatiando_pot_imaging>` with imaging
+* Added module :ref:`fatiando.pot.imaging <fatiando_pot_imaging>` with imaging
   methods for potential fields
+* Added module :ref:`fatiando.pot.euler <fatiando_pot_euler>` with Euler
+  deconvolution methods for potential field data
+* Added module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>` with 2D Finite
+  Difference simulations of elastic seismic waves
 
 **Improved features**:
 

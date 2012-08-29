@@ -19,3 +19,4 @@ Potential Fields (``fatiando.pot``)
     pot.fourier.rst
     pot.imaging.rst
     pot.tensor.rst
+    pot.euler.rst
