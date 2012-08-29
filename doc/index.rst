@@ -9,7 +9,7 @@ Fatiando a Terra: Geophysical modeling and inversion
 
 For more information visit `the official site`_.
 
-The source code of Fatiando is hosted on several online repositories:
+The **source code** of Fatiando is hosted on several online repositories:
 
 * `fatiando on Bitbucket`_ with the stable version (latest release)
 * `fatiando-dev on Bitbucket`_ with the development version (this is where
@@ -38,7 +38,7 @@ and even extend the functionality of Fatiando with your own code!
 
 .. _Python: http://www.python.org
 
-As an example, this is how easy it is to create synthetic noise-corrupted
+As an **example**, this is how easy it is to create synthetic noise-corrupted
 gravity data on random points from a 3D prism model:
 
 .. doctest::
