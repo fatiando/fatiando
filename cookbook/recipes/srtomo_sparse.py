@@ -4,6 +4,7 @@ based on an image file. Since the image is big, use sparse matrices and steepest
 descent (doesn't require Hessians).
 WARNING: takes a long time to calculate (like 5 min)
 """
+import time
 from os import path
 import numpy
 import fatiando as ft
@@ -16,15 +17,17 @@ imgfile = path.join(path.dirname(path.abspath(__file__)), 'fat-logo.png')
 area = (0, 5, 0, 5)
 shape = (150, 150)
 model = ft.msh.dd.SquareMesh(area, shape)
-model.img2prop(imgfile, 4, 10, 'vp')       
+model.img2prop(imgfile, 4, 10, 'vp')
 
 log.info("Generating synthetic travel-time data")
 src_loc = ft.utils.random_points(area, 200)
 rec_loc = ft.utils.circular_points(area, 80, random=True)
 srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
-ttimes = ft.utils.contaminate(ft.seis.ttime2d.straight(model, 'vp', srcs, recs),
-                           0.01, percent=True)
-                    
+start = time.time()
+ttimes = ft.seis.ttime2d.straight(model, 'vp', srcs, recs, par=True)
+log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
+ttimes = ft.utils.contaminate(ttimes, 0.01, percent=True)
+
 mesh = ft.msh.dd.SquareMesh(area, shape)
 results = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
                              damping=0.05)

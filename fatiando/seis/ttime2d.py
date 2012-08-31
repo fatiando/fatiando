@@ -7,6 +7,7 @@ Calculate travel-times of seismic waves in 2D.
 ----
 
 """
+import multiprocessing
 import math
 import numpy
 
@@ -20,7 +21,7 @@ except ImportError:
     _cttime2d = None
 
 
-def straight(cells, prop, srcs, recs, velocity=None):
+def straight(cells, prop, srcs, recs, velocity=None, par=False):
     """
     Calculate the travel times inside a mesh of square cells between source and
     receiver pairs assuming the rays are straight lines (no refraction or
@@ -47,6 +48,9 @@ def straight(cells, prop, srcs, recs, velocity=None):
     * velocity : float or None
         If not None, will use this value instead of the prop of cells as the
         velocity. Useful when building sensitivity matrices (use velocity = 1).
+    * par : True or False
+        If True, will run the calculations in parallel using all the cores
+        available. Not recommended for Jacobian matrix building!
 
     *srcs* and *recs* are lists of source-receiver pairs. Each source in *srcs*
     is associated with the corresponding receiver in *recs* for a given travel
@@ -74,11 +78,55 @@ def straight(cells, prop, srcs, recs, velocity=None):
     """
     if len(srcs) != len(recs):
         raise ValueError("Must have the same number of sources and receivers")
+    if not par:
+        if _cttime2d is not None:
+            x_src, y_src = numpy.transpose(srcs).astype(numpy.float)
+            x_rec, y_rec = numpy.transpose(recs).astype(numpy.float)
+            times = _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs),
+                cells, velocity, prop)
+        else:
+            times = _straight(cells, prop, srcs, recs, velocity)
+        return times
+    # Divide the workload into jobs and run them in different processes
+    jobs = multiprocessing.cpu_count()
+    start = 0
+    size = len(srcs)
+    perjob = size/jobs
+    processes = []
+    pipes = []
+    for i in xrange(jobs):
+        if i == jobs - 1:
+            end = size
+        else:
+            end = start + perjob
+        outpipe, inpipe = multiprocessing.Pipe()
+        args = (inpipe, srcs[start:end], recs[start:end], cells, velocity, prop)
+        proc = multiprocessing.Process(target=_straight_job, args=args)
+        proc.start()
+        processes.append(proc)
+        pipes.append(outpipe)
+        start = end
+    times = []
+    for proc, pipe in zip(processes, pipes):
+        times.extend(pipe.recv())
+        proc.join()
+    return numpy.array(times)
+
+def _straight_job(pipe, srcs, recs, cells, velocity, prop):
     if _cttime2d is not None:
         x_src, y_src = numpy.transpose(srcs).astype(numpy.float)
         x_rec, y_rec = numpy.transpose(recs).astype(numpy.float)
-        return _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs), cells,
+        times = _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs), cells,
                                    velocity, prop)
+    else:
+        times = _straight(cells, prop, srcs, recs, velocity)
+    pipe.send(times)
+    pipe.close()
+
+def _straight(cells, prop, srcs, recs, velocity):
+    """
+    Calculate the travel time of a straight ray.
+    """
     times = numpy.zeros(len(srcs), dtype='f')
     for l in xrange(len(times)):
         x_src, y_src = srcs[l]

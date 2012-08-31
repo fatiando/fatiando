@@ -24,7 +24,6 @@ def straight(
     cdef double maxx, maxy, minx, miny, x1, x2, y1, y2, vel, a_ray, b_ray, \
                  distance
     cdef numpy.ndarray[DTYPE_T, ndim=1] times = numpy.zeros(size, dtype=DTYPE)
-
     for l in xrange(size):
         maxx = max(x_src[l], x_rec[l])
         maxy = max(y_src[l], y_rec[l])

@@ -2,6 +2,7 @@
 Example of running a 2D straight-ray tomography on synthetic data generated
 based on an image file. Uses sharpness (total variation) regularization.
 """
+import time
 from os import path
 import numpy
 import fatiando as ft
@@ -20,9 +21,10 @@ log.info("Generating synthetic travel-time data")
 src_loc = ft.utils.random_points(area, 80)
 rec_loc = ft.utils.circular_points(area, 30, random=True)
 srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
-tts, error = ft.utils.contaminate(
-    ft.seis.ttime2d.straight(model, 'vp', srcs, recs), 0.01, percent=True,
-    return_stddev=True)
+start = time.time()
+tts = ft.seis.ttime2d.straight(model, 'vp', srcs, recs, par=True)
+log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
+tts, error = ft.utils.contaminate(tts, 0.01, percent=True, return_stddev=True)
 
 mesh = ft.msh.dd.SquareMesh(area, shape)
 results = ft.seis.srtomo.run(tts, srcs, recs, mesh, sharp=0.01, beta=10**(-5))

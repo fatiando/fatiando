@@ -17,7 +17,7 @@ srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
 
 """
 n = 3
-time = timeit.timeit("ft.seis.ttime2d.straight(model, 'vp', srcs, recs)",
+time = timeit.timeit("ft.seis.ttime2d.straight(model, 'vp', srcs, recs, jobs=None)",
                      setup, number=n)/float(n)
 print "Average time of %d runs: %s" % (n, ft.utils.sec2hms(time))
 
