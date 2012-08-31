@@ -14,6 +14,11 @@ import fatiando.log
 
 log = fatiando.log.dummy('fatiando.seis.ttime2d')
 
+try:
+    from fatiando.seis import _cttime2d
+except ImportError:
+    _cttime2d = None
+
 
 def straight(cells, prop, srcs, recs, velocity=None):
     """
@@ -69,6 +74,11 @@ def straight(cells, prop, srcs, recs, velocity=None):
     """
     if len(srcs) != len(recs):
         raise ValueError("Must have the same number of sources and receivers")
+    if _cttime2d is not None:
+        x_src, y_src = numpy.transpose(srcs).astype(numpy.float)
+        x_rec, y_rec = numpy.transpose(recs).astype(numpy.float)
+        return _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs), cells,
+                                   velocity, prop)
     times = numpy.zeros(len(srcs), dtype='f')
     for l in xrange(len(times)):
         x_src, y_src = srcs[l]
@@ -111,7 +121,8 @@ def straight(cells, prop, srcs, recs, velocity=None):
             # rectangle with the ray path as a diagonal
             incell = lambda x, y: x <= x2 and x >= x1 and y <= y2 and y >= y1
             inray = \
-                lambda x, y: x <= maxx and x >= minx and y <= maxy and y >= miny
+                lambda x, y: (x <= maxx and x >= minx and y <= maxy and
+                               y >= miny)
             cross = [[x, y] for x, y in zip(xps, yps)
                      if incell(x, y) and inray(x, y)]
             # Remove the duplicates
