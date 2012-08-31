@@ -10,6 +10,8 @@ GOALS FOR 1.0:
 * Make the cookbook rst files automatically:
     * include a Title and description in each recipes docstring (for autodoc)
     * include sample output as <script_name>%d.pnd
+* Implement PML absorbing boundary conditions in seis.wavefd. Using a large grid
+  and exponential decay factor instead
 
 GOALS FOR 0.2:
 
@@ -21,18 +23,14 @@ GOALS FOR 0.1:
 
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
-* Rename utils.comtaminate to contam
 * Make unit tests to test Cython prism against numpy prism
 * Finish numexpr and Cython modules for polyprism and ttime2d
 * Hide data modules inside inversion functions: basin2d
 * Make basin2d spit out Polygons, not estimate vectors
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
-* Make mesher load all from dd and ddd (propably no name conflicts)
 * Make plot for spheres in 3D
-* Magnetic compact inversion in 2D
-* Implement PML absorbing boundary conditions in seis.wavefd. Using a large grid
-  and exponential decay factor instead
+* Potential field compact inversion in 2D
 
 URGENT:
 
@@ -45,12 +43,12 @@ URGENT:
 
 TODO:
 
+* Make mesher load all from dd and ddd (propably no name conflicts)
 * Implement potential forward modeling using FFT
 * Make a msh.ddd.Point3d object and make vis.vtk.points3d plot it with physical
   properties
 * Put all calls to matplotlib in try blocks in harvest script so that mpl is not
   a required dependency
-* Make fatiando.vis.map functions for plotting with projections
 * Make fatiando.io for easy pickling, json, grid IO, etc
 * utils.pickle and utils.upickle to automate pickling
 * logger.get should receive a list of streams and add handlers to all

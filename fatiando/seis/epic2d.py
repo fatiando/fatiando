@@ -74,8 +74,8 @@ import numpy
 from fatiando import inversion, utils
 import fatiando.log
 
-
 log = fatiando.log.dummy('fatiando.seis.epic2d')
+
 
 class TTRFlat(inversion.datamodule.DataModule):
     """
@@ -144,68 +144,6 @@ class TTRFlat(inversion.datamodule.DataModule):
         jac_T = numpy.array([-self.alpha*(self.x_rec - x)/sqrt,
                              -self.alpha*(self.y_rec - y)/sqrt])
         return hessian + 2.*numpy.dot(jac_T, jac_T.T)
-
-class _MinimumDistance(inversion.regularizer.Regularizer):
-    """
-    A regularizing function that imposes that the solution (estimated epicenter)
-    be at the smallest distance from the receivers as possible.
-
-    .. math::
-
-        \\theta(\\bar{p}) = \\bar{d}^T\\bar{d}
-
-    where :math:`\\bar{d}` is a vector with the distance from the current
-    estimate :math:`\\bar{p} = \\begin{bmatrix}x && y\end{bmatrix}^T` to the
-    receivers.
-
-    .. math::
-
-        d_i = \\sqrt{(x_i - x)^2 + (y_i - y)^2}
-
-    The gradient vector of :math:`\\theta(\\bar{p})` is given by
-
-    .. math::
-
-        \\bar{g}(\\bar{p}) = -2\\begin{bmatrix}
-        \\sum\\limits_{i=1}^N x_i - x \\\\
-        \\sum\\limits_{i=1}^N y_i - y \end{bmatrix}
-
-    The elements :math:`G_{i1}` and :math:`G_{i2}` of the Jacobian matrix of
-    :math:`\\theta(\\bar{p})` are
-
-    .. math::
-
-        G_{i1}(x, y) = -\\frac{x_i - x}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
-
-    .. math::
-
-        G_{i2}(x, y) = -\\frac{y_i - y}{\\sqrt{(x_i - x)^2 + (y_i - y)^2}}
-
-    And the Hessian matrix can be approximated by
-    :math:`2\\bar{\\bar{G}}^T\\bar{\\bar{G}}`.
-
-    """
-
-    def __init__(self, mu, recs):
-        inversion.regularizer.Regularizer.__init__(self, mu)
-        self.xrec, self.yrec = numpy.array(recs, dtype='f').T
-
-    def value(self, p):
-        x, y = p
-        distance = numpy.sqrt((self.xrec - x)**2 + (self.yrec - y)**2)
-        return self.mu*numpy.linalg.norm(distance)**2
-
-    def sum_gradient(self, gradient, p):
-        x, y = p
-        grad = [numpy.sum(self.xrec - x), numpy.sum(self.yrec - y)]
-        return gradient + self.mu*-2.*numpy.array(grad)
-
-    def sum_hessian(self, hessian, p):
-        x, y = p
-        sqrt = numpy.sqrt((self.xrec - x)**2 + (self.yrec - y)**2)
-        jac_T = numpy.array([(x - self.xrec)/sqrt,
-                             (y - self.yrec)/sqrt])
-        return hessian + self.mu*2.*numpy.dot(jac_T, jac_T.T)
 
 def homogeneous(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
     iterate=False):
