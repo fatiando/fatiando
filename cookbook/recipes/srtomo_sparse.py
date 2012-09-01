@@ -30,7 +30,7 @@ ttimes = ft.utils.contaminate(ttimes, 0.01, percent=True)
 
 mesh = ft.msh.dd.SquareMesh(area, shape)
 results = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
-                             damping=0.05)
+                             smooth=0.05)
 estimate, residuals = results
 mesh.addprop('vp', estimate)
 

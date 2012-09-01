@@ -331,19 +331,36 @@ class Smoothness(Regularizer):
 
     def __init__(self, mu, nparams, sparse=False):
         Regularizer.__init__(self, mu)
-        fdmat = self._makefd(nparams)
-        self.rtr = numpy.dot(fdmat.T, fdmat)
+        fdmat = self._makefd(nparams, sparse)
+        if sparse:
+            self.rtr = fdmat.T*fdmat
+            self.value = self._value_sparse
+            self.sum_gradient = self._sum_gradient_sparse
+        else:
+            self.rtr = numpy.dot(fdmat.T, fdmat)
+            self.value = self._value
+            self.sum_gradient = self._sum_gradient
 
-    def _makefd(self, nparams):
+    def _makefd(self, nparams, sparse):
         raise NotImplementedError("_makefd of Smoothness not implemented")
 
-    def value(self, p):
+    def _value(self, p):
         return self.mu*numpy.dot(p.T, numpy.dot(self.rtr, p))
 
-    def sum_gradient(self, gradient, p=None):
+    def _sum_gradient(self, gradient, p=None):
         if p is None:
             return gradient
         return gradient + (self.mu*2.)*numpy.dot(self.rtr, p)
+
+    def _value_sparse(self, p):
+        # self.rtr*p returns a dense array, so I have to use numpy.dot for
+        # matrix multiplication
+        return self.mu*numpy.dot(p.T, self.rtr*p)
+
+    def _sum_gradient_sparse(self, gradient, p=None):
+        if p is None:
+            return gradient
+        return gradient + (self.mu*2.)*self.rtr*p
 
     def sum_hessian(self, hessian, p=None):
         return hessian + (self.mu*2.)*self.rtr
@@ -386,7 +403,10 @@ class Smoothness1D(Smoothness):
     def __init__(self, mu, nparams, sparse=False):
         Smoothness.__init__(self, mu, nparams, sparse)
 
-    def _makefd(self, nparams):
+    def _makefd(self, nparams, sparse):
+        if sparse:
+            raise ValueError(
+                "sparse matrices not implemented for 1D smoothness")
         return fdmatrix1d(nparams)
 
 class Smoothness2D(Smoothness):
@@ -442,8 +462,8 @@ class Smoothness2D(Smoothness):
     def __init__(self, mu, shape, sparse=False):
         Smoothness.__init__(self, mu, shape, sparse)
 
-    def _makefd(self, shape):
-        return fdmatrix2d(shape)
+    def _makefd(self, shape, sparse):
+        return fdmatrix2d(shape, sparse)
 
 class TotalVariation(Regularizer):
     r"""
@@ -691,19 +711,17 @@ def fdmatrix2d(shape, sparse=False):
         The finite difference matrix for of a 2D problem
 
     """
-    if sparse:
-        msg = "Sparse 2D finite-difference matrix not implemented"
-        raise NotImplementedError(msg)
     ny, nx = shape
     deriv_num = (nx - 1)*ny + (ny - 1)*nx
-    fdmat = numpy.zeros((deriv_num, nx*ny))
+    rows, cols, values = [], [], []
     deriv_i = 0
     # Derivatives in the x direction
     param_i = 0
     for i in xrange(ny):
         for j in xrange(nx - 1):
-            fdmat[deriv_i][param_i] = 1
-            fdmat[deriv_i][param_i + 1] = -1
+            rows.extend([deriv_i, deriv_i])
+            cols.extend([param_i, param_i + 1])
+            values.extend([1, -1])
             deriv_i += 1
             param_i += 1
         param_i += 1
@@ -711,8 +729,15 @@ def fdmatrix2d(shape, sparse=False):
     param_i = 0
     for i in xrange(ny - 1):
         for j in xrange(nx):
-            fdmat[deriv_i][param_i] = 1
-            fdmat[deriv_i][param_i + nx] = -1
+            rows.extend([deriv_i, deriv_i])
+            cols.extend([param_i, param_i + nx])
+            values.extend([1, -1])
             deriv_i += 1
             param_i += 1
+    fdshape = (deriv_num, nx*ny)
+    if sparse:
+        fdmat = scipy.sparse.csr_matrix((values, (rows, cols)), fdshape)
+    else:
+        fdmat = numpy.zeros(fdshape)
+        fdmat[rows, cols] = values
     return fdmat
