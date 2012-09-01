@@ -5,7 +5,6 @@ plus a range of regularizing functions already implemented.
 **Tikhonov regularization**
 
 * :class:`~fatiando.inversion.regularizer.Damping`
-* :class:`~fatiando.inversion.regularizer.DampingSparse`
 * :class:`~fatiando.inversion.regularizer.Smoothness1D`
 * :class:`~fatiando.inversion.regularizer.Smoothness2D`
 
@@ -567,16 +566,27 @@ class TotalVariation(Regularizer):
 
     def __init__(self, mu, nparams, beta=10.**(-10), sparse=False):
         Regularizer.__init__(self, mu)
-        self.fdmat = self._makefd(nparams)
+        self.fdmat = self._makefd(nparams, sparse)
         self.beta = float(beta)
+        if sparse:
+            self.value = self._value_sparse
+            self.sum_gradient = self._sum_gradient_sparse
+            self.sum_hessian = self._sum_hessian_sparse
+        else:
+            self.value = self._value
+            self.sum_gradient = self._sum_gradient
+            self.sum_hessian = self._sum_hessian
 
-    def _makefd(self, nparams):
+    def _makefd(self, nparams, sparse):
         raise NotImplementedError("_makefd of TotalVariation not implemented")
 
-    def value(self, p):
+    def _value(self, p):
         return self.mu*numpy.linalg.norm(numpy.dot(self.fdmat, p), 1)
 
-    def sum_gradient(self, gradient, p=None):
+    def _value_sparse(self, p):
+        return self.mu*numpy.linalg.norm(self.fdmat*p, 1)
+
+    def _sum_gradient(self, gradient, p=None):
         if p is None:
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
@@ -586,7 +596,17 @@ class TotalVariation(Regularizer):
         q = v/self.sqrt
         return gradient + self.mu*numpy.dot(self.fdmat.T, q)
 
-    def sum_hessian(self, hessian, p=None):
+    def _sum_gradient_sparse(self, gradient, p=None):
+        if p is None:
+            msg = ("TotalVariation is non-linear and cannot be used with a" +
+                   " linear solver.")
+            raise ValueError(msg)
+        v = self.fdmat*p
+        self.sqrt = numpy.sqrt(v**2 + self.beta)
+        q = v/self.sqrt
+        return gradient + self.mu*self.fdmat.T*q
+
+    def _sum_hessian(self, hessian, p=None):
         if p is None:
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
@@ -594,6 +614,15 @@ class TotalVariation(Regularizer):
         Qdiag = self.beta/(self.sqrt**3) + 1.
         #Qdiag = self.beta/(self.sqrt**3)
         return hessian + self.mu*numpy.dot(self.fdmat.T*Qdiag, self.fdmat)
+
+    def _sum_hessian_sparse(self, hessian, p=None):
+        if p is None:
+            msg = ("TotalVariation is non-linear and cannot be used with a" +
+                   " linear solver.")
+            raise ValueError(msg)
+        Qdiag = self.beta/(self.sqrt**3) + 1.
+        #Qdiag = self.beta/(self.sqrt**3)
+        return hessian + self.mu*self.fdmat.T*Qdiag*self.fdmat
 
 class TotalVariation1D(TotalVariation):
     r"""
@@ -626,7 +655,10 @@ class TotalVariation1D(TotalVariation):
     def __init__(self, mu, nparams, beta=10.**(-10), sparse=False):
         TotalVariation.__init__(self, mu, nparams, beta, sparse)
 
-    def _makefd(self, nparams):
+    def _makefd(self, nparams, sparse):
+        if sparse:
+            raise ValueError(
+                "sparse matrices not implemented for 1D smoothness")
         return fdmatrix1d(nparams)
 
 class TotalVariation2D(TotalVariation):
@@ -660,8 +692,8 @@ class TotalVariation2D(TotalVariation):
     def __init__(self, mu, shape, beta=10.**(-10), sparse=False):
         TotalVariation.__init__(self, mu, shape, beta, sparse)
 
-    def _makefd(self, shape):
-        return fdmatrix2d(shape)
+    def _makefd(self, shape, sparse):
+        return fdmatrix2d(shape, sparse)
 
 def fdmatrix1d(n):
     """
