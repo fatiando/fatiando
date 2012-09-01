@@ -244,6 +244,8 @@ class Damping(Regularizer):
         between data fitting and regularization. I.e., how much damping to apply
     * nparams : int
         Number of parameters in the inversion
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     Examples:
 
@@ -260,12 +262,15 @@ class Damping(Regularizer):
 
     """
 
-    def __init__(self, mu, nparams):
+    def __init__(self, mu, nparams, sparse=False):
         Regularizer.__init__(self, mu)
-        self.eye = self._get_identity(nparams)
+        self.eye = self._get_identity(nparams, sparse)
 
-    def _get_identity(self, nparams):
-        return numpy.identity(nparams)
+    def _get_identity(self, nparams, sparse):
+        if sparse:
+            return scipy.sparse.identity(nparams, dtype='f', format='csr')
+        else:
+            return numpy.identity(nparams)
 
     def value(self, p):
         return self.mu*numpy.linalg.norm(p)**2
@@ -274,33 +279,6 @@ class Damping(Regularizer):
         if p is None:
             return gradient
         return gradient + (self.mu*2.)*p
-
-    def sum_hessian(self, hessian, p=None):
-        return hessian + (self.mu*2.)*self.eye
-
-class DampingSparse(Damping):
-    """
-    Same as Damping regularizer but using sparse matrices instead.
-
-    Uses a Compressed Sparse Row matrix from ``scipy.sparse`` to generate the
-    identity matrix. Ocupies less memory and has efficient linear algebra
-    operations
-
-    Parameters:
-
-    * mu : float
-        The regularizing parameter. A positve scalar that controls the tradeoff
-        between data fitting and regularization. I.e., how much damping to apply
-    * nparams : int
-        Number of parameters in the inversion
-
-    """
-
-    def __init__(self, mu, nparams):
-        Damping.__init__(self, mu, nparams)
-
-    def _get_identity(self, nparams):
-        return scipy.sparse.identity(nparams, dtype='f', format='csr')
 
     def sum_hessian(self, hessian, p=None):
         return hessian + (self.mu*2.)*self.eye
@@ -346,10 +324,12 @@ class Smoothness(Regularizer):
         apply.
     * nparams : int
         Number of parameters in the inversion
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     """
 
-    def __init__(self, mu, nparams):
+    def __init__(self, mu, nparams, sparse=False):
         Regularizer.__init__(self, mu)
         fdmat = self._makefd(nparams)
         self.rtr = numpy.dot(fdmat.T, fdmat)
@@ -398,11 +378,13 @@ class Smoothness1D(Smoothness):
         apply.
     * nparams : int
         Number of parameters in the inversion
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     """
 
-    def __init__(self, mu, nparams):
-        Smoothness.__init__(self, mu, nparams)
+    def __init__(self, mu, nparams, sparse=False):
+        Smoothness.__init__(self, mu, nparams, sparse)
 
     def _makefd(self, nparams):
         return fdmatrix1d(nparams)
@@ -452,11 +434,13 @@ class Smoothness2D(Smoothness):
         apply.
     * shape : tuple = (ny, nx)
         Number of parameters in each direction of the grid
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     """
 
-    def __init__(self, mu, shape):
-        Smoothness.__init__(self, mu, shape)
+    def __init__(self, mu, shape, sparse=False):
+        Smoothness.__init__(self, mu, shape, sparse)
 
     def _makefd(self, shape):
         return fdmatrix2d(shape)
@@ -550,6 +534,8 @@ class TotalVariation(Regularizer):
         apply.
     * nparams : int
         Number of parameters in the inversion
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     References:
 
@@ -559,7 +545,7 @@ class TotalVariation(Regularizer):
 
     """
 
-    def __init__(self, mu, nparams, beta=10.**(-10)):
+    def __init__(self, mu, nparams, beta=10.**(-10), sparse=False):
         Regularizer.__init__(self, mu)
         self.fdmat = self._makefd(nparams)
         self.beta = float(beta)
@@ -612,11 +598,13 @@ class TotalVariation1D(TotalVariation):
         apply.
     * nparams : int
         Number of parameters in the inversion
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     """
 
-    def __init__(self, mu, nparams, beta=10.**(-10)):
-        TotalVariation.__init__(self, mu, nparams, beta)
+    def __init__(self, mu, nparams, beta=10.**(-10), sparse=False):
+        TotalVariation.__init__(self, mu, nparams, beta, sparse)
 
     def _makefd(self, nparams):
         return fdmatrix1d(nparams)
@@ -644,11 +632,13 @@ class TotalVariation2D(TotalVariation):
         apply.
     * shape : tuple = (ny, nx)
         (ny, nx): number of parameters in each direction of the grid
+    * sparse : True or False
+        Wether or not to use sparce matrices from scipy
 
     """
 
-    def __init__(self, mu, shape, beta=10.**(-10)):
-        TotalVariation.__init__(self, mu, shape, beta)
+    def __init__(self, mu, shape, beta=10.**(-10), sparse=False):
+        TotalVariation.__init__(self, mu, shape, beta, sparse)
 
     def _makefd(self, shape):
         return fdmatrix2d(shape)

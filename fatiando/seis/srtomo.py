@@ -98,6 +98,8 @@ class TravelTime(inversion.datamodule.DataModule):
         List of the [x, y] positions of the receivers.
     * mesh : :class:`~fatiando.msh.dd.SquareMesh` or compatible
         The mesh where the inversion (tomography) will take place.
+    * sparse : True or False
+        Wether or not to use sparse matrices from scipy
 
     The ith travel-time is the time between the ith element in *srcs* and the
     ith element in *recs*.
@@ -119,13 +121,20 @@ class TravelTime(inversion.datamodule.DataModule):
 
     """
 
-    def __init__(self, ttimes, srcs, recs, mesh):
+    def __init__(self, ttimes, srcs, recs, mesh, sparse=False):
         inversion.datamodule.DataModule.__init__(self, ttimes)
         self.srcs = srcs
         self.recs = recs
         self.mesh = mesh
         self.nparams = mesh.size
         self.ndata = len(ttimes)
+        self.sparse = sparse
+        if sparse:
+            self.get_predicted = self._get_predicted_sparse
+            self.sum_gradient = self._sum_gradient_sparse
+        else:
+            self.get_predicted = self._get_predicted
+            self.sum_gradient = self._sum_gradient
         self.jacobian = self._get_jacobian()
         self.jacobian_T = self.jacobian.T
         self.hessian = None
@@ -135,87 +144,63 @@ class TravelTime(inversion.datamodule.DataModule):
         Build the Jacobian (sensitivity) matrix using the travel-time data
         stored.
         """
-        log.info("  calculating Jacobian (sensitivity matrix)...")
+        log.info("  calculating Jacobian (sensitivity matrix):")
         start = time.time()
         srcs, recs = self.srcs, self.recs
-        jac = numpy.array(
-            [ttime2d.straight([cell], '', srcs, recs, velocity=1.)
-             for cell in self.mesh]).T
-        log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
+        if not self.sparse:
+            jac = numpy.array(
+                [ttime2d.straight([cell], '', srcs, recs, velocity=1.)
+                 for cell in self.mesh]).T
+        else:
+            shoot = ttime2d.straight
+            nonzero = []
+            extend = nonzero.extend
+            for j, c in enumerate(self.mesh):
+                extend((i, j, tt)
+                    for i, tt in enumerate(shoot([c], '', srcs, recs,
+                                            velocity=1.))
+                    if tt != 0)
+            row, col, val = numpy.array(nonzero).T
+            shape = (self.ndata, self.nparams)
+            jac = scipy.sparse.csr_matrix((val, (row, col)), shape)
+        log.info("    time: %s" % (utils.sec2hms(time.time() - start)))
         return jac
 
     def _get_hessian(self):
         """
         Build the Hessian matrix by Gauss-Newton approximation.
         """
-        log.info("  calculating Hessian matrix...")
+        log.info("  calculating Hessian matrix:")
         start = time.time()
-        hess = numpy.dot(self.jacobian_T, self.jacobian)
-        log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
+        if not self.sparse:
+            hess = numpy.dot(self.jacobian_T, self.jacobian)
+        else:
+            hess = self.jacobian_T*self.jacobian
+        log.info("    time: %s" % (utils.sec2hms(time.time() - start)))
         return hess
 
-    def get_predicted(self, p):
+    def _get_predicted(self, p):
         return numpy.dot(self.jacobian, p)
 
-    def sum_gradient(self, gradient, p=None, residuals=None):
+    def _get_predicted_sparse(self, p):
+        return self.jacobian*p
+
+    def _sum_gradient(self, gradient, p=None, residuals=None):
         if p is None:
             return gradient - 2.*numpy.dot(self.jacobian_T, self.data)
         else:
             return gradient - 2.*numpy.dot(self.jacobian_T, residuals)
 
-    def sum_hessian(self, hessian, p=None):
-        if self.hessian is None:
-            self.hessian = self._get_hessian()
-        return hessian + 2.*self.hessian
-
-class TravelTimeSparse(TravelTime):
-    """
-    Version of the :class:`~fatiando.seis.srtomo.TravelTime` class that uses
-    sparse matrices.
-    """
-
-    def __init__(self, ttimes, srcs, recs, mesh):
-        TravelTime.__init__(self, ttimes, srcs, recs, mesh)
-
-    def _get_jacobian(self):
-        """
-        Build the sparse Jacobian (sensitivity) matrix using the travel-time
-        data stored.
-        """
-        log.info("  calculating Jacobian (sensitivity matrix)...")
-        start = time.time()
-        shoot = ttime2d.straight
-        srcs, recs = self.srcs, self.recs
-        nonzero = []
-        extend = nonzero.extend
-        for j, c in enumerate(self.mesh):
-            extend((i, j, tt)
-                for i, tt in enumerate(shoot([c], '', srcs, recs, velocity=1.))
-                if tt != 0)
-        row, col, val = numpy.array(nonzero).T
-        shape = (self.ndata, self.nparams)
-        jac = scipy.sparse.csr_matrix((val, (row, col)), shape)
-        log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
-        return jac
-
-    def _get_hessian(self):
-        """
-        Build the Hessian matrix by Gauss-Newton approximation.
-        """
-        log.info("  calculating Hessian matrix...")
-        start = time.time()
-        hess = self.jacobian_T*self.jacobian
-        log.info("  time: %s" % (utils.sec2hms(time.time() - start)))
-        return hess
-
-    def get_predicted(self, p):
-        return self.jacobian*p
-
-    def sum_gradient(self, gradient, p=None, residuals=None):
+    def _sum_gradient_sparse(self, gradient, p=None, residuals=None):
         if p is None:
             return gradient - 2.*self.jacobian_T*self.data
         else:
             return gradient - 2.*self.jacobian_T*residuals
+
+    def sum_hessian(self, hessian, p=None):
+        if self.hessian is None:
+            self.hessian = self._get_hessian()
+        return hessian + 2.*self.hessian
 
 def _slow2vel(slowness, tol=10**(-5)):
     """
@@ -305,32 +290,25 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
     log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
     log.info("  number of parameters: %d" % (len(mesh)))
     log.info("  number of data: %d" % (len(ttimes)))
-    log.info("  sparse: %s" % (str(sparse)))
-    log.info("  damping: %g" % (damping))
-    log.info("  smoothness: %g" % (smooth))
-    log.info("  sharpness: %g" % (sharp))
-    log.info("  beta (total variation parameter): %g" % (beta))
+    log.info("  use sparse matrices: %s" % (str(sparse)))
+    log.info("  regularizing parameters:")
+    log.info("    damping: %g" % (damping))
+    log.info("    smoothness: %g" % (smooth))
+    log.info("    sharpness: %g" % (sharp))
+    log.info("    beta (total variation aux parameter): %g" % (beta))
     nparams = len(mesh)
     # Make the data modules and regularizers
-    if sparse:
-        dms=[TravelTimeSparse(ttimes, srcs, recs, mesh)]
-        regs = []
-        if damping:
-            regs.append(inversion.regularizer.DampingSparse(damping, nparams))
-        if smooth:
-            raise NotImplementedError("Sparse smoothness not implemented")
-        if sharp:
-            raise NotImplementedError("Sparse total variation not implemented")
-    else:
-        dms = [TravelTime(ttimes, srcs, recs, mesh)]
-        regs = []
-        if damping:
-            regs.append(inversion.regularizer.Damping(damping, nparams))
-        if smooth:
-            regs.append(inversion.regularizer.Smoothness2D(smooth, mesh.shape))
-        if sharp:
-            regs.append(inversion.regularizer.TotalVariation2D(sharp,
-                mesh.shape, beta))
+    dms = [TravelTime(ttimes, srcs, recs, mesh, sparse)]
+    regs = []
+    if damping:
+        regs.append(inversion.regularizer.Damping(damping, nparams,
+            sparse=sparse))
+    if smooth:
+        regs.append(inversion.regularizer.Smoothness2D(smooth, mesh.shape,
+            sparse=sparse))
+    if sharp:
+        regs.append(inversion.regularizer.TotalVariation2D(sharp, mesh.shape,
+            beta, sparse=sparse))
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
