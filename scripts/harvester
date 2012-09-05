@@ -36,7 +36,7 @@ sample_paramfile = \
 data_file = 'data.txt'
 # The extension can be anything you like (.txt, .xyz, .bla)
 # The file should have the data in xyz format. That is:
-#   x1  y1  z1  height1  gz1  gxx1 ...  
+#   x1  y1  z1  height1  gz1  gxx1 ...
 #   x2  y2  z2  height2  gz2  gxx2 ...
 #   ...
 #   xN  yN  zN  heightN  gzN  gxxN ...
@@ -107,7 +107,7 @@ delta = 0.00001
 # seeds won't grow.
 
 # Name of the output files in the format accepted by the UBC-GIF software
-# Meshtools <http://www.eos.ubc.ca/research/ubcgif>. 
+# Meshtools <http://www.eos.ubc.ca/research/ubcgif>.
 mesh_file = 'result.msh'
 density_file = 'result.den'
 
@@ -158,7 +158,7 @@ if args.f:
     if not os.path.isfile(args.f):
         log.error("Invalid/nonexistent input file %s" % (args.f))
         log.error(exitmsg)
-        sys.exit()        
+        sys.exit()
     inputpath, inputfile = os.path.split(os.path.abspath(args.f))
     inputfile, ext = os.path.splitext(inputfile)
     if ext != '.py':
@@ -167,7 +167,7 @@ if args.f:
         log.error(exitmsg)
         sys.exit()
     if inputpath != os.path.abspath(os.path.curdir):
-        os.chdir(inputpath)       
+        os.chdir(inputpath)
 
 log.info(ft.log.header())
 
@@ -225,7 +225,7 @@ for col, val in zip(column_fmt, rawdata):
         log.error(exitmsg)
         sys.exit()
     data[col] = val
-    
+
 log.info("Creating the mesh:")
 if mesh_top is None:
     if data['height'] is None:
@@ -286,7 +286,7 @@ with open(pred_file, 'w') as f:
         predicted.append(data['height'])
     predicted.extend([dm.get_predicted() for dm in datamods])
     numpy.savetxt(f, numpy.array(predicted).T)
-    
+
 log.info("Plotting the predicted data. Close figures when done.")
 shape = (100, 100)
 shift = 3
@@ -305,19 +305,5 @@ for i, pred in enumerate(dm.get_predicted() for dm in datamods):
     ft.vis.xlabel('East = y (km)')
     ft.vis.ylabel('North = x (km)')
 ft.vis.show()
-
-# Try showing the inversion using mayavi, if it is installed
-log.info("Plotting the estimate (not the whole mesh). Close figures when done.")
-try:
-    ft.vis.figure3d()
-    ft.vis.prisms(ft.msh.ddd.vremove(0, 'density', mesh), 'density')
-    ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
-                  ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
-    ft.vis.wall_bottom(mesh.bounds)
-    ft.vis.wall_north(mesh.bounds)
-    ft.vis.show3d()
-except ImportError:
-    log.info("Couldn't show the result because Mayavi is not installed.")
-    log.info("Moving on.")
 
 log.info("Done")
