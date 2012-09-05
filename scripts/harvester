@@ -124,9 +124,9 @@ parser = argparse.ArgumentParser(
 """
 References:
 
-Uieda, L., and V. C. F. Barbosa, 2011, Robust 3D gravity gradient
-inversion by planting anomalous densities: SEG Expanded Abstracts,
-v. 30, 820-824.
+Uieda, L., and V. C. F. Barbosa (2012), Robust 3D gravity gradient inversion by
+planting anomalous densities, Geophysics, 77(4), G55-G66,
+doi:10.1190/geo2011-0388.1
 
 Developed by Leonardo Uieda <leouieda@gmail.com>.
 
