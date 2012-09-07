@@ -18,28 +18,26 @@ GOALS FOR 0.2:
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Make a VTK plotter for tesseroids
 * Optimize PrismMesh.dump (using Cython?)
+* Add titles, figures and better description to recipe docstrings
+* Make plot for spheres in 3D
+* Potential field compact inversion in 2D
+* Finish numexpr and Cython modules for polyprism
+* utils.pickle and utils.upickle to automate pickling
 
 GOALS FOR 0.1:
 
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Make unit tests to test Cython prism against numpy prism
-* Finish numexpr and Cython modules for polyprism and ttime2d
 * Hide data modules inside inversion functions: basin2d
 * Make basin2d spit out Polygons, not estimate vectors
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
-* Make plot for spheres in 3D
-* Potential field compact inversion in 2D
-
-URGENT:
-
 * Update formula in the docstring of seis.wavefd (the code is fourth order)
 * Make the build_cookbook.py script get the docstrings without importing the
   recipe. This way it doesn't get executed
-* Add titles, figures and better description to recipe docstrings
-* potential.prism: change all x[i]*x[i] for x[i]**2
-* potential.prism (maybe others): change all res = res*x for res *= x (its faster)
+
+URGENT:
 
 TODO:
 
@@ -50,7 +48,6 @@ TODO:
 * Put all calls to matplotlib in try blocks in harvest script so that mpl is not
   a required dependency
 * Make fatiando.io for easy pickling, json, grid IO, etc
-* utils.pickle and utils.upickle to automate pickling
 * logger.get should receive a list of streams and add handlers to all
 * Make logger get the level from string instead of having to import logging
 * Add option for scalar visibility in vis.vtk.prisms
@@ -100,7 +97,6 @@ TO-IMPLEMENT:
 
 IDEAS:
 
-* Make unit conversion functions in utils
 * Get rid of the DataModule class. Provide a specification of it in the docs on
   fatiando.inversion
 * Add decorator to logging that logs a functions name and parameters in debug
@@ -109,8 +105,6 @@ IDEAS:
   for dm in datamods: plot dm
 * Consider making the parameter vector a dictionary: one array for each prop.
   this way the datamodules only operate on their props
-* Consider numexpr to speedup numpy operations. Problem is that it only speedsup
-  large arrays
 * Make an automatic fetcher of bibliographic references from scripts
 * Store provenance of results in image files:
   http://galacticusblog.blogspot.com/2012/01/reproducibility-of-galacticus-modesl.html

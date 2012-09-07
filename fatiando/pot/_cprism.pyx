@@ -1,8 +1,6 @@
 """
 Cython implementation of the potential field effects of right rectangular prisms
 """
-__all__ = ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
-
 import numpy
 
 from libc.math cimport log, atan2, sqrt
@@ -14,6 +12,8 @@ ctypedef numpy.float_t DTYPE_T
 
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G
 from fatiando import utils
+
+__all__ = ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 
 
 def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
@@ -73,28 +73,28 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = (dx1*log(dy1 + r) + dy1*log(dx1 + r) -
                       dz1*atan2(dx1*dy1, dz1*r))
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += -(dx2*log(dy1 + r) + dy1*log(dx2 + r) -
                         dz1*atan2(dx2*dy1, dz1*r))
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += -(dx1*log(dy2 + r) + dy2*log(dx1 + r) -
                         dz1*atan2(dx1*dy2, dz1*r))
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += (dx2*log(dy2 + r) + dy2*log(dx2 + r) -
                        dz1*atan2(dx2*dy2, dz1*r))
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += -(dx1*log(dy1 + r) + dy1*log(dx1 + r) -
                         dz2*atan2(dx1*dy1, dz2*r))
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += (dx2*log(dy1 + r) + dy1*log(dx2 + r) -
                        dz2*atan2(dx2*dy1, dz2*r))
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += (dx1*log(dy2 + r) + dy2*log(dx1 + r) -
                        dz2*atan2(dx1*dy2, dz2*r))
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += -(dx2*log(dy2 + r) + dy2*log(dx2 + r) -
                         dz2*atan2(dx2*dy2, dz2*r))
             res[l] += kernel*density
@@ -160,21 +160,21 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = atan2(dy1*dz1, dx1*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += -atan2(dy1*dz1, dx2*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += -atan2(dy2*dz1, dx1*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += atan2(dy2*dz1, dx2*r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += -atan2(dy1*dz2, dx1*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += atan2(dy1*dz2, dx2*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += atan2(dy2*dz2, dx1*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += -atan2(dy2*dz2, dx2*r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
@@ -239,21 +239,21 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = -log(dz1 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += log(dz1 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += log(dz1 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += -log(dz1 + r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += log(dz2 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += -log(dz2 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += -log(dz2 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += log(dz2 + r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
@@ -318,21 +318,21 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = -log(dy1 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += log(dy1 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += log(dy2 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += -log(dy2 + r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += log(dy1 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += -log(dy1 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += -log(dy2 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += log(dy2 + r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
@@ -397,21 +397,21 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = atan2(dz1*dx1, dy1*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += -atan2(dz1*dx2, dy1*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += -atan2(dz1*dx1, dy2*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += atan2(dz1*dx2, dy2*r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += -atan2(dz2*dx1, dy1*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += atan2(dz2*dx2, dy1*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += atan2(dz2*dx1, dy2*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += -atan2(dz2*dx2, dy2*r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
@@ -476,21 +476,21 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = -log(dx1 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += log(dx2 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += log(dx1 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += -log(dx2 + r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += log(dx1 + r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += -log(dx2 + r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += -log(dx1 + r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += log(dx2 + r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
@@ -555,21 +555,21 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp,
             dy1, dy2 = y1 - yp[l], y2 - yp[l]
             dz1, dz2 = z1 - zp[l], z2 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx1**2 + dy1**2 + dz1**2)
             kernel = atan2(dx1*dy1, dz1*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz1*dz1)
+            r = sqrt(dx2**2 + dy1**2 + dz1**2)
             kernel += -atan2(dx2*dy1, dz1*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx1**2 + dy2**2 + dz1**2)
             kernel += -atan2(dx1*dy2, dz1*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz1*dz1)
+            r = sqrt(dx2**2 + dy2**2 + dz1**2)
             kernel += atan2(dx2*dy2, dz1*r)
-            r = sqrt(dx1*dx1 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx1**2 + dy1**2 + dz2**2)
             kernel += -atan2(dx1*dy1, dz2*r)
-            r = sqrt(dx2*dx2 + dy1*dy1 + dz2*dz2)
+            r = sqrt(dx2**2 + dy1**2 + dz2**2)
             kernel += atan2(dx2*dy1, dz2*r)
-            r = sqrt(dx1*dx1 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx1**2 + dy2**2 + dz2**2)
             kernel += atan2(dx1*dy2, dz2*r)
-            r = sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+            r = sqrt(dx2**2 + dy2**2 + dz2**2)
             kernel += -atan2(dx2*dy2, dz2*r)
             res[l] += kernel*density
     # Now all that is left is to multiply res by the gravitational constant and

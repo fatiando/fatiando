@@ -11,8 +11,6 @@ Version 0.1
 **New features**:
 
 * Change license to BSD (see the :ref:`license text <license>`).
-* The API is now fully accessible by only importing ``fatiando``. Modules and
-  packages have short nicknames for easier access (e.g., pot for potential).
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
   densities" by
   `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/publications/>`_
@@ -39,9 +37,13 @@ Version 0.1
   deconvolution methods for potential field data
 * Added module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>` with 2D Finite
   Difference simulations of elastic seismic waves
+* Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
 
 **Improved features**:
 
+* The API is now fully accessible by only importing ``fatiando``
+* Modules and packages have shorter for easier access (e.g., pot instead of
+  potential).
 * Now all plotting functions are available from vis directly.
   Import all from map and vtk in vis/__init__.py, plus some functions from
   matplotlib.
