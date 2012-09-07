@@ -10,13 +10,13 @@ log.info(ft.log.header())
 # Create a synthetic model
 bounds = [-10000, 10000, -10000, 10000, 0, 10000]
 vertices = [[-4948.97959184, -6714.64019851],
-           [-2448.97959184, -3141.43920596],
-           [ 2448.97959184,   312.65508685],
-           [ 6938.7755102 ,  5394.54094293],
-           [ 4846.93877551,  6228.28784119],
-           [ 2653.06122449,  3409.4292804 ],
-           [-3520.40816327, -1434.24317618],
-           [-6632.65306122, -6079.4044665 ]]
+            [-2448.97959184, -3141.43920596],
+            [ 2448.97959184,   312.65508685],
+            [ 6938.7755102 ,  5394.54094293],
+            [ 4846.93877551,  6228.28784119],
+            [ 2653.06122449,  3409.4292804 ],
+            [-3520.40816327, -1434.24317618],
+            [-6632.65306122, -6079.4044665 ]]
 model = [ft.msh.ddd.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
@@ -24,6 +24,10 @@ area = bounds[0:4]
 xp, yp, zp = ft.grd.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
 gz = ft.utils.contaminate(ft.pot.polyprism.gz(xp, yp, zp, model), noise)
+# Create a mesh
+mesh = ft.msh.ddd.PrismMesh(bounds, (50, 50, 50))
+# Make the data modules
+dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Plot the data and pick the seeds
 ft.vis.figure()
 ft.vis.suptitle("Pick the seeds (polygon is the true source)")
@@ -34,15 +38,10 @@ ft.vis.polygon(model[0], xy2ne=True)
 ft.vis.xlabel('Horizontal coordinate y (km)')
 ft.vis.ylabel('Horizontal coordinate x (km)')
 seedx, seedy = ft.ui.picker.points(area, ft.vis.gca(), xy2ne=True).T
-spoints = numpy.transpose([seedx, seedy, 2500*numpy.ones_like(seedx)])
+rawseeds = [[x, y, 2500, {'density':1000}] for x, y in zip(seedx, seedy)]
 ft.vis.show()
-# Create a mesh
-mesh = ft.msh.ddd.PrismMesh(bounds, (50, 50, 50))
-# Make the data modules
-dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Make the seed and set the compactness regularizing parameter mu
-seeds = ft.pot.harvester.sow(spoints, {'density':[1000]*len(spoints)},
-    mesh, mu=0.1, delta=0.0001)
+seeds = ft.pot.harvester.sow(rawseeds, mesh, mu=0.1, delta=0.0001)
 # Run the inversion
 estimate, goals, misfits = ft.pot.harvester.harvest(dms, seeds)
 # Put the estimated density values in the mesh

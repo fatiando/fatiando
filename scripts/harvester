@@ -3,8 +3,8 @@
 
 A "heuristic" inversion for compact 3D geologic bodies. Performs the inversion
 by iteratively growing the estimate around user-specified "seeds". Supports
-various kinds of data (e.g., gravity, gravity tensor). Implements the method of
-Uieda and Barbosa (2011).
+various kinds of data (e.g., gravity, gravity tensor, total field magnetic).
+Implements the method of Uieda and Barbosa (2012).
 
 The input parameters are loaded from a file name 'Harvestfile.py' in the
 current working directory. To generate a template for this file, run:
@@ -61,8 +61,11 @@ use_cols = None
 
 # This is the column format. You should only give the name of the columns that
 # will be used (i.e., if you removed some with use_cols, don't include them)!
+# Names specify the kind of data that each column contains.
 # Possible names are: 'x', 'y', 'z', 'height', 'gz', 'gxx', 'gxy', 'gxz', 'gyy',
-# 'gyz', 'gzz'
+# 'gyz', 'gzz', 'mag'
+# gz is the gravity anomaly, gxx etc are the gravity gradients (remember, x is
+# North!), mag is the total field magnetic anomaly
 column_fmt = ['x', 'y', 'z', 'gxx', 'gxz']
 
 # Whether of not to invert the sign of z before running the inversion
@@ -87,13 +90,24 @@ mesh_shape = (10, 10, 10)
 
 # The file with the seeds.
 seed_file = 'seeds.txt'
-# The seed file should have 4 columns:
-#   x1 y1 z1 density1
-#   x2 y2 z2 density2
+# The seed file is in JSON format and should be like this:
+#
+# [
+#   [x1, y1, z1, {"density":dens1}],
+#   [x2, y2, z2, {"density":dens2, "magnetization":mag2}],
+#   [x3, y3, z3, {"magnetization":mag3, "inclination":inc3,
+#                 "declination":dec3}],
 #   ...
-#   xS yS zS densityS
-# x, y, z are the coordinates where you want a seed to placed. density is the
-# density contrast of the seed. Again, the file extension can be anything.
+# ]
+#
+# x, y, z are the coordinates of the seed and the dict (``{'density':2670}``)
+# are its physical properties.
+# WARNING: Must use ", not ', in the physical property names!#
+# Each seed can have different kinds of physical properties. If inclination
+# and declination are not given, will use the inc and dec of the inducing
+# field (i.e., no remanent magnetization).
+# Again, white space and newlines don't matter and the file extension can be
+# anything.
 
 # The value of the regularizing parameter. Must be >= 0.
 regul = 1.0
@@ -226,7 +240,6 @@ for col, val in zip(column_fmt, rawdata):
         sys.exit()
     data[col] = val
 
-log.info("Creating the mesh:")
 if mesh_top is None:
     if data['height'] is None:
         log.error("ERROR: If mesh_top = None you must provide a height " + \
@@ -250,8 +263,8 @@ datamods = ft.pot.harvester.wrapdata(mesh, data['x'], data['y'], data['z'],
     gyy=data['gyy'], gyz=data['gyz'], gzz=data['gzz'], norm=1)
 
 log.info("Loading seeds from file: %s" % (seed_file))
-points, densities = ft.pot.harvester.loadseeds(seed_file)
-seeds = ft.pot.harvester.sow(points, {'density':densities}, mesh, mu=regul)
+seeds = ft.pot.harvester.sow(ft.pot.harvester.loadseeds(seed_file), mesh,
+    mu=regul, delta=delta)
 
 # Try showing the seeds using mayavi, if it is installed
 try:
@@ -268,9 +281,9 @@ except ImportError:
 
 log.info("Running the inversion:")
 estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
-mesh.addprop('density', estimate['density'])
 
 log.info("Saving estimate to files %s and %s" % (mesh_file, density_file))
+mesh.addprop('density', estimate['density'])
 mesh.dump(mesh_file, density_file, 'density')
 
 log.info("Saving predicted data to %s" % (pred_file))

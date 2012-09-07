@@ -30,7 +30,7 @@ mesh = ft.msh.ddd.PrismMesh(bounds, (25, 25, 25))
 # Make the data modules
 dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Make the seed and set the compactness regularizing parameter mu
-seeds = ft.pot.harvester.sow([[500, 500, 450]], {'density':[1000]},
+seeds = ft.pot.harvester.sow([[500, 500, 450, {'density':1000}]],
     mesh, mu=0.01, delta=0.0001)
 # Run the inversion
 estimate, goals, misfits = ft.pot.harvester.harvest(dms, seeds)

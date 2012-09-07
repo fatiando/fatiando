@@ -1,7 +1,7 @@
 """
 3D potential field inversion by planting anomalous densities.
 
-Implements the method of Uieda and Barbosa (2011).
+Implements the method of Uieda and Barbosa (2012).
 
 A "heuristic" inversion for compact 3D geologic bodies. Performs the inversion
 by iteratively growing the estimate around user-specified "seeds". Supports
@@ -42,15 +42,15 @@ A typical script to run the inversion on a data set looks like::
     mesh = ft.msh.ddd.PrismMesh(bounds, shape)
     # Make the data modules
     dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
-    # Read the seeds from a file with 4 columns: x  y  z  density
-    points, densities = ft.pot.harvester.loadseeds('myseedfile.txt')
-    seeds = ft.pot.harvester.sow(points, {'density':densities}, mesh, mu=0.1)
+    # Read the seed locations and physical properties from a file
+    seeds = ft.pot.harvester.sow(ft.pot.harvester.loadseeds('myseedfile.txt'),
+                                 mesh, mu=0.1)
     # Run the inversion
     estimate, goals, misfits = ft.pot.harvester.harvest(dms, seeds)
     # fill the mesh with the density values
     mesh.addprop('density', estimate['density'])
     # Save the mesh in UBC-GIF format
-    mesh.dump('result')
+    mesh.dump('result.msh', 'result.den', 'density')
 
 
 **Seeds**
@@ -74,16 +74,17 @@ parametrization.
 * :class:`~fatiando.pot.harvester.DMPrismGyy`
 * :class:`~fatiando.pot.harvester.DMPrismGyz`
 * :class:`~fatiando.pot.harvester.DMPrismGzz`
-* :class:`~fatiando.pot.harvester.DMPrismI2`
 
 **References**
 
-Uieda, L., and V. C. F. Barbosa, 2011, Robust 3D gravity gradient inversion by
-planting anomalous densities: SEG Expanded Abstracts, v. 30, 820-824.
+Uieda, L., and V. C. F. Barbosa (2012), Robust 3D gravity gradient inversion by
+planting anomalous densities, Geophysics, 77(4), G55-G66,
+doi:10.1190/geo2011-0388.1
 
 ----
 
 """
+import simplejson as json
 import time
 import math
 import bisect
@@ -98,7 +99,7 @@ log = fatiando.log.dummy('fatiando.pot.harvester')
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
-    gyz=None, gzz=None, inv2=None, norm=1):
+    gyz=None, gzz=None, norm=1):
     """
     Takes the observed data vectors (measured at the same points) and generates
     the data modules required by :func:`~fatiando.pot.harvester.harvest`.
@@ -115,8 +116,6 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     * gz: vertical component of the gravitational attraction (i.e., gravity
       anomaly)
     * gxx, gxy, etc: the components of the gravity gradient tensor
-    * inv2: the second invariant of the gravity gradient tensor (see
-      :mod:`fatiando.pot.tensor`)
 
     Parameters:
 
@@ -165,17 +164,14 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
     if gzz is not None:
         dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, norm))
         fields.append('gzz')
-    if inv2 is not None:
-        dms.append(DMPrismI2(inv2, xp, yp, zp, mesh, norm))
-        fields.append('second invariant')
     log.info("  data types: %s" % (', '.join(fields)))
     log.info("  total number of observations: %d" % (len(xp)*len(fields)))
     return dms
 
-def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
+def sow(seeds, mesh, mu=0., delta=0.0001, reldist=False):
     """
     Generate a set of :class:`~fatiando.pot.harvester.SeedPrism` from a
-    list of points.
+    list of points and physical properties.
 
     This is the preferred method for generating seeds! We strongly discourage
     using :class:`~fatiando.pot.harvester.SeedPrism` directly unless you
@@ -183,12 +179,20 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
 
     Parameters:
 
-    * points : list of lists
-        List of ``[x, y, z]`` coordinates where the seeds should be placed. Each
-        point generates a seed (prism in *mesh*) that has the point inside it.
-    * props : dict
-        Dictionary with the physical properties assigned to each seed.
-        Ex: ``props={'density':[10, 28, ...], 'susceptibility':[100, 23, ...]}``
+    * seeds : list of lists
+        A list of x, y, z coordinates of the seed and a dict with the physical
+        properties of the seed.
+        Example::
+
+            seeds = [
+                [1, 2, 3, {'density':2670, 'magnetization':2}],
+                [1.5, 3, 4, {'magnetization':1, 'inclination':-10,
+                             'declination':-5}]]
+
+        Physical properties can be: 'density', 'magnetization', 'inclination',
+        'declination'. inclination and declination only need to be specified
+        if they differ from the inducing field (i.e., if there is remanent
+        magnetization).
     * mesh : :class:`fatiando.msh.ddd.PrismMesh`
         The model space mesh (or interpretative model).
     * mu : float
@@ -219,32 +223,54 @@ def sow(points, props, mesh, mu=0., delta=0.0001, reldist=False):
     log.info("  delta (threshold): %g" % (delta))
     log.info("  distance type: %s" %
                 ({True:'relative', False:'absolute'}[reldist]))
-    log.info("  physical properties: %s" % (', '.join(p for p in props)))
-    log.info("  points: %d" % (len(points)))
-    seeds = []
-    for i, point in enumerate(points):
-        sprops = {}
-        for p in props:
-            sprops[p] = props[p][i]
-        seed = SeedPrism(point, sprops, mesh, mu=mu, delta=delta,
+    log.info("  seeds given: %d" % (len(seeds)))
+    outseeds = []
+    for x, y, z, props in seeds:
+        seed = SeedPrism([x, y, z], props, mesh, mu=mu, delta=delta,
                          reldist=reldist)
-        if seed.seed[0] not in (s.seed[0] for s in seeds):
-            seeds.append(seed)
-        else:
-            log.warning(
-                "  Duplicate seed found at point %s! Will ignore this one."
-                % (str(point)))
-    log.info("  seeds found: %d" % (len(seeds)))
-    return seeds
+        # Look for duplicates
+        duplicate = False
+        for s in outseeds:
+            # Check if the index in the mesh is the same
+            if seed.seed[0] == s.seed[0]:
+                # and the props are the same as well
+                if True in (p in s.seed[1] for p in props):
+                    log.warning(
+                        "  Duplicate seed found at point " +
+                        "%s! Will ignore this one." % (str([x, y, z])))
+                    duplicate = True
+                    break
+        if not duplicate:
+            outseeds.append(seed)
+    log.info("  seeds found: %d" % (len(outseeds)))
+    return outseeds
 
 def loadseeds(fname):
     """
     Load a set of seed locations and physical properties from a file.
 
-    The file should have columns: x  y  z  prop1  prop2  ...
-    x, y, and z are the coordinates where the seed should be put. prop1, prop2
-    etc, are the values of the physical properties of the seeds (like density,
-    susceptibility, etc)
+    The seed file should be formatted as::
+
+        [
+            [x1, y1, z1, {"density":dens1}],
+            [x2, y2, z2, {"density":dens2, "magnetization":mag2}],
+            [x3, y3, z3, {"magnetization":mag3, "inclination":inc3,
+                          "declination":dec3}],
+            ...
+        ]
+
+    x, y, z are the coordinates of the seed and the dict (``{'density':2670}``)
+    are its physical properties.
+
+    .. warning::
+
+        Must use ``"``, not ``'``, in the physical property names!
+
+    Each seed can have different kinds of physical properties. If inclination
+    and declination are not given, will use the inc and dec of the inducing
+    field (i.e., no remanent magnetization).
+
+    The techie among you will recognize that the seed file is in JSON format.
 
     Remember: the coordinate system is x->North, y->East, and z->Down
 
@@ -255,44 +281,32 @@ def loadseeds(fname):
 
     Returns:
 
-    * [points, props1, props2, ...]
-        *points* is a list of (x, y, z) points where the seeds will be placed
-        and *props1* is list with the values of the first physical property,
-        *props2* the second, etc.
+    * [[x1, y1, z1, props1], [x2, y2, z2, props2],  ...]
+        (x, y, z) are the points where the seeds will be placed
+        and *props* is dict with the values of the physical properties of each,
+        seed.
 
     Example:
 
         >>> from StringIO import StringIO
-        >>> file = StringIO("1 2 3 4 5\\n6 7 8 9 -1")
-        >>> points, props1, props2 = loadseeds(file)
-        >>> print points
-        [[ 1.  2.  3.]
-         [ 6.  7.  8.]]
-        >>> print props1
-        [ 4.  9.]
-        >>> print props2
-        [ 5. -1.]
-
-        >>> from StringIO import StringIO
-        >>> file = StringIO("1 2 3 4 5")
-        >>> points, props1, props2 = loadseeds(file)
-        >>> print points
-        [[ 1.  2.  3.]]
-        >>> print props1
-        [ 4.]
-        >>> print props2
-        [ 5.]
+        >>> file = StringIO(
+        ...     '[[1, 2, 3, {"density":4, "magnetization":5}],' +
+        ...     ' [6, 7, 8, {"magnetization":-1}]]')
+        >>> seeds = loadseeds(file)
+        >>> for s in seeds:
+        ...     print s
+        [1, 2, 3, {'magnetization': 5, 'density': 4}]
+        [6, 7, 8, {'magnetization': -1}]
 
     """
-    data = numpy.loadtxt(fname, unpack=True)
-    # In case there is only one seed
-    if len(data.shape) == 1:
-        data.shape = (data.shape[0], 1)
-    points = data[0:3].T
-    output = [points]
-    for prop in data[3:]:
-        output.append(prop)
-    return output
+    openned = False
+    if isinstance(fname, str):
+        fname = open(fname)
+        openned = True
+    seeds = json.load(fname)
+    if openned:
+        fname.close()
+    return seeds
 
 class DMPrism(object):
     """
@@ -464,85 +478,6 @@ class DMPrism(object):
 
         """
         return self.predicted
-
-class DMPrismI2(DMPrism):
-    """
-    Data module for the second invariant of the gravity gradient tensor of a
-    right rectangular prism. (see :mod:`fatiando.pot.tensor`)
-
-    See :class:`~fatiando.pot.harvester.DMPrism` for details.
-
-    **WARNING**: It is not recommended that you use this class directly. Use
-    function :func:`~fatiando.pot.harvester.wrapdata` to generate data
-    modules instead.
-
-    """
-
-    def __init__(self, data, xp, yp, zp, mesh, norm=1):
-        DMPrism.__init__(self, data, xp, yp, zp, mesh, norm)
-        self.prop_type = 'density'
-        self.estimate = []
-
-    def _effect_of_cells(self, cells):
-        gxx = pot_prism.gxx(self.xp, self.yp, self.zp, cells)
-        gxy = pot_prism.gxy(self.xp, self.yp, self.zp, cells)
-        gxz = pot_prism.gxz(self.xp, self.yp, self.zp, cells)
-        gyy = pot_prism.gyy(self.xp, self.yp, self.zp, cells)
-        gyz = pot_prism.gyz(self.xp, self.yp, self.zp, cells)
-        gzz = pot_prism.gzz(self.xp, self.yp, self.zp, cells)
-        inv2 = (gxx*(gyy*gzz - gyz**2) + gxy*(gyz*gxz - gxy*gzz)
-                + gxz*(gxy*gyz - gxz*gyy))
-        return inv2
-
-    def update(self, element):
-        """
-        Updated the precited data to include element.
-
-        Parameters:
-
-        * element : list
-            List ``[index, props]`` where ``index`` is the index of the element
-            in the mesh and ``props`` is a dictionary with the physical
-            properties of the element.
-
-        """
-        index, props = element
-        cell = self.mesh[index]
-        for p in props:
-            cell.addprop(p, props[p])
-        self.estimate.append(cell)
-        self.predicted = self._effect_of_cells(self.estimate)
-
-    def testdrive(self, element):
-        """
-        Calculate the value that the data misfit would have if *element* was
-        included in the estimate.
-
-        Parameters:
-
-        * element : list
-            List ``[index, props]`` where ``index`` is the index of the element
-            in the mesh and ``props`` is a dictionary with the physical
-            properties of the element.
-
-        Returns:
-
-        * misfit : float
-            The misfit value
-
-        """
-        index, props = element
-        # If the element doesn't have a physical property that influences this
-        # data module, then return the previous misfit
-        if self.prop_type not in props:
-            # TODO: keep track of the misfit value on update so that don't have
-            # to calculate it every time.
-            return self.misfit(self.predicted)
-        cell = self.mesh[index]
-        for p in props:
-            cell.addprop(p, props[p])
-        tmp = self._effect_of_cells(self.estimate + [cell])
-        return self.misfit(tmp)
 
 class DMPrismGz(DMPrism):
     """

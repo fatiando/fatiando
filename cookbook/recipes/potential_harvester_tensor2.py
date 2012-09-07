@@ -33,23 +33,20 @@ mesh = PrismMesh(bounds, (20, 50, 50))
 # Make the data modules
 datamods = ft.pot.harvester.wrapdata(mesh, x, y, z, gxy=gxy, gzz=gzz)
 # and the seeds
-points =[(901, 701, 750),
-         (901, 1201, 750),
-         (901, 1701, 750),
-         (901, 2201, 750),
-         (901, 2701, 750),
-         (901, 3201, 750),
-         (901, 3701, 750),
-         (3701, 1201, 501),
-         (3201, 1201, 501),
-         (3701, 1701, 501),
-         (3201, 1701, 501),
-         (2951, 3951, 301),
-         (2951, 3951, 701)]
-densities = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1000, 1000, 1000, 1000,
-             800, 800]
-seeds = ft.pot.harvester.sow(points, {'density':densities},
-    mesh, mu=10, delta=0.0001)
+seeds = ft.pot.harvester.sow(
+    [(901, 701, 750, {'density':1500}),
+     (901, 1201, 750, {'density':1500}),
+     (901, 1701, 750, {'density':1500}),
+     (901, 2201, 750, {'density':1500}),
+     (901, 2701, 750, {'density':1500}),
+     (901, 3201, 750, {'density':1500}),
+     (901, 3701, 750, {'density':1500}),
+     (3701, 1201, 501, {'density':1000}),
+     (3201, 1201, 501, {'density':1000}),
+     (3701, 1701, 501, {'density':1000}),
+     (3201, 1701, 501, {'density':1000}),
+     (2951, 3951, 301, {'density':800}),
+     (2951, 3951, 701, {'density':800})], mesh, mu=10, delta=0.0005)
 # Run the inversion and collect the results
 estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
 # Insert the estimated density values into the mesh
