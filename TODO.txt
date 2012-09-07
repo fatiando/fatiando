@@ -1,4 +1,4 @@
-GOALS FOR 1.0:
+GOALS FOR 0.3:
 
 * Write Developers Guide:
     * Coding style
@@ -10,8 +10,6 @@ GOALS FOR 1.0:
 * Make the cookbook rst files automatically:
     * include a Title and description in each recipes docstring (for autodoc)
     * include sample output as <script_name>%d.pnd
-* Implement PML absorbing boundary conditions in seis.wavefd. Using a large grid
-  and exponential decay factor instead
 
 GOALS FOR 0.2:
 
@@ -22,12 +20,22 @@ GOALS FOR 0.2:
 * Make plot for spheres in 3D
 * Potential field compact inversion in 2D
 * Finish numexpr and Cython modules for polyprism
-* utils.pickle and utils.upickle to automate pickling
+* Make fatiando.io for easy pickling, json, grid IO, etc
+* Make a msh.ddd.Point3d object and make vis.vtk.points3d plot it with physical
+  properties
+* logger.get should receive a list of streams and add handlers to all
+* Make logger get the level from string instead of having to import logging
+* Add option for scalar visibility in vis.vtk.prisms
+* Add data custom data weights to harvester data modules
+* Make Cython extension for sparse Jacobian computation in seis.srtomo
+* Make parallel building of Jacobians in seis.srtomo
+* Get rid of use_sparse functions, instead, use sparse=True keyword arguments
+* Fix recipe epicenter_regularized.py
+* Optimize equality constraints to use less memory
+* Remove MinimumDistance from epic2d
 
 GOALS FOR 0.1:
 
-* Merge msh.dd and msh.ddd into just msh. There are no name conflicts and there
-  are common bases and functions
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Make unit tests to test Cython prism against numpy prism
@@ -41,26 +49,6 @@ GOALS FOR 0.1:
 
 URGENT:
 
-TODO:
-
-* Make mesher load all from dd and ddd (propably no name conflicts)
-* Implement potential forward modeling using FFT
-* Make a msh.ddd.Point3d object and make vis.vtk.points3d plot it with physical
-  properties
-* Put all calls to matplotlib in try blocks in harvest script so that mpl is not
-  a required dependency
-* Make fatiando.io for easy pickling, json, grid IO, etc
-* logger.get should receive a list of streams and add handlers to all
-* Make logger get the level from string instead of having to import logging
-* Add option for scalar visibility in vis.vtk.prisms
-* Add data custom data weights to harvester data modules
-* Sparse Jacobian computation in SrTomo still too slow (much slower than dense
-  version)
-* Consider getting rid of use_sparse functions and DampingSparse type regularizers.
-  Instead, use sparse=True keyword arguments
-* Fix recipe epicenter_regularized.py
-* Optimize equality constraints to use less memory
-* Remove MinimumDistance from epic2d
 
 BUGS:
 
@@ -70,6 +58,9 @@ BUGS:
 
 TO-IMPLEMENT:
 
+* Implement PML absorbing boundary conditions in seis.wavefd. Using a large grid
+  and exponential decay factor instead
+* Implement potential forward modeling using FFT
 * Parkers algorithm for potential fields
 * Fully integrate Radial3D inversion
 * Make a PolyprismStack that creates PolygonalPrisms staked on top of each other
@@ -99,6 +90,8 @@ TO-IMPLEMENT:
 
 IDEAS:
 
+* Merge msh.dd and msh.ddd into just msh. There are no name conflicts and there
+  are common bases and functions? Maybe not
 * Get rid of the DataModule class. Provide a specification of it in the docs on
   fatiando.inversion
 * Add decorator to logging that logs a functions name and parameters in debug
@@ -111,9 +104,4 @@ IDEAS:
 * Store provenance of results in image files:
   http://galacticusblog.blogspot.com/2012/01/reproducibility-of-galacticus-modesl.html
 * Use diagonal derivatives in Smoothness
-
-HARVESTER:
-
-* keep track of the misfit value on update so that don't have to calculate it every time.
-* Initial goal is actually initial misfit. so change goal for
 
