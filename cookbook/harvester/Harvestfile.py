@@ -6,7 +6,7 @@
 data_file = 'data.txt'
 # The extension can be anything you like (.txt, .xyz, .bla)
 # The file should have the data in xyz format. That is:
-#   x1  y1  z1  height1  gz1  gxx1 ...  
+#   x1  y1  z1  height1  gz1  gxx1 ...
 #   x2  y2  z2  height2  gz2  gxx2 ...
 #   ...
 #   xN  yN  zN  heightN  gzN  gxxN ...
@@ -58,13 +58,24 @@ mesh_shape = (50, 50, 25)
 
 # The file with the seeds.
 seed_file = 'seeds.txt'
-# The seed file should have 4 columns:
-#   x1 y1 z1 density_contrast1
-#   x2 y2 z2 density_contrast2
+# The seed file is in JSON format and should be like this:
+#
+# [
+#   [x1, y1, z1, {"density":dens1}],
+#   [x2, y2, z2, {"density":dens2, "magnetization":mag2}],
+#   [x3, y3, z3, {"magnetization":mag3, "inclination":inc3,
+#                 "declination":dec3}],
 #   ...
-#   xS yS zS density_contrastS
-# x, y, z are the coordinates where you want a seed to placed. density_contrast
-# is the density contrast of the seed in kg/m3. Again, the file extension can be anything.
+# ]
+#
+# x, y, z are the coordinates of the seed and the dict (``{'density':2670}``)
+# are its physical properties.
+# WARNING: Must use ", not ', in the physical property names!#
+# Each seed can have different kinds of physical properties. If inclination
+# and declination are not given, will use the inc and dec of the inducing
+# field (i.e., no remanent magnetization).
+# Again, white space and newlines don't matter and the file extension can be
+# anything.
 
 # The value of the regularizing parameter. Must be >= 0.
 regul = 10000
@@ -78,7 +89,7 @@ delta = 0.0001
 # seeds won't grow.
 
 # Name of the output files in the format accepted by the UBC-GIF software
-# Meshtools <http://www.eos.ubc.ca/research/ubcgif>. 
+# Meshtools <http://www.eos.ubc.ca/research/ubcgif>.
 mesh_file = 'result.msh'
 density_file = 'result.den'
 
