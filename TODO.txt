@@ -26,6 +26,8 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
+* Merge msh.dd and msh.ddd into just msh. There are no name conflicts and there
+  are common bases and functions
 * Add default solvers to inversion functions so that general users don't need to
   dig into fatiando.inversion
 * Make unit tests to test Cython prism against numpy prism
@@ -113,7 +115,5 @@ IDEAS:
 HARVESTER:
 
 * keep track of the misfit value on update so that don't have to calculate it every time.
-* Replace hand setting of physical properties of a prism with an actual addprop function
 * Initial goal is actually initial misfit. so change goal for
-* Make harvest dump a list of prisms
 

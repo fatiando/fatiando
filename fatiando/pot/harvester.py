@@ -696,8 +696,6 @@ class SeedPrism(object):
         """
         Return a :func:`~fatiando.msh.ddd.Prism` corresponding to the seed.
         """
-        # TODO: Replace hand setting of physical properties of a prism with an
-        # actual addprop function.
         index, props = self.seed
         prism = self.mesh[index]
         for p in props:
