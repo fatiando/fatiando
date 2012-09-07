@@ -88,6 +88,13 @@ delta = 0.0001
 # This controls how much the solution is allowed to grow. If it's too big, the
 # seeds won't grow.
 
+# Output files for the estimated physical property distribution and the mesh
+
+# Name of the output file in Python's pickle format (so that it can be loaded
+# from other scripts). Saves the fatiando.msh.ddd.PrismMesh instance with its
+# physical properties set to the estimate.
+pickle_file = None
+
 # Name of the output files in the format accepted by the UBC-GIF software
 # Meshtools <http://www.eos.ubc.ca/research/ubcgif>.
 mesh_file = 'result.msh'

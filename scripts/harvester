@@ -15,6 +15,7 @@ You can use option -f to specify a custom file name (though it must end in
 .py) or a file in a different directory. The data files will be read and
 output will be saved relative to where the input file is.
 """
+import cPickle as pickle
 import logging
 import importlib
 import os
@@ -120,10 +121,20 @@ delta = 0.00001
 # This controls how much the solution is allowed to grow. If it's too big, the
 # seeds won't grow.
 
+# Output files for the estimated physical property distribution and the mesh
+
+# Name of the output file in Python's pickle format (so that it can be loaded
+# from other scripts). Saves the fatiando.msh.ddd.PrismMesh instance with its
+# physical properties set to the estimate.
+pickle_file = 'result.pickle'
+# Use pickle_file = None if you don't want to save in pickle format
+
 # Name of the output files in the format accepted by the UBC-GIF software
 # Meshtools <http://www.eos.ubc.ca/research/ubcgif>.
 mesh_file = 'result.msh'
 density_file = 'result.den'
+# Use mesh_file = None or density_file = None if you don't want to save to UBC
+# format
 
 # Name of the file where the predicted data (modeled) will be saved.
 pred_file = 'predicted.txt'
@@ -209,6 +220,7 @@ mesh_shape = [i for i in reversed(params.mesh_shape)]
 seed_file = params.seed_file
 regul = params.regul
 delta = params.delta
+pickle_file = params.pickle_file
 mesh_file = params.mesh_file
 density_file = params.density_file
 pred_file = params.pred_file
@@ -284,7 +296,12 @@ estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
 
 log.info("Saving estimate to files %s and %s" % (mesh_file, density_file))
 mesh.addprop('density', estimate['density'])
-mesh.dump(mesh_file, density_file, 'density')
+if mesh_file is not None and density_file is not None:
+    mesh.dump(mesh_file, density_file, 'density')
+if pickle_file is not None:
+    log.info("Saving estimate in pickle format to %s" % (pickle_file))
+    with open(pickle_file, 'w') as f:
+        pickle.dump(mesh, f)
 
 log.info("Saving predicted data to %s" % (pred_file))
 with open(pred_file, 'w') as f:
