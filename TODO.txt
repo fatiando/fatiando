@@ -36,11 +36,7 @@ GOALS FOR 0.2:
 
 GOALS FOR 0.1:
 
-* Add default solvers to inversion functions so that general users don't need to
-  dig into fatiando.inversion
 * Make unit tests to test Cython prism against numpy prism
-* Hide data modules inside inversion functions: basin2d
-* Make basin2d spit out Polygons, not estimate vectors
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
 * Update formula in the docstring of seis.wavefd (the code is fourth order)

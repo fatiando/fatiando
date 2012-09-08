@@ -62,6 +62,11 @@ Version 0.1
   happens at runtime.
 * Move all physical constants used in ``fatiando`` to module
   :ref:`fatiando.constants <fatiando_constants>`
+* Data modules hidden inside functions in
+  :ref:`fatiando.pot.basin2d <fatiando_pot_basin2d>`
+* Functions in :ref:`fatiando.pot.basin2d <fatiando_pot_basin2d>` spit out
+  Polygons instead of the vertices estimated. Now you don't have to build the
+  polygons by hand.
 
 **Bug fixes**:
 

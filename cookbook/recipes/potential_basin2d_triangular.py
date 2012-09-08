@@ -10,23 +10,21 @@ log.info(__doc__)
 
 log.info("Generating synthetic data")
 verts = [(10000, 1.), (90000, 1.), (80000, 5000)]
-left, middle, right = verts
 model = ft.msh.dd.Polygon(verts, {'density':-100})
 xp = numpy.arange(0., 100000., 1000.)
 zp = numpy.zeros_like(xp)
 gz = ft.utils.contaminate(ft.pot.talwani.gz(xp, zp, [model]), 1)
 
 log.info("Preparing for the inversion")
-dm = ft.pot.basin2d.TriangularGzDM(xp, zp, gz, prop=-100, verts=[left, middle])
 solver = ft.inversion.gradient.levmarq(initial=(10000, 1000))
-p, residuals = ft.pot.basin2d.triangular([dm], solver)
-estimate = ft.msh.dd.Polygon([left, middle, p])
+estimate, residuals = ft.pot.basin2d.triangular(xp, zp, gz, verts[0:2], -100,
+    solver)
 
 ft.vis.figure()
 ft.vis.subplot(2, 1, 1)
 ft.vis.title("Gravity anomaly")
 ft.vis.plot(xp, gz, 'ok', label='Observed')
-ft.vis.plot(xp, gz - residuals[0], '-r', linewidth=2, label='Predicted')
+ft.vis.plot(xp, gz - residuals, '-r', linewidth=2, label='Predicted')
 ft.vis.legend(loc='lower left')
 ft.vis.ylabel("mGal")
 ft.vis.xlim(0, 100000)

@@ -8,7 +8,7 @@ data.
 * :func:`~fatiando.pot.basin2d.trapezoidal`
 
 Uses 2D bodies with a polygonal cross-section to parameterize the basin relief.
-Potential fields are calculated using the :mod:`~fatiando.pot.talwani`
+Potential fields are calculated using the :mod:`fatiando.pot.talwani`
 module.
 
 .. warning:: Vertices of polygons must always be in clockwise order!
@@ -32,12 +32,10 @@ Example using synthetic data::
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = ft.pot.talwani.gz(xs, zs, [model])
-    >>> # Pack the data nicely in a DataModule
-    >>> dm = ft.pot.basin2d.TriangularGzDM(xs, zs, gz, prop=500,
-    ...                                    verts=[left, middle])
     >>> # Estimate the coordinates of the last point using Levenberg-Marquardt
     >>> solver = ft.inversion.gradient.levmarq(initial=(10000, 1000))
-    >>> p, residuals = ft.pot.basin2d.triangular([dm], solver)
+    >>> p, residuals = ft.pot.basin2d.triangular(xs, zs, gz, [left, middle],
+    ...     500, solver)
     >>> print '%.1f, %.1f' % (p[0], p[1])
     50000.0, 5000.0
 
@@ -54,12 +52,10 @@ algorithm::
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = ft.pot.talwani.gz(xs, zs, [model])
-    >>> # Pack the data nicely in a DataModule
-    >>> dm = ft.pot.basin2d.TriangularGzDM(xs, zs, gz, prop=500,
-    ...                                    verts=[left, middle])
     >>> # Estimate the coordinates of the last point using Levenberg-Marquardt
     >>> solver = ft.inversion.gradient.levmarq(initial=(70000, 2000))
-    >>> iterator = ft.pot.basin2d.triangular([dm], solver, iterate=True)
+    >>> iterator = ft.pot.basin2d.triangular(xs, zs, gz, [left, middle], 500,
+    ...                                      solver, iterate=True)
     >>> for p, residuals in iterator:
     ...     print '%.4f, %.4f' % (p[0], p[1])
     70000.0000, 2000.0000
@@ -95,12 +91,10 @@ Example of inverting for the z coordinates of the unknown vertices::
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = ft.pot.talwani.gz(xs, zs, [model])
-    >>> # Pack the data nicely in a DataModule
-    >>> dm = ft.pot.basin2d.TrapezoidalGzDM(xs, zs, gz, prop=500,
-    ...                                     verts=verts[0:2])
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
     >>> solver = ft.inversion.gradient.levmarq(initial=(1000, 500))
-    >>> p, residuals = ft.pot.basin2d.trapezoidal([dm], solver)
+    >>> p, residuals = ft.pot.basin2d.trapezoidal(xs, zs, gz, verts[0:2], 500,
+    ...                                           solver)
     >>> print '%.1f, %.1f' % (p[0], p[1])
     5000.0, 3000.0
 
@@ -116,12 +110,10 @@ algorithm::
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
     >>> gz = ft.pot.talwani.gz(xs, zs, [model])
-    >>> # Pack the data nicely in a DataModule
-    >>> dm = ft.pot.basin2d.TrapezoidalGzDM(xs, zs, gz, prop=500,
-    ...                                     verts=verts[0:2])
     >>> # Estimate the coordinates of the two z coords using Levenberg-Marquardt
     >>> solver = ft.inversion.gradient.levmarq(initial=(1000, 500))
-    >>> iterator = ft.pot.basin2d.trapezoidal([dm], solver, iterate=True)
+    >>> iterator = ft.pot.basin2d.trapezoidal(xs, zs, gz, verts[0:2], 500,
+    ...                                       solver, iterate=True)
     >>> for p, residuals in iterator:
     ...     print '%.4f, %.4f' % (p[0], p[1])
     1000.0000, 500.0000
@@ -168,11 +160,15 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     * data : array
         The profile gravity anomaly data
     * verts : list of lists
-        List of the [x, z] coordinates of the two know vertices. Very
-        important that the vertices in the list be ordered from left to right!
-        Otherwise the forward model will give results with an inverted sign and
-        terrible things may happen!
-    * prop : float
+        List of the [x, z] coordinates of the two know vertices.
+
+        .. warning::
+
+            Very important that the vertices in the list be ordered from left to
+            right! Otherwise the forward model will give results with an
+            inverted sign and terrible things may happen!
+
+    * density : float
         Density contrast of the basin
     * delta : float
         Interval used to calculate the approximate derivatives
@@ -183,7 +179,7 @@ class TriangularGzDM(inversion.datamodule.DataModule):
 
     """
 
-    def __init__(self, xp, zp, data, verts, prop, delta=1.):
+    def __init__(self, xp, zp, data, verts, density, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
         if len(xp) != len(zp) != len(data):
             raise ValueError, "xp, zp, and data must be of same length"
@@ -191,7 +187,7 @@ class TriangularGzDM(inversion.datamodule.DataModule):
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
         self.xp = numpy.array(xp, dtype=numpy.float64)
         self.zp = numpy.array(zp, dtype=numpy.float64)
-        self.prop = {'density':prop}
+        self.prop = {'density':density}
         self.verts = list(verts)
         self.delta = delta
 
@@ -212,7 +208,7 @@ class TriangularGzDM(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
 
-def triangular(dms, solver, iterate=False):
+def triangular(xp, zp, data, verts, density, solver, iterate=False):
     """
     Estimate basement relief of a triangular basin. The basin is modeled as a
     triangle with two known vertices at the surface. The parameters estimated
@@ -220,12 +216,24 @@ def triangular(dms, solver, iterate=False):
 
     Parameters:
 
-    * dms : list
-        The data modules, like
-        :class:`~fatiando.pot.basin2d.TriangularGzDM`
+    * xp, zp : array
+        Arrays with the x and z coordinates of the profile data points
+    * data : array
+        The profile gravity anomaly data
+    * verts : list of lists
+        List of the [x, z] coordinates of the two know vertices.
+
+        .. warning::
+
+            Very important that the vertices in the list be ordered from left to
+            right! Otherwise the forward model will give results with an
+            inverted sign and terrible things may happen!
+
+    * density : float
+        Density contrast of the basin
     * solver : function
         A non-linear inverse problem solver generated by a factory function
-        from a module of the :mod:`~fatiando.inversion` package.
+        from the :mod:`fatiando.inversion.gradient` package.
     * iterate : True or False
         If True, will yield the current estimate at each iteration yielded by
         *solver*. In Python terms, ``iterate=True`` transforms this function
@@ -235,19 +243,23 @@ def triangular(dms, solver, iterate=False):
 
     * results : list = [estimate, residuals]:
 
-        * estimate : array
-            The estimated [x, z] coordinates of the missing vertice
-        * residuals : list of arrays
+        * estimate : array or :class:`fatiando.msh.dd.Polygon`
+            If ``iterate==False``, will return a Polygon, else will yield
+            the estimated [x, z] coordinates of the missing vertice
+        * residuals : array
             The residuals of the inversion (difference between measured and
-            predicted data) for each data module in *dms*
+            predicted data)
 
     """
     log.info("Estimating relief of a triangular basin:")
     log.info("  iterate: %s" % (str(iterate)))
+    dms = [TriangularGzDM(xp, zp, data, verts, density)]
     if iterate:
         return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver, log)
+        estimate, residuals = _solver(dms, solver, log)
+        left, right = verts
+        return Polygon([left, right, estimate]), residuals
 
 class TrapezoidalGzDM(inversion.datamodule.DataModule):
     """
@@ -264,13 +276,18 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
     * xp, zp : array
         Arrays with the x and z coordinates of the profile data points
     * data : array
-        The profile data
+        The profile gravity anomaly data
     * verts : list of lists
-        List with the [x, z] coordinates of the two know vertices.
-    * prop : float
-        Value of the physical property of the basin. The physical property must
-        be compatible with the potential field used! I.e., gravitational fields
-        require a value of density contrast.
+        List of the [x, z] coordinates of the two know vertices.
+
+        .. warning::
+
+            Very important that the vertices in the list be ordered from left to
+            right! Otherwise the forward model will give results with an
+            inverted sign and terrible things may happen!
+
+    * density : float
+        Density contrast of the basin
     * delta : float
         Interval used to calculate the approximate derivatives
 
@@ -282,7 +299,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
 
     field = "gz"
 
-    def __init__(self, xp, zp, data, verts, prop, delta=1.):
+    def __init__(self, xp, zp, data, verts, density, delta=1.):
         inversion.datamodule.DataModule.__init__(self, data)
         if len(xp) != len(zp) != len(data):
             raise ValueError, "xp, zp, and data must be of same length"
@@ -290,7 +307,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
         self.xp = numpy.array(xp, dtype=numpy.float64)
         self.zp = numpy.array(zp, dtype=numpy.float64)
-        self.prop = {'density':prop}
+        self.prop = {'density':density}
         self.verts = list(verts)
         self.delta = delta
         self.xs = [x for x in reversed(numpy.array(verts).T[0])]
@@ -317,7 +334,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
     def sum_hessian(self, hessian, p):
         return hessian + 2*numpy.dot(self.jac_T, self.jac_T.T)
 
-def trapezoidal(dms, solver, iterate=False):
+def trapezoidal(xp, zp, data, verts, density, solver, iterate=False):
     """
     Estimate basement relief of a triangular basin. The basin is modeled as a
     triangle with two known vertices at the surface. The parameters estimated
@@ -325,12 +342,24 @@ def trapezoidal(dms, solver, iterate=False):
 
     Parameters:
 
-    * dms : list
-        List of data modules, like
-        :class:`~fatiando.pot.basin2d.TriangularGzDM`
+    * xp, zp : array
+        Arrays with the x and z coordinates of the profile data points
+    * data : array
+        The profile gravity anomaly data
+    * verts : list of lists
+        List of the [x, z] coordinates of the two know vertices.
+
+        .. warning::
+
+            Very important that the vertices in the list be ordered from left to
+            right! Otherwise the forward model will give results with an
+            inverted sign and terrible things may happen!
+
+    * density : float
+        Density contrast of the basin
     * solver : function
         A non-linear inverse problem solver generated by a factory function
-        from a module of the :mod:`~fatiando.inversion` package.
+        from the :mod:`fatiando.inversion.gradient` package.
     * iterate : True or False
         If True, will yield the current estimate at each iteration yielded by
         *solver*. In Python terms, ``iterate=True`` transforms this function
@@ -340,19 +369,24 @@ def trapezoidal(dms, solver, iterate=False):
 
     * results : list = [estimate, residuals]:
 
-        * estimate : array
-            The estimated [z1, z2] coordinates of the bottom vertices.
-        * residuals : list of arrays
+        * estimate : array or :class:`fatiando.msh.dd.Polygon`
+            If ``iterate==False``, will return a Polygon, else will yield
+            the estimated [z1, z2] coordinates of the bottom vertices.
+        * residuals : array
             The residuals of the inversion (difference between measured and
-            predicted data) for each data module in *dms*
+            predicted data)
 
     """
     log.info("Estimating relief of a trapezoidal basin:")
     log.info("  iterate: %s" % (str(iterate)))
+    dms = [TrapezoidalGzDM(xp, zp, data, verts, density)]
     if iterate:
         return _iterator(dms, solver, log)
     else:
-        return _solver(dms, solver, log)
+        estimate, residuals = _solver(dms, solver, log)
+        z1, z2 = estimate
+        left, right = verts
+        return Polygon([left, right, (right[0], z1), (left[0], z2)]), residuals
 
 def _solver(dms, solver, log):
     start = time.time()
@@ -367,13 +401,13 @@ def _solver(dms, solver, log):
     log.info("  final data misfit: %g" % (chset['misfits'][-1]))
     log.info("  final goal function: %g" % (chset['goals'][-1]))
     log.info("  time: %s" % (utils.sec2hms(stop - start)))
-    return chset['estimate'], chset['residuals']
+    return chset['estimate'], chset['residuals'][0]
 
 def _iterator(dms, solver, log):
     start = time.time()
     try:
         for i, chset in enumerate(solver(dms, [])):
-            yield chset['estimate'], chset['residuals']
+            yield chset['estimate'], chset['residuals'][0]
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
