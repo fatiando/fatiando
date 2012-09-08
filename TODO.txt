@@ -6,13 +6,12 @@ GOALS FOR 0.3:
     * Getting the source
     * Building
     * Sending patches
-* Write tutorial with a larger example than in the cookbook
-* Make the cookbook rst files automatically:
-    * include a Title and description in each recipes docstring (for autodoc)
-    * include sample output as <script_name>%d.pnd
+* Write tutorials with a larger examples than in the cookbook
 
 GOALS FOR 0.2:
 
+* Write the Advanced usage docs
+* Write the Getting started docs
 * Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Make a VTK plotter for tesseroids
 * Optimize PrismMesh.dump (using Cython?)
@@ -87,6 +86,9 @@ TO-IMPLEMENT:
 
 IDEAS:
 
+* Make the cookbook rst files automatically:
+    * include a Title and description in each recipes docstring (for autodoc)
+    * include sample output as <script_name>%d.pnd
 * Merge msh.dd and msh.ddd into just msh. There are no name conflicts and there
   are common bases and functions? Maybe not
 * Get rid of the DataModule class. Provide a specification of it in the docs on
