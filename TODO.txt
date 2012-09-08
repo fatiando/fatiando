@@ -33,15 +33,16 @@ GOALS FOR 0.2:
 * Fix recipe epicenter_regularized.py
 * Optimize equality constraints to use less memory
 * Remove MinimumDistance from epic2d
-
-GOALS FOR 0.1:
-
 * Make unit tests to test Cython prism against numpy prism
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
+
+GOALS FOR 0.1:
+
+* Finish the tutorial for harvester
+* Write the overview section in docs
 * Update formula in the docstring of seis.wavefd (the code is fourth order)
-* Make the build_cookbook.py script get the docstrings without importing the
-  recipe. This way it doesn't get executed
+* Finish the cookbook. Make rst files with the title, sample output and script
 
 URGENT:
 

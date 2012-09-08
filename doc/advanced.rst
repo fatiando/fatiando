@@ -10,10 +10,10 @@ Note that this generally requires a higher understanding of Python
 Compiling Cython extension modules for better performance
 ---------------------------------------------------------
 
-More on this later.
+Sorry, I'll get to this some day. Promise.
 
 
 Even faster processing of large arrays with ``numexpr``
 -------------------------------------------------------
 
-More on this later.
+Sorry, I'll get to this some day. Promise.

@@ -3,4 +3,4 @@
 Getting started using Fatiando
 ==============================
 
-To be continued
+Sorry, I'll get to this some day. Promise.
