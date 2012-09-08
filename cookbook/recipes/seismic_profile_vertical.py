@@ -26,10 +26,9 @@ tts, error = ft.utils.contaminate(
 log.info("Preparing for the inversion")
 damping = 100.
 estimates = []
-for i in xrange(30):    
-    solver = ft.inversion.linear.overdet(len(thickness))
+for i in xrange(30):
     p, r = ft.seis.profile.ivertical(ft.utils.contaminate(tts, error), zp,
-        thickness, solver, damping=damping)
+        thickness, damping=damping)
     estimates.append(1./p)
 estimate = ft.utils.vecmean(estimates)
 predicted = ft.seis.profile.vertical(thickness, estimate, zp)
@@ -48,7 +47,7 @@ ft.vis.ylim(sum(thickness), 0)
 ft.vis.subplot(1, 2, 2)
 ft.vis.grid()
 ft.vis.title("Velocity profile")
-for p in estimates:    
+for p in estimates:
     ft.vis.layers(thickness, p, '-r', linewidth=2, alpha=0.2)
 ft.vis.layers(thickness, estimate, 'o-k', linewidth=2, label='Mean estimate')
 ft.vis.layers(thickness, velocity, '--b', linewidth=2, label='True')

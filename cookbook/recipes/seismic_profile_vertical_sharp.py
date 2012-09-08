@@ -24,11 +24,9 @@ mesh = [thick]*int(sum(thickness)/thick)
 sharp = 0.00015
 beta = 10.**(-12)
 estimates = []
-initial = 0.00001*numpy.ones(len(mesh))
 for i in xrange(30):
-    solver = ft.inversion.gradient.levmarq(initial=initial)
     p, r = ft.seis.profile.ivertical(ft.utils.contaminate(tts, error),
-        zp, mesh, solver, sharp=sharp, beta=beta)
+        zp, mesh, sharp=sharp, beta=beta)
     estimates.append(1./p)
 estimate = ft.utils.vecmean(estimates)
 predicted = ft.seis.profile.vertical(mesh, estimate, zp)
@@ -47,7 +45,7 @@ ft.vis.ylim(sum(thickness), 0)
 ft.vis.subplot(1, 2, 2)
 ft.vis.grid()
 ft.vis.title("True velocity + sharp estimate")
-for p in estimates:    
+for p in estimates:
     ft.vis.layers(mesh, p, '-r', linewidth=2, alpha=0.2)
 ft.vis.layers(mesh, estimate, '.-k', linewidth=2, label='Mean estimate')
 ft.vis.layers(thickness, velocity, '--b', linewidth=2, label='True')
