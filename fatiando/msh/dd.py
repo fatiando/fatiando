@@ -49,6 +49,7 @@ class Polygon(GeometricElement):
     def __init__(self, vertices, props=None):
         GeometricElement.__init__(self, props)
         x, y = numpy.array(vertices, dtype='f').T
+        self.vertices = vertices
         self.x = x
         self.y = y
         self.nverts = len(vertices)

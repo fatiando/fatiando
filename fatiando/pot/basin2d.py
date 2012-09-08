@@ -36,7 +36,7 @@ Example using synthetic data::
     >>> solver = ft.inversion.gradient.levmarq(initial=(10000, 1000))
     >>> p, residuals = ft.pot.basin2d.triangular(xs, zs, gz, [left, middle],
     ...     500, solver)
-    >>> print '%.1f, %.1f' % (p[0], p[1])
+    >>> print '%.1f, %.1f' % (p.vertices[-1][0], p.vertices[-1][1])
     50000.0, 5000.0
 
 Same example but this time using ``iterate=True`` to view the steps of the
@@ -95,7 +95,7 @@ Example of inverting for the z coordinates of the unknown vertices::
     >>> solver = ft.inversion.gradient.levmarq(initial=(1000, 500))
     >>> p, residuals = ft.pot.basin2d.trapezoidal(xs, zs, gz, verts[0:2], 500,
     ...                                           solver)
-    >>> print '%.1f, %.1f' % (p[0], p[1])
+    >>> print '%.1f, %.1f' % (p.vertices[-2][1], p.vertices[-1][1])
     5000.0, 3000.0
 
 Same example but this time using ``iterate=True`` to view the steps of the
