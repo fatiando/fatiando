@@ -42,7 +42,7 @@ how to use them.
 
 """
 
-version = '0.1.dev'
+version = '0.1.dev1'
 
 # Import all the modules and subpackages so that they are accessible just by
 # importing fatiando
