@@ -208,41 +208,99 @@ except ImportError:
     log.error("Couldn't find input file %s.py" % (inputfile))
     log.error(exitmsg)
     sys.exit()
-log.info("Reading parameters from file %s.py" % (inputfile))
+log.info("Reading parameters from file %s.py:" % (inputfile))
 data_file = params.data_file
-use_cols = params.use_cols
+log.info("  data file: %s" % (data_file))
+try:
+    use_cols = params.use_cols
+    log.info("    using columns: %s" % (str(use_cols)))
+except AttributeError:
+    use_cols = None
+    log.info("    using columns: all")
 column_fmt = params.column_fmt
-inv_z = params.inv_z
-mesh_bounds = params.mesh_bounds
-mesh_bottom = params.mesh_bottom
-mesh_top = params.mesh_top
-mesh_shape = [i for i in reversed(params.mesh_shape)]
+log.info("    column format: %s" % (str(column_fmt)))
+try:
+    inv_z = params.inv_z
+except AttributeError:
+    use_cols = False
+log.info("    inverting z axis of data: %s" % (str(inv_z)))
 seed_file = params.seed_file
+log.info("  seed file: %s" % (seed_file))
+try:
+    mesh_bounds = params.mesh_bounds
+except AttributeError:
+    mesh_bounds = None
+if mesh_bounds is not None:
+    log.info("  mesh x-y boundaries: %s" % (mesh_bounds))
+else:
+    log.info("  mesh x-y boundaries: data limits")
+mesh_bottom = params.mesh_bottom
+log.info("  mesh bottom: %g" % (mesh_bottom))
+try:
+    mesh_top = params.mesh_top
+except AttributeError:
+    mesh_top = None
+if mesh_top is not None:
+    log.info("  mesh top: %g" % (mesh_top))
+else:
+    log.info("  mesh top: topography")
+mesh_shape = [i for i in reversed(params.mesh_shape)]
+log.info("  mesh shape: %s" % (str(params.mesh_shape)))
 regul = params.regul
+log.info("  regularizing parameter: %g" % (regul))
 delta = params.delta
-pickle_file = params.pickle_file
-mesh_file = params.mesh_file
-density_file = params.density_file
+log.info("  delta threshold: %g" % (delta))
+try:
+    pickle_file = params.pickle_file
+    log.info("  output file (pickle format): %s" % (pickle_file))
+except AttributeError:
+    pickle_file = None
+try:
+    mesh_file = params.mesh_file
+    log.info("  output files (UBC format):")
+    log.info("    mesh file: %s" % (mesh_file))
+except AttributeError:
+    mesh_file = None
+try:
+    density_file = params.density_file
+    log.info("    density file: %s" % (density_file))
+except AttributeError:
+    density_file = None
 pred_file = params.pred_file
+log.info("  predicted data output file: %s" % (pred_file))
+
+if pickle_file is None and mesh_file is None and density_file is None:
+    log.error("ERROR: Please specify at least one type of output file.")
+    log.error("Accepted formats are: UBC GIF and Python's pickle.")
+    log.error("See options pickle_file, mesh_file, and density_file " +
+        "of the input file.")
+    log.error(exitmsg)
+    sys.exit()
+
+if (mesh_file is None and density_file is not None or
+    mesh_file is not None and density_file is None):
+    log.error(
+    "ERROR: Missing mesh file or density file for output in UBC GIF format.")
+    log.error("Must give both or none.")
+    log.error(exitmsg)
+    sys.exit()
 
 valid = ['x', 'y', 'z', 'height', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
          'gzz']
 if 'x' not in column_fmt or 'y' not in column_fmt or 'z' not in column_fmt or \
     True not in (col in column_fmt for col in valid[4:]):
-    log.error("Invalid column format %s" % (column_fmt))
+    log.error("ERROR: Invalid column format %s" % (column_fmt))
     log.error("Need at least 'x', 'y', 'z', and a data component.")
     log.error(exitmsg)
     sys.exit()
 
-log.info("Loading data file %s:" % (data_file))
-log.info("  using columns: %s" % (use_cols))
+log.info("Loading data from file: %s" % (data_file))
 try:
     rawdata = numpy.loadtxt(data_file, unpack=True, usecols=use_cols)
 except IOError:
-    log.error("Couldn't find data file %s" % (data_file))
+    log.error("ERROR: Couldn't find data file %s" % (data_file))
     log.error(exitmsg)
     sys.exit()
-log.info("  column format: %s" % (column_fmt))
 data = dict((n, None) for n in valid)
 for col, val in zip(column_fmt, rawdata):
     if col not in valid:
@@ -291,12 +349,12 @@ except ImportError:
     log.info("Couldn't show the seeds because Mayavi is not installed.")
     log.info("Moving on.")
 
-log.info("Running the inversion:")
 estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
-
-log.info("Saving estimate to files %s and %s" % (mesh_file, density_file))
 mesh.addprop('density', estimate['density'])
+
 if mesh_file is not None and density_file is not None:
+    log.info("Saving estimate in UBC GIF format to %s and %s"
+        % (mesh_file, density_file))
     mesh.dump(mesh_file, density_file, 'density')
 if pickle_file is not None:
     log.info("Saving estimate in pickle format to %s" % (pickle_file))
