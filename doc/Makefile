@@ -39,7 +39,7 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/* fatiando*.pdf
+	@rm -rvf $(BUILDDIR)/* fatiando*.pdf
 
 clean-cookbook:
 	rm -rf cookbook

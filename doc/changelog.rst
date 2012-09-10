@@ -30,7 +30,7 @@ Version 0.1
 * Added module :ref:`fatiando.pot.tensor <fatiando_pot_tensor>` for
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
-* Added :ref:`tutorials <tutorial>` to the documentation
+* Added :ref:`tutorials <tutorials>` to the documentation
 * Added module :ref:`fatiando.pot.imaging <fatiando_pot_imaging>` with imaging
   methods for potential fields
 * Added module :ref:`fatiando.pot.euler <fatiando_pot_euler>` with Euler
