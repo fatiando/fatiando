@@ -1,4 +1,8 @@
 # Build, package and clean Fatiando
+
+# To upload to PyPI run:
+# python setup.py sdist --formats=zip,gztar upload
+
 .PHONY: package docs build test clean help
 
 help:
@@ -9,8 +13,6 @@ help:
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    package       create source distributions"
 	@echo "    package-win   create a windows installer"
-	@echo "    upload        upload the package to PyPI (CAREFUL!)"
-	@echo "    test-upload   make a dry run of the upload process"
 	@echo "    clean         clean up"
 	@echo ""
 
@@ -28,12 +30,6 @@ package: docs
 
 package-win: docs
 	@python setup.py bdist_wininst
-
-upload: package
-	@python setup.py upload
-
-test-upload: package
-	@python setup.py upload --show-response --dry-run
 
 clean:
 	@find . -name "*.so" -exec rm -v {} \;
