@@ -1,6 +1,6 @@
 include LICENSE.txt
 include README.txt
 include MANIFEST.in
-include doc/fatiando-0.1.dev.pdf
+include doc/fatiando*.pdf
 recursive-include cookbook *
 recursive-include fatiando *.pyx

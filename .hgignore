@@ -1,6 +1,5 @@
 syntax: glob
 
-./.sconsign.dblite
 *.pyc
 *.so
 doc/_build
@@ -8,9 +7,9 @@ doc/fatiando*.pdf
 _*.c
 build
 dist
+MANIFEST
 fatiando/changeset.txt
-cookbook/recipes/frames
-cookbook/harvester/data.txt
-cookbook/harvester/predicted.txt
-cookbook/harvester/result.den
-cookbook/harvester/result.msh
+doc/tutorials/harvester_synthetic_topo/data.txt
+doc/tutorials/harvester_synthetic_topo/predicted.txt
+doc/tutorials/harvester_synthetic_topo/result.den
+doc/tutorials/harvester_synthetic_topo/result.msh

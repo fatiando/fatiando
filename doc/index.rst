@@ -101,7 +101,7 @@ have a look at the rest of this documentation.
     install.rst
     using.rst
     advanced.rst
-    tutorial.rst
+    tutorials.rst
     cookbook.rst
     api/fatiando.rst
 
