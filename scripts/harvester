@@ -222,7 +222,7 @@ log.info("    column format: %s" % (str(column_fmt)))
 try:
     inv_z = params.inv_z
 except AttributeError:
-    use_cols = False
+    inv_z = False
 log.info("    inverting z axis of data: %s" % (str(inv_z)))
 seed_file = params.seed_file
 log.info("  seed file: %s" % (seed_file))
