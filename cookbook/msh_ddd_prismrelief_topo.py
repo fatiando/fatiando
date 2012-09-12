@@ -1,5 +1,5 @@
 """
-Example of generating a 3D prism model of the topography
+Meshing: Generate a 3D prism model of the topography
 """
 import fatiando as ft
 

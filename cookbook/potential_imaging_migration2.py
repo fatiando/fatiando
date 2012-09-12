@@ -1,6 +1,6 @@
 """
-Run the potential field migration imaging method on synthetic gravity data of
-a more complex model to get a 3D density distribution estimate.
+Potential: 3D imaging using the migration method on synthetic gravity data
+(more complex model + noisy data)
 """
 import fatiando as ft
 
@@ -15,7 +15,7 @@ prisms = [ft.msh.ddd.Prism(-4000,0,-4000,-2000,2000,5000,{'density':1200}),
 # Calculate on a scatter of points to show that migration doesn't need gridded
 # data
 xp, yp, zp = ft.grd.scatter((-6000, 6000, -6000, 6000), 1000, z=-10)
-gz = ft.pot.prism.gz(xp, yp, zp, prisms)
+gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.1)
 
 # Plot the data
 shape = (50, 50)
@@ -29,7 +29,7 @@ ft.vis.ylabel('North (km)')
 ft.vis.m2km()
 ft.vis.show()
 
-mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, 0, 10000, (30, 30, 30))
+mesh = ft.pot.imaging.migrate(xp, yp, zp, gz, 0, 10000, (30, 30, 30), power=0.8)
 
 # Plot the results
 ft.vis.figure3d()

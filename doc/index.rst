@@ -26,7 +26,7 @@ This means that it can be reused and remixed
 with few restrictions.
 See the :ref:`license text <license>` for more information.
 
-The main interface for Fatiando
+The **main interface** for Fatiando
 is provided by a Python_ package called ``fatiando``.
 This means that commands in Fatiando
 are executed using Python scripts,
@@ -37,6 +37,12 @@ So, you can easily combine different commands together
 and even extend the functionality of Fatiando with your own code!
 
 .. _Python: http://www.python.org
+
+The best **place to start** learning
+about Fatiando is the :ref:`Cookbook <cookbook>`!
+There, you'll find many sample scripts
+with common tasks
+that can help you get started.
 
 As an **example**, this is how easy it is to create synthetic noise-corrupted
 gravity data on random points from a 3D prism model:

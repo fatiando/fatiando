@@ -297,16 +297,15 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
         raise ValueError("Damping must be positive")
     # If no solver is given, generate custom ones
     if solver is None:
-        if sparse:
-            inversion.gradient.use_sparse()
-            solver = inversion.gradient.steepest(
-                initial=numpy.ones(mesh.size, dtype='f'))
+        if sharp == 0:
+            if sparse:
+                inversion.linear.use_sparse()
+            solver = inversion.linear.overdet(mesh.size)
         else:
-            if sharp == 0:
-                solver = inversion.linear.overdet(mesh.size)
-            else:
-                solver = inversion.gradient.levmarq(
-                    initial=numpy.ones(mesh.size, dtype='f'))
+            if sparse:
+                inversion.gradient.use_sparse()
+            solver = inversion.gradient.levmarq(
+                initial=numpy.ones(mesh.size, dtype='f'))
     log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
     log.info("  number of parameters: %d" % (len(mesh)))
     log.info("  number of data: %d" % (len(ttimes)))

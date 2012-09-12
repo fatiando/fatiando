@@ -1,5 +1,6 @@
 """
-Example of inverting synthetic gz data from a single prism using harvester
+Potential: 3D gravity inversion by planting anomalous densities using
+``harvester`` (simple example)
 """
 import fatiando as ft
 

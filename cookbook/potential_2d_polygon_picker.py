@@ -1,5 +1,5 @@
 """
-2D direct gravity modeling with polygons
+Potential: 2D forward modeling with polygons
 """
 import numpy
 import fatiando as ft

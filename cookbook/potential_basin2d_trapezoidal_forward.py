@@ -1,5 +1,5 @@
 """
-2D interactive direct gravity modeling of a trapezoidal 2D basin
+Potential: Interactive 2D forward gravity modeling of a trapezoidal basin
 """
 import numpy
 from fatiando.ui.gui import BasinTrap

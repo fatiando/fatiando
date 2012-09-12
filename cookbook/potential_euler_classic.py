@@ -1,3 +1,6 @@
+"""
+Potential: Classic 3D Euler deconvolution of magnetic data (single window)
+"""
 import fatiando as ft
 
 log = ft.log.get()

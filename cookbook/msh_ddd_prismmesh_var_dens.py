@@ -1,5 +1,5 @@
 """
-Make and plot a 3D prism mesh with depth-varying density.
+Meshing: Make a 3D prism mesh with depth-varying density
 """
 import fatiando as ft
 

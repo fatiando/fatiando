@@ -1,6 +1,6 @@
 """
-Run the all imaging methods on synthetic gravity data to compare their
-performance.
+Potential: Compare the results of different 3D potential field imaging methods
+(migration, generalized inverse, and sandwich model)
 """
 from multiprocessing import Pool
 import fatiando as ft

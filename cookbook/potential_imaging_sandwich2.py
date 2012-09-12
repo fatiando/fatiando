@@ -1,6 +1,6 @@
 """
-Run the Sandwich model imaging method on synthetic gravity data of a more
-complex model to get a 3D density distribution estimate.
+Potential: 3D imaging using the sandwich model method on synthetic gravity data
+(more complex model)
 """
 import fatiando as ft
 

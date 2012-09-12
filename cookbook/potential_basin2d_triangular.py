@@ -1,5 +1,5 @@
 """
-Gravity inversion for the relief of a 2D triangular basin
+Potential: Simple gravity inversion for the relief of a 2D triangular basin
 """
 import numpy
 import fatiando as ft

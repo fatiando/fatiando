@@ -1,5 +1,5 @@
 """
-Make and plot a 3D prism mesh with topography.
+Meshing: Make and plot a 3D prism mesh with topography
 """
 import fatiando as ft
 

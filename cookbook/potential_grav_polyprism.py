@@ -1,5 +1,5 @@
 """
-Create synthetic gravity data from a stack of 3D polygonal prisms.
+Potential: Forward gravity modeling using a stack of 3D polygonal prisms
 """
 import fatiando as ft
 
@@ -7,7 +7,7 @@ log = ft.log.get()
 log.info(ft.log.header())
 log.info(__doc__)
 
-log.info("Draw the polygons one by one")
+log.info("Draw the polygons one by one:")
 bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
 depths = [0, 1000, 2000, 3000, 4000]

@@ -1,6 +1,6 @@
 """
 Heat: Climate signal: What happens when assuming a climate change is linear,
-when in fact it was abrupt
+when in fact it was abrupt?
 """
 import numpy
 import fatiando as ft

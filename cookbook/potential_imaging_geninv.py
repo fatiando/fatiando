@@ -1,6 +1,6 @@
 """
-Run the Generalized Inverse imaging method on synthetic gravity data to get a 3D
-density distribution estimate.
+Potential: 3D imaging using the Generalized Inverse method on synthetic gravity
+data (simple model)
 """
 import fatiando as ft
 

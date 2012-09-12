@@ -1,5 +1,6 @@
 """
-Generate synthetic potential field data from a 3D prism model.
+Potential: Forward modeling of the gravitational potential and its derivatives
+using 3D prisms
 """
 import numpy
 import fatiando as ft

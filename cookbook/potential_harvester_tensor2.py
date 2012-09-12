@@ -1,5 +1,6 @@
 """
-Example of 3D inversion of synthetic gravity gradient data using Harvester
+Potential: 3D gravity gradient inversion by planting anomalous densities using
+``harvester`` (all targeted sources)
 """
 import numpy
 import fatiando as ft

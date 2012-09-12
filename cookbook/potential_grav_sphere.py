@@ -1,5 +1,6 @@
 """
-Calculate the gravity anomaly of sphere model (with noise) on random points.
+Potential: Forward modeling of the gravity anomaly using spheres (calculate on
+random points)
 """
 import fatiando as ft
 

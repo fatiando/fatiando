@@ -1,5 +1,6 @@
 """
-Calculate the gravity anomaly caused by a topographic model using prisms
+Meshing: Generate a topographic model using prisms and calculate its gravity
+anomaly
 """
 import fatiando as ft
 

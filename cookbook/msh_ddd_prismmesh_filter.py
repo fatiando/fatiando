@@ -1,5 +1,5 @@
 """
-Filter values from a 3D prism mesh with alternating density contrasts.
+Meshing: Filter prisms from a 3D prism mesh based on their physical properties
 """
 import fatiando as ft
 

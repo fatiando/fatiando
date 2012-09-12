@@ -1,5 +1,5 @@
 """
-Make and plot a 3D prism mesh.
+Meshing: Make and plot a 3D prism mesh
 """
 import fatiando as ft
 

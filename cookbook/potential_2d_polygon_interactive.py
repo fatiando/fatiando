@@ -1,5 +1,5 @@
 """
-2D interactive direct gravity modeling with polygons
+Potential: Interactive 2D forward modeling with polygons
 """
 import numpy
 from fatiando.ui.gui import Moulder

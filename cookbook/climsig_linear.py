@@ -1,6 +1,6 @@
 """
-Heat: Climate signal: Forward and inverse modeling of a linear change in
-temperature measured in a well
+Heat: Forward and inverse modeling of a linear change in temperature measured
+in a well
 """
 import numpy
 import fatiando as ft

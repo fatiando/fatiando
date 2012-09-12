@@ -42,7 +42,7 @@ ttimes, error = ft.utils.contaminate(ttimes, 0.01, percent=True,
 mesh = ft.msh.dd.SquareMesh(area, shape)
 # and run the inversion
 estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
-    smooth=0.1)
+    smooth=0.001)
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', ft.seis.srtomo.slowness2vel(estimate))
 

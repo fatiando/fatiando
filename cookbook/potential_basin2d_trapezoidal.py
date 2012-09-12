@@ -1,5 +1,5 @@
 """
-Gravity inversion for the relief of a 2D trapezoidal basin
+Potential: Simple gravity inversion for the relief of a 2D trapezoidal basin
 """
 import numpy
 import fatiando as ft

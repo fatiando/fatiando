@@ -1,5 +1,6 @@
 """
-Example of inverting synthetic gz data from a complex source using harvester
+Potential: 3D gravity inversion by planting anomalous densities using
+``harvester`` (more complex example)
 """
 import fatiando as ft
 import numpy

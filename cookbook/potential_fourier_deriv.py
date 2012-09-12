@@ -1,5 +1,5 @@
 """
-Calculate the derivative of the gravity anomaly in the x-direction
+Potential: Calculating the derivatives of the gravity anomaly using FFT
 """
 import fatiando as ft
 
