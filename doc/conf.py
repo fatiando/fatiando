@@ -18,6 +18,8 @@ sys.path.append('..')
 # and the recipes to build the cookbook
 sys.path.append('../cookbook/recipes')
 
+# Mock out the depencies with C modules so that ReadTheDocs can build the
+# documentation without having them installed.
 class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -45,6 +47,9 @@ MOCK_MODULES = [
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
+# Build the cookbook recipes
+import cookbook
+cookbook.build(os.path.join(os.pardir, 'cookbook'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

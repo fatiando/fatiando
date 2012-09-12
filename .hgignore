@@ -9,6 +9,8 @@ build
 dist
 MANIFEST
 fatiando/changeset.txt
+doc/cookbook/*.rst
+doc/_static/cookbook/*.py
 doc/tutorials/harvester_synthetic_topo/data.txt
 doc/tutorials/harvester_synthetic_topo/predicted.txt
 doc/tutorials/harvester_synthetic_topo/result.den

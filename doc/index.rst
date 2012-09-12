@@ -102,7 +102,7 @@ have a look at the rest of this documentation.
     using.rst
     advanced.rst
     tutorials.rst
-    cookbook.rst
     api/fatiando.rst
+    cookbook.rst
 
 
