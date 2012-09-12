@@ -39,16 +39,8 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	@rm -rvf $(BUILDDIR)/* fatiando*.pdf
-
-clean-cookbook:
-	rm -rf cookbook
-
-cookbook:
-	@echo
-	@echo "BUILDING COOKBOOK"
-	python build_cookbook.py
-	@echo
+	@rm -rvf $(BUILDDIR)/* fatiando*.pdf cookbook _static/cookbook
+	rm -rf
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
