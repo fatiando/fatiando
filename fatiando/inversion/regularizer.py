@@ -611,8 +611,8 @@ class TotalVariation(Regularizer):
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
             raise ValueError(msg)
-        Qdiag = self.beta/(self.sqrt**3) + 1.
-        #Qdiag = self.beta/(self.sqrt**3)
+        #Qdiag = self.beta/(self.sqrt**3) + 1.
+        Qdiag = self.beta/(self.sqrt**3)
         return hessian + self.mu*numpy.dot(self.fdmat.T*Qdiag, self.fdmat)
 
     def _sum_hessian_sparse(self, hessian, p=None):
@@ -620,8 +620,8 @@ class TotalVariation(Regularizer):
             msg = ("TotalVariation is non-linear and cannot be used with a" +
                    " linear solver.")
             raise ValueError(msg)
-        Qdiag = self.beta/(self.sqrt**3) + 1.
-        #Qdiag = self.beta/(self.sqrt**3)
+        #Qdiag = self.beta/(self.sqrt**3) + 1.
+        Qdiag = self.beta/(self.sqrt**3)
         return hessian + self.mu*self.fdmat.T*Qdiag*self.fdmat
 
 class TotalVariation1D(TotalVariation):

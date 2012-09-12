@@ -20,7 +20,7 @@ log = ft.log.get()
 log.info(ft.log.header())
 log.info(__doc__)
 
-area = (0, 5, 0, 5)
+area = (0, 100000, 0, 100000)
 shape = (150, 150)
 model = ft.msh.dd.SquareMesh(area, shape)
 # Fetch the image from the online docs
@@ -42,7 +42,7 @@ ttimes, error = ft.utils.contaminate(ttimes, 0.01, percent=True,
 mesh = ft.msh.dd.SquareMesh(area, shape)
 # and run the inversion
 estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
-    smooth=5*10**5)
+    smooth=0.1)
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', ft.seis.srtomo.slowness2vel(estimate))
 
@@ -55,7 +55,8 @@ ft.vis.figure(figsize=(14, 5))
 ft.vis.subplot(1, 2, 1)
 ft.vis.axis('scaled')
 ft.vis.title('Vp synthetic model of the Earth')
-ft.vis.squaremesh(model, prop='vp', vmin=4000, vmax=10000, cmap=ft.vis.cm.seismic)
+ft.vis.squaremesh(model, prop='vp', vmin=4000, vmax=10000,
+    cmap=ft.vis.cm.seismic)
 cb = ft.vis.colorbar()
 cb.set_label('Velocity')
 ft.vis.points(src_loc, '*y', label="Sources")
