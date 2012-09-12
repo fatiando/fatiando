@@ -5,6 +5,8 @@ import sys
 import os
 import shutil
 
+print os.path.abspath(__file__)
+
 body = r"""
 .. raw:: html
 

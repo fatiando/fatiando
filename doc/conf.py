@@ -15,8 +15,8 @@ import sys
 import os
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append('..')
-# and the recipes to build the cookbook
-sys.path.append('../cookbook/recipes')
+# and the cookbook.py module to build the cookbook
+sys.path.append(os.path.split(os.path.abspath(__file__)))
 
 # Mock out the depencies with C modules so that ReadTheDocs can build the
 # documentation without having them installed.
