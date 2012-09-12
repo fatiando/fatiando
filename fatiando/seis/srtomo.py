@@ -5,6 +5,8 @@ reflection or refraction)
 **Functions**
 
 * :func:`~fatiando.seis.srtomo.run`: Run the tomography on a given data set
+* :func:`~fatiando.seis.srtomo.slowness2vel`: Safely convert slowness to
+  velocity (avoids zero division)
 
 **Examples**
 
@@ -27,8 +29,8 @@ Using simple synthetic data::
     >>> # Run the tomography
     >>> estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh)
     >>> # Actually returns slowness instead of velocity
-    >>> for slowness in estimate:
-    ...     print '%.4f' % (1./slowness),
+    >>> for velocity in slowness2vel(estimate):
+    ...     print '%.4f' % (velocity),
     2.0000 5.0000
     >>> for v in residuals:
     ...     print '%.4f' % (v),
@@ -55,8 +57,8 @@ Again, using simple synthetic data but this time use Newton's method to solve::
     >>> estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh,
     ...                                          solver)
     >>> # Actually returns slowness instead of velocity
-    >>> for v in estimate:
-    ...     print '%.4f' % (1./v),
+    >>> for velocity in slowness2vel(estimate):
+    ...     print '%.4f' % (velocity),
     2.0000 5.0000
     >>> for v in residuals:
     ...     print '%.4f' % (v),
@@ -202,17 +204,35 @@ class TravelTime(inversion.datamodule.DataModule):
             self.hessian = self._get_hessian()
         return hessian + 2.*self.hessian
 
-def _slow2vel(slowness, tol=10**(-5)):
+def slowness2vel(slowness, tol=10**(-8)):
     """
-    Safely convert slowness to velocity. 0 slowness is mapped to 0 velocity.
+    Safely convert slowness to velocity.
+
+    Almost 0 slowness is mapped to 0 velocity.
+
+    Parameters:
+
+    * slowness : array
+        The slowness values
+    * tol : float
+        Slowness < tol will be set to 0 velocity
+
+    Returns:
+
+    * velocity : array
+        The converted velocities
+
     """
-    if slowness <= tol and slowness >= -tol:
-        return 0.
-    else:
-        return 1./float(slowness)
+    def safe(s):
+        if abs(s) >= tol:
+            return 1./s
+        else:
+            return 0.
+    velocity = numpy.fromiter((safe(s) for s in slowness), dtype='f')
+    return velocity
 
 def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
-    smooth=0., sharp=0., beta=10.**(-10)):
+    smooth=0., sharp=0., beta=10.**(-5)):
     """
     Perform a 2D straight-ray travel-time tomography. Estimates the slowness
     (1/velocity) of cells in mesh (because slowness is linear and easier)
@@ -285,7 +305,7 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
             if sharp == 0:
                 solver = inversion.linear.overdet(mesh.size)
             else:
-                solver = inversion.gradient.steepest(
+                solver = inversion.gradient.levmarq(
                     initial=numpy.ones(mesh.size, dtype='f'))
     log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
     log.info("  number of parameters: %d" % (len(mesh)))

@@ -1,5 +1,5 @@
 """
-Cut a section from a grid.
+Gridding: Cut a section from a grid
 """
 import fatiando as ft
 
@@ -7,7 +7,9 @@ log = ft.log.get()
 log.info(ft.log.header())
 log.info(__doc__)
 
+# Generate some synthetic data on a regular grid
 x, y = ft.grd.regular((-10, 10, -10, 10), (100,100))
+# Using a 2D Gaussian
 z = ft.utils.gaussian2d(x, y, 1, 1)
 subarea = [-2, 2, -3, 3]
 subx, suby, subscalar = ft.grd.cut(x, y, [z], subarea)

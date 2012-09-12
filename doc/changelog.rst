@@ -11,6 +11,8 @@ Version 0.1
 **New features**:
 
 * Change license to BSD (see the :ref:`license text <license>`).
+* Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
+  sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
   densities" by
   `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/publications/>`_
