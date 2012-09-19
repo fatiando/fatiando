@@ -884,11 +884,6 @@ def vremove(value, prop, cells):
         x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | bar:1000
 
     """
-    def keep(c):
-        if c is None:
-            return False
-        if prop not in c.props:
-            return True
-        if c.props[prop] != value:
-            return True
-    return [c for c in cells if keep(c)]
+    removed = [c for c in cells
+        if c is not None and (prop not in c.props or c.props[prop] != value)]
+    return removed

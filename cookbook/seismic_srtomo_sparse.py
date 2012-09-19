@@ -21,7 +21,7 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 area = (0, 100000, 0, 100000)
-shape = (150, 150)
+shape = (100, 100)
 model = ft.msh.dd.SquareMesh(area, shape)
 # Fetch the image from the online docs
 urllib.urlretrieve(
@@ -40,9 +40,13 @@ ttimes, error = ft.utils.contaminate(ttimes, 0.01, percent=True,
     return_stddev=True)
 # Make the mesh
 mesh = ft.msh.dd.SquareMesh(area, shape)
+# Since the matrices are big, use the Steepest Descent solver to avoid dealing
+# with Hessian matrices. It needs a starting guess, so start with 1000
+ft.inversion.gradient.use_sparse()
+solver = ft.inversion.gradient.steepest(1000*numpy.ones(mesh.size))
 # and run the inversion
 estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
-    smooth=0.001)
+    solver=solver, smooth=0.01)
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', ft.seis.srtomo.slowness2vel(estimate))
 
