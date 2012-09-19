@@ -38,17 +38,17 @@ class Moulder():
 
     To run this in a script, use::
 
-        >>> # Define the area of modeling
-        >>> area = (0, 1000, 0, 1000)
-        >>> # Where the gravity effect is calculated
-        >>> xp = range(0, 1000, 10)
-        >>> zp = [0]*len(xp)
-        >>> # Create the application
-        >>> app = Moulder(area, xp, zp)
-        >>> # Run it (close the window to finish)
-        >>> app.run()
-        >>> # and save the calculated gravity anomaly profile
-        >>> app.savedata("mydata.txt")
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Create the application
+        app = Moulder(area, xp, zp)
+        # Run it (close the window to finish)
+        app.run()
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
 
     Parameters:
 
@@ -247,20 +247,20 @@ class BasinTrap(Moulder):
 
     Example::
 
-        >>> # Define the area of modeling
-        >>> area = (0, 1000, 0, 1000)
-        >>> # Where the gravity effect is calculated
-        >>> xp = range(0, 1000, 10)
-        >>> zp = [0]*len(xp)
-        >>> # Where the two surface nodes are. Use depth = 1 because direct modeling
-        >>> # doesn't like it when the model and computation points coincide
-        >>> nodes = [[100, 1], [900, 1]]
-        >>> # Create the application
-        >>> app = BasinTrap(area, nodes, xp, zp)
-        >>> # Run it (close the window to finish)
-        >>> app.run()
-        >>> # and save the calculated gravity anomaly profile
-        >>> app.savedata("mydata.txt")
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Where the two surface nodes are. Use depth = 1 because direct modeling
+        # doesn't like it when the model and computation points coincide
+        nodes = [[100, 1], [900, 1]]
+        # Create the application
+        app = BasinTrap(area, nodes, xp, zp)
+        # Run it (close the window to finish)
+        app.run()
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
 
     Parameters:
 
@@ -351,20 +351,20 @@ class BasinTri(Moulder):
 
     Example::
 
-        >>> # Define the area of modeling
-        >>> area = (0, 1000, 0, 1000)
-        >>> # Where the gravity effect is calculated
-        >>> xp = range(0, 1000, 10)
-        >>> zp = [0]*len(xp)
-        >>> # Where the two surface nodes are. Use depth = 1 because direct modeling
-        >>> # doesn't like it when the model and computation points coincide
-        >>> nodes = [[100, 1], [900, 1]]
-        >>> # Create the application
-        >>> app = BasinTri(area, nodes, xp, zp)
-        >>> # Run it (close the window to finish)
-        >>> app.run()
-        >>> # and save the calculated gravity anomaly profile
-        >>> app.savedata("mydata.txt")
+        # Define the area of modeling
+        area = (0, 1000, 0, 1000)
+        # Where the gravity effect is calculated
+        xp = range(0, 1000, 10)
+        zp = [0]*len(xp)
+        # Where the two surface nodes are. Use depth = 1 because direct modeling
+        # doesn't like it when the model and computation points coincide
+        nodes = [[100, 1], [900, 1]]
+        # Create the application
+        app = BasinTri(area, nodes, xp, zp)
+        # Run it (close the window to finish)
+        app.run()
+        # and save the calculated gravity anomaly profile
+        app.savedata("mydata.txt")
 
     Parameters:
 
@@ -448,18 +448,18 @@ class Lasagne():
 
     Example::
 
-        >>> # Define the thickness of the layers
-        >>> thickness = [10, 20, 5, 10]
-        >>> # Define the measuring points along the well
-        >>> zp = range(1, sum(thickness), 1)
-        >>> # Define the velocity range
-        >>> vmin, vmax = 1, 10000
-        >>> # Run the application
-        >>> app = Lasagne(thickness, zp, vmin, vmax)
-        >>> app.run()
-        >>> # Save the modeled data
-        >>> app.savedata("mydata.txt")
-
+        # Define the thickness of the layers
+        thickness = [10, 20, 5, 10]
+        # Define the measuring points along the well
+        zp = range(1, sum(thickness), 1)
+        # Define the velocity range
+        vmin, vmax = 1, 10000
+        # Run the application
+        app = Lasagne(thickness, zp, vmin, vmax)
+        app.run()
+        # Save the modeled data
+        app.savedata("mydata.txt")
+cd
     Parameters:
 
     * thickness : list

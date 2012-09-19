@@ -36,7 +36,8 @@ Then it can be used in a script::
     >>> log.info("This is an info msg printed to stdout from the script")
     This is an info msg printed to stdout from the script
     >>> log.debug("This is a debug msg NOT printed")
-    >>> log = fatiando.log.tofile(log, 'mylogfile.log')
+    >>> # Uncomment bellow to log to a file as well!
+    >>> # log = fatiando.log.tofile(log, 'mylogfile.log')
     >>> log.warning('Warning printed to both stdout and log file')
     Warning printed to both stdout and log file
     >>> log.error('and this is an Error message.')

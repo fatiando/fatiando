@@ -7,6 +7,12 @@ doc/fatiando*.pdf
 _*.c
 build
 dist
+bin
+man
+local
+include
+lib
+virtualenv.py
 MANIFEST
 fatiando/changeset.txt
 doc/cookbook/*.rst
