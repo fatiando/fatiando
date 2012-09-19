@@ -68,7 +68,7 @@ clean:
 .PHONY: clean-venv
 clean-venv:
 	# Clean the virtualenv
-	rm -rvf bin lib man local include virtualenv.py
+	rm -rvf bin lib man local include virtualenv.py virtualenv.pyc
 
 .PHONY: clean-docs
 clean-docs:

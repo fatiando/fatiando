@@ -7,9 +7,6 @@ Fatiando a Terra
 
 For more **information** visit http://www.fatiando.org/software/fatiando
 
-The most recent **documentation** is available at
-http://fatiando.readthedocs.org
-
 Here is a quick example of using Fatiando to generate synthetic gravity data
 on random points, contaminate it with gaussian noise, and plot it::
 
@@ -28,6 +25,12 @@ on random points, contaminate it with gaussian noise, and plot it::
     ft.vis.colorbar()
     ft.vis.plot(xp, yp, '.k')
     ft.vis.show()
+
+Documentation
+-------------
+
+The latest documentation is available at
+http://fatiando.readthedocs.org
 
 Source code
 -----------
