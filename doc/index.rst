@@ -98,7 +98,7 @@ have a look at the rest of this documentation.
     <h1>Contents:</h1>
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
 
     overview.rst
     contributors.rst
