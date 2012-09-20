@@ -2,7 +2,6 @@
 PY=python
 PIP=pip
 NOSE=nosetests
-VENV=. bin/activate
 
 # To upload to PyPI run:
 # python setup.py sdist --formats=zip,gztar upload
@@ -19,19 +18,10 @@ help:
 	@echo "    clean         clean up"
 	@echo ""
 
-# MAKE A VIRTUALENV
-.PHONY: venv
-venv: bin/python
-bin/python: virtualenv.py
-	python $< . --system-site-packages
-
-virtualenv.py:
-	wget -L https://raw.github.com/pypa/virtualenv/master/virtualenv.py
-
 # BUILD EXTENSION MODULES
 .PHONY: build
-build: deps
-	$(VENV); $(PY) setup.py build_ext --inplace
+build:
+	$(PY) setup.py build_ext --inplace
 
 # BUILD THE DOCS
 .PHONY: docs
@@ -40,18 +30,18 @@ docs: clean
 
 # RUN ALL TESTS
 .PHONY: test
-test: deps
-	$(VENV); $(NOSE) fatiando
+test:
+	$(NOSE) fatiando
 
 # INSTALL THE DEPENDENCIES
 .PHONY: deps
-deps: requires.txt venv
-	$(VENV); $(PIP) install -r $<
+deps: requires.txt
+	$(PIP) install -r $<
 
 # MAKE A SOURCE DISTRIBUTION
 .PHONY: package
 package: docs
-	$(VENV); $(PY) setup.py sdist --formats=zip,gztar
+	$(PY) setup.py sdist --formats=zip,gztar
 
 # CLEAN THINGS UP
 .PHONY: clean
@@ -64,11 +54,6 @@ clean:
 	rm -rvf mydata.txt mylogfile.log
 	# The logo image fetched by the cookbook recipes
 	rm -rvf logo.png cookbook/logo.png
-
-.PHONY: clean-venv
-clean-venv:
-	# Clean the virtualenv
-	rm -rvf bin lib man local include virtualenv.py virtualenv.pyc
 
 .PHONY: clean-docs
 clean-docs:
