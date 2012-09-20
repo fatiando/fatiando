@@ -1,6 +1,6 @@
 """
-Create synthetic total field magnetic anomaly data from a 3D model of polygonal
-prisms.
+Potential: 3D forward modeling of total-field magnetic anomaly using polygonal
+prisms
 """
 import fatiando as ft
 

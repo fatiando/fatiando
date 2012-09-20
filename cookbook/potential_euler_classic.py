@@ -6,15 +6,21 @@ import fatiando as ft
 log = ft.log.get()
 log.info(ft.log.header())
 
+# Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
     ft.msh.ddd.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
+# Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
 xp, yp, zp = ft.grd.regular(area, shape, z=-1)
+# Add a constant baselevel
 baselevel = 10
-tf = (ft.pot.prism.tf(xp, yp, zp, model, inc=-45, dec=0)/ft.constants.T2NT
+# Convert from nanoTesla to Tesla because euler and derivatives require things
+# in SI
+tf = (ft.utils.nt2si(ft.pot.prism.tf(xp, yp, zp, model, inc=-45, dec=0))
       + baselevel)
+# Calculate the derivatives using FFT
 xderiv = ft.pot.fourier.derivx(xp, yp, tf, shape)
 yderiv = ft.pot.fourier.derivy(xp, yp, tf, shape)
 zderiv = ft.pot.fourier.derivz(xp, yp, tf, shape)
@@ -29,7 +35,8 @@ for i, f in enumerate([tf, xderiv, yderiv, zderiv]):
     ft.vis.colorbar()
     ft.vis.m2km()
 ft.vis.show()
-
+# Run the euler deconvolution on a single window
+# Structural index is 3
 point, base = ft.pot.euler.classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
 print "Base level used: %g" % (baselevel)
 print "Estimated base level: %g" % (base)

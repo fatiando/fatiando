@@ -1,6 +1,6 @@
 """
-Estimate the center of mass of a source using the eigenvectors of the gravity
-gradient tensor.
+Potential: Center of mass estimation using the first eigenvector of the gravity
+gradient tensor (pyramid model)
 """
 import numpy
 import fatiando as ft

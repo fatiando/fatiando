@@ -1,6 +1,6 @@
 """
-Calculate the total-field anomaly of a prism model with induced magnetization
-only.
+Potential: 3D forward modeling of total-field magnetic anomaly using rectangular
+prisms (model with induced and remanent magnetization)
 """
 import fatiando as ft
 
@@ -14,6 +14,8 @@ prisms = [
         {'magnetization':2}),
     ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,
         {'magnetization':1}),
+    # This prism has remanent magnetization because it's physical property
+    # dict has inclination and declination
     ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,
         {'magnetization':3, 'inclination':-10, 'declination':45})]
 # Create a regular grid at 100m height
@@ -26,10 +28,11 @@ tf = ft.pot.prism.tf(xp, yp, zp, prisms, 30, -15)
 ft.vis.figure()
 ft.vis.title("Total-field anomaly (nT)")
 ft.vis.axis('scaled')
-ft.vis.contourf(yp*0.001, xp*0.001, tf, shape, 15)
+ft.vis.contourf(yp, xp, tf, shape, 15)
 ft.vis.colorbar()
 ft.vis.xlabel('East y (km)')
 ft.vis.ylabel('North x (km)')
+ft.vis.m2km()
 ft.vis.show()
 # Show the prisms
 ft.vis.figure3d()
