@@ -74,24 +74,31 @@ which results in something like this:
 
 For those of you not so interested in potential fields,
 there is a new module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>`
-for finite difference simulations
-of seismic waves!
-Check out `this animation`_ of SH wave propagation
-resulting in a Love wave (the seismometer is the blue triangle)!
-
-.. _this animation: http://fatiando.readthedocs.org/en/latest/_static/love-wave.gif
+for **2D finite difference simulations
+of seismic waves**!
 
 .. raw:: html
 
     <div class="figure align-center">
-        <img alt="Animation of a Love wave" src="_static/love-wave-lowres.gif"/>
-        <p class="caption">There is also a
         <a class="reference external" href="_static/love-wave.gif">
-        higher resolution gif</a>.</p>
+            <img alt="Animation of a Love wave"
+            src="_static/love-wave-lowres.gif"/>
+        </a>
+        <a class="reference external" href="_static/rayleigh-wave.gif">
+            <img alt="Animation of a Rayleigh wave"
+            src="_static/rayleigh-wave-lowres.gif"/>
+        </a>
+        <p class="caption">
+            <i>
+            <b>Left</b>: SH wave propagation resulting in a Love wave.
+            <b>Right</b>: P and SV wave propagation
+            resulting in a Rayleigh wave.
+            At the bottom you can see the particle movement recorded at the
+            seismometer.
+            The seismometer is the blue triangle.
+            Click on the images for higher resolution gifs.</i>
+        </p>
     </div>
-
-If you want to find out more,
-have a look at the rest of this documentation.
 
 .. raw:: html
 
