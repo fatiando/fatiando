@@ -8,9 +8,15 @@ Version 0.1
 
 **Release date**: NOT RELEASED
 
-**New features**:
+**Changes**:
 
 * Change license to BSD (see the :ref:`license text <license>`).
+* The API is now fully accessible by only importing ``fatiando``
+* Modules and packages have shorter for easier access (e.g., pot instead of
+  potential).
+* Now all plotting functions are available from vis directly.
+  Import all from map and vtk in vis/__init__.py, plus some functions from
+  matplotlib.
 * Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
@@ -40,15 +46,6 @@ Version 0.1
 * Added module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>` with 2D Finite
   Difference simulations of elastic seismic waves
 * Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
-
-**Improved features**:
-
-* The API is now fully accessible by only importing ``fatiando``
-* Modules and packages have shorter for easier access (e.g., pot instead of
-  potential).
-* Now all plotting functions are available from vis directly.
-  Import all from map and vtk in vis/__init__.py, plus some functions from
-  matplotlib.
 * If building inplace or packaging, the setup script puts the Mercurial
   changeset hash in a file. Then :ref:`fatiando.log.header <fatiando_log>` loads
   the hash from file and put
