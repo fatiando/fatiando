@@ -1,5 +1,5 @@
 """
-Plot a map using the Robinson map projection and contours
+Vis: Plot a map using the Robinson map projection and contours
 """
 import fatiando as ft
 

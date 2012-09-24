@@ -1,7 +1,6 @@
 """
-Simulate the vertical seismic profile and invert for the velocity of a series
-of layers with thicknesses that don't match the true ones. Regularizes the
-problem using sharpness (total variation).
+Seis: Invert vertical seismic profile (VSP) traveltimes using sharpness
+regularization
 """
 import numpy
 import fatiando as ft

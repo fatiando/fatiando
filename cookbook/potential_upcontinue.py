@@ -1,5 +1,5 @@
 """
-Upcontinue noisy gz data using the analytical formula
+Potential: Upward continuation of noisy gz data using the analytical formula
 """
 import fatiando as ft
 

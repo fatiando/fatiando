@@ -1,5 +1,5 @@
 """
-Seis: SRTomo: 2D straight-ray tomography of large data sets and models using
+Seis: 2D straight-ray tomography of large data sets and models using
 sparse matrices
 
 Uses synthetic data and a model generated from an image file.

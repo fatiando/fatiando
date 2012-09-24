@@ -1,6 +1,6 @@
 """
-Example of epicenter estimation assuming a homogeneous and flat Earth.
-Show all steps of the non-linear solver algorithm.
+Seis: Show steps taken by different algorithms for 2D epicenter estimation
+on a flat Earth
 """
 import sys
 import numpy
@@ -31,7 +31,7 @@ src = ft.ui.picker.points(area, ax, marker='*', color='y')
 if len(src) > 1:
     log.error("Don't be greedy! Pick only one point as the source")
     sys.exit()
-    
+
 log.info("Generating synthetic travel-time data")
 srcs, recs = ft.utils.connect_points(src, rec_points)
 ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
@@ -40,7 +40,7 @@ error_level = 0.1
 ttr_true = stime - ptime
 ttr, error = ft.utils.contaminate(ttr_true, error_level, percent=True,
                                   return_stddev=True)
-    
+
 log.info("Choose the initial estimate for the gradient solvers")
 ft.vis.figure()
 ax = ft.vis.subplot(1, 1, 1)
@@ -53,7 +53,7 @@ if len(initial) > 1:
     log.error("Don't be greedy! Pick only one initial estimate")
     sys.exit()
 initial = initial[0]
-    
+
 log.info("Will solve the inverse problem using Newton's method")
 nsolver = ft.inversion.gradient.newton(initial)
 newton = [initial]

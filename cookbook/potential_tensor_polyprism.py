@@ -1,5 +1,5 @@
 """
-Create synthetic gradient tensor data from a 3D model of polygonal prisms.
+Potential: Generate synthetic gradient tensor data from polygonal prisms
 """
 import fatiando as ft
 

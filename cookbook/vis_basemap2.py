@@ -1,5 +1,5 @@
 """
-Plot a map using the Mercator map projection and pseudo-color
+Vis: Plot a map using the Mercator map projection and pseudo-color
 """
 import fatiando as ft
 

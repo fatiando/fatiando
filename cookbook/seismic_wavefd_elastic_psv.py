@@ -1,10 +1,8 @@
 """
-Perform a 2D finite difference simulation of P and SV wave propagation in a
+Seis: 2D finite difference simulation of elastic P and SV wave propagation in a
 medium with a discontinuity (i.e., Moho).
 
-.. warning:: Can be very slow on old computers!
-
-
+WARNING: Can be very slow!
 """
 import time
 import numpy as np

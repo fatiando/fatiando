@@ -1,6 +1,5 @@
 """
-Perform a simple 2D finite difference simulation of P and SV wave propagation
-in a medium.
+Seis: 2D finite difference simulation of elastic P and SV wave propagation
 """
 import time
 import numpy as np

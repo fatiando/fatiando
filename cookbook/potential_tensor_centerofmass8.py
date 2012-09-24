@@ -1,6 +1,6 @@
 """
-Estimate the center of mass of a source using the eigenvectors of the gravity
-gradient tensor.
+Potential: Center of mass estimation using the first eigenvector of the gravity
+gradient tensor (2 sources)
 """
 import numpy
 import fatiando as ft
@@ -38,6 +38,7 @@ eigenvals, eigenvecs = ft.pot.tensor.eigen(tensor)
 cm, sigma = ft.pot.tensor.center_of_mass(xp, yp, zp, eigenvecs[0])
 print "Sigma = %g" % (sigma)
 # Plot the prism and the estimated center of mass
+# It won't work well because we're using only a single window
 ft.vis.figure3d()
 ft.vis.points3d([cm], size=300.)
 ft.vis.prisms(prisms, prop='density', opacity=0.5)

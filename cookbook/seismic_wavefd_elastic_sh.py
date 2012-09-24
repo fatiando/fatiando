@@ -1,12 +1,11 @@
 """
-Perform a 2D finite difference simulation of SH wave propagation in a medium
-with a discontinuity (i.e., Moho).
+Seis: 2D finite difference simulation of elastic SH wave propagation in a
+medium with a discontinuity (i.e., Moho).
 
 The simulation shows that the SH waves get trapped in the top most layer and
-that longer periods travel faster.
+generate Love waves.
 
-WARNING: Can be very slow on old computers!
-
+WARNING: Can be very slow!
 """
 import time
 import numpy as np

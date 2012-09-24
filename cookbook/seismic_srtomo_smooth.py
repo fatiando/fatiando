@@ -1,5 +1,5 @@
 """
-Seis: SRTomo: 2D straight-ray tomography using smoothness regularization
+Seis: 2D straight-ray tomography using smoothness regularization
 
 Uses synthetic data and a model generated from an image file.
 """

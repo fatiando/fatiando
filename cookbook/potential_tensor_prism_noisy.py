@@ -1,5 +1,5 @@
 """
-Generate noise-corrupted gravity gradient tensor data from a prism model.
+Potential: Generate noise-corrupted gravity gradient tensor data
 """
 import fatiando as ft
 

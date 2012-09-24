@@ -1,8 +1,5 @@
 """
-Example when epicenter estimation requires regularization.
-Use an equality constraint on one of the coordinates to stabilize the problem.
-Try setting equality=0 and see what happens! Make sure to run a few times since
-the noise is random and you might get lucky!
+Seis: 2D epicenter estimation on a flat Earth using equality constraints
 """
 import sys
 import numpy
@@ -29,7 +26,7 @@ error_level = 0.05
 ttr_true = stime - ptime
 ttr, error = ft.utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
-    
+
 log.info("Choose the initial estimate for the gradient solvers")
 ft.vis.figure()
 ax = ft.vis.subplot(1, 1, 1)

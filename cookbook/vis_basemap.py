@@ -1,5 +1,5 @@
 """
-Plot a map using the Orthographic map projection and filled contours
+Vis: Plot a map using the Orthographic map projection and filled contours
 """
 import fatiando as ft
 

@@ -1,5 +1,6 @@
 """
-Simulate the vertical seismic profile and invert for the velocity of the layers.
+Seis: Invert vertical seismic profile (VSP) traveltimes for the velocity of the
+layers
 """
 import numpy
 import fatiando as ft

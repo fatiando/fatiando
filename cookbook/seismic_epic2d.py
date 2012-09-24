@@ -1,5 +1,5 @@
 """
-Example of epicenter estimation assuming a homogeneous and flat Earth.
+Seis: 2D epicenter estimation assuming a homogeneous and flat Earth
 """
 import sys
 import numpy

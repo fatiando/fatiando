@@ -41,8 +41,6 @@ GOALS FOR 0.1:
 * Finish the tutorial for harvester
 * Write the overview section in docs
 * Update formula in the docstring of seis.wavefd (the code is fourth order)
-* Finish making the recipes nicer (better docstring with titles and more
-  comments)
 * Finish docstring of pot.euler
 
 URGENT:
