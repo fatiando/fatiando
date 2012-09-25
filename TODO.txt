@@ -42,6 +42,9 @@ GOALS FOR 0.1:
 * Write the overview section in docs
 * Update formula in the docstring of seis.wavefd (the code is fourth order)
 * Finish docstring of pot.euler
+* Instructions for getting the latest dev from bitbucket
+* Instructions for installing .zip and tar archives with pip, not setup.py
+* Instructions for building Cython modules on Windows
 
 URGENT:
 
