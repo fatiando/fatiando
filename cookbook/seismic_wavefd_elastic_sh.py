@@ -7,8 +7,8 @@ generate Love waves.
 
 WARNING: Can be very slow!
 """
-import time
 import numpy as np
+from matplotlib import animation
 import fatiando as ft
 
 log = ft.log.get()
@@ -38,11 +38,10 @@ maxit = 4200
 timesteps = ft.seis.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
     sources, padding=0.8)
 
-rec = 300
+# This part makes an animation using matplotlibs animation API
+rec = 300 # The grid node used to record the seismogram
 vmin, vmax = -3*10**(-4), 3*10**(-4)
-# This part makes an animation by updating the plot every few iterations
-ft.vis.ion()
-ft.vis.figure(figsize=(10,6))
+fig = ft.vis.figure(figsize=(10,6))
 ft.vis.subplots_adjust(left=0.1, right=0.98)
 ft.vis.subplot(2, 1, 2)
 ft.vis.axis('scaled')
@@ -61,7 +60,7 @@ ft.vis.m2km()
 ft.vis.xlabel("x (km)")
 ft.vis.ylabel("z (km)")
 ft.vis.subplot(2, 1, 1)
-seismogram, = ft.vis.plot([0], [0], '-k')
+seismogram, = ft.vis.plot([], [], '-k')
 ft.vis.xlim(0, dt*maxit)
 ft.vis.ylim(vmin*10.**(6), vmax*10.**(6))
 ft.vis.xlabel("Time (s)")
@@ -70,59 +69,20 @@ times = []
 addtime = times.append
 amps = []
 addamp = amps.append
-start = time.clock()
-for i, u in enumerate(timesteps):
-    addamp(10.**(6)*u[0, rec])
-    addtime(dt*i)
-    if i%100 == 0:
-        ft.vis.title('time: %0.1f s' % (i*dt))
-        seismogram.set_ydata(amps)
-        seismogram.set_xdata(times)
-        wavefield.set_array(u[0:-1,0:-1].ravel())
-        ft.vis.draw()
-ft.vis.ioff()
-print 'Frames per second (FPS):', float(i)/(time.clock() - start)
+# This function updates the plot every few timesteps
+steps_per_frame = 100
+def animate(i):
+    # i is the number of the animation frame
+    for t, u in enumerate(timesteps):
+        addamp(10.**(6)*u[0, rec])
+        addtime(dt*(t + i*steps_per_frame))
+        if t == steps_per_frame - 1:
+            break
+    ft.vis.title('time: %0.1f s' % (i*steps_per_frame*dt))
+    seismogram.set_data(times, amps)
+    wavefield.set_array(u[0:-1,0:-1].ravel())
+    return seismogram, wavefield
+anim = animation.FuncAnimation(fig, animate, frames=maxit/steps_per_frame,
+    interval=1, blit=False)
+#anim.save('love_wave.mp4', fps=10)
 ft.vis.show()
-
-# Comment the above and uncomment bellow to save snapshots of the simulation
-# to png files
-#ft.vis.figure(figsize=(10,6))
-#ft.vis.subplots_adjust(left=0.1, right=0.98)
-#ft.vis.subplot(2, 1, 2)
-#ft.vis.axis('scaled')
-#x, z = ft.grd.regular(area, shape)
-#wavefield = ft.vis.pcolor(x, z, np.zeros(shape).ravel(), shape,
-    #vmin=vmin, vmax=vmax)
-#rec = 300
-#ft.vis.plot([rec*spacing[1]], [2000], '^b')
-#ft.vis.hlines([moho], 0, area[1], 'k', '-')
-#ft.vis.text(area[1] - 35000, moho + 10000, 'Moho')
-#ft.vis.text(area[1] - 90000, 15000,
-    #r'$\rho = %g g/cm^3$ $\beta = %g km/s$' % (2.7, 3))
-#ft.vis.text(area[1] - 90000, area[-1] - 10000,
-    #r'$\rho = %g g/cm^3$ $\beta = %g km/s$' % (3.1, 6))
-#ft.vis.ylim(area[-1], area[-2])
-#ft.vis.m2km()
-#ft.vis.xlabel("x (km)")
-#ft.vis.ylabel("z (km)")
-#ft.vis.subplot(2, 1, 1)
-#seismogram, = ft.vis.plot([0], [0], '-k')
-#ft.vis.xlim(0, dt*maxit)
-#ft.vis.ylim(vmin*10.**(6), vmax*10.**(6))
-#ft.vis.xlabel("Time (s)")
-#ft.vis.ylabel("Amplitude ($\mu$m)")
-#times = []
-#addtime = times.append
-#amps = []
-#addamp = amps.append
-#start = time.clock()
-#for i, u in enumerate(timesteps):
-    #addamp(10.**(6)*u[0, rec])
-    #addtime(dt*i)
-    #if i%10 == 0:
-        #ft.vis.title('time: %0.1f s' % (i*dt))
-        #seismogram.set_ydata(amps)
-        #seismogram.set_xdata(times)
-        #wavefield.set_array(u[0:-1,0:-1].ravel())
-        #ft.vis.draw()
-        #ft.vis.savefig('frames/f%06d.png' % ((i)/10 + 1), dpi=60)

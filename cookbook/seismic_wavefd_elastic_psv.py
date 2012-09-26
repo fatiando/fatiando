@@ -4,14 +4,16 @@ medium with a discontinuity (i.e., Moho).
 
 WARNING: Can be very slow!
 """
-import time
+from matplotlib import animation
 import numpy as np
 import fatiando as ft
 
 log = ft.log.get()
 
+# Make some seismic sources using the mexican hat wavelet
 sources = [ft.seis.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)
            for i in xrange(10)]
+# Make the velocity and density models
 shape = (80, 400)
 spacing = (1000, 1000)
 area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
@@ -27,16 +29,17 @@ svel = np.ones(shape)
 svel[:moho_index,:] *= 3000.
 svel[moho_index:,:] *= 6000.
 
+# Get the iterator. This part only generates an iterator object. The actual
+# computations take place at each iteration in the for loop bellow
 dt = 0.05
 maxit = 4200
 timesteps = ft.seis.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
     maxit, sources, sources, padding=0.8)
 
-rec = 350
+# This part makes an animation using matplotlibs animation API
+rec = 350 # The grid node used to record the seismogram
 vmin, vmax = -10*10**(-4), 10*10**(-4)
-# This part makes an animation by updating the plot every few iterations
-ft.vis.ion()
-ft.vis.figure(figsize=(16,7))
+fig = ft.vis.figure(figsize=(16,7))
 ft.vis.subplots_adjust(left=0.08, right=0.98, top=0.95, bottom=0.08)
 # A plot for the ux field
 plotx = ft.vis.subplot(3, 2, 1)
@@ -92,46 +95,25 @@ xamps = []
 addxamp = xamps.append
 zamps = []
 addzamp = zamps.append
-start = time.clock()
-# This part animates the plot
-for i, update in enumerate(timesteps):
-    ux, uz = update
-    addxamp(10.**(6)*ux[0, rec])
-    addzamp(10.**(6)*uz[0, rec])
-    addtime(dt*i)
-    if i%100 == 0:
-        plotx.set_title('x component | time: %0.1f s' % (i*dt))
-        xseismogram.set_ydata(xamps)
-        xseismogram.set_xdata(times)
-        xwavefield.set_array(ux[0:-1,0:-1].ravel())
-        plotz.set_title('z component | time: %0.1f s' % (i*dt))
-        zseismogram.set_ydata(zamps)
-        zseismogram.set_xdata(times)
-        zwavefield.set_array(uz[0:-1,0:-1].ravel())
-        particle_movement.set_xdata(xamps)
-        particle_movement.set_ydata(zamps)
-        ft.vis.draw()
-# Comment the above and uncomment bellow to save snapshots of the simulation
-# If you don't want the animation to show on the screen, comment ft.vis.ion()
-# above
-#for i, update in enumerate(timesteps):
-    #ux, uz = update
-    #addxamp(10.**(6)*ux[0, rec])
-    #addzamp(10.**(6)*uz[0, rec])
-    #addtime(dt*i)
-    #if i%10 == 0:
-        #plotx.set_title('x component | time: %0.1f s' % (i*dt))
-        #xseismogram.set_ydata(xamps)
-        #xseismogram.set_xdata(times)
-        #xwavefield.set_array(ux[0:-1,0:-1].ravel())
-        #plotz.set_title('z component | time: %0.1f s' % (i*dt))
-        #zseismogram.set_ydata(zamps)
-        #zseismogram.set_xdata(times)
-        #zwavefield.set_array(uz[0:-1,0:-1].ravel())
-        #particle_movement.set_xdata(xamps)
-        #particle_movement.set_ydata(zamps)
-        #ft.vis.draw()
-        #ft.vis.savefig('frames-psv/f%06d.png' % ((i)/10 + 1), dpi=60)
-ft.vis.ioff()
-print 'Frames per second (FPS):', float(i)/(time.clock() - start)
+# This function updates the plot every few timesteps
+steps_per_frame = 100
+def animate(i):
+    for t, update in enumerate(timesteps):
+        ux, uz = update
+        addxamp(10.**(6)*ux[0, rec])
+        addzamp(10.**(6)*uz[0, rec])
+        addtime(dt*(t + i*steps_per_frame))
+        if t == steps_per_frame - 1:
+            break
+    plotx.set_title('x component | time: %0.1f s' % (i*steps_per_frame*dt))
+    xseismogram.set_data(times, xamps)
+    xwavefield.set_array(ux[0:-1,0:-1].ravel())
+    plotz.set_title('z component | time: %0.1f s' % (i*steps_per_frame*dt))
+    zseismogram.set_data(times, zamps)
+    zwavefield.set_array(uz[0:-1,0:-1].ravel())
+    particle_movement.set_data(xamps, zamps)
+    return xwavefield, xseismogram, zwavefield, zseismogram, particle_movement
+anim = animation.FuncAnimation(fig, animate, interval=1, blit=False,
+    frames=maxit/steps_per_frame)
+#anim.save('rayleigh_wave.mp4', fps=10)
 ft.vis.show()
