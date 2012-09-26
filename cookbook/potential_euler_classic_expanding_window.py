@@ -1,5 +1,6 @@
 """
-Potential: Classic 3D Euler deconvolution of magnetic data (single window)
+Potential: Classic 3D Euler deconvolution of magnetic data using an
+expanding window
 """
 import fatiando as ft
 
@@ -9,9 +10,10 @@ log.info(ft.log.header())
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    ft.msh.ddd.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
+    ft.msh.ddd.Prism(-1500, -500, -1500, -500, 1000, 2000, {'magnetization':2}),
+    ft.msh.ddd.Prism(500, 1500, 500, 2000, 1000, 2000, {'magnetization':2})]
 # Generate some data from the model
-shape = (200, 200)
+shape = (100, 100)
 area = bounds[0:4]
 xp, yp, zp = ft.grd.regular(area, shape, z=-1)
 # Add a constant baselevel
@@ -36,11 +38,22 @@ for i, f in enumerate([tf, xderiv, yderiv, zderiv]):
     ft.vis.m2km()
 ft.vis.show()
 
-# Run the euler deconvolution on a single window
+# Pick the center of the expanding window
+ft.vis.figure()
+ft.vis.suptitle('Pick the center of the expanding window')
+ft.vis.axis('scaled')
+ft.vis.contourf(yp, xp, tf, shape, 50)
+ft.vis.colorbar()
+center = ft.ui.picker.points(area, ft.vis.gca(), xy2ne=True)[0]
+
+# Run the euler deconvolution on an expanding window
 # Structural index is 3
-results = ft.pot.euler.classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
+index = 3
+results = ft.pot.euler.expanding_window(xp, yp, zp, tf, xderiv, yderiv, zderiv,
+    index, ft.pot.euler.classic, center, 500, 5000)
 print "Base level used: %g" % (baselevel)
 print "Estimated base level: %g" % (results['baselevel'])
+print "Estimated source location: %s" % (str(results['point']))
 
 ft.vis.figure3d()
 ft.vis.points3d([results['point']], size=300.)
