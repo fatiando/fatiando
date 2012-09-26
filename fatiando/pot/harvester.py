@@ -84,7 +84,7 @@ doi:10.1190/geo2011-0388.1
 ----
 
 """
-import simplejson as json
+import json
 import time
 import math
 import bisect
