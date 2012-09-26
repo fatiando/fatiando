@@ -295,8 +295,8 @@ def loadseeds(fname):
         >>> seeds = loadseeds(file)
         >>> for s in seeds:
         ...     print s
-        [1, 2, 3, {'magnetization': 5, 'density': 4}]
-        [6, 7, 8, {'magnetization': -1}]
+        [1, 2, 3, {u'magnetization': 5, u'density': 4}]
+        [6, 7, 8, {u'magnetization': -1}]
 
     """
     openned = False
