@@ -20,17 +20,18 @@ def build(recipes_dir):
     Read the recipes from the dir and make rst files out of them.
     """
     sys.stderr.write("\nBUILDING THE COOKBOOK RECIPES:\n")
-    # Create the cookbook dir in the doc dir
     cbdir = 'cookbook'
-    if not os.path.exists(cbdir):
+    # Clean the cookbook dir to remove old files
+    if os.path.exists(cbdir):
+        for f in os.listdir(cbdir):
+            os.remove(os.path.join(cbdir, f))
+    else:
         os.mkdir(cbdir)
     static = os.path.join('_static', cbdir)
     if not os.path.exists(static):
         os.mkdir(static)
-
     recipes = [f for f in sorted(os.listdir(recipes_dir))
                if os.path.splitext(f)[-1] == '.py']
-
     for i, recipe in enumerate(recipes):
         output = os.path.splitext(recipe)[0] + '.rst'
         path_to_recipe = os.path.join(recipes_dir, recipe)
