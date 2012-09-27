@@ -22,6 +22,8 @@ The inversion modules use the forward modeling models and the
   basins and other outcropping bodies
 * :mod:`~fatiando.pot.harvester`: 3D inversion of compact bodies by
   planting anomalous densities
+* :mod:`~fatiando.pot.euler`: 3D Euler deconvolution methods to estimate source
+  location
 
 **Processing**
 

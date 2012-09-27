@@ -6,6 +6,8 @@ Euler deconvolution methods for potential fields.
 * :func:`~fatiando.pot.euler.classic`: The classic solution to Euler's equation
   for potential fields
 
+----
+
 """
 import time
 
@@ -57,6 +59,7 @@ def expanding_window(xp, yp, zp, field, xderiv, yderiv, zderiv, index,
              'baselevel':baselevel, # The estimated baselevel
              'mean error':mean_error, # The mean error of the estimated location
              'uncertainty':[sx, sy, sz] # The uncertainty in x, y, and z
+            }
 
 
     """
