@@ -149,12 +149,10 @@ def gz(xp, yp, zp, spheres):
             continue
         radius = sphere.radius
         density = sphere.props['density']
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = sphere.x - xp
-        y = sphere.y - yp
-        z = sphere.z - zp
-        r_cb = (x**2 + y**2 + z**2)**(1.5)
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
-        res = res - mass*z/r_cb
+        res = res - mass*dz/r_cb
     return G*SI2MGAL*res

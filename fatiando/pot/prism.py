@@ -40,9 +40,6 @@ from numpy import sqrt, log, arctan2
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from fatiando import utils
 
-__all__ = ['pot', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz',
-           'tf']
-
 
 def pot(xp, yp, zp, prisms, dens=None):
     """

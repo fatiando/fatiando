@@ -13,10 +13,11 @@ tesseroids, etc.
 
 * :class:`~fatiando.msh.ddd.PrismMesh`
 * :class:`~fatiando.msh.ddd.PrismRelief`
+* :class:`~fatiando.msh.ddd.EquivalentLayer`
 
 **Utility functions**
 
-* :func:`~fatiando.msh.ddd.extract`: Extract the values of a physical
+* :func:`~fatiando.msh.ddd.extract`: Extract the values of a physicalr
   property from the cells in a list
 * :func:`~fatiando.msh.ddd.vfilter`: Remove cells whose physical property
   value falls outside a given range
@@ -37,6 +38,99 @@ from fatiando.msh.base import GeometricElement
 
 log = fatiando.log.dummy('fatiando.msh.ddd')
 
+
+class EquivalentLayer(object):
+    """
+    Generate a discrete equivalent layer of equivalent sources (spheres with
+    unit radii).
+
+    The equivalent layer can be used as a list of spheres. This means that you
+    can pass it to any funcion that accepts a list of spheres.
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        The area delimiting the layer
+    * shape : list = [ny, nx]
+        Number of equivalent sources in the y and x dimension, respectively
+    * z : float
+        The z coordinate of the layer (i.e., the depth of the layer)
+    * props : dict
+        Physical properties of each equivalent source in the layer.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each source of the layer.
+
+    Examples::
+
+        >>> layer = EquivalentLayer((0, 1, 4, 6), (3, 2), 10)
+        >>> for s in layer:
+        ...     print s
+        x:0 | y:4 | z:10 | radius:1
+        x:1 | y:4 | z:10 | radius:1
+        x:0 | y:5 | z:10 | radius:1
+        x:1 | y:5 | z:10 | radius:1
+        x:0 | y:6 | z:10 | radius:1
+        x:1 | y:6 | z:10 | radius:1
+
+    """
+
+    def __init__(self, area, shape, z, props=None):
+        object.__init__(self)
+        self.z = z
+        self.area = area
+        self.shape = shape
+        ny, nx = shape
+        self.size = nx*ny
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
+        self.i = 0
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        # To walk backwards in the list
+        if index < 0:
+            index = self.size + index
+        ny, nx = self.shape
+        x1, x2, y1, y2 = self.area
+        j = index/nx
+        i = index - j*nx
+        x = x1 + i*float(x2 - x1)/(nx - 1)
+        y = y1 + j*float(y2 - y1)/(ny - 1)
+        props = dict([p, self.props[p][index]] for p in self.props)
+        return Sphere(x, y, self.z, 1., props=props)
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        if self.i >= self.size:
+            raise StopIteration
+        source = self.__getitem__(self.i)
+        self.i += 1
+        return source
+
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the sources in the layer.
+
+        Different physical properties of the layer are stored in a dictionary.
+
+        Parameters:
+
+        * prop : str
+            Name of the physical property.
+        * values :  list or array
+            Value of this physical property in each source of the layer. Sources
+            are ordered x varying first, then y.
+
+        """
+        self.props[prop] = values
 
 class Prism(GeometricElement):
     """
