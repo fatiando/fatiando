@@ -1,6 +1,0 @@
-Installing using pip in linux:
-
-* matplotlib requires libfreetype (including the -dev package)
-* scipy requires libblas (including -dev)
-* scipy requires liblapack (including -dev)
-* scipy requires gfortran
