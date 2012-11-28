@@ -23,7 +23,7 @@ import numpy
 import scipy.misc
 
 import fatiando.log
-import fatiando.grd
+import fatiando.gridder
 from fatiando.msh.base import GeometricElement
 
 
@@ -296,8 +296,8 @@ class SquareMesh(object):
             xs = numpy.arange(nx)
             ys = numpy.arange(ny)
             X, Y = numpy.meshgrid(xs, ys)
-            model = fatiando.grd.interp(X.ravel(), Y.ravel(), model.ravel(),
-                                   self.shape)[2]
+            model = fatiando.gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
+                self.shape)[2]
             log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
         self.props[prop] = model.ravel()
 

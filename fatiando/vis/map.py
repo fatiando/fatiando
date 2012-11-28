@@ -41,7 +41,7 @@ import numpy
 from matplotlib import pyplot
 
 import fatiando.log
-import fatiando.grd
+import fatiando.gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -479,7 +479,7 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.grd.interp(x, y, v, shape)
+        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -538,7 +538,7 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.grd.interp(x, y, v, shape)
+        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)
@@ -587,7 +587,7 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.grd.interp(x, y, v, shape)
+        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
     else:
         X = numpy.reshape(x, shape)
         Y = numpy.reshape(y, shape)

@@ -3,19 +3,19 @@ Create and operate on grids and profiles.
 
 **Grid generation**
 
-* :func:`~fatiando.grd.regular`
-* :func:`~fatiando.grd.scatter`
+* :func:`~fatiando.gridder.regular`
+* :func:`~fatiando.gridder.scatter`
 
 **Grid I/O**
 
 **Grid operations**
 
-* :func:`~fatiando.grd.cut`
-* :func:`~fatiando.grd.interp`
+* :func:`~fatiando.gridder.cut`
+* :func:`~fatiando.gridder.interp`
 
 **Misc**
 
-* :func:`~fatiando.grd.spacing`
+* :func:`~fatiando.gridder.spacing`
 
 ----
 
@@ -27,7 +27,7 @@ import matplotlib.mlab
 import fatiando.log
 
 
-log = fatiando.log.dummy('fatiando.grd')
+log = fatiando.log.dummy('fatiando.gridder')
 
 def regular(area, shape, z=None):
     """

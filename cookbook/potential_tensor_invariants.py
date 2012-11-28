@@ -25,7 +25,7 @@ for depth in [5000, 5000, 5000, 2000]:
             0, depth, {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(dataarea, shape, z=-500)
+xp, yp, zp = ft.gridder.regular(dataarea, shape, z=-500)
 tensor = [
     ft.pot.polyprism.gxx(xp, yp, zp, prisms),
     ft.pot.polyprism.gxy(xp, yp, zp, prisms),

@@ -13,7 +13,7 @@ model = [
 # Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
-xp, yp, zp = ft.grd.regular(area, shape, z=-1)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
 # Add a constant baselevel
 baselevel = 10
 # Convert from nanoTesla to Tesla because euler and derivatives require things

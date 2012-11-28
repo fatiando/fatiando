@@ -28,7 +28,7 @@ for i in range(1, len(depths)):
         ft.msh.ddd.PolygonalPrism(polygon, depths[i - 1], depths[i],
             {'density':500}))
 meshshape = (30, 30, 30)
-xp, yp, zp = ft.grd.regular(area, meshshape[1:], z=-10)
+xp, yp, zp = ft.gridder.regular(area, meshshape[1:], z=-10)
 gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)
 
 # Plot the data

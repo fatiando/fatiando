@@ -35,7 +35,7 @@ ft.vis.show3d()
 shape = (51, 51)
 area = bounds[0:4]
 noise = 2
-x, y, z = ft.grd.regular(area, shape, z=-150)
+x, y, z = ft.gridder.regular(area, shape, z=-150)
 gyy = ft.utils.contaminate(ft.pot.prism.gyy(x, y, z, model), noise)
 gyz = ft.utils.contaminate(ft.pot.prism.gyz(x, y, z, model), noise)
 gzz = ft.utils.contaminate(ft.pot.prism.gzz(x, y, z, model), noise)

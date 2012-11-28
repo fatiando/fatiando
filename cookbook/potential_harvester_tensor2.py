@@ -26,7 +26,7 @@ ft.vis.show3d()
 # and use it to generate some tensor data
 shape = (25, 25)
 area = bounds[0:4]
-x, y, z = ft.grd.regular(area, shape, z=-650)
+x, y, z = ft.gridder.regular(area, shape, z=-650)
 gxy = ft.utils.contaminate(ft.pot.prism.gxy(x, y, z, model), 1)
 gzz = ft.utils.contaminate(ft.pot.prism.gzz(x, y, z, model), 1)
 # Create a prism mesh

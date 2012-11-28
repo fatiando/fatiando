@@ -27,7 +27,7 @@ timesteps = ft.seis.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
 
 # This part makes an animation using matplotlibs animation API
 vmin, vmax = -1*10**(-4), 1*10**(-4)
-x, z = ft.grd.regular(area, shape)
+x, z = ft.gridder.regular(area, shape)
 fig = ft.vis.figure()
 ax_x = ft.vis.subplot(1, 2, 1)
 ft.vis.axis('scaled')

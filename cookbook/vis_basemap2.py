@@ -10,7 +10,7 @@ log.info(__doc__)
 # Generate some data to plot
 area = (-20, 40, 20, 80)
 shape = (100, 100)
-lon, lat = ft.grd.regular(area, shape)
+lon, lat = ft.gridder.regular(area, shape)
 data = ft.utils.gaussian2d(lon, lat, 10, 20, 10, 60, angle=45)
 
 # Now get a basemap to plot with some projection

@@ -8,11 +8,11 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 # Generate some synthetic data on a regular grid
-x, y = ft.grd.regular((-10, 10, -10, 10), (100,100))
+x, y = ft.gridder.regular((-10, 10, -10, 10), (100,100))
 # Using a 2D Gaussian
 z = ft.utils.gaussian2d(x, y, 1, 1)
 subarea = [-2, 2, -3, 3]
-subx, suby, subscalar = ft.grd.cut(x, y, [z], subarea)
+subx, suby, subscalar = ft.gridder.cut(x, y, [z], subarea)
 
 ft.vis.figure(figsize=(12, 5))
 ft.vis.subplot(1, 2, 1)

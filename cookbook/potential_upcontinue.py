@@ -14,12 +14,12 @@ prisms = [ft.msh.ddd.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
 area = (-5000, 5000, -5000, 5000)
 shape = (50, 50)
 z0 = -100
-xp, yp, zp = ft.grd.regular(area, shape, z=z0)
+xp, yp, zp = ft.gridder.regular(area, shape, z=z0)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.5)
 
 # Now do the upward continuation using the analytical formula
 height = 2000
-dims = ft.grd.spacing(area, shape)
+dims = ft.gridder.spacing(area, shape)
 gzcont = ft.pot.trans.upcontinue(gz, height, xp, yp, dims)
 
 log.info("Computing true values at new height")

@@ -15,7 +15,7 @@ Modules for gridding, meshing, visualization, user interface, etc:
 
 * :mod:`msh <fatiando.msh>`:
   Mesh generation and definition of geometric elements
-* :mod:`grd <fatiando.grd>`:
+* :mod:`gridder <fatiando.gridder>`:
   Grid generation and operations (like interpolation)
 * :mod:`vis <fatiando.vis>`:
   Plotting utilities for maps (using matplotlib) and 3D (using mayavi)
@@ -47,7 +47,7 @@ version = '0.1.dev1'
 # Import all the modules and subpackages so that they are accessible just by
 # importing fatiando
 from fatiando import log
-from fatiando import grd
+from fatiando import gridder
 from fatiando import msh
 from fatiando import pot
 from fatiando import seis
@@ -56,7 +56,3 @@ from fatiando import heat
 from fatiando import ui
 from fatiando import vis
 from fatiando import inversion
-
-
-__all__ = ['log', 'grd', 'msh', 'pot', 'seis', 'utils', 'heat', 'ui', 'vis',
-           'inversion']

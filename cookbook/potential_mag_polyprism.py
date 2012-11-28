@@ -19,7 +19,7 @@ prisms = [
         0, 2000, {'magnetization':2})]
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-500)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-500)
 tf = ft.pot.polyprism.tf(xp, yp, zp, prisms, 30, -15)
 # and plot it
 ft.vis.figure()

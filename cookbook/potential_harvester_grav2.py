@@ -22,7 +22,7 @@ model = [ft.msh.ddd.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
 area = bounds[0:4]
-xp, yp, zp = ft.grd.regular(area, shape, z=-1)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
 gz = ft.utils.contaminate(ft.pot.polyprism.gz(xp, yp, zp, model), noise)
 # Create a mesh

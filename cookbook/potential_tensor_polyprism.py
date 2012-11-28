@@ -18,7 +18,7 @@ prisms = [
         0, 1000, {'density':500})]
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-500)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-500)
 tensor = [
     ft.pot.polyprism.gxx(xp, yp, zp, prisms),
     ft.pot.polyprism.gxy(xp, yp, zp, prisms),

@@ -28,7 +28,7 @@ timesteps = ft.seis.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
 vmin, vmax = -1*10**(-4), 1*10**(-4)
 fig = ft.vis.figure()
 ft.vis.axis('scaled')
-x, z = ft.grd.regular(area, shape)
+x, z = ft.gridder.regular(area, shape)
 # Start with everything zero and grab the plot so that it can be updated later
 wavefield = ft.vis.pcolor(x, z, np.zeros(shape).ravel(), shape, vmin=vmin,
     vmax=vmax)

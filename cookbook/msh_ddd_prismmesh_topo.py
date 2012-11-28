@@ -12,7 +12,7 @@ y1, y2 = -200, 200
 bounds = (x1, x2, y1, y2, -200, 0)
 
 log.info("Generating synthetic topography")
-x, y = ft.grd.regular((x1, x2, y1, y2), (50,50))
+x, y = ft.gridder.regular((x1, x2, y1, y2), (50,50))
 height = (100 +
           -50*ft.utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
           100*ft.utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))

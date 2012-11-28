@@ -13,7 +13,7 @@ prisms = [ft.msh.ddd.Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
           ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':-900}),
           ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':1300})]
 shape = (100,100)
-xp, yp, zp = ft.grd.regular((-5000, 5000, -5000, 5000), shape, z=-150)
+xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-150)
 log.info("Calculating fileds...")
 fields = [ft.pot.prism.pot(xp, yp, zp, prisms),
           ft.pot.prism.gx(xp, yp, zp, prisms),

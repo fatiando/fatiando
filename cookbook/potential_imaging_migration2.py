@@ -14,7 +14,7 @@ prisms = [ft.msh.ddd.Prism(-4000,0,-4000,-2000,2000,5000,{'density':1200}),
           ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':600})]
 # Calculate on a scatter of points to show that migration doesn't need gridded
 # data
-xp, yp, zp = ft.grd.scatter((-6000, 6000, -6000, 6000), 1000, z=-10)
+xp, yp, zp = ft.gridder.scatter((-6000, 6000, -6000, 6000), 1000, z=-10)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.1)
 
 # Plot the data

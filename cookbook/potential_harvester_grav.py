@@ -13,7 +13,7 @@ model = [ft.msh.ddd.Prism(250, 750, 250, 750, 200, 700, {'density':1000})]
 shape = (25, 25)
 bounds = [0, 1000, 0, 1000, 0, 1000]
 area = bounds[0:4]
-xp, yp, zp = ft.grd.regular(area, shape, z=-1)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, model), noise)
 # plot the data

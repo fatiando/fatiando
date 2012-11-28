@@ -13,7 +13,7 @@ API Reference: The ``fatiando`` package
     seis.rst
     heat.rst
     msh.rst
-    grd.rst
+    gridder.rst
     vis.rst
     ui.rst
     utils.rst

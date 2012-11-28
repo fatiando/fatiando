@@ -155,7 +155,7 @@ def center_of_mass(x, y, z, eigvec1):
         >>> import fatiando as ft
         >>> # Generate synthetic data using a prism
         >>> prism = ft.msh.ddd.Prism(-200,0,-100,100,0,200,{'density':1000})
-        >>> x, y, z = ft.grd.regular((-500,500,-500,500), (20,20), z=-100)
+        >>> x, y, z = ft.gridder.regular((-500,500,-500,500), (20,20), z=-100)
         >>> tensor = [ft.pot.prism.gxx(x, y, z, [prism]),
         ...           ft.pot.prism.gxy(x, y, z, [prism]),
         ...           ft.pot.prism.gxz(x, y, z, [prism]),

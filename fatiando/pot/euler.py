@@ -14,7 +14,7 @@ import time
 import numpy
 
 import fatiando.log
-import fatiando.grd
+import fatiando.gridder
 from fatiando import utils
 
 log = fatiando.log.dummy('fatiando.pot.euler')
@@ -67,7 +67,7 @@ def expanding_window(xp, yp, zp, field, xderiv, yderiv, zderiv, index,
     best = None
     for size in numpy.linspace(minsize, maxsize, nwindows):
         area = [x - 0.5*size, x + 0.5*size, y - 0.5*size, y + 0.5*size]
-        subx, suby, scalars = fatiando.grd.cut(xp, yp,
+        subx, suby, scalars = fatiando.gridder.cut(xp, yp,
             [zp, field, xderiv, yderiv, zderiv], area)
         subz, subfield, subxderiv, subyderiv, subzderiv  = scalars
         results = euler(subx, suby, subz, subfield, subxderiv, subyderiv,

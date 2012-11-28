@@ -21,7 +21,7 @@ prisms = [
 # Create a regular grid at 100m height
 shape = (200, 200)
 area = bounds[:4]
-xp, yp, zp = ft.grd.regular(area, shape, z=-500)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-500)
 # Calculate the anomaly for a given regional field
 tf = ft.pot.prism.tf(xp, yp, zp, prisms, 30, -15)
 # Plot

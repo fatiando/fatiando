@@ -23,7 +23,7 @@ for i in range(1, len(depths)):
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.grd.regular(area, shape, z=-1)
+xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
 gz = ft.pot.polyprism.gz(xp, yp, zp, prisms)
 # and plot it
 ft.vis.figure()

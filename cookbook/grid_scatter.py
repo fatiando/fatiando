@@ -8,7 +8,7 @@ log.info(ft.log.header())
 log.info(__doc__)
 
 # Generate random points
-x, y = ft.grd.scatter((-2, 2, -2, 2), n=200)
+x, y = ft.gridder.scatter((-2, 2, -2, 2), n=200)
 # And calculate a 2D Gaussian on these points
 z = ft.utils.gaussian2d(x, y, 1, 1)
 

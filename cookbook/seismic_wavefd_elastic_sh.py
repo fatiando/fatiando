@@ -45,7 +45,7 @@ fig = ft.vis.figure(figsize=(10,6))
 ft.vis.subplots_adjust(left=0.1, right=0.98)
 ft.vis.subplot(2, 1, 2)
 ft.vis.axis('scaled')
-x, z = ft.grd.regular(area, shape)
+x, z = ft.gridder.regular(area, shape)
 wavefield = ft.vis.pcolor(x, z, np.zeros(shape).ravel(), shape,
     vmin=vmin, vmax=vmax)
 ft.vis.plot([rec*spacing[1]], [2000], '^b')

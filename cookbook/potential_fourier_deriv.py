@@ -14,7 +14,7 @@ prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':100})]
 area = (-5000, 5000, -5000, 5000)
 shape = (51, 51)
 z0 = -500
-xp, yp, zp = ft.grd.regular(area, shape, z=z0)
+xp, yp, zp = ft.gridder.regular(area, shape, z=z0)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.001)
 
 log.info("Calculating the x-derivative")

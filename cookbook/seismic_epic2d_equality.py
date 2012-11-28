@@ -72,7 +72,7 @@ levmarq_predicted = ttr - r
 
 log.info("Build a map of the goal function")
 shape = (100, 100)
-xs, ys = ft.grd.regular(area, shape)
+xs, ys = ft.gridder.regular(area, shape)
 goals = ft.seis.epic2d.mapgoal(xs, ys, ttr, recs, vp, vs, equality=equality,
     ref=ref)
 
