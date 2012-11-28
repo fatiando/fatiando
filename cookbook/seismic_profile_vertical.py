@@ -16,7 +16,7 @@ vmin, vmax, zmin, zmax = area
 figure = ft.vis.figure()
 ft.vis.xlabel("Velocity (m/s)")
 ft.vis.ylabel("Depth (m)")
-thickness, velocity = ft.ui.picker.draw_layers(area, figure.gca())
+thickness, velocity = ft.vis.map.draw_layers(area, figure.gca())
 
 log.info("Generating synthetic data")
 zp = numpy.arange(zmin + 0.5, zmax, 0.5)

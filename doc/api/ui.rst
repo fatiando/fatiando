@@ -9,5 +9,4 @@ User interfaces (``fatiando.ui``)
 
 .. toctree::
 
-    ui.picker.rst
     ui.gui.rst

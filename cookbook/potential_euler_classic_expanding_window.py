@@ -44,7 +44,7 @@ ft.vis.suptitle('Pick the center of the expanding window')
 ft.vis.axis('scaled')
 ft.vis.contourf(yp, xp, tf, shape, 50)
 ft.vis.colorbar()
-center = ft.ui.picker.points(area, ft.vis.gca(), xy2ne=True)[0]
+center = ft.vis.map.pick_points(area, ft.vis.gca(), xy2ne=True)[0]
 
 # Run the euler deconvolution on an expanding window
 # Structural index is 3

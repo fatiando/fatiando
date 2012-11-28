@@ -34,7 +34,7 @@ ft.vis.axis('scaled')
 ft.vis.suptitle("Choose the initial estimate for the gradient solvers")
 ft.vis.points(recs, '^r')
 ft.vis.points(srcs, '*y')
-initial = ft.ui.picker.points(area, ax, marker='*', color='k')
+initial = ft.vis.map.pick_points(area, ax, marker='*', color='k')
 if len(initial) > 1:
     log.error("Don't be greedy! Pick only one initial estimate")
     sys.exit()

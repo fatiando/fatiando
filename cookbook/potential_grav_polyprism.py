@@ -19,7 +19,7 @@ for i in range(1, len(depths)):
         ft.vis.polygon(p, '.-k', xy2ne=True)
     prisms.append(
         ft.msh.ddd.PolygonalPrism(
-            ft.ui.picker.draw_polygon(area, axes, xy2ne=True),
+            ft.vis.map.draw_polygon(area, axes, xy2ne=True),
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)

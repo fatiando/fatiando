@@ -15,7 +15,7 @@ axes = ft.vis.figure().gca()
 ft.vis.xlabel("X")
 ft.vis.ylabel("Z")
 ft.vis.axis('scaled')
-polygons = [ft.msh.dd.Polygon(ft.ui.picker.draw_polygon(area, axes),
+polygons = [ft.msh.dd.Polygon(ft.vis.map.draw_polygon(area, axes),
                               {'density':500})]
 xp = numpy.arange(-4500, 4500, 100)
 zp = numpy.zeros_like(xp)

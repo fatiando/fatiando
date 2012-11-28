@@ -38,7 +38,7 @@ ft.vis.colorbar()
 ft.vis.polygon(model[0], xy2ne=True)
 ft.vis.xlabel('Horizontal coordinate y (km)')
 ft.vis.ylabel('Horizontal coordinate x (km)')
-seedx, seedy = ft.ui.picker.points(area, ft.vis.gca(), xy2ne=True).T
+seedx, seedy = ft.vis.map.pick_points(area, ft.vis.gca(), xy2ne=True).T
 rawseeds = [[x, y, 2500, {'density':1000}] for x, y in zip(seedx, seedy)]
 ft.vis.show()
 # Make the seed and set the compactness regularizing parameter mu

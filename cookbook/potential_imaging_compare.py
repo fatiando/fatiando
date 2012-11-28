@@ -22,7 +22,7 @@ for i in range(1, len(depths)):
     for p in prisms:
         ft.vis.polygon(p, '.-k', xy2ne=True)
     # Draw a new polygon
-    polygon = ft.ui.picker.draw_polygon(area, axes, xy2ne=True)
+    polygon = ft.vis.map.draw_polygon(area, axes, xy2ne=True)
     # append the newly drawn one
     prisms.append(
         ft.msh.ddd.PolygonalPrism(polygon, depths[i - 1], depths[i],

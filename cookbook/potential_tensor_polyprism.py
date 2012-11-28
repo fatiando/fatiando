@@ -14,7 +14,7 @@ axis = ft.vis.figure().gca()
 ft.vis.axis('scaled')
 prisms = [
     ft.msh.ddd.PolygonalPrism(
-        ft.ui.picker.draw_polygon(area, axis, xy2ne=True),
+        ft.vis.map.draw_polygon(area, axis, xy2ne=True),
         0, 1000, {'density':500})]
 # Calculate the effect
 shape = (100, 100)
