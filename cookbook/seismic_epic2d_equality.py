@@ -1,5 +1,5 @@
 """
-Seis: 2D epicenter estimation on a flat Earth using equality constraints
+seismic: 2D epicenter estimation on a flat Earth using equality constraints
 """
 import sys
 import numpy
@@ -20,8 +20,8 @@ log.info("Generating synthetic travel-time data")
 src = (8, 7)
 stations = 10
 srcs, recs = ft.utils.connect_points([src], [(4, 6), (5, 5.9), (6, 6)])
-ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
-stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
+ptime = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
+stime = ft.seismic.ttime2d.straight(model, 'vs', srcs, recs)
 error_level = 0.05
 ttr_true = stime - ptime
 ttr, error = ft.utils.contaminate(ttr_true, error_level, percent=True,
@@ -46,7 +46,7 @@ log.info("Will solve the inverse problem using Newton's method")
 log.info("and with equality constaints for stability")
 nsolver = ft.inversion.gradient.newton(initial)
 newton = [initial]
-iterator = ft.seis.epic2d.homogeneous(ttr, recs, vp, vs, nsolver,
+iterator = ft.seismic.epic2d.homogeneous(ttr, recs, vp, vs, nsolver,
     equality=equality, ref=ref, iterate=True)
 for e, r in iterator:
     newton.append(e)
@@ -55,7 +55,7 @@ newton_predicted = ttr - r
 log.info("and the Steepest Descent method")
 sdsolver = ft.inversion.gradient.steepest(initial, step=0.1)
 steepest = [initial]
-iterator = ft.seis.epic2d.homogeneous(ttr, recs, vp, vs, sdsolver,
+iterator = ft.seismic.epic2d.homogeneous(ttr, recs, vp, vs, sdsolver,
     equality=equality, ref=ref, iterate=True)
 for e, r in iterator:
     steepest.append(e)
@@ -64,7 +64,7 @@ steepest_predicted = ttr - r
 log.info("... and also the Levenberg-Marquardt algorithm for comparison")
 lmsolver = ft.inversion.gradient.levmarq(initial)
 levmarq = [initial]
-iterator = ft.seis.epic2d.homogeneous(ttr, recs, vp, vs, lmsolver,
+iterator = ft.seismic.epic2d.homogeneous(ttr, recs, vp, vs, lmsolver,
     equality=equality, ref=ref, iterate=True)
 for e, r in iterator:
     levmarq.append(e)
@@ -73,7 +73,7 @@ levmarq_predicted = ttr - r
 log.info("Build a map of the goal function")
 shape = (100, 100)
 xs, ys = ft.gridder.regular(area, shape)
-goals = ft.seis.epic2d.mapgoal(xs, ys, ttr, recs, vp, vs, equality=equality,
+goals = ft.seismic.epic2d.mapgoal(xs, ys, ttr, recs, vp, vs, equality=equality,
     ref=ref)
 
 log.info("Plotting")

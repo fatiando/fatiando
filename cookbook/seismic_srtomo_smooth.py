@@ -1,5 +1,5 @@
 """
-Seis: 2D straight-ray tomography using smoothness regularization
+seismic: 2D straight-ray tomography using smoothness regularization
 
 Uses synthetic data and a model generated from an image file.
 """
@@ -27,15 +27,15 @@ src_loc = ft.utils.random_points(area, 80)
 rec_loc = ft.utils.circular_points(area, 30, random=True)
 srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
 start = time.time()
-tts = ft.seis.ttime2d.straight(model, 'vp', srcs, recs, par=True)
+tts = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs, par=True)
 log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
 tts, error = ft.utils.contaminate(tts, 0.01, percent=True, return_stddev=True)
 # Make the mesh
 mesh = ft.mesher.SquareMesh(area, shape)
 # and run the inversion
-estimate, residuals = ft.seis.srtomo.run(tts, srcs, recs, mesh, smooth=2*10**9)
+estimate, residuals = ft.seismic.srtomo.run(tts, srcs, recs, mesh, smooth=2*10**9)
 # Convert the slowness estimate to velocities and add it the mesh
-mesh.addprop('vp', ft.seis.srtomo.slowness2vel(estimate))
+mesh.addprop('vp', ft.seismic.srtomo.slowness2vel(estimate))
 
 # Calculate and print the standard deviation of the residuals
 # it should be close to the data error if the inversion was able to fit the data

@@ -3,7 +3,7 @@ Epicenter determination in 2D, i.e., assuming a flat Earth.
 
 **Homogeneous Earth**
 
-* :func:`~fatiando.seis.epic2d.homogeneous`
+* :func:`~fatiando.seismic.epic2d.homogeneous`
 
 Estimates the (x, y) cartesian coordinates of the epicenter based on travel-time
 residuals between S and P waves, assuming a homogeneous velocity distribution.
@@ -20,15 +20,15 @@ Example using synthetic data::
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
-    >>> stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
+    >>> ptime = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> stime = ft.seismic.ttime2d.straight(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
     >>> solver = ft.inversion.gradient.newton(initial=(1, 1), tol=10**(-3),
     ...     maxit=1000)
     >>> # Estimate the epicenter
-    >>> p, residuals = ft.seis.epic2d.homogeneous(ttres, recs, vp, vs, solver)
+    >>> p, residuals = ft.seismic.epic2d.homogeneous(ttres, recs, vp, vs, solver)
     >>> print "(%.4f, %.4f)" % (p[0], p[1])
     (5.0000, 5.0000)
 
@@ -44,15 +44,15 @@ Example using ``iterate = True`` to step through the solver algorithm::
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
     >>> srcs = [src, src, src]
-    >>> ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
-    >>> stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
+    >>> ptime = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> stime = ft.seismic.ttime2d.straight(model, 'vs', srcs, recs)
     >>> ttres = stime - ptime
     >>> # Solve using Newton's
     >>> # Generate synthetic travel-time residuals method
     >>> solver = ft.inversion.gradient.newton(initial=(1, 1), tol=10**(-3),
     ...     maxit=5)
     >>> # Show the steps to estimate the epicenter
-    >>> steps = ft.seis.epic2d.homogeneous(ttres, recs, vp, vs, solver,
+    >>> steps = ft.seismic.epic2d.homogeneous(ttres, recs, vp, vs, solver,
     ...     iterate=True)
     >>> for p, r in steps:
     ...     print "(%.4f, %.4f)" % (p[0], p[1])
@@ -74,7 +74,7 @@ import numpy
 from fatiando import inversion, utils
 import fatiando.logger
 
-log = fatiando.logger.dummy('fatiando.seis.epic2d')
+log = fatiando.logger.dummy('fatiando.seismic.epic2d')
 
 
 class TTRFlat(inversion.datamodule.DataModule):

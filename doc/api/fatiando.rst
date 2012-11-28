@@ -1,7 +1,7 @@
 .. _fatiando:
 
 API Reference: The ``fatiando`` package
-=======================================
+========================================
 
 .. automodule:: fatiando
    :members:
@@ -10,7 +10,7 @@ API Reference: The ``fatiando`` package
 .. toctree::
 
     pot.rst
-    seis.rst
+    seismic.rst
     geothermal.rst
     mesher.rst
     gridder.rst

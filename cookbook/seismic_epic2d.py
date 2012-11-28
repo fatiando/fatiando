@@ -1,5 +1,5 @@
 """
-Seis: 2D epicenter estimation assuming a homogeneous and flat Earth
+seismic: 2D epicenter estimation assuming a homogeneous and flat Earth
 """
 import sys
 import numpy
@@ -33,21 +33,21 @@ if len(src) > 1:
 
 log.info("Generating synthetic travel-time data")
 srcs, recs = ft.utils.connect_points(src, rec_points)
-ptime = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
-stime = ft.seis.ttime2d.straight(model, 'vs', srcs, recs)
+ptime = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
+stime = ft.seismic.ttime2d.straight(model, 'vs', srcs, recs)
 ttresiduals, error = ft.utils.contaminate(stime - ptime, 0.10, percent=True,
                                           return_stddev=True)
 
 log.info("Will solve the inverse problem using the Levenberg-Marquardt method")
 solver = ft.inversion.gradient.levmarq(initial=(0, 0), maxit=1000, tol=10**(-3))
-result = ft.seis.epic2d.homogeneous(ttresiduals, recs, vp, vs, solver)
+result = ft.seismic.epic2d.homogeneous(ttresiduals, recs, vp, vs, solver)
 estimate, residuals = result
 predicted = ttresiduals - residuals
 
 log.info("Build a map of the goal function")
 shape = (100, 100)
 xs, ys = ft.gridder.regular(area, shape)
-goals = ft.seis.epic2d.mapgoal(xs, ys, ttresiduals, recs, vp, vs)
+goals = ft.seismic.epic2d.mapgoal(xs, ys, ttresiduals, recs, vp, vs)
 
 log.info("Plotting")
 ft.vis.figure(figsize=(10,4))

@@ -142,9 +142,9 @@ These solvers can then be called from scripts, like so::
 
 Some modules that use the :mod:`~fatiando.inversion` API:
 
-* :mod:`fatiando.seis.profile`
-* :mod:`fatiando.seis.srtomo`
-* :mod:`fatiando.seis.epic2d`
+* :mod:`fatiando.seismic.profile`
+* :mod:`fatiando.seismic.srtomo`
+* :mod:`fatiando.seismic.epic2d`
 * :mod:`fatiando.geothermal.climsig`
 * :mod:`fatiando.pot.basin2d`
 

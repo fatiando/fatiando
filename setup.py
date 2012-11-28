@@ -15,12 +15,12 @@ try:
                   [join('fatiando', 'pot', '_cprism.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3']),
-        Extension("fatiando.seis._cttime2d",
-                  [join('fatiando', 'seis', '_cttime2d.pyx')],
+        Extension("fatiando.seismic._cttime2d",
+                  [join('fatiando', 'seismic', '_cttime2d.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3']),
-        Extension("fatiando.seis._cwavefd",
-                  [join('fatiando', 'seis', '_cwavefd.pyx')],
+        Extension("fatiando.seismic._cwavefd",
+                  [join('fatiando', 'seismic', '_cwavefd.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'])]
     CYTHON = True
@@ -37,7 +37,7 @@ with open("README.txt") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.pot',
-            'fatiando.seis',
+            'fatiando.seismic',
             'fatiando.heat',
             'fatiando.vis',
             'fatiando.gui',

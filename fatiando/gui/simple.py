@@ -22,7 +22,7 @@ from matplotlib import pyplot, widgets, nxutils
 from fatiando.pot import talwani
 from fatiando.mesher import Polygon
 from fatiando import utils
-import fatiando.seis
+import fatiando.seismic
 import fatiando.logger
 
 
@@ -514,7 +514,7 @@ class Lasagne():
         # Initialize the data
         self.error = 0.
         self.velocity = vmin*numpy.ones_like(thickness)
-        self.predtts = fatiando.seis.profile.vertical(thickness, self.velocity,
+        self.predtts = fatiando.seismic.profile.vertical(thickness, self.velocity,
                                                       zp)
         self.layers = [sum(thickness[:i]) for i in xrange(len(thickness) + 1)]
         self.predplot, = self.dcanvas.plot(self.predtts, zp, '-r', linewidth=2)
@@ -555,7 +555,7 @@ class Lasagne():
 
     def update(self):
         self.predtts = utils.contaminate(
-            fatiando.seis.profile.vertical(self.thickness, self.velocity,
+            fatiando.seismic.profile.vertical(self.thickness, self.velocity,
                 self.zp),
             self.error, percent=True)
         self.predplot.set_data(self.predtts, self.zp)

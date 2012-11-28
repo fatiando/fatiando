@@ -4,8 +4,8 @@ reflection or refraction)
 
 **Functions**
 
-* :func:`~fatiando.seis.srtomo.run`: Run the tomography on a given data set
-* :func:`~fatiando.seis.srtomo.slowness2vel`: Safely convert slowness to
+* :func:`~fatiando.seismic.srtomo.run`: Run the tomography on a given data set
+* :func:`~fatiando.seismic.srtomo.slowness2vel`: Safely convert slowness to
   velocity (avoids zero division)
 
 **Examples**
@@ -21,13 +21,13 @@ Using simple synthetic data::
     >>> srcs = [src, src, src]
     >>> recs = [(0, 0), (5, 10), (10, 0)]
     >>> # Calculate the synthetic travel-times
-    >>> ttimes = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> ttimes = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
     >>> print ttimes
     [ 2.5  3.5  2.5]
     >>> # Run the tomography to calculate the 2 velocities
     >>> mesh = ft.mesher.SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Run the tomography
-    >>> estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh)
+    >>> estimate, residuals = ft.seismic.srtomo.run(ttimes, srcs, recs, mesh)
     >>> # Actually returns slowness instead of velocity
     >>> for velocity in slowness2vel(estimate):
     ...     print '%.4f' % (velocity),
@@ -47,14 +47,14 @@ Again, using simple synthetic data but this time use Newton's method to solve::
     >>> srcs = [src, src, src]
     >>> recs = [(0, 0), (5, 10), (10, 0)]
     >>> # Calculate the synthetic travel-times
-    >>> ttimes = ft.seis.ttime2d.straight(model, 'vp', srcs, recs)
+    >>> ttimes = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs)
     >>> print ttimes
     [ 2.5  3.5  2.5]
     >>> # Run the tomography to calculate the 2 velocities
     >>> mesh = ft.mesher.SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Will use Newton's method to solve this
     >>> solver = ft.inversion.gradient.newton(initial=[0, 0], maxit=5)
-    >>> estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh,
+    >>> estimate, residuals = ft.seismic.srtomo.run(ttimes, srcs, recs, mesh,
     ...                                          solver)
     >>> # Actually returns slowness instead of velocity
     >>> for velocity in slowness2vel(estimate):
@@ -76,11 +76,11 @@ import numpy
 import scipy.sparse
 
 from fatiando import inversion, utils
-from fatiando.seis import ttime2d
+from fatiando.seismic import ttime2d
 import fatiando.logger
 
 
-log = fatiando.logger.dummy('fatiando.seis.srtomo')
+log = fatiando.logger.dummy('fatiando.seismic.srtomo')
 
 class TravelTime(inversion.datamodule.DataModule):
     """

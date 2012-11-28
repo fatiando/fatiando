@@ -1,5 +1,5 @@
 """
-Seis: 2D finite difference simulation of elastic P and SV wave propagation
+seismic: 2D finite difference simulation of elastic P and SV wave propagation
 """
 from matplotlib import animation
 import numpy as np
@@ -8,7 +8,7 @@ import fatiando as ft
 log = ft.logger.get()
 
 # Make a wave source from a mexican hat wavelet
-sources = [ft.seis.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
+sources = [ft.seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
 # Set the parameters of the finite difference grid
 shape = (50, 50)
 spacing = (1000, 1000)
@@ -22,7 +22,7 @@ pvel = 4000*np.ones(shape)
 # computations take place at each iteration in the for loop bellow
 dt = 0.05
 maxit = 300
-timesteps = ft.seis.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
+timesteps = ft.seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
     maxit, sources, sources, padding=0.5)
 
 # This part makes an animation using matplotlibs animation API

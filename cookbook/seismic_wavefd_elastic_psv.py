@@ -1,5 +1,5 @@
 """
-Seis: 2D finite difference simulation of elastic P and SV wave propagation in a
+seismic: 2D finite difference simulation of elastic P and SV wave propagation in a
 medium with a discontinuity (i.e., Moho).
 
 WARNING: Can be very slow!
@@ -11,7 +11,7 @@ import fatiando as ft
 log = ft.logger.get()
 
 # Make some seismic sources using the mexican hat wavelet
-sources = [ft.seis.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)
+sources = [ft.seismic.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)
            for i in xrange(10)]
 # Make the velocity and density models
 shape = (80, 400)
@@ -33,7 +33,7 @@ svel[moho_index:,:] *= 6000.
 # computations take place at each iteration in the for loop bellow
 dt = 0.05
 maxit = 4200
-timesteps = ft.seis.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
+timesteps = ft.seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
     maxit, sources, sources, padding=0.8)
 
 # This part makes an animation using matplotlibs animation API

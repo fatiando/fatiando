@@ -1,5 +1,5 @@
 """
-Cython implementation of the time stepping functions for fatiando.seis.wavefd
+Cython implementation of the time stepping functions for fatiando.seismic.wavefd
 """
 import numpy
 

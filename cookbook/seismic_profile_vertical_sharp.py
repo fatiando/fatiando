@@ -1,5 +1,5 @@
 """
-Seis: Invert vertical seismic profile (VSP) traveltimes using sharpness
+seismic: Invert vertical seismic profile (VSP) traveltimes using sharpness
 regularization
 """
 import numpy
@@ -14,7 +14,7 @@ thickness = [10, 20, 10, 30, 40, 60]
 velocity = [2000, 1000, 5000, 1000, 3000, 6000]
 zp = numpy.arange(1, sum(thickness), 1, dtype='f')
 tts, error = ft.utils.contaminate(
-    ft.seis.profile.vertical(thickness, velocity, zp),
+    ft.seismic.profile.vertical(thickness, velocity, zp),
     0.02, percent=True, return_stddev=True)
 
 log.info("Preparing for the inversion using 5 m thick layers")
@@ -24,11 +24,11 @@ sharp = 0.00015
 beta = 10.**(-12)
 estimates = []
 for i in xrange(30):
-    p, r = ft.seis.profile.ivertical(ft.utils.contaminate(tts, error),
+    p, r = ft.seismic.profile.ivertical(ft.utils.contaminate(tts, error),
         zp, mesh, sharp=sharp, beta=beta)
     estimates.append(1./p)
 estimate = ft.utils.vecmean(estimates)
-predicted = ft.seis.profile.vertical(mesh, estimate, zp)
+predicted = ft.seismic.profile.vertical(mesh, estimate, zp)
 
 log.info("Plotting results...")
 ft.vis.figure(figsize=(12,5))

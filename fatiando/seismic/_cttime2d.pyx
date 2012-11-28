@@ -1,5 +1,5 @@
 """
-Cython extension to speed up fatiando.seis.ttime2d
+Cython extension to speed up fatiando.seismic.ttime2d
 """
 import numpy
 

@@ -1,7 +1,7 @@
 """
 Calculate travel-times of seismic waves in 2D.
 
-* :func:`~fatiando.seis.ttime2d.straight`: Calculate the travel-time of a
+* :func:`~fatiando.seismic.ttime2d.straight`: Calculate the travel-time of a
   straight ray through a mesh of square cells
 
 ----
@@ -13,10 +13,10 @@ import numpy
 
 import fatiando.logger
 
-log = fatiando.logger.dummy('fatiando.seis.ttime2d')
+log = fatiando.logger.dummy('fatiando.seismic.ttime2d')
 
 try:
-    from fatiando.seis import _cttime2d
+    from fatiando.seismic import _cttime2d
 except ImportError:
     _cttime2d = None
 

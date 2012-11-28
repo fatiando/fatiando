@@ -1,6 +1,6 @@
 """
 Pure Python implementation of the time stepping functions for
-fatiando.seis.wavefd
+fatiando.seismic.wavefd
 """
 import numpy
 

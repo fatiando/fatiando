@@ -3,8 +3,8 @@ Forward modeling and inversion of seismic profiling data.
 
 **Vertical seismic profiling**
 
-* :func:`~fatiando.seis.profile.vertical`
-* :func:`~fatiando.seis.profile.ivertical`
+* :func:`~fatiando.seismic.profile.vertical`
+* :func:`~fatiando.seismic.profile.ivertical`
 
 Model and invert vertical seismic profiling data. In this kind of profiling, the
 wave source is located at the surface on top of the well. The travel-times of
@@ -23,7 +23,7 @@ The distance :math:`d_{ij}` is smaller or equal to the thickness of the layer
 :math:`d_{ij} < s_j` if :math:`z_i` is inside the jth layer.
 
 To generate synthetic seismic profiling data, use
-:func:`~fatiando.seis.profile.vertical` like so::
+:func:`~fatiando.seismic.profile.vertical` like so::
 
     >>> import fatiando as ft
     >>> # Make the synthetic 4 layer model
@@ -32,7 +32,7 @@ To generate synthetic seismic profiling data, use
     >>> # Make an array with the z_i
     >>> zs = [10, 30, 40, 70]
     >>> # Calculate the travel-times
-    >>> for t in ft.seis.profile.vertical(thicks, vels, zs):
+    >>> for t in ft.seismic.profile.vertical(thicks, vels, zs):
     ...     print '%.1f' % (t),
     5.0 10.0 11.0 17.0
 
@@ -46,7 +46,7 @@ To make :math:`t_i` linear with respect to :math:`v_j`, we can use
 
 This allows us to easily invert for the slowness of each layer, given their
 thickness. Here's an example of using
-:func:`~fatiando.seis.profile.ivertical` to do this on some synthetic
+:func:`~fatiando.seismic.profile.ivertical` to do this on some synthetic
 data::
 
     >>> import numpy
@@ -57,10 +57,10 @@ data::
     >>> # Make an array with the z_i
     >>> zs = numpy.arange(5, sum(thicks), 1)
     >>> # Calculate the travel-times
-    >>> tts = ft.seis.profile.vertical(thicks, vels, zs)
+    >>> tts = ft.seismic.profile.vertical(thicks, vels, zs)
     >>> # Make a linear solver and solve for the slowness
     >>> solver = ft.inversion.linear.overdet(nparams=len(thicks))
-    >>> p, residuals = ft.seis.profile.ivertical(tts, zs, thicks, solver)
+    >>> p, residuals = ft.seismic.profile.ivertical(tts, zs, thicks, solver)
     >>> for slow in p:
     ...     print '%.1f' % (1./slow),
     2.0 4.0 10.0 8.0
@@ -74,13 +74,13 @@ import time
 import numpy
 import numpy.linalg.linalg
 
-from fatiando.seis import ttime2d
+from fatiando.seismic import ttime2d
 from fatiando.mesher import Square
 from fatiando import inversion, utils
 import fatiando.logger
 
 
-log = fatiando.logger.dummy('fatiando.seis.profile')
+log = fatiando.logger.dummy('fatiando.seismic.profile')
 
 class VerticalSlownessDM(inversion.datamodule.DataModule):
     """
@@ -98,7 +98,7 @@ class VerticalSlownessDM(inversion.datamodule.DataModule):
     where :math:`d_{ij}` is the distance that the ith first-arrival traveled
     inside the jth layer.
 
-    Uses :func:`fatiando.seis.ttime2d.straight` for forward modeling to
+    Uses :func:`fatiando.seismic.ttime2d.straight` for forward modeling to
     build the Jacobian matrix.
 
     Parameters:

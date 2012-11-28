@@ -1,5 +1,5 @@
 """
-Seis: 2D straight-ray tomography of large data sets and models using
+seismic: 2D straight-ray tomography of large data sets and models using
 sparse matrices
 
 Uses synthetic data and a model generated from an image file.
@@ -34,7 +34,7 @@ src_loc = ft.utils.random_points(area, 200)
 rec_loc = ft.utils.circular_points(area, 80, random=True)
 srcs, recs = ft.utils.connect_points(src_loc, rec_loc)
 start = time.time()
-ttimes = ft.seis.ttime2d.straight(model, 'vp', srcs, recs, par=True)
+ttimes = ft.seismic.ttime2d.straight(model, 'vp', srcs, recs, par=True)
 log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
 ttimes, error = ft.utils.contaminate(ttimes, 0.01, percent=True,
     return_stddev=True)
@@ -45,10 +45,10 @@ mesh = ft.mesher.SquareMesh(area, shape)
 ft.inversion.gradient.use_sparse()
 solver = ft.inversion.gradient.steepest(1000*numpy.ones(mesh.size))
 # and run the inversion
-estimate, residuals = ft.seis.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
+estimate, residuals = ft.seismic.srtomo.run(ttimes, srcs, recs, mesh, sparse=True,
     solver=solver, smooth=0.01)
 # Convert the slowness estimate to velocities and add it the mesh
-mesh.addprop('vp', ft.seis.srtomo.slowness2vel(estimate))
+mesh.addprop('vp', ft.seismic.srtomo.slowness2vel(estimate))
 
 # Calculate and print the standard deviation of the residuals
 # it should be close to the data error if the inversion was able to fit the data

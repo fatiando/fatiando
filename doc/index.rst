@@ -73,7 +73,7 @@ which results in something like this:
     :align: center
 
 For those of you not so interested in potential fields,
-there is a new module :ref:`fatiando.seis.wavefd <fatiando_seis_wavefd>`
+there is a new module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
 for **2D finite difference simulations
 of seismic waves**!
 

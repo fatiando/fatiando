@@ -11,18 +11,18 @@ Finite difference solution of the 2D wave equation for isotropic media.
 
 Simulates both elastic and acoustic waves:
 
-* :func:`~fatiando.seis.wavefd.elastic_psv`: Simulates the coupled P and SV
+* :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
   elastic waves
-* :func:`~fatiando.seis.wavefd.elastic_sh`: Simulates SH elastic waves
+* :func:`~fatiando.seismic.wavefd.elastic_sh`: Simulates SH elastic waves
 
 **Sources**
 
-* :class:`~fatiando.seis.wavefd.MexHatSource`: Mexican hat wavelet source
-* :class:`~fatiando.seis.wavefd.SinSqrSource`: Sine squared source
+* :class:`~fatiando.seismic.wavefd.MexHatSource`: Mexican hat wavelet source
+* :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared source
 
 **Auxiliary function**
 
-* :func:`~fatiando.seis.wavefd.lame`: Calculate the Lame constants from P and
+* :func:`~fatiando.seismic.wavefd.lame`: Calculate the Lame constants from P and
   S wave velocities and density
 
 **Theory**
@@ -183,12 +183,12 @@ import numpy
 
 import fatiando.logger
 
-log = fatiando.logger.dummy('fatiando.seis.wavefd')
+log = fatiando.logger.dummy('fatiando.seismic.wavefd')
 
 try:
-    from fatiando.seis import _cwavefd as timestepper
+    from fatiando.seismic import _cwavefd as timestepper
 except ImportError:
-    from fatiando.seis import _wavefd as timestepper
+    from fatiando.seismic import _wavefd as timestepper
 
 class MexHatSource(object):
     r"""
@@ -360,7 +360,7 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         Number of time steps to take
     * sources : list
         A list of the sources of waves
-        (see :class:`~fatiando.seis.wavefd.MexHatSource` for an example
+        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
         source)
     * padding : float
         The decimal percentage of padding to use in the grid to avoid
@@ -433,7 +433,7 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     * xsources : list
         A list of the sources of waves for the particle movement in the x
         direction
-        (see :class:`~fatiando.seis.wavefd.MexHatSource` for an example
+        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
         source)
     * zsources : list
         A list of the sources of waves for the particle movement in the z

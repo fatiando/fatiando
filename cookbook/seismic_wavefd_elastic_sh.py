@@ -1,5 +1,5 @@
 """
-Seis: 2D finite difference simulation of elastic SH wave propagation in a
+seismic: 2D finite difference simulation of elastic SH wave propagation in a
 medium with a discontinuity (i.e., Moho).
 
 The simulation shows that the SH waves get trapped in the top most layer and
@@ -14,9 +14,9 @@ import fatiando as ft
 log = ft.logger.get()
 
 # Make a wave source from a mexican hat wavelet
-sources = [ft.seis.wavefd.MexHatSource(4, 20, 100, 0.5, delay=1.5),
-           ft.seis.wavefd.MexHatSource(6, 22, 100, 0.5, delay=1.75),
-           ft.seis.wavefd.MexHatSource(8, 24, 100, 0.5, delay=2)]
+sources = [ft.seismic.wavefd.MexHatSource(4, 20, 100, 0.5, delay=1.5),
+           ft.seismic.wavefd.MexHatSource(6, 22, 100, 0.5, delay=1.75),
+           ft.seismic.wavefd.MexHatSource(8, 24, 100, 0.5, delay=2)]
 # Set the parameters of the finite difference grid
 shape = (80, 400)
 spacing = (1000, 1000)
@@ -35,7 +35,7 @@ svel[moho_index:,:] *= 6000
 # computations take place at each iteration in the for loop bellow
 dt = 0.05
 maxit = 4200
-timesteps = ft.seis.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
+timesteps = ft.seismic.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
     sources, padding=0.8)
 
 # This part makes an animation using matplotlibs animation API
