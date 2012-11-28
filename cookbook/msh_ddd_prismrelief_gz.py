@@ -24,7 +24,7 @@ log.info("Calculating gz effect")
 gridarea = (-80, 80, -220, 220)
 gridshape = (100, 100)
 xp, yp, zp = ft.gridder.regular(gridarea, gridshape, z=-200)
-gz = ft.pot.prism.gz(xp, yp, zp, relief)
+gz = ft.gravmag.prism.gz(xp, yp, zp, relief)
 
 log.info("Plotting")
 ft.vis.figure(figsize=(10,7))

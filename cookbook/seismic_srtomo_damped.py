@@ -1,5 +1,5 @@
 """
-seismic: 2D straight-ray tomography using damping regularization
+Seismic: 2D straight-ray tomography using damping regularization
 
 Uses synthetic data and a model generated from an image file.
 """

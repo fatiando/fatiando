@@ -1,5 +1,5 @@
 """
-seismic: Show steps taken by different algorithms for 2D epicenter estimation
+Seismic: Show steps taken by different algorithms for 2D epicenter estimation
 on a flat Earth
 """
 import sys

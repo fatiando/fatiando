@@ -1,5 +1,5 @@
 """
-seismic: 2D epicenter estimation assuming a homogeneous and flat Earth
+Seismic: 2D epicenter estimation assuming a homogeneous and flat Earth
 """
 import sys
 import numpy

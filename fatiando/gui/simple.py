@@ -19,7 +19,7 @@ import bisect
 import numpy
 from matplotlib import pyplot, widgets, nxutils
 
-from fatiando.pot import talwani
+from fatiando.gravmag import talwani
 from fatiando.mesher import Polygon
 from fatiando import utils
 import fatiando.seismic
@@ -32,7 +32,7 @@ class Moulder():
     """
     Interactive potential field direct modeling in 2D using polygons.
 
-    Uses module :mod:`~fatiando.pot.talwani` for computations.
+    Uses module :mod:`~fatiando.gravmag.talwani` for computations.
 
     For the moment only works for the gravity anomaly.
 

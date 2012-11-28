@@ -1,5 +1,5 @@
 """
-seismic: Invert vertical seismic profile (VSP) traveltimes using smoothness
+Seismic: Invert vertical seismic profile (VSP) traveltimes using smoothness
 regularization
 """
 import numpy

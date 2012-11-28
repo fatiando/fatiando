@@ -1,5 +1,5 @@
 """
-seismic: 2D straight-ray tomography using sharpness (total variation)
+Seismic: 2D straight-ray tomography using sharpness (total variation)
 regularization
 
 Uses synthetic data and a model generated from an image file.

@@ -146,7 +146,7 @@ Some modules that use the :mod:`~fatiando.inversion` API:
 * :mod:`fatiando.seismic.srtomo`
 * :mod:`fatiando.seismic.epic2d`
 * :mod:`fatiando.geothermal.climsig`
-* :mod:`fatiando.pot.basin2d`
+* :mod:`fatiando.gravmag.basin2d`
 
 ----
 

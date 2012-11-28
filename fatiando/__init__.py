@@ -4,8 +4,8 @@ most tasks.
 
 Modules for each geophysical method are group in subpackages:
 
-* :mod:`pot <fatiando.pot>`:
-  Potential fields
+* :mod:`gravmag <fatiando.gravmag>`:
+  Gravity and magnetics (i.e., potential fields)
 * :mod:`seismic <fatiando.seismic>`:
   Seismics and seismology
 * :mod:`geothermal <fatiando.geothermal>`:
@@ -33,7 +33,7 @@ implementing inverse problems. There you'll find common regularizing functions,
 linear inverse problem solvers, and non-linear gradient solvers. This package
 is generaly only used from inside Fatiando itself, not when using Fatiando in
 scripts. For usage examples, see the source of modules
-:mod:`fatiando.seismic.epic2d` and :mod:`fatiando.pot.basin2d`.
+:mod:`fatiando.seismic.epic2d` and :mod:`fatiando.gravmag.basin2d`.
 
 See the documentation for each module to find out more about what they do and
 how to use them.
@@ -49,7 +49,7 @@ version = '0.1.dev1'
 from fatiando import logger
 from fatiando import gridder
 from fatiando import mesher
-from fatiando import pot
+from fatiando import gravmag
 from fatiando import seismic
 from fatiando import utils
 from fatiando import geothermal

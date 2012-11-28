@@ -1,5 +1,5 @@
 """
-seismic: Invert vertical seismic profile (VSP) traveltimes for the velocity of the
+Seismic: Invert vertical seismic profile (VSP) traveltimes for the velocity of the
 layers
 """
 import numpy

@@ -1,5 +1,5 @@
 """
-seismic: 2D epicenter estimation on a flat Earth using equality constraints
+Seismic: 2D epicenter estimation on a flat Earth using equality constraints
 """
 import sys
 import numpy

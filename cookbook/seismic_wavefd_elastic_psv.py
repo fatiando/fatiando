@@ -1,5 +1,5 @@
 """
-seismic: 2D finite difference simulation of elastic P and SV wave propagation in a
+Seismic: 2D finite difference simulation of elastic P and SV wave propagation in a
 medium with a discontinuity (i.e., Moho).
 
 WARNING: Can be very slow!

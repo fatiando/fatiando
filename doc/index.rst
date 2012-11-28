@@ -59,7 +59,7 @@ gravity data on random points from a 3D prism model:
     >>> xp, yp, zp = ft.gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
     >>> # gaussian noise
-    >>> gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.1)
+    >>> gz = ft.utils.contaminate(ft.gravmag.prism.gz(xp, yp, zp, prisms), 0.1)
     >>> # Plot the result
     >>> ft.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
     >>> cb = ft.vis.colorbar()

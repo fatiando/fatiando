@@ -1,5 +1,5 @@
 """
-seismic: 2D finite difference simulation of elastic SH wave propagation in a
+Seismic: 2D finite difference simulation of elastic SH wave propagation in a
 medium with a discontinuity (i.e., Moho).
 
 The simulation shows that the SH waves get trapped in the top most layer and

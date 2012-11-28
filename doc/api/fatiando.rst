@@ -9,7 +9,7 @@ API Reference: The ``fatiando`` package
 
 .. toctree::
 
-    pot.rst
+    gravmag.rst
     seismic.rst
     geothermal.rst
     mesher.rst

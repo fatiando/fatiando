@@ -12,8 +12,6 @@ Version 0.1
 
 * Change license to BSD (see the :ref:`license text <license>`).
 * The API is now fully accessible by only importing ``fatiando``
-* Modules and packages have shorter for easier access (e.g., pot instead of
-  potential).
 * Now all plotting functions are available from vis directly.
   Import all from map and vtk in vis/__init__.py, plus some functions from
   matplotlib.
@@ -24,7 +22,7 @@ Version 0.1
   `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/publications/>`_
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
-  :ref:`fatiando.pot.prism <fatiando_pot_prism>`
+  :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
 * Added :ref:`fatiando.vis.vtk.savefig3d <fatiando_vis_vtk>` to save a Mayavi
   scene
 * Added :ref:`fatiando.vis.vtk.polyprisms <fatiando_vis_vtk>` 3D plotter
@@ -32,16 +30,16 @@ Version 0.1
 * Added :ref:`fatiando.vis.vtk.points3d <fatiando_vis_vtk>` 3D plotter
   function for points
 * Added gravity gradient tensor components and magnetic total field anomaly to
-  :ref:`fatiando.pot.polyprism <fatiando_pot_polyprism>`
+  :ref:`fatiando.gravmag.polyprism <fatiando_gravmag_polyprism>`
 * Added option to control the line width to `prisms` and `polyprisms` in
   :ref:`fatiando.vis.vtk <fatiando_vis_vtk>`
-* Added module :ref:`fatiando.pot.tensor <fatiando_pot_tensor>` for
+* Added module :ref:`fatiando.gravmag.tensor <fatiando_gravmag_tensor>` for
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
 * Added :ref:`tutorials <tutorials>` to the documentation
-* Added module :ref:`fatiando.pot.imaging <fatiando_pot_imaging>` with imaging
-  methods for potential fields
-* Added module :ref:`fatiando.pot.euler <fatiando_pot_euler>` with Euler
+* Added module :ref:`fatiando.gravmag.imaging <fatiando_gravmag_imaging>` with
+  imaging methods for potential fields
+* Added module :ref:`fatiando.gravmag.euler <fatiando_gravmag_euler>` with Euler
   deconvolution methods for potential field data
 * Added module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>` with 2D
   Finite Difference simulations of elastic seismic waves
@@ -62,10 +60,10 @@ Version 0.1
 * Move all physical constants used in ``fatiando`` to module
   :ref:`fatiando.constants <fatiando_constants>`
 * Data modules hidden inside functions in
-  :ref:`fatiando.pot.basin2d <fatiando_pot_basin2d>`
-* Functions in :ref:`fatiando.pot.basin2d <fatiando_pot_basin2d>` spit out
-  Polygons instead of the vertices estimated. Now you don't have to build the
-  polygons by hand.
+  :ref:`fatiando.gravmag.basin2d <fatiando_gravmag_basin2d>`
+* Functions in :ref:`fatiando.gravmag.basin2d <fatiando_gravmag_basin2d>` spit
+  out Polygons instead of the vertices estimated. Now you don't have to build
+  the polygons by hand.
 
 **Bug fixes**:
 

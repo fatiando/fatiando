@@ -668,7 +668,7 @@ class PrismRelief(object):
     can loop over prisms). It also has a ``__getitem__`` method to access
     individual elements in the mesh.
     In practice, PrismRelief should be able to be passed to any function that
-    asks for a list of prisms, like :func:`fatiando.pot.prism.gz`.
+    asks for a list of prisms, like :func:`fatiando.gravmag.prism.gz`.
 
     Parameters:
 
@@ -776,7 +776,7 @@ class PrismMesh(object):
     method to access individual elements in the mesh.
     In practice, :class:`~fatiando.mesher.PrismMesh` should be able to be
     passed to any function that asks for a list of prisms, like
-    :func:`fatiando.pot.prism.gz`.
+    :func:`fatiando.gravmag.prism.gz`.
 
     To make the mesh incorporate a topography, use
     :meth:`~fatiando.mesher.PrismMesh.carvetopo`

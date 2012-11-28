@@ -1,5 +1,5 @@
 """
-seismic: 2D finite difference simulation of elastic P and SV wave propagation
+Seismic: 2D finite difference simulation of elastic P and SV wave propagation
 """
 from matplotlib import animation
 import numpy as np
