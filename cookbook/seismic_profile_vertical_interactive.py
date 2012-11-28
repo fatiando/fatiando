@@ -3,7 +3,7 @@ Seis: Interactive forward modeling of 1D vertical seismic profile (VSP) data in
 layered media
 """
 import numpy
-from fatiando.ui.gui import Lasagne
+from fatiando.gui.simple import Lasagne
 
 thickness = [10, 20, 5, 10, 45, 80]
 zp = numpy.arange(0.5, sum(thickness), 0.5)

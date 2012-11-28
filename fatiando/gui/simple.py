@@ -1,15 +1,15 @@
 """
-Classes for graphical user interfaces (GUIs).
+Simple GUIs using the interactive capabilities of :mod:`matplotlib`
 
 **Interactive gravimetric modeling**
 
-* :class:`~fatiando.ui.gui.Moulder`
-* :class:`~fatiando.ui.gui.BasinTrap`
-* :class:`~fatiando.ui.gui.BasinTri`
+* :class:`~fatiando.gui.simple.Moulder`
+* :class:`~fatiando.gui.simple.BasinTrap`
+* :class:`~fatiando.gui.simple.BasinTri`
 
 **Interactive modeling of layered media**
 
-* :class:`~fatiando.ui.gui.Lasagne`
+* :class:`~fatiando.gui.simple.Lasagne`
 
 ----
 
@@ -26,7 +26,7 @@ import fatiando.seis
 import fatiando.logger
 
 
-log = fatiando.logger.dummy('fatiando.ui.gui')
+log = fatiando.logger.dummy('fatiando.gui.simple')
 
 class Moulder():
     """
@@ -459,7 +459,7 @@ class Lasagne():
         app.run()
         # Save the modeled data
         app.savedata("mydata.txt")
-cd
+
     Parameters:
 
     * thickness : list

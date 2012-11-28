@@ -15,7 +15,7 @@ API Reference: The ``fatiando`` package
     msh.rst
     gridder.rst
     vis.rst
-    ui.rst
+    gui.rst
     utils.rst
     logger.rst
     constants.rst

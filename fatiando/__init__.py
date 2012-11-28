@@ -19,8 +19,8 @@ Modules for gridding, meshing, visualization, user interface, etc:
   Grid generation and operations (like interpolation)
 * :mod:`vis <fatiando.vis>`:
   Plotting utilities for maps (using matplotlib) and 3D (using mayavi)
-* :mod:`ui <fatiando.ui>`:
-  User interfaces, like map picking and interactive drawing
+* :mod:`gui <fatiando.gui>`:
+  Graphical user interfaces (still very primitive)
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
 * :mod:`logger <fatiando.logger>`:
@@ -53,6 +53,6 @@ from fatiando import pot
 from fatiando import seis
 from fatiando import utils
 from fatiando import heat
-from fatiando import ui
+from fatiando import gui
 from fatiando import vis
 from fatiando import inversion

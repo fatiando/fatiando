@@ -2,7 +2,7 @@
 Potential: Interactive 2D forward modeling with polygons
 """
 import numpy
-from fatiando.ui.gui import Moulder
+from fatiando.gui.simple import Moulder
 
 area = (0, 100000, 0, 5000)
 xp = numpy.arange(0, 100000, 1000)
