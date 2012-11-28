@@ -1,6 +1,6 @@
 """
-Heat: Forward and inverse modeling of a linear change in temperature measured
-in a well
+Geothermal: Forward and inverse modeling of a linear change in temperature
+measured in a well
 """
 import numpy
 import fatiando as ft
@@ -13,11 +13,11 @@ log.info(__doc__)
 amp = 5.43
 age = 78.2
 zp = numpy.arange(0, 100, 1)
-temp, error = ft.utils.contaminate(ft.heat.climsig.linear(amp, age, zp),
+temp, error = ft.utils.contaminate(ft.geothermal.climsig.linear(amp, age, zp),
     0.02, percent=True, return_stddev=True)
 
 # Preparing for the inversion
-p, residuals = ft.heat.climsig.ilinear(temp, zp)
+p, residuals = ft.geothermal.climsig.ilinear(temp, zp)
 est_amp, est_age = p
 
 ft.vis.figure(figsize=(12,5))

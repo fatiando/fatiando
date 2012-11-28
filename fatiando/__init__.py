@@ -8,8 +8,8 @@ Modules for each geophysical method are group in subpackages:
   Potential fields
 * :mod:`seis <fatiando.seis>`:
   Seismics and seismology
-* :mod:`heat <fatiando.heat>`:
-  Geothermics
+* :mod:`geothermal <fatiando.geothermal>`:
+  Geothermal heat transfer modeling
 
 Modules for gridding, meshing, visualization, user interface, etc:
 
@@ -52,7 +52,7 @@ from fatiando import msh
 from fatiando import pot
 from fatiando import seis
 from fatiando import utils
-from fatiando import heat
+from fatiando import geothermal
 from fatiando import gui
 from fatiando import vis
 from fatiando import inversion

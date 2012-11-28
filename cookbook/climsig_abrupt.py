@@ -1,6 +1,6 @@
 """
-Heat: Forward and inverse modeling of an abrupt change in temperature measured
-in a well
+Geothermal: Forward and inverse modeling of an abrupt change in temperature
+measured in a well
 """
 import numpy
 import fatiando as ft
@@ -13,11 +13,11 @@ log.info(__doc__)
 amp = 3
 age = 54
 zp = numpy.arange(0, 100, 1)
-temp, error = ft.utils.contaminate(ft.heat.climsig.abrupt(amp, age, zp),
+temp, error = ft.utils.contaminate(ft.geothermal.climsig.abrupt(amp, age, zp),
     0.02, percent=True, return_stddev=True)
 
 # Preparing for the inversion
-p, residuals = ft.heat.climsig.iabrupt(temp, zp)
+p, residuals = ft.geothermal.climsig.iabrupt(temp, zp)
 est_amp, est_age = p
 
 ft.vis.figure(figsize=(12,5))

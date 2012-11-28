@@ -11,7 +11,7 @@ API Reference: The ``fatiando`` package
 
     pot.rst
     seis.rst
-    heat.rst
+    geothermal.rst
     msh.rst
     gridder.rst
     vis.rst

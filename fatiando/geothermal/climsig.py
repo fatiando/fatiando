@@ -6,8 +6,8 @@ Perturbations can be of two kinds:
 
 **Abrupt**
 
-* :func:`~fatiando.heat.climsig.abrupt`
-* :func:`~fatiando.heat.climsig.iabrupt`
+* :func:`~fatiando.geothermal.climsig.abrupt`
+* :func:`~fatiando.geothermal.climsig.iabrupt`
 
 Assumes that the temperature perturbation was abrupt. The residual temperature
 at a depth :math:`z_i` in the well at a time :math:`t` after the perturbation is
@@ -31,16 +31,16 @@ synthetic data::
     >>> zp = numpy.arange(0, 100, 1)
     >>> amp = 2
     >>> age = 100 # Uses years to avoid overflows
-    >>> temp = ft.heat.climsig.abrupt(amp, age, zp)
+    >>> temp = ft.geothermal.climsig.abrupt(amp, age, zp)
     >>> # Run the inversion for the amplitude and time
-    >>> p, residuals = ft.heat.climsig.iabrupt(temp, zp)
+    >>> p, residuals = ft.geothermal.climsig.iabrupt(temp, zp)
     >>> print "amp: %.2f  age: %.2f" % (p[0], p[1])
     amp: 2.00  age: 100.00
 
 **Linear**
 
-* :func:`~fatiando.heat.climsig.linear`
-* :func:`~fatiando.heat.climsig.ilinear`
+* :func:`~fatiando.geothermal.climsig.linear`
+* :func:`~fatiando.geothermal.climsig.ilinear`
 
 Assumes that the temperature perturbation was linear with time. The residual
 temperature at a depth :math:`z_i` in the well at a time :math:`t` after the
@@ -68,9 +68,9 @@ synthetic data::
     >>> zp = numpy.arange(0, 100, 1)
     >>> amp = 3.45
     >>> age = 52.5 # Uses years to avoid overflows
-    >>> temp = ft.heat.climsig.linear(amp, age, zp)
+    >>> temp = ft.geothermal.climsig.linear(amp, age, zp)
     >>> # Run the inversion for the amplitude and time
-    >>> p, residuals = ft.heat.climsig.ilinear(temp, zp)
+    >>> p, residuals = ft.geothermal.climsig.ilinear(temp, zp)
     >>> print "amp: %.2f  age: %.2f" % (p[0], p[1])
     amp: 3.45  age: 52.50
 
@@ -87,7 +87,7 @@ import fatiando.logger
 from fatiando import inversion, utils
 from fatiando.constants import THERMAL_DIFFUSIVITY_YEAR
 
-log = fatiando.logger.dummy('fatiando.heat.climsig')
+log = fatiando.logger.dummy('fatiando.geothermal.climsig')
 
 class AbruptDM(inversion.datamodule.DataModule):
     """

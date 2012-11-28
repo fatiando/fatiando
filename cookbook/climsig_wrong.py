@@ -1,6 +1,6 @@
 """
-Heat: Climate signal: What happens when assuming a climate change is linear,
-when in fact it was abrupt?
+Geothermal: Climate signal: What happens when assuming a climate change is
+linear, when in fact it was abrupt?
 """
 import numpy
 import fatiando as ft
@@ -13,11 +13,11 @@ log.info(__doc__)
 amp = 3
 age = 54
 zp = numpy.arange(0, 100, 1)
-temp, error = ft.utils.contaminate(ft.heat.climsig.abrupt(amp, age, zp),
+temp, error = ft.utils.contaminate(ft.geothermal.climsig.abrupt(amp, age, zp),
     0.02, percent=True, return_stddev=True)
 
 # Preparing for the inversion assuming that the change was LINEAR
-p, residuals = ft.heat.climsig.ilinear(temp, zp)
+p, residuals = ft.geothermal.climsig.ilinear(temp, zp)
 est_amp, est_age = p
 
 ft.vis.figure(figsize=(12,5))
