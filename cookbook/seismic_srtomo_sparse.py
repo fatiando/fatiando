@@ -22,7 +22,7 @@ log.info(__doc__)
 
 area = (0, 100000, 0, 100000)
 shape = (100, 100)
-model = ft.msh.dd.SquareMesh(area, shape)
+model = ft.mesher.SquareMesh(area, shape)
 # Fetch the image from the online docs
 urllib.urlretrieve(
     'http://fatiando.readthedocs.org/en/latest/_static/logo.png', 'logo.png')
@@ -39,7 +39,7 @@ log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
 ttimes, error = ft.utils.contaminate(ttimes, 0.01, percent=True,
     return_stddev=True)
 # Make the mesh
-mesh = ft.msh.dd.SquareMesh(area, shape)
+mesh = ft.mesher.SquareMesh(area, shape)
 # Since the matrices are big, use the Steepest Descent solver to avoid dealing
 # with Hessian matrices. It needs a starting guess, so start with 1000
 ft.inversion.gradient.use_sparse()

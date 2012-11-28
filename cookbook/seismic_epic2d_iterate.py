@@ -12,7 +12,7 @@ log.info(__doc__)
 
 area = (0, 10, 0, 10)
 vp, vs = 2, 1
-model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
+model = [ft.mesher.Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Choose the location of the receivers")
 ft.vis.figure()

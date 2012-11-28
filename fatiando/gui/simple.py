@@ -20,7 +20,7 @@ import numpy
 from matplotlib import pyplot, widgets, nxutils
 
 from fatiando.pot import talwani
-from fatiando.msh.dd import Polygon
+from fatiando.mesher import Polygon
 from fatiando import utils
 import fatiando.seis
 import fatiando.logger

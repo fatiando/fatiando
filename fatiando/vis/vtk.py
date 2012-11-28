@@ -1,8 +1,8 @@
 """
 Wrappers for calls to Mayavi2's `mlab` module for plotting
-:mod:`~fatiando.msh.ddd` objects and automating common tasks.
+:mod:`~fatiando.mesher` objects and automating common tasks.
 
-**:mod:`fatiando.msh` objects**
+**:mod:`fatiando.mesher` objects**
 
 * :func:`~fatiando.vis.vtk.prisms`
 * :func:`~fatiando.vis.vtk.polyprisms`
@@ -151,7 +151,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     Parameters:
 
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
@@ -261,7 +261,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     Parameters:
 
-    * prisms : list of :class:`fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`fatiando.mesher.Prism`
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a

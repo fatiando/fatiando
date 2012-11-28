@@ -9,7 +9,7 @@ log.info(ft.logger.header())
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    ft.msh.ddd.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
+    ft.mesher.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
 # Generate some data from the model
 shape = (200, 200)
 area = bounds[0:4]

@@ -64,7 +64,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the anomaly will be calculated
-    * spheres : list of :class:`fatiando.msh.ddd.Sphere`
+    * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the properties ``'magnetization'``,
         ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
         ``'declination'`` are not present, will use the values of *inc* and
@@ -130,7 +130,7 @@ def gz(xp, yp, zp, spheres):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the field will be calculated
-    * spheres : list of :class:`fatiando.msh.ddd.Sphere`
+    * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those without
         will be ignored.
 

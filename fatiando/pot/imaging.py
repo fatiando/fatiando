@@ -52,7 +52,7 @@ import time
 
 import numpy
 
-from fatiando.msh.ddd import PrismMesh
+from fatiando.mesher import PrismMesh
 from fatiando.pot import fourier
 from fatiando.pot import prism as pot_prism
 from fatiando.constants import G
@@ -98,7 +98,7 @@ def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
 
     Returns:
 
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The estimated physical property distribution set in a prism mesh (for
         easy 3D plotting)
 
@@ -164,7 +164,7 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
 
     Returns:
 
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The estimated physical property distribution set in a prism mesh (for
         easy 3D plotting)
 
@@ -238,7 +238,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
 
     Returns:
 
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The estimated physical property distribution set in a prism mesh (for
         easy 3D plotting)
 

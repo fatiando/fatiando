@@ -75,7 +75,7 @@ import numpy
 import numpy.linalg.linalg
 
 from fatiando.seis import ttime2d
-from fatiando.msh.dd import Square
+from fatiando.mesher import Square
 from fatiando import inversion, utils
 import fatiando.logger
 

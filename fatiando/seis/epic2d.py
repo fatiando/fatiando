@@ -15,7 +15,7 @@ Example using synthetic data::
     >>> area = (0, 10, 0, 10)
     >>> vp = 2
     >>> vs = 1
-    >>> model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
+    >>> model = [ft.mesher.Square(area, props={'vp':vp, 'vs':vs})]
     >>> # The true source (epicenter)
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]
@@ -39,7 +39,7 @@ Example using ``iterate = True`` to step through the solver algorithm::
     >>> area = (0, 10, 0, 10)
     >>> vp = 2
     >>> vs = 1
-    >>> model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
+    >>> model = [ft.mesher.Square(area, props={'vp':vp, 'vs':vs})]
     >>> # The true source (epicenter)
     >>> src = (5, 5)
     >>> recs = [(5, 0), (5, 10), (10, 0)]

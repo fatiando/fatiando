@@ -18,7 +18,7 @@ for i in range(1, len(depths)):
     for p in prisms:
         ft.vis.polygon(p, '.-k', xy2ne=True)
     prisms.append(
-        ft.msh.ddd.PolygonalPrism(
+        ft.mesher.PolygonalPrism(
             ft.vis.map.draw_polygon(area, axes, xy2ne=True),
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect

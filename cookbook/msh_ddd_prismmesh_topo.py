@@ -18,7 +18,7 @@ height = (100 +
           100*ft.utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))
 
 log.info("Generating the prism mesh")
-mesh = ft.msh.ddd.PrismMesh(bounds, (20,40,20))
+mesh = ft.mesher.PrismMesh(bounds, (20,40,20))
 mesh.carvetopo(x, y, height)
 
 log.info("Plotting")

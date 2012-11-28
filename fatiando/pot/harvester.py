@@ -39,7 +39,7 @@ A typical script to run the inversion on a data set looks like::
     # 'shape' is the number of prisms in each dimension
     bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
     shape = (nz, ny, nx)
-    mesh = ft.msh.ddd.PrismMesh(bounds, shape)
+    mesh = ft.mesher.PrismMesh(bounds, shape)
     # Make the data modules
     dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
     # Read the seed locations and physical properties from a file
@@ -119,7 +119,7 @@ def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
 
     Parameters:
 
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The model space mesh (or interpretative model)
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the observation points.
@@ -193,7 +193,7 @@ def sow(seeds, mesh, mu=0., delta=0.0001, reldist=False):
         'declination'. inclination and declination only need to be specified
         if they differ from the inducing field (i.e., if there is remanent
         magnetization).
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The model space mesh (or interpretative model).
     * mu : float
         Compactness regularizing parameters. Positive scalar that measures the
@@ -348,7 +348,7 @@ class DMPrism(object):
         The observed data values of the component of the potential field
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the observation points.
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The model space mesh (or interpretative model).
     * norm : int
         Order of the norm of the residual vector to use. Can be:
@@ -647,7 +647,7 @@ class SeedPrism(object):
     * props : dict
         Dictionary with the physical properties assigned to the seed.
         Ex: ``props={'density':10, 'susceptibility':10000}``
-    * mesh : :class:`fatiando.msh.ddd.PrismMesh`
+    * mesh : :class:`fatiando.mesher.PrismMesh`
         The model space mesh (or interpretative model).
     * mu : float
         Compactness regularizing parameters. Positive scalar that measures the
@@ -694,7 +694,7 @@ class SeedPrism(object):
 
     def get_prism(self):
         """
-        Return a :func:`~fatiando.msh.ddd.Prism` corresponding to the seed.
+        Return a :func:`~fatiando.mesher.Prism` corresponding to the seed.
         """
         index, props = self.seed
         prism = self.mesh[index]

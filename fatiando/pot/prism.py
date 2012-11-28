@@ -54,12 +54,12 @@ def pot(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -118,12 +118,12 @@ def gx(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -181,12 +181,12 @@ def gy(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -244,12 +244,12 @@ def gz(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -307,12 +307,12 @@ def gxx(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -366,12 +366,12 @@ def gxy(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -425,12 +425,12 @@ def gxz(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -484,12 +484,12 @@ def gyy(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -543,12 +543,12 @@ def gyz(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -602,12 +602,12 @@ def gzz(xp, yp, zp, prisms, dens=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The density model used to calculate the gravitational effect.
         Prisms must have the property ``'density'``. Prisms that don't have this
         property will be ignored in the computations. Elements of *prisms* that
         are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.msh.ddd.PrismMesh`.
+        :class:`~fatiando.mesher.PrismMesh`.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
@@ -661,13 +661,13 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.msh.ddd.Prism`
+    * prisms : list of :class:`~fatiando.mesher.Prism`
         The model used to calculate the total field anomaly.
         Prisms must have the physical property ``'magnetization'`` will be
         ignored. If the physical properties ``'inclination'`` and
         ``'declination'`` are not present, will use the values of *inc* and
         *dec* instead (regional field).
-        *prisms* can also be a :class:`~fatiando.msh.ddd.PrismMesh`.
+        *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float

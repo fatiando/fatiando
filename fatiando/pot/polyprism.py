@@ -48,7 +48,7 @@ def tf(xp, yp, zp, prisms, inc, dec):
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the total field anomaly.
         Prisms must have the physical property ``'magnetization'`` will be
         ignored. If the physical properties ``'inclination'`` and
@@ -121,7 +121,7 @@ def gz(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -201,7 +201,7 @@ def gxx(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -244,7 +244,7 @@ def gxy(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -287,7 +287,7 @@ def gxz(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -330,7 +330,7 @@ def gyy(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -373,7 +373,7 @@ def gyz(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.
@@ -416,7 +416,7 @@ def gzz(xp, yp, zp, prisms):
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.msh.ddd.PolygonalPrism`
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the field.
         Prisms must have the physical property ``'density'`` will be
         ignored.

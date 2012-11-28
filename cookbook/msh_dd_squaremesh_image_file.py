@@ -9,7 +9,7 @@ log.info(ft.logger.header())
 log.info(__doc__)
 
 # Make a square mesh
-mesh = ft.msh.dd.SquareMesh((0, 5000, 0, 5000), (150, 150))
+mesh = ft.mesher.SquareMesh((0, 5000, 0, 5000), (150, 150))
 # Fetch the image from the online docs
 urllib.urlretrieve(
     'http://fatiando.readthedocs.org/en/latest/_static/logo.png', 'logo.png')

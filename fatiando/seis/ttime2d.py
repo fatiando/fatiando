@@ -33,11 +33,11 @@ def straight(cells, prop, srcs, recs, velocity=None, par=False):
 
     Parameters:
 
-    * cells : list of :func:`fatiando.msh.dd.Square`
+    * cells : list of :func:`fatiando.mesher.Square`
         The velocity model to use to trace the straight rays. Cells must have
         the physical property given in parameter *prop*. This will be used
         as the velocity of each cell. (*cells* can also be a
-        :class:`~fatiando.msh.dd.SquareMesh`)
+        :class:`~fatiando.mesher.SquareMesh`)
     * prop : str
         Which physical property of the cells to use as velocity.
         Normaly one would choose ``'vp'`` or ``'vs'``
@@ -61,7 +61,7 @@ def straight(cells, prop, srcs, recs, velocity=None, par=False):
         >>> # One source was recorded at 3 receivers.
         >>> # The medium is homogeneous and can be
         >>> # represented by a single Square
-        >>> from fatiando.msh.dd import Square
+        >>> from fatiando.mesher import Square
         >>> cells = [Square([0, 10, 0, 10], {'vp':2})]
         >>> src = (5, 0)
         >>> srcs = [src, src, src]

@@ -7,7 +7,7 @@ log = ft.logger.get()
 log.info(ft.logger.header())
 log.info(__doc__)
 
-prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+prisms = [ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
 components = [ft.pot.prism.gxx, ft.pot.prism.gxy, ft.pot.prism.gxz,

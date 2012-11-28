@@ -13,18 +13,18 @@ Modules for each geophysical method are group in subpackages:
 
 Modules for gridding, meshing, visualization, user interface, etc:
 
-* :mod:`msh <fatiando.msh>`:
+* :mod:`mesher <fatiando.mesher>`:
   Mesh generation and definition of geometric elements
 * :mod:`gridder <fatiando.gridder>`:
-  Grid generation and operations (like interpolation)
-* :mod:`vis <fatiando.vis>`:
-  Plotting utilities for maps (using matplotlib) and 3D (using mayavi)
-* :mod:`gui <fatiando.gui>`:
-  Graphical user interfaces (still very primitive)
+  Grid generation and operations (e.g., interpolation)
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
 * :mod:`logger <fatiando.logger>`:
   A simpler interface to the Python :mod:`logging` module for log files
+* :mod:`vis <fatiando.vis>`:
+  Plotting utilities for 2D (using matplotlib) and 3D (using mayavi)
+* :mod:`gui <fatiando.gui>`:
+  Graphical user interfaces (still very primitive)
 * :mod:`~fatiando.constants`:
   Physical constants and unit conversions
 
@@ -48,7 +48,7 @@ version = '0.1.dev1'
 # importing fatiando
 from fatiando import logger
 from fatiando import gridder
-from fatiando import msh
+from fatiando import mesher
 from fatiando import pot
 from fatiando import seis
 from fatiando import utils

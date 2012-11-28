@@ -15,7 +15,7 @@ log.info(__doc__)
 
 area = (0, 500000, 0, 500000)
 shape = (30, 30)
-model = ft.msh.dd.SquareMesh(area, shape)
+model = ft.mesher.SquareMesh(area, shape)
 # Fetch the image from the online docs
 urllib.urlretrieve(
     'http://fatiando.readthedocs.org/en/latest/_static/logo.png', 'logo.png')
@@ -31,7 +31,7 @@ tts = ft.seis.ttime2d.straight(model, 'vp', srcs, recs, par=True)
 log.info("  time: %s" % (ft.utils.sec2hms(time.time() - start)))
 tts, error = ft.utils.contaminate(tts, 0.01, percent=True, return_stddev=True)
 # Make the mesh
-mesh = ft.msh.dd.SquareMesh(area, shape)
+mesh = ft.mesher.SquareMesh(area, shape)
 # and run the inversion
 estimate, residuals = ft.seis.srtomo.run(tts, srcs, recs, mesh, smooth=2*10**9)
 # Convert the slowness estimate to velocities and add it the mesh

@@ -10,7 +10,7 @@ log.info(__doc__)
 # Create a sphere model
 # Considering only induced magnetization, so I don't give the 'inclination' and
 # 'declination' properties
-spheres = [ft.msh.ddd.Sphere(0, 0, 3000, 1000, {'magnetization':1})]
+spheres = [ft.mesher.Sphere(0, 0, 3000, 1000, {'magnetization':1})]
 # Create a regular grid at 100m height
 shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)

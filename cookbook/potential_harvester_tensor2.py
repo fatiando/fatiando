@@ -4,7 +4,7 @@ Potential: 3D gravity gradient inversion by planting anomalous densities using
 """
 import numpy
 import fatiando as ft
-from fatiando.msh.ddd import Prism, PrismMesh
+from fatiando.mesher import Prism, PrismMesh
 
 log = ft.logger.get()
 log.info(ft.logger.header())
@@ -53,7 +53,7 @@ estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
 # Insert the estimated density values into the mesh
 mesh.addprop('density', estimate['density'])
 # and get only the prisms corresponding to our estimate
-density_model = ft.msh.ddd.vfilter(1, 2000, 'density', mesh)
+density_model = ft.mesher.vfilter(1, 2000, 'density', mesh)
 # Get the predicted data from the data modules
 tensor = (gxy, gzz)
 predicted = [dm.get_predicted() for dm in datamods]

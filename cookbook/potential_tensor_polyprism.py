@@ -13,7 +13,7 @@ area = bounds[:4]
 axis = ft.vis.figure().gca()
 ft.vis.axis('scaled')
 prisms = [
-    ft.msh.ddd.PolygonalPrism(
+    ft.mesher.PolygonalPrism(
         ft.vis.map.draw_polygon(area, axis, xy2ne=True),
         0, 1000, {'density':500})]
 # Calculate the effect

@@ -20,7 +20,7 @@ for depth in [5000, 5000, 5000, 2000]:
         ft.vis.polygon(p, '.-k', xy2ne=True)
     ft.vis.set_area(area)
     prisms.append(
-        ft.msh.ddd.PolygonalPrism(
+        ft.mesher.PolygonalPrism(
             ft.vis.map.draw_polygon(area, fig.gca(), xy2ne=True),
             0, depth, {'density':500}))
 # Calculate the effect

@@ -10,8 +10,8 @@ log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generate some synthetic data
-prisms = [ft.msh.ddd.Prism(-2500,-500,-1000,1000,500,2500,{'density':1000}),
-          ft.msh.ddd.Prism(500,2500,-1000,1000,500,2500,{'density':1000})]
+prisms = [ft.mesher.Prism(-2500,-500,-1000,1000,500,2500,{'density':1000}),
+          ft.mesher.Prism(500,2500,-1000,1000,500,2500,{'density':1000})]
 shape = (100, 100)
 xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-150)
 noise = 2

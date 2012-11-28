@@ -9,7 +9,7 @@ log.info(__doc__)
 
 shape = (10, 20, 10)
 nz, ny, nx = shape
-mesh = ft.msh.ddd.PrismMesh((0, 100, 0, 200, 0, 50), shape)
+mesh = ft.mesher.PrismMesh((0, 100, 0, 200, 0, 50), shape)
 def fill(i):
     k = i/(nx*ny)
     return k

@@ -18,7 +18,7 @@ vertices = [[-4948.97959184, -6714.64019851],
             [ 2653.06122449,  3409.4292804 ],
             [-3520.40816327, -1434.24317618],
             [-6632.65306122, -6079.4044665 ]]
-model = [ft.msh.ddd.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
+model = [ft.mesher.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
 area = bounds[0:4]
@@ -26,7 +26,7 @@ xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
 gz = ft.utils.contaminate(ft.pot.polyprism.gz(xp, yp, zp, model), noise)
 # Create a mesh
-mesh = ft.msh.ddd.PrismMesh(bounds, (50, 50, 50))
+mesh = ft.mesher.PrismMesh(bounds, (50, 50, 50))
 # Make the data modules
 dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Plot the data and pick the seeds
@@ -62,7 +62,7 @@ ft.vis.show()
 # Plot the result
 ft.vis.figure3d()
 ft.vis.polyprisms(model, 'density', opacity=0.6, linewidth=5)
-ft.vis.prisms(ft.msh.ddd.vremove(0, 'density', mesh), 'density')
+ft.vis.prisms(ft.mesher.vremove(0, 'density', mesh), 'density')
 ft.vis.axes3d(ft.vis.outline3d(bounds),
               ranges=[i*0.001 for i in bounds], fmt='%.1f', nlabels=6)
 ft.vis.wall_bottom(bounds)

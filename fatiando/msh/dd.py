@@ -4,12 +4,12 @@ triangles.
 
 **Elements**
 
-* :class:`~fatiando.msh.dd.Polygon`
-* :class:`~fatiando.msh.dd.Square`
+* :class:`~fatiando.mesher.Polygon`
+* :class:`~fatiando.mesher.Square`
 
 **Meshes**
 
-* :class:`~fatiando.msh.dd.SquareMesh`
+* :class:`~fatiando.mesher.SquareMesh`
 
 **Utility functions**
 
@@ -27,7 +27,7 @@ import fatiando.gridder
 from fatiando.msh.base import GeometricElement
 
 
-log = fatiando.logger.dummy('fatiando.msh.dd')
+log = fatiando.logger.dummy('fatiando.mesher')
 
 
 class Polygon(GeometricElement):
@@ -97,7 +97,7 @@ class Square(GeometricElement):
 
         Returns:
 
-        * polygon : :class:`~fatiando.msh.dd.Polygon`
+        * polygon : :class:`~fatiando.mesher.Polygon`
             The polygon equivalente of the square
 
         Example::
@@ -121,8 +121,8 @@ class SquareMesh(object):
     """
     Generate a 2D regular mesh of squares.
 
-    For all purposes, :class:`~fatiando.msh.dd.SquareMesh` can be used as a
-    list of :class:`~fatiando.msh.dd.Square`. The order of the squares in the
+    For all purposes, :class:`~fatiando.mesher.SquareMesh` can be used as a
+    list of :class:`~fatiando.mesher.Square`. The order of the squares in the
     list is: x directions varies first, then y.
 
     Parameters:
@@ -242,7 +242,7 @@ class SquareMesh(object):
         * values : list or array
             The value of this physical property in each square of the mesh.
             For the ordering of squares in the mesh see
-            :class:`~fatiando.msh.dd.SquareMesh`
+            :class:`~fatiando.mesher.SquareMesh`
 
         """
         self.props[prop] = values

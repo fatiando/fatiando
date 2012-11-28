@@ -9,9 +9,9 @@ log = ft.logger.get()
 log.info(ft.logger.header())
 log.info(__doc__)
 
-prisms = [ft.msh.ddd.Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
-          ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':-900}),
-          ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,{'density':1300})]
+prisms = [ft.mesher.Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
+          ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':-900}),
+          ft.mesher.Prism(2000,4000,3000,4000,0,2000,{'density':1300})]
 shape = (100,100)
 xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-150)
 log.info("Calculating fileds...")

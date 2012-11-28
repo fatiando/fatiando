@@ -8,7 +8,7 @@ log = ft.logger.get()
 log.info(ft.logger.header())
 log.info(__doc__)
 
-spheres = [ft.msh.ddd.Sphere(0, 0, -2000, 1000, {'density':1000})]
+spheres = [ft.mesher.Sphere(0, 0, -2000, 1000, {'density':1000})]
 # Create a set of points at 100m height
 area = (-5000, 5000, -5000, 5000)
 xp, yp, zp = ft.gridder.scatter(area, 500, z=-100)

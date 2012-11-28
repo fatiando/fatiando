@@ -25,7 +25,7 @@ for i in range(1, len(depths)):
     polygon = ft.vis.map.draw_polygon(area, axes, xy2ne=True)
     # append the newly drawn one
     prisms.append(
-        ft.msh.ddd.PolygonalPrism(polygon, depths[i - 1], depths[i],
+        ft.mesher.PolygonalPrism(polygon, depths[i - 1], depths[i],
             {'density':500}))
 meshshape = (30, 30, 30)
 xp, yp, zp = ft.gridder.regular(area, meshshape[1:], z=-10)

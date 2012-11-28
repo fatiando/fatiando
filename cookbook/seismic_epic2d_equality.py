@@ -14,7 +14,7 @@ log.info("So use a bit of regularization.")
 
 area = (0, 10, 0, 10)
 vp, vs = 2, 1
-model = [ft.msh.dd.Square(area, props={'vp':vp, 'vs':vs})]
+model = [ft.mesher.Square(area, props={'vp':vp, 'vs':vs})]
 
 log.info("Generating synthetic travel-time data")
 src = (8, 7)

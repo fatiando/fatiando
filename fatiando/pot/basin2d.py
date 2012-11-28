@@ -27,7 +27,7 @@ Example using synthetic data::
     >>> # Make a triangular basin model (will estimate the last point)
     >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
-    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
+    >>> model = ft.mesher.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
@@ -47,7 +47,7 @@ algorithm::
     >>> # Make a triangular basin model (will estimate the last point)
     >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
     >>> left, middle, right = verts
-    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
+    >>> model = ft.mesher.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
@@ -86,7 +86,7 @@ Example of inverting for the z coordinates of the unknown vertices::
     >>> import fatiando as ft
     >>> # Make a trapezoidal basin model (will estimate the last two point)
     >>> verts = [(10000, 1), (90000, 1), (90000, 5000), (10000, 3000)]
-    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
+    >>> model = ft.mesher.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
@@ -105,7 +105,7 @@ algorithm::
     >>> import fatiando as ft
     >>> # Make a trapezoidal basin model (will estimate the last two point)
     >>> verts = [(10000, 5), (90000, 10), (90000, 5000), (10000, 3000)]
-    >>> model = ft.msh.dd.Polygon(verts, {'density':500})
+    >>> model = ft.mesher.Polygon(verts, {'density':500})
     >>> # Generate the synthetic gz profile
     >>> xs = numpy.arange(0, 100000, 10000)
     >>> zs = numpy.zeros_like(xs)
@@ -135,7 +135,7 @@ import itertools
 import numpy
 
 from fatiando.pot import talwani
-from fatiando.msh.dd import Polygon
+from fatiando.mesher import Polygon
 from fatiando import inversion, utils
 import fatiando.logger
 
@@ -243,7 +243,7 @@ def triangular(xp, zp, data, verts, density, solver, iterate=False):
 
     * results : list = [estimate, residuals]:
 
-        * estimate : array or :class:`fatiando.msh.dd.Polygon`
+        * estimate : array or :class:`fatiando.mesher.Polygon`
             If ``iterate==False``, will return a Polygon, else will yield
             the estimated [x, z] coordinates of the missing vertice
         * residuals : array
@@ -369,7 +369,7 @@ def trapezoidal(xp, zp, data, verts, density, solver, iterate=False):
 
     * results : list = [estimate, residuals]:
 
-        * estimate : array or :class:`fatiando.msh.dd.Polygon`
+        * estimate : array or :class:`fatiando.mesher.Polygon`
             If ``iterate==False``, will return a Polygon, else will yield
             the estimated [z1, z2] coordinates of the bottom vertices.
         * residuals : array

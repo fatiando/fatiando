@@ -17,7 +17,7 @@ height = (-80*ft.utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
 
 log.info("Generating the 3D relief")
 nodes = (x, y, -1*height)
-relief = ft.msh.ddd.PrismRelief(0, ft.gridder.spacing(area,shape), nodes)
+relief = ft.mesher.PrismRelief(0, ft.gridder.spacing(area,shape), nodes)
 relief.addprop('density', (2670 for i in xrange(relief.size)))
 
 log.info("Calculating gz effect")

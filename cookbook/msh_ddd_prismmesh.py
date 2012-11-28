@@ -7,7 +7,7 @@ log = ft.logger.get()
 log.info(ft.logger.header())
 log.info(__doc__)
 
-mesh = ft.msh.ddd.PrismMesh(bounds=(-2, 2, -3, 3, 0, 1), shape=(4,4,4))
+mesh = ft.mesher.PrismMesh(bounds=(-2, 2, -3, 3, 0, 1), shape=(4,4,4))
 
 ft.vis.figure3d()
 plot = ft.vis.prisms(mesh)

@@ -10,7 +10,7 @@ log.info(ft.logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")
-prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':100})]
+prisms = [ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':100})]
 area = (-5000, 5000, -5000, 5000)
 shape = (51, 51)
 z0 = -500

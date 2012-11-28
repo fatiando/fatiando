@@ -10,13 +10,13 @@ log.info(__doc__)
 
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 prisms = [
-    ft.msh.ddd.Prism(-4000,-3000,-4000,-3000,0,2000,
+    ft.mesher.Prism(-4000,-3000,-4000,-3000,0,2000,
         {'magnetization':2}),
-    ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,
+    ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,
         {'magnetization':1}),
     # This prism has remanent magnetization because it's physical property
     # dict has inclination and declination
-    ft.msh.ddd.Prism(2000,4000,3000,4000,0,2000,
+    ft.mesher.Prism(2000,4000,3000,4000,0,2000,
         {'magnetization':3, 'inclination':-10, 'declination':45})]
 # Create a regular grid at 100m height
 shape = (200, 200)

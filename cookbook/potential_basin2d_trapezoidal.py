@@ -10,7 +10,7 @@ log.info(__doc__)
 
 log.info("Generating synthetic data")
 verts = [(10000, 1.), (90000, 1.), (90000, 7000), (10000, 3330)]
-model = ft.msh.dd.Polygon(verts, {'density':-100})
+model = ft.mesher.Polygon(verts, {'density':-100})
 xp = numpy.arange(0., 100000., 1000.)
 zp = numpy.zeros_like(xp)
 gz = ft.utils.contaminate(ft.pot.talwani.gz(xp, zp, [model]), 0.5)

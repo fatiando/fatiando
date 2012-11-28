@@ -9,7 +9,7 @@ log.info(__doc__)
 
 shape = (5, 20, 10)
 bounds = (0, 100, 0, 200, 0, 50)
-mesh = ft.msh.ddd.PrismMesh(bounds, shape)
+mesh = ft.mesher.PrismMesh(bounds, shape)
 # Fill the even prisms with 1 and odd with -1
 def fill(i):
     if i%2 == 0:
@@ -18,8 +18,8 @@ def fill(i):
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 
 # Separate even and odd prisms
-odd = ft.msh.ddd.vfilter(-1, 0, 'density', mesh)
-even = ft.msh.ddd.vfilter(0, 1, 'density', mesh)
+odd = ft.mesher.vfilter(-1, 0, 'density', mesh)
+even = ft.mesher.vfilter(0, 1, 'density', mesh)
 
 log.info("Showing solid ODD prisms and wireframe EVEN")
 ft.vis.figure3d()

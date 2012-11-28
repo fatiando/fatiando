@@ -8,9 +8,9 @@ log.info(ft.logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")
-prisms = [ft.msh.ddd.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
-          ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
-          ft.msh.ddd.Prism(1000,3000,2000,3000,0,1000,{'density':500})]
+prisms = [ft.mesher.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
+          ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
+          ft.mesher.Prism(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
 shape = (50, 50)
 z0 = -100

@@ -2,7 +2,7 @@
 Calculate the gravitational attraction of a 2D body with polygonal vertical
 cross-section using the formula of Talwani et al. (1959)
 
-Use the :func:`~fatiando.msh.dd.Polygon` object to create polygons.
+Use the :func:`~fatiando.mesher.Polygon` object to create polygons.
 
 .. warning:: the vertices must be given clockwise! If not, the result will have
     an inverted sign.
@@ -38,7 +38,7 @@ def gz(xp, zp, polygons):
 
     * xp, zp : arrays
         The x and z coordinates of the computation points.
-    * polygons : list of :func:`~fatiando.msh.dd.Polygon`
+    * polygons : list of :func:`~fatiando.mesher.Polygon`
         The density model used.
         Polygons must have the property ``'density'``. Polygons that don't have
         this property will be ignored in the computations. Elements of

@@ -52,9 +52,9 @@ gravity data on random points from a 3D prism model:
     >>> import fatiando as ft
     >>> # Create the prism model
     >>> prisms = [
-    ...     ft.msh.ddd.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...     ft.msh.ddd.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...     ft.msh.ddd.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
+    ...     ft.mesher.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
+    ...     ft.mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
+    ...     ft.mesher.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
     >>> # Generate 500 random observation points at 100m height
     >>> xp, yp, zp = ft.gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal

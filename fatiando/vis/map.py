@@ -703,7 +703,7 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
 
     Parameters:
 
-    * mesh : :class:`fatiando.msh.dd.SquareMesh` or compatible
+    * mesh : :class:`fatiando.mesher.SquareMesh` or compatible
         The mesh (a compatible mesh must implement the methods ``get_xs`` and
         ``get_ys``)
     * prop : str
@@ -738,7 +738,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
 
     Parameters:
 
-    * polygon : :class:`fatiando.msh.dd.Polygon`
+    * polygon : :class:`fatiando.mesher.Polygon`
         The polygon
     * style : str
         Color and line style string (as in matplotlib.pyplot.plot)

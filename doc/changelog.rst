@@ -51,7 +51,7 @@ Version 0.1
   loads the hash from file and put a "Unknown" if it can't read.
   This way importing fatiando won't fail if the there is no changeset
   information available.
-* :ref:`fatiando.msh.ddd.PrismMesh.dump <fatiando_msh_ddd>`: takes a mesh
+* :ref:`fatiando.mesher.PrismMesh.dump <fatiando_mesher>`: takes a mesh
   file, a property file and a property name. Saves the output to these files.
 * Transformed all geometric elements (like Prism, Polygon, etc) into classes
 * Ported all C extensions to Python + Numpy. This way compiling is not a

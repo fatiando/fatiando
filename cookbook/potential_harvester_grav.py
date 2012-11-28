@@ -8,7 +8,7 @@ log = ft.logger.get()
 log.info(ft.logger.header())
 
 # Create a synthetic model
-model = [ft.msh.ddd.Prism(250, 750, 250, 750, 200, 700, {'density':1000})]
+model = [ft.mesher.Prism(250, 750, 250, 750, 200, 700, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
 bounds = [0, 1000, 0, 1000, 0, 1000]
@@ -27,7 +27,7 @@ ft.vis.ylabel('Horizontal coordinate x (km)')
 ft.vis.m2km()
 ft.vis.show()
 # Create a mesh
-mesh = ft.msh.ddd.PrismMesh(bounds, (25, 25, 25))
+mesh = ft.mesher.PrismMesh(bounds, (25, 25, 25))
 # Make the data modules
 dms = ft.pot.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Make the seed and set the compactness regularizing parameter mu
@@ -52,7 +52,7 @@ ft.vis.show()
 # Plot the result
 ft.vis.figure3d()
 ft.vis.prisms(model, 'density', style='wireframe')
-ft.vis.prisms(ft.msh.ddd.vremove(0, 'density', mesh), 'density')
+ft.vis.prisms(ft.mesher.vremove(0, 'density', mesh), 'density')
 ft.vis.axes3d(ft.vis.outline3d(bounds),
               ranges=[i*0.001 for i in bounds], fmt='%.1f', nlabels=6)
 ft.vis.wall_bottom(bounds)

@@ -9,9 +9,9 @@ log.info(ft.logger.header())
 log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model
-prisms = [ft.msh.ddd.Prism(-4000,-1000,-4000,-2000,2000,5000,{'density':800}),
-          ft.msh.ddd.Prism(-1000,1000,-1000,1000,1000,6000,{'density':-800}),
-          ft.msh.ddd.Prism(2000,4000,3000,4000,0,4000,{'density':600})]
+prisms = [ft.mesher.Prism(-4000,-1000,-4000,-2000,2000,5000,{'density':800}),
+          ft.mesher.Prism(-1000,1000,-1000,1000,1000,6000,{'density':-800}),
+          ft.mesher.Prism(2000,4000,3000,4000,0,4000,{'density':600})]
 shape = (25, 25)
 xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-10)
 gz = ft.utils.contaminate(ft.pot.prism.gz(xp, yp, zp, prisms), 0.1)
