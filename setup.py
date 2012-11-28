@@ -40,8 +40,7 @@ PACKAGES = ['fatiando',
             'fatiando.seis',
             'fatiando.heat',
             'fatiando.vis',
-            'fatiando.ui',
-            'fatiando.msh',
+            'fatiando.gui',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'
