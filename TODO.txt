@@ -1,3 +1,10 @@
+REFACTOR:
+
+* Rename vis.map to vis.mpl
+* Rename vis.vtk to vis.mayavi
+* Load all functions from pyplot into vis.mpl
+* Stop loading all into vis
+
 GOALS FOR 0.3:
 
 * Write Developers Guide:
