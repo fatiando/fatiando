@@ -3,8 +3,8 @@ Potential: Generate noise-corrupted gravity gradient tensor data
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 prisms = [ft.msh.ddd.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]

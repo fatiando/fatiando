@@ -3,8 +3,8 @@ Vis: Plot a map using the Robinson map projection and contours
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generate some data to plot

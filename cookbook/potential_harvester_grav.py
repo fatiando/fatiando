@@ -4,8 +4,8 @@ Potential: 3D gravity inversion by planting anomalous densities using
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 
 # Create a synthetic model
 model = [ft.msh.ddd.Prism(250, 750, 250, 750, 200, 700, {'density':1000})]

@@ -4,8 +4,8 @@ Potential: 3D imaging using the sandwich model method on synthetic gravity data
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model

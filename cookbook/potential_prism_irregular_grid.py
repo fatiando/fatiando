@@ -4,8 +4,8 @@ Potential: Generate synthetic gravity data on an irregular grid
 import numpy
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 prisms = [ft.msh.ddd.Prism(-2000, 2000, -2000, 2000, 0, 2000, {'density':1000})]

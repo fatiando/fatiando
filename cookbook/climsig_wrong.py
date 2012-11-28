@@ -5,8 +5,8 @@ when in fact it was abrupt?
 import numpy
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generating synthetic data using an ABRUPT model

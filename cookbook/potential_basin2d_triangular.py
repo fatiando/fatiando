@@ -4,8 +4,8 @@ Potential: Simple gravity inversion for the relief of a 2D triangular basin
 import numpy
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 log.info("Generating synthetic data")

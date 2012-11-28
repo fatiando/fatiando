@@ -24,10 +24,10 @@ Create and operate on grids and profiles.
 import numpy
 import matplotlib.mlab
 
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.gridder')
+log = fatiando.logger.dummy('fatiando.gridder')
 
 def regular(area, shape, z=None):
     """

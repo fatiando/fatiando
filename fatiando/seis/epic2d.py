@@ -72,9 +72,9 @@ import time
 import numpy
 
 from fatiando import inversion, utils
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.seis.epic2d')
+log = fatiando.logger.dummy('fatiando.seis.epic2d')
 
 
 class TTRFlat(inversion.datamodule.DataModule):

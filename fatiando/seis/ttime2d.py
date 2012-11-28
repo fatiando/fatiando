@@ -11,9 +11,9 @@ import multiprocessing
 import math
 import numpy
 
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.seis.ttime2d')
+log = fatiando.logger.dummy('fatiando.seis.ttime2d')
 
 try:
     from fatiando.seis import _cttime2d

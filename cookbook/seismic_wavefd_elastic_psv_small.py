@@ -5,7 +5,7 @@ from matplotlib import animation
 import numpy as np
 import fatiando as ft
 
-log = ft.log.get()
+log = ft.logger.get()
 
 # Make a wave source from a mexican hat wavelet
 sources = [ft.seis.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]

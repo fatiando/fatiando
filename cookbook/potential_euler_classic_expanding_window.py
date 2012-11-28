@@ -4,8 +4,8 @@ expanding window
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]

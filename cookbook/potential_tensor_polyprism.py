@@ -3,8 +3,8 @@ Potential: Generate synthetic gradient tensor data from polygonal prisms
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 log.info("Draw the polygons one by one")

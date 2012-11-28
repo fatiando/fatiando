@@ -31,12 +31,12 @@ tesseroids, etc.
 import numpy
 import matplotlib.mlab
 
-import fatiando.log
+import fatiando.logger
 from fatiando.msh.dd import Polygon
 from fatiando.msh.base import GeometricElement
 
 
-log = fatiando.log.dummy('fatiando.msh.ddd')
+log = fatiando.logger.dummy('fatiando.msh.ddd')
 
 
 class EquivalentLayer(object):

@@ -21,10 +21,10 @@ window is closed.
 import numpy
 from matplotlib import pyplot, widgets
 
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.ui.picker')
+log = fatiando.logger.dummy('fatiando.ui.picker')
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     alpha=0.5, xy2ne=False):

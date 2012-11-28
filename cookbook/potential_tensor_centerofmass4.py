@@ -5,8 +5,8 @@ gradient tensor (elongated model)
 import numpy
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generate some synthetic data

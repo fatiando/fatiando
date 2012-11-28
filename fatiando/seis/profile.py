@@ -77,10 +77,10 @@ import numpy.linalg.linalg
 from fatiando.seis import ttime2d
 from fatiando.msh.dd import Square
 from fatiando import inversion, utils
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.seis.profile')
+log = fatiando.logger.dummy('fatiando.seis.profile')
 
 class VerticalSlownessDM(inversion.datamodule.DataModule):
     """

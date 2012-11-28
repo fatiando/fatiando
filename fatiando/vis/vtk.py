@@ -32,13 +32,13 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 
 import numpy
 
-import fatiando.log
+import fatiando.logger
 
 __all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
            'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
            'savefig3d', 'polyprisms', 'points3d', 'title3d']
 
-log = fatiando.log.dummy('fatiando.vis.vtk')
+log = fatiando.logger.dummy('fatiando.vis.vtk')
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -136,7 +136,7 @@ def points3d(points, color=(0, 0, 0), opacity=1, size=200.):
         Decimal percentage of opacity
     * size : float
         The size of the points (relative to their spacing)
-        
+
     """
     _lazy_import_mlab()
     x, y, z = numpy.transpose(points)

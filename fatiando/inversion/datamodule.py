@@ -10,10 +10,10 @@ the role of the data modules.
 
 import numpy
 
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.inversion.datamodule')
+log = fatiando.logger.dummy('fatiando.inversion.datamodule')
 
 
 class DataModule(object):

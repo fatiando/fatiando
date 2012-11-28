@@ -3,8 +3,8 @@ Potential: 3D forward modeling of total-field magnetic anomaly using spheres
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Create a sphere model

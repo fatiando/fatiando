@@ -46,9 +46,9 @@ import math
 import numpy
 
 import fatiando.constants
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.utils')
+log = fatiando.logger.dummy('fatiando.utils')
 
 
 def si2nt(value):
@@ -64,7 +64,7 @@ def si2nt(value):
 
     * value : number or array
         The value in nanoTesla
-    
+
     """
     return value*fatiando.constants.T2NT
 
@@ -81,7 +81,7 @@ def nt2si(value):
 
     * value : number or array
         The value in SI
-    
+
     """
     return value/fatiando.constants.T2NT
 
@@ -98,7 +98,7 @@ def si2eotvos(value):
 
     * value : number or array
         The value in Eotvos
-    
+
     """
     return value*fatiando.constants.SI2EOTVOS
 
@@ -115,7 +115,7 @@ def eotvos2si(value):
 
     * value : number or array
         The value in SI
-    
+
     """
     return value/fatiando.constants.SI2EOTVOS
 
@@ -132,7 +132,7 @@ def si2mgal(value):
 
     * value : number or array
         The value in mGal
-    
+
     """
     return value*fatiando.constants.SI2MGAL
 
@@ -149,7 +149,7 @@ def mgal2si(value):
 
     * value : number or array
         The value in SI
-    
+
     """
     return value/fatiando.constants.SI2MGAL
 

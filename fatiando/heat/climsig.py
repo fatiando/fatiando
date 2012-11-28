@@ -83,11 +83,11 @@ import itertools
 import numpy
 import scipy.special
 
-import fatiando.log
+import fatiando.logger
 from fatiando import inversion, utils
 from fatiando.constants import THERMAL_DIFFUSIVITY_YEAR
 
-log = fatiando.log.dummy('fatiando.heat.climsig')
+log = fatiando.logger.dummy('fatiando.heat.climsig')
 
 class AbruptDM(inversion.datamodule.DataModule):
     """

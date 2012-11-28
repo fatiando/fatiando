@@ -137,10 +137,10 @@ import numpy
 from fatiando.pot import talwani
 from fatiando.msh.dd import Polygon
 from fatiando import inversion, utils
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.pot.basin2d')
+log = fatiando.logger.dummy('fatiando.pot.basin2d')
 
 class TriangularGzDM(inversion.datamodule.DataModule):
     """

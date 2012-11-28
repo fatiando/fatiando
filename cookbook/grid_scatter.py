@@ -3,8 +3,8 @@ Gridding: Generate and plot irregular grids (scatter)
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generate random points

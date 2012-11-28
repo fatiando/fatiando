@@ -23,7 +23,7 @@ Modules for gridding, meshing, visualization, user interface, etc:
   User interfaces, like map picking and interactive drawing
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
-* :mod:`log <fatiando.log>`:
+* :mod:`logger <fatiando.logger>`:
   A simpler interface to the Python :mod:`logging` module for log files
 * :mod:`~fatiando.constants`:
   Physical constants and unit conversions
@@ -46,7 +46,7 @@ version = '0.1.dev1'
 
 # Import all the modules and subpackages so that they are accessible just by
 # importing fatiando
-from fatiando import log
+from fatiando import logger
 from fatiando import gridder
 from fatiando import msh
 from fatiando import pot

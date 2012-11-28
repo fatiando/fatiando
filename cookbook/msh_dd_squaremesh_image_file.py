@@ -4,8 +4,8 @@ Meshing: Generate a SquareMesh and get the physical properties from an image
 import urllib
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Make a square mesh

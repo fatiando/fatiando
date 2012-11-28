@@ -22,12 +22,12 @@ import PIL.Image
 import numpy
 import scipy.misc
 
-import fatiando.log
+import fatiando.logger
 import fatiando.gridder
 from fatiando.msh.base import GeometricElement
 
 
-log = fatiando.log.dummy('fatiando.msh.dd')
+log = fatiando.logger.dummy('fatiando.msh.dd')
 
 
 class Polygon(GeometricElement):

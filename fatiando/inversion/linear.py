@@ -64,10 +64,10 @@ from numpy.linalg import solve as linsys_solver
 import scipy.sparse
 import scipy.sparse.linalg
 
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.inversion.linear')
+log = fatiando.logger.dummy('fatiando.inversion.linear')
 
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)

@@ -181,9 +181,9 @@ The solution for P and SV waves is:
 """
 import numpy
 
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.seis.wavefd')
+log = fatiando.logger.dummy('fatiando.seis.wavefd')
 
 try:
     from fatiando.seis import _cwavefd as timestepper

@@ -4,8 +4,8 @@ random points)
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 spheres = [ft.msh.ddd.Sphere(0, 0, -2000, 1000, {'density':1000})]

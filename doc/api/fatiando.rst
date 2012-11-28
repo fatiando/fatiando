@@ -17,7 +17,7 @@ API Reference: The ``fatiando`` package
     vis.rst
     ui.rst
     utils.rst
-    log.rst
+    logger.rst
     constants.rst
     inversion.rst
 

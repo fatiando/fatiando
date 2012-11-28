@@ -5,8 +5,8 @@ Potential: Compare the results of different 3D potential field imaging methods
 from multiprocessing import Pool
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Make some synthetic gravity data from a polygonal prism model

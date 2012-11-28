@@ -5,8 +5,8 @@ Potential: 3D gravity inversion by planting anomalous densities using
 import fatiando as ft
 import numpy
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 
 # Create a synthetic model
 bounds = [-10000, 10000, -10000, 10000, 0, 10000]

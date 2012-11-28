@@ -93,9 +93,9 @@ import numpy
 
 from fatiando.pot import prism as pot_prism
 from fatiando import utils
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.pot.harvester')
+log = fatiando.logger.dummy('fatiando.pot.harvester')
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,

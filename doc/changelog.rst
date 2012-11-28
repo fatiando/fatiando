@@ -47,10 +47,10 @@ Version 0.1
   Difference simulations of elastic seismic waves
 * Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
 * If building inplace or packaging, the setup script puts the Mercurial
-  changeset hash in a file. Then :ref:`fatiando.log.header <fatiando_log>` loads
-  the hash from file and put
-  a "Unknown" if it can't read. This way importing fatiando won't fail if the
-  there is no changeset information available.
+  changeset hash in a file. Then :ref:`fatiando.logger.header <fatiando_logger>`
+  loads the hash from file and put a "Unknown" if it can't read.
+  This way importing fatiando won't fail if the there is no changeset
+  information available.
 * :ref:`fatiando.msh.ddd.PrismMesh.dump <fatiando_msh_ddd>`: takes a mesh
   file, a property file and a property name. Saves the output to these files.
 * Transformed all geometric elements (like Prism, Polygon, etc) into classes

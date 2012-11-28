@@ -14,9 +14,9 @@ import time
 
 import numpy
 
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.pot.trans')
+log = fatiando.logger.dummy('fatiando.pot.trans')
 
 
 def upcontinue(gz, height, xp, yp, dims):

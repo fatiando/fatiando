@@ -8,7 +8,7 @@ from matplotlib import animation
 import numpy as np
 import fatiando as ft
 
-log = ft.log.get()
+log = ft.logger.get()
 
 # Make some seismic sources using the mexican hat wavelet
 sources = [ft.seis.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)

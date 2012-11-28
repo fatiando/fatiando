@@ -40,7 +40,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 import numpy
 from matplotlib import pyplot
 
-import fatiando.log
+import fatiando.logger
 import fatiando.gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
@@ -50,7 +50,7 @@ __all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
            'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap',
            'draw_geolines', 'draw_countries', 'draw_coastlines']
 
-log = fatiando.log.dummy('fatiando.vis.map')
+log = fatiando.logger.dummy('fatiando.vis.map')
 
 def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
     """

@@ -3,8 +3,8 @@ Meshing: Filter prisms from a 3D prism mesh based on their physical properties
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 shape = (5, 20, 10)

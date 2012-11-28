@@ -6,8 +6,8 @@ import numpy
 import fatiando as ft
 from fatiando.msh.ddd import Prism, PrismMesh
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 # Generate a synthetic model

@@ -57,9 +57,9 @@ from fatiando.pot import fourier
 from fatiando.pot import prism as pot_prism
 from fatiando.constants import G
 from fatiando import utils
-import fatiando.log
+import fatiando.logger
 
-log = fatiando.log.dummy('fatiando.pot.imaging')
+log = fatiando.logger.dummy('fatiando.pot.imaging')
 
 
 def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):

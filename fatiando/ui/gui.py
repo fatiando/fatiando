@@ -23,10 +23,10 @@ from fatiando.pot import talwani
 from fatiando.msh.dd import Polygon
 from fatiando import utils
 import fatiando.seis
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.ui.gui')
+log = fatiando.logger.dummy('fatiando.ui.gui')
 
 class Moulder():
     """

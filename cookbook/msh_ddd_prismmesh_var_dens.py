@@ -3,8 +3,8 @@ Meshing: Make a 3D prism mesh with depth-varying density
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 shape = (10, 20, 10)

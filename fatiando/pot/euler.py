@@ -13,11 +13,11 @@ import time
 
 import numpy
 
-import fatiando.log
+import fatiando.logger
 import fatiando.gridder
 from fatiando import utils
 
-log = fatiando.log.dummy('fatiando.pot.euler')
+log = fatiando.logger.dummy('fatiando.pot.euler')
 
 
 def expanding_window(xp, yp, zp, field, xderiv, yderiv, zderiv, index,

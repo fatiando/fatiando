@@ -77,10 +77,10 @@ import scipy.sparse
 
 from fatiando import inversion, utils
 from fatiando.seis import ttime2d
-import fatiando.log
+import fatiando.logger
 
 
-log = fatiando.log.dummy('fatiando.seis.srtomo')
+log = fatiando.logger.dummy('fatiando.seis.srtomo')
 
 class TravelTime(inversion.datamodule.DataModule):
     """

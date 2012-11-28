@@ -5,12 +5,12 @@ This module is basically a wrapper around Pythons `logging` module.
 
 **Functions**
 
-* :func:`~fatiando.log.get`: Create a logger and enable logging using the
+* :func:`~fatiando.logger.get`: Create a logger and enable logging using the
   default settings
-* :func:`~fatiando.log.tofile`: Enable logging to a file
-* :func:`~fatiando.log.header`: Generate a header message string with the
+* :func:`~fatiando.logger.tofile`: Enable logging to a file
+* :func:`~fatiando.logger.header`: Generate a header message string with the
   current version, changeset information and date
-* :func:`~fatiando.log.dummy`: Get a logger without any handlers (for use in
+* :func:`~fatiando.logger.dummy`: Get a logger without any handlers (for use in
   modules)
 
 **Usage**
@@ -19,10 +19,10 @@ In a module, use a logger without any handlers so that it only logs if a script
 wants to log::
 
     >>> # in fatiando.package.module.py
-    >>> import fatiando.log
+    >>> import fatiando.logger
     >>> def myfunc():
-    ...     log = fatiando.log.dummy('fatiando.package.module.myfunc')
-    ...     log.info("Only logs if a script calls fatiando.log.get")
+    ...     log = fatiando.logger.dummy('fatiando.package.module.myfunc')
+    ...     log.info("Only logs if a script calls fatiando.logger.get")
 
 Then it can be used in a script::
 
@@ -30,14 +30,14 @@ Then it can be used in a script::
     >>> # Nothing happens
     >>> import sys
     >>> # Get a logger to stdout
-    >>> log = fatiando.log.get(stream=sys.stdout)
+    >>> log = fatiando.logger.get(stream=sys.stdout)
     >>> myfunc()
-    Only logs if a script calls fatiando.log.get
+    Only logs if a script calls fatiando.logger.get
     >>> log.info("This is an info msg printed to stdout from the script")
     This is an info msg printed to stdout from the script
     >>> log.debug("This is a debug msg NOT printed")
     >>> # Uncomment bellow to log to a file as well!
-    >>> # log = fatiando.log.tofile(log, 'mylogfile.log')
+    >>> # log = fatiando.logger.tofile(log, 'mylogfile.log')
     >>> log.warning('Warning printed to both stdout and log file')
     Warning printed to both stdout and log file
     >>> log.error('and this is an Error message.')
@@ -45,7 +45,7 @@ Then it can be used in a script::
 
 .. note:: Importing this module assigns a `logging.NullHandler` to the base
     logger of `fatiando`, whose name is ``'fatiando'``. This way, log messages
-    are only printed if a script calls :func:`fatiando.log.get` or assigns a
+    are only printed if a script calls :func:`fatiando.logger.get` or assigns a
     Handler to it.
 
 ----
@@ -61,7 +61,7 @@ import numpy
 
 
 # Add the NullHandler to the root logger for fatiando so that nothing is printed
-# until fatiando.log.get is called
+# until fatiando.logger.get is called
 logging.getLogger('fatiando').addHandler(logging.NullHandler())
 
 
@@ -100,7 +100,7 @@ def tofile(logger, fname, level=logging.DEBUG):
     Parameters:
 
     * logger : `logging.Logger`
-        A logger, as returned by :func:`fatiando.log.get`
+        A logger, as returned by :func:`fatiando.logger.get`
     * fname :  str
         Log file name
     * level : int
@@ -120,8 +120,8 @@ def tofile(logger, fname, level=logging.DEBUG):
         >>> logging.FileHandler = lambda f, mode: logging.StreamHandler(f)
         >>> # Now for the actual logger example!
         >>> import sys
-        >>> import fatiando.log
-        >>> log = fatiando.log.tofile(fatiando.log.get(stream=sys.stdout), f,
+        >>> import fatiando.logger
+        >>> log = fatiando.logger.tofile(fatiando.logger.get(stream=sys.stdout), f,
         ...                     level=logging.DEBUG)
         >>> log.debug("logged to file but not stdout!")
         >>> print f.getvalue().strip()
@@ -151,14 +151,14 @@ def dummy(name='fatiando'):
 
     * log : `logging.Logger`
         A logger without any handlers so that it only prints when
-        :func:`fatiando.log.get` or :func:`fatiando.log.tofile` are called
+        :func:`fatiando.logger.get` or :func:`fatiando.logger.tofile` are called
 
     Examples:
 
         >>> # in fatiando.mymod.py
-        >>> import fatiando.log
+        >>> import fatiando.logger
         >>> def myfunc():
-        ...     log = fatiando.log.dummy('fatiando.mymod.myfunc')
+        ...     log = fatiando.logger.dummy('fatiando.mymod.myfunc')
         ...     log.info("Not logged unless a script wants it to")
         >>> myfunc()
         >>>

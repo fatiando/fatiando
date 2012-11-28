@@ -4,8 +4,8 @@ prisms (model with induced and remanent magnetization)
 """
 import fatiando as ft
 
-log = ft.log.get()
-log.info(ft.log.header())
+log = ft.logger.get()
+log.info(ft.logger.header())
 log.info(__doc__)
 
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
