@@ -1,43 +1,45 @@
 """
-Wrappers for :mod:`matplotlib` calls to plot grids, 2D objects, etc.
+Wrappers for :mod:`matplotlib` functions to facilitate plotting grids,
+2D objects, etc.
 
-.. tip:: Avoid importing this module using ``from fatiando.vis import map``
-    because it will cause conflicts with Pythons ``map`` function.
+This module loads all functions from :mod:`matplotlib.pyplot`, adds new
+functions and overwrites some others (like :func:`~fatiando.vis.mpl.contour`,
+:func:`~fatiando.vis.mpl.pcolor`, etc).
 
 **Grids**
 
-* :func:`~fatiando.vis.map.contour`
-* :func:`~fatiando.vis.map.contourf`
-* :func:`~fatiando.vis.map.pcolor`
+* :func:`~fatiando.vis.mpl.contour`
+* :func:`~fatiando.vis.mpl.contourf`
+* :func:`~fatiando.vis.mpl.pcolor`
 
 Grids are automatically reshaped and interpolated if desired or necessary.
 
 **2D objects**
 
-* :func:`~fatiando.vis.map.points`
-* :func:`~fatiando.vis.map.paths`
-* :func:`~fatiando.vis.map.square`
-* :func:`~fatiando.vis.map.squaremesh`
-* :func:`~fatiando.vis.map.polygon`
-* :func:`~fatiando.vis.map.layers`
+* :func:`~fatiando.vis.mpl.points`
+* :func:`~fatiando.vis.mpl.paths`
+* :func:`~fatiando.vis.mpl.square`
+* :func:`~fatiando.vis.mpl.squaremesh`
+* :func:`~fatiando.vis.mpl.polygon`
+* :func:`~fatiando.vis.mpl.layers`
 
 **Interactive**
 
-* :func:`~fatiando.vis.map.draw_polygon`
-* :func:`~fatiando.vis.map.draw_layers`
-* :func:`~fatiando.vis.map.pick_points`
+* :func:`~fatiando.vis.mpl.draw_polygon`
+* :func:`~fatiando.vis.mpl.draw_layers`
+* :func:`~fatiando.vis.mpl.pick_points`
 
 **Basemap (map projections)**
 
-* :func:`~fatiando.vis.map.basemap`
-* :func:`~fatiando.vis.map.draw_geolines`
-* :func:`~fatiando.vis.map.draw_countries`
-* :func:`~fatiando.vis.map.draw_coastlines`
+* :func:`~fatiando.vis.mpl.basemap`
+* :func:`~fatiando.vis.mpl.draw_geolines`
+* :func:`~fatiando.vis.mpl.draw_countries`
+* :func:`~fatiando.vis.mpl.draw_coastlines`
 
 **Auxiliary**
 
-* :func:`~fatiando.vis.map.set_area`
-* :func:`~fatiando.vis.map.m2km`
+* :func:`~fatiando.vis.mpl.set_area`
+* :func:`~fatiando.vis.mpl.m2km`
 
 ----
 
@@ -45,6 +47,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 import numpy
 from matplotlib import pyplot, widgets
+from matplotlib.pyplot import *
 
 import fatiando.logger
 import fatiando.gridder
@@ -52,12 +55,7 @@ import fatiando.gridder
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
 
-__all__ = ['contour', 'contourf', 'pcolor', 'points', 'paths', 'square',
-           'squaremesh', 'polygon', 'layers', 'set_area', 'm2km', 'basemap',
-           'draw_geolines', 'draw_countries', 'draw_coastlines', 'draw_polygon',
-           'draw_layers', 'pick_points']
-
-log = fatiando.logger.dummy('fatiando.vis.map')
+log = fatiando.logger.dummy('fatiando.vis.mpl')
 
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
@@ -414,7 +412,7 @@ def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
         The spacing between the lines in the longitude and latitude directions,
         respectively (in decimal degrees)
     * basemap : mpl_toolkits.basemap.Basemap
-        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+        The basemap used for plotting (see :func:`~fatiando.vis.mpl.basemap`)
     * linewidth : float
         The width of the lines
 
@@ -432,7 +430,7 @@ def draw_countries(basemap, linewidth=1, style='dashed'):
     Parameters:
 
     * basemap : mpl_toolkits.basemap.Basemap
-        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+        The basemap used for plotting (see :func:`~fatiando.vis.mpl.basemap`)
     * linewidth : float
         The width of the lines
     * style : str
@@ -449,7 +447,7 @@ def draw_coastlines(basemap, linewidth=1, style='solid'):
     Parameters:
 
     * basemap : mpl_toolkits.basemap.Basemap
-        The basemap used for plotting (see :func:`~fatiando.vis.map.basemap`)
+        The basemap used for plotting (see :func:`~fatiando.vis.mpl.basemap`)
     * linewidth : float
         The width of the lines
     * style : str
@@ -815,7 +813,7 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
         Width of the contour lines
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
-        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
+        (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
 
     Returns:
 
@@ -876,7 +874,7 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
         Color map to be used. (see pyplot.cm module)
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
-        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
+        (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
 
     Returns:
 
@@ -925,7 +923,7 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
         Saturation values of the colorbar.
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
-        (see :func:`~fatiando.vis.map.basemap` for creating basemaps)
+        (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
 
     Returns:
 

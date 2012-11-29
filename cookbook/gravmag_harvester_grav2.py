@@ -2,11 +2,12 @@
 GravMag: 3D gravity inversion by planting anomalous densities using
 ``harvester`` (more complex example)
 """
-import fatiando as ft
-import numpy
+from fatiando import logger, gridder, utils, gravmag, mesher
+from fatiando.mesher import PolygonalPrism, PrismMesh
+from fatiando.vis import mpl, myv
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 
 # Create a synthetic model
 bounds = [-10000, 10000, -10000, 10000, 0, 10000]
@@ -18,53 +19,53 @@ vertices = [[-4948.97959184, -6714.64019851],
             [ 2653.06122449,  3409.4292804 ],
             [-3520.40816327, -1434.24317618],
             [-6632.65306122, -6079.4044665 ]]
-model = [ft.mesher.PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
+model = [PolygonalPrism(vertices, 1000, 4000, {'density':1000})]
 # and generate synthetic data from it
 shape = (25, 25)
 area = bounds[0:4]
-xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
+xp, yp, zp = gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
-gz = ft.utils.contaminate(ft.gravmag.polyprism.gz(xp, yp, zp, model), noise)
+gz = utils.contaminate(gravmag.polyprism.gz(xp, yp, zp, model), noise)
 # Create a mesh
-mesh = ft.mesher.PrismMesh(bounds, (50, 50, 50))
+mesh = PrismMesh(bounds, (50, 50, 50))
 # Make the data modules
-dms = ft.gravmag.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
+dms = gravmag.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
 # Plot the data and pick the seeds
-ft.vis.figure()
-ft.vis.suptitle("Pick the seeds (polygon is the true source)")
-ft.vis.axis('scaled')
-levels = ft.vis.contourf(yp, xp, gz, shape, 12)
-ft.vis.colorbar()
-ft.vis.polygon(model[0], xy2ne=True)
-ft.vis.xlabel('Horizontal coordinate y (km)')
-ft.vis.ylabel('Horizontal coordinate x (km)')
-seedx, seedy = ft.vis.map.pick_points(area, ft.vis.gca(), xy2ne=True).T
+mpl.figure()
+mpl.suptitle("Pick the seeds (polygon is the true source)")
+mpl.axis('scaled')
+levels = mpl.contourf(yp, xp, gz, shape, 12)
+mpl.colorbar()
+mpl.polygon(model[0], xy2ne=True)
+mpl.xlabel('Horizontal coordinate y (km)')
+mpl.ylabel('Horizontal coordinate x (km)')
+seedx, seedy = mpl.pick_points(area, mpl.gca(), xy2ne=True).T
 rawseeds = [[x, y, 2500, {'density':1000}] for x, y in zip(seedx, seedy)]
-ft.vis.show()
+mpl.show()
 # Make the seed and set the compactness regularizing parameter mu
-seeds = ft.gravmag.harvester.sow(rawseeds, mesh, mu=0.1, delta=0.0001)
+seeds = gravmag.harvester.sow(rawseeds, mesh, mu=0.1, delta=0.0001)
 # Run the inversion
-estimate, goals, misfits = ft.gravmag.harvester.harvest(dms, seeds)
+estimate, goals, misfits = gravmag.harvester.harvest(dms, seeds)
 # Put the estimated density values in the mesh
 mesh.addprop('density', estimate['density'])
 # Plot the adjustment and the result
 predicted = dms[0].get_predicted()
-ft.vis.figure()
-ft.vis.title("True: color | Predicted: contour")
-ft.vis.axis('scaled')
-levels = ft.vis.contourf(yp, xp, gz, shape, 12)
-ft.vis.colorbar()
-ft.vis.contour(yp, xp, predicted, shape, levels, color='k')
-ft.vis.xlabel('Horizontal coordinate y (km)')
-ft.vis.ylabel('Horizontal coordinate x (km)')
-ft.vis.m2km()
-ft.vis.show()
+mpl.figure()
+mpl.title("True: color | Predicted: contour")
+mpl.axis('scaled')
+levels = mpl.contourf(yp, xp, gz, shape, 12)
+mpl.colorbar()
+mpl.contour(yp, xp, predicted, shape, levels, color='k')
+mpl.xlabel('Horizontal coordinate y (km)')
+mpl.ylabel('Horizontal coordinate x (km)')
+mpl.m2km()
+mpl.show()
 # Plot the result
-ft.vis.figure3d()
-ft.vis.polyprisms(model, 'density', opacity=0.6, linewidth=5)
-ft.vis.prisms(ft.mesher.vremove(0, 'density', mesh), 'density')
-ft.vis.axes3d(ft.vis.outline3d(bounds),
-              ranges=[i*0.001 for i in bounds], fmt='%.1f', nlabels=6)
-ft.vis.wall_bottom(bounds)
-ft.vis.wall_north(bounds)
-ft.vis.show3d()
+myv.figure()
+myv.polyprisms(model, 'density', opacity=0.6, linewidth=5)
+myv.prisms(mesher.vremove(0, 'density', mesh), 'density')
+myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
+    nlabels=6)
+myv.wall_bottom(bounds)
+myv.wall_north(bounds)
+myv.show()

@@ -1,10 +1,11 @@
 """
 GravMag: Forward gravity modeling using a stack of 3D polygonal prisms
 """
-import fatiando as ft
+from fatiando import logger, mesher, gridder, gravmag
+from fatiando.vis import mpl, myv
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
 log.info("Draw the polygons one by one:")
@@ -13,30 +14,30 @@ area = bounds[:4]
 depths = [0, 1000, 2000, 3000, 4000]
 prisms = []
 for i in range(1, len(depths)):
-    axes = ft.vis.figure().gca()
-    ft.vis.axis('scaled')
+    axes = mpl.figure().gca()
+    mpl.axis('scaled')
     for p in prisms:
-        ft.vis.polygon(p, '.-k', xy2ne=True)
+        mpl.polygon(p, '.-k', xy2ne=True)
     prisms.append(
-        ft.mesher.PolygonalPrism(
-            ft.vis.map.draw_polygon(area, axes, xy2ne=True),
+        mesher.PolygonalPrism(
+            mpl.draw_polygon(area, axes, xy2ne=True),
             depths[i - 1], depths[i], {'density':500}))
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.gridder.regular(area, shape, z=-1)
-gz = ft.gravmag.polyprism.gz(xp, yp, zp, prisms)
+xp, yp, zp = gridder.regular(area, shape, z=-1)
+gz = gravmag.polyprism.gz(xp, yp, zp, prisms)
 # and plot it
-ft.vis.figure()
-ft.vis.axis('scaled')
-ft.vis.title("gz produced by prism model (mGal)")
-ft.vis.contourf(yp, xp, gz, shape, 20)
-ft.vis.colorbar()
+mpl.figure()
+mpl.axis('scaled')
+mpl.title("gz produced by prism model (mGal)")
+mpl.contourf(yp, xp, gz, shape, 20)
+mpl.colorbar()
 for p in prisms:
-    ft.vis.polygon(p, '.-k', xy2ne=True)
-ft.vis.set_area(area)
-ft.vis.show()
+    mpl.polygon(p, '.-k', xy2ne=True)
+mpl.set_area(area)
+mpl.show()
 # Show the prisms
-ft.vis.figure3d()
-ft.vis.polyprisms(prisms, 'density')
-ft.vis.axes3d(ft.vis.outline3d(bounds), ranges=[i*0.001 for i in bounds])
-ft.vis.show3d()
+myv.figure()
+myv.polyprisms(prisms, 'density')
+myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds])
+myv.show()

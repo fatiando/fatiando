@@ -1,44 +1,39 @@
 """
 Wrappers for calls to Mayavi2's `mlab` module for plotting
-:mod:`~fatiando.mesher` objects and automating common tasks.
+:mod:`fatiando.mesher` objects and automating common tasks.
 
 **:mod:`fatiando.mesher` objects**
 
-* :func:`~fatiando.vis.vtk.prisms`
-* :func:`~fatiando.vis.vtk.polyprisms`
-* :func:`~fatiando.vis.vtk.points3d`
+* :func:`~fatiando.vis.myv.prisms`
+* :func:`~fatiando.vis.myv.polyprisms`
+* :func:`~fatiando.vis.myv.points`
 
 **Misc objects**
 
-* :func:`~fatiando.vis.vtk.outline3d`
-* :func:`~fatiando.vis.vtk.axes3d`
-* :func:`~fatiando.vis.vtk.wall_north`
-* :func:`~fatiando.vis.vtk.wall_south`
-* :func:`~fatiando.vis.vtk.wall_east`
-* :func:`~fatiando.vis.vtk.wall_west`
-* :func:`~fatiando.vis.vtk.wall_top`
-* :func:`~fatiando.vis.vtk.wall_bottom`
+* :func:`~fatiando.vis.myv.outline`
+* :func:`~fatiando.vis.myv.axes`
+* :func:`~fatiando.vis.myv.wall_north`
+* :func:`~fatiando.vis.myv.wall_south`
+* :func:`~fatiando.vis.myv.wall_east`
+* :func:`~fatiando.vis.myv.wall_west`
+* :func:`~fatiando.vis.myv.wall_top`
+* :func:`~fatiando.vis.myv.wall_bottom`
 
 **Helpers**
 
-* :func:`~fatiando.vis.vtk.figure3d`
-* :func:`~fatiando.vis.vtk.title3d`
-* :func:`~fatiando.vis.vtk.show3d`
-* :func:`~fatiando.vis.vtk.savefig3d`
+* :func:`~fatiando.vis.myv.figure`
+* :func:`~fatiando.vis.myv.title`
+* :func:`~fatiando.vis.myv.show`
+* :func:`~fatiando.vis.myv.savefig`
 
 ----
 
 """
-
 import numpy
 
 import fatiando.logger
 
-__all__ = ['prisms', 'show3d', 'figure3d', 'outline3d', 'axes3d', 'wall_north',
-           'wall_south', 'wall_east', 'wall_west', 'wall_top', 'wall_bottom',
-           'savefig3d', 'polyprisms', 'points3d', 'title3d']
-
-log = fatiando.logger.dummy('fatiando.vis.vtk')
+log = fatiando.logger.dummy('fatiando.vis.myv')
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
@@ -69,7 +64,7 @@ def _lazy_import_tvtk():
         except ImportError:
             from enthought.tvtk.api import tvtk
 
-def title3d(text, color=(0, 0, 0),  size=0.3, height=1):
+def title(text, color=(0, 0, 0),  size=0.3, height=1):
     """
     Draw a title on a Mayavi figure.
 
@@ -91,7 +86,7 @@ def title3d(text, color=(0, 0, 0),  size=0.3, height=1):
     _lazy_import_mlab()
     mlab.title(text, color=color, size=size, height=height)
 
-def savefig3d(fname, magnification=None):
+def savefig(fname, magnification=None):
     """
     Save a snapshot the current Mayavi figure to a file.
 
@@ -110,7 +105,7 @@ def savefig3d(fname, magnification=None):
     else:
         mlab.savefig(fname, magnification=magnification)
 
-def show3d():
+def show():
     """
     Show the 3D plot of Mayavi2.
 
@@ -119,7 +114,7 @@ def show3d():
     _lazy_import_mlab()
     mlab.show()
 
-def points3d(points, color=(0, 0, 0), opacity=1, size=200.):
+def points(points, color=(0, 0, 0), opacity=1, size=200.):
     """
     Plot a series of 3D points.
 
@@ -354,7 +349,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     surf.actor.property.backface_culling = 1
     return surf
 
-def figure3d(size=None):
+def figure(size=None):
     """
     Create a default figure in Mayavi with white background and z pointing down
 
@@ -379,7 +374,7 @@ def figure3d(size=None):
     fig.scene.camera.azimuth(180.)
     return fig
 
-def outline3d(extent=None, color=(0,0,0), width=2):
+def outline(extent=None, color=(0,0,0), width=2):
     """
     Create a default outline in Mayavi2.
 
@@ -404,7 +399,7 @@ def outline3d(extent=None, color=(0,0,0), width=2):
         outline.bounds = extent
     return outline
 
-def axes3d(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
+def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
              width=2, fmt="%-#.2f"):
     """
     Add an Axes module to a Mayavi2 plot or dataset.
@@ -462,7 +457,7 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
@@ -484,7 +479,7 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
@@ -506,7 +501,7 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
@@ -528,7 +523,7 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
@@ -550,7 +545,7 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
@@ -572,7 +567,7 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
     * opacity : float
         Decimal percentage of opacity
 
-    .. tip:: You can use :func:`~fatiando.vis.vtk.add_axes` to create and
+    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
         `axes` variable and get the bounds as ``axes.axes.bounds``
 
     """
