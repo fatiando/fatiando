@@ -1,28 +1,29 @@
 """
 Gridding: Cut a section from a grid
 """
-import fatiando as ft
+from fatiando import logger, gridder, utils
+from fatiando.vis import mpl
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
 # Generate some synthetic data on a regular grid
-x, y = ft.gridder.regular((-10, 10, -10, 10), (100,100))
+x, y = gridder.regular((-10, 10, -10, 10), (100,100))
 # Using a 2D Gaussian
-z = ft.utils.gaussian2d(x, y, 1, 1)
+z = utils.gaussian2d(x, y, 1, 1)
 subarea = [-2, 2, -3, 3]
-subx, suby, subscalar = ft.gridder.cut(x, y, [z], subarea)
+subx, suby, subscalar = gridder.cut(x, y, [z], subarea)
 
-ft.vis.figure(figsize=(12, 5))
-ft.vis.subplot(1, 2, 1)
-ft.vis.title("Whole grid")
-ft.vis.axis('scaled')
-ft.vis.pcolor(x, y, z, (100,100))
-ft.vis.square(subarea, 'k', linewidth=2, label='Cut this region')
-ft.vis.legend(loc='lower left')
-ft.vis.subplot(1, 2, 2)
-ft.vis.title("Cut grid")
-ft.vis.axis('scaled')
-ft.vis.pcolor(subx, suby, subscalar[0], (40,60), interp=True)
-ft.vis.show()
+mpl.figure(figsize=(12, 5))
+mpl.subplot(1, 2, 1)
+mpl.title("Whole grid")
+mpl.axis('scaled')
+mpl.pcolor(x, y, z, (100,100))
+mpl.square(subarea, 'k', linewidth=2, label='Cut this region')
+mpl.legend(loc='lower left')
+mpl.subplot(1, 2, 2)
+mpl.title("Cut grid")
+mpl.axis('scaled')
+mpl.pcolor(subx, suby, subscalar[0], (40,60), interp=True)
+mpl.show()

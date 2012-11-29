@@ -2,40 +2,41 @@
 GravMag: 3D forward modeling of total-field magnetic anomaly using polygonal
 prisms
 """
-import fatiando as ft
+from fatiando import logger, mesher, gridder, gravmag
+from fatiando.vis import mpl, myv
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
 log.info("Draw the polygons one by one")
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 area = bounds[:4]
-axis = ft.vis.figure().gca()
-ft.vis.axis('scaled')
+axis = mpl.figure().gca()
+mpl.axis('scaled')
 prisms = [
-    ft.mesher.PolygonalPrism(
-        ft.vis.map.draw_polygon(area, axis, xy2ne=True),
+    mesher.PolygonalPrism(
+        mpl.draw_polygon(area, axis, xy2ne=True),
         0, 2000, {'magnetization':2})]
 # Calculate the effect
 shape = (100, 100)
-xp, yp, zp = ft.gridder.regular(area, shape, z=-500)
-tf = ft.gravmag.polyprism.tf(xp, yp, zp, prisms, 30, -15)
+xp, yp, zp = gridder.regular(area, shape, z=-500)
+tf = gravmag.polyprism.tf(xp, yp, zp, prisms, 30, -15)
 # and plot it
-ft.vis.figure()
-ft.vis.axis('scaled')
-ft.vis.title("Total field anomalyproduced by prism model (nT)")
-ft.vis.contourf(yp, xp, tf, shape, 20)
-ft.vis.colorbar()
+mpl.figure()
+mpl.axis('scaled')
+mpl.title("Total field anomalyproduced by prism model (nT)")
+mpl.contourf(yp, xp, tf, shape, 20)
+mpl.colorbar()
 for p in prisms:
-    ft.vis.polygon(p, '.-k', xy2ne=True)
-ft.vis.set_area(area)
-ft.vis.m2km()
-ft.vis.show()
+    mpl.polygon(p, '.-k', xy2ne=True)
+mpl.set_area(area)
+mpl.m2km()
+mpl.show()
 # Show the prisms
-ft.vis.figure3d()
-ft.vis.polyprisms(prisms, 'magnetization')
-ft.vis.axes3d(ft.vis.outline3d(bounds), ranges=[i*0.001 for i in bounds])
-ft.vis.wall_north(bounds)
-ft.vis.wall_bottom(bounds)
-ft.vis.show3d()
+myv.figure()
+myv.polyprisms(prisms, 'magnetization')
+myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds])
+myv.wall_north(bounds)
+myv.wall_bottom(bounds)
+myv.show()

@@ -3,59 +3,59 @@ Seismic: Invert vertical seismic profile (VSP) traveltimes for the velocity of t
 layers
 """
 import numpy
-import fatiando as ft
+from fatiando import logger, utils, seismic, vis
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
 log.info("Draw the layered model")
 # The limits in velocity and depths
 area = (0, 10000, 0, 100)
 vmin, vmax, zmin, zmax = area
-figure = ft.vis.figure()
-ft.vis.xlabel("Velocity (m/s)")
-ft.vis.ylabel("Depth (m)")
-thickness, velocity = ft.vis.map.draw_layers(area, figure.gca())
+figure = vis.mpl.figure()
+vis.mpl.xlabel("Velocity (m/s)")
+vis.mpl.ylabel("Depth (m)")
+thickness, velocity = vis.mpl.draw_layers(area, figure.gca())
 
 log.info("Generating synthetic data")
 zp = numpy.arange(zmin + 0.5, zmax, 0.5)
-tts, error = ft.utils.contaminate(
-    ft.seismic.profile.vertical(thickness, velocity, zp),
+tts, error = utils.contaminate(
+    seismic.profile.vertical(thickness, velocity, zp),
     0.02, percent=True, return_stddev=True)
 
 log.info("Preparing for the inversion")
 damping = 100.
 estimates = []
 for i in xrange(30):
-    p, r = ft.seismic.profile.ivertical(ft.utils.contaminate(tts, error), zp,
+    p, r = seismic.profile.ivertical(utils.contaminate(tts, error), zp,
         thickness, damping=damping)
     estimates.append(1./p)
-estimate = ft.utils.vecmean(estimates)
-predicted = ft.seismic.profile.vertical(thickness, estimate, zp)
+estimate = utils.vecmean(estimates)
+predicted = seismic.profile.vertical(thickness, estimate, zp)
 
 log.info("Plotting results...")
-ft.vis.figure(figsize=(12,5))
-ft.vis.subplot(1, 2, 1)
-ft.vis.grid()
-ft.vis.title("Vertical seismic profile")
-ft.vis.plot(tts, zp, 'ok', label='Observed')
-ft.vis.plot(predicted, zp, '-r', linewidth=3, label='Predicted')
-ft.vis.legend(loc='upper right', numpoints=1)
-ft.vis.xlabel("Travel-time (s)")
-ft.vis.ylabel("Z (m)")
-ft.vis.ylim(sum(thickness), 0)
-ft.vis.subplot(1, 2, 2)
-ft.vis.grid()
-ft.vis.title("Velocity profile")
+vis.mpl.figure(figsize=(12,5))
+vis.mpl.subplot(1, 2, 1)
+vis.mpl.grid()
+vis.mpl.title("Vertical seismic profile")
+vis.mpl.plot(tts, zp, 'ok', label='Observed')
+vis.mpl.plot(predicted, zp, '-r', linewidth=3, label='Predicted')
+vis.mpl.legend(loc='upper right', numpoints=1)
+vis.mpl.xlabel("Travel-time (s)")
+vis.mpl.ylabel("Z (m)")
+vis.mpl.ylim(sum(thickness), 0)
+vis.mpl.subplot(1, 2, 2)
+vis.mpl.grid()
+vis.mpl.title("Velocity profile")
 for p in estimates:
-    ft.vis.layers(thickness, p, '-r', linewidth=2, alpha=0.2)
-ft.vis.layers(thickness, estimate, 'o-k', linewidth=2, label='Mean estimate')
-ft.vis.layers(thickness, velocity, '--b', linewidth=2, label='True')
-ft.vis.ylim(zmax, zmin)
-ft.vis.xlim(vmin, vmax)
-leg = ft.vis.legend(loc='upper right', numpoints=1)
+    vis.mpl.layers(thickness, p, '-r', linewidth=2, alpha=0.2)
+vis.mpl.layers(thickness, estimate, 'o-k', linewidth=2, label='Mean estimate')
+vis.mpl.layers(thickness, velocity, '--b', linewidth=2, label='True')
+vis.mpl.ylim(zmax, zmin)
+vis.mpl.xlim(vmin, vmax)
+leg = vis.mpl.legend(loc='upper right', numpoints=1)
 leg.get_frame().set_alpha(0.5)
-ft.vis.xlabel("Velocity (m/s)")
-ft.vis.ylabel("Z (m)")
-ft.vis.show()
+vis.mpl.xlabel("Velocity (m/s)")
+vis.mpl.ylabel("Z (m)")
+vis.mpl.show()

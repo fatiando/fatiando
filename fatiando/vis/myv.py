@@ -2,7 +2,7 @@
 Wrappers for calls to Mayavi2's `mlab` module for plotting
 :mod:`fatiando.mesher` objects and automating common tasks.
 
-**:mod:`fatiando.mesher` objects**
+**Objects**
 
 * :func:`~fatiando.vis.myv.prisms`
 * :func:`~fatiando.vis.myv.polyprisms`

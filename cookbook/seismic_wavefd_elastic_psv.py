@@ -6,12 +6,12 @@ WARNING: Can be very slow!
 """
 from matplotlib import animation
 import numpy as np
-import fatiando as ft
+from fatiando import seismic, logger, gridder, vis
 
-log = ft.logger.get()
+log = logger.get()
 
 # Make some seismic sources using the mexican hat wavelet
-sources = [ft.seismic.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)
+sources = [seismic.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)
            for i in xrange(10)]
 # Make the velocity and density models
 shape = (80, 400)
@@ -33,59 +33,59 @@ svel[moho_index:,:] *= 6000.
 # computations take place at each iteration in the for loop bellow
 dt = 0.05
 maxit = 4200
-timesteps = ft.seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
+timesteps = seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
     maxit, sources, sources, padding=0.8)
 
 # This part makes an animation using matplotlibs animation API
 rec = 350 # The grid node used to record the seismogram
 vmin, vmax = -10*10**(-4), 10*10**(-4)
-fig = ft.vis.figure(figsize=(16,7))
-ft.vis.subplots_adjust(left=0.08, right=0.98, top=0.95, bottom=0.08)
+fig = vis.mpl.figure(figsize=(16,7))
+vis.mpl.subplots_adjust(left=0.08, right=0.98, top=0.95, bottom=0.08)
 # A plot for the ux field
-plotx = ft.vis.subplot(3, 2, 1)
-xseismogram, = ft.vis.plot([0], [0], '-k')
-ft.vis.xlim(0, dt*maxit)
-ft.vis.ylim(vmin*10.**(6), vmax*10.**(6))
-ft.vis.xlabel("Time (s)")
-ft.vis.ylabel("Amplitude ($\mu$m)")
-ft.vis.subplot(3, 2, 3)
-ft.vis.axis('scaled')
-x, z = ft.gridder.regular(area, shape)
-xwavefield = ft.vis.pcolor(x, z, np.zeros(shape).ravel(), shape,
+plotx = vis.mpl.subplot(3, 2, 1)
+xseismogram, = vis.mpl.plot([0], [0], '-k')
+vis.mpl.xlim(0, dt*maxit)
+vis.mpl.ylim(vmin*10.**(6), vmax*10.**(6))
+vis.mpl.xlabel("Time (s)")
+vis.mpl.ylabel("Amplitude ($\mu$m)")
+vis.mpl.subplot(3, 2, 3)
+vis.mpl.axis('scaled')
+x, z = gridder.regular(area, shape)
+xwavefield = vis.mpl.pcolor(x, z, np.zeros(shape).ravel(), shape,
     vmin=vmin, vmax=vmax)
-ft.vis.plot([rec*spacing[1]], [2000], '^b')
-ft.vis.hlines([moho], 0, area[1], 'k', '-')
-ft.vis.ylim(area[-1], area[-2])
-ft.vis.m2km()
-ft.vis.xlabel("x (km)")
-ft.vis.ylabel("z (km)")
+vis.mpl.plot([rec*spacing[1]], [2000], '^b')
+vis.mpl.hlines([moho], 0, area[1], 'k', '-')
+vis.mpl.ylim(area[-1], area[-2])
+vis.mpl.m2km()
+vis.mpl.xlabel("x (km)")
+vis.mpl.ylabel("z (km)")
 # A plot for the uz field
-plotz = ft.vis.subplot(3, 2, 2)
-zseismogram, = ft.vis.plot([0], [0], '-k')
-ft.vis.xlim(0, dt*maxit)
-ft.vis.ylim(vmin*10.**(6), vmax*10.**(6))
-ft.vis.xlabel("Time (s)")
-ft.vis.ylabel("Amplitude ($\mu$m)")
-ft.vis.subplot(3, 2, 4)
-ft.vis.axis('scaled')
-x, z = ft.gridder.regular(area, shape)
-zwavefield = ft.vis.pcolor(x, z, np.zeros(shape).ravel(), shape,
+plotz = vis.mpl.subplot(3, 2, 2)
+zseismogram, = vis.mpl.plot([0], [0], '-k')
+vis.mpl.xlim(0, dt*maxit)
+vis.mpl.ylim(vmin*10.**(6), vmax*10.**(6))
+vis.mpl.xlabel("Time (s)")
+vis.mpl.ylabel("Amplitude ($\mu$m)")
+vis.mpl.subplot(3, 2, 4)
+vis.mpl.axis('scaled')
+x, z = gridder.regular(area, shape)
+zwavefield = vis.mpl.pcolor(x, z, np.zeros(shape).ravel(), shape,
     vmin=vmin, vmax=vmax)
-ft.vis.plot([rec*spacing[1]], [2000], '^b')
-ft.vis.hlines([moho], 0, area[1], 'k', '-')
-ft.vis.ylim(area[-1], area[-2])
-ft.vis.m2km()
-ft.vis.xlabel("x (km)")
-ft.vis.ylabel("z (km)")
+vis.mpl.plot([rec*spacing[1]], [2000], '^b')
+vis.mpl.hlines([moho], 0, area[1], 'k', '-')
+vis.mpl.ylim(area[-1], area[-2])
+vis.mpl.m2km()
+vis.mpl.xlabel("x (km)")
+vis.mpl.ylabel("z (km)")
 # And a plot for the particle movement in the seismic station
-ax = ft.vis.subplot(3, 1, 3)
-ft.vis.title("Particle movement")
-ft.vis.axis('scaled')
-particle_movement, = ft.vis.plot([0], [0], '-k')
-ft.vis.xlim(vmin*10.**(6), vmax*10.**(6))
-ft.vis.ylim(vmax*10.**(6), vmin*10.**(6))
-ft.vis.xlabel("ux ($\mu$m)")
-ft.vis.ylabel("uz ($\mu$m)")
+ax = vis.mpl.subplot(3, 1, 3)
+vis.mpl.title("Particle movement")
+vis.mpl.axis('scaled')
+particle_movement, = vis.mpl.plot([0], [0], '-k')
+vis.mpl.xlim(vmin*10.**(6), vmax*10.**(6))
+vis.mpl.ylim(vmax*10.**(6), vmin*10.**(6))
+vis.mpl.xlabel("ux ($\mu$m)")
+vis.mpl.ylabel("uz ($\mu$m)")
 ax.set_xticks(ax.get_xticks()[1:-1])
 ax.set_yticks(ax.get_yticks()[1:-1])
 # Record the amplitudes at the seismic station
@@ -116,4 +116,4 @@ def animate(i):
 anim = animation.FuncAnimation(fig, animate, interval=1, blit=False,
     frames=maxit/steps_per_frame)
 #anim.save('rayleigh_wave.mp4', fps=10)
-ft.vis.show()
+vis.mpl.show()

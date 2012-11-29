@@ -47,7 +47,13 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 import numpy
 from matplotlib import pyplot, widgets
-from matplotlib.pyplot import *
+# Quick hack so that the docs can build using the mocks for readthedocs
+# Ideal would be to log an error message saying that functions from pyplot
+# were not imported
+try:
+    from matplotlib.pyplot import *
+except:
+    pass
 
 import fatiando.logger
 import fatiando.gridder

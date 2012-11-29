@@ -1,25 +1,25 @@
 """
 Vis: Plot a map using the Orthographic map projection and filled contours
 """
-import fatiando as ft
+from fatiando import logger, gridder, utils, vis
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
 # Generate some data to plot
 area = (-40, 0, 10, -50)
 shape = (100, 100)
-lon, lat = ft.gridder.regular(area, shape)
-data = ft.utils.gaussian2d(lon, lat, 10, 20, -20, -20, angle=-45)
+lon, lat = gridder.regular(area, shape)
+data = utils.gaussian2d(lon, lat, 10, 20, -20, -20, angle=-45)
 
 # Now get a basemap to plot with some projection
-bm = ft.vis.basemap(area, 'ortho')
+bm = vis.mpl.basemap(area, 'ortho')
 
 # And now plot everything passing the basemap to the plotting functions
-ft.vis.figure()
+vis.mpl.figure()
 bm.bluemarble()
-ft.vis.contourf(lon, lat, data, shape, 12, basemap=bm)
-ft.vis.colorbar()
-ft.vis.show()
+vis.mpl.contourf(lon, lat, data, shape, 12, basemap=bm)
+vis.mpl.colorbar()
+vis.mpl.show()
 

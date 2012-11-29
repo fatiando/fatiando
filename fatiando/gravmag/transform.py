@@ -4,7 +4,7 @@ total mass.
 
 **Transformations**
 
-* :func:`~fatiando.gravmag.trans.upcontinue`: Upward continuation of the
+* :func:`~fatiando.gravmag.transform.upcontinue`: Upward continuation of the
   vertical component of gravity :math:`g_z` using numerical integration
 
 ----
@@ -16,7 +16,7 @@ import numpy
 
 import fatiando.logger
 
-log = fatiando.logger.dummy('fatiando.gravmag.trans')
+log = fatiando.logger.dummy('fatiando.gravmag.transform')
 
 
 def upcontinue(gz, height, xp, yp, dims):

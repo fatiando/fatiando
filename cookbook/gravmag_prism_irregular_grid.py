@@ -1,23 +1,24 @@
 """
 GravMag: Generate synthetic gravity data on an irregular grid
 """
-import numpy
 import fatiando as ft
+from fatiando import logger, mesher, gridder, gravmag
+from fatiando.vis import mpl
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
-prisms = [ft.mesher.Prism(-2000, 2000, -2000, 2000, 0, 2000, {'density':1000})]
-xp, yp, zp = ft.gridder.scatter((-5000, 5000, -5000, 5000), n=100, z=-100)
-gz = ft.gravmag.prism.gz(xp, yp, zp, prisms)
+prisms = [mesher.Prism(-2000, 2000, -2000, 2000, 0, 2000, {'density':1000})]
+xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), n=100, z=-100)
+gz = gravmag.prism.gz(xp, yp, zp, prisms)
 
 shape = (100,100)
-ft.vis.axis('scaled')
-ft.vis.title("gz produced by prism model on an irregular grid (mGal)")
-ft.vis.plot(xp, yp, '.k', label='Grid points')
-levels = ft.vis.contourf(xp, yp, gz, shape, 12, interp=True)
-ft.vis.contour(xp, yp, gz, shape, levels, interp=True)
-ft.vis.legend(loc='lower right', numpoints=1)
-ft.vis.m2km()
-ft.vis.show()
+mpl.axis('scaled')
+mpl.title("gz produced by prism model on an irregular grid (mGal)")
+mpl.plot(xp, yp, '.k', label='Grid points')
+levels = mpl.contourf(xp, yp, gz, shape, 12, interp=True)
+mpl.contour(xp, yp, gz, shape, levels, interp=True)
+mpl.legend(loc='lower right', numpoints=1)
+mpl.m2km()
+mpl.show()

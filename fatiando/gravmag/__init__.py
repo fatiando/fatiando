@@ -31,8 +31,8 @@ The inversion modules use the forward modeling models and the
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
-* :mod:`~fatiando.gravmag.trans`: Analytical potential field transformations,
-  like upward continuation
+* :mod:`~fatiando.gravmag.transform`: Analytical potential field
+  transformations, like upward continuation
 * :mod:`~fatiando.gravmag.fourier`: Potential field transformations using the
   FFT
 * :mod:`~fatiando.gravmag.imaging`: Imaging methods for potential fields for
@@ -44,5 +44,5 @@ after modeling.
 
 """
 
-from fatiando.gravmag import (basin2d, polyprism, prism, talwani, trans,
+from fatiando.gravmag import (basin2d, polyprism, prism, talwani, transform,
     harvester, sphere, tensor, fourier, imaging, euler)

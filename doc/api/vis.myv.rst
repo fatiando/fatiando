@@ -1,8 +1,8 @@
-.. _fatiando_vis_map:
+.. _fatiando_vis_myv:
 
-Map grids and plot 2D objects (``fatiando.vis.map``)
+Plot 3D objects in Mayavi2 (``fatiando.vis.myv``)
 ================================================================================
 
-.. automodule:: fatiando.vis.map
+.. automodule:: fatiando.vis.myv
    :members:
    :show-inheritance:

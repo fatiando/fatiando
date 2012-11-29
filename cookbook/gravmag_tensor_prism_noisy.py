@@ -1,29 +1,30 @@
 """
 GravMag: Generate noise-corrupted gravity gradient tensor data
 """
-import fatiando as ft
+from fatiando import logger, mesher, gridder, gravmag, utils
+from fatiando.vis import mpl
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
-prisms = [ft.mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+prisms = [mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
-xp, yp, zp = ft.gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
-components = [ft.gravmag.prism.gxx, ft.gravmag.prism.gxy, ft.gravmag.prism.gxz,
-              ft.gravmag.prism.gyy, ft.gravmag.prism.gyz, ft.gravmag.prism.gzz]
+xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
+components = [gravmag.prism.gxx, gravmag.prism.gxy, gravmag.prism.gxz,
+              gravmag.prism.gyy, gravmag.prism.gyz, gravmag.prism.gzz]
 log.info("Calculate the tensor components and contaminate with 5 Eotvos noise")
-ftg = [ft.utils.contaminate(comp(xp, yp, zp, prisms), 5.0) for comp in components]
+ftg = [utils.contaminate(comp(xp, yp, zp, prisms), 5.0) for comp in components]
 
 log.info("Plotting...")
-ft.vis.figure(figsize=(14,6))
-ft.vis.suptitle("Contaminated FTG data")
+mpl.figure(figsize=(14,6))
+mpl.suptitle("Contaminated FTG data")
 names = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 for i, data in enumerate(ftg):
-    ft.vis.subplot(2,3,i+1)
-    ft.vis.title(names[i])
-    ft.vis.axis('scaled')
-    levels = ft.vis.contourf(xp*0.001, yp*0.001, data, (100,100), 12)
-    ft.vis.colorbar()
-    ft.vis.contour(xp*0.001, yp*0.001, data, shape, levels, clabel=False)
-ft.vis.show()
+    mpl.subplot(2,3,i+1)
+    mpl.title(names[i])
+    mpl.axis('scaled')
+    levels = mpl.contourf(xp*0.001, yp*0.001, data, (100,100), 12)
+    mpl.colorbar()
+    mpl.contour(xp*0.001, yp*0.001, data, shape, levels, clabel=False)
+mpl.show()

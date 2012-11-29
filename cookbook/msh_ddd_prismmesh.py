@@ -1,15 +1,16 @@
 """
 Meshing: Make and plot a 3D prism mesh
 """
-import fatiando as ft
+from fatiando import logger, mesher
+from fatiando.vis import myv
 
-log = ft.logger.get()
-log.info(ft.logger.header())
+log = logger.get()
+log.info(logger.header())
 log.info(__doc__)
 
-mesh = ft.mesher.PrismMesh(bounds=(-2, 2, -3, 3, 0, 1), shape=(4,4,4))
+mesh = mesher.PrismMesh(bounds=(-2, 2, -3, 3, 0, 1), shape=(4,4,4))
 
-ft.vis.figure3d()
-plot = ft.vis.prisms(mesh)
-axes = ft.vis.axes3d(plot)
-ft.vis.show3d()
+myv.figure()
+plot = myv.prisms(mesh)
+axes = myv.axes(plot)
+myv.show()

@@ -9,5 +9,5 @@ Visualization (``fatiando.vis``)
 
 .. toctree::
 
-    vis.map.rst
-    vis.vtk.rst
+    vis.mpl.rst
+    vis.myv.rst

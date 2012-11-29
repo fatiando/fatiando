@@ -12,9 +12,6 @@ Version 0.1
 
 * Change license to BSD (see the :ref:`license text <license>`).
 * The API is now fully accessible by only importing ``fatiando``
-* Now all plotting functions are available from vis directly.
-  Import all from map and vtk in vis/__init__.py, plus some functions from
-  matplotlib.
 * Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
@@ -23,16 +20,16 @@ Version 0.1
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
   :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
-* Added :ref:`fatiando.vis.vtk.savefig3d <fatiando_vis_vtk>` to save a Mayavi
+* Added :ref:`fatiando.vis.myv.savefig3d <fatiando_vis_myv>` to save a Mayavi
   scene
-* Added :ref:`fatiando.vis.vtk.polyprisms <fatiando_vis_vtk>` 3D plotter
+* Added :ref:`fatiando.vis.myv.polyprisms <fatiando_vis_myv>` 3D plotter
   function for PolygonalPrism
-* Added :ref:`fatiando.vis.vtk.points3d <fatiando_vis_vtk>` 3D plotter
+* Added :ref:`fatiando.vis.myv.points3d <fatiando_vis_myv>` 3D plotter
   function for points
 * Added gravity gradient tensor components and magnetic total field anomaly to
   :ref:`fatiando.gravmag.polyprism <fatiando_gravmag_polyprism>`
 * Added option to control the line width to `prisms` and `polyprisms` in
-  :ref:`fatiando.vis.vtk <fatiando_vis_vtk>`
+  :ref:`fatiando.vis.myv <fatiando_vis_myv>`
 * Added module :ref:`fatiando.gravmag.tensor <fatiando_gravmag_tensor>` for
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
