@@ -20,23 +20,12 @@ The **source code** of Fatiando is hosted on several online repositories:
 .. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
 .. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
 .. _the official site: http://www.fatiando.org/software/fatiando
+.. _Python: http://www.python.org
 
 **License**: Fatiando is licensed under the **BSD license**.
 This means that it can be reused and remixed
 with few restrictions.
 See the :ref:`license text <license>` for more information.
-
-The **main interface** for Fatiando
-is provided by a Python_ package called ``fatiando``.
-This means that commands in Fatiando
-are executed using Python scripts,
-instead of the command line or shell scripts.
-The advantage of this is that
-Python is a very feature rich and powerful programming language.
-So, you can easily combine different commands together
-and even extend the functionality of Fatiando with your own code!
-
-.. _Python: http://www.python.org
 
 The best **place to start** learning
 about Fatiando is the :ref:`Cookbook <cookbook>`!
@@ -49,23 +38,25 @@ gravity data on random points from a 3D prism model:
 
 .. doctest::
 
-    >>> import fatiando as ft
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.vis import mpl
+    >>> from fatiando import gridder, utils, gravmag
     >>> # Create the prism model
     >>> prisms = [
-    ...     ft.mesher.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...     ft.mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...     ft.mesher.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
+    ...     Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
+    ...     Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
+    ...     Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
     >>> # Generate 500 random observation points at 100m height
-    >>> xp, yp, zp = ft.gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
+    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
     >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
     >>> # gaussian noise
-    >>> gz = ft.utils.contaminate(ft.gravmag.prism.gz(xp, yp, zp, prisms), 0.1)
+    >>> gz = utils.contaminate(gravmag.prism.gz(xp, yp, zp, prisms), 0.1)
     >>> # Plot the result
-    >>> ft.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
-    >>> cb = ft.vis.colorbar()
+    >>> mpl.contourf(xp, yp, gz, (100, 100), 12, interp=True)
+    >>> cb = mpl.colorbar()
     >>> cb.set_label('mGal')
-    >>> ft.vis.plot(xp, yp, '.k')
-    >>> ft.vis.show()
+    >>> mpl.plot(xp, yp, '.k')
+    >>> mpl.show()
 
 which results in something like this:
 
@@ -107,14 +98,10 @@ of seismic waves**!
 .. toctree::
     :maxdepth: 1
 
-    overview.rst
     contributors.rst
     license.rst
     changelog.rst
     install.rst
-    using.rst
-    advanced.rst
-    tutorials.rst
     api/fatiando.rst
     cookbook.rst
 

@@ -6,8 +6,6 @@ Finite difference solution of the 2D wave equation for isotropic media.
     Due to the high computational demmand of these simulations,
     the pure Python time stepping functions are **very** slow!
     I strongly recommend using the optimized Cython time stepping module.
-    For instructions on using and installing the Cython compiled modules, see
-    :ref:`advanced-usage`.
 
 Simulates both elastic and acoustic waves:
 

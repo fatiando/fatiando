@@ -33,7 +33,6 @@ Version 0.1
 * Added module :ref:`fatiando.gravmag.tensor <fatiando_gravmag_tensor>` for
   processing gradient tensor data. Includes eigenvalues and eigenvectors,
   tensor invariants, center of mass estimation, etc.
-* Added :ref:`tutorials <tutorials>` to the documentation
 * Added module :ref:`fatiando.gravmag.imaging <fatiando_gravmag_imaging>` with
   imaging methods for potential fields
 * Added module :ref:`fatiando.gravmag.euler <fatiando_gravmag_euler>` with Euler
