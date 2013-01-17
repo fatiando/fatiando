@@ -479,7 +479,7 @@ class Tesseroid(GeometricElement):
         West and east borders of the tesseroid in decimal degrees
     * s, n : float
         South and north borders of the tesseroid in decimal degrees
-    * bottom, top : float
+    * top, bottom : float
         Bottom and top of the tesseroid with respect to the mean earth radius
         in meters. Ex: if the top is 100 meters above the mean earth radius,
         ``top=100``, if 100 meters bellow ``top=-100``.
@@ -490,23 +490,23 @@ class Tesseroid(GeometricElement):
     Examples:
 
         >>> from fatiando.mesher import Tesseroid
-        >>> t = Tesseroid(1, 2, 3, 4, 5, 6, {'density':200})
+        >>> t = Tesseroid(1, 2, 3, 4, 6, 5, {'density':200})
         >>> t.props['density']
         200
         >>> print t.get_bounds()
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        [1.0, 2.0, 3.0, 4.0, 6.0, 5.0]
         >>> print t
-        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6 | density:200
-        >>> t = Tesseroid(1, 2, 3, 4, 5, 6)
+        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5 | density:200
+        >>> t = Tesseroid(1, 2, 3, 4, 6, 5)
         >>> print t
-        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6
+        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5
         >>> t.addprop('density', 2670)
         >>> print t
-        w:1 | e:2 | s:3 | n:4 | bottom:5 | top:6 | density:2670
+        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5 | density:2670
 
     """
 
-    def __init__(self, w, e, s, n, bottom, top, props=None):
+    def __init__(self, w, e, s, n, top, bottom, props=None):
         GeometricElement.__init__(self, props)
         self.w = float(w)
         self.e = float(e)
@@ -518,7 +518,7 @@ class Tesseroid(GeometricElement):
     def __str__(self):
         """Return a string representation of the tesseroid."""
         names = [('w', self.w), ('e', self.e), ('s', self.s),
-                 ('n', self.n), ('bottom', self.bottom), ('top', self.top)]
+                 ('n', self.n), ('top', self.top), ('bottom', self.bottom)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
 
@@ -529,16 +529,16 @@ class Tesseroid(GeometricElement):
         Returns:
 
         * bounds : list
-            ``[w, e, s, n, bottom, top]``, the bounds of the tesseroid
+            ``[w, e, s, n, top, bottom]``, the bounds of the tesseroid
 
         Examples:
 
-            >>> t = Tesseroid(1, 2, 3, 4, 5, 6)
+            >>> t = Tesseroid(1, 2, 3, 4, 6, 5)
             >>> print t.get_bounds()
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+            [1.0, 2.0, 3.0, 4.0, 6.0, 5.0]
 
         """
-        return [self.w, self.e, self.s, self.n, self.bottom, self.top]
+        return [self.w, self.e, self.s, self.n, self.top, self.bottom]
 
 class Sphere(GeometricElement):
     """

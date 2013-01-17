@@ -45,4 +45,4 @@ after modeling.
 """
 
 from fatiando.gravmag import (basin2d, polyprism, prism, talwani, transform,
-    harvester, sphere, tensor, fourier, imaging, euler)
+    harvester, sphere, tensor, fourier, imaging, euler, tesseroid)
