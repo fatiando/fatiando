@@ -329,12 +329,14 @@ def _add_pad(array, pad, shape):
     Pad the array with the values of the borders
     """
     array_pad = numpy.zeros(shape, dtype=numpy.float)
-    array_pad[:-pad, pad:-pad] = array
+    array_pad[2:-pad, pad:-pad] = array
     for k in xrange(pad):
-        array_pad[:-pad,k] = array[:,0]
-        array_pad[:-pad,-(k + 1)] = array[:,-1]
+        array_pad[2:-pad,k] = array[:,0]
+        array_pad[2:-pad,-(k + 1)] = array[:,-1]
     for k in xrange(pad):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
+    array_pad[0,:] = array_pad[2,:]
+    array_pad[1,:] = array_pad[2,:]
     return array_pad
 
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
@@ -376,7 +378,7 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     pad = int(padding*max(shape))
     decay = float(20*pad)
     nx += 2*pad
-    nz += pad
+    nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
     # Pad the velocity as well
     svel_pad = _add_pad(svel, pad, (nz, nx))
     # Compute and yield the initial solutions
@@ -386,8 +388,8 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     for src in sources:
         i, j = src.coords()
         u_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield u_tm1[:-pad, pad:-pad]
-    yield u_t[:-pad, pad:-pad]
+    yield u_tm1[2:-pad, pad:-pad]
+    yield u_t[2:-pad, pad:-pad]
     # Time steps
     for t in xrange(1, iterations):
         timestepper.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
@@ -407,7 +409,7 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
             u_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         u_tm1 = numpy.copy(u_t)
         u_t = numpy.copy(u_tp1)
-        yield u_t[:-pad, pad:-pad]
+        yield u_t[2:-pad, pad:-pad]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0):
@@ -452,7 +454,7 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     pad = int(padding*max(shape))
     decay = float(20*pad)
     nx += 2*pad
-    nz += pad
+    nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
     # Pad the velocity as well
     pvel_pad = _add_pad(pvel, pad, (nz, nx))
     svel_pad = _add_pad(svel, pad, (nz, nx))
@@ -469,8 +471,8 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     for src in zsources:
         i, j = src.coords()
         uz_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield ux_tm1[:-pad, pad:-pad], uz_tm1[:-pad, pad:-pad]
-    yield ux_t[:-pad, pad:-pad], uz_t[:-pad, pad:-pad]
+    yield ux_tm1[2:-pad, pad:-pad], uz_tm1[2:-pad, pad:-pad]
+    yield ux_t[2:-pad, pad:-pad], uz_t[2:-pad, pad:-pad]
     # Time steps
     for t in xrange(1, iterations):
         timestepper.step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t,
@@ -505,6 +507,6 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
         ux_t = numpy.copy(ux_tp1)
         uz_tm1 = numpy.copy(uz_t)
         uz_t = numpy.copy(uz_tp1)
-        yield ux_t[:-pad, pad:-pad], uz_t[:-pad, pad:-pad]
+        yield ux_t[2:-pad, pad:-pad], uz_t[2:-pad, pad:-pad]
 
 
