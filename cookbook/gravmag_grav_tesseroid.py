@@ -31,15 +31,15 @@ fields = [
     gravmag.tesseroid.gzz(model, lons, lats, heights, ratio=3)]
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
-#log.info('Plotting...')
-#titles = ['potential', 'gx', 'gy', 'gz',
-#          'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
-#mpl.figure()
-#bm = mpl.basemap(area, 'ortho')
-#for i, field in enumerate(fields):
+log.info('Plotting...')
+titles = ['potential', 'gx', 'gy', 'gz',
+          'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
+mpl.figure()
+bm = mpl.basemap(area, 'ortho')
+for i, field in enumerate(fields):
 #    mpl.subplot(4, 3, i + 3)
-    #mpl.subplot(1, 1, 1)
-#    bm.bluemarble()
-#    mpl.contourf(lons, lats, field, shape, 15, basemap=bm)
-#    mpl.colorbar()
-#mpl.show()
+    mpl.subplot(1, 1, 1)
+    bm.bluemarble()
+    mpl.contourf(lons, lats, field, shape, 15, basemap=bm)
+    mpl.colorbar()
+mpl.show()

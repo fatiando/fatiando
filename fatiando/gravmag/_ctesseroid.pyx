@@ -1,4 +1,4 @@
-# cython: profile=False
+# cython: profile=True
 """
 Cython implementation of the Kernel functions for calculating the potential 
 fields of a tesseroid using a second order Gauss-Legendre Quadrature 
@@ -10,11 +10,12 @@ import numpy
 from libc.math cimport cos, sin, sqrt
 # Import Cython definitions for numpy
 cimport numpy
+cimport cython
+
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
 
-from fatiando.mesher import Tesseroid
 from fatiando.constants import MEAN_EARTH_RADIUS, G
 
 __all__ = ['_optimal_discretize', '_kernel_potential', '_kernel_gx', 
@@ -22,18 +23,19 @@ __all__ = ['_optimal_discretize', '_kernel_potential', '_kernel_gx',
     '_kernel_gyy', '_kernel_gyz', '_kernel_gzz']
 
 
-def _split(tes):
-    dlon = 0.5*(tes.e - tes.w)
-    dlat = 0.5*(tes.n - tes.s)
-    dh = 0.5*(tes.top - tes.bottom)
-    wests = [tes.w, tes.w + dlon]
-    souths = [tes.s, tes.s + dlat]
-    bottoms = [tes.bottom, tes.bottom + dh]
+def _split(w, e, s, n, top, bottom):
+    dlon = 0.5*(e - w)
+    dlat = 0.5*(n - s)
+    dh = 0.5*(top - bottom)
+    wests = [w, w + dlon]
+    souths = [s, s + dlat]
+    bottoms = [bottom, bottom + dh]
     split = [
-        Tesseroid(w, w + dlon, s, s + dlat, b + dh, b, props=dict(tes.props))
-        for w in wests for s in souths for b in bottoms]
+        [i, i + dlon, j, j + dlat, k + dh, k]
+        for i in wests for j in souths for k in bottoms]
     return split
 
+@cython.boundscheck(False)
 def _optimal_discretize(tesseroids, 
     numpy.ndarray[DTYPE_T, ndim=1] lons, 
     numpy.ndarray[DTYPE_T, ndim=1] lats, 
@@ -45,85 +47,87 @@ def _optimal_discretize(tesseroids,
     numpy.ndarray[DTYPE_T, ndim=1] weights=numpy.array([1., 1.])):
     """
     """
-    cdef int l, i, j, k, npoints, nnodes, lifo_maxsize
+    cdef unsigned int l, t, npoints, nnodes, lifo_max
+    cdef int lifo_top
     cdef numpy.ndarray[DTYPE_T, ndim=1] result, radii, nodes_lon, nodes_lat
     cdef numpy.ndarray[DTYPE_T, ndim=1] nodes_r, sineslatc, cossineslatc
-    cdef DTYPE_T earth_radius = MEAN_EARTH_RADIUS, d2r, coslat, sinlat, lon
-    cdef DTYPE_T density, radius, distance, dimension, tes_radius, tes_lat
-    cdef DTYPE_T tes_lon, dlon, dlat, dr, tmp, lonc, coslon, sinlon, sinlatc
-    cdef DTYPE_T coslatc, rc, l_sqr, kappa
+    cdef numpy.ndarray[DTYPE_T, ndim=2] lifo
+    cdef DTYPE_T d2r, coslat, sinlat, lon
+    cdef DTYPE_T density, radius, distance, dimension
+    cdef DTYPE_T dlon, dlat, dr, tmp
+    cdef DTYPE_T w, e, s, n, top, bottom
 
     if len(lons) != len(lats) != len(heights):
         raise ValueError('lons, lats, and heights must have the same len')
-    lifo_maxsize = 1000
+    
+    lifo_max = 1000
+    lifo = numpy.zeros((lifo_max, 6), dtype=DTYPE)
     # Convert things to radians
     d2r = numpy.pi/180.
     lons = d2r*lons
     lats = d2r*lats
     # Transform the heights into radii
-    radii = earth_radius + heights
+    radii = MEAN_EARTH_RADIUS + heights
     # Get some lenghts
     npoints = len(lons)
     nnodes = len(nodes)
     result = numpy.zeros(npoints, dtype=DTYPE)
-    for l in xrange(npoints):
-        # Pre-compute the sine and cossine of latitude to save computations
-        coslat = cos(lats[l])
-        sinlat = sin(lats[l])
-        lon = lons[l]
-        radius = radii[l]
-        for tesseroid in tesseroids:
-            if 'density' not in tesseroid.props:
-                continue
-            lifo = [tesseroid]
-            while lifo:
-                tes = lifo.pop()
-                tes_radius = tes.top + earth_radius
-                tes_lat = d2r*0.5*(tes.s + tes.n)
-                tes_lon = d2r*0.5*(tes.w + tes.e)
-                distance = sqrt(
-                    radius**2 + tes_radius**2 - 2.*radius*tes_radius*(
-                        sinlat*sin(tes_lat) +
-                        coslat*cos(tes_lat)*cos(lon - tes_lon)
-                    ))
-                dimension = max([earth_radius*d2r*(tes.e - tes.w),
-                                 earth_radius*d2r*(tes.n - tes.s),
-                                 tes.top - tes.bottom])
+    for tesseroid in tesseroids:
+        if 'density' not in tesseroid.props:
+            continue
+        density = tesseroid.props['density']
+        bounds = [d2r*tesseroid.w, d2r*tesseroid.e, d2r*tesseroid.s,
+            d2r*tesseroid.n, tesseroid.top, tesseroid.bottom]
+        for l in range(npoints):
+            # Pre-compute the sine and cossine of latitude to save computations
+            coslat = cos(lats[l])
+            sinlat = sin(lats[l])
+            lon = lons[l]
+            radius = radii[l]
+            lifo_top = 0
+            lifo[lifo_top] = bounds 
+            while lifo_top != -1:
+                w, e, s, n, top, bottom = lifo[lifo_top]
+                lifo_top -= 1
+                distance, dimension = _measure(w, e, s, n, top, bottom, radius,
+                    lon, coslat, sinlat)
                 if (distance > 0 and distance < ratio*dimension and
-                    len(lifo) + 8 <= lifo_maxsize):
-                        lifo.extend(_split(tes))
+                    lifo_top + 8 < lifo_max):
+                        lifo[lifo_top + 1:lifo_top + 9, :] = _split(w, e, s, n,
+                            top, bottom)
+                        lifo_top += 8
                 else:
-                    dlon = tes.e - tes.w
-                    dlat = tes.n - tes.s
-                    dr = tes.top - tes.bottom
+                    dlon = e - w
+                    dlat = n - s
+                    dr = top - bottom
                     # Scale the GLQ nodes to the integration limits
-                    nodes_lon = d2r*(0.5*dlon*nodes + 0.5*(tes.e + tes.w))
-                    nodes_lat = d2r*(0.5*dlat*nodes + 0.5*(tes.n + tes.s))
+                    nodes_lon = 0.5*dlon*nodes + 0.5*(e + w)
+                    nodes_lat = 0.5*dlat*nodes + 0.5*(n + s)
                     nodes_r = (0.5*dr*nodes +
-                        0.5*(tes.top + tes.bottom + 2.*earth_radius))
+                        0.5*(top + bottom + 2.*MEAN_EARTH_RADIUS))
                     # Pre-compute the sines and cossines to save time
                     sineslatc = numpy.sin(nodes_lat)
                     cossineslatc = numpy.cos(nodes_lat)
                     # Do the GLQ integration of the kernel
-                    tmp = G*tes.props['density']*d2r*dlon*d2r*dlat*dr*0.125
-                    for i in xrange(nnodes):
-                        lonc = nodes_lon[i]
-                        coslon = cos(lon - lonc)
-                        sinlon = sin(lonc - lon)
-                        for j in xrange(nnodes):
-                            sinlatc = sineslatc[j]
-                            coslatc = cossineslatc[j]
-                            for k in xrange(nnodes):
-                                rc = nodes_r[k]
-                                l_sqr = (radius**2 + rc**2 - 2.*radius*rc*(
-                                    sinlat*sinlatc + coslat*coslatc*coslon))
-                                kappa = (rc**2)*coslatc
-                                result[l] = result[l] + tmp*(
-                                    weights[i]*weights[j]*weights[k]*
-                                    kernel(radius, coslat, sinlat, coslon, 
-                                        sinlon, sinlatc, coslatc, rc, l_sqr, 
-                                        kappa))
+                    tmp = G*density*dlon*dlat*dr*0.125
+                    result[l] = result[l] + tmp*(
+                        kernel(radius, lon, coslat, sinlat, nodes_lon, nodes_r, 
+                            sineslatc, cossineslatc))
     return result
+
+def _measure(w, e, s, n, top, bottom, radius, lon, coslat, sinlat):
+    tes_radius = top + MEAN_EARTH_RADIUS
+    tes_lat = 0.5*(s + n)
+    tes_lon = 0.5*(w + e)
+    distance = sqrt(
+        radius**2 + tes_radius**2 - 2.*radius*tes_radius*(
+            sinlat*sin(tes_lat) +
+            coslat*cos(tes_lat)*cos(lon - tes_lon)
+        ))
+    dimension = max([MEAN_EARTH_RADIUS*(e - w),
+                     MEAN_EARTH_RADIUS*(n - s),
+                     top - bottom])
+    return distance, dimension
 
 def _kernel_potential(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, 
     rc, l_sqr, kappa):
@@ -171,8 +175,28 @@ def _kernel_gyz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc,
     deltaz = rc*cospsi - radius
     return kappa*3.*deltay*deltaz/(l_sqr**2.5)
 
-def _kernel_gzz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
-    l_sqr, kappa):
-    cospsi = sinlat*sinlatc + coslat*coslatc*coslon
-    deltaz = rc*cospsi - radius
-    return kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5)
+@cython.boundscheck(False)
+def _kernel_gzz(DTYPE_T radius, DTYPE_T lon, DTYPE_T coslat, DTYPE_T sinlat, 
+    numpy.ndarray[DTYPE_T, ndim=1] nodes_lon, 
+    numpy.ndarray[DTYPE_T, ndim=1] nodes_r, 
+    numpy.ndarray[DTYPE_T, ndim=1] sineslatc, 
+    numpy.ndarray[DTYPE_T, ndim=1] cossineslatc):
+    cdef unsigned int i, j, k
+    cdef DTYPE_T coslon, sinlon, sinlatc, coslatc, rc, l_sqr, kappa, result
+    cdef DTYPE_T cospsi, deltaz
+    result = 0.0
+    for i in range(2):
+        coslon = cos(lon - nodes_lon[i])
+        sinlon = sin(nodes_lon[i] - lon)
+        for j in range(2):
+            sinlatc = sineslatc[j]
+            coslatc = cossineslatc[j]
+            cospsi = sinlat*sinlatc + coslat*coslatc*coslon
+            for k in range(2):
+                rc = nodes_r[k]
+                l_sqr = (radius**2 + rc**2 - 2.*radius*rc*(
+                    sinlat*sinlatc + coslat*coslatc*coslon))
+                kappa = (rc**2)*coslatc
+                deltaz = rc*cospsi - radius
+                result += kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5)
+    return result
