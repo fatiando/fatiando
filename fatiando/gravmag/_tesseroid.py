@@ -148,11 +148,11 @@ def _kernel_gyz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc,
     l_sqr, kappa):
     cospsi = sinlat*sinlatc + coslat*coslatc*coslon
     deltay = rc*coslatc*sinlon
-    delatz = rc*cospsi - radius
+    deltaz = rc*cospsi - radius
     return kappa*3.*deltay*deltaz/(l_sqr**2.5)
 
 def _kernel_gzz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
     l_sqr, kappa):
     cospsi = sinlat*sinlatc + coslat*coslatc*coslon
-    delatz = rc*cospsi - radius
+    deltaz = rc*cospsi - radius
     return kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5)

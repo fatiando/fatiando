@@ -1,3 +1,4 @@
+# cython: profile=False
 """
 Cython implementation of the Kernel functions for calculating the potential 
 fields of a tesseroid using a second order Gauss-Legendre Quadrature 
@@ -36,13 +37,19 @@ def _optimal_discretize(tesseroids,
     numpy.ndarray[DTYPE_T, ndim=1] lats, 
     numpy.ndarray[DTYPE_T, ndim=1] heights,
     kernel, 
-    float ratio,
-    numpy.ndarray[DTYPE_T, ndim=1] nodes=numpy.array([-0.577350269, 0.577350269]),
+    DTYPE_T ratio,
+    numpy.ndarray[DTYPE_T, ndim=1] nodes=numpy.array([-0.577350269, 
+        0.577350269]),
     numpy.ndarray[DTYPE_T, ndim=1] weights=numpy.array([1., 1.])):
     """
     """
-    cdef int l, i, j, k, npoints, nnodes
-    cdef numpy.ndarray[DTYPE_T, ndim=1] result, radii
+    cdef int l, i, j, k, npoints, nnodes, lifo_maxsize
+    cdef numpy.ndarray[DTYPE_T, ndim=1] result, radii, nodes_lon, nodes_lat
+    cdef numpy.ndarray[DTYPE_T, ndim=1] nodes_r, sineslatc, cossineslatc
+    cdef DTYPE_T earth_radius = MEAN_EARTH_RADIUS, d2r, coslat, sinlat, lon
+    cdef DTYPE_T density, radius, distance, dimension, tes_radius, tes_lat
+    cdef DTYPE_T tes_lon, dlon, dlat, dr, tmp, lonc, coslon, sinlon, sinlatc
+    cdef DTYPE_T coslatc, rc, l_sqr, kappa
 
     if len(lons) != len(lats) != len(heights):
         raise ValueError('lons, lats, and heights must have the same len')
@@ -52,11 +59,11 @@ def _optimal_discretize(tesseroids,
     lons = d2r*lons
     lats = d2r*lats
     # Transform the heights into radii
-    radii = MEAN_EARTH_RADIUS + heights
+    radii = earth_radius + heights
     # Get some lenghts
     npoints = len(lons)
     nnodes = len(nodes)
-    result = numpy.zeros(npoints)
+    result = numpy.zeros(npoints, dtype=DTYPE)
     for l in xrange(npoints):
         # Pre-compute the sine and cossine of latitude to save computations
         coslat = cos(lats[l])
@@ -69,7 +76,7 @@ def _optimal_discretize(tesseroids,
             lifo = [tesseroid]
             while lifo:
                 tes = lifo.pop()
-                tes_radius = tes.top + MEAN_EARTH_RADIUS
+                tes_radius = tes.top + earth_radius
                 tes_lat = d2r*0.5*(tes.s + tes.n)
                 tes_lon = d2r*0.5*(tes.w + tes.e)
                 distance = sqrt(
@@ -77,8 +84,8 @@ def _optimal_discretize(tesseroids,
                         sinlat*sin(tes_lat) +
                         coslat*cos(tes_lat)*cos(lon - tes_lon)
                     ))
-                dimension = max([MEAN_EARTH_RADIUS*d2r*(tes.e - tes.w),
-                                 MEAN_EARTH_RADIUS*d2r*(tes.n - tes.s),
+                dimension = max([earth_radius*d2r*(tes.e - tes.w),
+                                 earth_radius*d2r*(tes.n - tes.s),
                                  tes.top - tes.bottom])
                 if (distance > 0 and distance < ratio*dimension and
                     len(lifo) + 8 <= lifo_maxsize):
@@ -91,7 +98,7 @@ def _optimal_discretize(tesseroids,
                     nodes_lon = d2r*(0.5*dlon*nodes + 0.5*(tes.e + tes.w))
                     nodes_lat = d2r*(0.5*dlat*nodes + 0.5*(tes.n + tes.s))
                     nodes_r = (0.5*dr*nodes +
-                        0.5*(tes.top + tes.bottom + 2.*MEAN_EARTH_RADIUS))
+                        0.5*(tes.top + tes.bottom + 2.*earth_radius))
                     # Pre-compute the sines and cossines to save time
                     sineslatc = numpy.sin(nodes_lat)
                     cossineslatc = numpy.cos(nodes_lat)
@@ -109,7 +116,9 @@ def _optimal_discretize(tesseroids,
                                 l_sqr = (radius**2 + rc**2 - 2.*radius*rc*(
                                     sinlat*sinlatc + coslat*coslatc*coslon))
                                 kappa = (rc**2)*coslatc
-                                result[l] += tmp*(weights[i]*weights[j]*weights[k]*
-                                    kernel(radius, coslat, sinlat, coslon, sinlon,
-                                        sinlatc, coslatc, rc, l_sqr, kappa))
+                                result[l] = result[l] + tmp*(
+                                    weights[i]*weights[j]*weights[k]*
+                                    kernel(radius, coslat, sinlat, coslon, 
+                                        sinlon, sinlatc, coslatc, rc, l_sqr, 
+                                        kappa))
     return result
