@@ -10,9 +10,9 @@ import numpy
 from fatiando.mesher import Tesseroid
 from fatiando.constants import MEAN_EARTH_RADIUS, G, SI2MGAL, SI2EOTVOS
 
-__all__ = ['_optimal_discretize', '_kernel_potential', '_kernel_gx', '_kernel_gy',
-    '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', '_kernel_gyy', 
-    '_kernel_gyz', '_kernel_gzz']
+__all__ = ['_optimal_discretize', '_kernel_potential', '_kernel_gx', 
+    '_kernel_gy', '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', 
+    '_kernel_gyy', '_kernel_gyz', '_kernel_gzz']
 
 def _split(tes):
     dlon = 0.5*(tes.e - tes.w)
@@ -96,18 +96,16 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio,
                                 l_sqr = (radius**2 + rc**2 - 2.*radius*rc*(
                                     sinlat*sinlatc + coslat*coslatc*coslon))
                                 kappa = (rc**2)*coslatc
-                                result[l] += tmp*(weights[i]*weights[j]*weights[k]*
-                                    kernel(radius, coslat, sinlat, coslon, sinlon,
-                                        sinlatc, coslatc, rc, l_sqr, kappa))
+                                result[l] += tmp*(
+                                    weights[i]*weights[j]*weights[k]*
+                                    kernel(radius, coslat, sinlat, coslon, 
+                                        sinlon, sinlatc, coslatc, rc, l_sqr, 
+                                        kappa))
     return result
 
 def _kernel_potential(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, 
     rc, l_sqr, kappa):
-    try:
-        return kappa/sqrt(l_sqr)
-    except:
-        print l_sqr
-        raise
+    return kappa/sqrt(l_sqr)
 
 def _kernel_gx(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
     l_sqr, kappa):

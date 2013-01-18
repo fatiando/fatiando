@@ -17,7 +17,9 @@ ctypedef numpy.float_t DTYPE_T
 from fatiando.mesher import Tesseroid
 from fatiando.constants import MEAN_EARTH_RADIUS, G
 
-__all__ = ['_optimal_discretize']
+__all__ = ['_optimal_discretize', '_kernel_potential', '_kernel_gx', 
+    '_kernel_gy', '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', 
+    '_kernel_gyy', '_kernel_gyz', '_kernel_gzz']
 
 
 def _split(tes):
@@ -122,3 +124,55 @@ def _optimal_discretize(tesseroids,
                                         sinlon, sinlatc, coslatc, rc, l_sqr, 
                                         kappa))
     return result
+
+def _kernel_potential(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, 
+    rc, l_sqr, kappa):
+    return kappa/sqrt(l_sqr)
+
+def _kernel_gx(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    kphi = coslat*sinlatc - sinlat*coslatc*coslon
+    return kappa*rc*kphi/(l_sqr**1.5)
+
+def _kernel_gy(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    return kappa*rc*coslatc*sinlon/(l_sqr**1.5)
+
+def _kernel_gz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    cospsi = sinlat*sinlatc + coslat*coslatc*coslon
+    return kappa*(rc*cospsi - radius)/(l_sqr**1.5)
+
+def _kernel_gxx(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    kphi = coslat*sinlatc - sinlat*coslatc*coslon
+    return kappa*(3.*((rc*kphi)**2) - l_sqr)/(l_sqr**2.5)
+
+def _kernel_gxy(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    kphi = coslat*sinlatc - sinlat*coslatc*coslon
+    return kappa*(3.*(rc**2)*kphi*coslatc*sinlon)/(l_sqr**2.5)
+
+def _kernel_gxz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    cospsi = sinlat*sinlatc + coslat*coslatc*coslon
+    kphi = coslat*sinlatc - sinlat*coslatc*coslon
+    return kappa*3.*rc*kphi*(rc*cospsi - radius)/(l_sqr**2.5)
+
+def _kernel_gyy(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    deltay = rc*coslatc*sinlon
+    return kappa*(3.*(deltay**2) - l_sqr)/(l_sqr**2.5)
+
+def _kernel_gyz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    cospsi = sinlat*sinlatc + coslat*coslatc*coslon
+    deltay = rc*coslatc*sinlon
+    deltaz = rc*cospsi - radius
+    return kappa*3.*deltay*deltaz/(l_sqr**2.5)
+
+def _kernel_gzz(radius, coslat, sinlat, coslon, sinlon, sinlatc, coslatc, rc, 
+    l_sqr, kappa):
+    cospsi = sinlat*sinlatc + coslat*coslatc*coslon
+    deltaz = rc*cospsi - radius
+    return kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5)
