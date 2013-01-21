@@ -393,7 +393,8 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     # Time steps
     for t in xrange(1, iterations):
         timestepper.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
-            deltat, dx, dz, svel_pad, pad, decay)
+            deltat, dx, dz, svel_pad)
+        timestepper._apply_damping(u_tp1, nx, nz, pad, decay)
         # Set the boundary conditions
         u_tp1[1,:] = u_tp1[2,:]
         u_tp1[0,:] = u_tp1[1,:]
@@ -477,8 +478,10 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     for t in xrange(1, iterations):
         timestepper.step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t,
             nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
+        timestepper._apply_damping(ux_tp1, nx, nz, pad, decay)
         timestepper.step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t,
             nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
+        timestepper._apply_damping(uz_tp1, nx, nz, pad, decay)
         # Set the boundary conditions
         ux_tp1[1,:] = ux_tp1[2,:]
         ux_tp1[0,:] = ux_tp1[1,:]
