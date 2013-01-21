@@ -406,7 +406,7 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         # Update the sources
         for src in sources:
             i, j = src.coords()
-            u_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+            u_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         u_tm1 = numpy.copy(u_t)
         u_t = numpy.copy(u_tp1)
         yield u_t[2:-pad, pad:-pad]
@@ -499,10 +499,10 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
         # Update the sources
         for src in xsources:
             i, j = src.coords()
-            ux_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+            ux_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         for src in zsources:
             i, j = src.coords()
-            uz_tp1[i, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+            uz_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         ux_tm1 = numpy.copy(ux_t)
         ux_t = numpy.copy(ux_tp1)
         uz_tm1 = numpy.copy(uz_t)
