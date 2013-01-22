@@ -12,7 +12,7 @@ for partition in partitions:
     jobs = partition[0]*partition[1]
     print 'Running with ', jobs, 'job(s)'
     sources = [seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
-    shape = (500, 500)
+    shape = (2000, 2000)
     spacing = (1000, 1000)
     area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
     dens = 2700*np.ones(shape)

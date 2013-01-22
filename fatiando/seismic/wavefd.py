@@ -408,6 +408,10 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     * padding : float
         The decimal percentage of padding to use in the grid to avoid
         reflections at the borders
+    * partition : tuple
+        How to partition the grid for parallel computation. Should be (nz, nx)
+        where nz, nx are the number of partitons in the z and x dimension. Each
+        partition will be calculated on a separate process.
 
     Yields:
 
