@@ -177,6 +177,8 @@ The solution for P and SV waves is:
 ----
 
 """
+from multiprocessing import Process, Pipe
+
 import numpy
 
 import fatiando.logger
@@ -339,8 +341,49 @@ def _add_pad(array, pad, shape):
     array_pad[1,:] = array_pad[2,:]
     return array_pad
 
+def _start_workers(partition, jobs, nx, nz):
+    """
+    Start the worker processes, send them pipes and divide the grids for each
+    job.
+    """
+    workers = []
+    pipes = []
+    for job in xrange(jobs):
+        pipe, workerpipe = Pipe()
+        proc = Process(target=_job_submit, args=(workerpipe,))
+        proc.start()
+        workers.append(proc)
+        pipes.append(pipe)
+    jobsz, jobsx = partition
+    nz_perjob = nz/jobsz
+    nx_perjob = nx/jobsx
+    cuts = []
+    for i in xrange(jobsz):
+        z1 = i*nz_perjob
+        if i == jobsz - 1:
+            z2 = nz
+        else:
+            z2 = z1 + nz_perjob + 4
+        for j in xrange(jobsx):
+            x1 = j*nx_perjob
+            if j == jobsx - 1:
+                x2 = nx
+            else:
+                x2 = x1 + nx_perjob + 4
+            cuts.append([x1, x2, z1, z2])
+    return workers, pipes, cuts
+
+def _job_submit(pipe):
+    while True:
+        msg = pipe.recv()
+        if msg == 'quit':
+            break
+        step, args = msg
+        step(*args)
+        pipe.send(args[0])
+
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
-    padding=1.0):
+    padding=1.0, partition=(1,1)):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -390,10 +433,25 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         u_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
     yield u_tm1[2:-pad, pad:-pad]
     yield u_t[2:-pad, pad:-pad]
+    # Start the process pool
+    jobs = partition[0]*partition[1]
+    if jobs > 1:
+        workers, pipes, cuts = _start_workers(partition, jobs, nx, nz)
     # Time steps
     for t in xrange(1, iterations):
-        timestepper.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
-            deltat, dx, dz, svel_pad)
+        if jobs > 1:
+            for job in xrange(jobs):
+                x1, x2, z1, z2 = cuts[job]
+                args = (u_tp1[z1:z2,x1:x2], u_t[z1:z2,x1:x2], 
+                        u_tm1[z1:z2,x1:x2], x2 - x1, z2 - z1, deltat, dx, dz, 
+                        svel_pad[z1:z2,x1:x2])
+                pipes[job].send([timestepper.step_elastic_sh, args])
+            for job in xrange(jobs):
+                x1, x2, z1, z2 = cuts[job]
+                u_tp1[z1+2:z2-2,x1+2:x2-2] = pipes[job].recv()[2:-2,2:-2]
+        else:
+            timestepper.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
+                deltat, dx, dz, svel_pad)
         timestepper._apply_damping(u_tp1, nx, nz, pad, decay)
         # Set the boundary conditions
         u_tp1[1,:] = u_tp1[2,:]
@@ -411,6 +469,10 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
         u_tm1 = numpy.copy(u_t)
         u_t = numpy.copy(u_tp1)
         yield u_t[2:-pad, pad:-pad]
+    if jobs > 1:
+        for pipe, proc in zip(pipes, workers):
+            pipe.send('quit')
+            proc.join()
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0):
