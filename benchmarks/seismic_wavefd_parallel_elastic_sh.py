@@ -5,14 +5,14 @@ import time
 import numpy as np
 from fatiando import seismic, logger, gridder, vis, utils
 
-partitions = [(1,1), (2,1), (2,2), (2,3), (2,4), (2,5), (3,4), (4,4)]
+partitions = [(1,1), (2,1), (2,2), (2,3), (2,4), (2,5), (3,4)]
 njobs = [p[0]*p[1] for p in partitions]
 times = []
 for partition in partitions:
     jobs = partition[0]*partition[1]
     print 'Running with ', jobs, 'job(s)'
     sources = [seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
-    shape = (2000, 2000)
+    shape = (5000, 5000)
     spacing = (1000, 1000)
     area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
     dens = 2700*np.ones(shape)
@@ -21,7 +21,7 @@ for partition in partitions:
     maxit = 500
     start = time.time()
     timesteps = seismic.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
-        sources, padding=0.5, partition=partition)
+        sources, padding=0.5, split=partition, jobs=jobs)
     for step in timesteps:
         continue
     times.append(time.time() - start)

@@ -4,6 +4,8 @@ fatiando.seismic.wavefd
 """
 import numpy
 
+__all__ = ['_apply_damping', '_boundary_conditions', '_step_elastic_sh',
+    '_step_elastic_psv_x', '_step_elastic_psv_z']
 
 def _apply_damping(array, nx, nz, pad, decay):
     """
@@ -21,13 +23,26 @@ def _apply_damping(array, nx, nz, pad, decay):
             if in_pad != -1:
                 array[i,j] *= numpy.exp(-in_pad**2/decay**2)
 
-def step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, dt, dx, dz, svel):
+def _boundary_conditions(u, nx, nz):
+    """
+    Apply the boundary conditions: free-surface at top, fixed on the others.
+    """
+    u[1,:] = u[2,:]
+    u[0,:] = u[1,:]
+    u[-1,:] *= 0
+    u[-2,:] *= 0
+    u[:,0] *= 0
+    u[:,1] *= 0
+    u[:,-1] *= 0
+    u[:,-2] *= 0
+
+def _step_elastic_sh(u_tp1, u_t, u_tm1, x1, x2, z1, z2, dt, dx, dz, svel):
     """
     Perform a single time step in the Finite Difference solution for elastic
     SH waves.
     """
-    for i in xrange(2, nz - 2):
-        for j in xrange(2, nx - 2):
+    for i in xrange(z1 + 2, z2 - 2):
+        for j in xrange(x1 + 2, x2 - 2):
             u_tp1[i,j] = (2.*u_t[i,j] - u_tm1[i,j]
                 + (svel[i,j]**2)*(dt**2)*(
                     (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
@@ -35,7 +50,7 @@ def step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz, dt, dx, dz, svel):
                     (-u_t[i + 2,j] + 16.*u_t[i + 1,j] - 30.*u_t[i,j] +
                      16.*u_t[i - 1,j] - u_t[i - 2,j])/(12.*dz**2)))
 
-def step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t, nx, nz, dt, dx, dz, pvel,
+def _step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t, nx, nz, dt, dx, dz, pvel,
     svel, pad, decay):
     """
     Perform a single time step in the Finite Difference solution for ux elastic
@@ -71,7 +86,7 @@ def step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t, nx, nz, dt, dx, dz, pvel,
             if in_pad != -1:
                 ux_tp1[i,j] *= numpy.exp(-in_pad**2/decay**2)
 
-def step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t, nx, nz, dt, dx, dz, pvel,
+def _step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t, nx, nz, dt, dx, dz, pvel,
     svel, pad, decay):
     """
     Perform a single time step in the Finite Difference solution for uz elastic

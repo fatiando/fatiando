@@ -177,7 +177,7 @@ The solution for P and SV waves is:
 ----
 
 """
-from multiprocessing import Process, Pipe
+from multiprocessing import Pool, Array
 
 import numpy
 
@@ -185,10 +185,12 @@ import fatiando.logger
 
 log = fatiando.logger.dummy('fatiando.seismic.wavefd')
 
+from fatiando.seismic._wavefd import *
+
 try:
-    from fatiando.seismic import _cwavefd as timestepper
+    from fatiando.seismic._cwavefd import *
 except ImportError:
-    from fatiando.seismic import _wavefd as timestepper
+    pass
 
 class MexHatSource(object):
     r"""
@@ -341,23 +343,14 @@ def _add_pad(array, pad, shape):
     array_pad[1,:] = array_pad[2,:]
     return array_pad
 
-def _start_workers(partition, jobs, nx, nz):
+def _split_grid(split, nx, nz):
     """
-    Start the worker processes, send them pipes and divide the grids for each
-    job.
+    Split the grid in split=(Sz, Sx) parts.
     """
-    workers = []
-    pipes = []
-    for job in xrange(jobs):
-        pipe, workerpipe = Pipe()
-        proc = Process(target=_job_submit, args=(workerpipe,))
-        proc.start()
-        workers.append(proc)
-        pipes.append(pipe)
-    jobsz, jobsx = partition
+    jobsz, jobsx = split
     nz_perjob = nz/jobsz
     nx_perjob = nx/jobsx
-    cuts = []
+    parts = []
     for i in xrange(jobsz):
         z1 = i*nz_perjob
         if i == jobsz - 1:
@@ -370,20 +363,24 @@ def _start_workers(partition, jobs, nx, nz):
                 x2 = nx
             else:
                 x2 = x1 + nx_perjob + 4
-            cuts.append([x1, x2, z1, z2])
-    return workers, pipes, cuts
+            parts.append([x1, x2, z1, z2])
+    return parts
 
-def _job_submit(pipe):
-    while True:
-        msg = pipe.recv()
-        if msg == 'quit':
-            break
-        step, args = msg
-        step(*args)
-        pipe.send(args[0])
+def _step_elastic_sh_part(args):
+    """
+    Do a time step for a part of the grid.
+    Used in multiprocessing.Pool.map
+    Would have put it inside the elastic_sh function but multiprocessing needs
+    the function to be at module level so that it can be pickled.
+    Don't know why, though.
+    """
+    utm1, ut, utp1, area, deltat, dx, dz = args
+    x1, x2, z1, z2 = area
+    _step_elastic_sh(u[utp1], u[ut], u[utm1], x1, x2, z1, z2, deltat, 
+        dx, dz, svel_pad)
 
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
-    padding=1.0, partition=(1,1)):
+    padding=1.0, jobs=1, split=(1, 1)):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -408,10 +405,11 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     * padding : float
         The decimal percentage of padding to use in the grid to avoid
         reflections at the borders
-    * partition : tuple
-        How to partition the grid for parallel computation. Should be (nz, nx)
-        where nz, nx are the number of partitons in the z and x dimension. Each
-        partition will be calculated on a separate process.
+    * jobs : int
+        Number of processes to use in parallel computations
+    * split : tuple = (sz, sx)
+        How to split the grid for parallel computation. Number of parts in z and
+        x, respectively
 
     Yields:
 
@@ -428,58 +426,80 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
     # Pad the velocity as well
     svel_pad = _add_pad(svel, pad, (nz, nx))
+    # Pack the particle position u at 3 different times in one 3d array
+    # u[0] = u(t-1)
+    # u[1] = u(t)
+    # u[2] = u(t+1)
+    u = numpy.zeros((3, nz, nx), dtype=numpy.float)
     # Compute and yield the initial solutions
-    u_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
-    u_t = numpy.zeros((nz, nx), dtype=numpy.float)
-    u_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
     for src in sources:
         i, j = src.coords()
-        u_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield u_tm1[2:-pad, pad:-pad]
-    yield u_t[2:-pad, pad:-pad]
+        u[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
+    yield u[0, 2:-pad, pad:-pad]
+    yield u[1, 2:-pad, pad:-pad]
     # Start the process pool
-    jobs = partition[0]*partition[1]
     if jobs > 1:
-        workers, pipes, cuts = _start_workers(partition, jobs, nx, nz)
+        parts = _split_grid(split, nx, nz)
+        shr_u = Array('d', u.ravel())
+        shr_svel_pad = Array('d', svel_pad.ravel())
+        u = numpy.frombuffer(shr_u.get_obj()).reshape((3, nz, nx))
+        svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
+        def init(u_, svel_):
+            global u, svel_pad
+            u = u_
+            svel_pad = svel_
+        pool = Pool(jobs, initializer=init, initargs=(u, svel_pad))
     # Time steps
     for t in xrange(1, iterations):
+        utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
         if jobs > 1:
-            for job in xrange(jobs):
-                x1, x2, z1, z2 = cuts[job]
-                args = (u_tp1[z1:z2,x1:x2], u_t[z1:z2,x1:x2], 
-                        u_tm1[z1:z2,x1:x2], x2 - x1, z2 - z1, deltat, dx, dz, 
-                        svel_pad[z1:z2,x1:x2])
-                pipes[job].send([timestepper.step_elastic_sh, args])
-            for job in xrange(jobs):
-                x1, x2, z1, z2 = cuts[job]
-                u_tp1[z1+2:z2-2,x1+2:x2-2] = pipes[job].recv()[2:-2,2:-2]
+            pool.map(_step_elastic_sh_part, 
+                [(utm1, ut, utp1, p, deltat, dx, dz) 
+                    for p in  parts])
         else:
-            timestepper.step_elastic_sh(u_tp1, u_t, u_tm1, nx, nz,
+            _step_elastic_sh(u[utp1], u[ut], u[utm1], 0, nx - 1, 0, nz - 1,
                 deltat, dx, dz, svel_pad)
-        timestepper._apply_damping(u_tp1, nx, nz, pad, decay)
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[utp1], nx, nz, pad, decay)
         # Set the boundary conditions
-        u_tp1[1,:] = u_tp1[2,:]
-        u_tp1[0,:] = u_tp1[1,:]
-        u_tp1[-1,:] *= 0
-        u_tp1[-2,:] *= 0
-        u_tp1[:,0] *= 0
-        u_tp1[:,1] *= 0
-        u_tp1[:,-1] *= 0
-        u_tp1[:,-2] *= 0
+        _boundary_conditions(u[utp1], nx, nz)
         # Update the sources
         for src in sources:
             i, j = src.coords()
-            u_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        u_tm1 = numpy.copy(u_t)
-        u_t = numpy.copy(u_tp1)
-        yield u_t[2:-pad, pad:-pad]
+            u[utp1, i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+        yield u[utp1][2:-pad, pad:-pad]
     if jobs > 1:
-        for pipe, proc in zip(pipes, workers):
-            pipe.send('quit')
-            proc.join()
+        pool.close()
+        pool.join()
+
+def _step_elastic_psv_x_part(args):
+    """
+    Do a time step for a part of the grid.
+    Used in multiprocessing.Pool.map
+    Would have put it inside the elastic_sh function but multiprocessing needs
+    the function to be at module level so that it can be pickled.
+    Don't know why, though.
+    """
+    utm1, ut, utp1, area, deltat, dx, dz = args
+    x1, x2, z1, z2 = area
+    _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], x1, x2, z1, z2, 
+        deltat, dx, dz, pvel_pad, svel_pad)
+
+def _step_elastic_psv_z_part(args):
+    """
+    Do a time step for a part of the grid.
+    Used in multiprocessing.Pool.map
+    Would have put it inside the elastic_sh function but multiprocessing needs
+    the function to be at module level so that it can be pickled.
+    Don't know why, though.
+    """
+    utm1, ut, utp1, area, deltat, dx, dz = args
+    x1, x2, z1, z2 = area
+    _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], x1, x2, z1, z2, 
+        deltat, dx, dz, pvel_pad, svel_pad)
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
-    zsources, padding=1.0):
+    zsources, padding=1.0, jobs=1, split=(1, 1)):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -508,6 +528,11 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     * padding : float
         The decimal percentage of padding to use in the grid to avoid
         reflections at the borders
+    * jobs : int
+        Number of processes to use in parallel computations
+    * split : tuple = (sz, sx)
+        How to split the grid for parallel computation. Number of parts in z and
+        x, respectively
 
     Yields:
 
@@ -526,56 +551,70 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     pvel_pad = _add_pad(pvel, pad, (nz, nx))
     svel_pad = _add_pad(svel, pad, (nz, nx))
     # Compute and yield the initial solutions
-    ux_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
-    ux_t = numpy.zeros((nz, nx), dtype=numpy.float)
-    ux_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
-    uz_tm1 = numpy.zeros((nz, nx), dtype=numpy.float)
-    uz_t = numpy.zeros((nz, nx), dtype=numpy.float)
-    uz_tp1 = numpy.zeros((nz, nx), dtype=numpy.float)
+    ux = numpy.zeros((3, nz, nx), dtype=numpy.float)
+    uz = numpy.zeros((3, nz, nx), dtype=numpy.float)
     for src in xsources:
         i, j = src.coords()
-        ux_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
+        ux[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
     for src in zsources:
         i, j = src.coords()
-        uz_t[i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield ux_tm1[2:-pad, pad:-pad], uz_tm1[2:-pad, pad:-pad]
-    yield ux_t[2:-pad, pad:-pad], uz_t[2:-pad, pad:-pad]
+        uz[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
+    yield ux[0, 2:-pad, pad:-pad], uz[0, 2:-pad, pad:-pad]
+    yield ux[1, 2:-pad, pad:-pad], uz[1, 2:-pad, pad:-pad]
+    # Start the process pool
+    if jobs > 1:
+        parts = _split_grid(split, nx, nz)
+        shr_ux = Array('d', ux.ravel())
+        shr_uz = Array('d', uz.ravel())
+        shr_svel_pad = Array('d', svel_pad.ravel())
+        shr_pvel_pad = Array('d', pvel_pad.ravel())
+        ux = numpy.frombuffer(shr_ux.get_obj()).reshape((3, nz, nx))
+        uz = numpy.frombuffer(shr_uz.get_obj()).reshape((3, nz, nx))
+        svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
+        pvel_pad = numpy.frombuffer(shr_pvel_pad.get_obj()).reshape((nz, nx))
+        def init(ux_, uz_, svel_, pvel_):
+            global ux, uz, svel_pad, pvel_pad
+            ux = ux_
+            uz = uz_
+            svel_pad = svel_
+            pvel_pad = pvel_
+        poolx = Pool(jobs/2, initializer=init, 
+            initargs=(ux, uz, svel_pad, pvel_pad))
+        poolz = Pool(jobs/2, initializer=init, 
+            initargs=(ux, uz, svel_pad, pvel_pad))
     # Time steps
     for t in xrange(1, iterations):
-        timestepper.step_elastic_psv_x(ux_tp1, ux_t, ux_tm1, uz_t,
-            nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
-        timestepper._apply_damping(ux_tp1, nx, nz, pad, decay)
-        timestepper.step_elastic_psv_z(uz_tp1, uz_t, uz_tm1, ux_t,
-            nx, nz, deltat, dx, dz, pvel_pad, svel_pad, pad, decay)
-        timestepper._apply_damping(uz_tp1, nx, nz, pad, decay)
+        utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
+        if jobs > 1:
+            resx = poolx.map_async(_step_elastic_psv_x_part,
+                [(utm1, ut, utp1, p, deltat, dx, dz)
+                    for p in  parts])
+            resz = poolz.map_async(_step_elastic_psv_z_part,
+                [(utm1, ut, utp1, p, deltat, dx, dz)
+                    for p in  parts])
+            resx.wait()
+            resz.wait()
+        else:
+            _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], 0, nx, 
+                0, nz, deltat, dx, dz, pvel_pad, svel_pad)
+            _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], 0, nx, 
+                0, nz, deltat, dx, dz, pvel_pad, svel_pad)
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(ux[utp1], nx, nz, pad, decay)
+        _apply_damping(uz[utp1], nx, nz, pad, decay)
         # Set the boundary conditions
-        ux_tp1[1,:] = ux_tp1[2,:]
-        ux_tp1[0,:] = ux_tp1[1,:]
-        ux_tp1[-1,:] *= 0
-        ux_tp1[-2,:] *= 0
-        ux_tp1[:,0] *= 0
-        ux_tp1[:,1] *= 0
-        ux_tp1[:,-1] *= 0
-        ux_tp1[:,-2] *= 0
-        uz_tp1[1,:] = uz_tp1[2,:]
-        uz_tp1[0,:] = uz_tp1[1,:]
-        uz_tp1[-1,:] *= 0
-        uz_tp1[-2,:] *= 0
-        uz_tp1[:,0] *= 0
-        uz_tp1[:,1] *= 0
-        uz_tp1[:,-1] *= 0
-        uz_tp1[:,-2] *= 0
+        _boundary_conditions(ux[utp1], nx, nz)
+        _boundary_conditions(uz[utp1], nx, nz)
         # Update the sources
         for src in xsources:
             i, j = src.coords()
-            ux_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+            ux[utp1][i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         for src in zsources:
             i, j = src.coords()
-            uz_tp1[i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        ux_tm1 = numpy.copy(ux_t)
-        ux_t = numpy.copy(ux_tp1)
-        uz_tm1 = numpy.copy(uz_t)
-        uz_t = numpy.copy(uz_tp1)
-        yield ux_t[2:-pad, pad:-pad], uz_t[2:-pad, pad:-pad]
-
-
+            uz[utp1][i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+        yield ux[utp1][2:-pad, pad:-pad], uz[utp1][2:-pad, pad:-pad]
+    if jobs > 1:
+        poolx.close()
+        poolx.join()
+        poolz.close()
+        poolz.join()

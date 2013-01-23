@@ -71,6 +71,7 @@ amps = []
 addamp = amps.append
 # This function updates the plot every few timesteps
 steps_per_frame = 100
+#steps_per_frame = 1
 def animate(i):
     # i is the number of the animation frame
     for t, u in enumerate(timesteps):
@@ -83,6 +84,6 @@ def animate(i):
     wavefield.set_array(u[0:-1,0:-1].ravel())
     return seismogram, wavefield
 anim = animation.FuncAnimation(fig, animate, frames=maxit/steps_per_frame,
-    interval=1, blit=False)
-#anim.save('love_wave.mp4', fps=10)
+    interval=1, blit=True)
+#anim.save('love_wave.mp4', fps=100)
 vis.mpl.show()

@@ -34,7 +34,7 @@ svel[moho_index:,:] *= 6000.
 dt = 0.05
 maxit = 4200
 timesteps = seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
-    maxit, sources, sources, padding=0.8)
+    maxit, sources, sources, padding=0.8, split=(2,2), jobs=4)
 
 # This part makes an animation using matplotlibs animation API
 rec = 350 # The grid node used to record the seismogram
