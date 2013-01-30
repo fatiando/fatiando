@@ -36,8 +36,8 @@ except ImportError:
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Fatiando a Terra - Geophysical modeling and inversion"
-VERSION = '0.1.dev1'
-with open("README.txt") as f:
+VERSION = '0.1.dev'
+with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.gravmag',
