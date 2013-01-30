@@ -8,10 +8,7 @@ Fatiando a Terra
 For more **information** visit http://www.fatiando.org/software/fatiando
 
 Here is a quick example of using Fatiando to generate synthetic gravity data
-on random points, contaminate it with gaussian noise, and plot it
-
-.. code::
-    :language: python
+on random points, contaminate it with gaussian noise, and plot it::
 
     >>> import fatiando as ft
     >>> # Create the prism model
