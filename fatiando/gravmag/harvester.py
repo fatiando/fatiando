@@ -97,7 +97,7 @@ import fatiando.logger
 log = fatiando.logger.dummy('fatiando.gravmag.harvester')
 
 
-def harvest():
+def harvest(data, seeds, mesh, compactness, threshold):
     """
     """
     nseeds = len(seeds)
@@ -117,14 +117,16 @@ def harvest():
     predicted = numpy.array(predicted)
     # Start the goal function, data-misfit function and regularizing function
     totalgoal = _shapefunc(data, predicted)
-    regularizer = 0.
     totalmisfit = _misfitfunc(data, predicted)
+    regularizer = 0.
+    # Weight the regularizing function by the mean extent of the mesh
+    mu = compactness*1./(sum(mesh.shape)/3.) 
     # Begin the growth process
     for iteration in xrange(mesh.size - nseeds):
         grew = False # To check if at least one seed grew (stopping criterion)
         for s in xrange(nseeds):
             best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s], 
-                data, predicted, totalmisfit, regularizer)
+                data, predicted, totalmisfit, mu, regularizer, threshold)
             # If there was a best, add to estimate, remove it, and add its 
             # neighbors
             if best is not None:
@@ -149,7 +151,7 @@ def harvest():
             output[p][i] = props[p]
     return output, predicted
 
-def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer):
+def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
     # Try all the neighbors to find the one with smallest goal function
     # that also decreases the misfit 
     best = None
@@ -190,6 +192,13 @@ def _misfitfunc(data, predicted):
                for d, p in zip(data, predicted))
 
 def _get_neighbors(cell, neighbors, estimate, mesh, data):
+    pass
+
+def sow(locations):
+    """
+    Create the seeds given a list of (x,y,z) coordinates and physical 
+    properties.
+    """
     pass
 
 class Seed(object):
