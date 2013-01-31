@@ -170,26 +170,156 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer):
                 bestregularizer = reg
     return best, bestgoal, bestmisfit, bestregularizer
 
+def _shapefunc(data, predicted):
+    """
+    Calculate the total shape of anomaly function between the observed and 
+    predicted data.
+    """
+    result = 0.
+    for d, p in zip(data, predicted):
+        alpha = numpy.sum(d.observed*p)/d.norm**2
+        result += numpy.norm(alpha*d.observed - p)
+    return result
+
+def _misfitfunc(data, predicted):
+    """
+    Calculate the total data misfit function between the observed and predicted
+    data.
+    """
+    return sum(numpy.norm(d.observed - p)/d.norm
+               for d, p in zip(data, predicted))
+
 def _get_neighbors(cell, neighbors, estimate, mesh, data):
     pass
 
-def _shapefunc(data, predicted):
-    pass
+class Seed(object):
+    """
+    A seed.
+    """
+    
+    def __init__(self, i, props):
+        self.i = i
+        self.props = props
+        self.seed = i
+    
+class Neighbor(object):
+    """
+    A neighbor.
+    """
+    
+    def __init__(self, i, props, seed, distance, effect):
+        self.i = i
+        self.props = props
+        self.seed = seed
+        self.distance = distance
+        self.effect = effect
 
-def _misfitfunc(data, predicted):
-    pass
+class Data(object):
+    """
+    A container for some potential field data.
+    
+    Know about its data, observation positions, nature of the mesh, and how
+    to calculate the effect of a single cell.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.observed = data
+        self.size = len(data)
+        self.norm = numpy.norm(data)
+        if self.meshtype not in ['prism']:
+            raise AttributeError("Invalid mesh type '%s'" % (meshtype))
+        if self.meshtype == 'prism':
+            import fatiando.gravmag.prism
+            self.effectmodule = fatiando.gravmag.prism
 
+class Potential(Data):
+    """
+    A container for data of the gravitational potential.
+    """
 
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Data.__init__(self, x, y, z, data, meshtype)
+        self.prop = 'density'
+        self.effectfunc = self.effectmodule.potential
 
+    def effect(self, prism, props):
+        """Calculate the effect of a prism with the given physical props"""
+        if self.prop not in props:
+            return numpy.zeros(self.size, dtype='f')
+        return self.effectfunc(self.x, self.y, self.z, [prism], 
+            props[self.prop])
 
+class Gz(Potential):
+    """
+    A container for data of the gravity anomaly.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gz
 
+class Gxx(Potential):
+    """
+    A container for data of the xx (north-north) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gxx
 
+class Gxy(Potential):
+    """
+    A container for data of the xy (north-east) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gxy
 
+class Gxz(Potential):
+    """
+    A container for data of the xz (north-vertical) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gxz
 
+class Gyy(Potential):
+    """
+    A container for data of the yy (east-east) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gyy
 
+class Gyz(Potential):
+    """
+    A container for data of the yz (east-vertical) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gyz
 
-
-
+class Gzz(Potential):
+    """
+    A container for data of the zz (vertical-vertical) component of the gravity 
+    gradient tensor.
+    """
+    
+    def __init__(self, x, y, z, data, meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.gzz
 
 
 
