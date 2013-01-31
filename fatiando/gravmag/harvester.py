@@ -87,15 +87,116 @@ doi:10.1190/geo2011-0388.1
 import json
 import time
 import math
-import bisect
 
 import numpy
 
-from fatiando.gravmag import prism as pot_prism
+from fatiando.gravmag import prism as prismeffect
 from fatiando import utils
 import fatiando.logger
 
 log = fatiando.logger.dummy('fatiando.gravmag.harvester')
+
+
+def harvest():
+    """
+    """
+    nseeds = len(seeds)
+    # Initialize the estimate with the seeds
+    estimate = dict((s.i, s.props) for s in seeds)
+    # Initialize the neighbors list
+    neighbors = []
+    for seed in seeds:
+        neighbors.extend(_get_neighbors(seed, neighbors, estimate, mesh, data))
+    # Initialize the predicted data
+    predicted = []
+    for d in data:
+        p = numpy.zeros(len(d.observed), dtype='f')
+        for seed in seeds:
+            p += d.effect(mesh[seed.i], seed.props)
+        predicted.append(p)
+    predicted = numpy.array(predicted)
+    # Start the goal function, data-misfit function and regularizing function
+    totalgoal = _shapefunc(data, predicted)
+    regularizer = 0.
+    totalmisfit = _misfitfunc(data, predicted)
+    # Begin the growth process
+    for iteration in xrange(mesh.size - nseeds):
+        grew = False # To check if at least one seed grew (stopping criterion)
+        for s in xrange(nseeds):
+            best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s], 
+                data, predicted, totalmisfit, regularizer)
+            # If there was a best, add to estimate, remove it, and add its 
+            # neighbors
+            if best is not None:
+                estimate[best.i] = best.props
+                totalgoal = bestgoal
+                totalmisfit = bestmisfit
+                regularizer = bestregularizer
+                predicted += best.effect
+                neighbors[s].remove(best)
+                neighbors[s].extend(
+                    _get_neighbors(best, neighbors, estimate, mesh, data))
+                del best
+                grew = True
+        if not grew:
+            break
+    # Make a nice dict with the estimated physical properties in separate array
+    output = {}
+    for i, props in estimate:
+        for p in props:
+            if p not in output:
+                output[p] = utils.SparseList(mesh.size)
+            output[p][i] = props[p]
+    return output, predicted
+
+def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer):
+    # Try all the neighbors to find the one with smallest goal function
+    # that also decreases the misfit 
+    best = None
+    bestgoal = None
+    bestmisfit = None
+    bestregularizer = None
+    for n in neighbors:
+        pred = predicted + n.effect
+        misfit = _misfitfunc(data, pred)
+        if (misfit < totalmisfit and 
+            abs(misfit - totalmisfit)/totalmisfit >= threshold):
+            reg = regularizer + n.distance
+            goal = _shapefunc(data, pred) + mu*reg
+            if bestgoal is None or goal < bestgoal:
+                bestgoal = goal
+                best = n
+                bestmisfit = misfit
+                bestregularizer = reg
+    return best, bestgoal, bestmisfit, bestregularizer
+
+def _get_neighbors(cell, neighbors, estimate, mesh, data):
+    pass
+
+def _shapefunc(data, predicted):
+    pass
+
+def _misfitfunc(data, predicted):
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# OLD CODE
+#############################################################################
+
+from fatiando.gravmag import prism as pot_prism
 
 
 def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
