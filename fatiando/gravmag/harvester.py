@@ -108,13 +108,7 @@ def harvest(data, seeds, mesh, compactness, threshold):
     for seed in seeds:
         neighbors.extend(_get_neighbors(seed, neighbors, estimate, mesh, data))
     # Initialize the predicted data
-    predicted = []
-    for d in data:
-        p = numpy.zeros(len(d.observed), dtype='f')
-        for seed in seeds:
-            p += d.effect(mesh[seed.i], seed.props)
-        predicted.append(p)
-    predicted = numpy.array(predicted)
+    predicted = _init_predicted(data, seeds, mesh)
     # Start the goal function, data-misfit function and regularizing function
     totalgoal = _shapefunc(data, predicted)
     totalmisfit = _misfitfunc(data, predicted)
@@ -142,24 +136,43 @@ def harvest(data, seeds, mesh, compactness, threshold):
                 grew = True
         if not grew:
             break
-    # Make a nice dict with the estimated physical properties in separate array
+    return _fmt_estimate(estimate), predicted
+
+def _init_predicted(data, seeds, mesh):
+    """
+    Make a list with the initial predicted data vectors (effect of seeds)
+    """
+    predicted = []
+    for d in data:
+        p = numpy.zeros(len(d.observed), dtype='f')
+        for seed in seeds:
+            p += d.effect(mesh[seed.i], seed.props)
+        predicted.append(p)
+    return predicted 
+
+def _fmt_estimate(estimate):
+    """
+    Make a nice dict with the estimated physical properties in separate array
+    """
     output = {}
     for i, props in estimate:
         for p in props:
             if p not in output:
                 output[p] = utils.SparseList(mesh.size)
             output[p][i] = props[p]
-    return output, predicted
+    return output
 
 def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
-    # Try all the neighbors to find the one with smallest goal function
-    # that also decreases the misfit 
+    """
+    Find the neighbor with smallest goal function that also decreases the 
+    misfit
+    """
     best = None
     bestgoal = None
     bestmisfit = None
     bestregularizer = None
     for n in neighbors:
-        pred = predicted + n.effect
+        pred = [p + e for p, e in zip(predicted, n.effect)]
         misfit = _misfitfunc(data, pred)
         if (misfit < totalmisfit and 
             abs(misfit - totalmisfit)/totalmisfit >= threshold):
