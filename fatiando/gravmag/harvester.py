@@ -348,6 +348,33 @@ class Gzz(Potential):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gzz
 
+class TotalField(Potential):
+    """
+    A container for data of the total field magnetic anomaly.
+    """
+    
+    def __init__(self, x, y, z, data, inc, dec, meshtype='prism'):
+        if meshtype != 'prism':
+            raise AttributeError(
+                "Unsupported mesh type '%s' for total field anomaly." 
+                % (meshtype))
+        Potential.__init__(self, x, y, z, data, meshtype)
+        self.effectfunc = self.effectmodule.tf
+        self.prop = 'magnetization'
+        self.inc = inc
+        self.dec = dec
+
+    def effect(self, prism, props):
+        """Calculate the effect of a prism with the given physical props"""
+        if self.prop not in props:
+            return numpy.zeros(self.size, dtype='f')
+        pinc, pdec = None, None
+        if 'inclination' in props:
+            pinc = props['inclinaton']
+        if 'declination' in props:
+            pdec = props['declination']
+        return self.effectfunc(self.x, self.y, self.z, [prism], self.inc, 
+            self.dec, pmag=props[self.prop], pinc=pinc, pdec=pdec)
 
 
 # OLD CODE
