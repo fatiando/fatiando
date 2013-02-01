@@ -211,12 +211,42 @@ def _get_neighbors(cell, neighbors, estimate, mesh, data):
     """
     pass
 
-def sow(locations):
+def sow(locations, mesh):
     """
     Create the seeds given a list of (x,y,z) coordinates and physical 
     properties.
     """
-    pass
+    seeds = []
+    for point, props in locations:
+        index = _find_index(point, mesh)
+        if index is None:
+            raise ValueError("Couldn't find seed at location %s" % (str(point)))
+        # Check for duplicates
+        if index not in (s.i for s in seeds):
+            seeds.append(Seed(index, props))
+    return seeds
+
+def _find_index(point, mesh):
+    """
+    Find the index of the cell that has point inside it.
+    """
+    x1, x2, y1, y2, z1, z2 = mesh.bounds
+    nz, ny, nx = mesh.shape
+    xs = mesh.get_xs()
+    ys = mesh.get_ys()
+    zs = mesh.get_zs()
+    x, y, z = point
+    if x <= x2 and x >= x1 and y <= y2 and y >= y1 and z <= z2 and z >= z1:
+        # -1 because bisect gives the index z would have. I want to know
+        # what index z comes after
+        k = bisect.bisect_left(zs, z) - 1
+        j = bisect.bisect_left(ys, y) - 1
+        i = bisect.bisect_left(xs, x) - 1
+        seed = i + j*nx + k*nx*ny
+        # Check if the cell is not masked (topography)
+        if mesh[seed] is not None:
+            return seed
+    return None
 
 class Seed(object):
     """
@@ -379,78 +409,6 @@ class TotalField(Potential):
 # OLD CODE
 #############################################################################
 
-from fatiando.gravmag import prism as pot_prism
-
-
-def wrapdata(mesh, xp, yp, zp, gz=None, gxx=None, gxy=None, gxz=None, gyy=None,
-    gyz=None, gzz=None, norm=1):
-    """
-    Takes the observed data vectors (measured at the same points) and generates
-    the data modules required by :func:`~fatiando.gravmag.harvester.harvest`.
-
-    If your data sets where measured at different points, make multiple calls
-    to this function. For example, if gz was measured at x1, y1, z1 while gzz
-    and gxx were measured at x2, y2, z2, use::
-
-        dms = wrapdata(mesh, x1, y1, z1, gz=gz)
-        dms.extend(wrapdata(mesh, x2, y2, z2, gxx=gxx, gzz=gzz))
-
-    Accepted data:
-
-    * gz: vertical component of the gravitational attraction (i.e., gravity
-      anomaly)
-    * gxx, gxy, etc: the components of the gravity gradient tensor
-
-    Parameters:
-
-    * mesh : :class:`fatiando.mesher.PrismMesh`
-        The model space mesh (or interpretative model)
-    * xp, yp, zp : arrays
-        The x, y, and z coordinates of the observation points.
-    * gz, gxx, gxy, etc. : arrays
-        The observed data, measured at xp, yp, and zp, of the respective
-        components.
-    * norm : int
-        Order of the norm of the residual vector to use. Can be:
-
-        * 1 -> l1 norm
-        * 2 -> l2 norm
-
-    Returns
-
-    * dms : list
-        List of data modules
-
-    """
-    log.info("Creating prism data modules:")
-    log.info("  data misfit norm: %d" % (norm))
-    log.info("  observations per data type: %d" % (len(xp)))
-    dms = []
-    fields = []
-    if gz is not None:
-        dms.append(DMPrismGz(gz, xp, yp, zp, mesh, norm))
-        fields.append('gz')
-    if gxx is not None:
-        dms.append(DMPrismGxx(gxx, xp, yp, zp, mesh, norm))
-        fields.append('gxx')
-    if gxy is not None:
-        dms.append(DMPrismGxy(gxy, xp, yp, zp, mesh, norm))
-        fields.append('gxy')
-    if gxz is not None:
-        dms.append(DMPrismGxz(gxz, xp, yp, zp, mesh, norm))
-        fields.append('gxz')
-    if gyy is not None:
-        dms.append(DMPrismGyy(gyy, xp, yp, zp, mesh, norm))
-        fields.append('gyy')
-    if gyz is not None:
-        dms.append(DMPrismGyz(gyz, xp, yp, zp, mesh, norm))
-        fields.append('gyz')
-    if gzz is not None:
-        dms.append(DMPrismGzz(gzz, xp, yp, zp, mesh, norm))
-        fields.append('gzz')
-    log.info("  data types: %s" % (', '.join(fields)))
-    log.info("  total number of observations: %d" % (len(xp)*len(fields)))
-    return dms
 
 def sow(seeds, mesh, mu=0., delta=0.0001, reldist=False):
     """
