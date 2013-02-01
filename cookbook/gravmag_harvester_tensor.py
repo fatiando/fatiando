@@ -2,8 +2,9 @@
 GravMag: 3D gravity gradient inversion by planting anomalous densities using
 ``harvester`` (with non-targeted sources)
 """
-from fatiando import logger, gridder, utils, gravmag, mesher
-from fatiando.mesher import Prism, PrismMesh
+from fatiando import logger, gridder, utils
+from fatiando import gravmag as gm
+from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
 log = logger.get()
@@ -36,15 +37,19 @@ shape = (51, 51)
 area = bounds[0:4]
 noise = 2
 x, y, z = gridder.regular(area, shape, z=-150)
-gyy = utils.contaminate(gravmag.prism.gyy(x, y, z, model), noise)
-gyz = utils.contaminate(gravmag.prism.gyz(x, y, z, model), noise)
-gzz = utils.contaminate(gravmag.prism.gzz(x, y, z, model), noise)
+gyy = utils.contaminate(gm.prism.gyy(x, y, z, model), noise)
+gyz = utils.contaminate(gm.prism.gyz(x, y, z, model), noise)
+gzz = utils.contaminate(gm.prism.gzz(x, y, z, model), noise)
+
+# Set up the inversion:
 # Create a prism mesh
 mesh = PrismMesh(bounds, (15, 50, 50))
-# Make the data modules
-datamods = gravmag.harvester.wrapdata(mesh, x, y, z, gyy=gyy, gyz=gyz, gzz=gzz)
+# Wrap the data so that harvester can use it
+data = [gm.harvester.Gyy(x, y, z, gyy),
+        gm.harvester.Gyz(x, y, z, gyz),
+        gm.harvester.Gzz(x, y, z, gzz)]
 # and the seeds
-seeds = gravmag.harvester.sow(
+seeds = gm.harvester.sow(
     [( 800, 3250, 600, {'density':1200}),
      (1200, 3250, 600, {'density':1200}),
      (1700, 3250, 600, {'density':1200}),
@@ -57,17 +62,21 @@ seeds = gravmag.harvester.sow(
      (3300, 2050, 600, {'density':1200}),
      (3600, 2050, 600, {'density':1200}),
      (4000, 2050, 600, {'density':1200}),
-     (4300, 2050, 600, {'density':1200})], mesh, mu=0.1, delta=0.0001)
+     (4300, 2050, 600, {'density':1200})], 
+    mesh)
 # Run the inversion and collect the results
-estimate, goals, misfits = gravmag.harvester.harvest(datamods, seeds)
+estimate, predicted = gm.harvester.harvest(data, seeds, mesh, 
+    compactness=1., threshold=0.0001)
+
 # Insert the estimated density values into the mesh
 mesh.addprop('density', estimate['density'])
 # and get only the prisms corresponding to our estimate
-density_model = mesher.vremove(0, 'density', mesh)
+density_model = vremove(0, 'density', mesh)
+print "Accretions: %d" % (len(density_model) - len(seeds))
+
 # Get the predicted data from the data modules
 tensor = (gyy, gyz, gzz)
-predicted = [dm.get_predicted() for dm in datamods]
-# Plot the results
+# plot it
 for true, pred in zip(tensor, predicted):
     mpl.figure()
     mpl.title("True: color | Inversion: contour")
@@ -78,6 +87,8 @@ for true, pred in zip(tensor, predicted):
     mpl.xlabel('Horizontal coordinate y (km)')
     mpl.ylabel('Horizontal coordinate x (km)')
 mpl.show()
+
+# Plot the inversion result
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
 myv.prisms(density_model, 'density', vmin=0)

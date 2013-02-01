@@ -86,6 +86,7 @@ doi:10.1190/geo2011-0388.1
 """
 import json
 import time
+import bisect
 from math import sqrt
 
 import numpy
@@ -168,10 +169,11 @@ def sow(locations, mesh):
     properties.
     """
     seeds = []
-    for point, props in locations:
-        index = _find_index(point, mesh)
+    for x, y, z, props in locations:
+        index = _find_index((x, y, z), mesh)
         if index is None:
-            raise ValueError("Couldn't find seed at location %s" % (str(point)))
+            raise ValueError(
+                "Couldn't find seed at location (%g,%g,%g)" % (x, y, z))
         # Check for duplicates
         if index not in (s.i for s in seeds):
             seeds.append(Seed(index, props))
@@ -202,13 +204,14 @@ def _find_index(point, mesh):
 def harvest(data, seeds, mesh, compactness, threshold):
     """
     """
+    tstart = time.time()
     nseeds = len(seeds)
     # Initialize the estimate with the seeds
     estimate = dict((s.i, s.props) for s in seeds)
     # Initialize the neighbors list
     neighbors = []
     for seed in seeds:
-        neighbors.extend(_get_neighbors(seed, neighbors, estimate, mesh, data))
+        neighbors.append(_get_neighbors(seed, neighbors, estimate, mesh, data))
     # Initialize the predicted data
     predicted = _init_predicted(data, seeds, mesh)
     # Start the goal function, data-misfit function and regularizing function
@@ -232,7 +235,8 @@ def harvest(data, seeds, mesh, compactness, threshold):
                 totalgoal = bestgoal
                 totalmisfit = bestmisfit
                 regularizer = bestregularizer
-                predicted += best.effect
+                for p, e in zip(predicted, best.effect):
+                    p += e
                 neighbors[s].pop(best.i)
                 neighbors[s].update(
                     _get_neighbors(best, neighbors, estimate, mesh, data))
@@ -240,7 +244,9 @@ def harvest(data, seeds, mesh, compactness, threshold):
                 grew = True
         if not grew:
             break
-    return _fmt_estimate(estimate), predicted
+    log.info('Time for planting anomalous densities: %s' 
+        % (utils.sec2hms(time.time() - tstart)))
+    return _fmt_estimate(estimate, mesh.size), predicted
 
 def _init_predicted(data, seeds, mesh):
     """
@@ -254,15 +260,16 @@ def _init_predicted(data, seeds, mesh):
         predicted.append(p)
     return predicted 
 
-def _fmt_estimate(estimate):
+def _fmt_estimate(estimate, size):
     """
     Make a nice dict with the estimated physical properties in separate array
     """
     output = {}
-    for i, props in estimate:
+    for i in estimate:
+        props = estimate[i]
         for p in props:
             if p not in output:
-                output[p] = utils.SparseList(mesh.size)
+                output[p] = utils.SparseList(size)
             output[p][i] = props[p]
     return output
 
@@ -276,15 +283,15 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
     bestmisfit = None
     bestregularizer = None
     for n in neighbors:
-        pred = [p + e for p, e in zip(predicted, n.effect)]
+        pred = [p + e for p, e in zip(predicted, neighbors[n].effect)]
         misfit = _misfitfunc(data, pred)
         if (misfit < totalmisfit and 
-            abs(misfit - totalmisfit)/totalmisfit >= threshold):
-            reg = regularizer + n.distance
+            float(abs(misfit - totalmisfit))/totalmisfit >= threshold):
+            reg = regularizer + neighbors[n].distance
             goal = _shapefunc(data, pred) + mu*reg
             if bestgoal is None or goal < bestgoal:
                 bestgoal = goal
-                best = n
+                best = neighbors[n]
                 bestmisfit = misfit
                 bestregularizer = reg
     return best, bestgoal, bestmisfit, bestregularizer
@@ -297,7 +304,7 @@ def _shapefunc(data, predicted):
     result = 0.
     for d, p in zip(data, predicted):
         alpha = numpy.sum(d.observed*p)/d.norm**2
-        result += numpy.norm(alpha*d.observed - p)
+        result += numpy.linalg.norm(alpha*d.observed - p)
     return result
 
 def _misfitfunc(data, predicted):
@@ -305,7 +312,7 @@ def _misfitfunc(data, predicted):
     Calculate the total data misfit function between the observed and predicted
     data.
     """
-    return sum(numpy.norm(d.observed - p)/d.norm
+    return sum(numpy.linalg.norm(d.observed - p)/d.norm
                for d, p in zip(data, predicted))
 
 def _get_neighbors(cell, neighborhood, estimate, mesh, data):
@@ -315,8 +322,8 @@ def _get_neighbors(cell, neighborhood, estimate, mesh, data):
     objects.
     """
     indexes = [n for n in _neighbor_indexes(cell.i, mesh)
-               if not _is_neighbor(n, props, neighborhood) 
-                  and not _in_estimate(n, props, estimate)]
+               if not _is_neighbor(n, cell.props, neighborhood) 
+                  and not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
         (i, Neighbor(
             i, cell.props, cell.seed, _distance(i, cell.seed, mesh), 
@@ -366,9 +373,9 @@ def _is_neighbor(index, props, neighborhood):
     """    
     for neighbors in neighborhood:
         for n in neighbors:
-            if index == n.i:
+            if index == neighbors[n].i:
                 for p in props:
-                    if p in n.props:
+                    if p in neighbors[n].props:
                         return True
     return False
 
@@ -439,7 +446,8 @@ class Data(object):
         self.z = z
         self.observed = data
         self.size = len(data)
-        self.norm = numpy.norm(data)
+        self.norm = numpy.linalg.norm(data)
+        self.meshtype = meshtype
         if self.meshtype not in ['prism']:
             raise AttributeError("Invalid mesh type '%s'" % (meshtype))
         if self.meshtype == 'prism':
