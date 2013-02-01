@@ -2,3 +2,4 @@
 *.so
 _c*.c
 build
+.*.swp
