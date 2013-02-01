@@ -135,8 +135,8 @@ def harvest(data, seeds, mesh, compactness, threshold):
                 totalmisfit = bestmisfit
                 regularizer = bestregularizer
                 predicted += best.effect
-                neighbors[s].remove(best)
-                neighbors[s].extend(
+                neighbors[s].pop(best.i)
+                neighbors[s].update(
                     _get_neighbors(best, neighbors, estimate, mesh, data))
                 del best
                 grew = True
@@ -192,6 +192,11 @@ def _misfitfunc(data, predicted):
                for d, p in zip(data, predicted))
 
 def _get_neighbors(cell, neighbors, estimate, mesh, data):
+    """
+    Return a dict with the new neighbors of cell. 
+    keys are the index of the neighbors in the mesh. values are the Neighbor 
+    objects.
+    """
     pass
 
 def sow(locations):
