@@ -55,7 +55,7 @@ data = [gm.harvester.Gxx(xp, yp, zp, gxx),
 # Make the seeds
 seeds = gm.harvester.sow([
     [500, 400, 210, {'density':1000}],
-    [500, 500, 510, {'density':1000}]], mesh)
+    [500, 550, 510, {'density':1000}]], mesh)
 # Run the inversioin
 estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
     compactness=0.5, threshold=0.001)
@@ -88,6 +88,12 @@ mpl.show()
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
 myv.prisms([mesh[s.i] for s in seeds], 'density')
+myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
+    nlabels=6)
+myv.wall_bottom(bounds)
+myv.wall_north(bounds)
+myv.figure()
+myv.prisms(model, 'density', style='wireframe')
 myv.prisms(vremove(0, 'density', mesh), 'density')
 myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
     nlabels=6)

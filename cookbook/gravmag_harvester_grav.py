@@ -2,8 +2,9 @@
 GravMag: 3D gravity inversion by planting anomalous densities using
 ``harvester`` (simple example)
 """
-from fatiando import logger, gridder, utils, gravmag, mesher
-from fatiando.mesher import Prism, PrismMesh
+from fatiando import logger, gridder, utils
+from fatiando import gravmag as gm
+from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
 log = logger.get()
@@ -17,7 +18,7 @@ bounds = [0, 1000, 0, 1000, 0, 1000]
 area = bounds[0:4]
 xp, yp, zp = gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
-gz = utils.contaminate(gravmag.prism.gz(xp, yp, zp, model), noise)
+gz = utils.contaminate(gm.prism.gz(xp, yp, zp, model), noise)
 # plot the data
 mpl.figure()
 mpl.title("Synthetic gravity anomaly (mGal)")
@@ -28,25 +29,28 @@ mpl.xlabel('Horizontal coordinate y (km)')
 mpl.ylabel('Horizontal coordinate x (km)')
 mpl.m2km()
 mpl.show()
+
+# Inversion setup
 # Create a mesh
 mesh = PrismMesh(bounds, (25, 25, 25))
-# Make the data modules
-dms = gravmag.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
-# Make the seed and set the compactness regularizing parameter mu
-seeds = gravmag.harvester.sow([[500, 500, 450, {'density':1000}]],
-    mesh, mu=0.01, delta=0.0001)
-# Run the inversion
-estimate, goals, misfits = gravmag.harvester.harvest(dms, seeds)
+# Wrap the data so that harvester can use it
+data = [gm.harvester.Gz(xp, yp, zp, gz)]
+# Make the seed
+seeds = gm.harvester.sow([[500, 500, 450, {'density':1000}]], mesh)
+# Run the inversioin
+estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
+    compactness=0.5, threshold=0.0005)
+
 # Put the estimated density values in the mesh
 mesh.addprop('density', estimate['density'])
-# Plot the adjustment and the result
-predicted = dms[0].get_predicted()
+
+# Plot the adjustment
 mpl.figure()
 mpl.title("True: color | Inversion: contour")
 mpl.axis('scaled')
 levels = mpl.contourf(yp, xp, gz, shape, 12)
 mpl.colorbar()
-mpl.contour(yp, xp, predicted, shape, levels, color='k')
+mpl.contour(yp, xp, predicted[0], shape, levels, color='k')
 mpl.xlabel('Horizontal coordinate y (km)')
 mpl.ylabel('Horizontal coordinate x (km)')
 mpl.m2km()
@@ -54,7 +58,7 @@ mpl.show()
 # Plot the result
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
-myv.prisms(mesher.vremove(0, 'density', mesh), 'density')
+myv.prisms(vremove(0, 'density', mesh), 'density')
 myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
     nlabels=6)
 myv.wall_bottom(bounds)
