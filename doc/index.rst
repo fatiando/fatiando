@@ -62,6 +62,7 @@ which results in something like this:
 
 .. image:: _static/sample.png
     :align: center
+    :width: 300px
 
 For those of you not so interested in potential fields,
 there is a new module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
