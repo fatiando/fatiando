@@ -6,3 +6,4 @@ build
 doc/_build
 doc/_static/cookbook
 doc/cookbook
+doc/fatiando*.pdf
