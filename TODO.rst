@@ -12,7 +12,6 @@ GOALS FOR 0.2:
 
 * Write the Advanced usage docs
 * Write the Getting started docs
-* Incorporate Tesseroids: gravitational modeling in spherical coordinates
 * Make a VTK plotter for tesseroids
 * Optimize PrismMesh.dump (using Cython?)
 * Add titles, figures and better description to recipe docstrings
@@ -89,17 +88,12 @@ TO-IMPLEMENT:
 
 IDEAS:
 
-* Make the cookbook rst files automatically:
-    * include a Title and description in each recipes docstring (for autodoc)
-    * include sample output as <script_name>%d.pnd
-* Merge msh.dd and msh.ddd into just msh. There are no name conflicts and there
-  are common bases and functions? Maybe not
+* Make utils.clock function that runs a function, logs the time it takes and 
+  returns what the func would return
 * Get rid of the DataModule class. Provide a specification of it in the docs on
   fatiando.inversion
 * Add decorator to logging that logs a functions name and parameters in debug
   mode
-* Add a name attribute to data modules to facilitate doing:
-  for dm in datamods: plot dm
 * Consider making the parameter vector a dictionary: one array for each prop.
   this way the datamodules only operate on their props
 * Make an automatic fetcher of bibliographic references from scripts
