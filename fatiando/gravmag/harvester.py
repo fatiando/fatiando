@@ -289,8 +289,13 @@ def harvest(data, seeds, mesh, compactness, threshold):
             
 
     """
-    tstart = time.time()
+    log.info('Harvesting inversion results:')
     nseeds = len(seeds)
+    log.info('  compactness: %g' % (compactness))
+    log.info('  threshold: %g' % (threshold))
+    log.info('  # of seeds: %d' % (nseeds))
+    log.info('  # of data types: %d' % (len(data)))
+    tstart = time.time()
     # Initialize the estimate with the seeds
     estimate = dict((s.i, s.props) for s in seeds)
     # Initialize the neighbors list
@@ -303,9 +308,13 @@ def harvest(data, seeds, mesh, compactness, threshold):
     totalgoal = _shapefunc(data, predicted)
     totalmisfit = _misfitfunc(data, predicted)
     regularizer = 0.
+    log.info('  initial goal function: %g' % (totalgoal))
+    log.info('  initial data misfit: %g' % (totalmisfit))
     # Weight the regularizing function by the mean extent of the mesh
     mu = compactness*1./(sum(mesh.shape)/3.) 
     # Begin the growth process
+    log.info('  Running...')
+    accretions = 0
     for iteration in xrange(mesh.size - nseeds):
         grew = False # To check if at least one seed grew (stopping criterion)
         for s in xrange(nseeds):
@@ -327,10 +336,14 @@ def harvest(data, seeds, mesh, compactness, threshold):
                     _get_neighbors(best, neighbors, estimate, mesh, data))
                 del best
                 grew = True
+                accretions += 1
         if not grew:
             break
-    log.info('Time for planting anomalous densities: %s' 
-        % (utils.sec2hms(time.time() - tstart)))
+    log.info('  # of accretions: %d' % (accretions))
+    log.info('  final goal function: %g' % (totalgoal))
+    log.info('  final compactness regularizing function: %g' % (regularizer))
+    log.info('  final data misfit: %g' % (totalmisfit))
+    log.info('  time it took: %s' % (utils.sec2hms(time.time() - tstart)))
     return _fmt_estimate(estimate, mesh.size), predicted
 
 def _init_predicted(data, seeds, mesh):
