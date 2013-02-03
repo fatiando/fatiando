@@ -15,8 +15,8 @@ Version 0.1
 * Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
-  densities" by
-  `Uieda and Barbosa, 2012 <http://fatiando.org/people/uieda/publications/>`_
+  densities" by Uieda and Barbosa (2012) in 
+  :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>`
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
   :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
