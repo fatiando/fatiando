@@ -3,3 +3,6 @@
 _c*.c
 build
 .*.swp
+doc/_build
+doc/_static/cookbook
+doc/cookbook

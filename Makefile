@@ -11,7 +11,8 @@ help:
 	@echo "Commands:"
 	@echo ""
 	@echo "    build         build the extension modules inplace"
-	@echo "    docs          build the pdf and html documentation"
+	@echo "    docs          build the html documentation"
+	@echo "    docs-pdf      build the pdf documentation"
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    deps          installs development requirements"
 	@echo "    package       create source distributions"
@@ -26,7 +27,11 @@ build:
 # BUILD THE DOCS
 .PHONY: docs
 docs: clean
-	cd doc; make html; make latexpdf
+	cd doc; make html
+
+.PHONY: docs-pdf
+docs-pdf: clean
+	cd doc; make latexpdf
 
 # RUN ALL TESTS
 .PHONY: test
