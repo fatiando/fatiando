@@ -1,5 +1,5 @@
 include LICENSE.txt
-include README.txt
+include README.rst
 include MANIFEST.in
 include doc/fatiando*.pdf
 recursive-include cookbook *

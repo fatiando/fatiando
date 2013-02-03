@@ -45,7 +45,7 @@ deps: requires.txt
 
 # MAKE A SOURCE DISTRIBUTION
 .PHONY: package
-package: docs
+package: docs-pdf
 	$(PY) setup.py sdist --formats=zip,gztar
 
 # CLEAN THINGS UP
