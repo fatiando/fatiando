@@ -542,6 +542,17 @@ class Data(object):
 class Potential(Data):
     """
     A container for data of the gravitational potential.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
 
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -550,7 +561,6 @@ class Potential(Data):
         self.effectfunc = self.effectmodule.potential
 
     def effect(self, prism, props):
-        """Calculate the effect of a prism with the given physical props"""
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
         return self.effectfunc(self.x, self.y, self.z, [prism], 
@@ -559,6 +569,17 @@ class Potential(Data):
 class Gz(Potential):
     """
     A container for data of the gravity anomaly.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -569,6 +590,17 @@ class Gxx(Potential):
     """
     A container for data of the xx (north-north) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -579,6 +611,17 @@ class Gxy(Potential):
     """
     A container for data of the xy (north-east) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -589,6 +632,17 @@ class Gxz(Potential):
     """
     A container for data of the xz (north-vertical) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -599,6 +653,17 @@ class Gyy(Potential):
     """
     A container for data of the yy (east-east) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -609,6 +674,17 @@ class Gyz(Potential):
     """
     A container for data of the yz (east-vertical) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -619,6 +695,17 @@ class Gzz(Potential):
     """
     A container for data of the zz (vertical-vertical) component of the gravity 
     gradient tensor.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
     
     def __init__(self, x, y, z, data, meshtype='prism'):
@@ -628,6 +715,20 @@ class Gzz(Potential):
 class TotalField(Potential):
     """
     A container for data of the total field magnetic anomaly.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+    
+    * inc, dec : floats
+        The inclination and declination of the inducing field
+
     """
     
     def __init__(self, x, y, z, data, inc, dec, meshtype='prism'):
@@ -642,7 +743,6 @@ class TotalField(Potential):
         self.dec = dec
 
     def effect(self, prism, props):
-        """Calculate the effect of a prism with the given physical props"""
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
         pinc, pdec = None, None
