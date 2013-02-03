@@ -42,17 +42,4 @@ how to use them.
 
 """
 
-version = '0.1.dev1'
-
-# Import all the modules and subpackages so that they are accessible just by
-# importing fatiando
-#from fatiando import logger
-#from fatiando import gridder
-#from fatiando import mesher
-#from fatiando import gravmag
-#from fatiando import seismic
-#from fatiando import utils
-#from fatiando import geothermal
-#from fatiando import gui
-#from fatiando import vis
-#from fatiando import inversion
+version = '0.1.dev'
