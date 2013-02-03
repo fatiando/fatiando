@@ -54,6 +54,12 @@ mpl.contour(yp, xp, predicted[0], shape, levels, color='k')
 mpl.xlabel('Horizontal coordinate y (km)')
 mpl.ylabel('Horizontal coordinate x (km)')
 mpl.m2km()
+residuals = gz - predicted[0]
+mpl.figure()
+mpl.title('Residuals: mean=%g stddev=%g' % (residuals.mean(), residuals.std()))
+mpl.hist(residuals, bins=10)
+mpl.xlabel('Residuals (mGal)')
+mpl.ylabel('# of')
 mpl.show()
 # Plot the result
 myv.figure()
