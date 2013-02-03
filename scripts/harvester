@@ -23,7 +23,10 @@ import sys
 import argparse
 
 import numpy
-import fatiando as ft
+from fatiando import gravmag as gm
+from fatiando.mesher import PrismMesh
+from fatiando import logger
+from fatiando.vis import mpl, myv
 
 
 exitmsg = "To get help, use: harvester --help"
@@ -169,11 +172,11 @@ parser.add_argument('-l', metavar='LOGFILE', type=str,
     help='Log the information and debug messages to LOGFILE')
 args = parser.parse_args()
 if args.verbose:
-    log = ft.log.get()
+    log = logger.get()
 else:
-    log = ft.log.get(level=logging.WARNING)
+    log = logger.get(level=logging.WARNING)
 if args.l:
-    ft.log.tofile(log, args.l)
+    logger.tofile(log, args.l)
 if args.template:
     print sample_paramfile
     sys.exit()
@@ -194,7 +197,7 @@ if args.f:
     if inputpath != os.path.abspath(os.path.curdir):
         os.chdir(inputpath)
 
-log.info(ft.log.header())
+log.info(logger.header())
 
 # Get the parameters form the input file
 try:
@@ -322,34 +325,52 @@ if mesh_bounds is None:
     y1, y2 = data['y'].min(), data['y'].max()
     mesh_bounds = [x1, x2, y1, y2]
 mesh_bounds.extend([mesh_top, mesh_bottom])
-mesh = ft.msh.ddd.PrismMesh(mesh_bounds, mesh_shape)
+mesh = PrismMesh(mesh_bounds, mesh_shape)
 if data['height'] is not None:
     log.info("  using topography information")
     mesh.carvetopo(data['x'], data['y'], data['height'])
 
 # Create the data modules
-datamods = ft.pot.harvester.wrapdata(mesh, data['x'], data['y'], data['z'],
-    gz=data['gz'], gxx=data['gxx'], gxy=data['gxy'], gxz=data['gxz'],
-    gyy=data['gyy'], gyz=data['gyz'], gzz=data['gzz'], norm=1)
+datamods = []
+if data['gz'] is not None:
+    datamods.append(
+        gm.harvester.Gz(data['x'], data['y'], data['z'], data['gz']))
+if data['gxx'] is not None:
+    datamods.append(
+        gm.harvester.Gxx(data['x'], data['y'], data['z'], data['gxx']))
+if data['gxy'] is not None:
+    datamods.append(
+        gm.harvester.Gxy(data['x'], data['y'], data['z'], data['gxy']))
+if data['gxz'] is not None:
+    datamods.append(
+        gm.harvester.Gxz(data['x'], data['y'], data['z'], data['gxz']))
+if data['gyy'] is not None:
+    datamods.append(
+        gm.harvester.Gyy(data['x'], data['y'], data['z'], data['gyy']))
+if data['gyz'] is not None:
+    datamods.append(
+        gm.harvester.Gyz(data['x'], data['y'], data['z'], data['gyz']))
+if data['gzz'] is not None:
+    datamods.append(
+        gm.harvester.Gzz(data['x'], data['y'], data['z'], data['gzz']))
 
 log.info("Loading seeds from file: %s" % (seed_file))
-seeds = ft.pot.harvester.sow(ft.pot.harvester.loadseeds(seed_file), mesh,
-    mu=regul, delta=delta)
+seeds = gm.harvester.sow(gm.harvester.loadseeds(seed_file), mesh)
 
 # Try showing the seeds using mayavi, if it is installed
 try:
-    ft.vis.figure3d()
-    ft.vis.prisms([s.get_prism() for s in seeds], 'density')
-    ft.vis.axes3d(ft.vis.outline3d(mesh.bounds),
-                  ranges=[i*0.001 for i in mesh.bounds], fmt='%.1f')
-    ft.vis.wall_bottom(mesh.bounds)
-    ft.vis.wall_north(mesh.bounds)
-    ft.vis.show3d()
+    myv.figure()
+    myv.prisms([mesh[s.i] for s in seeds])
+    myv.axes(myv.outline(mesh.bounds), ranges=[i*0.001 for i in mesh.bounds], 
+        fmt='%.1f')
+    myv.wall_bottom(mesh.bounds)
+    myv.wall_north(mesh.bounds)
+    myv.show()
 except ImportError:
     log.info("Couldn't show the seeds because Mayavi is not installed.")
     log.info("Moving on.")
 
-estimate, goals, misfits = ft.pot.harvester.harvest(datamods, seeds)
+estimate, predicted = gm.harvester.harvest(datamods, seeds, mesh, regul, delta)
 mesh.addprop('density', estimate['density'])
 
 if mesh_file is not None and density_file is not None:
@@ -363,35 +384,42 @@ if pickle_file is not None:
 
 log.info("Saving predicted data to %s" % (pred_file))
 with open(pred_file, 'w') as f:
-    f.write(ft.log.header(comment='#'))
+    f.write(logger.header(comment='#'))
     f.write("# Predicted data:\n")
     f.write("#   coordinates are in meters\n")
     f.write("#   gz in mGal and tensor in Eotvos\n")
     pred_fmt = [col for col in valid if data[col] is not None]
     f.write("# %s \n" % (' '.join(pred_fmt)))
-    predicted = [data['x'], data['y'], data['z']]
+    output = [data['x'], data['y'], data['z']]
     if data['height'] is not None:
-        predicted.append(data['height'])
-    predicted.extend([dm.get_predicted() for dm in datamods])
-    numpy.savetxt(f, numpy.array(predicted).T)
+        output.append(data['height'])
+    output.extend(predicted)
+    numpy.savetxt(f, numpy.transpose(output))
 
 log.info("Plotting the predicted data. Close figures when done.")
 shape = (100, 100)
 shift = 3
 if data['height'] is not None:
     shift = 4
-for i, pred in enumerate(dm.get_predicted() for dm in datamods):
+for i, pred in enumerate(predicted):
     col = pred_fmt[shift + i]
-    ft.vis.figure()
-    ft.vis.title(col + ": observed=color | predicted=contour")
-    ft.vis.axis('scaled')
-    levels = ft.vis.contourf(data['y']*0.001, data['x']*0.001, data[col], shape,
+    mpl.figure()
+    mpl.title(col + ": observed=color | predicted=contour")
+    mpl.axis('scaled')
+    levels = mpl.contourf(data['y']*0.001, data['x']*0.001, data[col], shape,
         12, interp=True)
-    ft.vis.colorbar()
-    ft.vis.contour(data['y']*0.001, data['x']*0.001, pred, shape, levels,
+    mpl.colorbar()
+    mpl.contour(data['y']*0.001, data['x']*0.001, pred, shape, levels,
         color='k', interp=True)
-    ft.vis.xlabel('East = y (km)')
-    ft.vis.ylabel('North = x (km)')
-ft.vis.show()
+    mpl.xlabel('East = y (km)')
+    mpl.ylabel('North = x (km)')
+    residuals = data[col] - pred
+    mpl.figure()
+    mpl.title(col + ': Residuals (mean=%g stddev=%g)' 
+        % (residuals.mean(), residuals.std()))
+    mpl.hist(residuals, bins=10)
+    mpl.xlabel('Residuals')
+    mpl.ylabel('Count')
+mpl.show()
 
 log.info("Done")
