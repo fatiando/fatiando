@@ -1,7 +1,8 @@
 """
 3D potential field inversion by planting anomalous densities.
 
-Implements the method of Uieda and Barbosa (2012).
+Implements the method of Uieda and Barbosa (2012a) with improvements by
+Uieda and Barbosa (2012b).
 
 A "heuristic" inversion for compact 3D geologic bodies. Performs the inversion
 by iteratively growing the estimate around user-specified "seeds". Supports
@@ -9,77 +10,55 @@ various kinds of data (gravity, gravity tensor).
 
 The inversion is performed by function
 :func:`~fatiando.gravmag.harvester.harvest`. The required information, such as
-observed data, seeds, and regularization, are passed to the function though
-seed classes and data modules.
+observed data, seeds, and regularization, are passed to the function through
+classes :class:`~fatiando.gravmag.harvester.Seed` and 
+:class:`~fatiando.gravmag.harvester.Potential`,
+:class:`~fatiando.gravmag.harvester.Gz`,
+:class:`~fatiando.gravmag.harvester.Gxx`, etc.
+
+See the :ref:`Cookbook <cookbook>` for some example applications to synthetic
+data.
+
 
 **Functions**
 
 * :func:`~fatiando.gravmag.harvester.harvest`: Performs the inversion
-* :func:`~fatiando.gravmag.harvester.wrapdata`: Creates the data modules
-  required by ``harvest``
-* :func:`~fatiando.gravmag.harvester.loadseeds`: Loads a set of points and
-  physical properties that specify the seeds from a file
 * :func:`~fatiando.gravmag.harvester.sow`: Creates the seeds from a set of
-  points that specify their locations
+  (x, y, z) points and physical properties
+* :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set 
+  of (x, y, z) points and physical properties that specify the seeds. Pass 
+  output to :func:`~fatiando.gravmag.harvester.sow`
 
-**Usage**
+**Data types**
 
-The recommened way of generating the required seeds and data modules is to use
-the helper functions :func:`~fatiando.gravmag.harvester.wrapdata`,
-:func:`~fatiando.gravmag.harvester.loadseeds`, and
-:func:`~fatiando.gravmag.harvester.sow`.
-
-A typical script to run the inversion on a data set looks like::
-
-    import numpy
-    import fatiando as ft
-    # Load the data from a file
-    xp, yp, zp, gz = numpy.loadtxt('mydata.xyz', unpack=True)
-    # Create a mesh assuming that 'bounds' are the limits of the mesh and
-    # 'shape' is the number of prisms in each dimension
-    bounds = (xmin, xmax, ymin, ymax, zmin, zmax)
-    shape = (nz, ny, nx)
-    mesh = ft.mesher.PrismMesh(bounds, shape)
-    # Make the data modules
-    dms = ft.gravmag.harvester.wrapdata(mesh, xp, yp, zp, gz=gz)
-    # Read the seed locations and physical properties from a file
-    seeds = ft.gravmag.harvester.sow(ft.gravmag.harvester.loadseeds('myseedfile.txt'),
-                                 mesh, mu=0.1)
-    # Run the inversion
-    estimate, goals, misfits = ft.gravmag.harvester.harvest(dms, seeds)
-    # fill the mesh with the density values
-    mesh.addprop('density', estimate['density'])
-    # Save the mesh in UBC-GIF format
-    mesh.dump('result.msh', 'result.den', 'density')
-
-
-**Seeds**
-
-A seed class determines what kind of geometric element is used to parametrize
-the anomalous density distribution. For example, if you use a SeedPrism, the
-output of :func:`~fatiando.gravmag.harvester.harvest` will be a list of prisms
-that make up the estimated density distribution.
-
-* :class:`~fatiando.gravmag.harvester.SeedPrism`
-
-**Data Modules**
-
-Data modules wrap the observed data and calculate the predicted data for a given
-parametrization.
-
-* :class:`~fatiando.gravmag.harvester.DMPrismGz`
-* :class:`~fatiando.gravmag.harvester.DMPrismGxx`
-* :class:`~fatiando.gravmag.harvester.DMPrismGxy`
-* :class:`~fatiando.gravmag.harvester.DMPrismGxz`
-* :class:`~fatiando.gravmag.harvester.DMPrismGyy`
-* :class:`~fatiando.gravmag.harvester.DMPrismGyz`
-* :class:`~fatiando.gravmag.harvester.DMPrismGzz`
+* :class:`~fatiando.gravmag.harvester.Potential`: gravitational potential
+* :class:`~fatiando.gravmag.harvester.Gz`: vertical component of gravitational
+  acceleration (i.e., gravity anomaly)
+* :class:`~fatiando.gravmag.harvester.Gxx`: North-North component of the gravity
+  gradient tensor
+* :class:`~fatiando.gravmag.harvester.Gxy`: North-East component of the gravity
+  gradient tensor
+* :class:`~fatiando.gravmag.harvester.Gxz`: North-vertical component of the 
+  gravity gradient tensor
+* :class:`~fatiando.gravmag.harvester.Gyy`: East-East component of the gravity
+  gradient tensor
+* :class:`~fatiando.gravmag.harvester.Gyz`: East-vertical component of the 
+  gravity gradient tensor
+* :class:`~fatiando.gravmag.harvester.Gzz`: vertical-vertical component of the 
+  gravity gradient tensor
 
 **References**
 
-Uieda, L., and V. C. F. Barbosa (2012), Robust 3D gravity gradient inversion by
+Uieda, L., and V. C. F. Barbosa (2012a), Robust 3D gravity gradient inversion by
 planting anomalous densities, Geophysics, 77(4), G55-G66,
-doi:10.1190/geo2011-0388.1
+doi:10.1190/geo2011-0388.1 [`pdf 
+<http://www.mendeley.com/download/public/1406731/4823610241/45dec08fa03c4d5950ecdaef8d7532767a57a1a8/dl.pdf>`_]
+
+Uieda, L., and V. C. F. Barbosa (2012b), 
+Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous 
+densities, SEG Technical Program Expanded Abstracts, 1-6,
+doi:10.1190/segam2012-0383.1 [`pdf
+<http://www.mendeley.com/download/public/1406731/4932659461/67606df295d428a7f729a74cf80b7ed4aa37553b/dl.pdf>`_]
 
 ----
 
@@ -167,7 +146,35 @@ def sow(locations, mesh):
     """
     Create the seeds given a list of (x,y,z) coordinates and physical 
     properties.
+
+    Removes seeds that would fall on the same location with overlapping 
+    physical properties.
+
+    Parameters:
+
+    * locations : list
+        The locations and physical properties of the seeds. Should be a list
+        like::
+
+            [
+                [x1, y1, z1, {"density":dens1}],
+                [x2, y2, z2, {"density":dens2, "magnetization":mag2}],
+                [x3, y3, z3, {"magnetization":mag3, "inclination":inc3,
+                              "declination":dec3}],
+                ...
+            ]
+
+    * mesh : :class:`fatiando.mesher.PrismMesh`
+        The mesh that will be used in the inversion.
+
+    Returns:
+
+    * seeds : list of :class:`~fatiando.gravmag.harvester.Seed`
+        The seeds that can be passed to 
+        :func:`~fatiando.gravmag.harvester.harvest`
+
     """
+    log.info("Fetching seeds from mesh:")
     seeds = []
     for x, y, z, props in locations:
         index = _find_index((x, y, z), mesh)
@@ -177,6 +184,8 @@ def sow(locations, mesh):
         # Check for duplicates
         if index not in (s.i for s in seeds):
             seeds.append(Seed(index, props))
+    log.info("  points given: %d" % (len(locations)))
+    log.info("  unique seeds found: %d" % (len(seeds)))
     return seeds
 
 def _find_index(point, mesh):
@@ -203,6 +212,82 @@ def _find_index(point, mesh):
 
 def harvest(data, seeds, mesh, compactness, threshold):
     """
+    Run the inversion algorithm and produce an estimate physical property 
+    distribution (density and/or magnetization).
+
+    Paramters:
+
+    * data : list of data (e.g., :class:`~fatiando.gravmag.harvester.Gz`)
+        The data that will be inverted. Data used must match the physical 
+        properties given to the seeds (e.g., gravity data requires seeds to have
+        ``'density'`` prop)
+
+    * seeds : list of :class:`~fatiando.gravmag.harvester.Seed`
+        Lits of seeds used to start the growth process of the inversion. Use
+        :func:`~fatiando.gravmag.harvester.sow` to generate seeds.
+
+    * mesh : :class:`fatiando.mesher.PrismMesh`
+        The mesh used in the inversion. Will estimate the physical property
+        distribution on this mesh
+
+    * compactness : float
+        The compactness regularing parameter (i.e., how much should the estimate
+        be consentrated around the seeds). Must be positive. To find a good 
+        value for this, start with a small value (like 0.001), run the inversion
+        and increase the value until desired compactness is achieved.
+    
+    * threshold : float
+        Control how much the solution can grow (usually downward). In order for
+        estimate to grow by the accretion of 1 prism, this prism must decrease
+        the data misfit measure by *threshold* decimal percent. Depends on the
+        size of the cells in the *mesh* and the distance from a cell to the
+        observations. Use values between 0.001 and 0.000001.
+        If cells are small and *threshold* is large (0.001), the seeds won't 
+        grow. If cells are large and *threshold* is small (0.000001), the seeds
+        will grow too much.
+
+    Returns:
+
+    * estimate, predicted_data : a dict and a list
+        *estimate* is a dict like::
+    
+            {'physical_property':array, ...}
+
+        *estimate* contains the estimates physical properties. The properties 
+        present in *estimate* are the ones given to the seeds. Include the 
+        properties in the *mesh* using::
+
+            mesh.addprop('density', estimate['density'])
+
+        This way you can plot the estimate using :mod:`fatiando.vis.myv`.
+
+        *predicted_data* is a list of numpy arrays with the predicted (model) 
+        data. The list is in the same order as *data*. To plot a map of the fit 
+        for visual inspection and a histogram of the residuals::
+
+            from fatiando.vis import mpl
+            mpl.figure()
+            # Plot the observed and predicted data as contours for visual 
+            # inspection
+            mpl.subplot(1, 2, 1)
+            mpl.axis('scaled')
+            mpl.title('Observed and predicted data')
+            levels = mpl.contourf(x, y, gz, (ny, nx), 10)
+            mpl.colorbar()
+            # Assuming gz is the only data used
+            mpl.contour(x, y, predicted[0], (ny, nx), levels)
+            # Plot a histogram of the residuals
+            residuals = gz - predicted[0]
+            mpl.subplot(1, 2, 2)
+            mpl.title('Residuals')
+            mpl.hist(residuals, bins=10)
+            mpl.show()
+            # It's also good to see the mean and standard deviation of the 
+            # residuals
+            print "Residuals mean:", residuals.mean()
+            print "Residuals stddev:", residuals.std()
+            
+
     """
     tstart = time.time()
     nseeds = len(seeds)
