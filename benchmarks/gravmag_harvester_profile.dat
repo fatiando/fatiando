@@ -1,0 +1,64 @@
+         12091382 function calls in 59.883 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   109001   12.703    0.000   26.719    0.000 harvester.py:397(_shapefunc)
+  1385328   11.451    0.000   20.220    0.000 linalg.py:1840(norm)
+      742    6.541    0.009   49.492    0.067 harvester.py:374(_grow)
+  1385328    5.480    0.000    5.480    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   853209    4.617    0.000   15.180    0.000 harvester.py:413(<genexpr>)
+   654006    3.380    0.000    3.380    0.000 {method 'sum' of 'numpy.ndarray' objects}
+     1234    1.951    0.002    1.960    0.002 _prism.py:568(gzz)
+     1234    1.770    0.001    1.783    0.001 _prism.py:273(gxx)
+     1234    1.730    0.001    1.740    0.001 _prism.py:450(gyy)
+     1234    1.528    0.001    1.538    0.001 _prism.py:509(gyz)
+     1234    1.516    0.001    1.526    0.001 _prism.py:391(gxz)
+     1234    1.482    0.001    1.493    0.001 _prism.py:332(gxy)
+  1385328    1.325    0.000    1.325    0.000 {numpy.core.multiarray.array}
+  1385328    0.895    0.000    2.220    0.000 numeric.py:167(asarray)
+  1385328    0.728    0.000    0.728    0.000 {method 'ravel' of 'numpy.ndarray' objects}
+   121888    0.663    0.000   15.843    0.000 {sum}
+   654006    0.537    0.000    4.282    0.000 fromnumeric.py:1379(sum)
+   654006    0.364    0.000    0.364    0.000 {isinstance}
+  1385328    0.342    0.000    0.342    0.000 {method 'conj' of 'numpy.ndarray' objects}
+   353510    0.291    0.000    0.291    0.000 {zip}
+   121887    0.155    0.000   16.073    0.000 harvester.py:408(_misfitfunc)
+     4428    0.149    0.000    0.149    0.000 harvester.py:468(_is_neighbor)
+        1    0.062    0.062   59.881   59.881 harvester.py:213(harvest)
+     5672    0.034    0.000    0.056    0.000 mesher.py:863(__getitem__)
+     7404    0.029    0.000   10.069    0.001 harvester.py:576(effect)
+   119872    0.022    0.000    0.022    0.000 {abs}
+    51828    0.019    0.000    0.019    0.000 {range}
+     5672    0.018    0.000    0.021    0.000 mesher.py:417(__init__)
+     7404    0.017    0.000    0.017    0.000 {numpy.core.multiarray.empty_like}
+     7404    0.017    0.000    0.017    0.000 {method 'fill' of 'numpy.ndarray' objects}
+      738    0.012    0.000    0.056    0.000 harvester.py:480(_neighbor_indexes)
+     7404    0.012    0.000    0.045    0.000 numeric.py:65(zeros_like)
+     1232    0.011    0.000   10.077    0.008 harvester.py:432(_calc_effect)
+      738    0.008    0.000   10.305    0.014 harvester.py:416(_get_neighbors)
+     1970    0.006    0.000   10.090    0.005 harvester.py:426(<genexpr>)
+     5672    0.003    0.000    0.003    0.000 mesher.py:46(__init__)
+     1232    0.003    0.000    0.006    0.000 harvester.py:440(_distance)
+     1472    0.002    0.000    0.002    0.000 {method 'update' of 'dict' objects}
+     3038    0.002    0.000    0.002    0.000 harvester.py:458(_in_estimate)
+     2464    0.002    0.000    0.002    0.000 harvester.py:448(_index2ijk)
+        1    0.002    0.002   59.883   59.883 <string>:1(<module>)
+     5672    0.001    0.000    0.001    0.000 mesher.py:879(<genexpr>)
+     1232    0.001    0.000    0.001    0.000 harvester.py:526(__init__)
+     1232    0.001    0.000    0.001    0.000 {math.sqrt}
+     4436    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+        1    0.001    0.001    0.001    0.001 harvester.py:361(_fmt_estimate)
+      736    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+        1    0.000    0.000    0.017    0.017 harvester.py:349(_init_predicted)
+      738    0.000    0.000    0.000    0.000 utils.py:288(__setitem__)
+        6    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
+       13    0.000    0.000    0.000    0.000 __init__.py:1332(isEnabledFor)
+       13    0.000    0.000    0.000    0.000 __init__.py:1318(getEffectiveLevel)
+       13    0.000    0.000    0.000    0.000 __init__.py:1130(info)
+        1    0.000    0.000    0.000    0.000 utils.py:300(sec2hms)
+        8    0.000    0.000    0.000    0.000 {len}
+        3    0.000    0.000    0.000    0.000 harvester.py:300(<genexpr>)
+        1    0.000    0.000    0.000    0.000 utils.py:261(__init__)
+        2    0.000    0.000    0.000    0.000 {time.time}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
