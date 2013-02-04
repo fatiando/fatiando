@@ -5,7 +5,7 @@ Fatiando a Terra
 *Fatiando a Terra* is an **open-source** Python package for geophysical
 **modeling and inversion**.
 
-For more **information** visit http://www.fatiando.org/software/fatiando
+For more **information** visit http://www.fatiando.org
 
 Here is a quick example of using Fatiando to generate synthetic gravity data
 on random points, contaminate it with gaussian noise, and plot it::
@@ -31,27 +31,30 @@ on random points, contaminate it with gaussian noise, and plot it::
 Documentation
 -------------
 
-The latest documentation is available at
+The latest documentation is available at ReadTheDocs:
+
 http://fatiando.readthedocs.org
+
+The documentation reflects the *master* branch on Github_.
+
 
 Source code
 -----------
 
 The source code of Fatiando is hosted on several online repositories:
 
-* `fatiando on Bitbucket`_ with the stable version (latest release)
-* `fatiando-dev on Bitbucket`_ with the development version (this is where
-  development happens)
-* `fatiando on GoogleCode`_ with a mirror of the stable version
+* Github_: stable version and where development takes place
+* Bitbucket_: stable version (latest release)
+* GoogleCode_: mirror of the stable version
 
-.. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
-.. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
-.. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
+.. _Github: https://github.com/leouieda/fatiando
+.. _Bitbucket: https://bitbucket.org/fatiando/fatiando
+.. _GoogleCode: http://code.google.com/p/fatiando/
 
 The authors
 -----------
 
-Fatiando is developed by working (or studying) geophysicists. Work done here is
+Fatiando is developed by working geophysicists. Work done here is
 part of some Masters and Phd projects. See a list of `people involved`_.
 
 .. _people involved: http://readthedocs.org/docs/fatiando/en/latest/contributors.html
@@ -60,6 +63,6 @@ License
 -------
 
 Fatiando a Terra is free software: you can redistribute it and/or modify it
-under the terms of the BSD License. A copy of this license is provided in file
+under the terms of the **BSD License**. A copy of this license is provided in
 LICENSE.txt and at http://readthedocs.org/docs/fatiando/en/latest/license.html
 
