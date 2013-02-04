@@ -137,20 +137,26 @@ def spacing(area, shape):
     dy = float(y2 - y1)/float(ny - 1)
     return [dy, dx]
 
-def interp(x, y, v, shape, algorithm='nn'):
+def interp(x, y, v, shape, area=None, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 
+    .. warning:: Doesn't extrapolate. Will return a masked array in the 
+        extrapolated areas.
+
     Parameters:
 
-    * x, y
+    * x, y : 1D arrays
         Arrays with the x and y coordinates of the data points.
-    * v
+    * v : 1D array
         Array with the scalar value assigned to the data points.
-    * shape
+    * shape : tuple = (ny, nx)
         Shape of the interpolated regular grid, ie (ny, nx).
-    * algorithm
-        Interpolation algorithm. Either ``'nn'`` for natural neighbor interpolation
+    * area : tuple = (x1, x2, y1, y2)
+        The are where the data will be interpolated. If None, then will get the
+        area from *x* and *y*.
+    * algorithm : string
+        Interpolation algorithm. Either ``'nn'`` for natural neighbor 
         or ``'linear'`` for linear interpolation. (see numpy.griddata)
 
     Returns:
@@ -162,15 +168,11 @@ def interp(x, y, v, shape, algorithm='nn'):
     if algorithm != 'nn' and algorithm != 'linear':
         raise ValueError("Invalid interpolation: %s" % (str(algorithm)))
     ny, nx = shape
-    # TODO: Change this for numpy.linspace
-    dx = float(x.max() - x.min())/(nx - 1)
-    dy = float(y.max() - y.min())/(ny - 1)
-    xs = numpy.arange(x.min(), x.max() + dx, dx, 'f')
-    if len(xs) > nx:
-        xs = xs[0:-1]
-    ys = numpy.arange(y.min(), y.max() + dy, dy, 'f')
-    if len(ys) > ny:
-        ys = ys[0:-1]
+    if area is None:
+        area = (x.min(), x.max(), y.min(), y.max())
+    x1, x2, y1, y2 = area
+    xs = numpy.linspace(x1, x2, nx)
+    ys = numpy.linspace(y1, y2, ny)
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
     return [X, Y, V]
