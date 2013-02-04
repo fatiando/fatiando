@@ -88,6 +88,7 @@ TO-IMPLEMENT:
 
 IDEAS:
 
+* Importer functions to fetch DEMs, gravity data form IGBE, etc
 * Make utils.clock function that runs a function, logs the time it takes and 
   returns what the func would return
 * Get rid of the DataModule class. Provide a specification of it in the docs on
