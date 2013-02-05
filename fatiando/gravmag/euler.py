@@ -109,7 +109,6 @@ def classic(xp, yp, zp, field, xderiv, yderiv, zderiv, index):
     .. note:: The uncertainty estimate is not very reliable.
 
     """
-    log.info("3D Euler deconvolution using the classic formulation:")
     if (len(xp) != len(yp) != len(zp) != len(field) != len(xderiv)
         != len(yderiv) != len(zderiv)):
         raise ValueError("xp, yp, zp, field, xderiv, yderiv, zderiv need to " +
@@ -117,9 +116,6 @@ def classic(xp, yp, zp, field, xderiv, yderiv, zderiv, index):
     if index < 0:
         raise ValueError("Invalid structural index '%g'. Should be >= 0"
             % (index))
-    log.info("  number of data: %d" % (len(field)*4))
-    log.info("  structural index: %g" % (index))
-    tstart = time.clock()
     # Using (xp - x) not (x - xp)
     jacobian = numpy.array([-xderiv, -yderiv, -zderiv,
         -index*numpy.ones_like(field)]).T
@@ -132,8 +128,6 @@ def classic(xp, yp, zp, field, xderiv, yderiv, zderiv, index):
     uncertainty = numpy.sqrt(numpy.diagonal(covar)[0:3])
     mean_error = numpy.sqrt(numpy.sum(uncertainty**2))
     x, y, z, base = estimate
-    log.info("  time it took: %s" % (utils.sec2hms(time.clock() - tstart)))
-    log.info("  estimated base level: %g" % (base))
     results = {'point':[x, y, z], 'baselevel':base, 'mean error':mean_error,
                'uncertainty':uncertainty}
     return results

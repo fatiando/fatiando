@@ -197,8 +197,6 @@ def cut(x, y, scalars, area):
 
     """
     xmin, xmax, ymin, ymax = area
-    log.info("Cutting grid:")
-    log.info("  area = xmin, xmax, ymin, ymax = %s" % (str(area)))
     inside = []
     for i, coords in enumerate(zip(x, y)):
         xp, yp = coords
