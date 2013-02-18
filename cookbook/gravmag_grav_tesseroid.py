@@ -28,7 +28,7 @@ fields = [
     #gravmag.tesseroid.gxz(model, lons, lats, heights),
     #gravmag.tesseroid.gyy(model, lons, lats, heights),
     #gravmag.tesseroid.gyz(model, lons, lats, heights),
-    gravmag.tesseroid.gzz(model, lons, lats, heights, ratio=3)]
+    gravmag.tesseroid.gzz(model, lons, lats, heights)]
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
 log.info('Plotting...')
