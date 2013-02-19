@@ -7,6 +7,10 @@ from fatiando.mesher import Tesseroid
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 
+_glq_nodes = numpy.array([-0.577350269, 0.577350269])
+_glq_weights = numpy.array([1., 1.])
+
+
 def potential(tesseroids, lons, lats, heights, ratio=1.):
     """
     Calculate the gravitational potential due to a tesseroid model.
@@ -35,7 +39,9 @@ def gz(tesseroids, lons, lats, heights, ratio=2.):
     Calculate the z (radial) component of the gravitational attraction due to a
     tesseroid model.
     """
-    return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
+    # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
+    # doesn't look inverted (ie, negative for positive density)
+    return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_gz, ratio)
 
 def gxx(tesseroids, lons, lats, heights, ratio=3):
@@ -78,15 +84,317 @@ def gyz(tesseroids, lons, lats, heights, ratio=3):
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_gyz, ratio)
 
-glq_nodes = numpy.array([-0.577350269, 0.577350269])
-glq_weights = numpy.array([1., 1.])
 
 def gzz(tesseroids, lons, lats, heights, ratio=3):
     """
     Calculate the zz (radial-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    kernel = _kernel_gzz
+    result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights, 
+        _kernel_gzz, ratio)
+    return result
+
+def _kernel_potential(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gx using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa/numpy.sqrt(l_sqr))
+    result *= scale
+    return result
+
+def _kernel_gx(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gx using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*rc[k]*kphi/(l_sqr**1.5))
+    result *= scale
+    return result
+
+def _kernel_gy(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gy using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        sinlon = numpy.sin(lonc[i] - lons)
+        for j in xrange(order):
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+    result *= scale
+    return result
+
+def _kernel_gz(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gz using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*(rc[k]*cospsi - radii)/(l_sqr**1.5))
+    result *= scale
+    return result
+
+def _kernel_gxx(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gxx using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*(3.*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5))
+    result *= scale
+    return result
+
+def _kernel_gxy(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gxy using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        sinlon = numpy.sin(lonc[i] - lons)
+        for j in xrange(order):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*3.*(rc[k]**2)*kphi*coslatc[j]*sinlon/(l_sqr**2.5))
+    result *= scale
+    return result
+
+def _kernel_gxz(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gxz using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*3.*rc[k]*kphi*(rc[k]*cospsi - radii)/(l_sqr**2.5))
+    result *= scale
+    return result
+
+def _kernel_gyy(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gyy using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        sinlon = numpy.sin(lonc[i] - lons)
+        for j in xrange(order):
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*(3.*(deltay**2) - l_sqr)/(l_sqr**2.5))
+    result *= scale
+    return result
+
+def _kernel_gyz(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gyz using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        sinlon = numpy.sin(lonc[i]- lons)
+        for j in xrange(order):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                deltaz = rc[k]*cospsi - radii
+                result += (weights[i]*weights[j]*weights[k]*
+                    kappa*3.*deltay*deltaz/(l_sqr**2.5))
+    result *= scale
+    return result
+
+def _kernel_gzz(tesseroid, lons, lats, radii, nodes=_glq_nodes,
+    weights=_glq_weights):
+    """
+    Integrate gzz using the Gauss-Legendre Quadrature
+    """
+    order = len(nodes)
+    lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
+    # Pre-compute sines, cossines and powers
+    sinlatc = numpy.sin(latc)
+    coslatc = numpy.cos(latc)
+    sinlat = numpy.sin(lats)
+    coslat = numpy.cos(lats)
+    radii_sqr = radii**2
+    # Start the numerical integration
+    result = numpy.zeros(len(lons), numpy.float)
+    for i in xrange(order):
+        coslon = numpy.cos(lons - lonc[i])
+        for j in xrange(order):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in xrange(order):
+                l_sqr = (radii_sqr + rc[k]**2 - 
+                         2.*radii*rc[k]*(
+                            sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                kappa = (rc[k]**2)*coslatc[j]
+                deltaz = rc[k]*cospsi - radii
+                result += weights[i]*weights[j]*weights[k]*kappa*(
+                    3.*deltaz**2 - l_sqr)/(l_sqr**2.5)
+    result *= scale
+    return result
+
+def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio):
+    """
+    Calculate the effect of a given kernal in the most precise way by adaptively
+    discretizing the tesseroids into smaller ones.
+    """
     ndata = len(lons)
     allpoints = set(range(ndata))
     # Convert things to radians
@@ -109,9 +417,9 @@ def gzz(tesseroids, lons, lats, heights, ratio=3):
         dont_divide = list(allpoints.difference(set(need_divide)))
         if need_divide:
             split = _split(tesseroid)
-            result[need_divide] += gzz(split, lons[need_divide],
-                lats[need_divide], heights[need_divide], ratio)
-        result[dont_divide] += G*SI2EOTVOS*tesseroid.props['density']*kernel(
+            result[need_divide] += _optimal_discretize(split, lons[need_divide],
+                lats[need_divide], heights[need_divide], kernel, ratio)
+        result[dont_divide] += G*tesseroid.props['density']*kernel(
             tesseroid, rlons[dont_divide], rlats[dont_divide], 
             radii[dont_divide])
     return result
@@ -128,34 +436,6 @@ def _scale_nodes(tesseroid, nodes):
         0.5*(tesseroid.top + tesseroid.bottom + 2.*MEAN_EARTH_RADIUS))
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return nodes_lon, nodes_lat, nodes_r, scale
-
-def _kernel_gzz(tesseroid, lons, lats, radii, nodes=glq_nodes,
-    weights=glq_weights):
-    """
-    Integrate gzz using the Gauss-Legendre Quadrature
-    """
-    nodes_lon, nodes_lat, nodes_r, scale = _scale_nodes(tesseroid, nodes)
-    # Pre-compute sines, cossines and powers
-    sin_nodes_lat = numpy.sin(nodes_lat)
-    cos_nodes_lat = numpy.cos(nodes_lat)
-    sinlat = numpy.sin(lats)
-    coslat = numpy.cos(lats)
-    radii_sqr = radii**2
-    # Start the numerical integration
-    result = numpy.zeros(len(lons), numpy.float)
-    for lonc, wlon in zip(nodes_lon, weights):
-        coslon = numpy.cos(lons - lonc)
-        sinlon = numpy.sin(lonc - lons)
-        for sinlatc, coslatc, wlat in zip(sin_nodes_lat, cos_nodes_lat, weights):
-            cospsi = sinlat*sinlatc + coslat*coslatc*coslon
-            for rc, wr in zip(nodes_r, weights):
-                l_sqr = (radii_sqr + rc**2 - 
-                         2.*radii*rc*(sinlat*sinlatc + coslat*coslatc*coslon))
-                kappa = (rc**2)*coslatc
-                deltaz = rc*cospsi - radii
-                result += wlon*wlat*wr*kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5)
-    result *= scale
-    return result
 
 def _split(tesseroid):
     dlon = 0.5*(tesseroid.e - tesseroid.w)
