@@ -22,6 +22,10 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.si2nt`
 * :func:`~fatiando.utils.nt2si`
 
+**Coordinate system conversions**
+
+* :func:`~fatiando.utils.sph2cart`
+
 **Others**
 
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
@@ -50,6 +54,29 @@ import fatiando.logger
 
 log = fatiando.logger.dummy('fatiando.utils')
 
+
+def sph2cart(lon, lat, height):
+    """
+    Convert spherical coordinates to Cartesian geocentric coordinates.
+
+    Parameters:
+
+    * lon, lat, height : floats
+        Spherical coordinates. lon and lat in degrees, height in meters. height
+        is the height above mean Earth radius.
+
+    Returns:
+
+    * x, y, z : floats
+        Converted Cartesian coordinates
+
+    """
+    d2r = numpy.pi/180.0
+    radius = fatiando.constants.MEAN_EARTH_RADIUS + height
+    x = numpy.cos(d2r*lat)*numpy.cos(d2r*lon)*radius
+    y = numpy.cos(d2r*lat)*numpy.sin(d2r*lon)*radius
+    z = numpy.sin(d2r*lat)*radius
+    return x, y, z
 
 def si2nt(value):
     """

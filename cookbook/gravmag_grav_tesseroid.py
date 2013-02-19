@@ -5,16 +5,16 @@ using tesseroids and multiprocessing
 import time
 from fatiando import gravmag, gridder, logger, utils
 from fatiando.mesher import Tesseroid
-from fatiando.vis import mpl
+from fatiando.vis import mpl, myv
 
 log = logger.get()
 log.info(logger.header())
 
-model = [Tesseroid(-1, 1, -3, 3, 0, -50000, props={'density':200}),
-         Tesseroid(-12, -16, -12, -16, 0, -30000, props={'density':-500})]
+model = [Tesseroid(-1, 1, -3, 3, 0, -500000, props={'density':200}),
+         Tesseroid(-12, -16, -12, -16, 0, -300000, props={'density':-500})]
 area = (-30, 30, -30, 30)
 shape = (50, 50)
-lons, lats, heights = gridder.regular(area, shape, z=250000)
+lons, lats, heights = gridder.regular(area, shape, z=2500000)
 
 log.info('Calculating...')
 start = time.time()
@@ -43,3 +43,7 @@ for i, field in enumerate(fields):
     mpl.contourf(lons, lats, field, shape, 15, basemap=bm)
     mpl.colorbar()
 mpl.show()
+
+myv.figure()
+myv.tesseroids(model, 'density')
+myv.show()
