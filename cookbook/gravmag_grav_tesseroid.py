@@ -1,6 +1,6 @@
 """
 GravMag: Forward modeling of the gravitational potential and its derivatives
-using tesseroids and multiprocessing
+using tesseroids
 """
 import time
 from fatiando import gravmag, gridder, logger, utils

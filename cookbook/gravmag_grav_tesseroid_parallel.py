@@ -1,6 +1,6 @@
 """
-GravMag: Forward modeling of the gravitational potential and its derivatives
-using tesseroids and multiprocessing
+GravMag: Forward modeling of the gravity anomaly using tesseroids in parallel
+using ``multiprocessing``
 """
 import time
 from multiprocessing import Pool
