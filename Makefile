@@ -13,6 +13,7 @@ help:
 	@echo "    build         build the extension modules inplace"
 	@echo "    docs          build the html documentation"
 	@echo "    docs-pdf      build the pdf documentation"
+	@echo "    view-docs     show the html docs on firefox"
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    deps          installs development requirements"
 	@echo "    package       create source distributions"
@@ -32,6 +33,10 @@ docs: clean
 .PHONY: docs-pdf
 docs-pdf: clean
 	cd doc; make latexpdf
+
+.PHONY: view-docs
+view-docs:
+	firefox doc/_build/html/index.html &
 
 # RUN ALL TESTS
 .PHONY: test

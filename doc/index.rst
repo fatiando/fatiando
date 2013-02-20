@@ -9,16 +9,9 @@ Fatiando a Terra: Geophysical modeling and inversion
 
 For more information visit `the official site`_.
 
-The **source code** of Fatiando is hosted on several online repositories:
+The **source code** of Fatiando is hosted on `GitHub`_.
 
-* `fatiando on Bitbucket`_ with the stable version (latest release)
-* `fatiando-dev on Bitbucket`_ with the development version (this is where
-  development happens)
-* `fatiando on GoogleCode`_ with a mirror of the stable version
-
-.. _fatiando on Bitbucket: https://bitbucket.org/fatiando/fatiando
-.. _fatiando-dev on Bitbucket: https://bitbucket.org/fatiando/fatiando-dev
-.. _fatiando on GoogleCode: http://code.google.com/p/fatiando/
+.. _GitHub: https://github.com/leouieda/fatiando
 .. _the official site: http://www.fatiando.org/software/fatiando
 .. _Python: http://www.python.org
 
