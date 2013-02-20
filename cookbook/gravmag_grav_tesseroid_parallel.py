@@ -6,46 +6,56 @@ import time
 from multiprocessing import Pool
 from fatiando import gravmag, gridder, logger, utils
 from fatiando.mesher import Tesseroid
-from fatiando.vis import mpl
+from fatiando.vis import mpl, myv
 
 log = logger.get()
 log.info(logger.header())
 
-model = [Tesseroid(-5, 5, -10, 10, 0, -50000, props={'density':200}),
-         Tesseroid(-12, -16, -12, -16, 0, -30000, props={'density':-500})]
-area = (-30, 30, -30, 30)
-shape = (50, 50)
+# Make a "crust" model with some thinker crust and variable density
+marea = (-70, 70, -70, 70)
+mshape = (200, 200)
+mlons, mlats = gridder.regular(marea, mshape)
+dlon, dlat = gridder.spacing(marea, mshape)
+depths = (30000 +
+    70000*utils.gaussian2d(mlons, mlats, 10, 10, -20, -20) +
+    20000*utils.gaussian2d(mlons, mlats, 5, 5, 20, 20))
+densities = (2700 +                                                               
+    500*utils.gaussian2d(mlons, mlats, 40, 40, -20, -20) +                    
+    -300*utils.gaussian2d(mlons, mlats, 20, 20, 20, 20))
+model = [
+    Tesseroid(lon - 0.5*dlon, lon + 0.5*dlon, lat - 0.5*dlat, lat + 0.5*dlat,
+              0, -depth, props={'density':density})
+    for lon, lat, depth, density in zip(mlons, mlats, depths, densities)]
+
+# Plot the tesseroid model
+myv.figure(zdown=False)
+myv.tesseroids(model, 'density', edges=False)
+myv.continents()
+myv.earth(opacity=0.7)
+myv.show()
+
+# Make the computation grid
+area = (-50, 50, -50, 50)
+shape = (100, 100)
 lons, lats, heights = gridder.regular(area, shape, z=250000)
 
+# Divide the model into nproc slices and calculate them in parallel
 log.info('Calculating...')
+def calculate(chunk):
+    return gravmag.tesseroid.gz(chunk, lons, lats, heights)
 start = time.time()
-def calculate(func):
-    return func(model, lons, lats, heights)
-functions = [
-    gravmag.tesseroid.potential,
-    gravmag.tesseroid.gx,
-    gravmag.tesseroid.gy,
-    gravmag.tesseroid.gz,
-    gravmag.tesseroid.gxx,
-    gravmag.tesseroid.gxy,
-    gravmag.tesseroid.gxz,
-    gravmag.tesseroid.gyy,
-    gravmag.tesseroid.gyz,
-    gravmag.tesseroid.gzz]
-pool = Pool(processes=10)
-fields = pool.map(calculate, functions)
+nproc = 8 # Model size must be divisible by nproc
+chunksize = len(model)/nproc
+pool = Pool(processes=nproc)
+gz = sum(pool.map(calculate, 
+    [model[i*chunksize:(i + 1)*chunksize] for i in xrange(nproc)]))
 pool.close()
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
 log.info('Plotting...')
-titles = ['potential', 'gx', 'gy', 'gz',
-          'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 mpl.figure()
 bm = mpl.basemap(area, 'ortho')
-for i, field in enumerate(fields):
-    mpl.subplot(4, 3, i + 3)
-    mpl.title(titles[i])
-    bm.bluemarble()
-    mpl.contourf(lons, lats, field, shape, 15, basemap=bm)
-    mpl.colorbar()
+bm.bluemarble()
+mpl.contourf(lons, lats, gz, shape, 35, basemap=bm)
+mpl.colorbar()
 mpl.show()

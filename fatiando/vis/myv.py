@@ -19,6 +19,10 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.wall_west`
 * :func:`~fatiando.vis.myv.wall_top`
 * :func:`~fatiando.vis.myv.wall_bottom`
+* :func:`~fatiando.vis.myv.earth`
+* :func:`~fatiando.vis.myv.continents`
+* :func:`~fatiando.vis.myv.meridians`
+* :func:`~fatiando.vis.myv.parallels`
 
 **Helpers**
 
@@ -34,6 +38,8 @@ import numpy
 
 import fatiando.logger
 from fatiando import utils
+from fatiando.constants import MEAN_EARTH_RADIUS
+
 
 log = fatiando.logger.dummy('fatiando.vis.myv')
 
@@ -41,6 +47,15 @@ log = fatiando.logger.dummy('fatiando.vis.myv')
 # 3D plotting
 mlab = None
 tvtk = None
+BuiltinSurface = None
+
+def _lazy_import_BuiltinSurface():
+    """
+    Do the lazy import of BuiltinSurface
+    """
+    global BuiltinSurface
+    if BuiltinSurface is None:
+        from mayavi.sources.builtin_surface import BuiltinSurface
 
 def _lazy_import_mlab():
     """
@@ -364,15 +379,15 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         surf.actor.property.representation = 'wireframe'
         surf.actor.property.line_width = linewidth
     if style == 'surface':
-        surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin, 
+        surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin,
             colormap=cmap)
         surf.actor.property.representation = 'surface'
         if edges:
             edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(dataset),
                 vmax=vmax, vmin=vmin)
-            edge.actor.property.representation = 'wireframe'                    
-            edge.actor.mapper.scalar_visibility = 0                             
-            edge.actor.property.line_width = linewidth                          
+            edge.actor.property.representation = 'wireframe'
+            edge.actor.mapper.scalar_visibility = 0
+            edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
     surf.actor.property.opacity = opacity
     surf.actor.property.backface_culling = 1
@@ -480,14 +495,16 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     surf.actor.property.backface_culling = 1
     return surf
 
-def figure(size=None):
+def figure(size=None, zdown=True):
     """
-    Create a default figure in Mayavi with white background and z pointing down
+    Create a default figure in Mayavi with white background
 
     Parameters:
 
     * size : tuple = (dx, dy)
         The size of the figure. If ``None`` will use the default size.
+    * zdown : True or False
+        If True, will turn the figure upside-down to make the z-axis point down
 
     Return:
 
@@ -500,9 +517,10 @@ def figure(size=None):
         fig = mlab.figure(bgcolor=(1, 1, 1))
     else:
         fig = mlab.figure(bgcolor=(1, 1, 1), size=size)
-    fig.scene.camera.view_up = numpy.array([0., 0., -1.])
-    fig.scene.camera.elevation(60.)
-    fig.scene.camera.azimuth(180.)
+    if zdown:
+        fig.scene.camera.view_up = numpy.array([0., 0., -1.])
+        fig.scene.camera.elevation(60.)
+        fig.scene.camera.azimuth(180.)
     return fig
 
 def outline(extent=None, color=(0,0,0), width=2):
@@ -715,3 +733,130 @@ def _wall(bounds, color, opacity):
     su = mlab.pipeline.surface(p)
     su.actor.property.color = color
     su.actor.property.opacity = opacity
+
+def continents(color=(0, 0, 0), linewidth=1, resolution=2, opacity=1,
+    radius=MEAN_EARTH_RADIUS):
+    """
+    Plot the outline of the continents.
+
+    Parameters:
+
+    * color : tuple
+        RGB color of the lines. Default = black
+    * linewidth : float
+        The width of the continent lines
+    * resolution : float
+        The data_source.on_ratio parameter that controls the resolution of the
+        continents
+    * opacity : float
+        The opacity of the lines. Must be between 0 and 1
+    * radius : float
+        The radius of the sphere where the continents will be plotted. Defaults
+        to the mean Earth radius
+
+    Returns:
+
+    * continents : Mayavi surface
+        The Mayavi surface element of the continents
+
+    """
+    _lazy_import_mlab()
+    _lazy_import_BuiltinSurface()
+    continents_src = BuiltinSurface(source='earth', name='Continents')
+    continents_src.data_source.on_ratio = resolution
+    continents_src.data_source.radius = MEAN_EARTH_RADIUS
+    surf = mlab.pipeline.surface(continents_src, color=color)
+    surf.actor.property.line_width = linewidth
+    surf.actor.property.opacity = opacity
+    return surf
+
+def earth(color=(0.4, 0.5, 1.0), opacity=1):
+    """
+    Draw a sphere representing the Earth.
+
+    Parameters:
+
+    * color : tuple
+        RGB color of the sphere. Defaults to ocean blue.
+    * opacity : float
+        The opacity of the sphere. Must be between 0 and 1
+
+    Returns:
+
+    * sphere : Mayavi surface
+        The Mayavi surface element of the sphere
+
+    """
+    _lazy_import_mlab()
+    sphere = mlab.points3d(0, 0, 0, scale_mode='none',
+        scale_factor=2*MEAN_EARTH_RADIUS, color=color, resolution=50,
+        opacity=opacity, name='Earth')
+    sphere.actor.property.specular = 0.45
+    sphere.actor.property.specular_power = 5
+    sphere.actor.property.backface_culling = True
+    return sphere
+
+def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
+    """
+    Draw meridians on the Earth.
+
+    Parameters:
+
+    * longitudes : list
+        The longitudes where the meridians will be drawn.
+    * color : tuple
+        RGB color of the lines. Defaults to black.
+    * linewidth : float
+        The width of the lines
+    * opacity : float
+        The opacity of the lines. Must be between 0 and 1
+    
+    Returns:
+
+    * lines : Mayavi surface
+        The Mayavi surface element of the lines
+
+    """
+    lats = numpy.linspace(-90, 270., 100)
+    x, y, z = [], [], []
+    for lon in longitudes:
+        coords = utils.sph2cart(numpy.ones_like(lats)*lon, lats, 0)
+        x.extend(coords[0].tolist())
+        y.extend(coords[1].tolist())
+        z.extend(coords[2].tolist())
+    x, y, z = numpy.array(x), numpy.array(y), numpy.array(z)
+    lines = mlab.plot3d(x, y, z, color=color, opacity=opacity, 
+        tube_radius=None)
+    lines.actor.property.line_width = linewidth
+    return lines
+
+def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
+    """
+    Draw parallels on the Earth.
+
+    Parameters:
+
+    * latitudes : list
+        The latitudes where the parallels will be drawn.
+    * color : tuple
+        RGB color of the lines. Defaults to black.
+    * linewidth : float
+        The width of the lines
+    * opacity : float
+        The opacity of the lines. Must be between 0 and 1
+    
+    Returns:
+
+    * lines : list 
+        List of the Mayavi surface elements of each line
+
+    """
+    lons = numpy.linspace(0, 360., 100)
+    parallels = []
+    for lat in latitudes:
+        x, y, z = utils.sph2cart(lons, numpy.ones_like(lons)*lat, 0)
+        lines = mlab.plot3d(x, y, z, color=color, opacity=opacity, 
+            tube_radius=None)
+        lines.actor.property.line_width = linewidth
+        parallels.append(lines)
+    return parallels
