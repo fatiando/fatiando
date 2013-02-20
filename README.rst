@@ -41,15 +41,9 @@ The documentation reflects the *master* branch on Github_.
 Source code
 -----------
 
-The source code of Fatiando is hosted on several online repositories:
-
-* Github_: stable version and where development takes place
-* Bitbucket_: stable version (latest release)
-* GoogleCode_: mirror of the stable version
+The source code of Fatiando is hosted on Github_
 
 .. _Github: https://github.com/leouieda/fatiando
-.. _Bitbucket: https://bitbucket.org/fatiando/fatiando
-.. _GoogleCode: http://code.google.com/p/fatiando/
 
 The authors
 -----------
