@@ -64,26 +64,13 @@ of seismic waves**!
 
 .. raw:: html
 
-    <div class="figure align-center">
-        <a class="reference external" href="_static/love-wave.gif">
-            <img alt="Animation of a Love wave"
-            src="_static/love-wave-lowres.gif"/>
-        </a>
-        <a class="reference external" href="_static/rayleigh-wave.gif">
-            <img alt="Animation of a Rayleigh wave"
-            src="_static/rayleigh-wave-lowres.gif"/>
-        </a>
-        <p class="caption">
-            <i>
-            <b>Left</b>: SH wave propagation resulting in a Love wave.
-            <b>Right</b>: P and SV wave propagation
-            resulting in a Rayleigh wave.
-            At the bottom you can see the particle movement recorded at the
-            seismometer.
-            The seismometer is the blue triangle.
-            Click on the images for higher resolution gifs.</i>
-        </p>
-    </div>
+    <iframe width="560" height="315" 
+     src="https://www.youtube.com/embed/Mvd8FANLqy4" 
+     frameborder="0" allowfullscreen></iframe>
+
+    <iframe width="420" height="315" 
+     src="https://www.youtube.com/embed/YjhSvEpbzps" 
+     frameborder="0" allowfullscreen></iframe>
 
 .. raw:: html
 
