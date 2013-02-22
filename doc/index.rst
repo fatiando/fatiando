@@ -12,7 +12,7 @@ For more information visit `the official site`_.
 The **source code** of Fatiando is hosted on `GitHub`_.
 
 .. _GitHub: https://github.com/leouieda/fatiando
-.. _the official site: http://www.fatiando.org/software/fatiando
+.. _the official site: http://www.fatiando.org
 .. _Python: http://www.python.org
 
 **License**: Fatiando is licensed under the **BSD license**.
