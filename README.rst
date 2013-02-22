@@ -31,18 +31,6 @@ on random points, contaminate it with gaussian noise, and plot it::
     >>> ft.vis.plot(xp, yp, '.k')
     >>> ft.vis.show()
 
-And also some seismic wave finite difference simulations:
-
-.. raw:: html
-
-    <iframe width="560" height="315" 
-     src="https://www.youtube.com/embed/Mvd8FANLqy4" 
-     frameborder="0" allowfullscreen></iframe>
-
-    <iframe width="420" height="315" 
-     src="https://www.youtube.com/embed/YjhSvEpbzps" 
-     frameborder="0" allowfullscreen></iframe>
-
 Documentation
 -------------
 
