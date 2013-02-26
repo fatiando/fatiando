@@ -29,7 +29,7 @@ model = [
 
 # Plot the tesseroid model
 myv.figure(zdown=False)
-myv.tesseroids(model, 'density', edges=False)
+myv.tesseroids(model, 'density')
 myv.continents()
 myv.earth(opacity=0.7)
 myv.show()
