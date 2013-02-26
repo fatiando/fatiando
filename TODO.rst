@@ -47,6 +47,7 @@ GOALS FOR 0.1:
 
 URGENT:
 
+* Put 'not None' in all Cython function arguments
 
 BUGS:
 
