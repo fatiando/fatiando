@@ -7,3 +7,4 @@ doc/_build
 doc/_static/cookbook
 doc/cookbook
 doc/fatiando*.pdf
+benchmarks/*.tmp
