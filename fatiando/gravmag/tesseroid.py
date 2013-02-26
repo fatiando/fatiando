@@ -7,6 +7,11 @@ from fatiando.mesher import Tesseroid
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 
+try:
+    from fatiando.gravmag._ctesseroid import *
+except ImportError:
+    from fatiando.gravmag._tesseroid import *
+
 _glq_nodes = numpy.array([-0.577350269, 0.577350269])
 _glq_weights = numpy.array([1., 1.])
 
@@ -18,7 +23,7 @@ def potential(tesseroids, lons, lats, heights, ratio=1.):
     return _optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_potential, ratio)
 
-def gx(tesseroids, lons, lats, heights, ratio=2.):
+def gx(tesseroids, lons, lats, heights, ratio=1.):
     """
     Calculate the x (North) component of the gravitational attraction due to a
     tesseroid model.
@@ -26,7 +31,7 @@ def gx(tesseroids, lons, lats, heights, ratio=2.):
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_gx, ratio)
 
-def gy(tesseroids, lons, lats, heights, ratio=2.):
+def gy(tesseroids, lons, lats, heights, ratio=1.):
     """
     Calculate the y (East) component of the gravitational attraction due to a
     tesseroid model.
@@ -34,7 +39,7 @@ def gy(tesseroids, lons, lats, heights, ratio=2.):
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_gy, ratio)
 
-def gz(tesseroids, lons, lats, heights, ratio=2.):
+def gz(tesseroids, lons, lats, heights, ratio=1.):
     """
     Calculate the z (radial) component of the gravitational attraction due to a
     tesseroid model.
@@ -408,12 +413,11 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio):
     for tesseroid in tesseroids:
         if tesseroid is None or 'density' not in tesseroid.props:
             continue
-        dimension = max([MEAN_EARTH_RADIUS*d2r*(tesseroid.e - tesseroid.w),
-                         MEAN_EARTH_RADIUS*d2r*(tesseroid.n - tesseroid.s),
-                         tesseroid.top - tesseroid.bottom])
+        size = max([MEAN_EARTH_RADIUS*d2r*(tesseroid.e - tesseroid.w),
+                    MEAN_EARTH_RADIUS*d2r*(tesseroid.n - tesseroid.s),
+                    tesseroid.top - tesseroid.bottom])
         distance = _distance(tesseroid, rlons, rlats, radii)
-        need_divide = [i for i in xrange(ndata)
-                       if distance[i] > 0 and distance[i] < ratio*dimension]
+        need_divide = _need_to_divide(distance, size, ratio)
         dont_divide = list(allpoints.difference(set(need_divide)))
         if need_divide:
             split = _split(tesseroid)
