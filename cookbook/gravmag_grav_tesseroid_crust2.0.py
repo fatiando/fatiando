@@ -12,14 +12,15 @@ log.info(logger.header())
 
 # Get the data from their website and convert it to tesseroids
 # Will download the archive and save it with the default name
+log.info("Fetching CRUST2.0 model")
 archive = io.fetch_crust2()
-io.crust2_to_tesseroids(archive)
+log.info("Converting to tesseroids")
+model = io.crust2_to_tesseroids(archive)
 
 # Plot the tesseroid model
 myv.figure(zdown=False)
 myv.tesseroids(model, 'density')
-myv.continents()
-myv.earth(opacity=0.7)
+myv.continents(linewidth=3)
 myv.show()
 
 # Make the computation grid
