@@ -40,6 +40,11 @@ Version 0.1
 * Added module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>` with 2D
   Finite Difference simulations of elastic seismic waves
 * Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
+* Added tesseroids forward modeling :ref:`fatiando.gravmag.tesseroid 
+  <fatiando_gravmag_tesseroid>`, meshing and plotting with Mayavi
+* New :ref:`fatiando.io <fatiando_io>` module to fetch models and data from the
+  web and convert them to useful formats (for now supports the CRUST2.0 global
+  curstal model)
 * If building inplace or packaging, the setup script puts the Mercurial
   changeset hash in a file. Then :ref:`fatiando.logger.header <fatiando_logger>`
   loads the hash from file and put a "Unknown" if it can't read.
