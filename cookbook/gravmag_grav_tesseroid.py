@@ -38,16 +38,16 @@ lons, lats, heights = gridder.regular(area, shape, z=250000)
 log.info('Calculating...')
 start = time.time()
 fields = [
-    gravmag.tesseroid.potential(model, lons, lats, heights),
-    gravmag.tesseroid.gx(model, lons, lats, heights),
-    gravmag.tesseroid.gy(model, lons, lats, heights),
-    gravmag.tesseroid.gz(model, lons, lats, heights),
-    gravmag.tesseroid.gxx(model, lons, lats, heights),
-    gravmag.tesseroid.gxy(model, lons, lats, heights),
-    gravmag.tesseroid.gxz(model, lons, lats, heights),
-    gravmag.tesseroid.gyy(model, lons, lats, heights),
-    gravmag.tesseroid.gyz(model, lons, lats, heights),
-    gravmag.tesseroid.gzz(model, lons, lats, heights)]
+    gravmag.tesseroid.potential(lons, lats, heights, model),
+    gravmag.tesseroid.gx(lons, lats, heights, model),
+    gravmag.tesseroid.gy(lons, lats, heights, model),
+    gravmag.tesseroid.gz(lons, lats, heights, model),
+    gravmag.tesseroid.gxx(lons, lats, heights, model),
+    gravmag.tesseroid.gxy(lons, lats, heights, model),
+    gravmag.tesseroid.gxz(lons, lats, heights, model),
+    gravmag.tesseroid.gyy(lons, lats, heights, model),
+    gravmag.tesseroid.gyz(lons, lats, heights, model),
+    gravmag.tesseroid.gzz(lons, lats, heights, model)]
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
 log.info('Plotting...')

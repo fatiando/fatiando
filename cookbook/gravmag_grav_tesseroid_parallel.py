@@ -42,7 +42,7 @@ lons, lats, heights = gridder.regular(area, shape, z=250000)
 # Divide the model into nproc slices and calculate them in parallel
 log.info('Calculating...')
 def calculate(chunk):
-    return gravmag.tesseroid.gz(chunk, lons, lats, heights)
+    return gravmag.tesseroid.gz(lons, lats, heights, chunk)
 start = time.time()
 nproc = 8 # Model size must be divisible by nproc
 chunksize = len(model)/nproc
