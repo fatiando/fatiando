@@ -198,10 +198,16 @@ def _find_index(point, mesh):
     ys = mesh.get_ys()
     zs = mesh.get_zs()
     x, y, z = point
-    if x <= x2 and x >= x1 and y <= y2 and y >= y1 and z <= z2 and z >= z1:
-        # -1 because bisect gives the index z would have. I want to know
-        # what index z comes after
-        k = bisect.bisect_left(zs, z) - 1
+    if (x <= x2 and x >= x1 and y <= y2 and y >= y1 and
+        ((z <= z2 and z >= z1 and mesh.zdown) or 
+         (z >= z2 and z <= z1 and not mesh.zdown))):
+        if mesh.zdown:
+            # -1 because bisect gives the index z would have. I want to know
+            # what index z comes after
+            k = bisect.bisect_left(zs, z) - 1
+        else:
+            # If z is not positive downward, zs will not be sorted
+            k = len(zs) - bisect.bisect_left(zs[::-1], z)
         j = bisect.bisect_left(ys, y) - 1
         i = bisect.bisect_left(xs, x) - 1
         seed = i + j*nx + k*nx*ny
