@@ -546,11 +546,14 @@ class Data(object):
         self.size = len(data)
         self.norm = numpy.linalg.norm(data)
         self.meshtype = meshtype
-        if self.meshtype not in ['prism']:
+        if self.meshtype not in ['prism', 'tesseroid']:
             raise AttributeError("Invalid mesh type '%s'" % (meshtype))
         if self.meshtype == 'prism':
             import fatiando.gravmag.prism
             self.effectmodule = fatiando.gravmag.prism
+        if self.meshtype == 'tesseroid':
+            import fatiando.gravmag.tesseroid
+            self.effectmodule = fatiando.gravmag.tesseroid
 
 class Potential(Data):
     """

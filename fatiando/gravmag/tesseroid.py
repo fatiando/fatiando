@@ -16,30 +16,30 @@ _glq_nodes = numpy.array([-0.577350269, 0.577350269])
 _glq_weights = numpy.array([1., 1.])
 
 
-def potential(tesseroids, lons, lats, heights, ratio=1.):
+def potential(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
     Calculate the gravitational potential due to a tesseroid model.
     """
     return _optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_potential, ratio)
+        _kernel_potential, ratio, dens)
 
-def gx(tesseroids, lons, lats, heights, ratio=1.):
+def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
     Calculate the x (North) component of the gravitational attraction due to a
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gx, ratio)
+        _kernel_gx, ratio, dens)
 
-def gy(tesseroids, lons, lats, heights, ratio=1.):
+def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
     Calculate the y (East) component of the gravitational attraction due to a
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gy, ratio)
+        _kernel_gy, ratio, dens)
 
-def gz(tesseroids, lons, lats, heights, ratio=1.):
+def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
     Calculate the z (radial) component of the gravitational attraction due to a
     tesseroid model.
@@ -47,59 +47,59 @@ def gz(tesseroids, lons, lats, heights, ratio=1.):
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
     return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gz, ratio)
+        _kernel_gz, ratio, dens)
 
-def gxx(tesseroids, lons, lats, heights, ratio=3):
+def gxx(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the xx (North-North) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxx, ratio)
+        _kernel_gxx, ratio, dens)
 
-def gxy(tesseroids, lons, lats, heights, ratio=3):
+def gxy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the xy (North-East) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxy, ratio)
+        _kernel_gxy, ratio, dens)
 
-def gxz(tesseroids, lons, lats, heights, ratio=3):
+def gxz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the xz (North-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxz, ratio)
+        _kernel_gxz, ratio, dens)
 
-def gyy(tesseroids, lons, lats, heights, ratio=3):
+def gyy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the yy (East-East) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gyy, ratio)
+        _kernel_gyy, ratio, dens)
 
-def gyz(tesseroids, lons, lats, heights, ratio=3):
+def gyz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the yz (East-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gyz, ratio)
+        _kernel_gyz, ratio, dens)
 
 
-def gzz(tesseroids, lons, lats, heights, ratio=3):
+def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
     Calculate the zz (radial-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
     result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights, 
-        _kernel_gzz, ratio)
+        _kernel_gzz, ratio, dens)
     return result
 
-def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio):
+def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     """
     Calculate the effect of a given kernal in the most precise way by adaptively
     discretizing the tesseroids into smaller ones.
@@ -126,8 +126,12 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio):
         if need_divide:
             split = _split(tesseroid)
             result[need_divide] += _optimal_discretize(split, lons[need_divide],
-                lats[need_divide], heights[need_divide], kernel, ratio)
-        result[dont_divide] += G*tesseroid.props['density']*kernel(
+                lats[need_divide], heights[need_divide], kernel, ratio, dens)
+        if dens is not None:
+            density = dens
+        else:
+            density = tesseroid.props['density']
+        result[dont_divide] += G*density*kernel(
             tesseroid, rlons[dont_divide], rlats[dont_divide], 
             radii[dont_divide], _glq_nodes, _glq_weights)
     return result

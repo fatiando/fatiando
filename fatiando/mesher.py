@@ -15,6 +15,7 @@ Generate and operate on various kinds of meshes and geometric elements
 * :class:`~fatiando.mesher.SquareMesh`
 * :class:`~fatiando.mesher.PrismMesh`
 * :class:`~fatiando.mesher.PrismRelief`
+* :class:`~fatiando.mesher.TesseroidMesh`
 
 **Utility functions**
 
@@ -786,7 +787,7 @@ class PrismMesh(object):
     * bounds : list = [xmin, xmax, ymin, ymax, zmin, zmax]
         Boundaries of the mesh.
     * shape : tuple = (nz, ny, nx)
-        Number of prisms in the x, y, and z directions, respectively.
+        Number of prisms in the x, y, and z directions.
     * props :  dict
         Physical properties of each prism in the mesh.
         Each key should be the name of a physical property. The corresponding
@@ -830,9 +831,10 @@ class PrismMesh(object):
 
     """
 
+    celltype = Prism
+
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
-        log.info("Generating 3D right rectangular prism mesh:")
         nz, ny, nx = shape
         size = int(nx*ny*nz)
         x1, x2, y1, y2, z1, z2 = bounds
@@ -847,15 +849,13 @@ class PrismMesh(object):
             self.props = {}
         else:
             self.props = props
-        log.info("  bounds = (x1, x2, y1, y2, z1, z2) = %s" % (str(bounds)))
-        log.info("  shape = (nz, ny, nx) = %s" % (str(shape)))
-        log.info("  number of prisms = %d" % (size))
-        log.info("  prism dimensions = (dx, dy, dz) = %s" % (str(self.dims)))
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
         # List of masked prisms. Will return None if trying to access them
         self.mask = []
+        # Wether or not to change heights to z coordinate
+        self.zdown = True
 
     def __len__(self):
         return self.size
@@ -877,7 +877,7 @@ class PrismMesh(object):
         z1 = self.bounds[4] + self.dims[2]*k
         z2 = z1 + self.dims[2]
         props = dict([p, self.props[p][index]] for p in self.props)
-        return Prism(x1, x2, y1, y2, z1, z2, props=props)
+        return self.celltype(x1, x2, y1, y2, z1, z2, props=props)
 
     def __iter__(self):
         self.i = 0
@@ -941,8 +941,10 @@ class PrismMesh(object):
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
-        # -1 if to transform height into z coordinate
-        topo = -1*matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        topo = matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        if self.zdown:
+            # -1 if to transform height into z coordinate
+            topo = -1*topo
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
         # bellow a masked topo point (ie, one with no height information)
@@ -953,7 +955,9 @@ class PrismMesh(object):
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
-                if masked or cellz < h:
+                if (masked or 
+                    (cellz < h and self.zdown) or 
+                    (cellz > h and not self.zdown)):
                     self.mask.append(c)
                 c += 1
 
@@ -1098,6 +1102,50 @@ class PrismMesh(object):
             numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
                 self.shape), order='F'),
             fmt='%.4f')
+
+class TesseroidMesh(PrismMesh):
+    """
+    Generate a 3D regular mesh of tesseroids.
+
+    Tesseroids are ordered as follows: first layers (height coordinate), 
+    then N-S rows and finaly E-W.
+
+    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height 
+    index 1 (second layer), y index 1 (second row), and x index 2 (
+    third element in the column).
+
+    This class can used as list of tesseroids. It acts
+    as an iteratior (so you can loop over tesseroids). 
+    It also has a ``__getitem__``
+    method to access individual elements in the mesh.
+    In practice, it should be able to be
+    passed to any function that asks for a list of tesseroids, like
+    :func:`fatiando.gravmag.tesseroid.gz`.
+
+    To make the mesh incorporate a topography, use
+    :meth:`~fatiando.mesher.TesseroidMesh.carvetopo`
+
+    Parameters:
+
+    * bounds : list = [w, e, s, n, top, bottom]
+        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and 
+        ``bottom`` are heights (positive upward) and in meters.
+    * shape : tuple = (nr, nlat, nlon)
+        Number of tesseroids in the radial, latitude, and longitude directions.
+    * props :  dict
+        Physical properties of each tesseroid in the mesh.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property on
+        each tesseroid of the mesh.
+
+    """
+
+    celltype = Tesseroid
+
+    def __init__(self, bounds, shape, props=None):
+        PrismMesh.__init__(self, bounds, shape, props)
+        self.zdown = False
+        self.dump = None
 
 def extract(prop, prisms):
     """
