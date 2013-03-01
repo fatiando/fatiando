@@ -30,7 +30,6 @@ def expanding_window(xp, yp, zp, field, xderiv, yderiv, zderiv, index,
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the observation points of the **whole**
-
         data set
     * field : array
         The potential field measured at the observation points of the **whole**
