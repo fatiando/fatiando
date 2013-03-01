@@ -861,6 +861,8 @@ class PrismMesh(object):
         return self.size
 
     def __getitem__(self, index):
+        if index >= self.size or index < -self.size:
+            raise IndexError('mesh index out of range')            
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
