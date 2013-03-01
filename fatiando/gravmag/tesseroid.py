@@ -113,6 +113,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     radii = MEAN_EARTH_RADIUS + heights
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
+    maxsize = 10000
     for tesseroid in tesseroids:
         if (tesseroid is None or 
             ('density' not in tesseroid.props and dens is None)):
@@ -121,17 +122,21 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        lifo = [[set(range(ndata)), tesseroid]]
+        lifo = [[range(ndata), tesseroid]]
         while lifo:
             allpoints, tess = lifo.pop()
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distance = _distance(tess, rlons, rlats, radii)
-            need_divide = set(_need_to_divide(distance, size, ratio))
-            dont_divide = list(allpoints.difference(need_divide))
+            distance = _distance(tess, rlons[allpoints], rlats[allpoints], 
+                                 radii[allpoints])
+            need_divide = _need_to_divide(distance, size, ratio)
+            dont_divide = list(set(allpoints).difference(set(need_divide)))
             if need_divide:
-                lifo.extend([need_divide, t] for t in _split(tess))
+                if len(lifo) + 8 > maxsize:
+                    log.warning("Maximum LIFO size reached")
+                else:
+                    lifo.extend([need_divide, t] for t in _split(tess))
             if dont_divide:
                 result[dont_divide] += G*density*kernel(
                     tess, rlons[dont_divide], rlats[dont_divide], 
