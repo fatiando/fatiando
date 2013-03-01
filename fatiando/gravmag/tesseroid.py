@@ -115,7 +115,8 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
     for tesseroid in tesseroids:
-        if tesseroid is None or 'density' not in tesseroid.props:
+        if (tesseroid is None or 
+            ('density' not in tesseroid.props and dens is None)):
             continue
         size = max([MEAN_EARTH_RADIUS*d2r*(tesseroid.e - tesseroid.w),
                     MEAN_EARTH_RADIUS*d2r*(tesseroid.n - tesseroid.s),
