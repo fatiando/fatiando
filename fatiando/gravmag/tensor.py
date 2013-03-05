@@ -45,6 +45,8 @@ maps, Geophysics, 55(12), 1558, doi:10.1190/1.1442807
 import numpy
 import numpy.linalg
 
+from fatiando import gridder
+
 
 def invariants(tensor):
     """
@@ -129,10 +131,14 @@ def eigen(tensor):
     eigvec3 = numpy.array(eigvec3)
     return numpy.transpose(eigvals), [eigvec1, eigvec2, eigvec3]
 
-def center_of_mass(x, y, z, eigvec1):
+def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
+    wmax=None):
     """
     Estimates the center of mass of a source using the method of Beiki and
     Pedersen (2010).
+
+    Uses an expanding window to get the best estimate and deal with multiple
+    sources.
 
     Parameters:
 
@@ -141,6 +147,14 @@ def center_of_mass(x, y, z, eigvec1):
     * eigvec1 : array (shape = (N, 3) where N is the number of observations)
         The first eigenvector of the gravity gradient tensor at each observation
         point
+    * windows : int
+        The number of expanding windows to use
+    * wcenter : list = [x, y]
+        The [x, y] coordinates of the center of the expanding windows. Will
+        default to the middle of the data area if None
+    * wmin, wmax : float
+        Minimum and maximum size of the expanding windows. Will default to
+        10% data area and 100% data area, respectively, if None
 
     Returns:
 
@@ -171,24 +185,39 @@ def center_of_mass(x, y, z, eigvec1):
         -100.05, 0.00, 99.86
 
     """
-    vx, vy, vz = numpy.transpose(eigvec1)
-    m11 = numpy.sum(1 - vx**2)
-    m12 = numpy.sum(-vx*vy)
-    m13 = numpy.sum(-vx*vz)
-    m22 = numpy.sum(1 - vy**2)
-    m23 = numpy.sum(-vy*vz)
-    m33 = numpy.sum(1 - vz**2)
-    matrix = numpy.array(
-        [[m11, m12, m13],
-         [m12, m22, m23],
-         [m13, m23, m33]])
-    vector = numpy.array([
-        numpy.sum((1 - vx**2)*x - vx*vy*y - vx*vz*z),
-        numpy.sum(-vx*vy*x + (1 - vy**2)*y - vy*vz*z),
-        numpy.sum(-vx*vz*x - vy*vz*y + (1 - vz**2)*z)])
-    cm = numpy.linalg.solve(matrix, vector)
-    xo, yo, zo = cm
-    dists = ((xo - x)**2 + (yo - y)**2 + (zo - z)**2 -
-             ((xo - x)*vx + (yo - y)*vy + (zo - z)*vz)**2)
-    sigma = numpy.sqrt(numpy.sum(dists)/len(x))
-    return cm, sigma
+    if wmin is None:
+        wmin = 0.1*numpy.mean([x.max() - x.min(), y.max() - y.min()])
+    if wmax is None:
+        wmax = numpy.mean([x.max() - x.min(), y.max() - y.min()])
+    if wcenter is None:
+        wcenter = [0.5*(x.min() + x.max()), 0.5*(y.min() + y.max())]
+    xc, yc = wcenter
+    best = None
+    for size in numpy.linspace(wmin, wmax, windows):
+        area = [xc - 0.5*size, xc + 0.5*size, yc - 0.5*size, yc + 0.5*size]
+        wx, wy, scalars = gridder.cut(x, y, [z, eigvec1], area)
+        wz, weigvec1 = scalars
+        # Estimate the center of mass for the data in this window
+        vx, vy, vz = numpy.transpose(weigvec1)
+        m11 = numpy.sum(1 - vx**2)
+        m12 = numpy.sum(-vx*vy)
+        m13 = numpy.sum(-vx*vz)
+        m22 = numpy.sum(1 - vy**2)
+        m23 = numpy.sum(-vy*vz)
+        m33 = numpy.sum(1 - vz**2)
+        matrix = numpy.array(
+            [[m11, m12, m13],
+             [m12, m22, m23],
+             [m13, m23, m33]])
+        vector = numpy.array([
+            numpy.sum((1 - vx**2)*wx - vx*vy*wy - vx*vz*wz),
+            numpy.sum(-vx*vy*wx + (1 - vy**2)*wy - vy*vz*wz),
+            numpy.sum(-vx*vz*wx - vy*vz*wy + (1 - vz**2)*wz)])
+        cm = numpy.linalg.solve(matrix, vector)
+        xo, yo, zo = cm
+        dists = ((xo - wx)**2 + (yo - wy)**2 + (zo - wz)**2 -
+                 ((xo - wx)*vx + (yo - wy)*vy + (zo - wz)*vz)**2)
+        sigma = numpy.sqrt(numpy.sum(dists)/len(wx))
+        if best is None or sigma < best[1]:
+            best = [cm, sigma]
+    return best
