@@ -39,27 +39,31 @@ for i, f in enumerate([tf, xderiv, yderiv, zderiv]):
     mpl.m2km()
 mpl.show()
 
-# Pick the center of the expanding window
+# Pick the centers of the expanding windows
+# The number of final solutions will be the number of points picked
 mpl.figure()
-mpl.suptitle('Pick the center of the expanding window')
+mpl.suptitle('Pick the centers of the expanding windows')
 mpl.axis('scaled')
 mpl.contourf(yp, xp, tf, shape, 50)
 mpl.colorbar()
-center = mpl.pick_points(area, mpl.gca(), xy2ne=True)[0]
+centers = mpl.pick_points(area, mpl.gca(), xy2ne=True)
 
 # Run the euler deconvolution on an expanding window
 # Structural index is 3
 index = 3
-results = gravmag.euler.expanding_window(xp, yp, zp, tf, xderiv, yderiv, zderiv,
-    index, gravmag.euler.classic, center, 500, 5000)
-print "Base level used: %g" % (baselevel)
-print "Estimated base level: %g" % (results['baselevel'])
-print "Estimated source location: %s" % (str(results['point']))
+results = []
+for center in centers:
+    results.append(
+        gravmag.euler.expanding_window(xp, yp, zp, tf, xderiv, yderiv, zderiv,
+            index, gravmag.euler.classic, center, 500, 5000))
+    print "Base level used: %g" % (baselevel)
+    print "Estimated base level: %g" % (results[-1]['baselevel'])
+    print "Estimated source location: %s" % (str(results[-1]['point']))
 
 myv.figure()
-myv.points([results['point']], size=300.)
-myv.prisms(model, prop='magnetization', opacity=0.5)
-axes = myv.axes(myv.outline(extent=bounds))
-myv.wall_bottom(axes.axes.bounds, opacity=0.2)
-myv.wall_north(axes.axes.bounds)
+myv.points([r['point'] for r in results], size=300.)
+myv.prisms(model, opacity=0.5)
+axes = myv.axes(myv.outline(bounds), ranges=[b*0.001 for b in bounds])
+myv.wall_bottom(bounds)
+myv.wall_north(bounds)
 myv.show()
