@@ -128,8 +128,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            points = numpy.array(allpoints, dtype=numpy.int)
-            distance = _distance(tess, rlons, rlats, radii, points)
+            distance = _distance(tess, rlons, rlats, radii, allpoints)
             need_divide = _need_to_divide(distance, size, ratio)
             dont_divide = list(set(allpoints).difference(set(need_divide)))
             if need_divide:

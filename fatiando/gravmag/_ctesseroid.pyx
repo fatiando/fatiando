@@ -20,9 +20,9 @@ __all__ = ['_need_to_divide', '_kernel_potential', '_kernel_gx', '_kernel_gy',
 
 def _distance(tesseroid, numpy.ndarray[DTYPE_T, ndim=1] lon,
     numpy.ndarray[DTYPE_T, ndim=1] lat, numpy.ndarray[DTYPE_T, ndim=1] radius,
-    numpy.ndarray[numpy.int_t, ndim=1] points):
+    points):
     cdef unsigned int i, size
-    cdef numpy.int_t l
+    cdef unsigned int l
     cdef DTYPE_T tes_radius, tes_lat, tes_lon, d2r
     cdef numpy.ndarray[DTYPE_T, ndim=1] distance
     d2r = numpy.pi/180.
