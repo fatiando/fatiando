@@ -1,10 +1,10 @@
 """
 Euler deconvolution methods for potential fields.
 
-* :func:`~fatiando.gravmag.euler.expanding_window`: Run a given solver for the Euler
-  deconvolution on an expanding window and return the best estimate
-* :func:`~fatiando.gravmag.euler.classic`: The classic solution to Euler's equation
-  for potential fields
+* :func:`~fatiando.gravmag.euler.expanding_window`: Run a given solver for the
+  Euler deconvolution on an expanding window and return the best estimate
+* :func:`~fatiando.gravmag.euler.classic`: The classic solution to Euler's
+  equation for potential fields
 
 ----
 
