@@ -95,7 +95,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     Calculate the zz (radial-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights, 
+    result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernel_gzz, ratio, dens)
     return result
 
@@ -115,7 +115,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     result = numpy.zeros(ndata, numpy.float)
     maxsize = 10000
     for tesseroid in tesseroids:
-        if (tesseroid is None or 
+        if (tesseroid is None or
             ('density' not in tesseroid.props and dens is None)):
             continue
         if dens is not None:
@@ -128,18 +128,19 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distance = _distance(tess, rlons[allpoints], rlats[allpoints], 
-                                 radii[allpoints])
+            points = numpy.array(allpoints, dtype=numpy.int)
+            distance = _distance(tess, rlons, rlats, radii, points)
             need_divide = _need_to_divide(distance, size, ratio)
             dont_divide = list(set(allpoints).difference(set(need_divide)))
             if need_divide:
                 if len(lifo) + 8 > maxsize:
                     log.warning("Maximum LIFO size reached")
+                    dont_divide.extend(need_divide)
                 else:
                     lifo.extend([need_divide, t] for t in _split(tess))
             if dont_divide:
                 result[dont_divide] += G*density*kernel(
-                    tess, rlons[dont_divide], rlats[dont_divide], 
+                    tess, rlons[dont_divide], rlats[dont_divide],
                     radii[dont_divide], _glq_nodes, _glq_weights)
     return result
 
@@ -154,15 +155,3 @@ def _split(tesseroid):
         Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=tesseroid.props)
         for i in wests for j in souths for k in bottoms]
     return split
-
-def _distance(tesseroid, lon, lat, radius):
-    d2r = numpy.pi/180.
-    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
-    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
-    distance = numpy.sqrt(
-        radius**2 + tes_radius**2 - 2.*radius*tes_radius*(
-            numpy.sin(lat)*numpy.sin(tes_lat) +
-            numpy.cos(lat)*numpy.cos(tes_lat)*numpy.cos(lon - tes_lon)
-        ))
-    return distance

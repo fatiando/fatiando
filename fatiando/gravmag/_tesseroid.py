@@ -6,10 +6,26 @@ import numpy
 
 from fatiando.constants import MEAN_EARTH_RADIUS
 
-__all__ = ['_need_to_divide', '_kernel_potential', '_kernel_gx', '_kernel_gy', 
+__all__ = ['_need_to_divide', '_kernel_potential', '_kernel_gx', '_kernel_gy',
     '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', '_kernel_gyy',
-    '_kernel_gyz', '_kernel_gzz']
+    '_kernel_gyz', '_kernel_gzz', '_distance']
 
+
+def _distance(tesseroid, lon, lat, radius, points):
+    lons = lon[points]
+    lats = lat[points]
+    radii = radius[points]
+    d2r = numpy.pi/180.
+    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
+    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
+    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
+    distance = numpy.sqrt(
+        radii**2 + tes_radius**2 - 2.*radii*tes_radius*(
+            numpy.sin(lats)*numpy.sin(tes_lat) +
+            numpy.cos(lats)*numpy.cos(tes_lat)*
+            numpy.cos(lons - tes_lon)
+        ))
+    return distance
 
 def _need_to_divide(distances, size, ratio):
     """
