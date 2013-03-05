@@ -20,6 +20,7 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.wall_top`
 * :func:`~fatiando.vis.myv.wall_bottom`
 * :func:`~fatiando.vis.myv.earth`
+* :func:`~fatiando.vis.myv.core`
 * :func:`~fatiando.vis.myv.continents`
 * :func:`~fatiando.vis.myv.meridians`
 * :func:`~fatiando.vis.myv.parallels`
@@ -796,6 +797,40 @@ def earth(color=(0.4, 0.5, 1.0), opacity=1):
     sphere.actor.property.backface_culling = True
     return sphere
 
+def core(inner=False, color=(1, 0, 0), opacity=1):
+    """
+    Draw a sphere representing the Earth's core.
+
+    Parameters:
+
+    * inner : True or False
+        If True, will use the radius of the inner core, else the outer core.
+    * color : tuple
+        RGB color of the sphere. Defaults to red.
+    * opacity : float
+        The opacity of the sphere. Must be between 0 and 1
+
+    Returns:
+
+    * sphere : Mayavi surface
+        The Mayavi surface element of the sphere
+
+    """
+    _lazy_import_mlab()
+    if inner:
+        radius = 1216000.
+        name = 'Inner core'
+    else:
+        radius = 3486000.
+        name = 'Core'
+    sphere = mlab.points3d(0, 0, 0, scale_mode='none',
+        scale_factor=2.*radius, color=color, resolution=50,
+        opacity=opacity, name=name)
+    sphere.actor.property.specular = 0.45
+    sphere.actor.property.specular_power = 5
+    sphere.actor.property.backface_culling = True
+    return sphere
+
 def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     """
     Draw meridians on the Earth.
@@ -810,7 +845,7 @@ def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
         The width of the lines
     * opacity : float
         The opacity of the lines. Must be between 0 and 1
-    
+
     Returns:
 
     * lines : Mayavi surface
@@ -825,7 +860,7 @@ def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
         y.extend(coords[1].tolist())
         z.extend(coords[2].tolist())
     x, y, z = numpy.array(x), numpy.array(y), numpy.array(z)
-    lines = mlab.plot3d(x, y, z, color=color, opacity=opacity, 
+    lines = mlab.plot3d(x, y, z, color=color, opacity=opacity,
         tube_radius=None)
     lines.actor.property.line_width = linewidth
     return lines
@@ -844,10 +879,10 @@ def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
         The width of the lines
     * opacity : float
         The opacity of the lines. Must be between 0 and 1
-    
+
     Returns:
 
-    * lines : list 
+    * lines : list
         List of the Mayavi surface elements of each line
 
     """
@@ -855,7 +890,7 @@ def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     parallels = []
     for lat in latitudes:
         x, y, z = utils.sph2cart(lons, numpy.ones_like(lons)*lat, 0)
-        lines = mlab.plot3d(x, y, z, color=color, opacity=opacity, 
+        lines = mlab.plot3d(x, y, z, color=color, opacity=opacity,
             tube_radius=None)
         lines.actor.property.line_width = linewidth
         parallels.append(lines)
