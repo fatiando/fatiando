@@ -189,6 +189,10 @@ def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
         wmin = 0.1*numpy.mean([x.max() - x.min(), y.max() - y.min()])
     if wmax is None:
         wmax = numpy.mean([x.max() - x.min(), y.max() - y.min()])
+    # To ensure that if there is only one window, it will use the largest
+    # possible
+    if windows == 1:
+        wmin = wmax
     if wcenter is None:
         wcenter = [0.5*(x.min() + x.max()), 0.5*(y.min() + y.max())]
     xc, yc = wcenter
