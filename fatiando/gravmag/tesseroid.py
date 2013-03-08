@@ -8,9 +8,10 @@ from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 
 try:
-    from fatiando.gravmag._ctesseroid import *
+    from fatiando.gravmag import _ctesseroid as _kernels
 except ImportError:
-    from fatiando.gravmag._tesseroid import *
+    from fatiando.gravmag import _tesseroid as _kernels
+
 
 _glq_nodes = numpy.array([-0.577350269, 0.577350269])
 _glq_weights = numpy.array([1., 1.])
@@ -21,7 +22,7 @@ def potential(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     Calculate the gravitational potential due to a tesseroid model.
     """
     return _optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_potential, ratio, dens)
+        _kernels.potential, ratio, dens)
 
 def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -29,7 +30,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gx, ratio, dens)
+        _kernels.gx, ratio, dens)
 
 def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -37,7 +38,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gy, ratio, dens)
+        _kernels.gy, ratio, dens)
 
 def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -47,7 +48,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
     return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gz, ratio, dens)
+        _kernels.gz, ratio, dens)
 
 def gxx(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
@@ -55,7 +56,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxx, ratio, dens)
+        _kernels.gxx, ratio, dens)
 
 def gxy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
@@ -63,7 +64,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxy, ratio, dens)
+        _kernels.gxy, ratio, dens)
 
 def gxz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
@@ -71,7 +72,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gxz, ratio, dens)
+        _kernels.gxz, ratio, dens)
 
 def gyy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
@@ -79,7 +80,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gyy, ratio, dens)
+        _kernels.gyy, ratio, dens)
 
 def gyz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     """
@@ -87,7 +88,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gyz, ratio, dens)
+        _kernels.gyz, ratio, dens)
 
 
 def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
@@ -96,7 +97,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     due to a tesseroid model.
     """
     result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernel_gzz, ratio, dens)
+        _kernels.gzz, ratio, dens)
     return result
 
 def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
@@ -156,3 +157,19 @@ def _split(tesseroid):
         Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=tesseroid.props)
         for i in wests for j in souths for k in bottoms]
     return split
+
+def _distance(tesseroid, lon, lat, radius, points):
+    lons = lon[points]
+    lats = lat[points]
+    radii = radius[points]
+    d2r = numpy.pi/180.
+    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
+    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
+    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
+    distance = numpy.sqrt(
+        radii**2 + tes_radius**2 - 2.*radii*tes_radius*(
+            numpy.sin(lats)*numpy.sin(tes_lat) +
+            numpy.cos(lats)*numpy.cos(tes_lat)*
+            numpy.cos(lons - tes_lon)
+        ))
+    return distance

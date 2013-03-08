@@ -6,26 +6,6 @@ import numpy
 
 from fatiando.constants import MEAN_EARTH_RADIUS
 
-__all__ = ['_kernel_potential', '_kernel_gx', '_kernel_gy',
-    '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', '_kernel_gyy',
-    '_kernel_gyz', '_kernel_gzz', '_distance']
-
-
-def _distance(tesseroid, lon, lat, radius, points):
-    lons = lon[points]
-    lats = lat[points]
-    radii = radius[points]
-    d2r = numpy.pi/180.
-    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
-    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
-    distance = numpy.sqrt(
-        radii**2 + tes_radius**2 - 2.*radii*tes_radius*(
-            numpy.sin(lats)*numpy.sin(tes_lat) +
-            numpy.cos(lats)*numpy.cos(tes_lat)*
-            numpy.cos(lons - tes_lon)
-        ))
-    return distance
 
 def _scale_nodes(tesseroid, nodes):
     d2r = numpy.pi/180.
@@ -40,7 +20,7 @@ def _scale_nodes(tesseroid, nodes):
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return nodes_lon, nodes_lat, nodes_r, scale
 
-def _kernel_potential(tesseroid, lons, lats, radii, nodes, weights):
+def potential(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate potential using the Gauss-Legendre Quadrature
     """
@@ -67,7 +47,7 @@ def _kernel_potential(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gx(tesseroid, lons, lats, radii, nodes, weights):
+def gx(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gx using the Gauss-Legendre Quadrature
     """
@@ -95,7 +75,7 @@ def _kernel_gx(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gy(tesseroid, lons, lats, radii, nodes, weights):
+def gy(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gy using the Gauss-Legendre Quadrature
     """
@@ -123,7 +103,7 @@ def _kernel_gy(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gz(tesseroid, lons, lats, radii, nodes, weights):
+def gz(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gz using the Gauss-Legendre Quadrature
     """
@@ -151,7 +131,7 @@ def _kernel_gz(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gxx(tesseroid, lons, lats, radii, nodes, weights):
+def gxx(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gxx using the Gauss-Legendre Quadrature
     """
@@ -179,7 +159,7 @@ def _kernel_gxx(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gxy(tesseroid, lons, lats, radii, nodes, weights):
+def gxy(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gxy using the Gauss-Legendre Quadrature
     """
@@ -208,7 +188,7 @@ def _kernel_gxy(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gxz(tesseroid, lons, lats, radii, nodes, weights):
+def gxz(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gxz using the Gauss-Legendre Quadrature
     """
@@ -237,7 +217,7 @@ def _kernel_gxz(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gyy(tesseroid, lons, lats, radii, nodes, weights):
+def gyy(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gyy using the Gauss-Legendre Quadrature
     """
@@ -266,7 +246,7 @@ def _kernel_gyy(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gyz(tesseroid, lons, lats, radii, nodes, weights):
+def gyz(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gyz using the Gauss-Legendre Quadrature
     """
@@ -297,7 +277,7 @@ def _kernel_gyz(tesseroid, lons, lats, radii, nodes, weights):
     result *= scale
     return result
 
-def _kernel_gzz(tesseroid, lons, lats, radii, nodes, weights):
+def gzz(tesseroid, lons, lats, radii, nodes, weights):
     """
     Integrate gzz using the Gauss-Legendre Quadrature
     """

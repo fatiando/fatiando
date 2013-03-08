@@ -13,35 +13,6 @@ from libc.math cimport sin, cos, sqrt
 
 from fatiando.constants import MEAN_EARTH_RADIUS
 
-__all__ = ['_kernel_potential', '_kernel_gx', '_kernel_gy',
-    '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', '_kernel_gyy',
-    '_kernel_gyz', '_kernel_gzz', '_distance']
-
-
-def _distance(tesseroid, numpy.ndarray[DTYPE_T, ndim=1] lon,
-    numpy.ndarray[DTYPE_T, ndim=1] lat, numpy.ndarray[DTYPE_T, ndim=1] radius,
-    points):
-    cdef unsigned int i, size
-    cdef unsigned int l
-    cdef DTYPE_T tes_radius, tes_lat, tes_lon, d2r
-    cdef numpy.ndarray[DTYPE_T, ndim=1] distance
-    d2r = numpy.pi/180.
-    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
-    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
-    tes_radius_sqr = tes_radius**2
-    sin_tes_lat = sin(tes_lat)
-    cos_tes_lat = cos(tes_lat)
-    size = len(points)
-    distance = numpy.zeros(size, dtype=DTYPE)
-    for i in xrange(size):
-        l = points[i]
-        distance[i] = sqrt(
-            radius[l]**2 + tes_radius_sqr - 2.*radius[l]*tes_radius*(
-                sin(lat[l])*sin_tes_lat +
-                cos(lat[l])*cos_tes_lat*cos(lon[l] - tes_lon)
-            ))
-    return distance
 
 def _scale_nodes(tesseroid, nodes):
     d2r = numpy.pi/180.
@@ -56,7 +27,7 @@ def _scale_nodes(tesseroid, nodes):
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return nodes_lon, nodes_lat, nodes_r, scale
 
-def _kernel_potential(tesseroid,
+def potential(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -93,7 +64,7 @@ def _kernel_potential(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gx(tesseroid,
+def gx(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -132,7 +103,7 @@ def _kernel_gx(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gy(tesseroid,
+def gy(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -171,7 +142,7 @@ def _kernel_gy(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gz(tesseroid,
+def gz(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -210,7 +181,7 @@ def _kernel_gz(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gxx(tesseroid,
+def gxx(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -249,7 +220,7 @@ def _kernel_gxx(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gxy(tesseroid,
+def gxy(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -289,7 +260,7 @@ def _kernel_gxy(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gxz(tesseroid,
+def gxz(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -330,7 +301,7 @@ def _kernel_gxz(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gyy(tesseroid,
+def gyy(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -370,7 +341,7 @@ def _kernel_gyy(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gyz(tesseroid,
+def gyz(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
@@ -412,7 +383,7 @@ def _kernel_gyz(tesseroid,
         result[l] = result[l]*scale
     return result
 
-def _kernel_gzz(tesseroid,
+def gzz(tesseroid,
     numpy.ndarray[DTYPE_T, ndim=1] lons,
     numpy.ndarray[DTYPE_T, ndim=1] lats,
     numpy.ndarray[DTYPE_T, ndim=1] radii,
