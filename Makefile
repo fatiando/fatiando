@@ -42,6 +42,7 @@ view-docs:
 .PHONY: test
 test:
 	$(NOSE) fatiando
+	$(NOSE) test
 
 # INSTALL THE DEPENDENCIES
 .PHONY: deps
