@@ -122,22 +122,24 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        lifo = [[range(ndata), tesseroid]]
+        lifo = [[numpy.arange(ndata), tesseroid]]
         while lifo:
-            allpoints, tess = lifo.pop()
+            points_to_calc, tess = lifo.pop()
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distance = _distance(tess, rlons, rlats, radii, allpoints)
-            need_divide = _need_to_divide(distance, size, ratio)
-            dont_divide = list(set(allpoints).difference(set(need_divide)))
-            if need_divide:
-                if len(lifo) + 8 > maxsize:
-                    log.warning("Maximum LIFO size reached")
-                    dont_divide.extend(need_divide)
-                else:
-                    lifo.extend([need_divide, t] for t in _split(tess))
-            if dont_divide:
+            distances = _distance(tess, rlons, rlats, radii, points_to_calc)
+            too_close = (distances > 0) & (distances < ratio*size)
+            need_divide = points_to_calc[too_close]
+            dont_divide = points_to_calc[~too_close]
+            if len(need_divide):
+                #if len(lifo) + 8 > maxsize:
+                #    log.warning("Maximum LIFO size reached")
+                #    dont_divide.extend(need_divide)
+                #else:
+                #    lifo.extend([need_divide, t] for t in _split(tess))
+                lifo.extend([need_divide, t] for t in _split(tess))
+            if len(dont_divide):
                 result[dont_divide] += G*density*kernel(
                     tess, rlons[dont_divide], rlats[dont_divide],
                     radii[dont_divide], _glq_nodes, _glq_weights)

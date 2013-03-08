@@ -13,7 +13,7 @@ from libc.math cimport sin, cos, sqrt
 
 from fatiando.constants import MEAN_EARTH_RADIUS
 
-__all__ = ['_need_to_divide', '_kernel_potential', '_kernel_gx', '_kernel_gy',
+__all__ = ['_kernel_potential', '_kernel_gx', '_kernel_gy',
     '_kernel_gz', '_kernel_gxx', '_kernel_gxy', '_kernel_gxz', '_kernel_gyy',
     '_kernel_gyz', '_kernel_gzz', '_distance']
 
@@ -42,20 +42,6 @@ def _distance(tesseroid, numpy.ndarray[DTYPE_T, ndim=1] lon,
                 cos(lat[l])*cos_tes_lat*cos(lon[l] - tes_lon)
             ))
     return distance
-
-def _need_to_divide(numpy.ndarray[DTYPE_T, ndim=1] distances, DTYPE_T size,
-    DTYPE_T ratio):
-    """
-    For which computation points the tesseroid must be divided.
-    Based on the distances to the points and the distance/size ratio.
-    """
-    cdef unsigned int i, ndata = len(distances)
-    result = []
-    append = result.append
-    for i in xrange(ndata):
-        if distances[i] > 0 and distances[i] < ratio*size:
-            append(i)
-    return result
 
 def _scale_nodes(tesseroid, nodes):
     d2r = numpy.pi/180.
