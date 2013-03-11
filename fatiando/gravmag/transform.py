@@ -1,6 +1,6 @@
 """
-Potential field transformations, like upward continuation, derivatives and
-total mass.
+Space domain potential field transformations, like upward continuation,
+derivatives and total mass.
 
 **Transformations**
 

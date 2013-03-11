@@ -15,6 +15,7 @@ Gravity and magnetics (``fatiando.gravmag``)
     gravmag.sphere.rst
     gravmag.tesseroid.rst
     gravmag.talwani.rst
+    gravmag.half_sph_shell.rst
     gravmag.basin2d.rst
     gravmag.fourier.rst
     gravmag.imaging.rst

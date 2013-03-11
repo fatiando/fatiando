@@ -15,6 +15,8 @@ magnetic field of various types of geometric objects:
   in spherical coordinates
 * :mod:`~fatiando.gravmag.talwani`: 2D bodies with polygonal vertical
   cross-sections
+* :mod:`~fatiando.gravmag.half_sph_shell`: Gravity fields of half a spherical
+  shell. Useful for benchmarking and testing.
 
 **Inversion**
 
@@ -33,7 +35,7 @@ The inversion modules use the forward modeling models and the
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
-* :mod:`~fatiando.gravmag.transform`: Analytical potential field
+* :mod:`~fatiando.gravmag.transform`: Space domain potential field
   transformations, like upward continuation
 * :mod:`~fatiando.gravmag.fourier`: Potential field transformations using the
   FFT
