@@ -44,4 +44,4 @@ how to use them.
 
 """
 
-version = '0.1.dev'
+version = '0.1'
