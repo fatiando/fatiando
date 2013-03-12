@@ -7,30 +7,6 @@ Fatiando a Terra
 
 For more **information** visit http://www.fatiando.org
 
-Examples
---------
-
-Here is a quick example of using Fatiando to generate synthetic gravity data
-on random points, contaminate it with gaussian noise, and plot it::
-
-    >>> import fatiando as ft
-    >>> # Create the prism model
-    >>> prisms = [
-    ...     ft.mesher.Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...     ft.mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...     ft.mesher.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
-    >>> # Generate 500 random observation points at 100m height
-    >>> xp, yp, zp = ft.gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
-    >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
-    >>> # gaussian noise
-    >>> gz = ft.utils.contaminate(ft.gravmag.prism.gz(xp, yp, zp, prisms), 0.1)
-    >>> # Plot the result
-    >>> ft.vis.contourf(xp, yp, gz, (100, 100), 12, interp=True)
-    >>> cb = ft.vis.colorbar()
-    >>> cb.set_label('mGal')
-    >>> ft.vis.plot(xp, yp, '.k')
-    >>> ft.vis.show()
-
 Documentation
 -------------
 
@@ -38,13 +14,16 @@ The latest documentation is available at ReadTheDocs:
 
 http://fatiando.readthedocs.org
 
-The documentation reflects the *master* branch on Github_.
+There you'll find the install instructions,
+a cookbook with examples,
+and the API reference.
 
+The documentation reflects the *master* branch on Github_.
 
 Source code
 -----------
 
-The source code of Fatiando is hosted on Github_
+The source code of Fatiando is hosted on Github_.
 
 .. _Github: https://github.com/leouieda/fatiando
 
