@@ -11,7 +11,7 @@ various kinds of data (gravity, gravity tensor).
 The inversion is performed by function
 :func:`~fatiando.gravmag.harvester.harvest`. The required information, such as
 observed data, seeds, and regularization, are passed to the function through
-classes :class:`~fatiando.gravmag.harvester.Seed` and 
+classes :class:`~fatiando.gravmag.harvester.Seed` and
 :class:`~fatiando.gravmag.harvester.Potential`,
 :class:`~fatiando.gravmag.harvester.Gz`,
 :class:`~fatiando.gravmag.harvester.Gxx`, etc.
@@ -19,14 +19,13 @@ classes :class:`~fatiando.gravmag.harvester.Seed` and
 See the :ref:`Cookbook <cookbook>` for some example applications to synthetic
 data.
 
-
 **Functions**
 
 * :func:`~fatiando.gravmag.harvester.harvest`: Performs the inversion
 * :func:`~fatiando.gravmag.harvester.sow`: Creates the seeds from a set of
   (x, y, z) points and physical properties
-* :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set 
-  of (x, y, z) points and physical properties that specify the seeds. Pass 
+* :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set
+  of (x, y, z) points and physical properties that specify the seeds. Pass
   output to :func:`~fatiando.gravmag.harvester.sow`
 
 **Data types**
@@ -38,27 +37,27 @@ data.
   gradient tensor
 * :class:`~fatiando.gravmag.harvester.Gxy`: North-East component of the gravity
   gradient tensor
-* :class:`~fatiando.gravmag.harvester.Gxz`: North-vertical component of the 
+* :class:`~fatiando.gravmag.harvester.Gxz`: North-vertical component of the
   gravity gradient tensor
 * :class:`~fatiando.gravmag.harvester.Gyy`: East-East component of the gravity
   gradient tensor
-* :class:`~fatiando.gravmag.harvester.Gyz`: East-vertical component of the 
+* :class:`~fatiando.gravmag.harvester.Gyz`: East-vertical component of the
   gravity gradient tensor
-* :class:`~fatiando.gravmag.harvester.Gzz`: vertical-vertical component of the 
+* :class:`~fatiando.gravmag.harvester.Gzz`: vertical-vertical component of the
   gravity gradient tensor
 
 **References**
 
 Uieda, L., and V. C. F. Barbosa (2012a), Robust 3D gravity gradient inversion by
 planting anomalous densities, Geophysics, 77(4), G55-G66,
-doi:10.1190/geo2011-0388.1 [`pdf 
-<http://www.mendeley.com/download/public/1406731/4823610241/45dec08fa03c4d5950ecdaef8d7532767a57a1a8/dl.pdf>`_]
+doi:10.1190/geo2011-0388.1 [`pdf
+<http://www.mendeley.com/download/public/1406731/4823610241/45dec08fa03c4d5950ecdaef8d7532767a57a1a8/dl.pdf>`__]
 
-Uieda, L., and V. C. F. Barbosa (2012b), 
-Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous 
+Uieda, L., and V. C. F. Barbosa (2012b),
+Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous
 densities, SEG Technical Program Expanded Abstracts, 1-6,
 doi:10.1190/segam2012-0383.1 [`pdf
-<http://www.mendeley.com/download/public/1406731/4932659461/67606df295d428a7f729a74cf80b7ed4aa37553b/dl.pdf>`_]
+<http://www.mendeley.com/download/public/1406731/4932659461/67606df295d428a7f729a74cf80b7ed4aa37553b/dl.pdf>`__]
 
 ----
 
@@ -144,10 +143,10 @@ def loadseeds(fname):
 
 def sow(locations, mesh):
     """
-    Create the seeds given a list of (x,y,z) coordinates and physical 
+    Create the seeds given a list of (x,y,z) coordinates and physical
     properties.
 
-    Removes seeds that would fall on the same location with overlapping 
+    Removes seeds that would fall on the same location with overlapping
     physical properties.
 
     Parameters:
@@ -170,7 +169,7 @@ def sow(locations, mesh):
     Returns:
 
     * seeds : list of :class:`~fatiando.gravmag.harvester.Seed`
-        The seeds that can be passed to 
+        The seeds that can be passed to
         :func:`~fatiando.gravmag.harvester.harvest`
 
     """
@@ -199,7 +198,7 @@ def _find_index(point, mesh):
     zs = mesh.get_zs()
     x, y, z = point
     if (x <= x2 and x >= x1 and y <= y2 and y >= y1 and
-        ((z <= z2 and z >= z1 and mesh.zdown) or 
+        ((z <= z2 and z >= z1 and mesh.zdown) or
          (z >= z2 and z <= z1 and not mesh.zdown))):
         if mesh.zdown:
             # -1 because bisect gives the index z would have. I want to know
@@ -218,13 +217,13 @@ def _find_index(point, mesh):
 
 def harvest(data, seeds, mesh, compactness, threshold):
     """
-    Run the inversion algorithm and produce an estimate physical property 
+    Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
 
     Paramters:
 
     * data : list of data (e.g., :class:`~fatiando.gravmag.harvester.Gz`)
-        The data that will be inverted. Data used must match the physical 
+        The data that will be inverted. Data used must match the physical
         properties given to the seeds (e.g., gravity data requires seeds to have
         ``'density'`` prop)
 
@@ -238,17 +237,17 @@ def harvest(data, seeds, mesh, compactness, threshold):
 
     * compactness : float
         The compactness regularing parameter (i.e., how much should the estimate
-        be consentrated around the seeds). Must be positive. To find a good 
+        be consentrated around the seeds). Must be positive. To find a good
         value for this, start with a small value (like 0.001), run the inversion
         and increase the value until desired compactness is achieved.
-    
+
     * threshold : float
         Control how much the solution can grow (usually downward). In order for
         estimate to grow by the accretion of 1 prism, this prism must decrease
         the data misfit measure by *threshold* decimal percent. Depends on the
         size of the cells in the *mesh* and the distance from a cell to the
         observations. Use values between 0.001 and 0.000001.
-        If cells are small and *threshold* is large (0.001), the seeds won't 
+        If cells are small and *threshold* is large (0.001), the seeds won't
         grow. If cells are large and *threshold* is small (0.000001), the seeds
         will grow too much.
 
@@ -256,24 +255,24 @@ def harvest(data, seeds, mesh, compactness, threshold):
 
     * estimate, predicted_data : a dict and a list
         *estimate* is a dict like::
-    
+
             {'physical_property':array, ...}
 
-        *estimate* contains the estimates physical properties. The properties 
-        present in *estimate* are the ones given to the seeds. Include the 
+        *estimate* contains the estimates physical properties. The properties
+        present in *estimate* are the ones given to the seeds. Include the
         properties in the *mesh* using::
 
             mesh.addprop('density', estimate['density'])
 
         This way you can plot the estimate using :mod:`fatiando.vis.myv`.
 
-        *predicted_data* is a list of numpy arrays with the predicted (model) 
-        data. The list is in the same order as *data*. To plot a map of the fit 
+        *predicted_data* is a list of numpy arrays with the predicted (model)
+        data. The list is in the same order as *data*. To plot a map of the fit
         for visual inspection and a histogram of the residuals::
 
             from fatiando.vis import mpl
             mpl.figure()
-            # Plot the observed and predicted data as contours for visual 
+            # Plot the observed and predicted data as contours for visual
             # inspection
             mpl.subplot(1, 2, 1)
             mpl.axis('scaled')
@@ -288,11 +287,11 @@ def harvest(data, seeds, mesh, compactness, threshold):
             mpl.title('Residuals')
             mpl.hist(residuals, bins=10)
             mpl.show()
-            # It's also good to see the mean and standard deviation of the 
+            # It's also good to see the mean and standard deviation of the
             # residuals
             print "Residuals mean:", residuals.mean()
             print "Residuals stddev:", residuals.std()
-            
+
 
     """
     log.info('Harvesting inversion results:')
@@ -317,16 +316,16 @@ def harvest(data, seeds, mesh, compactness, threshold):
     log.info('  initial goal function: %g' % (totalgoal))
     log.info('  initial data misfit: %g' % (totalmisfit))
     # Weight the regularizing function by the mean extent of the mesh
-    mu = compactness*1./(sum(mesh.shape)/3.) 
+    mu = compactness*1./(sum(mesh.shape)/3.)
     # Begin the growth process
     log.info('  Running...')
     accretions = 0
     for iteration in xrange(mesh.size - nseeds):
         grew = False # To check if at least one seed grew (stopping criterion)
         for s in xrange(nseeds):
-            best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s], 
+            best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s],
                 data, predicted, totalmisfit, mu, regularizer, threshold)
-            # If there was a best, add to estimate, remove it, and add its 
+            # If there was a best, add to estimate, remove it, and add its
             # neighbors
             if best is not None:
                 if best.i not in estimate:
@@ -362,7 +361,7 @@ def _init_predicted(data, seeds, mesh):
         for seed in seeds:
             p += d.effect(mesh[seed.i], seed.props)
         predicted.append(p)
-    return predicted 
+    return predicted
 
 def _fmt_estimate(estimate, size):
     """
@@ -379,7 +378,7 @@ def _fmt_estimate(estimate, size):
 
 def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
     """
-    Find the neighbor with smallest goal function that also decreases the 
+    Find the neighbor with smallest goal function that also decreases the
     misfit
     """
     best = None
@@ -389,7 +388,7 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
     for n in neighbors:
         pred = [p + e for p, e in zip(predicted, neighbors[n].effect)]
         misfit = _misfitfunc(data, pred)
-        if (misfit < totalmisfit and 
+        if (misfit < totalmisfit and
             float(abs(misfit - totalmisfit))/totalmisfit >= threshold):
             reg = regularizer + neighbors[n].distance
             goal = _shapefunc(data, pred) + mu*reg
@@ -402,7 +401,7 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
 
 def _shapefunc(data, predicted):
     """
-    Calculate the total shape of anomaly function between the observed and 
+    Calculate the total shape of anomaly function between the observed and
     predicted data.
     """
     result = 0.
@@ -421,17 +420,17 @@ def _misfitfunc(data, predicted):
 
 def _get_neighbors(cell, neighborhood, estimate, mesh, data):
     """
-    Return a dict with the new neighbors of cell. 
-    keys are the index of the neighbors in the mesh. values are the Neighbor 
+    Return a dict with the new neighbors of cell.
+    keys are the index of the neighbors in the mesh. values are the Neighbor
     objects.
     """
     indexes = [n for n in _neighbor_indexes(cell.i, mesh)
-               if not _is_neighbor(n, cell.props, neighborhood) 
+               if not _is_neighbor(n, cell.props, neighborhood)
                   and not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
         (i, Neighbor(
-            i, cell.props, cell.seed, _distance(i, cell.seed, mesh), 
-            _calc_effect(i, cell.props, mesh, data))) 
+            i, cell.props, cell.seed, _distance(i, cell.seed, mesh),
+            _calc_effect(i, cell.props, mesh, data)))
         for i in indexes)
     return neighbors
 
@@ -470,11 +469,11 @@ def _in_estimate(index, props, estimate):
             if p in estimate[index]:
                 return True
     return False
-    
+
 def _is_neighbor(index, props, neighborhood):
     """
     Check if index is already in the neighborhood with props
-    """    
+    """
     for neighbors in neighborhood:
         for n in neighbors:
             if index == neighbors[n].i:
@@ -518,17 +517,17 @@ class Seed(object):
     """
     A seed.
     """
-    
+
     def __init__(self, i, props):
         self.i = i
         self.props = props
         self.seed = i
-    
+
 class Neighbor(object):
     """
     A neighbor.
     """
-    
+
     def __init__(self, i, props, seed, distance, effect):
         self.i = i
         self.props = props
@@ -539,11 +538,11 @@ class Neighbor(object):
 class Data(object):
     """
     A container for some potential field data.
-    
+
     Know about its data, observation positions, nature of the mesh, and how
     to calculate the effect of a single cell.
     """
-    
+
     def __init__(self, x, y, z, data, meshtype):
         self.x = x
         self.y = y
@@ -585,7 +584,7 @@ class Potential(Data):
     def effect(self, prism, props):
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
-        return self.effectfunc(self.x, self.y, self.z, [prism], 
+        return self.effectfunc(self.x, self.y, self.z, [prism],
             props[self.prop])
 
 class Gz(Potential):
@@ -603,14 +602,14 @@ class Gz(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gz
 
 class Gxx(Potential):
     """
-    A container for data of the xx (north-north) component of the gravity 
+    A container for data of the xx (north-north) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -624,14 +623,14 @@ class Gxx(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gxx
 
 class Gxy(Potential):
     """
-    A container for data of the xy (north-east) component of the gravity 
+    A container for data of the xy (north-east) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -645,14 +644,14 @@ class Gxy(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gxy
 
 class Gxz(Potential):
     """
-    A container for data of the xz (north-vertical) component of the gravity 
+    A container for data of the xz (north-vertical) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -666,14 +665,14 @@ class Gxz(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gxz
 
 class Gyy(Potential):
     """
-    A container for data of the yy (east-east) component of the gravity 
+    A container for data of the yy (east-east) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -687,14 +686,14 @@ class Gyy(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gyy
 
 class Gyz(Potential):
     """
-    A container for data of the yz (east-vertical) component of the gravity 
+    A container for data of the yz (east-vertical) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -708,14 +707,14 @@ class Gyz(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gyz
 
 class Gzz(Potential):
     """
-    A container for data of the zz (vertical-vertical) component of the gravity 
+    A container for data of the zz (vertical-vertical) component of the gravity
     gradient tensor.
 
     Coordinate system used: x->North y->East z->Down
@@ -729,7 +728,7 @@ class Gzz(Potential):
         The values of the data at the observation points
 
     """
-    
+
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.gzz
@@ -747,16 +746,16 @@ class TotalField(Potential):
 
     * data : 1D array
         The values of the data at the observation points
-    
+
     * inc, dec : floats
         The inclination and declination of the inducing field
 
     """
-    
+
     def __init__(self, x, y, z, data, inc, dec, meshtype='prism'):
         if meshtype != 'prism':
             raise AttributeError(
-                "Unsupported mesh type '%s' for total field anomaly." 
+                "Unsupported mesh type '%s' for total field anomaly."
                 % (meshtype))
         Potential.__init__(self, x, y, z, data, meshtype)
         self.effectfunc = self.effectmodule.tf
@@ -772,5 +771,5 @@ class TotalField(Potential):
             pinc = props['inclination']
         if 'declination' in props:
             pdec = props['declination']
-        return self.effectfunc(self.x, self.y, self.z, [prism], self.inc, 
+        return self.effectfunc(self.x, self.y, self.z, [prism], self.inc,
             self.dec, pmag=props[self.prop], pinc=pinc, pdec=pdec)
