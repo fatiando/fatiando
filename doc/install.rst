@@ -98,11 +98,5 @@ Try running one of the recipes from the :ref:`Cookbook <cookbook>`.
 If you get an error message,
 please post to the `mailing list`_.
 
-.. tip:: You can download the ``.py`` file by clicking on the ``[source code]``
-    link bellow the recipe title.
-
-.. tip:: On IPython_, you can run something like::
-
-        %load http://fatiando.readthedocs.org/en/latest/_static/cookbook/gravmag_mag_polyprism.py
 
 

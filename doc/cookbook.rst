@@ -9,6 +9,17 @@ like generating synthetic data,
 running inversions,
 and plotting things.
 
+.. tip:: You can download ``.py`` files of the recipes by clicking on the
+    ``[source code]`` link bellow the recipe title.
+
+.. tip:: On IPython_, you can run something like::
+
+        %load http://fatiando.readthedocs.org/en/latest/_static/cookbook/gravmag_mag_polyprism.py
+
+    to load a recipe directly into your session!
+
+.. _IPython: http://www.ipython.org
+
 .. toctree::
     :maxdepth: 1
     :glob:
