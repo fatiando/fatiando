@@ -73,10 +73,10 @@ def animate(i):
         addamp(10.**(6)*u[0, rec])
         addtime(dt*(t + i*steps_per_frame))
         if t == steps_per_frame - 1:
+            vis.mpl.title('time: %0.1f s' % (i*steps_per_frame*dt))
+            seismogram.set_data(times, amps)
+            wavefield.set_array(u[0:-1,0:-1].ravel())
             break
-    vis.mpl.title('time: %0.1f s' % (i*steps_per_frame*dt))
-    seismogram.set_data(times, amps)
-    wavefield.set_array(u[0:-1,0:-1].ravel())
     return seismogram, wavefield
 anim = animation.FuncAnimation(fig, animate, frames=maxit/steps_per_frame,
     interval=1, blit=False)

@@ -10,8 +10,8 @@ log = logger.get()
 # Make a wave source from a mexican hat wavelet
 sources = [seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
 # Set the parameters of the finite difference grid
-shape = (50, 50)
-spacing = (1000, 1000)
+shape = (100, 100)
+spacing = (500, 500)
 area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
 # Make a density and S wave velocity model
 dens = 2700*np.ones(shape)
@@ -54,12 +54,12 @@ steps_per_frame = 10
 def animate(i):
     for t, update in enumerate(timesteps):
         if t == steps_per_frame - 1:
+            ux, uz = update
+            ax_x.set_title('ux time: %0.1f s' % (i*steps_per_frame*dt))
+            wavefieldx.set_array(ux[0:-1,0:-1].ravel())
+            ax_z.set_title('uz time: %0.1f s' % (i*steps_per_frame*dt))
+            wavefieldz.set_array(ux[0:-1,0:-1].ravel())
             break
-    ux, uz = update
-    ax_x.set_title('ux time: %0.1f s' % (i*steps_per_frame*dt))
-    wavefieldx.set_array(ux[0:-1,0:-1].ravel())
-    ax_z.set_title('uz time: %0.1f s' % (i*steps_per_frame*dt))
-    wavefieldz.set_array(ux[0:-1,0:-1].ravel())
     return wavefieldx, wavefieldz
 anim = animation.FuncAnimation(fig, animate,
     frames=maxit/steps_per_frame, interval=1, blit=False)
