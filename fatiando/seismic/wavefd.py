@@ -376,11 +376,11 @@ def _step_elastic_sh_part(args):
     """
     utm1, ut, utp1, area, deltat, dx, dz = args
     x1, x2, z1, z2 = area
-    _step_elastic_sh(u[utp1], u[ut], u[utm1], x1, x2, z1, z2, deltat, 
+    _step_elastic_sh(u[utp1], u[ut], u[utm1], x1, x2, z1, z2, deltat,
         dx, dz, svel_pad)
 
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
-    padding=1.0, jobs=1, split=(1, 1)):
+    padding=1.0, partition=(1, 1)):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -438,6 +438,7 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     yield u[0, 2:-pad, pad:-pad]
     yield u[1, 2:-pad, pad:-pad]
     # Start the process pool
+    jobs = partition[0]*partition[1]
     if jobs > 1:
         parts = _split_grid(split, nx, nz)
         shr_u = Array('d', u.ravel())
@@ -453,11 +454,11 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
         if jobs > 1:
-            pool.map(_step_elastic_sh_part, 
-                [(utm1, ut, utp1, p, deltat, dx, dz) 
+            pool.map(_step_elastic_sh_part,
+                [(utm1, ut, utp1, p, deltat, dx, dz)
                     for p in  parts])
         else:
-            _step_elastic_sh(u[utp1], u[ut], u[utm1], 0, nx - 1, 0, nz - 1,
+            _step_elastic_sh(u[utp1], u[ut], u[utm1], 2, nx - 2, 2, nz - 2,
                 deltat, dx, dz, svel_pad)
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(u[utp1], nx, nz, pad, decay)
@@ -482,7 +483,7 @@ def _step_elastic_psv_x_part(args):
     """
     utm1, ut, utp1, area, deltat, dx, dz = args
     x1, x2, z1, z2 = area
-    _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], x1, x2, z1, z2, 
+    _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], x1, x2, z1, z2,
         deltat, dx, dz, pvel_pad, svel_pad)
 
 def _step_elastic_psv_z_part(args):
@@ -495,13 +496,13 @@ def _step_elastic_psv_z_part(args):
     """
     utm1, ut, utp1, area, deltat, dx, dz = args
     x1, x2, z1, z2 = area
-    _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], x1, x2, z1, z2, 
+    _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], x1, x2, z1, z2,
         deltat, dx, dz, pvel_pad, svel_pad)
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, jobs=1, split=(1, 1)):
     """
-    Simulate SH waves using an explicit finite differences scheme.
+    Simulate P and SV waves using an explicit finite differences scheme.
 
     Parameters:
 
@@ -578,9 +579,9 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
             uz = uz_
             svel_pad = svel_
             pvel_pad = pvel_
-        poolx = Pool(jobs/2, initializer=init, 
+        poolx = Pool(jobs/2, initializer=init,
             initargs=(ux, uz, svel_pad, pvel_pad))
-        poolz = Pool(jobs/2, initializer=init, 
+        poolz = Pool(jobs/2, initializer=init,
             initargs=(ux, uz, svel_pad, pvel_pad))
     # Time steps
     for t in xrange(1, iterations):
@@ -595,10 +596,10 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
             resx.wait()
             resz.wait()
         else:
-            _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], 0, nx, 
-                0, nz, deltat, dx, dz, pvel_pad, svel_pad)
-            _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], 0, nx, 
-                0, nz, deltat, dx, dz, pvel_pad, svel_pad)
+            _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], 2, nx - 2,
+                2, nz - 2, deltat, dx, dz, pvel_pad, svel_pad)
+            _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], 2, nx - 2,
+                2, nz - 2, deltat, dx, dz, pvel_pad, svel_pad)
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(ux[utp1], nx, nz, pad, decay)
         _apply_damping(uz[utp1], nx, nz, pad, decay)
