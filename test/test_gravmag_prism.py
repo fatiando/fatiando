@@ -1,7 +1,7 @@
 import numpy as np
 
 from fatiando.mesher import Prism
-from fatiando.gravmag import _prism, _cprism
+from fatiando.gravmag import _prism, _cprism, _neprism
 
 model = None
 xp, yp, zp = None, None, None
@@ -20,6 +20,13 @@ def setup():
     tmp = np.linspace(-500, 500, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1*np.ones_like(xp)
+
+def test_gz_ne():
+    "gravmag.prism.gz python vs numexpr implementation"
+    py = _prism.gz(xp, yp, zp, model)
+    ne = _neprism.gz(xp, yp, zp, model)
+    diff = np.abs(py - ne)
+    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_potential():
     "gravmag.prism.potential python vs cython implementation"

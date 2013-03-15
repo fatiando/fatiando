@@ -1,14 +1,9 @@
 """
-.. topic:: Python + Numpy + Numexpr implementation.
-
-    Trial version to test numexpr to speed up numpy operations.
-    On large arrays (250000), got 200% improvement over Cython. In small arrays,
-    Cython wins.
-
+Testing numexpr to speedup prism computations
 """
 import numpy
-from numpy import sqrt, log, arctan2
-import numexpr
+
+from numexpr import evaluate
 
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G
 
@@ -18,7 +13,7 @@ def gz(xp, yp, zp, prisms, dens=None):
     Calculates the :math:`g_z` gravity acceleration component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> **DOWN**.
+        y -> East and z -> Down.
 
     .. note:: All input values in **SI** units(!) and output in **mGal**!
 
@@ -36,6 +31,9 @@ def gz(xp, yp, zp, prisms, dens=None):
         If not None, will use this value instead of the ``'density'`` property
         of the prisms. Use this, e.g., for sensitivity matrix building.
 
+        .. warning:: Uses this value for **all** prisms! Not only the ones that
+            have ``'density'`` as a property.
+
     Returns:
 
     * res : array
@@ -44,6 +42,10 @@ def gz(xp, yp, zp, prisms, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    # Minus because Nagy et al (2000) give the formula for the
+    # gradient of the potential. Gravity is -grad(V)
+    kernel = '-(x*log(y + r) + y*log(x + r) - z*arctan2(x*y, z*r))'
+    expr = 'res + ((-1.)**(i + j + k))*(%s)*density' % (kernel)
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -52,25 +54,22 @@ def gz(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        x1, x2, y1, y2, z1, z2 = prism.get_bounds()
         # First thing to do is make the computation point P the origin of the
         # coordinate system
-        x = [numexpr.evaluate('x2 - xp'), numexpr.evaluate('x1 - xp')]
-        y = [numexpr.evaluate('y2 - yp'), numexpr.evaluate('y1 - yp')]
-        z = [numexpr.evaluate('z2 - zp'), numexpr.evaluate('z1 - zp')]
+        x1, x2, y1, y2, z1, z2 = prism.get_bounds()
+        xs = [evaluate('x2 - xp'), evaluate('x1 - xp')]
+        ys = [evaluate('y2 - yp'), evaluate('y1 - yp')]
+        zs = [evaluate('z2 - zp'), evaluate('z1 - zp')]
         # Evaluate the integration limits
         for k in range(2):
+            z = zs[k]
             for j in range(2):
+                y = ys[j]
                 for i in range(2):
-                    xi, yj, zk = x[i], y[j], z[k]
-                    r = numexpr.evaluate('sqrt(xi**2 + yj**2 + zk**2)')
-                    kernel = numexpr.evaluate(
-                        """-(xi*log(yj + r) + \
-                             yj*log(xi + r) - \
-                             zk*arctan2(xi*yj, zk*r))""")
-                    res = numexpr.evaluate(
-                        'res + ((-1.)**(i + j + k))*kernel*density')
+                    x = xs[i]
+                    r = evaluate('sqrt(x**2 + y**2 + z**2)')
+                    res = evaluate(expr)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
-    res = numexpr.evaluate('res*G*SI2MGAL')
+    res *= G*SI2MGAL
     return res
