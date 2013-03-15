@@ -6,6 +6,7 @@ import numpy
 from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
+cimport cython
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
