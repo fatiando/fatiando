@@ -16,9 +16,9 @@ from fatiando import utils
 __all__ = ['gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 
 
-def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
-       numpy.ndarray[DTYPE_T, ndim=1] yp,
-       numpy.ndarray[DTYPE_T, ndim=1] zp, prisms, dens=None):
+def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
+       numpy.ndarray[DTYPE_T, ndim=1] yp not None,
+       numpy.ndarray[DTYPE_T, ndim=1] zp not None, prisms, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -47,12 +47,15 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         The field calculated on xp, yp, zp
 
     """
-    cdef int l, size
-    cdef numpy.ndarray[DTYPE_T, ndim=1] res
+    cdef unsigned int l, size, i, j, k
+    cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
     cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
+    x = numpy.zeros(2, dtype=DTYPE)
+    y = numpy.zeros(2, dtype=DTYPE)
+    z = numpy.zeros(2, dtype=DTYPE)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
             continue
@@ -66,38 +69,23 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp,
         for l in xrange(size):
             # First thing to do is make the computation point P the origin of
             # the coordinate system
-            # Note: doing x1, x2 instead of x2, x1 because this cancels the
-            # changed sign of the equations bellow with respect to the formula
-            # of Nagy et al (2000)
-            dx1, dx2 = x1 - xp[l], x2 - xp[l]
-            dy1, dy2 = y1 - yp[l], y2 - yp[l]
-            dz1, dz2 = z1 - zp[l], z2 - zp[l]
+            x[0] = x2 - xp[l]
+            x[1] = x1 - xp[l]
+            y[0] = y2 - yp[l]
+            y[1] = y1 - yp[l]
+            z[0] = z2 - zp[l]
+            z[1] = z1 - zp[l]
             # Evaluate the integration limits
-            r = sqrt(dx1**2 + dy1**2 + dz1**2)
-            kernel = (dx1*log(dy1 + r) + dy1*log(dx1 + r) -
-                      dz1*atan2(dx1*dy1, dz1*r))
-            r = sqrt(dx2**2 + dy1**2 + dz1**2)
-            kernel += -(dx2*log(dy1 + r) + dy1*log(dx2 + r) -
-                        dz1*atan2(dx2*dy1, dz1*r))
-            r = sqrt(dx1**2 + dy2**2 + dz1**2)
-            kernel += -(dx1*log(dy2 + r) + dy2*log(dx1 + r) -
-                        dz1*atan2(dx1*dy2, dz1*r))
-            r = sqrt(dx2**2 + dy2**2 + dz1**2)
-            kernel += (dx2*log(dy2 + r) + dy2*log(dx2 + r) -
-                       dz1*atan2(dx2*dy2, dz1*r))
-            r = sqrt(dx1**2 + dy1**2 + dz2**2)
-            kernel += -(dx1*log(dy1 + r) + dy1*log(dx1 + r) -
-                        dz2*atan2(dx1*dy1, dz2*r))
-            r = sqrt(dx2**2 + dy1**2 + dz2**2)
-            kernel += (dx2*log(dy1 + r) + dy1*log(dx2 + r) -
-                       dz2*atan2(dx2*dy1, dz2*r))
-            r = sqrt(dx1**2 + dy2**2 + dz2**2)
-            kernel += (dx1*log(dy2 + r) + dy2*log(dx1 + r) -
-                       dz2*atan2(dx1*dy2, dz2*r))
-            r = sqrt(dx2**2 + dy2**2 + dz2**2)
-            kernel += -(dx2*log(dy2 + r) + dy2*log(dx2 + r) -
-                        dz2*atan2(dx2*dy2, dz2*r))
-            res[l] += kernel*density
+            for k in range(2):
+                for j in range(2):
+                    for i in range(2):
+                        r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                        # Minus because Nagy et al (2000) give the formula for the
+                        # gradient of the potential. Gravity is -grad(V)
+                        kernel = -(x[i]*log(y[j] + r)
+                                   + y[j]*log(x[i] + r)
+                                   - z[k]*atan2(x[i]*y[j], z[k]*r))
+                        res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
     res *= G*SI2MGAL
