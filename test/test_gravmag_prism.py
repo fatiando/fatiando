@@ -167,3 +167,10 @@ def test_gzz_ne():
     ne = _neprism.gzz(xp, yp, zp, model)
     diff = np.abs(py - ne)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
+def test_tf_ne():
+    "gravmag.prism.tf python vs numexpr implementation"
+    py = _prism.tf(xp, yp, zp, model, inc, dec)
+    ne = _neprism.tf(xp, yp, zp, model, inc, dec)
+    diff = np.abs(py - ne)
+    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
