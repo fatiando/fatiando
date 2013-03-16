@@ -69,6 +69,8 @@ from math import sqrt
 
 import numpy
 
+from fatiando.gravmag import prism as prism_engine
+from fatiando.gravmag import tesseroid as tesseroid_engine
 from fatiando import utils
 import fatiando.logger
 
@@ -554,11 +556,9 @@ class Data(object):
         if self.meshtype not in ['prism', 'tesseroid']:
             raise AttributeError("Invalid mesh type '%s'" % (meshtype))
         if self.meshtype == 'prism':
-            import fatiando.gravmag.prism
-            self.effectmodule = fatiando.gravmag.prism
+            self.engine = prism_engine
         if self.meshtype == 'tesseroid':
-            import fatiando.gravmag.tesseroid
-            self.effectmodule = fatiando.gravmag.tesseroid
+            self.engine = tesseroid_engine
 
 class Potential(Data):
     """
@@ -579,7 +579,7 @@ class Potential(Data):
     def __init__(self, x, y, z, data, meshtype='prism'):
         Data.__init__(self, x, y, z, data, meshtype)
         self.prop = 'density'
-        self.effectfunc = self.effectmodule.potential
+        self.effectfunc = self.engine.potential
 
     def effect(self, prism, props):
         if self.prop not in props:
@@ -605,7 +605,7 @@ class Gz(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gz
+        self.effectfunc = self.engine.gz
 
 class Gxx(Potential):
     """
@@ -626,7 +626,7 @@ class Gxx(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gxx
+        self.effectfunc = self.engine.gxx
 
 class Gxy(Potential):
     """
@@ -647,7 +647,7 @@ class Gxy(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gxy
+        self.effectfunc = self.engine.gxy
 
 class Gxz(Potential):
     """
@@ -668,7 +668,7 @@ class Gxz(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gxz
+        self.effectfunc = self.engine.gxz
 
 class Gyy(Potential):
     """
@@ -689,7 +689,7 @@ class Gyy(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gyy
+        self.effectfunc = self.engine.gyy
 
 class Gyz(Potential):
     """
@@ -710,7 +710,7 @@ class Gyz(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gyz
+        self.effectfunc = self.engine.gyz
 
 class Gzz(Potential):
     """
@@ -731,7 +731,7 @@ class Gzz(Potential):
 
     def __init__(self, x, y, z, data, meshtype='prism'):
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.gzz
+        self.effectfunc = self.engine.gzz
 
 class TotalField(Potential):
     """
@@ -758,7 +758,7 @@ class TotalField(Potential):
                 "Unsupported mesh type '%s' for total field anomaly."
                 % (meshtype))
         Potential.__init__(self, x, y, z, data, meshtype)
-        self.effectfunc = self.effectmodule.tf
+        self.effectfunc = self.engine.tf
         self.prop = 'magnetization'
         self.inc = inc
         self.dec = dec
