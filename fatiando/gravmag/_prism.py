@@ -1,7 +1,7 @@
 """
-.. note:: 
+.. note::
 
-    This is a Python + Numpy implementation of the potential field effects of 
+    This is a Python + Numpy implementation of the potential field effects of
     right rectangular prisms. There is a Cython implementation in _cprism.pyx
     It will be loaded automatically if it is compiled.
 
@@ -13,7 +13,7 @@ from numpy import sqrt, log, arctan2
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from fatiando import utils
 
-__all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 
+__all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
 
@@ -76,8 +76,7 @@ def potential(xp, yp, zp, prisms, dens=None):
                               - 0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r)
                               - 0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
-    # Now all that is left is to multiply res by the gravitational constant and
-    # convert it to mGal units
+    # Now all that is left is to multiply res by the gravitational constant
     res *= G
     return res
 
