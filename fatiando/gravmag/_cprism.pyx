@@ -64,7 +64,7 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T magnetization, kernel, r, r_sqr
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     cdef DTYPE_T fx, fy, fz, mx, my, mz
     if len(xp) != len(yp) != len(zp):
         raise ValueError("Input arrays xp, yp, and zp must have same length!")
@@ -162,7 +162,7 @@ def potential(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -237,7 +237,7 @@ def gx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -312,7 +312,7 @@ def gy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -387,7 +387,7 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -462,7 +462,7 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -533,7 +533,7 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -604,7 +604,7 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -675,7 +675,7 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -746,7 +746,7 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
@@ -817,7 +817,7 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T density, kernel, r
-    cdef DTYPE_T x1, x2, y1, y2, z1, z2, dx1, dx2, dy1, dy2, dz1, dz2
+    cdef DTYPE_T x1, x2, y1, y2, z1, z2
     size = len(xp)
     res = numpy.zeros(size, dtype=DTYPE)
     x = numpy.zeros(2, dtype=DTYPE)
