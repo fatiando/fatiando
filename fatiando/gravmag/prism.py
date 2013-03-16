@@ -36,6 +36,6 @@ doi: 10.1007/s001900000116.
 """
 from fatiando.gravmag._prism import *
 try:
-    from fatiando.gravmag_cprism import *
+    from fatiando.gravmag._cprism import *
 except ImportError:
     pass
