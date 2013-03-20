@@ -54,6 +54,10 @@ deps: requires.txt
 package: docs-pdf
 	$(PY) setup.py sdist --formats=zip,gztar
 
+# UPLOAD TO PYPI
+.PHONY: upload
+	python setup.py register sdist --formats=zip,gztar upload
+
 # CLEAN THINGS UP
 .PHONY: clean
 clean:
