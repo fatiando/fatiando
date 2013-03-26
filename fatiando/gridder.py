@@ -141,7 +141,7 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 
-    .. warning:: Doesn't extrapolate. Will return a masked array in the 
+    .. warning:: Doesn't extrapolate. Will return a masked array in the
         extrapolated areas.
 
     Parameters:
@@ -156,7 +156,7 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
         The are where the data will be interpolated. If None, then will get the
         area from *x* and *y*.
     * algorithm : string
-        Interpolation algorithm. Either ``'nn'`` for natural neighbor 
+        Interpolation algorithm. Either ``'nn'`` for natural neighbor
         or ``'linear'`` for linear interpolation. (see numpy.griddata)
 
     Returns:
@@ -179,7 +179,12 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
 
 def cut(x, y, scalars, area):
     """
-    Remove a subsection of the grid.
+    Return a subsection of a grid.
+
+    The returned subsection is not a copy! In technical terms, returns a slice
+    of the numpy arrays. So changes made to the subsection reflect on the
+    original grid. Use numpy.copy to make copies of the subsections and avoid
+    this.
 
     Parameters:
 
@@ -197,12 +202,8 @@ def cut(x, y, scalars, area):
 
     """
     xmin, xmax, ymin, ymax = area
-    inside = []
-    for i, coords in enumerate(zip(x, y)):
-        xp, yp = coords
-        if xp >= xmin and xp <= xmax and yp >= ymin and yp <= ymax:
-            inside.append(i)
-    subx = numpy.array([x[i] for i in inside])
-    suby = numpy.array([y[i] for i in inside])
-    subscalars = [numpy.array([scl[i] for i in inside]) for scl in scalars]
-    return [subx, suby, subscalars]
+    if len(x) != len(y):
+        raise ValueError("x and y must have the same length")
+    inside = [i for i in xrange(len(x))
+            if x[i] >= xmin and x[i] <= xmax and y[i] >= ymin and y[i] <= ymax]
+    return [x[inside], y[inside], [s[inside] for s in scalars]]
