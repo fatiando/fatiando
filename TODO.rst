@@ -1,8 +1,10 @@
 MAG REFACTOR:
 * Change utils.dircos to include magnitude (utils.angles2vec?) Keep dircos for
   backward compat
-* Use physical prop 'magnetization' as 3 comp vector and remove inc and dec
-
+* Update recipes
+* Update inversions
+* Update numexpr
+* Update tests between prism python/cython/numexpr
 
 GOALS FOR 0.3:
 
