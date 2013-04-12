@@ -10,23 +10,28 @@ from distutils.core import setup
 from distutils.extension import Extension
 try:
     from Cython.Distutils import build_ext
+    import numpy
     ext_modules = [
         Extension("fatiando.gravmag._cprism",
                   [join('fatiando', 'gravmag', '_cprism.pyx')],
                   libraries=['m'],
-                  extra_compile_args=['-O3']),
+                  extra_compile_args=['-O3'],
+                  include_dirs=[numpy.get_include()]),
         Extension("fatiando.gravmag._ctesseroid",
                   [join('fatiando', 'gravmag', '_ctesseroid.pyx')],
                   libraries=['m'],
-                  extra_compile_args=['-O3']),
+                  extra_compile_args=['-O3'],
+                  include_dirs=[numpy.get_include()]),
         Extension("fatiando.seismic._cttime2d",
                   [join('fatiando', 'seismic', '_cttime2d.pyx')],
                   libraries=['m'],
-                  extra_compile_args=['-O3']),
+                  extra_compile_args=['-O3'],
+                  include_dirs=[numpy.get_include()]),
         Extension("fatiando.seismic._cwavefd",
                   [join('fatiando', 'seismic', '_cwavefd.pyx')],
                   libraries=['m'],
-                  extra_compile_args=['-O3'])]
+                  extra_compile_args=['-O3'],
+                  include_dirs=[numpy.get_include()])]
     CYTHON = True
 except ImportError:
     print ("Couldn't find Cython to build C extension.\n" +
