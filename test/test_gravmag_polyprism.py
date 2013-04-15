@@ -11,16 +11,17 @@ precision = 10**(-6)
 
 def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
+    inc, dec = -30, 50
     props = {'density':2., 'magnetization':1, 'declination':-10,
              'inclination':25}
-    props_prism = {'density':2., 'magnetization':utils.dircos(25, -10)}
+    props_prism = {'density':2.,
+                   'magnetization':utils.dircos(25, -10)}
     model = [PolygonalPrism([
             [100, -100],
             [100, 100],
             [-100, 100],
             [-100, -100]], 100, 300, props)]
     prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props_prism)]
-    inc, dec = -30, 50
     tmp = np.linspace(-500, 500, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1*np.ones_like(xp)

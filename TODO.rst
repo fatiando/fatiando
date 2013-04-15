@@ -3,8 +3,6 @@ MAG REFACTOR:
   backward compat
 * Update recipes
 * Update inversions
-* Update numexpr
-* Update tests between prism python/cython/numexpr
 
 GOALS FOR 0.3:
 

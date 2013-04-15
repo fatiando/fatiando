@@ -52,7 +52,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     kernel = ''.join([
-        'res + ((-1.)**(i + j))*magnetization*(',
+        'res + ((-1.)**(i + j))*intensity*(',
         '0.5*(my*fz + mz*fy)*log((r - x)/(r + x))',
         ' + 0.5*(mx*fz + mz*fx)*log((r - y)/(r + y))',
         ' - (mx*fy + my*fx)*log(r + z)',
@@ -63,26 +63,19 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        pintensity = numpy.linalg.norm(pmag)
+        pmx, pmy, pmz = numpy.array(pmag)/pintensity
     for prism in prisms:
         if (prism is None or
             ('magnetization' not in prism.props and pmag is None)):
             continue
         if pmag is None:
-            magnetization = prism.props['magnetization']
+            intensity = numpy.linalg.norm(prism.props['magnetization'])
+            mx, my, mz = numpy.array(prism.props['magnetization'])/intensity
         else:
-            magnetization = pmag
-        # Get the 3 components of the unit vector in the direction of the
-        # magnetization from the inclination and declination
-        # 1) given by the function
-        if pinc is not None and pdec is not None:
-            mx, my, mz = utils.dircos(pinc, pdec)
-        # 2) given by the prism
-        elif 'inclination' in prism.props and 'declination' in prism.props:
-            mx, my, mz = utils.dircos(prism.props['inclination'],
-                                      prism.props['declination'])
-        # 3) Use in the direction of the regional field
-        else:
-            mx, my, mz = fx, fy, fz
+            intensity = pintensity
+            mx, my, mz = pmx, pmy, pmz
         # First thing to do is make the computation point P the origin of the
         # coordinate system
         x1, x2, y1, y2, z1, z2 = prism.get_bounds()
@@ -91,7 +84,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         zs = [evaluate('z2 - zp'), evaluate('z1 - zp')]
         # Now calculate the total field anomaly
         for k in range(2):
-            magnetization *= -1
+            intensity *= -1
             z = zs[k]
             z_sqr = evaluate('z**2')
             for j in range(2):
