@@ -31,6 +31,8 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
   Gaussian noise
 * :func:`~fatiando.utils.dircos`: Get the 3 coordinates of a unit vector
+* :func:`~fatiando.utils.ang2vec`: Convert intensity, inclination and
+  declination to a 3-component vector
 * :func:`~fatiando.utils.vecmean`: Take the mean array out of a list of arrays
 * :func:`~fatiando.utils.vecstd` Take the standard deviation array out of a list
   of arrays
@@ -179,6 +181,30 @@ def mgal2si(value):
 
     """
     return value/fatiando.constants.SI2MGAL
+
+def ang2vec(intensity, inc, dec):
+    """
+    Convert intensity, inclination and  declination to a 3-component vector
+
+    .. note:: Coordinate system is assumed to be x->North, y->East, z->Down.
+        Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Parameter:
+
+    * intensity : float
+        The intensity (norm) of the vector
+    * inc : float
+        The inclination of the vector (in degrees)
+    * dec : float
+        The declination of the vector (in degrees)
+
+    Returns:
+
+    * vec : array = [x, y, z]
+        The vector
+    """
+    return intensity*numpy.array(dircos(inc, dec))
 
 def dircos(inc, dec):
     """
