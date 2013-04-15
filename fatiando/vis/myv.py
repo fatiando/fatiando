@@ -169,6 +169,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
         prism doesn't have *prop*, or if it is None, then it will not be plotted
+        If prop is a vector (like magnetization), will use the intensity (norm).
     * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
@@ -214,7 +215,10 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
             continue
         x, y = prism.x, prism.y
         nverts = prism.nverts
-        scalar = prism.props[prop]
+        if prop is None:
+            scalar = 0.
+        else:
+            scalar = numpy.linalg.norm(prism.props[prop])
         # The top surface
         points.extend(
             reversed(numpy.transpose([x, y, prism.z1*numpy.ones_like(x)])))
@@ -275,11 +279,12 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     Parameters:
 
     * tesseroids : list of :class:`fatiando.mesher.Tesseroid`
-        The prisms
+        The tesseroids
     * prop : str or None
         The physical property of the tesseroids to use as the color scale. If a
         tesseroid doesn't have *prop*, or if it is None, then it will not be
-        plotted
+        plotted. If prop is a vector (like magnetization), will use the
+        intensity (norm).
     * style : str
         Either ``'surface'`` for solid tesseroids or ``'wireframe'`` for just
         the contour
@@ -333,7 +338,7 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         if prop is None:
             scalar = 0.
         else:
-            scalar = tess.props[prop]
+            scalar = numpy.linalg.norm(tess.props[prop])
         points.extend([
             utils.sph2cart(w, s, bottom),
             utils.sph2cart(e, s, bottom),
@@ -408,6 +413,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
         prism doesn't have *prop*, or if it is None, then it will not be plotted
+        If prop is a vector (like magnetization), will use the intensity (norm).
     * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
@@ -461,7 +467,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         if prop is None:
             scalar = 0.
         else:
-            scalar = prism.props[prop]
+            scalar = numpy.linalg.norm(prism.props[prop])
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
