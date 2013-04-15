@@ -638,8 +638,10 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.Prism`
         The model used to calculate the total field anomaly.
-        Prisms must have the physical property ``'magnetization'`` will be
-        ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
+        Prisms must have the physical property ``'magnetization'``. This should
+        be a 3-component array of the total magnetization vector (induced +
+        remanent). Prisms without the physical property ``'magnetization'`` will
+        be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float

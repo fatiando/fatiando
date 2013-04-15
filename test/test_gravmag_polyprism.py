@@ -12,10 +12,9 @@ precision = 10**(-6)
 def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
     inc, dec = -30, 50
-    props = {'density':2., 'magnetization':1, 'declination':-10,
-             'inclination':25}
-    props_prism = {'density':2.,
-                   'magnetization':utils.dircos(25, -10)}
+    mag = utils.dircos(25, -10)
+    props = {'density':2., 'magnetization':mag}
+    props_prism = {'density':2., 'magnetization':mag}
     model = [PolygonalPrism([
             [100, -100],
             [100, 100],

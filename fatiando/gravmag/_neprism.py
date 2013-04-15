@@ -9,7 +9,7 @@ from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from fatiando import utils
 
 
-def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
+def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     """
     Calculate the total-field anomaly of prisms.
 
@@ -24,24 +24,18 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None, pinc=None, pdec=None):
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.Prism`
         The model used to calculate the total field anomaly.
-        Prisms must have the physical property ``'magnetization'`` will be
-        ignored. If the physical properties ``'inclination'`` and
-        ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead (regional field).
-        *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
+        Prisms must have the physical property ``'magnetization'``. This should
+        be a 3-component array of the total magnetization vector (induced +
+        remanent). Prisms without the physical property ``'magnetization'`` will
+        be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
         The declination of the regional field (in degrees)
-    * pmag : float or None
-        If not None, will use this value instead of the ``'magnetization'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
-    * pinc : float or None
-        If not None, will use this value instead of the ``'inclination'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
-    * pdec : float or None
-        If not None, will use this value instead of the ``'declination'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
