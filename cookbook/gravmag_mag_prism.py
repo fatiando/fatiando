@@ -2,29 +2,33 @@
 GravMag: 3D forward modeling of total-field magnetic anomaly using rectangular
 prisms (model with induced and remanent magnetization)
 """
-from fatiando import logger, mesher, gridder, gravmag
+from fatiando import logger, mesher, gridder, gravmag, utils
 from fatiando.vis import mpl, myv
 
 log = logger.get()
 log.info(logger.header())
 log.info(__doc__)
 
+# The regional field
+inc, dec = 30, -15
+# Use induced and remanent magnetization
+regional = utils.ang2vec(1, inc, dec)
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 prisms = [
     mesher.Prism(-4000,-3000,-4000,-3000,0,2000,
-        {'magnetization':2}),
+        {'magnetization':2*regional}),
     mesher.Prism(-1000,1000,-1000,1000,0,2000,
-        {'magnetization':1}),
+        {'magnetization':1*regional}),
     # This prism has remanent magnetization because it's physical property
     # dict has inclination and declination
     mesher.Prism(2000,4000,3000,4000,0,2000,
-        {'magnetization':3, 'inclination':-10, 'declination':45})]
+        {'magnetization':utils.ang2vec(3, -10, 45)})] # induced + remanent
 # Create a regular grid at 100m height
 shape = (200, 200)
 area = bounds[:4]
 xp, yp, zp = gridder.regular(area, shape, z=-500)
 # Calculate the anomaly for a given regional field
-tf = gravmag.prism.tf(xp, yp, zp, prisms, 30, -15)
+tf = gravmag.prism.tf(xp, yp, zp, prisms, inc, dec)
 # Plot
 mpl.figure()
 mpl.title("Total-field anomaly (nT)")
