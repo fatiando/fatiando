@@ -1226,8 +1226,9 @@ def vfilter(vmin, vmax, prop, cells):
 
     """
     def isin(cell):
-        if (cell is None or prop not in cell.props or cell.props[prop] < vmin
-            or cell.props[prop] > vmax):
+        if (cell is None or prop not in cell.props or
+            numpy.linalg.norm(cell.props[prop]) < vmin or
+            numpy.linalg.norm(cell.props[prop]) > vmax):
             return False
         return True
     return [c for c in cells if isin(c)]
