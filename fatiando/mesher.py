@@ -862,7 +862,7 @@ class PrismMesh(object):
 
     def __getitem__(self, index):
         if index >= self.size or index < -self.size:
-            raise IndexError('mesh index out of range')            
+            raise IndexError('mesh index out of range')
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
@@ -957,8 +957,8 @@ class PrismMesh(object):
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
-                if (masked or 
-                    (cellz < h and self.zdown) or 
+                if (masked or
+                    (cellz < h and self.zdown) or
                     (cellz > h and not self.zdown)):
                     self.mask.append(c)
                 c += 1
@@ -1109,15 +1109,15 @@ class TesseroidMesh(PrismMesh):
     """
     Generate a 3D regular mesh of tesseroids.
 
-    Tesseroids are ordered as follows: first layers (height coordinate), 
+    Tesseroids are ordered as follows: first layers (height coordinate),
     then N-S rows and finaly E-W.
 
-    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height 
+    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height
     index 1 (second layer), y index 1 (second row), and x index 2 (
     third element in the column).
 
     This class can used as list of tesseroids. It acts
-    as an iteratior (so you can loop over tesseroids). 
+    as an iteratior (so you can loop over tesseroids).
     It also has a ``__getitem__``
     method to access individual elements in the mesh.
     In practice, it should be able to be
@@ -1130,7 +1130,7 @@ class TesseroidMesh(PrismMesh):
     Parameters:
 
     * bounds : list = [w, e, s, n, top, bottom]
-        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and 
+        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and
         ``bottom`` are heights (positive upward) and in meters.
     * shape : tuple = (nr, nlat, nlon)
         Number of tesseroids in the radial, latitude, and longitude directions.
@@ -1244,9 +1244,10 @@ def vremove(value, prop, cells):
     Parameters:
 
     * value : float
-        The value of the physical property to remove
+        The value of the physical property to remove. If the physical property
+        is a vector, will compare the norm of the vector to **value**.
     * prop : str
-        The name of the physicaRemove cells whose physical property value falls outside a given rangel property
+        The name of the physical property to remove
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
         :class:`~fatiando.mesher.PolygonalPrism`, etc)
@@ -1274,6 +1275,7 @@ def vremove(value, prop, cells):
 
     """
     removed = [c for c in cells
-        if c is not None and (prop not in c.props or c.props[prop] != value)]
+        if c is not None and
+        (prop not in c.props or numpy.linalg.norm(c.props[prop]) != value)]
     return removed
 
