@@ -862,7 +862,7 @@ class PrismMesh(object):
 
     def __getitem__(self, index):
         if index >= self.size or index < -self.size:
-            raise IndexError('mesh index out of range')            
+            raise IndexError('mesh index out of range')
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
@@ -957,8 +957,8 @@ class PrismMesh(object):
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
-                if (masked or 
-                    (cellz < h and self.zdown) or 
+                if (masked or
+                    (cellz < h and self.zdown) or
                     (cellz > h and not self.zdown)):
                     self.mask.append(c)
                 c += 1
@@ -1097,27 +1097,25 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = (v if i not in self.mask else -10000000
-                  for i, v in enumerate(self.props[prop]))
-        numpy.savetxt(
-            propfile,
-            numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
-                self.shape), order='F'),
-            fmt='%.4f')
+        values = numpy.array(self.props[prop])
+        # Replace the masked cells with a dummy value
+        values[self.mask] = -10000000
+        reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
+        numpy.savetxt(propfile, reordered, fmt='%.4f')
 
 class TesseroidMesh(PrismMesh):
     """
     Generate a 3D regular mesh of tesseroids.
 
-    Tesseroids are ordered as follows: first layers (height coordinate), 
+    Tesseroids are ordered as follows: first layers (height coordinate),
     then N-S rows and finaly E-W.
 
-    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height 
+    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height
     index 1 (second layer), y index 1 (second row), and x index 2 (
     third element in the column).
 
     This class can used as list of tesseroids. It acts
-    as an iteratior (so you can loop over tesseroids). 
+    as an iteratior (so you can loop over tesseroids).
     It also has a ``__getitem__``
     method to access individual elements in the mesh.
     In practice, it should be able to be
@@ -1130,7 +1128,7 @@ class TesseroidMesh(PrismMesh):
     Parameters:
 
     * bounds : list = [w, e, s, n, top, bottom]
-        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and 
+        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and
         ``bottom`` are heights (positive upward) and in meters.
     * shape : tuple = (nr, nlat, nlon)
         Number of tesseroids in the radial, latitude, and longitude directions.
