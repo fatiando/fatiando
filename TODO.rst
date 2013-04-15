@@ -1,9 +1,3 @@
-MAG REFACTOR:
-* Change utils.dircos to include magnitude (utils.angles2vec?) Keep dircos for
-  backward compat
-* Update recipes
-* Update inversions
-
 GOALS FOR 0.3:
 
 * Write Developers Guide:
@@ -40,9 +34,6 @@ GOALS FOR 0.2:
 * Make unit tests to test Cython prism against numpy prism
 * Make unit test for talwani comparing with prism
 * Make unit test for polyprism comparing with prism
-
-GOALS FOR 0.1:
-
 * Finish the tutorial for harvester
 * Write the overview section in docs
 * Update formula in the docstring of seis.wavefd (the code is fourth order)
