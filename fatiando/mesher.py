@@ -1097,7 +1097,7 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = numpy.array(self.props[prop])
+        values = numpy.fromiter(self.props[prop], dtype='f')
         # Replace the masked cells with a dummy value
         values[self.mask] = -10000000
         reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
