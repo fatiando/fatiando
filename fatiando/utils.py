@@ -308,9 +308,7 @@ class SparseList(object):
             index = self.size + index
         if index >= self.size or index < 0:
             raise IndexError('index out of range')
-        if index not in self.elements:
-            return 0.0
-        return self.elements[index]
+        return self.elements.get(index, 0.)
 
     def __setitem__(self, key, value):
         if key >= self.size:
