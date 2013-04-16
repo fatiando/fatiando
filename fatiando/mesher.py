@@ -1224,8 +1224,9 @@ def vfilter(vmin, vmax, prop, cells):
 
     """
     def isin(cell):
-        if (cell is None or prop not in cell.props or cell.props[prop] < vmin
-            or cell.props[prop] > vmax):
+        if (cell is None or prop not in cell.props or
+            numpy.linalg.norm(cell.props[prop]) < vmin or
+            numpy.linalg.norm(cell.props[prop]) > vmax):
             return False
         return True
     return [c for c in cells if isin(c)]
@@ -1242,9 +1243,10 @@ def vremove(value, prop, cells):
     Parameters:
 
     * value : float
-        The value of the physical property to remove
+        The value of the physical property to remove. If the physical property
+        is a vector, will compare the norm of the vector to **value**.
     * prop : str
-        The name of the physicaRemove cells whose physical property value falls outside a given rangel property
+        The name of the physical property to remove
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
         :class:`~fatiando.mesher.PolygonalPrism`, etc)
@@ -1272,6 +1274,7 @@ def vremove(value, prop, cells):
 
     """
     removed = [c for c in cells
-        if c is not None and (prop not in c.props or c.props[prop] != value)]
+        if c is not None and
+        (prop not in c.props or numpy.linalg.norm(c.props[prop]) != value)]
     return removed
 

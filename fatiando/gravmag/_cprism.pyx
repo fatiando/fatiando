@@ -21,7 +21,7 @@ __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
 def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
        numpy.ndarray[DTYPE_T, ndim=1] yp not None,
        numpy.ndarray[DTYPE_T, ndim=1] zp not None, prisms,
-       double inc, double dec, pmag=None, pinc=None, pdec=None):
+       double inc, double dec, pmag=None):
     """
     Calculate the total-field anomaly of prisms.
 
@@ -36,24 +36,18 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.Prism`
         The model used to calculate the total field anomaly.
-        Prisms must have the physical property ``'magnetization'`` will be
-        ignored. If the physical properties ``'inclination'`` and
-        ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead (regional field).
-        *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
+        Prisms must have the physical property ``'magnetization'``. This should
+        be a 3-component array of the total magnetization vector (induced +
+        remanent). Prisms without the physical property ``'magnetization'`` will
+        be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
         The declination of the regional field (in degrees)
-    * pmag : float or None
-        If not None, will use this value instead of the ``'magnetization'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
-    * pinc : float or None
-        If not None, will use this value instead of the ``'inclination'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
-    * pdec : float or None
-        If not None, will use this value instead of the ``'declination'``
-        property of the prisms. Use this, e.g., for sensitivity matrix building.
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -63,9 +57,9 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     """
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
-    cdef DTYPE_T magnetization, kernel, r, r_sqr
+    cdef DTYPE_T intensity, pintensity, kernel, r, r_sqr
     cdef DTYPE_T x1, x2, y1, y2, z1, z2
-    cdef DTYPE_T fx, fy, fz, mx, my, mz
+    cdef DTYPE_T fx, fy, fz, mx, my, mz, pmx, pmy, pmz
     if len(xp) != len(yp) != len(zp):
         raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
@@ -73,6 +67,9 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        pintensity = numpy.linalg.norm(pmag)
+        pmx, pmy, pmz = numpy.array(pmag)/pintensity
     x = numpy.zeros(2, dtype=DTYPE)
     y = numpy.zeros(2, dtype=DTYPE)
     z = numpy.zeros(2, dtype=DTYPE)
@@ -81,21 +78,11 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
             ('magnetization' not in prism.props and pmag is None)):
             continue
         if pmag is None:
-            magnetization = prism.props['magnetization']
+            intensity = numpy.linalg.norm(prism.props['magnetization'])
+            mx, my, mz = numpy.array(prism.props['magnetization'])/intensity
         else:
-            magnetization = pmag
-        # Get the 3 components of the unit vector in the direction of the
-        # magnetization from the inclination and declination
-        # 1) given by the function
-        if pinc is not None and pdec is not None:
-            mx, my, mz = utils.dircos(pinc, pdec)
-        # 2) given by the prism
-        elif 'inclination' in prism.props and 'declination' in prism.props:
-            mx, my, mz = utils.dircos(prism.props['inclination'],
-                                      prism.props['declination'])
-        # 3) Use in the direction of the regional field
-        else:
-            mx, my, mz = fx, fy, fz
+            intensity = pintensity
+            mx, my, mz = pmx, pmy, pmz
         # Calculate on all computation points
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
@@ -110,12 +97,12 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
             z[0] = z2 - zp[l]
             z[1] = z1 - zp[l]
             for k in range(2):
-                magnetization *= -1.
+                intensity *= -1.
                 for j in range(2):
                     for i in range(2):
                         r_sqr = x[i]**2 + y[j]**2 + z[k]**2
                         r = sqrt(r_sqr)
-                        res[l] += ((-1.)**(i + j))*magnetization*(
+                        res[l] += ((-1.)**(i + j))*intensity*(
                               0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
                             + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
                             - (mx*fy + my*fx)*log(r + z[k])

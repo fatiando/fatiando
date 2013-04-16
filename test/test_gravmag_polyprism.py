@@ -1,7 +1,7 @@
 import numpy as np
 
 from fatiando.mesher import PolygonalPrism, Prism
-from fatiando import gravmag
+from fatiando import gravmag, utils
 
 model = None
 prismmodel = None
@@ -11,15 +11,16 @@ precision = 10**(-6)
 
 def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
-    props = {'density':2., 'magnetization':1, 'declination':-10,
-             'inclination':25}
+    inc, dec = -30, 50
+    mag = utils.dircos(25, -10)
+    props = {'density':2., 'magnetization':mag}
+    props_prism = {'density':2., 'magnetization':mag}
     model = [PolygonalPrism([
             [100, -100],
             [100, 100],
             [-100, 100],
             [-100, -100]], 100, 300, props)]
-    prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props)]
-    inc, dec = -30, 50
+    prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props_prism)]
     tmp = np.linspace(-500, 500, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1*np.ones_like(xp)

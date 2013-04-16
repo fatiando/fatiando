@@ -7,10 +7,14 @@ from fatiando.vis import mpl, myv
 log = logger.get()
 log.info(logger.header())
 
+# The regional field
+inc, dec = 30, -15
+# Use only induced magnetization with and amplitude of 2 A/m
+mag = utils.ang2vec(2, inc, dec)
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    mesher.Prism(-500, 500, -500, 500, 1000, 2000, {'magnetization':2})]
+    mesher.Prism(-500, 500, -500, 500, 1000, 2000, {'magnetization':mag})]
 # Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
@@ -20,7 +24,7 @@ baselevel = 10
 # Convert from nanoTesla to Tesla because euler and derivatives require things
 # in SI
 tf = (utils.contaminate(
-        utils.nt2si(gravmag.prism.tf(xp, yp, zp, model, inc=-45, dec=0)),
+        utils.nt2si(gravmag.prism.tf(xp, yp, zp, model, inc, dec)),
         0.005, percent=True)
       + baselevel)
 # Calculate the derivatives using FFT

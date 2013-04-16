@@ -766,10 +766,5 @@ class TotalField(Potential):
     def effect(self, prism, props):
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
-        pinc, pdec = None, None
-        if 'inclination' in props:
-            pinc = props['inclination']
-        if 'declination' in props:
-            pdec = props['declination']
         return self.effectfunc(self.x, self.y, self.z, [prism], self.inc,
-            self.dec, pmag=props[self.prop], pinc=pinc, pdec=pdec)
+            self.dec, pmag=props[self.prop])

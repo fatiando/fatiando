@@ -50,7 +50,7 @@ Then the total-field anomaly caused by the sphere is
 """
 import numpy
 
-from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
+from fatiando.constants import SI2MGAL, G, CM, T2NT
 from fatiando import utils
 
 
@@ -65,10 +65,10 @@ def tf(xp, yp, zp, spheres, inc, dec):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the anomaly will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
-        The spheres. Spheres must have the properties ``'magnetization'``,
-        ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
-        ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead. Those without ``'magnetization'`` will be ignored.
+        The spheres. Spheres must have the physical property
+        ``'magnetization'``. This should be a 3-component array of the total
+        magnetization vector (induced + remanent). Spheres without the
+        physical property ``'magnetization'`` will be ignored.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
@@ -90,16 +90,9 @@ def tf(xp, yp, zp, spheres, inc, dec):
         if sphere is None or 'magnetization' not in sphere.props:
             continue
         radius = sphere.radius
-        mag = sphere.props['magnetization']
-        # Get the 3 components of the unit vector in the direction of the
-        # magnetization from the inclination and declination
-        if 'inclination' in sphere.props and 'declination' in sphere.props:
-            inclination = sphere.props['inclination']
-            declination = sphere.props['declination']
-            mx, my, mz = utils.dircos(inclination, declination)
-        # If not given, use in the direction of the regional field
-        else:
-            mx, my, mz = fx, fy, fz
+        # Get the intensity and unit vector from the magnetization
+        intensity = numpy.linalg.norm(sphere.props['magnetization'])
+        mx, my, mz = numpy.array(sphere.props['magnetization'])/intensity
         # First thing to do is make the computation point P the origin of the
         # coordinate system
         x = sphere.x - xp
@@ -109,7 +102,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
         dotprod = mx*x + my*y + mz*z
         r_sqr = x**2 + y**2 + z**2
         r5 = r_sqr**(2.5)
-        moment = mag*(4.*numpy.pi*(radius**3)/3.)
+        moment = intensity*(4.*numpy.pi*(radius**3)/3.)
         bx = moment*(3*dotprod*x - r_sqr*mx)/r5
         by = moment*(3*dotprod*y - r_sqr*my)/r5
         bz = moment*(3*dotprod*z - r_sqr*mz)/r5
