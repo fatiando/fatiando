@@ -91,10 +91,9 @@ class Polygon(GeometricElement):
         self.y = y
         self.nverts = len(vertices)
 
-class Square(GeometricElement):
+class Square(Polygon):
     """
     Create a square object.
-
 
     Parameters:
 
@@ -113,11 +112,18 @@ class Square(GeometricElement):
         >>> print sq
         x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
 
+    A square can be used as a :class:`~fatiando.mesher.Polygon`::
+
+        >>> print sq.vertices
+        [[0, 2], [1, 2], [1, 4], [0, 4]]
+
     """
     def __init__(self, bounds, props=None):
-        GeometricElement.__init__(self, props)
         self.bounds = bounds
         self.x1, self.x2, self.y1, self.y2 = bounds
+        verts = [[self.x1, self.y1], [self.x2, self.y1],
+                 [self.x2, self.y2], [self.x1, self.y2]]
+        Polygon.__init__(self, verts, props)
 
     def __str__(self):
         """Return a string representation of the square."""
@@ -125,34 +131,6 @@ class Square(GeometricElement):
                  ('y2', self.y2)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def topolygon(self):
-        """
-        Convert this square into a polygon representation.
-
-        Vertices are ordered clockwise considering that x is North.
-
-        Returns:
-
-        * polygon : :class:`~fatiando.mesher.Polygon`
-            The polygon equivalente of the square
-
-        Example::
-
-            >>> square = Square((0, 1, 0, 3), {'vp':1000})
-            >>> poly = square.topolygon()
-            >>> print poly.x
-            [ 0.  1.  1.  0.]
-            >>> print poly.y
-            [ 0.  0.  3.  3.]
-            >>> print poly.props['vp']
-            1000
-
-        """
-        verts = [[self.x1, self.y1], [self.x2, self.y1],
-                 [self.x2, self.y2], [self.x1, self.y2]]
-        props = dict(self.props)
-        return Polygon(verts, props)
 
 class SquareMesh(object):
     """
