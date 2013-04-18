@@ -54,7 +54,7 @@ from fatiando.constants import SI2MGAL, G, CM, T2NT
 from fatiando import utils
 
 
-def tf(xp, yp, zp, spheres, inc, dec):
+def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     """
     Calculate the total-field anomaly of spheres.
 
@@ -86,13 +86,21 @@ def tf(xp, yp, zp, spheres, inc, dec):
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        pintensity = numpy.linalg.norm(pmag)
+        pmx, pmy, pmz = numpy.array(pmag)/pintensity
     for sphere in spheres:
-        if sphere is None or 'magnetization' not in sphere.props:
+        if sphere is None or ('magnetization' not in sphere.props
+                              and pmag is None):
             continue
         radius = sphere.radius
         # Get the intensity and unit vector from the magnetization
-        intensity = numpy.linalg.norm(sphere.props['magnetization'])
-        mx, my, mz = numpy.array(sphere.props['magnetization'])/intensity
+        if pmag is None:
+            intensity = numpy.linalg.norm(sphere.props['magnetization'])
+            mx, my, mz = numpy.array(sphere.props['magnetization'])/intensity
+        else:
+            intensity = pintensity
+            mx, my, mz = pmx, pmy, pmz
         # First thing to do is make the computation point P the origin of the
         # coordinate system
         x = sphere.x - xp
@@ -110,7 +118,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
     tf *= CM*T2NT
     return tf
 
-def gz(xp, yp, zp, spheres):
+def gz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -138,10 +146,13 @@ def gz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
