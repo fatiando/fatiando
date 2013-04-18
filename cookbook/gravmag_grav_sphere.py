@@ -9,7 +9,7 @@ log = logger.get()
 log.info(logger.header())
 log.info(__doc__)
 
-spheres = [mesher.Sphere(0, 0, -2000, 1000, {'density':1000})]
+spheres = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
 # Create a set of points at 100m height
 area = (-5000, 5000, -5000, 5000)
 xp, yp, zp = gridder.scatter(area, 500, z=-100)
