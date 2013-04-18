@@ -665,7 +665,10 @@ class PointGrid(object):
         self.area = area
         self.z = z
         self.shape = shape
-        self.props = props
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
         ny, nx = shape
         self.size = nx*ny
         self.radius = scipy.special.cbrt(3./(4.*numpy.pi))
