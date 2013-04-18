@@ -529,6 +529,8 @@ class Sphere(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the sphere
+    * radius : float
+        The radius of the sphere
     * props : dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
