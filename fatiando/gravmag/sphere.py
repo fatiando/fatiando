@@ -147,5 +147,5 @@ def gz(xp, yp, zp, spheres):
         dz = sphere.z - zp
         r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
-        res = res - mass*dz/r_cb
+        res = res + mass*dz/r_cb
     return G*SI2MGAL*res
