@@ -218,7 +218,11 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         if prop is None:
             scalar = 0.
         else:
-            scalar = numpy.linalg.norm(prism.props[prop])
+            p = prism.props[prop]
+            if isinstance(p, int) or isinstance(p, float):
+                scalar = p
+            else:
+                scalar = numpy.linalg.norm(p)
         # The top surface
         points.extend(
             reversed(numpy.transpose([x, y, prism.z1*numpy.ones_like(x)])))
@@ -338,7 +342,11 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         if prop is None:
             scalar = 0.
         else:
-            scalar = numpy.linalg.norm(tess.props[prop])
+            p = tess.props[prop]
+            if isinstance(p, int) or isinstance(p, float):
+                scalar = p
+            else:
+                scalar = numpy.linalg.norm(p)
         points.extend([
             utils.sph2cart(w, s, bottom),
             utils.sph2cart(e, s, bottom),
@@ -467,7 +475,11 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         if prop is None:
             scalar = 0.
         else:
-            scalar = numpy.linalg.norm(prism.props[prop])
+            p = prism.props[prop]
+            if isinstance(p, int) or isinstance(p, float):
+                scalar = p
+            else:
+                scalar = numpy.linalg.norm(p)
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
