@@ -6,7 +6,7 @@ from fatiando import gravmag, gridder, utils, mesher
 from fatiando.vis import mpl
 
 # Make synthetic data
-inc, dec = -10, 23
+inc, dec = -60, 23
 props = {'magnetization':10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
@@ -16,7 +16,8 @@ tf = utils.contaminate(gravmag.prism.tf(x, y, z, model, inc, dec), 5)
 grid = mesher.PointGrid([-7000, 7000, -7000, 7000], 1000, (50, 50))
 # Estimate the magnetization intensity
 data = [gravmag.eqlayer.TotalField(x, y, z, tf, inc, dec)]
-intensity, predicted = gravmag.eqlayer.classic(data, grid, damping=0.05)
+# Need to apply enough damping so that won't try to fit the error as well
+intensity, predicted = gravmag.eqlayer.classic(data, grid, damping=0.02)
 grid.addprop('magnetization', intensity)
 residuals = tf - predicted[0]
 print "Residuals:"
@@ -45,7 +46,7 @@ mpl.figure(figsize=(14,4))
 mpl.subplot(1, 2, 1)
 mpl.axis('scaled')
 mpl.title('True (red) | Reduced (black)')
-levels = mpl.contour(y, x, tfpole, shape, 15, color='r')
+levels = mpl.contour(y, x, tfpole, shape, 12, color='r')
 mpl.contour(y, x, tfreduced, shape, levels, color='k')
 mpl.subplot(1, 2, 2)
 mpl.title('True - reduced (nT)')
