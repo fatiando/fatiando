@@ -9,28 +9,37 @@ from fatiando.vis import mpl
 inc, dec = -10, 23
 magdir = utils.ang2vec(1, inc, dec)
 props = {'magnetization':10*magdir}
-model = [mesher.Prism(400, 600, 300, 700, 200, 600, props)]
+model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
-x, y, z = gridder.regular([0, 1000, 0, 1000], shape, z=0)
-tf = utils.contaminate(gravmag.prism.tf(x, y, z, model, inc, dec), 10)
+x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
+tf = utils.contaminate(gravmag.prism.tf(x, y, z, model, inc, dec), 5)
 # Setup the layer
-grid = mesher.PointGrid([-500, 1500, -500, 1500], 200, (50, 50))
+grid = mesher.PointGrid([-7000, 7000, -7000, 7000], 1000, (50, 50))
 # Estimate the magnetization intensity
 data = [gravmag.eqlayer.TotalField(x, y, z, tf, inc, dec)]
-intensity, predicted = gravmag.eqlayer.classic(data, grid, damping=0.0000000001)
+intensity, predicted = gravmag.eqlayer.classic(data, grid, damping=0.05)
 residuals = tf - predicted[0]
+print "Residuals:"
+print "mean:", residuals.mean()
+print "stddev:", residuals.std()
 # Convert the intensity to magnetization
 magnetization = [i*magdir for i in intensity]
 grid.addprop('magnetization', magnetization)
 # Plot the layer and the fit
-mpl.figure()
-mpl.subplot(2, 1, 1)
+mpl.figure(figsize=(14,4))
+mpl.subplot(1, 3, 1)
 mpl.axis('scaled')
-mpl.title('Layer')
+mpl.title('Layer (A/m)')
 mpl.pcolor(grid.y, grid.x, intensity, grid.shape)
-mpl.subplot(2, 1, 2)
+mpl.subplot(1, 3, 2)
 mpl.axis('scaled')
-mpl.title('Fit')
-levels = mpl.contour(y, x, tf, shape, 12, color='r')
+mpl.title('Fit (nT)')
+levels = mpl.contour(y, x, tf, shape, 15, color='r')
 mpl.contour(y, x, predicted[0], shape, levels, color='k')
+mpl.subplot(1, 3, 3)
+mpl.title('Residuals (nT)')
+mpl.hist(residuals, bins=10)
 mpl.show()
+# Now I can forward model the layer at the south pole and check against the
+# true solution of the prism
+
