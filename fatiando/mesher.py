@@ -1287,9 +1287,12 @@ def vfilter(vmin, vmax, prop, cells):
 
     """
     def isin(cell):
-        if (cell is None or prop not in cell.props or
-            numpy.linalg.norm(cell.props[prop]) < vmin or
-            numpy.linalg.norm(cell.props[prop]) > vmax):
+        if cell is None or prop not in cell.props:
+            return False
+        value = cell.props[prop]
+        if not isinstance(value, float) and not isinstance(value, int):
+            value = numpy.linalg.norm(cell.props[prop])
+        if value < vmin or value > vmax:
             return False
         return True
     return [c for c in cells if isin(c)]
@@ -1336,8 +1339,16 @@ def vremove(value, prop, cells):
         x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | bar:1000
 
     """
-    removed = [c for c in cells
-        if c is not None and
-        (prop not in c.props or numpy.linalg.norm(c.props[prop]) != value)]
-    return removed
+    def keep(cell):
+        if cell is None:
+            return False
+        if prop not in cell.props:
+            return True
+        p = cell.props[prop]
+        if not isinstance(p, float) and not isinstance(p, int):
+            p = numpy.linalg.norm(cell.props[prop])
+        if p != value:
+            return True
+        return False
+    return [c for c in cells if keep(c)]
 
