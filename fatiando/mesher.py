@@ -91,10 +91,9 @@ class Polygon(GeometricElement):
         self.y = y
         self.nverts = len(vertices)
 
-class Square(GeometricElement):
+class Square(Polygon):
     """
     Create a square object.
-
 
     Parameters:
 
@@ -113,11 +112,18 @@ class Square(GeometricElement):
         >>> print sq
         x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
 
+    A square can be used as a :class:`~fatiando.mesher.Polygon`::
+
+        >>> print sq.vertices
+        [[0, 2], [1, 2], [1, 4], [0, 4]]
+
     """
     def __init__(self, bounds, props=None):
-        GeometricElement.__init__(self, props)
         self.bounds = bounds
         self.x1, self.x2, self.y1, self.y2 = bounds
+        verts = [[self.x1, self.y1], [self.x2, self.y1],
+                 [self.x2, self.y2], [self.x1, self.y2]]
+        Polygon.__init__(self, verts, props)
 
     def __str__(self):
         """Return a string representation of the square."""
@@ -125,34 +131,6 @@ class Square(GeometricElement):
                  ('y2', self.y2)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def topolygon(self):
-        """
-        Convert this square into a polygon representation.
-
-        Vertices are ordered clockwise considering that x is North.
-
-        Returns:
-
-        * polygon : :class:`~fatiando.mesher.Polygon`
-            The polygon equivalente of the square
-
-        Example::
-
-            >>> square = Square((0, 1, 0, 3), {'vp':1000})
-            >>> poly = square.topolygon()
-            >>> print poly.x
-            [ 0.  1.  1.  0.]
-            >>> print poly.y
-            [ 0.  0.  3.  3.]
-            >>> print poly.props['vp']
-            1000
-
-        """
-        verts = [[self.x1, self.y1], [self.x2, self.y1],
-                 [self.x2, self.y2], [self.x1, self.y2]]
-        props = dict(self.props)
-        return Polygon(verts, props)
 
 class SquareMesh(object):
     """
@@ -551,6 +529,8 @@ class Sphere(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the sphere
+    * radius : float
+        The radius of the sphere
     * props : dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
@@ -1097,13 +1077,11 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = (v if i not in self.mask else -10000000
-                  for i, v in enumerate(self.props[prop]))
-        numpy.savetxt(
-            propfile,
-            numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
-                self.shape), order='F'),
-            fmt='%.4f')
+        values = numpy.fromiter(self.props[prop], dtype='f')
+        # Replace the masked cells with a dummy value
+        values[self.mask] = -10000000
+        reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
+        numpy.savetxt(propfile, reordered, fmt='%.4f')
 
 class TesseroidMesh(PrismMesh):
     """
