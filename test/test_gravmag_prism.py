@@ -15,7 +15,7 @@ def setup():
     reg_field = np.array(utils.dircos(inc, dec))
     model = [
         Prism(100, 300, -100, 100, 0, 400,
-              {'density':1., 'magnetization':2*reg_field}),
+              {'density':1., 'magnetization':2}),
         Prism(-300, -100, -100, 100, 0, 200,
             {'density':2., 'magnetization':utils.dircos(25, -10)})]
     tmp = np.linspace(-500, 500, 50)

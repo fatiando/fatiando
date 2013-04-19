@@ -11,16 +11,13 @@ log.info(__doc__)
 
 # The regional field
 inc, dec = 30, -15
-# Use induced and remanent magnetization
-regional = utils.ang2vec(1, inc, dec)
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 prisms = [
     mesher.Prism(-4000,-3000,-4000,-3000,0,2000,
-        {'magnetization':2*regional}),
+        {'magnetization':2}), # a scalar magnetization means only induced
     mesher.Prism(-1000,1000,-1000,1000,0,2000,
-        {'magnetization':1*regional}),
-    # This prism has remanent magnetization because it's physical property
-    # dict has inclination and declination
+        {'magnetization':1}),
+    # This prism will have magnetization in a different direction
     mesher.Prism(2000,4000,3000,4000,0,2000,
         {'magnetization':utils.ang2vec(3, -10, 45)})] # induced + remanent
 # Create a regular grid at 100m height

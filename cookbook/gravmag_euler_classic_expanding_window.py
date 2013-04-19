@@ -10,13 +10,11 @@ log.info(logger.header())
 
 # The regional field
 inc, dec = -45, 0
-# Use only induced magnetization with and amplitude of 2 A/m
-mag = utils.ang2vec(2, inc, dec)
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    mesher.Prism(-1500, -500, -1500, -500, 1000, 2000, {'magnetization':mag}),
-    mesher.Prism(500, 1500, 500, 2000, 1000, 2000, {'magnetization':mag})]
+    mesher.Prism(-1500, -500, -1500, -500, 1000, 2000, {'magnetization':2}),
+    mesher.Prism(500, 1500, 500, 2000, 1000, 2000, {'magnetization':2})]
 # Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
