@@ -1257,7 +1257,9 @@ def vremove(value, prop, cells):
 
     """
     def keep(cell):
-        if cell is None or prop not in cell.props:
+        if cell is None:
+            return False
+        if prop not in cell.props:
             return True
         p = cell.props[prop]
         if not isinstance(p, float) and not isinstance(p, int):
