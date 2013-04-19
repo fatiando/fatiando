@@ -66,9 +66,8 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The x, y, and z coordinates where the anomaly will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the physical property
-        ``'magnetization'``. This should be a 3-component array of the total
-        magnetization vector (induced + remanent). Spheres without the
-        physical property ``'magnetization'`` will be ignored.
+        ``'magnetization'``. Spheres without ``'magnetization'`` will be
+        ignored.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
@@ -87,8 +86,12 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
-        pintensity = numpy.linalg.norm(pmag)
-        pmx, pmy, pmz = numpy.array(pmag)/pintensity
+        if isinstance(pmag, float) or isinstance(pmag, int):
+            pintensity = pmag
+            pmx, pmy, pmz = fx, fy, fz
+        else:
+            pintensity = numpy.linalg.norm(pmag)
+            pmx, pmy, pmz = numpy.array(pmag)/pintensity
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props
                               and pmag is None):
@@ -96,8 +99,13 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         radius = sphere.radius
         # Get the intensity and unit vector from the magnetization
         if pmag is None:
-            intensity = numpy.linalg.norm(sphere.props['magnetization'])
-            mx, my, mz = numpy.array(sphere.props['magnetization'])/intensity
+            mag = sphere.props['magnetization']
+            if isinstance(mag, float) or isinstance(mag, int):
+                intensity = mag
+                mx, my, mz = fx, fy, fz
+            else:
+                intensity = numpy.linalg.norm(mag)
+                mx, my, mz = numpy.array(mag)/intensity
         else:
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz

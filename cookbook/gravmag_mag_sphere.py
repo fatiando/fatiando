@@ -10,9 +10,13 @@ log.info(__doc__)
 
 # Set the inclination and declination of the regional field
 inc, dec = -30, 45
-mag = utils.ang2vec(10, inc, dec)
-# Create a sphere model considering only induced magnetization
-spheres = [mesher.Sphere(0, 0, 3000, 1000, {'magnetization':mag})]
+# Create a sphere model
+spheres = [
+    # One with induced magnetization
+    mesher.Sphere(0, 2000, 600, 500, {'magnetization':5}),
+    # and one with remanent
+    mesher.Sphere(0, -2000, 600, 500,
+        {'magnetization':utils.ang2vec(10, 70, -50)})] # induced + remanet
 # Create a regular grid at 100m height
 shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)
