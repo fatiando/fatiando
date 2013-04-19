@@ -81,3 +81,23 @@ def classic(data, grid, damping=0.):
         predicted.append(pred[start:start + d.size])
         start += d.size
     return estimate, predicted
+
+def _bline(x, y, order):
+    """
+    Produce a line of a Bk polynomial matrix.
+
+    >>> print _bline(2, 10, 2)
+    [1, 10, 2, 100, 20, 4]
+    >>> print _bline(2, 10, 1)
+    [1, 10, 2]
+    >>> print _bline(2, 10, 3)
+    [1, 10, 2, 100, 20, 4, 1000, 200, 40, 8]
+
+    """
+    line = [(x**i)*(y**j)
+            for l in xrange(1, order + 2)
+                for i, j in zip(xrange(l), xrange(l - 1, -1, -1))]
+    return line
+
+def pel(data, grid, damping=0., smoothness=0.):
+    pass

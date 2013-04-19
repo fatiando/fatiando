@@ -718,6 +718,63 @@ class PointGrid(object):
         """
         self.props[prop] = values
 
+    def split(self, nx, ny):
+        """
+        Divide the grid into subgrids.
+
+        Parameters:
+
+        * nx, ny : int
+            Number of divisions in the x and y directions
+
+        Returns:
+
+        * subgrids : list
+            List of :class:`~fatiando.mesher.PointGrid`s
+
+        Examples::
+
+            >>> g = PointGrid((1, 5, 1, 3), 10, (3, 4))
+            >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
+            >>> for s in g.split(2, 3):
+            ...     print s.props['bla']
+            [1 1]
+            [2 2]
+            [4 4]
+            [5 5]
+            [7 7]
+            [8 8]
+
+        """
+        x1, x2, y1, y2 = self.area
+        totaly, totalx = self.shape
+        if totalx%nx != 0 or totaly%ny != 0:
+            raise ValueError(
+                'Cannot split! nx and ny must be divible by grid shape')
+        xs = numpy.linspace(x1, x2, totalx)
+        ys = numpy.linspace(y1, y2, totaly)
+        dx = totalx/nx
+        dy = totaly/ny
+        subs = []
+        for i in xrange(ny):
+            ystart = i*dy
+            yend = ystart + dy - 1
+            if yend >= totaly:
+                yend = totaly - 1
+            for j in xrange(nx):
+                xstart = j*dx
+                xend = xstart + dx - 1
+                if xend >= totalx:
+                    xend = totalx - 1
+                area = [xs[xstart], xs[xend], ys[ystart], ys[yend]]
+                shape = (yend - ystart + 1, xend - xstart + 1)
+                props = {}
+                for p in self.props:
+                    pmatrix = numpy.reshape(self.props[p], (totaly, totalx))
+                    props[p] = pmatrix[ystart:yend + 1, xstart:xend + 1].ravel()
+                subs.append(PointGrid(area, self.z, shape, props))
+        return subs
+
 class PrismRelief(object):
     """
     Generate a 3D model of a relief (topography) using prisms.
