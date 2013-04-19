@@ -7,8 +7,7 @@ from fatiando.vis import mpl
 
 # Make synthetic data
 inc, dec = -10, 23
-magdir = utils.ang2vec(1, inc, dec)
-props = {'magnetization':10*magdir}
+props = {'magnetization':10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
@@ -18,19 +17,17 @@ grid = mesher.PointGrid([-7000, 7000, -7000, 7000], 1000, (50, 50))
 # Estimate the magnetization intensity
 data = [gravmag.eqlayer.TotalField(x, y, z, tf, inc, dec)]
 intensity, predicted = gravmag.eqlayer.classic(data, grid, damping=0.05)
+grid.addprop('magnetization', intensity)
 residuals = tf - predicted[0]
 print "Residuals:"
 print "mean:", residuals.mean()
 print "stddev:", residuals.std()
-# Convert the intensity to magnetization
-magnetization = [i*magdir for i in intensity]
-grid.addprop('magnetization', magnetization)
 # Plot the layer and the fit
 mpl.figure(figsize=(14,4))
 mpl.subplot(1, 3, 1)
 mpl.axis('scaled')
 mpl.title('Layer (A/m)')
-mpl.pcolor(grid.y, grid.x, intensity, grid.shape)
+mpl.pcolor(grid.y, grid.x, grid.props['magnetization'], grid.shape)
 mpl.subplot(1, 3, 2)
 mpl.axis('scaled')
 mpl.title('Fit (nT)')
@@ -42,4 +39,15 @@ mpl.hist(residuals, bins=10)
 mpl.show()
 # Now I can forward model the layer at the south pole and check against the
 # true solution of the prism
-
+tfpole = gravmag.prism.tf(x, y, z, model, -90, 0)
+tfreduced = gravmag.sphere.tf(x, y, z, grid, -90, 0)
+mpl.figure(figsize=(14,4))
+mpl.subplot(1, 2, 1)
+mpl.axis('scaled')
+mpl.title('True (red) | Reduced (black)')
+levels = mpl.contour(y, x, tfpole, shape, 15, color='r')
+mpl.contour(y, x, tfreduced, shape, levels, color='k')
+mpl.subplot(1, 2, 2)
+mpl.title('True - reduced (nT)')
+mpl.hist(tfpole - tfreduced, bins=10)
+mpl.show()

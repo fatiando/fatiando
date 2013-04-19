@@ -39,15 +39,23 @@ class TotalField(Data):
     processing.
     """
 
-    def __init__(self, x, y, z, data, inc, dec):
+    def __init__(self, x, y, z, data, inc, dec, sinc=None, sdec=None):
         Data.__init__(self, x, y, z, data)
         self.inc = inc
         self.dec = dec
+        if sinc is None:
+            self.sinc = inc
+        else:
+            self.sinc = sinc
+        if sdec is None:
+            self.sdec = dec
+        else:
+            self.sdec = sdec
 
     def sensitivity(self, grid):
         x, y, z = self.x, self.y, self.z
         inc, dec = self.inc, self.dec
-        mag = utils.dircos(inc, dec)
+        mag = utils.dircos(self.sinc, self.sdec)
         sens = numpy.transpose([kernel.tf(x, y, z, [s], inc, dec, pmag=mag)
             for s in grid])
         return sens
