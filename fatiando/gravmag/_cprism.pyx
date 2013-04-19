@@ -36,9 +36,7 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`~fatiando.mesher.Prism`
         The model used to calculate the total field anomaly.
-        Prisms must have the physical property ``'magnetization'``. This should
-        be a 3-component array of the total magnetization vector (induced +
-        remanent). Prisms without the physical property ``'magnetization'`` will
+        Prisms without the physical property ``'magnetization'`` will
         be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
     * inc : float
         The inclination of the regional field (in degrees)
@@ -68,8 +66,12 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
-        pintensity = numpy.linalg.norm(pmag)
-        pmx, pmy, pmz = numpy.array(pmag)/pintensity
+        if isinstance(pmag, float) or isinstance(pmag, int):
+            pintensity = pmag
+            pmx, pmy, pmz = fx, fy, fz
+        else:
+            pintensity = numpy.linalg.norm(pmag)
+            pmx, pmy, pmz = numpy.array(pmag)/pintensity
     x = numpy.zeros(2, dtype=DTYPE)
     y = numpy.zeros(2, dtype=DTYPE)
     z = numpy.zeros(2, dtype=DTYPE)
@@ -78,8 +80,13 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
             ('magnetization' not in prism.props and pmag is None)):
             continue
         if pmag is None:
-            intensity = numpy.linalg.norm(prism.props['magnetization'])
-            mx, my, mz = numpy.array(prism.props['magnetization'])/intensity
+            mag = prism.props['magnetization']
+            if isinstance(mag, float) or isinstance(mag, int):
+                intensity = mag
+                mx, my, mz = fx, fy, fz
+            else:
+                intensity = numpy.linalg.norm(mag)
+                mx, my, mz = numpy.array(mag)/intensity
         else:
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz

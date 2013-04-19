@@ -11,8 +11,6 @@ log.info(__doc__)
 
 # The regional field
 inc, dec = 30, -15
-# Use only induced magnetization with and amplitude of 2 A/m
-mag = utils.ang2vec(2, inc, dec)
 # Draw each polygonal prism (viewed from above)
 log.info("Draw the polygons one by one")
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
@@ -22,7 +20,8 @@ mpl.axis('scaled')
 prisms = [
     mesher.PolygonalPrism(
         mpl.draw_polygon(area, axis, xy2ne=True),
-        0, 2000, {'magnetization':mag})]
+        # Use only induced magnetization
+        0, 2000, {'magnetization':2})]
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = gridder.regular(area, shape, z=-500)

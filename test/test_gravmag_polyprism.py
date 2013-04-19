@@ -13,15 +13,21 @@ def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
     inc, dec = -30, 50
     mag = utils.dircos(25, -10)
-    props = {'density':2., 'magnetization':mag}
-    props_prism = {'density':2., 'magnetization':mag}
+    props1 = {'density':2., 'magnetization':mag}
+    props2 = {'density':3., 'magnetization':1}
     model = [PolygonalPrism([
-            [100, -100],
-            [100, 100],
-            [-100, 100],
-            [-100, -100]], 100, 300, props)]
-    prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props_prism)]
-    tmp = np.linspace(-500, 500, 50)
+                 [100, -100],
+                 [100, 100],
+                 [-100, 100],
+                 [-100, -100]], 100, 300, props1),
+             PolygonalPrism([
+                 [400, -100],
+                 [600, -100],
+                 [600, 100],
+                 [400, 100]], 100, 300, props2)]
+    prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props1),
+                  Prism(400, 600, -100, 100, 100, 300, props2)]
+    tmp = np.linspace(-500, 1000, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1*np.ones_like(xp)
 

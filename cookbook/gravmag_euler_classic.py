@@ -9,12 +9,10 @@ log.info(logger.header())
 
 # The regional field
 inc, dec = -45, 0
-# Use only induced magnetization with and amplitude of 2 A/m
-mag = utils.ang2vec(2, inc, dec)
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    mesher.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':mag})]
+    mesher.Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
 # Generate some data from the model
 shape = (200, 200)
 area = bounds[0:4]
@@ -48,7 +46,7 @@ print "Estimated base level: %g" % (results['baselevel'])
 
 myv.figure()
 myv.points([results['point']], size=300.)
-myv.prisms(model, prop='magnetization', opacity=0.5)
+myv.prisms(model, 'magnetization', opacity=0.5)
 axes = myv.axes(myv.outline(extent=bounds))
 myv.wall_bottom(axes.axes.bounds, opacity=0.2)
 myv.wall_north(axes.axes.bounds)
