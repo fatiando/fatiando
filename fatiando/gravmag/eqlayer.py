@@ -82,22 +82,34 @@ def classic(data, grid, damping=0.):
         start += d.size
     return estimate, predicted
 
-def _bline(x, y, order):
+def _bkmatrix(grid, degree):
     """
-    Produce a line of a Bk polynomial matrix.
+    Make the Bk polynomial matrix for a PointGrid.
 
-    >>> print _bline(2, 10, 2)
-    [1, 10, 2, 100, 20, 4]
-    >>> print _bline(2, 10, 1)
-    [1, 10, 2]
-    >>> print _bline(2, 10, 3)
-    [1, 10, 2, 100, 20, 4, 1000, 200, 40, 8]
+    >>> from fatiando.mesher import PointGrid
+    >>> grid = PointGrid((0, 1, 0, 2), 10, (2, 2))
+    >>> print _bkmatrix(grid, 2)
+    [[ 1.  0.  0.  0.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.]
+     [ 1.  2.  0.  4.  0.  0.]
+     [ 1.  2.  1.  4.  2.  1.]]
+    >>> print _bkmatrix(grid, 1)
+    [[ 1.  0.  0.]
+     [ 1.  0.  1.]
+     [ 1.  2.  0.]
+     [ 1.  2.  1.]]
+    >>> print _bkmatrix(grid, 3)
+    [[ 1.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.  0.  0.  0.  1.]
+     [ 1.  2.  0.  4.  0.  0.  8.  0.  0.  0.]
+     [ 1.  2.  1.  4.  2.  1.  8.  4.  2.  1.]]
 
     """
-    line = [(x**i)*(y**j)
-            for l in xrange(1, order + 2)
-                for i, j in zip(xrange(l), xrange(l - 1, -1, -1))]
-    return line
+    bmatrix = numpy.transpose(
+            [(grid.x**i)*(grid.y**j)
+            for l in xrange(1, degree + 2)
+                for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
+    return bmatrix
 
 def pel(data, grid, damping=0., smoothness=0.):
     pass
