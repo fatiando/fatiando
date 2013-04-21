@@ -82,6 +82,25 @@ def classic(data, grid, damping=0.):
         start += d.size
     return estimate, predicted
 
+# Polynomial Equivalent Layer (PEL)
+
+def _ncoeffients(degree):
+    """
+    Return the number of a coefficients in a bivarite polynomail of a given
+    degree.
+
+    >>> _ncoeffients(1)
+    3
+    >>> _ncoeffients(2)
+    6
+    >>> _ncoeffients(3)
+    10
+    >>> _ncoeffients(4)
+    15
+
+    """
+    return sum(xrange(1, degree + 2))
+
 def _bkmatrix(grid, degree):
     """
     Make the Bk polynomial matrix for a PointGrid.
@@ -111,5 +130,40 @@ def _bkmatrix(grid, degree):
                 for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
     return bmatrix
 
-def pel(data, grid, damping=0., smoothness=0.):
-    pass
+def _gkmatrix(data, ndata, grid):
+    sensitivity = numpy.empty((ndata, grid.size), dtype='f')
+    start = 0
+    for d in data:
+        end = start + d.size
+        sensitivity[start:end,:] = d.sensitivity(grid)
+        start = end
+    return sensitivity
+
+def _rightside(gbmatrix, data, ncoefs):
+    vector = numpy.zeros(ncoefs, dtype='f')
+    start = 0
+    for d in data:
+        end = start + d.size
+        vector += numpy.dot(gb[start:end,:].T, d.data)
+        start = end
+    return vector
+
+def _pel_system(data, grids, degree, damping, smoothness):
+    ngrids = len(grids)
+    pergrid = _ncoefficients(degree)
+    ncoefs = ngrids*pergrid
+    ndata = sum(d.size for d in data)
+    rightside = numpy.empty(ncoefs, dtype='f')
+    gbmatrices = []
+    for i, grid in enumerate(grids):
+        bk = _bkmatrix(grid, degree)
+        gb = numpy.dot(_gkmatrix(data, ndata, grid), bk)
+        gbmatrices.append(gb)
+        # Make a part of the right-side vector
+        rightside[i*pergrid:(i + 1)*pergrid] = _rightside(gb, data, pergrid)
+
+def pel(data, grid, windows, degree=1, damping=0., smoothness=0.):
+    ny, nx = windows
+    grids = grid.split(nx, ny)
+    leftside, rightside = _pel_system(data, grids, degree, damping, smoothness)
+
