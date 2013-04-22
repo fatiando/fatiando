@@ -2,7 +2,7 @@
 Equivalent layer processing.
 """
 import numpy
-from scipy.sparse import linalg
+from scipy.sparse import linalg, lil_matrix, csc_matrix
 
 from fatiando.gravmag import sphere as kernel
 from fatiando import utils
@@ -145,7 +145,7 @@ def _gkmatrix(data, ndata, grid):
     (500, 100)
 
     """
-    sensitivity = numpy.empty((ndata, grid.size), dtype='f')
+    sensitivity = numpy.empty((ndata, grid.size), dtype=float)
     start = 0
     for d in data:
         end = start + d.size
@@ -154,7 +154,7 @@ def _gkmatrix(data, ndata, grid):
     return sensitivity
 
 def _rightside(gb, data, ncoefs):
-    vector = numpy.zeros(ncoefs, dtype='f')
+    vector = numpy.zeros(ncoefs, dtype=float)
     start = 0
     for d in data:
         end = start + d.size
@@ -162,7 +162,34 @@ def _rightside(gb, data, ncoefs):
         start = end
     return vector
 
-def _pel_matrices(data, grids, degree):
+def _pel_rmatrix(windows, grid, grids):
+    ny, nx = windows
+    gsize = grids[0].size
+    gny, gnx = grids[0].shape
+    nderivs = (nx - 1)*grid.shape[0] + (ny - 1)*grid.shape[1]
+    rmatrix = lil_matrix((nderivs, grid.size))
+    deriv = 0
+    # derivatives in x
+    for k in xrange(0, len(grids) - ny):
+        bottom = k*gsize + gny*(gnx - 1)
+        top = (k + ny)*gsize
+        for i in xrange(gny):
+            rmatrix[deriv,bottom + i] = -1.
+            rmatrix[deriv,top + 1] = 1.
+            deriv += 1
+    # derivatives in y
+    for k in xrange(0, len(grids)):
+        if (k + 1)%ny == 0:
+            continue
+        right = k*gsize + gny - 1
+        left = (k + 1)*gsize
+        for i in xrange(gnx):
+            rmatrix[deriv,right + i*gny] = -1.
+            rmatrix[deriv,left + i*gny] = 1.
+            deriv += 1
+    return csc_matrix(rmatrix), nderivs
+
+def _pel_matrices(data, windows, grid, grids, degree):
     """
     Compute the matrices needed by the PEL.
 
@@ -179,7 +206,7 @@ def _pel_matrices(data, grids, degree):
     >>> grids = grid.split(2, 2)
     >>> print [g.size for g in grids]
     [25, 25, 25, 25]
-    >>> model, smooth, right = _pel_matrices(data, grids, 2)
+    >>> model, smooth, right = _pel_matrices(data, (2, 2), grid, grids, 2)
     >>> coefs = _ncoefficients(2)*len(grids)
     >>> coefs
     24
@@ -193,16 +220,25 @@ def _pel_matrices(data, grids, degree):
     pergrid = _ncoefficients(degree)
     ncoefs = ngrids*pergrid
     ndata = sum(d.size for d in data)
-    rightside = numpy.empty(ncoefs, dtype='f')
-    gb = numpy.empty((ndata, ncoefs), dtype='f')
+    # make the finite differences matrix for the window borders
+    rmatrix, nderivs = _pel_rmatrix(windows, grid, grids)
+    rightside = numpy.empty(ncoefs, dtype=float)
+    gb = numpy.empty((ndata, ncoefs), dtype=float)
+    rb = numpy.empty((nderivs, ncoefs), dtype=float)
+    st = 0
     for i, grid in enumerate(grids):
         bk = _bkmatrix(grid, degree)
         gkbk = numpy.dot(_gkmatrix(data, ndata, grid), bk)
         gb[:,i*pergrid:(i + 1)*pergrid] = gkbk
         # Make a part of the right-side vector
         rightside[i*pergrid:(i + 1)*pergrid] = _rightside(gkbk, data, pergrid)
+        # Make the RB matrix
+        en = st + grid.size
+        rb[:,i*pergrid:(i + 1)*pergrid] = rmatrix[:,st:en]*bk
+        st = en
     modelmatrix = numpy.dot(gb.T, gb)
-    return modelmatrix, None, rightside
+    smoothmatrix = numpy.dot(rb.T, rb)
+    return modelmatrix, smoothmatrix, rightside
 
 def _coefs2prop(coefs, grid, grids, windows, degree):
     """
@@ -234,14 +270,17 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     """
     ny, nx = windows
     grids = grid.split(nx, ny)
+    if grid.shape[1]%nx != 0 or grid.shape[0]%ny != 0:
+        raise ValueError(
+            'PEL requires windows to be divisable by the grid shape')
     ngrids = len(grids)
     pergrid = _ncoefficients(degree)
     ncoefs = ngrids*pergrid
-    modelmatrix, smoothmatrix, rightside = _pel_matrices(data, grids, degree)
+    modelmatrix, smoothmatrix, rightside = _pel_matrices(data, windows, grid,
+        grids, degree)
     fg = numpy.trace(modelmatrix)
-    #fr = numpy.trace(smoothmatrix)
-    #leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
-    leftside = modelmatrix
+    fr = numpy.trace(smoothmatrix)
+    leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
     leftside[range(ncoefs),range(ncoefs)] += float(damping*fg)/ncoefs
     coefs, cgindex = linalg.cg(leftside, rightside)
     estimate = _coefs2prop(coefs, grid, grids, windows, degree)
