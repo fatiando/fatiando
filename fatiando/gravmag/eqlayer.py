@@ -282,6 +282,6 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     fr = numpy.trace(smoothmatrix)
     leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
     leftside[range(ncoefs),range(ncoefs)] += float(damping*fg)/ncoefs
-    coefs, cgindex = linalg.cg(leftside, rightside)
+    coefs = numpy.linalg.solve(leftside, rightside)
     estimate = _coefs2prop(coefs, grid, grids, windows, degree)
     return estimate, [modelmatrix, smoothmatrix, rightside]
