@@ -6,7 +6,7 @@ Changelog
 Version 0.1
 -----------
 
-**Release date**: NOT RELEASED
+**Release date**: 2013-04-12
 
 **Changes**:
 
@@ -15,7 +15,7 @@ Version 0.1
 * Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
-  densities" by Uieda and Barbosa (2012) in 
+  densities" by Uieda and Barbosa (2012) in
   :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>`
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
@@ -40,7 +40,7 @@ Version 0.1
 * Added module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>` with 2D
   Finite Difference simulations of elastic seismic waves
 * Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
-* Added tesseroids forward modeling :ref:`fatiando.gravmag.tesseroid 
+* Added tesseroids forward modeling :ref:`fatiando.gravmag.tesseroid
   <fatiando_gravmag_tesseroid>`, meshing and plotting with Mayavi
 * New :ref:`fatiando.io <fatiando_io>` module to fetch models and data from the
   web and convert them to useful formats (for now supports the CRUST2.0 global
