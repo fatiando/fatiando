@@ -204,6 +204,29 @@ def _pel_matrices(data, grids, degree):
     modelmatrix = numpy.dot(gb.T, gb)
     return modelmatrix, None, rightside
 
+def _coefs2prop(coefs, grid, grids, windows, degree):
+    """
+    Convert the coefficients to the physical property estimate.
+    """
+    ny, nx = windows
+    pergrid = _ncoefficients(degree)
+    estimate = numpy.empty(grid.shape, dtype=float)
+    k = 0
+    ystart = 0
+    gny, gnx = grids[0].shape
+    for i in xrange(ny):
+        yend = ystart + gny
+        xstart = 0
+        for j in xrange(nx):
+            xend = xstart + gnx
+            g = grids[k]
+            estimate[ystart:yend,xstart:xend] = numpy.dot(_bkmatrix(g, degree),
+                coefs[k*pergrid:(k + 1)*pergrid]).reshape(g.shape)
+            xstart = xend
+            k += 1
+        ystart = yend
+    return estimate.ravel()
+
 def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
         matrices=None):
     """
@@ -220,13 +243,6 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     #leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
     leftside = modelmatrix
     leftside[range(ncoefs),range(ncoefs)] += float(damping*fg)/ncoefs
-    coefs, cg = linalg.cg(leftside, rightside)
-    print cg
-    estimate = numpy.empty(grid.size, dtype=float)
-    start = 0
-    for i, g in enumerate(grids):
-        end = start + g.size
-        estimate[start:end] = numpy.dot(_bkmatrix(g, degree),
-                                        coefs[i*pergrid:(i + 1)*pergrid])
-        start = end
+    coefs, cgindex = linalg.cg(leftside, rightside)
+    estimate = _coefs2prop(coefs, grid, grids, windows, degree)
     return estimate, [modelmatrix, smoothmatrix, rightside]

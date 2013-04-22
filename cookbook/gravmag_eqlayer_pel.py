@@ -13,12 +13,11 @@ shape = (25, 25)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
 tf = utils.contaminate(gravmag.prism.tf(x, y, z, model, inc, dec), 5)
 # Setup the layer
-grid = mesher.PointGrid([-7000, 7000, -7000, 7000], 1000, (50, 50))
+grid = mesher.PointGrid([-7000, 7000, -7000, 7000], 200, (50, 50))
 # Estimate the magnetization intensity
 data = [gravmag.eqlayer.TotalField(x, y, z, tf, inc, dec)]
 # Need to apply enough damping so that won't try to fit the error as well
-intensity = gravmag.eqlayer.pel(data, grid, (10, 10), degree=1, damping=0.000001)[0]
-print type(intensity[0])
+intensity = gravmag.eqlayer.pel(data, grid, (10, 10), degree=1, damping=10**-8)[0]
 grid.addprop('magnetization', intensity)
 predicted = gravmag.sphere.tf(x, y, z, grid, inc, dec)
 residuals = tf - predicted
