@@ -734,9 +734,10 @@ class PointGrid(object):
 
         Examples::
 
-            >>> g = PointGrid((1, 5, 1, 3), 10, (3, 4))
+            >>> g = PointGrid((1, 4, 1, 3), 10, (3, 4))
             >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
-            >>> for s in g.split(2, 3):
+            >>> grids = g.split(2, 3)
+            >>> for s in grids:
             ...     print s.props['bla']
             [1 1]
             [2 2]
@@ -744,6 +745,22 @@ class PointGrid(object):
             [5 5]
             [7 7]
             [8 8]
+            >>> for s in grids:
+            ...     print s.x
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            >>> for s in grids:
+            ...     print s.y
+            [ 1.  1.]
+            [ 1.  1.]
+            [ 2.  2.]
+            [ 2.  2.]
+            [ 3.  3.]
+            [ 3.  3.]
 
         """
         x1, x2, y1, y2 = self.area
