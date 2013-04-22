@@ -84,18 +84,18 @@ def classic(data, grid, damping=0.):
 
 # Polynomial Equivalent Layer (PEL)
 
-def _ncoeffients(degree):
+def _ncoefficients(degree):
     """
     Return the number of a coefficients in a bivarite polynomail of a given
     degree.
 
-    >>> _ncoeffients(1)
+    >>> _ncoefficients(1)
     3
-    >>> _ncoeffients(2)
+    >>> _ncoefficients(2)
     6
-    >>> _ncoeffients(3)
+    >>> _ncoefficients(3)
     10
-    >>> _ncoeffients(4)
+    >>> _ncoefficients(4)
     15
 
     """
@@ -131,6 +131,20 @@ def _bkmatrix(grid, degree):
     return bmatrix
 
 def _gkmatrix(data, ndata, grid):
+    """
+    Make the sensitivity matrix of a subgrid.
+
+    >>> from fatiando.mesher import PointGrid
+    >>> x, y, z, g = numpy.zeros((4, 500))
+    >>> data = [Gz(x, y, z, g)]
+    >>> grid = PointGrid((0, 10, 0, 10), 10, (10, 10))
+    >>> grid.size
+    100
+    >>> gk = _gkmatrix(data, 500, grid)
+    >>> gk.shape
+    (500, 100)
+
+    """
     sensitivity = numpy.empty((ndata, grid.size), dtype='f')
     start = 0
     for d in data:
@@ -139,7 +153,7 @@ def _gkmatrix(data, ndata, grid):
         start = end
     return sensitivity
 
-def _rightside(gbmatrix, data, ncoefs):
+def _rightside(gb, data, ncoefs):
     vector = numpy.zeros(ncoefs, dtype='f')
     start = 0
     for d in data:
@@ -148,22 +162,71 @@ def _rightside(gbmatrix, data, ncoefs):
         start = end
     return vector
 
-def _pel_system(data, grids, degree, damping, smoothness):
+def _pel_matrices(data, grids, degree):
+    """
+    Compute the matrices needed by the PEL.
+
+    1. The Hessian of the model (B^TG^TGB)
+    2. The Hessian of smoothness (B^TR^TRB)
+    3. The right-side vector (B^TG^Td)
+
+    >>> from fatiando.mesher import PointGrid
+    >>> x, y, z, g = numpy.zeros((4, 500))
+    >>> data = [Gz(x, y, z, g)]
+    >>> grid = PointGrid((0, 10, 0, 10), 10, (10, 10))
+    >>> grid.size
+    100
+    >>> grids = grid.split(2, 2)
+    >>> print [g.size for g in grids]
+    [25, 25, 25, 25]
+    >>> model, smooth, right = _pel_matrices(data, grids, 2)
+    >>> coefs = _ncoefficients(2)*len(grids)
+    >>> coefs
+    24
+    >>> model.shape
+    (24, 24)
+    >>> right.shape
+    (24,)
+
+    """
     ngrids = len(grids)
     pergrid = _ncoefficients(degree)
     ncoefs = ngrids*pergrid
     ndata = sum(d.size for d in data)
     rightside = numpy.empty(ncoefs, dtype='f')
-    gbmatrices = []
+    gb = numpy.empty((ndata, ncoefs), dtype='f')
     for i, grid in enumerate(grids):
         bk = _bkmatrix(grid, degree)
-        gb = numpy.dot(_gkmatrix(data, ndata, grid), bk)
-        gbmatrices.append(gb)
+        gkbk = numpy.dot(_gkmatrix(data, ndata, grid), bk)
+        gb[:,i*pergrid:(i + 1)*pergrid] = gkbk
         # Make a part of the right-side vector
-        rightside[i*pergrid:(i + 1)*pergrid] = _rightside(gb, data, pergrid)
+        rightside[i*pergrid:(i + 1)*pergrid] = _rightside(gkbk, data, pergrid)
+    modelmatrix = numpy.dot(gb.T, gb)
+    return modelmatrix, None, rightside
 
-def pel(data, grid, windows, degree=1, damping=0., smoothness=0.):
+def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
+        matrices=None):
+    """
+    The Polynomial Equivalent Layers
+    """
     ny, nx = windows
     grids = grid.split(nx, ny)
-    leftside, rightside = _pel_system(data, grids, degree, damping, smoothness)
-
+    ngrids = len(grids)
+    pergrid = _ncoefficients(degree)
+    ncoefs = ngrids*pergrid
+    modelmatrix, smoothmatrix, rightside = _pel_matrices(data, grids, degree)
+    fg = numpy.trace(modelmatrix)
+    #fr = numpy.trace(smoothmatrix)
+    #leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
+    leftside = modelmatrix
+    leftside[range(ncoefs),range(ncoefs)] += float(damping*fg)/ncoefs
+    coefs, cg = linalg.cg(leftside, rightside)
+    print cg
+    estimate = numpy.empty(grid.size, dtype=float)
+    start = 0
+    for i, g in enumerate(grids):
+        end = start + g.size
+        estimate[start:end] = numpy.dot(_bkmatrix(g, degree),
+                                        coefs[i*pergrid:(i + 1)*pergrid])
+        start = end
+    return estimate, [modelmatrix, smoothmatrix, rightside]
