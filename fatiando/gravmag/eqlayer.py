@@ -228,7 +228,8 @@ def _pel_matrices(data, windows, grid, grids, degree):
     st = 0
     for i, grid in enumerate(grids):
         bk = _bkmatrix(grid, degree)
-        gkbk = numpy.dot(_gkmatrix(data, ndata, grid), bk)
+        gk = _gkmatrix(data, ndata, grid)
+        gkbk = numpy.dot(gk, bk)
         gb[:,i*pergrid:(i + 1)*pergrid] = gkbk
         # Make a part of the right-side vector
         rightside[i*pergrid:(i + 1)*pergrid] = _rightside(gkbk, data, pergrid)
