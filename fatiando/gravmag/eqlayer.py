@@ -30,7 +30,9 @@ class Gz(Data):
 
     def sensitivity(self, grid):
         x, y, z = self.x, self.y, self.z
-        sens = numpy.transpose([kernel.gz(x, y, z, [s], dens=1.) for s in grid])
+        sens = numpy.empty((self.size, len(grid)), dtype=float)
+        for i, s in enumerate(grid):
+            sens[:,i] = kernel.gz(x, y, z, [s], dens=1.)
         return sens
 
 class TotalField(Data):
@@ -56,16 +58,23 @@ class TotalField(Data):
         x, y, z = self.x, self.y, self.z
         inc, dec = self.inc, self.dec
         mag = utils.dircos(self.sinc, self.sdec)
-        sens = numpy.transpose([kernel.tf(x, y, z, [s], inc, dec, pmag=mag)
-            for s in grid])
+        sens = numpy.empty((self.size, len(grid)), dtype=float)
+        for i, s in enumerate(grid):
+            sens[:,i] = kernel.tf(x, y, z, [s], inc, dec, pmag=mag)
         return sens
 
 def classic(data, grid, damping=0.):
     """
     The classic equivalent layer with damping regularization.
     """
-    sensitivity = numpy.concatenate([d.sensitivity(grid) for d in data])
-    datavec = numpy.concatenate([d.data for d in data])
+    ndata = sum(d.size for d in data)
+    sensitivity = numpy.empty((ndata, grid.size), dtype=float)
+    datavec = numpy.empty(ndata, dtype=float)
+    bottom = 0
+    for d in data:
+        sensitivity[bottom:bottom + d.size, :] = d.sensitivity(grid)
+        datavec[bottom:bottom + d.size] = d.data
+        bottom += d.size
     system = numpy.dot(sensitivity, sensitivity.T)
     if damping != 0.:
         order = len(system)
