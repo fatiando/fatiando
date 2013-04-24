@@ -8,8 +8,6 @@ All constants should be in SI, unless otherwise stated!
 ----
 """
 
-import numpy
-
 
 #: The default thermal diffusivity in :math:`m^2/s`
 THERMAL_DIFFUSIVITY = 0.000001
@@ -36,4 +34,4 @@ T2NT = 10.**(9)
 MEAN_EARTH_RADIUS = 6378137.0
 
 #: Permeability of free space in :math:`N A^{-2}`
-PERM_FREE_SPACE = 4.*numpy.pi*(10.**-7)
+PERM_FREE_SPACE = 4*3.141592653589793115997963468544185161590576171875*(10**-7)
