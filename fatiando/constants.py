@@ -35,5 +35,5 @@ T2NT = 10.**(9)
 #: The mean earth radius in meters
 MEAN_EARTH_RADIUS = 6378137.0
 
-#: Permeability of free space in :math:`N A^{−2}`
+#: Permeability of free space in :math:`N A^{-2}`
 PERM_FREE_SPACE = 4.*numpy.pi*(10.**-7)
