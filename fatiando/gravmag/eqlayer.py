@@ -286,8 +286,11 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     ngrids = len(grids)
     pergrid = _ncoefficients(degree)
     ncoefs = ngrids*pergrid
-    modelmatrix, smoothmatrix, rightside = _pel_matrices(data, windows, grid,
-        grids, degree)
+    if matrices is None:
+        modelmatrix, smoothmatrix, rightside = _pel_matrices(data, windows,
+            grid, grids, degree)
+    else:
+        modelmatrix, smoothmatrix, rightside = matrices
     fg = numpy.trace(modelmatrix)
     fr = numpy.trace(smoothmatrix)
     leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
