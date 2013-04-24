@@ -210,6 +210,38 @@ def mgal2si(value):
     """
     return value/fatiando.constants.SI2MGAL
 
+def vec2ang(vector):
+    """
+    Convert a 3-component vector to intensity, inclination and declination.
+
+    .. note:: Coordinate system is assumed to be x->North, y->East, z->Down.
+        Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Parameter:
+
+    * vector : array = [x, y, z]
+        The vector
+
+    Returns:
+
+    * [intensity, inclination, declination] : floats
+        The intensity, inclination and declination (in degrees)
+
+    Examples::
+
+        >>> s = vec2ang([1.5, 1.5, 2.121320343559643])
+        >>> print "%.3f %.3f %.3f" % tuple(s)
+        3.000 45.000 45.000
+
+    """
+    intensity = numpy.linalg.norm(vector)
+    r2d = 180./numpy.pi
+    x, y, z = vector
+    declination = r2d*numpy.arctan2(y, x)
+    inclination = r2d*numpy.arcsin(z/intensity)
+    return [intensity, inclination, declination]
+
 def ang2vec(intensity, inc, dec):
     """
     Convert intensity, inclination and  declination to a 3-component vector
