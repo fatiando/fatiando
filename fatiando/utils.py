@@ -220,7 +220,7 @@ def ang2vec(intensity, inc, dec):
 
     Parameter:
 
-    * intensity : float
+    * intensity : float or array
         The intensity (norm) of the vector
     * inc : float
         The inclination of the vector (in degrees)
@@ -231,8 +231,20 @@ def ang2vec(intensity, inc, dec):
 
     * vec : array = [x, y, z]
         The vector
+
+    Examples::
+
+        >>> import numpy
+        >>> print ang2vec(3, 45, 45)
+        [ 1.5         1.5         2.12132034]
+        >>> print ang2vec(numpy.arange(4), 45, 45)
+        [[ 0.          0.          0.        ]
+         [ 0.5         0.5         0.70710678]
+         [ 1.          1.          1.41421356]
+         [ 1.5         1.5         2.12132034]]
+
     """
-    return intensity*numpy.array(dircos(inc, dec))
+    return numpy.transpose([intensity*i for i in dircos(inc, dec)])
 
 def dircos(inc, dec):
     """
