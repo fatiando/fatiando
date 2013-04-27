@@ -418,8 +418,11 @@ def _misfitfunc(data, predicted):
     Calculate the total data misfit function between the observed and predicted
     data.
     """
-    return sum(sqrt(numpy.sum(d.weights*(d.observed - p)**2))/d.norm
-               for d, p in zip(data, predicted))
+    result = 0.
+    for d, p, in zip(data, predicted):
+        residuals = d.observed - p
+        result += sqrt(numpy.dot(d.weights*residuals, residuals))/d.norm
+    return result
 
 def _get_neighbors(cell, neighborhood, estimate, mesh, data):
     """
