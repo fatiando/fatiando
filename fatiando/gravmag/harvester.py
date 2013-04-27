@@ -65,7 +65,8 @@ doi:10.1190/segam2012-0383.1 [`pdf
 import json
 import time
 import bisect
-from math import sqrt
+from math import sqrt, exp
+from itertools import izip
 
 import numpy
 
@@ -184,7 +185,7 @@ def sow(locations, mesh):
                 "Couldn't find seed at location (%g,%g,%g)" % (x, y, z))
         # Check for duplicates
         if index not in (s.i for s in seeds):
-            seeds.append(Seed(index, props))
+            seeds.append(Seed(index, (x, y, z), props))
     log.info("  points given: %d" % (len(locations)))
     log.info("  unique seeds found: %d" % (len(seeds)))
     return seeds
@@ -417,7 +418,7 @@ def _misfitfunc(data, predicted):
     Calculate the total data misfit function between the observed and predicted
     data.
     """
-    return sum(numpy.linalg.norm(d.observed - p)/d.norm
+    return sum(sqrt(numpy.sum(d.weights*(d.observed - p)**2))/d.norm
                for d, p in zip(data, predicted))
 
 def _get_neighbors(cell, neighborhood, estimate, mesh, data):
@@ -520,10 +521,11 @@ class Seed(object):
     A seed.
     """
 
-    def __init__(self, i, props):
+    def __init__(self, i, location, props):
         self.i = i
         self.props = props
         self.seed = i
+        self.x, self.y, self.z = location
 
 class Neighbor(object):
     """
@@ -545,7 +547,7 @@ class Data(object):
     to calculate the effect of a single cell.
     """
 
-    def __init__(self, x, y, z, data, meshtype):
+    def __init__(self, x, y, z, data, influence, seeds, meshtype):
         self.x = x
         self.y = y
         self.z = z
@@ -559,6 +561,22 @@ class Data(object):
             self.engine = prism_engine
         if self.meshtype == 'tesseroid':
             self.engine = tesseroid_engine
+        if influence is None:
+            self.weights = 1.
+        else:
+            if seeds is None:
+                raise AttributeError('Need seeds to calculate weights')
+            self.weights = self._calculate_weights(influence, seeds)
+
+    def _calculate_weights(self, influence, seeds):
+        """
+        Calculate data weights based on a radius on influence from the seeds.
+        """
+        tmp = -1./(float(influence)**4)
+        weights = numpy.fromiter((
+            exp(tmp*min((xi - s.x)**2 + (yi - s.y)**2 for s in seeds)**2)
+            for xi, yi in izip(self.x, self.y)), dtype=float)
+        return weights
 
 class Potential(Data):
     """
@@ -574,10 +592,22 @@ class Potential(Data):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Data.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+                 meshtype='prism'):
+        Data.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.prop = 'density'
         self.effectfunc = self.engine.potential
 
@@ -601,10 +631,22 @@ class Gz(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gz
 
 class Gxx(Potential):
@@ -622,10 +664,22 @@ class Gxx(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gxx
 
 class Gxy(Potential):
@@ -643,10 +697,22 @@ class Gxy(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gxy
 
 class Gxz(Potential):
@@ -664,10 +730,22 @@ class Gxz(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gxz
 
 class Gyy(Potential):
@@ -685,10 +763,22 @@ class Gyy(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gyy
 
 class Gyz(Potential):
@@ -706,10 +796,22 @@ class Gyz(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gyz
 
 class Gzz(Potential):
@@ -727,10 +829,22 @@ class Gzz(Potential):
     * data : 1D array
         The values of the data at the observation points
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, meshtype='prism'):
-        Potential.__init__(self, x, y, z, data, meshtype)
+    def __init__(self, x, y, z, data, influence=None, seeds=None,
+            meshtype='prism'):
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.gzz
 
 class TotalField(Potential):
@@ -750,14 +864,26 @@ class TotalField(Potential):
     * inc, dec : floats
         The inclination and declination of the inducing field
 
+    * influence : None or float
+        If not None, will weight the data by the horizontal distance to the
+        seeds. *influence* is the radius of influence of the seeds on the data.
+        The larger it is, the farther away form the seeds the data can be and
+        still influence the misfit.
+
+    * seeds : None or list of Seeds
+        The list of seeds used in the inversion (as returned by
+        :func:`~fatiando.gravmag.harvester.sow`).
+        Only needed if using weights (i.e., if *influence* is not None).
+
     """
 
-    def __init__(self, x, y, z, data, inc, dec, meshtype='prism'):
+    def __init__(self, x, y, z, data, inc, dec, influence=None, seeds=None,
+            meshtype='prism'):
         if meshtype != 'prism':
             raise AttributeError(
                 "Unsupported mesh type '%s' for total field anomaly."
                 % (meshtype))
-        Potential.__init__(self, x, y, z, data, meshtype)
+        Potential.__init__(self, x, y, z, data, influence, seeds, meshtype)
         self.effectfunc = self.engine.tf
         self.prop = 'magnetization'
         self.inc = inc
