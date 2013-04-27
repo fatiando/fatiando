@@ -718,14 +718,14 @@ class PointGrid(object):
         """
         self.props[prop] = values
 
-    def split(self, nx, ny):
+    def split(self, shape):
         """
         Divide the grid into subgrids.
 
         Parameters:
 
-        * nx, ny : int
-            Number of divisions in the x and y directions
+        * shape : tuple = (ny, nx)
+            Number of subgrids in the y and x directions, respectively
 
         Returns:
 
@@ -736,7 +736,7 @@ class PointGrid(object):
 
             >>> g = PointGrid((1, 4, 1, 3), 10, (3, 4))
             >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
-            >>> grids = g.split(2, 3)
+            >>> grids = g.split((3, 2))
             >>> for s in grids:
             ...     print s.props['bla']
             [1 1]
@@ -763,6 +763,7 @@ class PointGrid(object):
             [ 3.  3.]
 
         """
+        ny, nx = shape
         x1, x2, y1, y2 = self.area
         totaly, totalx = self.shape
         if totalx%nx != 0 or totaly%ny != 0:

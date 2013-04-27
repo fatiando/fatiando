@@ -212,7 +212,7 @@ def _pel_matrices(data, windows, grid, grids, degree):
     >>> grid = PointGrid((0, 10, 0, 10), 10, (10, 10))
     >>> grid.size
     100
-    >>> grids = grid.split(2, 2)
+    >>> grids = grid.split((2, 2))
     >>> print [g.size for g in grids]
     [25, 25, 25, 25]
     >>> model, smooth, right = _pel_matrices(data, (2, 2), grid, grids, 2)
@@ -279,7 +279,7 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     The Polynomial Equivalent Layers
     """
     ny, nx = windows
-    grids = grid.split(nx, ny)
+    grids = grid.split(windows)
     if grid.shape[1]%nx != 0 or grid.shape[0]%ny != 0:
         raise ValueError(
             'PEL requires windows to be divisable by the grid shape')
