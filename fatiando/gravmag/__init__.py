@@ -35,6 +35,7 @@ The inversion modules use the forward modeling models and the
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
+* :mod:`~fatiando.gravmag.eqlayer`: Equivalent layer processing
 * :mod:`~fatiando.gravmag.transform`: Space domain potential field
   transformations, like upward continuation
 * :mod:`~fatiando.gravmag.fourier`: Potential field transformations using the

@@ -1,5 +1,34 @@
 """
 Equivalent layer processing.
+
+Use functions here to estimate an equivalent layer from potential field data.
+Then you can use the estimated layer to perform tranformations (gridding,
+continuation, derivation, reduction to the pole, etc.) by forward modeling
+the layer. Use :mod:`fatiando.gravmag.sphere` for forward modeling.
+
+**Functions**
+
+* :func:`~fatiando.gravmag.eqlayer.classic`: The classic equivalent layer with
+  damping regularization formulated in the data space
+* :func:`~fatiando.gravmag.eqlayer.pel`: The polynomial equivalent layer of
+  Oliveira Jr et al. (2012). A more efficient and robust algorithm.
+
+**Data containers**
+
+All equivalent layer functions require that you supply the data in containers.
+These are classes that group the data, position arrays, etc.
+
+* :class:`~fatiando.gravmag.eqlayer.TotalField`: Total field magnetic anomaly
+* :class:`~fatiando.gravmag.eqlayer.Gz`: Vertical component of gravity (i.e.,
+  the gravity anomaly)
+
+**References**
+
+Oliveira Jr., V. C., V. C. F. Barbosa, and L. Uieda (2012), Polynomial
+equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
+
+----
+
 """
 import numpy
 from scipy.sparse import linalg, lil_matrix, csc_matrix
@@ -22,7 +51,18 @@ class Data(object):
 
 class Gz(Data):
     """
-    Wrap gravity anomaly data to be used in the equivalent layer processing.
+    A container for data of the gravity anomaly.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
     """
 
     def __init__(self, x, y, z, data):
@@ -37,8 +77,27 @@ class Gz(Data):
 
 class TotalField(Data):
     """
-    Wrap total field magnetic anomaly data to be used in the equivalent layer
-    processing.
+    A container for data of the total field magnetic anomaly.
+
+    Coordinate system used: x->North y->East z->Down
+
+    Parameters:
+
+    * x, y, z : 1D arrays
+        Arrays with the x, y, z coordinates of the data points
+
+    * data : 1D array
+        The values of the data at the observation points
+
+    * inc, dec : floats
+        The inclination and declination of the inducing field
+
+    * sinc, sdec : None or floats
+        The inclination and declination of the equivalent layer. Use these if
+        there is remanent magnetization and the total magnetization of the layer
+        if different from the induced magnetization. If there is only induced
+        magnetization, use None for sinc and sdec
+
     """
 
     def __init__(self, x, y, z, data, inc, dec, sinc=None, sdec=None):
@@ -63,16 +122,40 @@ class TotalField(Data):
             sens[:,i] = kernel.tf(x, y, z, [s], inc, dec, pmag=mag)
         return sens
 
-def classic(data, grid, damping=0.):
+def classic(data, layer, damping=0.):
     """
-    The classic equivalent layer with damping regularization.
+    The classic equivalent layer in the data space with damping regularization.
+
+    Parameters:
+
+    * data : list
+        List of observed data wrapped in data containers (like
+        :class:`~fatiando.gravmag.eqlayer.TotalField`). Will make a layer that
+        fits all of the observed data. For the moment, still can't mix gravity
+        and magnetic data.
+
+    * layer : :class:`fatiando.mesher.PointGrid`
+        The equivalent layer
+
+    * damping : float
+        The ammount of damping regularization to apply. Must be positive!
+        Need to apply enough for the data fit to not be perfect but reflect the
+        error in the data.
+
+    Returns:
+
+    * [estimate, predicted] : array, list of arrays
+        *estimate* is the estimated physical property distribution. *predicted*
+        is a list of the predicted data vector in the same order as supplied in
+        *data*
+
     """
     ndata = sum(d.size for d in data)
-    sensitivity = numpy.empty((ndata, grid.size), dtype=float)
+    sensitivity = numpy.empty((ndata, layer.size), dtype=float)
     datavec = numpy.empty(ndata, dtype=float)
     bottom = 0
     for d in data:
-        sensitivity[bottom:bottom + d.size, :] = d.sensitivity(grid)
+        sensitivity[bottom:bottom + d.size, :] = d.sensitivity(layer)
         datavec[bottom:bottom + d.size] = d.data
         bottom += d.size
     system = numpy.dot(sensitivity, sensitivity.T)
@@ -273,14 +356,55 @@ def _coefs2prop(coefs, grid, grids, windows, degree):
         ystart = yend
     return estimate.ravel()
 
-def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
+def pel(data, layer, windows, degree=1, damping=0., smoothness=0.,
         matrices=None):
     """
-    The Polynomial Equivalent Layers
+    The polynomial equivalent layer.
+
+    Parameters:
+
+    * data : list
+        List of observed data wrapped in data containers (like
+        :class:`~fatiando.gravmag.eqlayer.TotalField`). Will make a layer that
+        fits all of the observed data. For the moment, still can't mix gravity
+        and magnetic data.
+
+    * layer : :class:`fatiando.mesher.PointGrid`
+        The equivalent layer
+
+    * windows : tuple = (ny, nx)
+        The number of windows that the layer will be divided in the y and x
+        directions
+
+    * degree : int
+        The degree of the bivariate polynomials used in each window
+
+    * damping : float
+        The amount of damping regularization to apply to the polynomail
+        coefficients. Must be positive! A small value (10^-15) usually is
+        enough
+
+    * smoothness : float
+        How much smoothness regularization to apply to the sources connecting
+        adjacent windows. Use this to keep the layer continuous and avoid
+        cracks
+
+    * matrices : None or list of 3 arrays
+        Use this to supply the matrices generated in a previous run with the
+        same data, layer, windows and degree. This way trying different
+        regularization parameters doesn't take so long. WARNING: if any other
+        parameter changed, the results will be meaningless
+
+    Returns:
+
+    * [estimate, matrices] : array, list of arrays
+        *estimate* is the estimated physical property distribution. *matrices*
+        is a list of the matrices used to compute the layer.
+
     """
     ny, nx = windows
-    grids = grid.split(windows)
-    if grid.shape[1]%nx != 0 or grid.shape[0]%ny != 0:
+    grids = layer.split(windows)
+    if layer.shape[1]%nx != 0 or layer.shape[0]%ny != 0:
         raise ValueError(
             'PEL requires windows to be divisable by the grid shape')
     ngrids = len(grids)
@@ -288,7 +412,7 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     ncoefs = ngrids*pergrid
     if matrices is None:
         modelmatrix, smoothmatrix, rightside = _pel_matrices(data, windows,
-            grid, grids, degree)
+            layer, grids, degree)
     else:
         modelmatrix, smoothmatrix, rightside = matrices
     fg = numpy.trace(modelmatrix)
@@ -296,5 +420,5 @@ def pel(data, grid, windows, degree=1, damping=0., smoothness=0.,
     leftside = modelmatrix + (float(smoothness*fg)/fr)*smoothmatrix
     leftside[range(ncoefs),range(ncoefs)] += float(damping*fg)/ncoefs
     coefs = numpy.linalg.solve(leftside, rightside)
-    estimate = _coefs2prop(coefs, grid, grids, windows, degree)
+    estimate = _coefs2prop(coefs, layer, grids, windows, degree)
     return estimate, [modelmatrix, smoothmatrix, rightside]
