@@ -3,6 +3,19 @@
 Changelog
 =========
 
+Version 0.2
+-----------
+
+**Release date**:
+
+**Changes**:
+
+* Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
+  equivalent layer processing of potential fields.
+* Refactored all magnetic modeling and inversion to use either scalar or vector
+  magnetization.
+
+
 Version 0.1
 -----------
 
@@ -65,7 +78,3 @@ Version 0.1
 * Functions in :ref:`fatiando.gravmag.basin2d <fatiando_gravmag_basin2d>` spit
   out Polygons instead of the vertices estimated. Now you don't have to build
   the polygons by hand.
-
-**Bug fixes**:
-
-
