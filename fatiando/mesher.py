@@ -16,6 +16,7 @@ Generate and operate on various kinds of meshes and geometric elements
 * :class:`~fatiando.mesher.PrismMesh`
 * :class:`~fatiando.mesher.PrismRelief`
 * :class:`~fatiando.mesher.TesseroidMesh`
+* :class:`~fatiando.mesher.PointGrid`
 
 **Utility functions**
 
@@ -32,6 +33,7 @@ Generate and operate on various kinds of meshes and geometric elements
 import PIL.Image
 import numpy
 import scipy.misc
+import scipy.special
 import matplotlib.mlab
 
 import fatiando.logger
@@ -634,6 +636,162 @@ class PolygonalPrism(GeometricElement):
         """
         verts = numpy.transpose([self.x, self.y])
         return Polygon(verts, self.props)
+
+class PointGrid(object):
+    """
+    Create a grid of 3D point sources (spheres of unit volume).
+
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`s.
+    Grid points are ordered with x varying first, then y (like a C matrix).
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        The area where the grid will be spread out
+    * z : float
+        The z coordinate of the grid (remember, z is positive downward)
+    * shape : tuple = (ny, nx)
+        The number of points in the y and x directions
+    * props :  dict
+        Physical properties of each point in the grid.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property for
+        each point in the grid.
+
+    """
+
+    def __init__(self, area, z, shape, props=None):
+        object.__init__(self)
+        self.area = area
+        self.z = z
+        self.shape = shape
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
+        ny, nx = shape
+        self.size = nx*ny
+        self.radius = scipy.special.cbrt(3./(4.*numpy.pi))
+        x1, x2, y1, y2 = area
+        xs = numpy.linspace(x1, x2, nx)
+        ys = numpy.linspace(y1, y2, ny)
+        self.x, self.y = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        if index >= self.size or index < -self.size:
+            raise IndexError('grid index out of range')
+        # To walk backwards in the list
+        if index < 0:
+            index = self.size + index
+        props = dict([p, self.props[p][index]] for p in self.props)
+        sphere = Sphere(self.x[index], self.y[index], self.z, self.radius,
+                        props=props)
+        return sphere
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        if self.i >= self.size:
+            raise StopIteration
+        sphere = self.__getitem__(self.i)
+        self.i += 1
+        return sphere
+
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the points in the grid.
+
+        Different physical properties of the grid are stored in a dictionary.
+
+        Parameters:
+
+        * prop : str
+            Name of the physical property.
+        * values :  list or array
+            Value of this physical property in each point of the grid
+
+        """
+        self.props[prop] = values
+
+    def split(self, shape):
+        """
+        Divide the grid into subgrids.
+
+        Parameters:
+
+        * shape : tuple = (ny, nx)
+            Number of subgrids in the y and x directions, respectively
+
+        Returns:
+
+        * subgrids : list
+            List of :class:`~fatiando.mesher.PointGrid`s
+
+        Examples::
+
+            >>> g = PointGrid((1, 4, 1, 3), 10, (3, 4))
+            >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
+            >>> grids = g.split((3, 2))
+            >>> for s in grids:
+            ...     print s.props['bla']
+            [1 1]
+            [2 2]
+            [4 4]
+            [5 5]
+            [7 7]
+            [8 8]
+            >>> for s in grids:
+            ...     print s.x
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            >>> for s in grids:
+            ...     print s.y
+            [ 1.  1.]
+            [ 1.  1.]
+            [ 2.  2.]
+            [ 2.  2.]
+            [ 3.  3.]
+            [ 3.  3.]
+
+        """
+        ny, nx = shape
+        x1, x2, y1, y2 = self.area
+        totaly, totalx = self.shape
+        if totalx%nx != 0 or totaly%ny != 0:
+            raise ValueError(
+                'Cannot split! nx and ny must be divible by grid shape')
+        xs = numpy.linspace(x1, x2, totalx)
+        ys = numpy.linspace(y1, y2, totaly)
+        dx = totalx/nx
+        dy = totaly/ny
+        subs = []
+        for i in xrange(ny):
+            ystart = i*dy
+            yend = ystart + dy - 1
+            if yend >= totaly:
+                yend = totaly - 1
+            for j in xrange(nx):
+                xstart = j*dx
+                xend = xstart + dx - 1
+                if xend >= totalx:
+                    xend = totalx - 1
+                area = [xs[xstart], xs[xend], ys[ystart], ys[yend]]
+                shape = (yend - ystart + 1, xend - xstart + 1)
+                props = {}
+                for p in self.props:
+                    pmatrix = numpy.reshape(self.props[p], (totaly, totalx))
+                    props[p] = pmatrix[ystart:yend + 1, xstart:xend + 1].ravel()
+                subs.append(PointGrid(area, self.z, shape, props))
+        return subs
 
 class PrismRelief(object):
     """

@@ -50,4 +50,4 @@ after modeling.
 
 from fatiando.gravmag import (basin2d, polyprism, prism, talwani, transform,
     harvester, sphere, tensor, fourier, imaging, euler, tesseroid,
-    half_sph_shell)
+    half_sph_shell, eqlayer)
