@@ -1,15 +1,9 @@
-GOALS FOR 0.3:
-
-* Write Developers Guide:
-    * Coding style
-    * Using version control
-    * Getting the source
-    * Building
-    * Sending patches
-* Write tutorials with a larger examples than in the cookbook
-
 GOALS FOR 0.2:
 
+* Make lazy imports in myv decorators
+* Get rid of logging. Replace for decorator that records only debuging func
+  name and args
+* make utils.timed decorator to print timing information to a stream
 * Write the Advanced usage docs
 * Write the Getting started docs
 * Make a VTK plotter for tesseroids
@@ -51,6 +45,32 @@ BUGS:
 * title3d needs be called after a call to a data plotter (e.g., prisms)
 * BUG in talwani.c: wrong result when zv==zvp1 (and a little wrong when xv==0)
 
+GOALS FOR 0.3:
+
+* Write Developers Guide:
+    * Coding style
+    * Using version control
+    * Getting the source
+    * Building
+    * Sending patches
+* Write tutorials with a larger examples than in the cookbook
+
+IDEAS:
+
+* Try multithreading and multiprocessing sensitivity building
+* Importer functions to fetch DEMs, gravity data form IGBE, etc
+* Make utils.clock function that runs a function, logs the time it takes and
+  returns what the func would return
+* Get rid of the DataModule class. Provide a specification of it in the docs on
+  fatiando.inversion
+* Add decorator to logging that logs a functions name and parameters in debug
+  mode
+* Consider making the parameter vector a dictionary: one array for each prop.
+  this way the datamodules only operate on their props
+* Make an automatic fetcher of bibliographic references from scripts
+* Store provenance of results in image files:
+  http://galacticusblog.blogspot.com/2012/01/reproducibility-of-galacticus-modesl.html
+* Use diagonal derivatives in Smoothness
 
 TO-IMPLEMENT:
 
@@ -83,20 +103,3 @@ TO-IMPLEMENT:
 * Make a PrismMesh.get_index(i) method that converts index i in raveled array to
   i, j, k 3D index
 * potential.terrain for terrain corrections (automatically find the best density)
-
-IDEAS:
-
-* Importer functions to fetch DEMs, gravity data form IGBE, etc
-* Make utils.clock function that runs a function, logs the time it takes and
-  returns what the func would return
-* Get rid of the DataModule class. Provide a specification of it in the docs on
-  fatiando.inversion
-* Add decorator to logging that logs a functions name and parameters in debug
-  mode
-* Consider making the parameter vector a dictionary: one array for each prop.
-  this way the datamodules only operate on their props
-* Make an automatic fetcher of bibliographic references from scripts
-* Store provenance of results in image files:
-  http://galacticusblog.blogspot.com/2012/01/reproducibility-of-galacticus-modesl.html
-* Use diagonal derivatives in Smoothness
-
