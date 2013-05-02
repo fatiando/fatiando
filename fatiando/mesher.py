@@ -442,13 +442,13 @@ class Prism(GeometricElement):
 
             >>> prism = Prism(1, 2, 1, 3, 0, 2)
             >>> print prism.center()
-            [1.5, 2.0, 1.0]
+            [ 1.5  2.   1. ]
 
         """
         xc = 0.5*(self.x1 + self.x2)
         yc = 0.5*(self.y1 + self.y2)
         zc = 0.5*(self.z1 + self.z2)
-        return [xc, yc, zc]
+        return numpy.array([xc, yc, zc])
 
 class Tesseroid(GeometricElement):
     """
@@ -1178,6 +1178,14 @@ class PrismMesh(object):
         end = (i + 1)*nx*ny
         layer = [self.__getitem__(p) for p in xrange(start, end)]
         return layer
+
+    def layers(self):
+        """
+        Returns an iterator over the layers of the mesh.
+        """
+        nz, ny, nx = self.shape
+        for i in xrange(nz):
+            yield self.get_layer(i)
 
     def dump(self, meshfile, propfile, prop):
         r"""
