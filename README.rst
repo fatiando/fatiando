@@ -20,6 +20,24 @@ and the API reference.
 
 The documentation reflects the *master* branch on Github_.
 
+Get fatiando
+------------
+
+You can download 
+the stable version 
+of Fatiando
+from `PyPI <https://pypi.python.org/pypi/fatiando>`_.
+You'll find more detailed explanations on the 
+`install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`_.
+
+.. image:: https://pypip.in/v/fatiando/badge.png
+    :target: https://crate.io/packages/fatiando/
+    :alt: Latest PyPI version
+
+.. image:: https://pypip.in/d/fatiando/badge.png
+    :target: https://crate.io/packages/fatiando/
+    :alt: Number of PyPI downloads
+
 Source code
 -----------
 
