@@ -217,7 +217,7 @@ def _find_index(point, mesh):
             return seed
     return None
 
-def harvest(data, seeds, mesh, compactness, threshold):
+def harvest(data, seeds, mesh, compactness, threshold, report=False):
     """
     Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
@@ -252,6 +252,16 @@ def harvest(data, seeds, mesh, compactness, threshold):
         If cells are small and *threshold* is large (0.001), the seeds won't
         grow. If cells are large and *threshold* is small (0.000001), the seeds
         will grow too much.
+
+    * report : True or False
+        If ``True``, also will return a dict as::
+
+            report = {'goal': goal_function_value,
+                      'shape-of-anomaly': SOA_function_value,
+                      'misfit': data_misfit_value,
+                      'regularizer': regularizing_function_value,
+                      'accretions': number_of_accretions}
+
 
     Returns:
 
@@ -296,10 +306,17 @@ def harvest(data, seeds, mesh, compactness, threshold):
 
 
     """
-    for update in iharvest(data, seeds, mesh, compactness, threshold):
+    for accretions, update in enumerate(iharvest(data, seeds, mesh,
+        compactness, threshold)):
         continue
     estimate, predicted = update[:2]
-    return fmt_estimate(estimate, mesh.size), predicted
+    output = [fmt_estimate(estimate, mesh.size), predicted]
+    if report:
+        goal, misfit, regul = update[4:]
+        soa = goal - compactness*1./(sum(mesh.shape)/3.)*regul
+        output.append({'goal':goal, 'misfit':misfit, 'regularizer':regul,
+            'accretions':accretions, 'shape-of-anomaly':soa})
+    return output
 
 def iharvest(data, seeds, mesh, compactness, threshold):
     """
