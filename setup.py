@@ -2,7 +2,6 @@
 Build extention modules, package and install Fatiando.
 Uses the numpy's extension of distutils to build the f2py extension modules
 """
-import sys
 import subprocess
 import os
 from os.path import join
@@ -40,7 +39,7 @@ except ImportError:
 
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
-DESCRIPTION = "Fatiando a Terra - Geophysical modeling and inversion"
+DESCRIPTION = "Geophysical modeling and inversion"
 VERSION = '0.1'
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
@@ -53,8 +52,8 @@ PACKAGES = ['fatiando',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'
-LICENSE = 'BSD License'
-URL = "http://www.fatiando.org/software/fatiando"
+LICENSE = "BSD License"
+URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
 #SCRIPTS = ['scripts/harvester']
 SCRIPTS = []
