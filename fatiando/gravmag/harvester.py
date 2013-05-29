@@ -22,6 +22,8 @@ data.
 **Functions**
 
 * :func:`~fatiando.gravmag.harvester.harvest`: Performs the inversion
+* :func:`~fatiando.gravmag.harvester.iharvest`: Iterator to step through the
+  inversion one accretion at a time
 * :func:`~fatiando.gravmag.harvester.sow`: Creates the seeds from a set of
   (x, y, z) points and physical properties
 * :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set
@@ -51,13 +53,13 @@ data.
 Uieda, L., and V. C. F. Barbosa (2012a), Robust 3D gravity gradient inversion by
 planting anomalous densities, Geophysics, 77(4), G55-G66,
 doi:10.1190/geo2011-0388.1 [`pdf
-<http://www.mendeley.com/download/public/1406731/4823610241/45dec08fa03c4d5950ecdaef8d7532767a57a1a8/dl.pdf>`__]
+<http://fatiando.org/papers/Uieda,Barbosa_2012(2).pdf>`__]
 
 Uieda, L., and V. C. F. Barbosa (2012b),
 Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous
 densities, SEG Technical Program Expanded Abstracts, 1-6,
 doi:10.1190/segam2012-0383.1 [`pdf
-<http://www.mendeley.com/download/public/1406731/4932659461/67606df295d428a7f729a74cf80b7ed4aa37553b/dl.pdf>`__]
+<http://fatiando.org/papers/Uieda,Barbosa_2012(3).pdf>`__]
 
 ----
 
