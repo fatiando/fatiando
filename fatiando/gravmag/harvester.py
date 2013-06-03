@@ -22,6 +22,8 @@ data.
 **Functions**
 
 * :func:`~fatiando.gravmag.harvester.harvest`: Performs the inversion
+* :func:`~fatiando.gravmag.harvester.iharvest`: Iterator to step through the
+  inversion one accretion at a time
 * :func:`~fatiando.gravmag.harvester.sow`: Creates the seeds from a set of
   (x, y, z) points and physical properties
 * :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set
@@ -51,19 +53,18 @@ data.
 Uieda, L., and V. C. F. Barbosa (2012a), Robust 3D gravity gradient inversion by
 planting anomalous densities, Geophysics, 77(4), G55-G66,
 doi:10.1190/geo2011-0388.1 [`pdf
-<http://www.mendeley.com/download/public/1406731/4823610241/45dec08fa03c4d5950ecdaef8d7532767a57a1a8/dl.pdf>`__]
+<http://fatiando.org/papers/Uieda,Barbosa_2012(2).pdf>`__]
 
 Uieda, L., and V. C. F. Barbosa (2012b),
 Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous
 densities, SEG Technical Program Expanded Abstracts, 1-6,
 doi:10.1190/segam2012-0383.1 [`pdf
-<http://www.mendeley.com/download/public/1406731/4932659461/67606df295d428a7f729a74cf80b7ed4aa37553b/dl.pdf>`__]
+<http://fatiando.org/papers/Uieda,Barbosa_2012(3).pdf>`__]
 
 ----
 
 """
 import json
-import time
 import bisect
 from math import sqrt, exp
 from itertools import izip
@@ -218,7 +219,7 @@ def _find_index(point, mesh):
             return seed
     return None
 
-def harvest(data, seeds, mesh, compactness, threshold):
+def harvest(data, seeds, mesh, compactness, threshold, report=False):
     """
     Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
@@ -253,6 +254,16 @@ def harvest(data, seeds, mesh, compactness, threshold):
         If cells are small and *threshold* is large (0.001), the seeds won't
         grow. If cells are large and *threshold* is small (0.000001), the seeds
         will grow too much.
+
+    * report : True or False
+        If ``True``, also will return a dict as::
+
+            report = {'goal': goal_function_value,
+                      'shape-of-anomaly': SOA_function_value,
+                      'misfit': data_misfit_value,
+                      'regularizer': regularizing_function_value,
+                      'accretions': number_of_accretions}
+
 
     Returns:
 
@@ -297,39 +308,55 @@ def harvest(data, seeds, mesh, compactness, threshold):
 
 
     """
-    log.info('Harvesting inversion results:')
+    for accretions, update in enumerate(iharvest(data, seeds, mesh,
+        compactness, threshold)):
+        continue
+    estimate, predicted = update[:2]
+    output = [fmt_estimate(estimate, mesh.size), predicted]
+    if report:
+        goal, misfit, regul = update[4:]
+        soa = goal - compactness*1./(sum(mesh.shape)/3.)*regul
+        output.append({'goal':goal, 'misfit':misfit, 'regularizer':regul,
+            'accretions':accretions, 'shape-of-anomaly':soa})
+    return output
+
+def iharvest(data, seeds, mesh, compactness, threshold):
+    """
+    Same as the :func:`fatiando.gravmag.harvester.harvest` function but this
+    one returns an iterator that yields the information of each accretion.
+
+    Yields:
+
+    * [estimate, predicted, new, neighbors, goal, misfit, regularizer]
+        The unformated estimate, predicted data vectors, the new element added
+        during this iteration, list of neighbors, goal function value, misfit,
+        regularizing function value.
+
+    The first yield contains the seeds. Thus ``new`` will be ``None``.
+
+    To format the estimate in a way that can be added to a mesh, use
+    function fmt_estimate of this module.
+
+    """
     nseeds = len(seeds)
-    log.info('  compactness: %g' % (compactness))
-    log.info('  threshold: %g' % (threshold))
-    log.info('  # of seeds: %d' % (nseeds))
-    log.info('  # of data types: %d' % (len(data)))
-    tstart = time.time()
-    # Initialize the estimate with the seeds
     estimate = dict((s.i, s.props) for s in seeds)
-    # Initialize the neighbors list
     neighbors = []
     for seed in seeds:
         neighbors.append(_get_neighbors(seed, neighbors, estimate, mesh, data))
-    # Initialize the predicted data
     predicted = _init_predicted(data, seeds, mesh)
-    # Start the goal function, data-misfit function and regularizing function
     totalgoal = _shapefunc(data, predicted)
     totalmisfit = _misfitfunc(data, predicted)
     regularizer = 0.
-    log.info('  initial goal function: %g' % (totalgoal))
-    log.info('  initial data misfit: %g' % (totalmisfit))
     # Weight the regularizing function by the mean extent of the mesh
     mu = compactness*1./(sum(mesh.shape)/3.)
-    # Begin the growth process
-    log.info('  Running...')
+    yield [estimate, predicted, None, neighbors, totalgoal, totalmisfit,
+           regularizer]
     accretions = 0
     for iteration in xrange(mesh.size - nseeds):
         grew = False # To check if at least one seed grew (stopping criterion)
         for s in xrange(nseeds):
             best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s],
                 data, predicted, totalmisfit, mu, regularizer, threshold)
-            # If there was a best, add to estimate, remove it, and add its
-            # neighbors
             if best is not None:
                 if best.i not in estimate:
                     estimate[best.i] = {}
@@ -342,17 +369,13 @@ def harvest(data, seeds, mesh, compactness, threshold):
                 neighbors[s].pop(best.i)
                 neighbors[s].update(
                     _get_neighbors(best, neighbors, estimate, mesh, data))
-                del best
                 grew = True
                 accretions += 1
+                yield [estimate, predicted, best, neighbors, totalgoal,
+                       totalmisfit, regularizer]
+                del best
         if not grew:
             break
-    log.info('  # of accretions: %d' % (accretions))
-    log.info('  final goal function: %g' % (totalgoal))
-    log.info('  final compactness regularizing function: %g' % (regularizer))
-    log.info('  final data misfit: %g' % (totalmisfit))
-    log.info('  time it took: %s' % (utils.sec2hms(time.time() - tstart)))
-    return _fmt_estimate(estimate, mesh.size), predicted
 
 def _init_predicted(data, seeds, mesh):
     """
@@ -366,9 +389,9 @@ def _init_predicted(data, seeds, mesh):
         predicted.append(p)
     return predicted
 
-def _fmt_estimate(estimate, size):
+def fmt_estimate(estimate, size):
     """
-    Make a nice dict with the estimated physical properties in separate array
+    Make a nice dict with the estimated physical properties in separate arrays
     """
     output = {}
     for i in estimate:
