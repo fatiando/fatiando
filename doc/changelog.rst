@@ -14,7 +14,8 @@ Version 0.2
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
   magnetization.
-
+* :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
+  data weights.
 
 Version 0.1
 -----------
