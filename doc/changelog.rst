@@ -17,7 +17,8 @@ Version 0.2
 * ``Seed`` class of
   :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` can now be
   used as a ``Prism`` object.
-
+* :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
+  data weights.
 
 Version 0.1
 -----------
