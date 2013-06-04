@@ -565,7 +565,7 @@ class Neighbor(object):
         self.distance = distance
         self.effect = effect
 
-def weights(x, y, seeds, influences):
+def weights(x, y, seeds, influences, decay=2):
     """
     Calculate weights for the data based on the distance to the seeds.
     Use weights to ignore regions of data outside of the target anomaly.
@@ -577,8 +577,13 @@ def weights(x, y, seeds, influences):
     * seeds : list
         List of seeds, as returned by :func:`~fatiando.gravmag.harvester.sow`
     * influences : list of floats
-        The respective radius of influence for each seed. Observtions outside
-        the influence will have very small weights.
+        The respective diameter of influence for each seed. Observations
+        outside the influence will have very small weights.
+        A recommended value is aproximately the diameter of the anomaly
+    * decay : float
+        The decay factor for the weights. Low decay factor makes the weights
+        spread out more. High decay factor makes the transition from large
+        weights to low weights more abrupt.
 
     Returns:
 
@@ -589,7 +594,7 @@ def weights(x, y, seeds, influences):
     distances = numpy.array([((x - s.x)**2 + (y - s.y)**2)/influence**2
                             for s, influence in zip(seeds, influences)])
     # min along axis=0 gets the smallest value from each column
-    weights = numpy.exp(-(distances.min(axis=0)**2))
+    weights = numpy.exp(-(distances.min(axis=0)**decay))
     return weights
 
 class Data(object):
