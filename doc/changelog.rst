@@ -14,6 +14,9 @@ Version 0.2
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
   magnetization.
+* ``Seed`` class of
+  :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` can now be
+  used as a ``Prism`` object.
 
 
 Version 0.1

@@ -74,6 +74,7 @@ import numpy
 from fatiando.gravmag import prism as prism_engine
 from fatiando.gravmag import tesseroid as tesseroid_engine
 from fatiando import utils
+from fatiando.mesher import Prism
 import fatiando.logger
 
 log = fatiando.logger.dummy('fatiando.gravmag.harvester')
@@ -186,7 +187,7 @@ def sow(locations, mesh):
                 "Couldn't find seed at location (%g,%g,%g)" % (x, y, z))
         # Check for duplicates
         if index not in (s.i for s in seeds):
-            seeds.append(Seed(index, (x, y, z), props))
+            seeds.append(Seed(index, (x, y, z), mesh[index], props))
     log.info("  points given: %d" % (len(locations)))
     log.info("  unique seeds found: %d" % (len(seeds)))
     return seeds
@@ -542,14 +543,15 @@ def _neighbor_indexes(n, mesh):
     # Filter out the ones that do not exist or are masked (topography)
     return [i for i in indexes if i is not None and mesh[i] is not None]
 
-class Seed(object):
+class Seed(Prism):
     """
     A seed.
     """
 
-    def __init__(self, i, location, props):
+    def __init__(self, i, location, prism, props):
+        Prism.__init__(self, prism.x1, prism.x2, prism.y1, prism.y2, prism.z1,
+            prism.z2, props=props)
         self.i = i
-        self.props = props
         self.seed = i
         self.x, self.y, self.z = location
 

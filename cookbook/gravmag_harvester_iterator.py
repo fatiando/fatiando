@@ -18,7 +18,7 @@ seeds = gravmag.harvester.sow([[500, 500, 250, {'density':1000}]], mesh)
 fig = myv.figure(size=(700, 700))
 plot = myv.prisms(model, style='wireframe', linewidth=4)
 plot.actor.mapper.scalar_visibility = False
-myv.prisms([mesh[s.i] for s in seeds])
+myv.prisms(seeds, 'density')
 myv.outline(bounds)
 myv.wall_bottom(bounds)
 myv.wall_east(bounds)
