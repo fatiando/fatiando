@@ -29,6 +29,8 @@ data.
 * :func:`~fatiando.gravmag.harvester.loadseeds`: Loads from a JSON file a set
   of (x, y, z) points and physical properties that specify the seeds. Pass
   output to :func:`~fatiando.gravmag.harvester.sow`
+* :func:`~fatiando.gravmag.harvester.weights`: Computes data weights based on
+  the distance to the seeds
 
 **Data types**
 
@@ -66,8 +68,7 @@ doi:10.1190/segam2012-0383.1 [`pdf
 """
 import json
 import bisect
-from math import sqrt, exp
-from itertools import izip
+from math import sqrt
 
 import numpy
 
