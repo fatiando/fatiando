@@ -333,14 +333,15 @@ def _add_pad(array, pad, shape):
     Pad the array with the values of the borders
     """
     array_pad = numpy.zeros(shape, dtype=numpy.float)
-    array_pad[2:-pad, pad:-pad] = array
+    array_pad[3:-pad, pad:-pad] = array
     for k in xrange(pad):
-        array_pad[2:-pad,k] = array[:,0]
-        array_pad[2:-pad,-(k + 1)] = array[:,-1]
+        array_pad[3:-pad,k] = array[:,0]
+        array_pad[3:-pad,-(k + 1)] = array[:,-1]
     for k in xrange(pad):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
-    array_pad[0,:] = array_pad[2,:]
-    array_pad[1,:] = array_pad[2,:]
+    array_pad[0,:] = array_pad[3,:]
+    array_pad[1,:] = array_pad[3,:]
+    array_pad[2,:] = array_pad[3,:]
     return array_pad
 
 def _split_grid(split, nx, nz):
@@ -366,7 +367,7 @@ def _split_grid(split, nx, nz):
             parts.append([x1, x2, z1, z2])
     return parts
 
-def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
+def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
     padding=1.0, partition=(1, 1)):
     """
     Simulate SH waves using an explicit finite differences scheme.
@@ -408,9 +409,9 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     pad = int(padding*max(shape))
     decay = float(20*pad)
     nx += 2*pad
-    nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
-    # Pad the velocity as well
-    svel_pad = _add_pad(svel, pad, (nz, nx))
+    nz += pad + 3 # +3 is to remove the 3 nodes for the top boundary condition
+    mu_pad = _add_pad(mu, pad, (nz, nx))
+    dens_pad = _add_pad(dens, pad, (nz, nx))
     # Pack the particle position u at 3 different times in one 3d array
     # u[0] = u(t-1)
     # u[1] = u(t)
@@ -419,39 +420,18 @@ def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     # Compute and yield the initial solutions
     for src in sources:
         i, j = src.coords()
-        u[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield u[0, 2:-pad, pad:-pad]
-    yield u[1, 2:-pad, pad:-pad]
-    # Start the process pool
-    #jobs = partition[0]*partition[1]
-    #if jobs > 1:
-        #parts = _split_grid(split, nx, nz)
-        #shr_u = Array('d', u.ravel())
-        #shr_svel_pad = Array('d', svel_pad.ravel())
-        #u = numpy.frombuffer(shr_u.get_obj()).reshape((3, nz, nx))
-        #svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
-        #def init(u_, svel_):
-            #global u, svel_pad
-            #u = u_
-            #svel_pad = svel_
-        #pool = Pool(jobs, initializer=init, initargs=(u, svel_pad))
-    # Time steps
+        u[1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(0)
+    yield u[1, 3:-pad, pad:-pad]
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
-        _step_elastic_sh(u[utp1], u[ut], u[utm1], 2, nx - 2, 2, nz - 2,
-            deltat, dx, dz, svel_pad)
-        # Damp the regions in the padding to make waves go to infinity
+        _step_elastic_sh(u[utp1], u[ut], u[utm1], 3, nx - 3, 3, nz - 3,
+            deltat, dx, dz, mu_pad, dens_pad)
         _apply_damping(u[utp1], nx, nz, pad, decay)
-        # Set the boundary conditions
         _boundary_conditions(u[utp1], nx, nz)
-        # Update the sources
         for src in sources:
             i, j = src.coords()
-            u[utp1, i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        yield u[utp1][2:-pad, pad:-pad]
-    #if jobs > 1:
-        #pool.close()
-        #pool.join()
+            u[utp1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+        yield u[utp1][3:-pad, pad:-pad]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, partition=(1, 1)):

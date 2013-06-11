@@ -45,15 +45,19 @@ def _boundary_conditions(numpy.ndarray[DTYPE_T, ndim=2] u not None,
     """
     cdef unsigned int i
     for i in xrange(nx):
+        u[2, i] = u[3, i]
         u[1, i] = u[2, i]
         u[0, i] = u[1, i]
         u[nz - 1, i] *= 0
         u[nz - 2, i] *= 0
+        u[nz - 3, i] *= 0
     for i in xrange(nz):
         u[i, 0] *= 0
         u[i, 1] *= 0
+        u[i, 2] *= 0
         u[i, nx - 1] *= 0
         u[i, nx - 2] *= 0
+        u[i, nx - 3] *= 0
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -63,20 +67,47 @@ def _step_elastic_sh(
     numpy.ndarray[DTYPE_T, ndim=2] u_tm1 not None,
     unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
     double dt, double dx, double dz,
-    numpy.ndarray[DTYPE_T, ndim=2] svel not None):
+    numpy.ndarray[DTYPE_T, ndim=2] mu not None,
+    numpy.ndarray[DTYPE_T, ndim=2] dens not None):
     """
     Perform a single time step in the Finite Difference solution for elastic
     SH waves.
     """
     cdef unsigned int i, j
+    dt2 = dt**2
+    dx2 = dx**2
+    dz2 = dz**2
     for i in xrange(z1, z2):
         for j in xrange(x1, x2):
-            u_tp1[i,j] = (2.*u_t[i,j] - u_tm1[i,j]
-                + (svel[i,j]**2)*(dt**2)*(
-                    (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
-                     16.*u_t[i,j - 1] - u_t[i,j - 2])/(12.*dx**2) +
-                    (-u_t[i + 2,j] + 16.*u_t[i + 1,j] - 30.*u_t[i,j] +
-                     16.*u_t[i - 1,j] - u_t[i - 2,j])/(12.*dz**2)))
+            u_tp1[i,j] = 2*u_t[i,j] - u_tm1[i,j] + (dt2/dens[i,j])*(
+                (1.125/dz2)*(
+                    0.5*(mu[i+1,j] - mu[i,j])*(
+                        1.125*(u_t[i+1,j] - u_t[i,j])
+                        - (u_t[i+2,j] - u_t[i-1,j])/24.)
+                    - 0.5*(mu[i,j] - mu[i-1,j])*(
+                        1.125*(u_t[i,j] - u_t[i-1,j])
+                        - (u_t[i+1,j] - u_t[i-2,j])/24.))
+                - (1./(24.*dz2))*(
+                    0.5*(mu[i+2,j] - mu[i+1,j])*(
+                        1.125*(u_t[i+2,j] - u_t[i+1,j])
+                        - (u_t[i+3,j] - u_t[i,j])/24.)
+                    - 0.5*(mu[i-1,j] - mu[i-2,j])*(
+                        1.125*(u_t[i-1,j] - u_t[i-2,j])
+                        - (u_t[i,j] - u_t[i-3,j])/24.))
+                + (1.125/dx2)*(
+                    0.5*(mu[i,j+1] - mu[i,j])*(
+                        1.125*(u_t[i,j+1] - u_t[i,j])
+                        - (u_t[i,j+2] - u_t[i,j-1])/24.)
+                    - 0.5*(mu[i,j] - mu[i,j-1])*(
+                        1.125*(u_t[i,j] - u_t[i,j-1])
+                        - (u_t[i,j+1] - u_t[i,j-2])/24.))
+                - (1./(24.*dx2))*(
+                    0.5*(mu[i,j+2] - mu[i,j+1])*(
+                        1.125*(u_t[i,j+2] - u_t[i,j+1])
+                        - (u_t[i,j+3] - u_t[i,j])/24.)
+                    - 0.5*(mu[i,j-1] - mu[i,j-2])*(
+                        1.125*(u_t[i,j-1] - u_t[i,j-2])
+                        - (u_t[i,j] - u_t[i,j-3])/24.)))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
