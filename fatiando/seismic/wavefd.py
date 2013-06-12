@@ -368,7 +368,7 @@ def _split_grid(split, nx, nz):
     return parts
 
 def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
-    padding=1.0, partition=(1, 1)):
+    padding=20, taper=0.02):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -390,12 +390,11 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
         A list of the sources of waves
         (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
         source)
-    * padding : float
-        The decimal percentage of padding to use in the grid to avoid
-        reflections at the borders
-    * partition : tuple = (sz, sx)
-        How to split the grid for parallel computation. Number of parts in z and
-        x, respectively
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the gaussian taper function used for the absorbing
+        boundary conditions
 
     Yields:
 
@@ -406,8 +405,8 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
     nz, nx = shape
     dz, dx = (float(i) for i in spacing)
     # Add some nodes in x and z for padding to avoid reflections
-    pad = int(padding*max(shape))
-    decay = float(20*pad)
+    pad = int(padding)
+    decay = float(taper)
     nx += 2*pad
     nz += pad + 3 # +3 is to remove the 3 nodes for the top boundary condition
     mu_pad = _add_pad(mu, pad, (nz, nx))
@@ -422,16 +421,19 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
         i, j = src.coords()
         u[1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(0)
     yield u[1, 3:-pad, pad:-pad]
+    #yield u[1]
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
         _step_elastic_sh(u[utp1], u[ut], u[utm1], 3, nx - 3, 3, nz - 3,
             deltat, dx, dz, mu_pad, dens_pad)
         _apply_damping(u[utp1], nx, nz, pad, decay)
+        _apply_damping(u[ut], nx, nz, pad, decay)
         _boundary_conditions(u[utp1], nx, nz)
         for src in sources:
             i, j = src.coords()
             u[utp1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
         yield u[utp1][3:-pad, pad:-pad]
+        #yield u[utp1]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, partition=(1, 1)):

@@ -26,15 +26,15 @@ def _apply_damping(numpy.ndarray[DTYPE_T, ndim=2] array not None,
     # Damping on the left
     for i in xrange(nz):
         for j in xrange(pad):
-            array[i,j] *= exp(-(pad - j)**2/decay**2)
+            array[i,j] *= exp(-((decay*(pad - j))**2))
     # Damping on the right
     for i in xrange(nz):
         for j in xrange(nx - pad, nx):
-            array[i,j] *= exp(-(j - (nx - pad) + 1)**2/decay**2)
+            array[i,j] *= exp(-((decay*(j - nx + pad))**2))
     # Damping on the bottom
     for i in xrange(nz - pad, nz):
-        for j in xrange(pad, nx - pad):
-            array[i,j] *= exp(-(i - (nz - pad) + 1)**2/decay**2)
+        for j in xrange(nx):
+            array[i,j] *= exp(-((decay*(i - nz + pad))**2))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -80,32 +80,40 @@ def _step_elastic_sh(
     for i in xrange(z1, z2):
         for j in xrange(x1, x2):
             u_tp1[i,j] = 2*u_t[i,j] - u_tm1[i,j] + (dt2/dens[i,j])*(
+                # Second order space
+                #(1./dz2)*(
+                    #0.5*(mu[i+1,j] + mu[i,j])*(u_t[i+1,j] - u_t[i,j])
+                    #- 0.5*(mu[i,j] + mu[i-1,j])*(u_t[i,j] - u_t[i-1,j]))
+                #+ (1./dx2)*(
+                    #0.5*(mu[i,j+1] + mu[i,j])*(u_t[i,j+1] - u_t[i,j])
+                    #- 0.5*(mu[i,j] + mu[i,j-1])*(u_t[i,j] - u_t[i,j-1])))
+                # Fourth order space
                 (1.125/dz2)*(
-                    0.5*(mu[i+1,j] - mu[i,j])*(
+                    0.5*(mu[i+1,j] + mu[i,j])*(
                         1.125*(u_t[i+1,j] - u_t[i,j])
                         - (u_t[i+2,j] - u_t[i-1,j])/24.)
-                    - 0.5*(mu[i,j] - mu[i-1,j])*(
+                    - 0.5*(mu[i,j] + mu[i-1,j])*(
                         1.125*(u_t[i,j] - u_t[i-1,j])
                         - (u_t[i+1,j] - u_t[i-2,j])/24.))
                 - (1./(24.*dz2))*(
-                    0.5*(mu[i+2,j] - mu[i+1,j])*(
+                    0.5*(mu[i+2,j] + mu[i+1,j])*(
                         1.125*(u_t[i+2,j] - u_t[i+1,j])
                         - (u_t[i+3,j] - u_t[i,j])/24.)
-                    - 0.5*(mu[i-1,j] - mu[i-2,j])*(
+                    - 0.5*(mu[i-1,j] + mu[i-2,j])*(
                         1.125*(u_t[i-1,j] - u_t[i-2,j])
                         - (u_t[i,j] - u_t[i-3,j])/24.))
                 + (1.125/dx2)*(
-                    0.5*(mu[i,j+1] - mu[i,j])*(
+                    0.5*(mu[i,j+1] + mu[i,j])*(
                         1.125*(u_t[i,j+1] - u_t[i,j])
                         - (u_t[i,j+2] - u_t[i,j-1])/24.)
-                    - 0.5*(mu[i,j] - mu[i,j-1])*(
+                    - 0.5*(mu[i,j] + mu[i,j-1])*(
                         1.125*(u_t[i,j] - u_t[i,j-1])
                         - (u_t[i,j+1] - u_t[i,j-2])/24.))
                 - (1./(24.*dx2))*(
-                    0.5*(mu[i,j+2] - mu[i,j+1])*(
+                    0.5*(mu[i,j+2] + mu[i,j+1])*(
                         1.125*(u_t[i,j+2] - u_t[i,j+1])
                         - (u_t[i,j+3] - u_t[i,j])/24.)
-                    - 0.5*(mu[i,j-1] - mu[i,j-2])*(
+                    - 0.5*(mu[i,j-1] + mu[i,j-2])*(
                         1.125*(u_t[i,j-1] - u_t[i,j-2])
                         - (u_t[i,j] - u_t[i,j-3])/24.)))
 
