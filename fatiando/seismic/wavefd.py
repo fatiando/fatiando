@@ -332,15 +332,12 @@ def _add_pad(array, pad, shape):
     Pad the array with the values of the borders
     """
     array_pad = numpy.zeros(shape, dtype=numpy.float)
-    array_pad[3:-pad, pad:-pad] = array
+    array_pad[:-pad, pad:-pad] = array
     for k in xrange(pad):
-        array_pad[3:-pad,k] = array[:,0]
-        array_pad[3:-pad,-(k + 1)] = array[:,-1]
+        array_pad[:-pad,k] = array[:,0]
+        array_pad[:-pad,-(k + 1)] = array[:,-1]
     for k in xrange(pad):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
-    array_pad[0,:] = array_pad[3,:]
-    array_pad[1,:] = array_pad[3,:]
-    array_pad[2,:] = array_pad[3,:]
     return array_pad
 
 def _split_grid(split, nx, nz):
@@ -407,7 +404,7 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
     # absorbed
     pad = int(padding)
     nx += 2*pad
-    nz += pad + 3 # +3 is to remove the 3 nodes for the top boundary condition
+    nz += pad
     mu_pad = _add_pad(mu, pad, (nz, nx))
     dens_pad = _add_pad(density, pad, (nz, nx))
     # Pack the particle position u at 2 different times in one 3d array
@@ -418,8 +415,8 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
     # Compute and yield the initial solutions
     for src in sources:
         i, j = src.coords()
-        u[1, i + 3, j + pad] += (dt**2/density[i, j])*src(0)
-    yield u[1, 3:-pad, pad:-pad]
+        u[1, i, j + pad] += (dt**2/density[i, j])*src(0)
+    yield u[1, :-pad, pad:-pad]
     #yield u[1]
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
@@ -433,12 +430,12 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
         _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
             i, j = src.coords()
-            u[tp1, i + 3, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
-        yield u[tp1][3:-pad, pad:-pad]
+            u[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+        yield u[tp1, :-pad, pad:-pad]
         #yield u[tp1]
 
-def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
-    zsources, padding=1.0, partition=(1, 1)):
+def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
+    zsources, padding=50, taper=0.002):
     """
     Simulate P and SV waves using an explicit finite differences scheme.
 
@@ -479,69 +476,43 @@ def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     """
     nz, nx = shape
     dz, dx = (float(i) for i in spacing)
-    # Add some nodes in x and z for padding to avoid reflections
-    pad = int(padding*max(shape))
-    decay = float(20*pad)
+    pad = int(padding)
     nx += 2*pad
-    nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
-    # Pad the velocity as well
-    pvel_pad = _add_pad(pvel, pad, (nz, nx))
-    svel_pad = _add_pad(svel, pad, (nz, nx))
+    nz += pad
+    mu_pad = _add_pad(mu, pad, (nz, nx))
+    lamb_pad = _add_pad(lamb, pad, (nz, nx))
+    dens_pad = _add_pad(density, pad, (nz, nx))
     # Compute and yield the initial solutions
-    ux = numpy.zeros((3, nz, nx), dtype=numpy.float)
-    uz = numpy.zeros((3, nz, nx), dtype=numpy.float)
+    ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
+    uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
     for src in xsources:
         i, j = src.coords()
-        ux[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
+        ux[1, i, j + pad] += (dt**2/density[i, j])*src(0)
     for src in zsources:
         i, j = src.coords()
-        uz[1, i, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield ux[0, 2:-pad, pad:-pad], uz[0, 2:-pad, pad:-pad]
-    yield ux[1, 2:-pad, pad:-pad], uz[1, 2:-pad, pad:-pad]
-    # Start the process pool
-    #if jobs > 1:
-        #parts = _split_grid(split, nx, nz)
-        #shr_ux = Array('d', ux.ravel())
-        #shr_uz = Array('d', uz.ravel())
-        #shr_svel_pad = Array('d', svel_pad.ravel())
-        #shr_pvel_pad = Array('d', pvel_pad.ravel())
-        #ux = numpy.frombuffer(shr_ux.get_obj()).reshape((3, nz, nx))
-        #uz = numpy.frombuffer(shr_uz.get_obj()).reshape((3, nz, nx))
-        #svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
-        #pvel_pad = numpy.frombuffer(shr_pvel_pad.get_obj()).reshape((nz, nx))
-        #def init(ux_, uz_, svel_, pvel_):
-            #global ux, uz, svel_pad, pvel_pad
-            #ux = ux_
-            #uz = uz_
-            #svel_pad = svel_
-            #pvel_pad = pvel_
-        #poolx = Pool(jobs/2, initializer=init,
-            #initargs=(ux, uz, svel_pad, pvel_pad))
-        #poolz = Pool(jobs/2, initializer=init,
-            #initargs=(ux, uz, svel_pad, pvel_pad))
-    # Time steps
-    for t in xrange(1, iterations):
-        utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
-        _step_elastic_psv_x(ux[utp1], ux[ut], ux[utm1], uz[ut], 2, nx - 2,
-            2, nz - 2, deltat, dx, dz, pvel_pad, svel_pad)
-        _step_elastic_psv_z(uz[utp1], uz[ut], uz[utm1], ux[ut], 2, nx - 2,
-            2, nz - 2, deltat, dx, dz, pvel_pad, svel_pad)
-        # Damp the regions in the padding to make waves go to infinity
-        _apply_damping(ux[utp1], nx, nz, pad, decay)
-        _apply_damping(uz[utp1], nx, nz, pad, decay)
-        # Set the boundary conditions
-        _boundary_conditions(ux[utp1], nx, nz)
-        _boundary_conditions(uz[utp1], nx, nz)
-        # Update the sources
+        uz[1, i, j + pad] += (dt**2/density[i, j])*src(0)
+    yield ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad]
+    for iteration in xrange(1, iterations):
+        t, tm1 = iteration%2, (iteration + 1)%2
+        tp1 = tm1
+        _step_elastic_psv_x(ux[tp1], ux[t], ux[tm1], uz[t], 1, nx - 1,
+            1, nz - 1, dt, dx, dz, mu_pad, lamb_pad, dens_pad)
+        _step_elastic_psv_z(uz[tp1], uz[t], uz[tm1], ux[t], 1, nx - 1,
+            1, nz - 1, dt, dx, dz, mu_pad, lamb_pad, dens_pad)
+        _apply_damping(ux[t], nx, nz, pad, taper)
+        _apply_damping(uz[t], nx, nz, pad, taper)
+        #_boundary_conditions(ux[utp1], nx, nz)
+        #_boundary_conditions(uz[utp1], nx, nz)
+        _nonreflexive_psv_boundary_conditions(ux[tp1], ux[t], nx, nz, dt, dx,
+            dz, mu_pad, lamb_pad, dens_pad)
+        _nonreflexive_psv_boundary_conditions(uz[tp1], uz[t], nx, nz, dt, dx,
+            dz, mu_pad, lamb_pad, dens_pad)
+        _apply_damping(ux[tp1], nx, nz, pad, taper)
+        _apply_damping(uz[tp1], nx, nz, pad, taper)
         for src in xsources:
             i, j = src.coords()
-            ux[utp1][i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
+            ux[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
         for src in zsources:
             i, j = src.coords()
-            uz[utp1][i + 2, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        yield ux[utp1][2:-pad, pad:-pad], uz[utp1][2:-pad, pad:-pad]
-    #if jobs > 1:
-        #poolx.close()
-        #poolx.join()
-        #poolz.close()
-        #poolz.join()
+            uz[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+        yield ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad]
