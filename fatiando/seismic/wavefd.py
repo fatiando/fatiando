@@ -366,8 +366,8 @@ def _split_grid(split, nx, nz):
             parts.append([x1, x2, z1, z2])
     return parts
 
-def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
-    padding=20, taper=0.02):
+def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
+    taper=0.005):
     """
     Simulate SH waves using an explicit finite differences scheme.
 
@@ -379,9 +379,9 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
         The number of nodes in the grid in the z and x directions
     * svel : 2D-array (shape = *shape*)
         The S wave velocity at all the grid nodes
-    * dens : 2D-array (shape = *shape*)
+    * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
-    * deltat : float
+    * dt : float
         The time interval between iterations
     * iterations : int
         Number of time steps to take
@@ -403,38 +403,39 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
     """
     nz, nx = shape
     dz, dx = (float(i) for i in spacing)
-    # Add some nodes in x and z for padding to avoid reflections
+    # Add some padding to x and z. The padding region is where the wave is
+    # absorbed
     pad = int(padding)
-    decay = float(taper)
     nx += 2*pad
     nz += pad + 3 # +3 is to remove the 3 nodes for the top boundary condition
     mu_pad = _add_pad(mu, pad, (nz, nx))
-    dens_pad = _add_pad(dens, pad, (nz, nx))
-    # Pack the particle position u at 3 different times in one 3d array
+    dens_pad = _add_pad(density, pad, (nz, nx))
+    # Pack the particle position u at 2 different times in one 3d array
     # u[0] = u(t-1)
     # u[1] = u(t)
-    # u[2] = u(t+1)
-    u = numpy.zeros((3, nz, nx), dtype=numpy.float)
+    # The next time step overwrites the t-1 panel
+    u = numpy.zeros((2, nz, nx), dtype=numpy.float)
     # Compute and yield the initial solutions
     for src in sources:
         i, j = src.coords()
-        u[1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(0)
+        u[1, i + 3, j + pad] += (dt**2/density[i, j])*src(0)
     yield u[1, 3:-pad, pad:-pad]
     #yield u[1]
-    for t in xrange(1, iterations):
-        utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
-        _step_elastic_sh(u[utp1], u[ut], u[utm1], 3, nx - 3, 3, nz - 3,
-            deltat, dx, dz, mu_pad, dens_pad)
-        _apply_damping(u[ut], nx, nz, pad, decay)
-        #_boundary_conditions(u[utp1], nx, nz)
-        _nonreflexive_sh_boundary_conditions(u[utp1], u[ut], nx, nz, deltat,
-            dx, dz, mu_pad, dens_pad)
-        _apply_damping(u[utp1], nx, nz, pad, decay)
+    for iteration in xrange(1, iterations):
+        t, tm1 = iteration%2, (iteration + 1)%2
+        tp1 = tm1
+        _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3, dt, dx,
+            dz, mu_pad, dens_pad)
+        _apply_damping(u[t], nx, nz, pad, taper)
+        #_boundary_conditions(u[tp1], nx, nz)
+        _nonreflexive_sh_boundary_conditions(u[tp1], u[t], nx, nz, dt, dx, dz,
+            mu_pad, dens_pad)
+        _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
             i, j = src.coords()
-            u[utp1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        yield u[utp1][3:-pad, pad:-pad]
-        #yield u[utp1]
+            u[tp1, i + 3, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+        yield u[tp1][3:-pad, pad:-pad]
+        #yield u[tp1]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, partition=(1, 1)):
