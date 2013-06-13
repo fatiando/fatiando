@@ -23,167 +23,20 @@ Simulates both elastic and acoustic waves:
 * :func:`~fatiando.seismic.wavefd.lame`: Calculate the Lame constants from P and
   S wave velocities and density
 
-**Theory**
+**References**
 
-We start with the wave equation for elastic isotropic media
+Di Bartolo, L., C. Dors, and W. J. Mansur (2012), A new family of
+finite-difference schemes to solve the heterogeneous acoustic wave equation,
+Geophysics, 77(5), T187-T199, doi:10.1190/geo2011-0345.1.
 
-.. math::
-
-    (\lambda + \mu)\nabla(\nabla\cdot\mathbf{u})
-    +
-    \mu\nabla^2\mathbf{u}
-    - \rho \partial_t^2 \mathbf{u} = - \mathbf{f}
-
-where :math:`\mathbf{u} = (u_x, u_y, y_z)` is the particle movement vector,
-:math:`\rho` is the density,
-:math:`\lambda` and :math:`\mu` are the Lame constants,
-and :math:`\mathbf{f}` is the source vector.
-
-In the 2D approximation, we assume all derivatives in the y direction
-are zero and consider only x and z coordinates
-(though :math:`u_y` remains).
-The three equations in the vector equation above can be separated into
-two groups:
-
-.. math::
-
-    \mu\left(\partial_x^2 u_y + \partial_z^2 u_y\right)
-    - \rho \partial_t^2 u_y = -f_y
-
-and
-
-.. math::
-
-    (\lambda + 2\mu)\partial_x^2 u_x + \mu\partial_z^2 u_x
-    + (\lambda + \mu)\partial_x\partial_z u_z
-    - \rho \partial_t^2 u_x = -f_x
-
-.. math::
-
-    (\lambda + 2\mu)\partial_z^2 u_z + \mu\partial_x^2 u_z
-    + (\lambda + \mu)\partial_x\partial_z u_x
-    - \rho \partial_t^2 u_z = -f_z
-
-The first equation depends only on :math:`u_y` and represents SH waves.
-The other two depend on :math:`u_x` and :math:`u_z` and are coupled.
-They represent P and SV waves.
-
-I'll use an explicit finite difference solution for these equations.
-I'll use a second order approximation for the time derivative
-and a fourth order approximation for the spacial derivatives.
-
-The finite difference solution for SH waves is:
-
-.. math::
-   :nowrap:
-
-    \begin{align*}
-        u_y[i,j]_{t+1} =& 2u_y[i,j]_{t} - u_y[i,j]_{t-1}
-        + \frac{\Delta t^2}{\rho[i,j]}
-        \Biggl[
-            f_y[i,j]_t
-        \\[0.3cm] &
-            + \mu[i,j]
-                \left(
-                    \frac{-u_y[i,j+2]_{t} + 16u_y[i,j+1]_{t} -30u_y[i,j]_{t}
-                        + 16u_y[i,j-1]_{t} - u_y[i,j-2]_{t}}{
-                        12\Delta x^2}
-                \right)
-        \\[0.3cm] &
-            + \mu[i,j]
-                \left(
-                    \frac{-u_y[i+2,j]_{t} + 16u_y[i+1,j]_{t} -30u_y[i,j]_{t}
-                        + 16u_y[i-1,j]_{t} - u_y[i-2,j]_{t}}{
-                        12\Delta z^2}
-                \right)
-        \Biggr]
-    \end{align*}
-
-
-where :math:`[i,j]_t` is the quantity at the grid node i,j at a
-time t. In this formulation, i denotes z coordinates and j x coordinates.
-
-The solution for P and SV waves is:
-
-.. math::
-   :nowrap:
-
-    \begin{align*}
-    u_x[i,j]_{t+1} =& 2u_x[i,j]_{t} - u_x[i,j]_{t-1}
-    \\&
-    + \frac{\Delta t^2}{\rho[i,j]}
-    \left\lbrace
-        f_x[i,j]_{t} +
-        (\lambda[i,j] + 2\mu[i,j])
-        \left(
-            \frac{u_x[i,j+1]_{t} - 2u_x[i,j]_{t} + u_x[i,j-1]_{t}}{
-                \Delta x^2}
-        \right)
-    \right.
-    \\[0.3cm]&
-        +
-        \mu[i,j]
-        \left(
-            \frac{u_x[i+1,j]_{t} - 2u_x[i,j]_{t} + u_x[i-1,j]_{t}}{
-                \Delta z^2}
-        \right)
-    \\[0.3cm]&
-    \left.
-        +
-        (\lambda[i,j] + \mu[i,j])
-        \left(
-            \frac{u_z[i,j]_{t} - u_z[i-1,j]_{t} - u_z[i,j-1]_{t} +
-            u_z[i-1,j-1]_{t}
-            }{\Delta x\Delta z}
-        \right)
-    \right\rbrace
-    \end{align*}
-
-.. math::
-   :nowrap:
-
-    \begin{align*}
-    u_z[i,j]_{t+1} =& 2u_z[i,j]_{t} - u_z[i,j]_{t-1}
-    \\&
-    + \frac{\Delta t^2}{\rho[i,j]}
-    \left\lbrace
-        f_z[i,j]_{t} +
-        (\lambda[i,j] + 2\mu[i,j])
-        \left(
-            \frac{u_z[i+1,j]_{t} - 2u_z[i,j]_{t} + u_z[i-1,j]_{t}}{
-                \Delta z^2}
-        \right)
-    \right.
-    \\[0.3cm]&
-        +
-        \mu[i,j]
-        \left(
-            \frac{u_z[i,j+1]_{t} - 2u_z[i,j]_{t} + u_z[i,j-1]_{t}}{
-                \Delta x^2}
-        \right)
-    \\[0.3cm]&
-    \left.
-        +
-        (\lambda[i,j] + \mu[i,j])
-        \left(
-            \frac{u_x[i,j]_{t} - u_x[i-1,j]_{t} - u_x[i,j-1]_{t} +
-            u_x[i-1,j-1]_{t}
-            }{\Delta x\Delta z}
-        \right)
-    \right\rbrace
-    \end{align*}
-
+Luo, Y., and G. Schuster (1990), Parsimonious staggered grid
+finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
+155-158, doi:10.1029/GL017i002p00155.
 
 ----
 
 """
-#from multiprocessing import Pool, Array
-
 import numpy
-
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.seismic.wavefd')
 
 from fatiando.seismic._wavefd import *
 
@@ -198,9 +51,7 @@ class MexHatSource(object):
 
     .. math::
 
-        \psi(t) = A\frac{2}{\sqrt{3\sigma}\pi^{\frac{1}{4}}}
-        \left( 1 - \frac{t^2}{\sigma^2} \right)
-        \exp\left(\frac{-t^2}{2\sigma^2}\right)
+        \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
 
     Parameters:
 
@@ -209,13 +60,10 @@ class MexHatSource(object):
         i is the index for z, j for x
     * amp : float
         The amplitude of the source (:math:`A`)
-    * wlength : float
-        The "wave length" (:math:`\sigma`)
+    * frequency : float
+        The peak frequency of the wavelet
     * delay : float
         The delay before the source starts
-
-        .. note:: If you want the source to start with amplitude close to 0, use
-            ``delay = 3.5*wlength``.
 
     """
 
@@ -366,7 +214,8 @@ def _split_grid(split, nx, nz):
 def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
     taper=0.005):
     """
-    Simulate SH waves using an explicit finite differences scheme.
+    Simulate SH waves using the Equivalent Staggered Grid (ESG) finite
+    differences scheme of Di Bartolo et al. (2012).
 
     Parameters:
 
@@ -374,8 +223,8 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
         The node spacing of the finite differences grid
     * shape : (nz, nx)
         The number of nodes in the grid in the z and x directions
-    * svel : 2D-array (shape = *shape*)
-        The S wave velocity at all the grid nodes
+    * my : 2D-array (shape = *shape*)
+        The :math:`\mu` Lame parameter at all the grid nodes
     * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
     * dt : float
@@ -437,7 +286,8 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
 def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
     zsources, padding=50, taper=0.002):
     """
-    Simulate P and SV waves using an explicit finite differences scheme.
+    Simulate P and SV waves using the Parsimoneous Staggered Grid (PSG) finite
+    differences scheme of Luo and Schuster (1990).
 
     Parameters:
 
@@ -445,11 +295,13 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
         The node spacing of the finite differences grid
     * shape : (nz, nx)
         The number of nodes in the grid in the z and x directions
-    * svel : 2D-array (shape = *shape*)
-        The S wave velocity at all the grid nodes
-    * dens : 2D-array (shape = *shape*)
+    * mu : 2D-array (shape = *shape*)
+        The :math:`\mu` Lame parameter at all the grid nodes
+    * lamb : 2D-array (shape = *shape*)
+        The :math:`\lambda` Lame parameter at all the grid nodes
+    * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
-    * deltat : float
+    * dt : float
         The time interval between iterations
     * iterations : int
         Number of time steps to take
@@ -461,12 +313,11 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
     * zsources : list
         A list of the sources of waves for the particle movement in the z
         direction
-    * padding : float
-        The decimal percentage of padding to use in the grid to avoid
-        reflections at the borders
-    * partition : tuple = (sz, sx)
-        How to split the grid for parallel computation. Number of parts in z and
-        x, respectively
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the gaussian taper function used for the absorbing
+        boundary conditions
 
     Yields:
 
