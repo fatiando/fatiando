@@ -219,19 +219,18 @@ class MexHatSource(object):
 
     """
 
-    def __init__(self, i, j, amp, wlength, delay=0):
+    def __init__(self, i, j, amp, frequency, delay=0):
         self.i = i
         self.j = j
         self.amp = amp
-        self.wlength = wlength
+        self.frequency = frequency
+        self.f2 = frequency**2
         self.delay = delay
 
     def __call__(self, time):
-        t = time - self.delay
-        psi = (self.amp*
-            (2./(numpy.sqrt(3.*self.wlength)*(numpy.pi**0.25)))*
-            (1. - (t**2)/(self.wlength**2))*
-            numpy.exp(-(t**2)/(2.*self.wlength**2)))
+        t2 = (time - self.delay)**2
+        pi2 = numpy.pi**2
+        psi = self.amp*(1 - 2*pi2*self.f2*t2)*numpy.exp(-pi2*self.f2*t2)
         return psi
 
     def coords(self):
@@ -420,22 +419,22 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
     for src in sources:
         i, j = src.coords()
         u[1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(0)
-    #yield u[1, 3:-pad, pad:-pad]
-    yield u[1]
+    yield u[1, 3:-pad, pad:-pad]
+    #yield u[1]
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
         _step_elastic_sh(u[utp1], u[ut], u[utm1], 3, nx - 3, 3, nz - 3,
             deltat, dx, dz, mu_pad, dens_pad)
-        _apply_damping(u[utp1], nx, nz, pad, decay)
         _apply_damping(u[ut], nx, nz, pad, decay)
         #_boundary_conditions(u[utp1], nx, nz)
         _nonreflexive_sh_boundary_conditions(u[utp1], u[ut], nx, nz, deltat,
             dx, dz, mu_pad, dens_pad)
+        _apply_damping(u[utp1], nx, nz, pad, decay)
         for src in sources:
             i, j = src.coords()
             u[utp1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        #yield u[utp1][3:-pad, pad:-pad]
-        yield u[utp1]
+        yield u[utp1][3:-pad, pad:-pad]
+        #yield u[utp1]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, partition=(1, 1)):
