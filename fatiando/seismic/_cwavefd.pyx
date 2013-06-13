@@ -3,7 +3,7 @@ Cython implementation of the time stepping functions for fatiando.seismic.wavefd
 """
 import numpy
 
-from libc.math cimport exp
+from libc.math cimport exp, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
@@ -12,7 +12,8 @@ DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
 
 __all__ = ['_apply_damping', '_boundary_conditions', '_step_elastic_sh',
-    '_step_elastic_psv_x', '_step_elastic_psv_z']
+    '_step_elastic_psv_x', '_step_elastic_psv_z',
+    '_nonreflexive_sh_boundary_conditions']
 
 
 @cython.boundscheck(False)
@@ -58,6 +59,40 @@ def _boundary_conditions(numpy.ndarray[DTYPE_T, ndim=2] u not None,
         u[i, nx - 1] *= 0
         u[i, nx - 2] *= 0
         u[i, nx - 3] *= 0
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _nonreflexive_sh_boundary_conditions(
+    numpy.ndarray[DTYPE_T, ndim=2] u_tp1 not None,
+    numpy.ndarray[DTYPE_T, ndim=2] u_t not None,
+    unsigned int nx, unsigned int nz,
+    double dt, double dx, double dz,
+    numpy.ndarray[DTYPE_T, ndim=2] mu not None,
+    numpy.ndarray[DTYPE_T, ndim=2] dens not None):
+    """
+    Apply nonreflexive boundary contitions to elastic SH waves.
+    """
+    cdef unsigned int i, j
+    # Left
+    for i in xrange(nz):
+        for j in xrange(3):
+            u_tp1[i,j] = u_t[i,j] + dt*sqrt(mu[i,j]/dens[i,j])*(
+                u_t[i,j+1] - u_t[i,j])/dx
+    # Right
+    for i in xrange(nz):
+        for j in xrange(nx - 3, nx):
+            u_tp1[i,j] = u_t[i,j] - dt*sqrt(mu[i,j]/dens[i,j])*(
+                u_t[i,j] - u_t[i,j-1])/dx
+    # Bottom
+    for i in xrange(nz - 3, nz):
+        for j in xrange(nx):
+            u_tp1[i,j] = u_t[i,j] - dt*sqrt(mu[i,j]/dens[i,j])*(
+                u_t[i,j] - u_t[i-1,j])/dz
+    # Top
+    for j in xrange(nx):
+        u_tp1[2,j] = u_tp1[3,j]
+        u_tp1[1,j] = u_tp1[2,j]
+        u_tp1[0,j] = u_tp1[1,j]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

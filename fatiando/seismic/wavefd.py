@@ -420,20 +420,22 @@ def elastic_sh(spacing, shape, mu, dens, deltat, iterations, sources,
     for src in sources:
         i, j = src.coords()
         u[1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(0)
-    yield u[1, 3:-pad, pad:-pad]
-    #yield u[1]
+    #yield u[1, 3:-pad, pad:-pad]
+    yield u[1]
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
         _step_elastic_sh(u[utp1], u[ut], u[utm1], 3, nx - 3, 3, nz - 3,
             deltat, dx, dz, mu_pad, dens_pad)
         _apply_damping(u[utp1], nx, nz, pad, decay)
         _apply_damping(u[ut], nx, nz, pad, decay)
-        _boundary_conditions(u[utp1], nx, nz)
+        #_boundary_conditions(u[utp1], nx, nz)
+        _nonreflexive_sh_boundary_conditions(u[utp1], u[ut], nx, nz, deltat,
+            dx, dz, mu_pad, dens_pad)
         for src in sources:
             i, j = src.coords()
             u[utp1, i + 3, j + pad] += (deltat**2/dens[i, j])*src(t*deltat)
-        yield u[utp1][3:-pad, pad:-pad]
-        #yield u[utp1]
+        #yield u[utp1][3:-pad, pad:-pad]
+        yield u[utp1]
 
 def elastic_psv(spacing, shape, pvel, svel, dens, deltat, iterations, xsources,
     zsources, padding=1.0, partition=(1, 1)):
