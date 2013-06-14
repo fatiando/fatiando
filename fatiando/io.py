@@ -1,19 +1,24 @@
 """
 Input/Output utilities for grids, models, etc
 
+**Utilities**
+
+* :func:`~fatiando.io.fromimage`: Load array of normalized gray-scale values
+  from an image
+
 **CRUST2.0**
 
-Load and convert the `CRUST2.0 global crustal model 
+Load and convert the `CRUST2.0 global crustal model
 <http://igppweb.ucsd.edu/~gabi/rem.html>`_ (Bassin et al., 2000).
 
 * :func:`~fatiando.io.fetch_crust2`: Download the .tar.gz archive with the model
   from the website
-* :func:`~fatiando.io.crust2_to_tesseroids`: Convert the CRUST2.0 model to 
-  tesseroids 
+* :func:`~fatiando.io.crust2_to_tesseroids`: Convert the CRUST2.0 model to
+  tesseroids
 
 **References**
 
-Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for 
+Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for
 Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
 
 ----
@@ -21,9 +26,11 @@ Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
 import urllib
 import tarfile
 
+import PIL.Image
+import scipy.misc
 import numpy
 
-from fatiando.mesher import Tesseroid
+import fatiando.gridder
 
 
 def fetch_crust2(fname='crust2.tar.gz'):
@@ -36,7 +43,7 @@ def fetch_crust2(fname='crust2.tar.gz'):
         The name that the archive file will be saved when downloaded
 
     Returns:
-    
+
     * fname : str
         The downloaded file name
 
@@ -49,20 +56,20 @@ def crust2_to_tesseroids(fname):
     """
     Convert the CRUST2.0 model to tesseroids.
 
-    Opens the .tar.gz archive and converts the model to 
-    :class:`fatiando.mesher.Tesseroid`. 
-    Each tesseroid will have its ``props`` set to the apropriate Vp, Vs and 
+    Opens the .tar.gz archive and converts the model to
+    :class:`fatiando.mesher.Tesseroid`.
+    Each tesseroid will have its ``props`` set to the apropriate Vp, Vs and
     density.
 
     The CRUST2.0 model includes 7 layers: ice, water, soft sediments, hard
     sediments, upper crust, middle curst and lower crust. It also includes the
-    mantle bellow the Moho. The mantle portion is not included in this 
+    mantle bellow the Moho. The mantle portion is not included in this
     conversion because there is no way to place a bottom on it.
 
     Parameters:
 
     * fname : str
-        Name of the model .tar.gz archive (see 
+        Name of the model .tar.gz archive (see
         :func:`~fatiando.io.fetch_crust2`)
 
     Returns:
@@ -71,6 +78,7 @@ def crust2_to_tesseroids(fname):
         The converted model
 
     """
+    from fatiando.mesher import Tesseroid
     archive = tarfile.open(fname, 'r:gz')
     # First get the topography and bathymetry information
     topogrd = _crust2_get_topo(archive)
@@ -117,7 +125,7 @@ def _crust2_get_types(archive):
 
 def _crust2_get_codec(archive):
     """
-    Fetch the type code traslation codec from the archive and convert it to a 
+    Fetch the type code traslation codec from the archive and convert it to a
     dict.
     """
     f = archive.extractfile('./CNtype2_key.txt')
@@ -133,6 +141,43 @@ def _crust2_get_codec(archive):
         density = [float(v)*1000 for v in lines[i*5 + 3].split()]
         # Skip the last thickness because it is an inf indicating the mantle
         thickness = [float(v)*1000 for v in lines[i*5 + 4].split()[:7]]
-        codec[code] = {'vp':vp, 'vs':vs, 'density':density, 
+        codec[code] = {'vp':vp, 'vs':vs, 'density':density,
                        'thickness':thickness}
     return codec
+
+def fromimage(fname, ranges=None, shape=None):
+    """
+    Load an array of normalized gray-scale values from an image file.
+
+    The values will be in the range [0, 1]. The shape of the array is the shape
+    of the image (ny, nx), i.e., number of pixels in vertical (height) and
+    horizontal (width) dimensions.
+
+    Parameters:
+
+    * fname : str
+        Name of the image file
+    * ranges : [vmax, vmin] = floats
+        If not ``None``, will set the gray-scale values to this range.
+    * shape : (ny, nx)
+        If not ``None``, will interpolate the array to match this new shape
+
+    Returns:
+
+    * values : 2d-array
+        The array of gray-scale values
+
+    """
+    image = scipy.misc.fromimage(PIL.Image.open(fname), flatten=True)
+    # Invert the color scale and normalize
+    values = (image.max() - image)/numpy.abs(image).max()
+    if ranges is not None:
+        vmin, vmax = ranges
+        values *= vmax - vmin
+        values += vmin
+    if shape is not None and tuple(shape) != values.shape:
+        ny, nx = values.shape
+        X, Y = numpy.meshgrid(range(nx), range(ny))
+        values = fatiando.gridder.interp(X.ravel(), Y.ravel(), values.ravel(),
+            shape)[2]
+    return values

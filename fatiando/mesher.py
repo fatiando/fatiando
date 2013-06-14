@@ -30,13 +30,12 @@ Generate and operate on various kinds of meshes and geometric elements
 ----
 
 """
-import PIL.Image
 import numpy
-import scipy.misc
 import scipy.special
 import matplotlib.mlab
 
 import fatiando.logger
+import fatiando.io
 import fatiando.gridder
 
 log = fatiando.logger.dummy('fatiando.mesher')
@@ -288,35 +287,8 @@ class SquareMesh(object):
             Name of the physical property
 
         """
-        log.info("Loading physical property from image file:")
-        log.info("  file: '%s'" % (fname))
-        log.info("  physical property: %s" % (prop))
-        log.info("  range: [vmin, vmax] = %s" % (str([vmin, vmax])))
-        image = PIL.Image.open(fname)
-        imagearray = scipy.misc.fromimage(image, flatten=True)
-        # Invert the color scale
-        model = numpy.max(imagearray) - imagearray
-        # Normalize
-        model = model/numpy.max(numpy.abs(imagearray))
-        # Put it in the interval [vmin,vmax]
-        model = model*(vmax - vmin) + vmin
-        # Convert the model to a list so that I can reverse it (otherwise the
-        # image will be upside down)
-        model = model.tolist()
-        model.reverse()
-        model = numpy.array(model)
-        log.info("  image shape: (ny, nx) = %s" % (str(model.shape)))
-        # Check if the shapes match, if not, interpolate
-        if model.shape != self.shape:
-            log.info("  interpolate image to match mesh shape")
-            ny, nx = model.shape
-            xs = numpy.arange(nx)
-            ys = numpy.arange(ny)
-            X, Y = numpy.meshgrid(xs, ys)
-            model = fatiando.gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
-                self.shape)[2]
-            log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
-        self.props[prop] = model.ravel()
+        self.props[prop] = fatiando.io.fromimage(fname, ranges=[vmin, vmax],
+                shape=self.shape)[::-1,:].ravel()
 
     def get_xs(self):
         """
