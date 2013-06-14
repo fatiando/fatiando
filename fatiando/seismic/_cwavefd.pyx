@@ -215,7 +215,6 @@ def _step_elastic_psv_x(
             tauxx_m = (l + 2*m)*(ux_t[i,j] - ux_t[i,j-1])/dx + \
                 (l/dz)*(
                     0.5*(uz[i+1,j-1] + uz[i,j]) - 0.5*(uz[i-1,j-1] + uz[i,j]))
-            m = 0.5*(mu[i+1,j] + mu[i,j])
             tauxz_p = 0.5*(mu[i+1,j] + mu[i,j])*(
                 (ux_t[i+1,j] - ux_t[i,j])/dz +
                 (0.5*(uz[i+1,j+1] + uz[i,j]) - 0.5*(uz[i+1,j-1] + uz[i,j]))/dx)
