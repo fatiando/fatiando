@@ -13,7 +13,7 @@ value of the regularizing function for a given parameter vector. Most of these
 classes are generic and can be applied to any inverse problem, though some are
 designed for a specific parametrization (2D or 3D grids, for example).
 
-The regularizer classes can be passed to any inverse problem solver (bellow).
+The regularizer classes can be passed to any inverse problem solver (below).
 
 See the :class:`~fatiando.inversion.regularizer.Regularizer` class for the
 general structure the solvers expect from regularizer classes.

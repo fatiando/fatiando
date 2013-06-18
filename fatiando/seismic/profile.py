@@ -18,7 +18,7 @@ layer
     t_i(z_i) = \\sum\\limits_{j=1}^M \\frac{d_{ij}}{v_j}
 
 The distance :math:`d_{ij}` is smaller or equal to the thickness of the layer
-:math:`s_j`. Notice that :math:`d_{ij} = 0` if the jth layer is bellow
+:math:`s_j`. Notice that :math:`d_{ij} = 0` if the jth layer is below
 :math:`z_i`, :math:`d_{ij} = s_j` if the jth layer is above :math:`z_i`, and
 :math:`d_{ij} < s_j` if :math:`z_i` is inside the jth layer.
 

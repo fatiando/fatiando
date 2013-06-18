@@ -56,7 +56,7 @@ def crust2_to_tesseroids(fname):
 
     The CRUST2.0 model includes 7 layers: ice, water, soft sediments, hard
     sediments, upper crust, middle curst and lower crust. It also includes the
-    mantle bellow the Moho. The mantle portion is not included in this 
+    mantle below the Moho. The mantle portion is not included in this 
     conversion because there is no way to place a bottom on it.
 
     Parameters:

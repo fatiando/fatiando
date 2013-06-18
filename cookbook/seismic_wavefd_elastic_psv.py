@@ -19,7 +19,7 @@ svel = 3000*np.ones(shape)
 pvel = 4000*np.ones(shape)
 
 # Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop bellow
+# computations take place at each iteration in the for loop below
 dt = 0.05
 maxit = 300
 timesteps = seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
