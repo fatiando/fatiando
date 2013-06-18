@@ -27,7 +27,7 @@ svel[:moho_index,:] *= 3000
 svel[moho_index:,:] *= 6000
 
 # Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop bellow
+# computations take place at each iteration in the for loop below
 dt = 0.05
 maxit = 4200
 timesteps = seismic.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
