@@ -40,11 +40,6 @@ import numpy
 
 from fatiando.seismic._wavefd import *
 
-try:
-    from fatiando.seismic._cwavefd import *
-except ImportError:
-    pass
-
 class MexHatSource(object):
     r"""
     A wave source that vibrates as a mexicam hat (Ricker) wavelet.

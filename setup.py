@@ -26,8 +26,8 @@ try:
                   libraries=['m'],
                   extra_compile_args=['-O3'],
                   include_dirs=[numpy.get_include()]),
-        Extension("fatiando.seismic._cwavefd",
-                  [join('fatiando', 'seismic', '_cwavefd.pyx')],
+        Extension("fatiando.seismic._wavefd",
+                  [join('fatiando', 'seismic', '_wavefd.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'],
                   include_dirs=[numpy.get_include()])]
