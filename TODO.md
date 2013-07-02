@@ -58,7 +58,7 @@ GOALS FOR 0.3:
 IDEAS:
 
 * Try multithreading and multiprocessing sensitivity building
-* Importer functions to fetch DEMs, gravity data form IGBE, etc
+* Importer functions to fetch DEMs, gravity data form IBGE, etc
 * Make utils.clock function that runs a function, logs the time it takes and
   returns what the func would return
 * Get rid of the DataModule class. Provide a specification of it in the docs on
@@ -103,3 +103,7 @@ TO-IMPLEMENT:
 * Make a PrismMesh.get_index(i) method that converts index i in raveled array to
   i, j, k 3D index
 * potential.terrain for terrain corrections (automatically find the best density)
+* Function to download and import NASA SRTM data files (.HGT)
+* fatiando.coordenate, for example, to convert utm to degree
+* Compute gravity gradient tensor derived from gz component (Mickus and Hinojosa, 2001)
+
