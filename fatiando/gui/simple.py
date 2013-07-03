@@ -17,7 +17,7 @@ Simple GUIs using the interactive capabilities of :mod:`matplotlib`
 import bisect
 
 import numpy
-from matplotlib import pyplot, widgets, nxutils
+from matplotlib import pyplot, widgets
 
 from fatiando.gravmag import talwani
 from fatiando.mesher import Polygon
