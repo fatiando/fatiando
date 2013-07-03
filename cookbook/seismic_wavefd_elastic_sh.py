@@ -47,7 +47,7 @@ def animate(i):
             break
     return wavefield,
 anim = animation.FuncAnimation(fig, animate,
-    frames=maxit/steps_per_frame, interval=1, blit=True)
+    frames=maxit/steps_per_frame, interval=1, blit=False)
 #anim.save('sh_wave.mp4', fps=10)
 vis.mpl.show()
 
