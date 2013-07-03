@@ -521,7 +521,7 @@ def _neighbor_indexes(n, mesh):
     tmp = n - nx*ny
     if tmp > 0:
         indexes.append(tmp)
-    # The guy bellow
+    # The guy below
     tmp = n + nx*ny
     if tmp < mesh.size:
         indexes.append(tmp)

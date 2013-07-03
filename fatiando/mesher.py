@@ -463,7 +463,7 @@ class Tesseroid(GeometricElement):
     * top, bottom : float
         Bottom and top of the tesseroid with respect to the mean earth radius
         in meters. Ex: if the top is 100 meters above the mean earth radius,
-        ``top=100``, if 100 meters bellow ``top=-100``.
+        ``top=100``, if 100 meters below ``top=-100``.
     * props : dict
         Physical properties assigned to the tesseroid.
         Ex: ``props={'density':10, 'magnetization':10000}``
@@ -877,7 +877,7 @@ class PrismRelief(object):
         """
         Add physical property values to the prisms.
 
-        .. warning:: If the z value of any point in the relief is bellow the
+        .. warning:: If the z value of any point in the relief is below the
             reference level, its corresponding prism will have the physical
             property value with oposite sign than was assigned to it.
 
@@ -1087,7 +1087,7 @@ class PrismMesh(object):
             topo = -1*topo
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
-        # bellow a masked topo point (ie, one with no height information)
+        # below a masked topo point (ie, one with no height information)
         if numpy.ma.isMA(topo):
             topo_mask = topo.mask
         else:
