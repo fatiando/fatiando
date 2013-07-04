@@ -157,7 +157,7 @@ def gz(xp, yp, zp, spheres):
         res = res - mass*dz/r_cb
     return G*SI2MGAL*res
     
-    def gzz(xp, yp, zp, spheres):
+def gzz(xp, yp, zp, spheres):
     """
     Calculates the :math:`g_zz` gravity gradient component.
 
