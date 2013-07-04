@@ -156,3 +156,44 @@ def gz(xp, yp, zp, spheres):
         mass = density*4.*numpy.pi*(radius**3)/3.
         res = res - mass*dz/r_cb
     return G*SI2MGAL*res
+    
+    def gzz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_zz` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eötvös!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those without
+        will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res = res + mass*(((3*dz*dz) - r_2)/r_5)
+    return G*SI2EOTVOS*res
