@@ -50,7 +50,7 @@ Then the total-field anomaly caused by the sphere is
 """
 import numpy
 
-from fatiando.constants import SI2MGAL, G, CM, T2NT
+from fatiando.constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
 from fatiando import utils
 
 
