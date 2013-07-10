@@ -8,8 +8,9 @@ with Segy("sub_vol.sgy") as sgy:
     ntrac = sgy.numbertraces
     nsamples = sgy.samplestrace
     
-    trace = np.zeros([nsamples, ntrac])
+    trace = np.zeros([ntrac, nsamples])
     
     for i in range(ntrac):
-        trace[:][i] = sgy.Traces[i].samples
+        trace[i] = sgy.Traces(i).samples
     
+    pass

@@ -13,15 +13,14 @@ import struct
 import os
 
 
-
-
 def _i2(chars, byte):
     r"""Returns the 2-byte integer from <byte> position in chars"""
     return( int(chars[(byte-1):(byte-1)+2].encode('hex'),16)  )
         
 def _i4(chars, byte): 
     r"""Returns the 4-byte integer from <byte> position in chars"""
-    return( int(chars[(byte-1):(byte-1)+4].encode('hex'),16)  )    
+    return( int(chars[(byte-1):(byte-1)+4].encode('hex'),16)  )
+    #return struct.unpack("H", chars[(byte-1):(byte-1)+4])[0]    
 
 def _ibm2ieee(ibm_chars):
     r"""
@@ -78,11 +77,9 @@ class Segy(object):
         Only Binary and Ascii headers will be read.
         """
         self.file = open(self.filename, "rb")
-        filebytes = str()
-        try: # read general segy headers
-            filebytes = file.read(3200+400)
-        except:
-            pass
+        
+        # read general segy headers
+        filebytes = self.file.read(3200+400)
         
         # Ebcdic or text header 3200 bytes
         self.ebcdic = filebytes[:3200].decode('EBCDIC-CP-BE')
@@ -90,26 +87,31 @@ class Segy(object):
         self.binaryheader = self._getbinaryheader(filebytes[3200:3600])
         
         if not self.binaryheader['fixed_length_traces'] == 1:
-            raise Exception('file not supported') 
+            #raise Exception('file not supported')
+            pass 
         if not self.binaryheader['sgy_revision'] == 1:
-            raise Exception('file not supported') 
+            #raise Exception('file not supported')
+            pass 
         if not self.binaryheader['extended_text_header'] == 0:
-            raise Exception('file not supported')
-        # IBM and IEEE support 5/1
+            #raise Exception('file not supported')
+            pass
+        # IBM and IEEE support 5/1        
         if not ( self.binaryheader['data_format'] == 5 or self.binaryheader['data_format'] == 1):
-            raise Exception('file not supported')
-        
+            #raise Exception('file not supported')
+            pass
         # for not extended text header and fixed length trace gets
         # the number of traces based on 4 byte sample data format
-        self.filesize = os.stat(self.filename).stsize
+        self.filesize = os.stat(self.filename).st_size
         
         self.samplestrace = self.binaryheader['samples_trace']
         self.numbertraces = (self.filesize-(3200+400))/(self.samplestrace*4+240)
         self.sample_format = self.binaryheader['data_format']
         
         self.samplerate = self.binaryheader['sample_interval']
+        
+        return self
 
-    def __exit__(self):
+    def __exit__(self, eType, eValue, eTrace):
         r""" close the file """
         self.file.close()
 
@@ -152,16 +154,15 @@ class Segy(object):
         # records following the  Binary Header
         return self.binaryheader
 
-    def Traces(self):
-        def __getitem__(self, key):
-            r"""
-            return a trace object, first trace key = 0
-            max traces defined by self.numbertraces
-            """
-            file.seek((3200+400)+(self.samplestrace*4+240)*key, 0) # 0 from begging of file
-            tracechars = file.read((self.samplestrace*4+240))
-            
-            return Trace(self.binaryheader, tracechars)
+    def Traces(self, key):
+        r"""
+        return a trace object, first trace key = 0
+        max traces defined by self.numbertraces
+        """
+        self.file.seek((3200+400)+(self.samplestrace*4+240)*key, 0) # 0 from begging of file
+        tracechars = self.file.read((self.samplestrace*4+240))
+        
+        return Trace(self.binaryheader, tracechars)
 
 
 class Trace(object):
