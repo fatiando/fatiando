@@ -55,7 +55,7 @@ class Segy(object):
     
     """
     def __init__(self, filename):
-        """
+        r"""
         Create a segy class by assigning the path filename 
         to the segy file.
         Use as:
@@ -156,7 +156,7 @@ class Segy(object):
 
     def Traces(self, key):
         r"""
-        return a trace object, first trace key = 0
+        return a especific trace from file 
         max traces defined by self.numbertraces
         """
         self.file.seek((3200+400)+(self.samplestrace*4+240)*key, 0) # 0 from begging of file
