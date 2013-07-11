@@ -2,13 +2,15 @@ r"""
 Segy file format manipulating utilities
 
 * Uses the SEG-Y rev 1 standard (binary header 301-302)
+* Uses data types in big-endian fomart (SEG-Y rev 1 definition)
 * Data sample format code supporting: IEEE and IBM 4 bytes float-point (binary header 25-26)
-* Only support writing segy files with IEEE 4 bytes float for data sample format 
+* Only support writing segy files with IEEE 4 bytes float for data sample format
+
+* Not supporting little-endian conversion for reading and writing (SEG-Y rev 1 definition)
 * Not supporting different trace lengths (binary header 303-304)
 * Not supporting Extended Textual File Header records following the Binary Header (binary header 305-307) 
-* Not supporting Big Endian conversion
 
-* using ctypes structs is expect to improve performance using also readinto()
+* Note: using ctypes structs is expect to improve performance using also readinto()
 
 """
 
@@ -42,37 +44,37 @@ class SegyBH(list):
     
     def __init__(self):
         super(SegyBH, self).__init__()
-        self.append(BinaryField('job_id',                 1, 4, 'i',      0)) # Job identification number
-        self.append(BinaryField('line_number',            5, 4, 'i',      0)) # Line number
-        self.append(BinaryField('rell_number',            9, 4, 'i',      0)) # Reel number
-        self.append(BinaryField('number_traces',         13, 2, 'u',      0)) # Number of data traces per ensemble
-        self.append(BinaryField('aux_traces',            15, 2, 'u',      0)) # Number of auxiliary traces per ensemble
-        self.append(BinaryField('sample_interval',       17, 2, 'u',   4000)) # @mandatory Sample interval in microseconds
-        self.append(BinaryField('sample_interval_org',   19, 2, 'u',   4000)) # Sample interval in microseconds (orig)
-        self.append(BinaryField('samples_trace',         21, 2, 'u',      0)) # @mandatory Number of samples per data trace
-        self.append(BinaryField('samples_trace_org',     23, 2, 'u',      0)) # Number of samples per data trace (orig)
-        self.append(BinaryField('data_format',           25, 2, 'u',      5)) # @mandatory Data sample format code (1 to 8)
-        self.append(BinaryField('fold',                  27, 2, 'u',      0)) # Ensemble fold 
-        self.append(BinaryField('trace_sort',            29, 2, 'u',      0)) # Trace sorting code
-        self.append(BinaryField('vertical_scode',        31, 2, 'u',      0)) # Vertical sum code
-        self.append(BinaryField('sweep_fs',              33, 2, 'u',      0)) # Sweep frequency at start (Hz)
-        self.append(BinaryField('sweep_fe',              35, 2, 'u',      0)) # Sweep frequency at end
-        self.append(BinaryField('sweep_len',             37, 2, 'u',      0)) # Sweep length (ms)
-        self.append(BinaryField('sweep_typ',             39, 2, 'u',      0)) # Sweep type code
-        self.append(BinaryField('sweep_chn',             41, 2, 'u',      0)) # Trace number sweep channel
-        self.append(BinaryField('sweep_stas',            43, 2, 'u',      0)) # Sweep trace taper length in milliseconds at start
-        self.append(BinaryField('sweep_stae',            45, 2, 'u',      0)) # Sweep trace taper length in milliseconds at end
-        self.append(BinaryField('taper_typ',             47, 2, 'u',      0)) # Taper type
-        self.append(BinaryField('corr_traces',           49, 2, 'u',      0)) # Correlated data traces
-        self.append(BinaryField('binary_grcv',           51, 2, 'u',      0)) # Binary gain recovered
-        self.append(BinaryField('amp_rcvm',              53, 2, 'u',      0)) # Amplitude recovery method
-        self.append(BinaryField('meters_feet',           55, 2, 'u',      0)) # Measurement system
-        self.append(BinaryField('polarity',              57, 2, 'u',      0)) # Impulse signal polarity
-        self.append(BinaryField('vpolarity',             59, 2, 'u',      0)) # Vibratory polarity code
-        self.append(BinaryField('unassigned',            61, 240, 'c',    0)) 
-        self.append(BinaryField('sgy_revision',         301, 2, 'u',    256)) # SEG Y Format Revision Number 0100 hex
-        self.append(BinaryField('fixed_length_traces',  303, 2, 'u',      1)) # Fixed length trace flag (1 or 0)
-        self.append(BinaryField('extended_text_header', 305, 2, 'u',      0)) # Number of 3200-byte, Extended Textual File Header 
+        self.append(BinaryField('job_id',                 1, 4, '>i',      0)) # Job identification number
+        self.append(BinaryField('line_number',            5, 4, '>i',      0)) # Line number
+        self.append(BinaryField('rell_number',            9, 4, '>i',      0)) # Reel number
+        self.append(BinaryField('number_traces',         13, 2, '>h',      0)) # Number of data traces per ensemble
+        self.append(BinaryField('aux_traces',            15, 2, '>h',      0)) # Number of auxiliary traces per ensemble
+        self.append(BinaryField('sample_interval',       17, 2, '>h',   4000)) # @mandatory Sample interval in microseconds
+        self.append(BinaryField('sample_interval_org',   19, 2, '>h',   4000)) # Sample interval in microseconds (orig)
+        self.append(BinaryField('samples_trace',         21, 2, '>h',      0)) # @mandatory Number of samples per data trace
+        self.append(BinaryField('samples_trace_org',     23, 2, '>h',      0)) # Number of samples per data trace (orig)
+        self.append(BinaryField('data_format',           25, 2, '>h',      5)) # @mandatory Data sample format code (1 to 8)
+        self.append(BinaryField('fold',                  27, 2, '>h',      0)) # Ensemble fold 
+        self.append(BinaryField('trace_sort',            29, 2, '>h',      0)) # Trace sorting code (-1 to 9)
+        self.append(BinaryField('vertical_scode',        31, 2, '>h',      0)) # Vertical sum code
+        self.append(BinaryField('sweep_fs',              33, 2, '>h',      0)) # Sweep frequency at start (Hz)
+        self.append(BinaryField('sweep_fe',              35, 2, '>h',      0)) # Sweep frequency at end
+        self.append(BinaryField('sweep_len',             37, 2, '>h',      0)) # Sweep length (ms)
+        self.append(BinaryField('sweep_typ',             39, 2, '>h',      0)) # Sweep type code
+        self.append(BinaryField('sweep_chn',             41, 2, '>h',      0)) # Trace number sweep channel
+        self.append(BinaryField('sweep_stas',            43, 2, '>h',      0)) # Sweep trace taper length in milliseconds at start
+        self.append(BinaryField('sweep_stae',            45, 2, '>h',      0)) # Sweep trace taper length in milliseconds at end
+        self.append(BinaryField('taper_typ',             47, 2, '>h',      0)) # Taper type
+        self.append(BinaryField('corr_traces',           49, 2, '>h',      0)) # Correlated data traces
+        self.append(BinaryField('binary_grcv',           51, 2, '>h',      0)) # Binary gain recovered
+        self.append(BinaryField('amp_rcvm',              53, 2, '>h',      0)) # Amplitude recovery method
+        self.append(BinaryField('meters_feet',           55, 2, '>h',      1)) # Measurement system
+        self.append(BinaryField('polarity',              57, 2, '>h',      0)) # Impulse signal polarity
+        self.append(BinaryField('vpolarity',             59, 2, '>h',      0)) # Vibratory polarity code
+        self.append(BinaryField('unassigned',            61, 240, '>c',    0)) 
+        self.append(BinaryField('sgy_revision',         301, 2, '>h',    256)) # SEG Y Format Revision Number 0100 hex
+        self.append(BinaryField('fixed_length_traces',  303, 2, '>h',      1)) # Fixed length trace flag (1 or 0)
+        self.append(BinaryField('extended_text_header', 305, 2, '>h',      0)) # Number of 3200-byte, Extended Textual File Header 
         # records following the  Binary Header 
 
 class SegyTH(list):
@@ -95,135 +97,133 @@ class SegyTH(list):
 
     def __init__(self):
         super(SegyTH, self).__init__()
-        self.append(BinaryField('trace_number_line',       1,   4, 'i',     0))  # Trace sequence number within line
-        self.append(BinaryField('trace_number_reel',       5,   4, 'i',     0))  # Trace sequence number within reel
-        self.append(BinaryField('FFID',                    9,   4, 'i',     0))  # FFID - Original field record number
-        self.append(BinaryField('trace_number_field',      13,  4, 'i',     0))  # Trace number within field record
-        self.append(BinaryField('SP',                      17,  4, 'i',     0))  # SP - energy source point number
-        self.append(BinaryField('ensemble_number',         21,  4, 'i',     0))  # Ensemble number (CDP, CMP, CRP, etc)
-        self.append(BinaryField('trace_number',            25,  4, 'i',     0))  # Trace number within ensemble
-        self.append(BinaryField('trace_id_code',           29,  2, 'u',     0))  # Trace Identification code (0 = Unknown, 1= Seismic data, 2 = Dead, etc)
-        self.append(BinaryField('n_vertically_summed',     31,  2, 'u',     0))  # Number of vertically summed traces
-        self.append(BinaryField('n_horizontally_stacked',  33,  2, 'u',     0))  # Number of horizontally stacked traces
-        self.append(BinaryField('data_use',                35,  2, 'u',     0))  # Data use (1=production, 2=test)
-        self.append(BinaryField('offset',                  37,  4, 'i',     0))  # Offset (distance from source point to receiver group)
-        self.append(BinaryField('rcvr_grp_elevation',      41,  4, 'i',     0))  # Receiver group elevation
-        self.append(BinaryField('surface_elevation_src',   45,  4, 'i',     0))  # Surface elevation at source
-        self.append(BinaryField('src_depth',               49,  4, 'i',     0))  # Source depth below surface (>0)
-        self.append(BinaryField('datum_elevation_rcvr',    53,  4, 'i',     0))  # Datum elevation at receiver group
-        self.append(BinaryField('datum_elevation_src',     57,  4, 'i',     0))  # Datum elevation at source
-        self.append(BinaryField('water_depth_src',         61,  4, 'i',     0))  # Water depth at source
-        self.append(BinaryField('water_depth_grp',         65,  4, 'i',     0))  # Water depth at group
-        self.append(BinaryField('scalar_elevation_depths', 69,  2, 'u',     0))  # Scalar to be applied to all elevations and depths
-        self.append(BinaryField('scalar_coordinates',      71,  2, 'u',     0))  # Scalar to be applied to all coordinates
-        self.append(BinaryField('src_X_coord',             73,  4, 'i',     0))  # Source X-coordinate
-        self.append(BinaryField('src_Y_coord',             77,  4, 'i',     0))  # Source Y-coordinate
-        self.append(BinaryField('grp_X_coord',             81,  4, 'i',     0))  # Group X-coordinate
-        self.append(BinaryField('grp_Y_coord',             85,  4, 'i',     0))  # Group Y-coordinate
-        self.append(BinaryField('coord_units',             89,  2, 'u',     0))  # Coordinate units
-        self.append(BinaryField('weathering_vel',          91,  2, 'u',     0))  # Weathering velocity
-        self.append(BinaryField('subweathering_vel',       93,  2, 'u',     0))  # Subweathering velocity
-        self.append(BinaryField('uphole_time_src',         95,  2, 'u',     0))  # Uphole time at source (ms)
-        self.append(BinaryField('uphole_time_grp',         97,  2, 'u',     0))  # Uphole time as group (ms)
-        self.append(BinaryField('src_static',              99,  2, 'u',     0))  # Source static corretion (ms)
-        self.append(BinaryField('grp_static',              101, 2, 'u',     0))  # Group static corretion (ms)
-        self.append(BinaryField('total_static',            103, 2, 'u',     0))  # Total static applied (ms)
-        self.append(BinaryField('lag_time_A',              105, 2, 'u',     0))  # Lag time A
-        self.append(BinaryField('lag_time_B',              107, 2, 'u',     0))  # Lag time B
-        self.append(BinaryField('delay_recording_time',    109, 2, 'u',     0))  # Delay recording time
-        self.append(BinaryField('mute_start',              111, 2, 'u',     0))  # Mute time - start
-        self.append(BinaryField('mute_end',                113, 2, 'u',     0))  # Mute time - end
-        self.append(BinaryField('number_of_samples',       115, 2, 'u',     0))  # Number of samples in this trace
-        self.append(BinaryField('sample_interval',         117, 2, 'u',  4000))  # Sample interval
-        self.append(BinaryField('gain_type',               119, 2, 'u',     0))  # Gain type of field instruments
-        self.append(BinaryField('inst_gain_constant',      121, 2, 'u',     0))  # Instrument gain constant
-        self.append(BinaryField('inst_ini_gain',           123, 2, 'u',     0))  # Instrument initial or early gain
-        self.append(BinaryField('correlated',              125, 2, 'u',     0))  # Correlated (0=no, 1=yes)
-        self.append(BinaryField('sweep_freq_start',        127, 2, 'u',     0))  # Sweep frequency at start
-        self.append(BinaryField('sweep_freq_end',          129, 2, 'u',     0))  # Sweep frequency at end
-        self.append(BinaryField('sweep_length',            131, 2, 'u',     0))  # Sweep length
-        self.append(BinaryField('sweep_type',              133, 2, 'u',     0))  # Sweep type
-        self.append(BinaryField('sweep_tr_tpr_len_start',  135, 2, 'u',     0))  # Sweep trace taper length at start
-        self.append(BinaryField('sweep_tr_tpr_len_end',    137, 2, 'u',     0))  # Sweep trace taper length at end
-        self.append(BinaryField('taper_type',              139, 2, 'u',     0))  # Taper type
-        self.append(BinaryField('alias_freq',              141, 2, 'u',     0))  # Alias filter frequency
-        self.append(BinaryField('alias_slope',             143, 2, 'u',     0))  # Alias filter slope
-        self.append(BinaryField('notch_freq',              145, 2, 'u',     0))  # Notch filter frequency
-        self.append(BinaryField('notch_slope',             147, 2, 'u',     0))  # Notch filter slope
-        self.append(BinaryField('lowcut_freq',             149, 2, 'u',     0))  # Lowcut filter frequency
-        self.append(BinaryField('highcut_freq',            151, 2, 'u',     0))  # Highcut filter frequency
-        self.append(BinaryField('lowcut_slope',            153, 2, 'u',     0))  # Lowcut filter slope
-        self.append(BinaryField('highcut_slope',           155, 2, 'u',     0))  # Highcut filter slope
-        self.append(BinaryField('year',                    157, 2, 'u',     0))  # Year data recorded
-        self.append(BinaryField('day',                     159, 2, 'u',     0))  # Day of year 
-        self.append(BinaryField('hour',                    161, 2, 'u',     0))  # Hour of day
-        self.append(BinaryField('minute',                  163, 2, 'u',     0))  # Minute of hour
-        self.append(BinaryField('second',                  165, 2, 'u',     0))  # Second of minute
-        self.append(BinaryField('time_basis',              167, 2, 'u',     0))  # Time basis code
-        self.append(BinaryField('weighting_factor',        169, 2, 'u',     0))  # Trace weighting factor
-        self.append(BinaryField('geophone_grp_n_roll_p_1', 171, 2, 'u',     0))  # Geophone group number of roll switch position one
-        self.append(BinaryField('geophone_grp_n_tr_1',     173, 2, 'u',     0))  # Geophone group number of trace one
-        self.append(BinaryField('geophone_grp_n_last_tr',  175, 2, 'u',     0))  # Geophone group number of last trace
-        self.append(BinaryField('gap_size',                177, 2, 'u',     0))  # Gap size (# of groups dropped)
-        self.append(BinaryField('over_travel_taper',       179, 2, 'u',     0))  # Over travel associated with taper at beginning or end of line
-        self.append(BinaryField('CDP_X',                   181, 4, 'i',     0))  # CDP X coordinate
-        self.append(BinaryField('CDP_Y',                   185, 4, 'i',     0))  # CDP Y coordinate
-        self.append(BinaryField('inline',                  189, 4, 'i',     0))  # Inline number
-        self.append(BinaryField('crossline',               193, 4, 'i',     0))  # Crossline number
-        self.append(BinaryField('shot_point_number',       197, 4, 'i',     0))  # Shot point number
-        self.append(BinaryField('shot_point_scalar',       201, 4, 'i',     0))  # Shot point scalar
-        self.append(BinaryField('trc_value_unit',          203, 2, 'u',     0))  # Trace value measurement unit
-        self.append(BinaryField('transduction_const_mant', 205, 4, 'i',     0))  # Transduction constant (mantissa)
-        self.append(BinaryField('transduction_const_pow',  209, 2, 'u',     0))  # Transduction constant (power)
-        self.append(BinaryField('transduction_unit',       211, 2, 'u',     0))  # Transduction unit
-        self.append(BinaryField('identifier',              213, 2, 'u',     0))  # Device/trace identifier
-        self.append(BinaryField('scalar_time',             215, 2, 'u',     0))  # Scalar to be applied to bytes 95-114 (basically concerning times)
-        self.append(BinaryField('source_tp_orient',        217, 2, 'u',     0))  # Source type/orientation
-        self.append(BinaryField('source_energy_direction', 219, 4, 'i',     0))  # Source energy direction
-        self.append(BinaryField('source_measurement_mant', 225, 4, 'i',     0))  # Source measurement (mantissa)
-        self.append(BinaryField('source_measurement_pow',  229, 2, 'u',     0))  # Source measurement (power)
+        self.append(BinaryField('trace_number_line',       1,   4, '>i',     0))  # Trace sequence number within line
+        self.append(BinaryField('trace_number_reel',       5,   4, '>i',     0))  # Trace sequence number within reel
+        self.append(BinaryField('FFID',                    9,   4, '>i',     0))  # FFID - Original field record number
+        self.append(BinaryField('trace_number_field',      13,  4, '>i',     0))  # Trace number within field record
+        self.append(BinaryField('SP',                      17,  4, '>i',     0))  # SP - energy source point number
+        self.append(BinaryField('ensemble_number',         21,  4, '>i',     0))  # Ensemble number (CDP, CMP, CRP, etc)
+        self.append(BinaryField('trace_number',            25,  4, '>i',     0))  # Trace number within ensemble
+        self.append(BinaryField('trace_id_code',           29,  2, '>h',     0))  # Trace Identification code (0 = Unknown, 1= Seismic data, 2 = Dead, etc)
+        self.append(BinaryField('n_vertically_summed',     31,  2, '>h',     0))  # Number of vertically summed traces
+        self.append(BinaryField('n_horizontally_stacked',  33,  2, '>h',     0))  # Number of horizontally stacked traces
+        self.append(BinaryField('data_use',                35,  2, '>h',     0))  # Data use (1=production, 2=test)
+        self.append(BinaryField('offset',                  37,  4, '>i',     0))  # Offset (distance from source point to receiver group)
+        self.append(BinaryField('rcvr_grp_elevation',      41,  4, '>i',     0))  # Receiver group elevation
+        self.append(BinaryField('surface_elevation_src',   45,  4, '>i',     0))  # Surface elevation at source
+        self.append(BinaryField('src_depth',               49,  4, '>i',     0))  # Source depth below surface (>0)
+        self.append(BinaryField('datum_elevation_rcvr',    53,  4, '>i',     0))  # Datum elevation at receiver group
+        self.append(BinaryField('datum_elevation_src',     57,  4, '>i',     0))  # Datum elevation at source
+        self.append(BinaryField('water_depth_src',         61,  4, '>i',     0))  # Water depth at source
+        self.append(BinaryField('water_depth_grp',         65,  4, '>i',     0))  # Water depth at group
+        self.append(BinaryField('scalar_elevation_depths', 69,  2, '>h',     0))  # Scalar to be applied to all elevations and depths
+        self.append(BinaryField('scalar_coordinates',      71,  2, '>h',     0))  # Scalar to be applied to all coordinates
+        self.append(BinaryField('src_X_coord',             73,  4, '>i',     0))  # Source X-coordinate
+        self.append(BinaryField('src_Y_coord',             77,  4, '>i',     0))  # Source Y-coordinate
+        self.append(BinaryField('grp_X_coord',             81,  4, '>i',     0))  # Group X-coordinate
+        self.append(BinaryField('grp_Y_coord',             85,  4, '>i',     0))  # Group Y-coordinate
+        self.append(BinaryField('coord_units',             89,  2, '>h',     0))  # Coordinate units
+        self.append(BinaryField('weathering_vel',          91,  2, '>h',     0))  # Weathering velocity
+        self.append(BinaryField('subweathering_vel',       93,  2, '>h',     0))  # Subweathering velocity
+        self.append(BinaryField('uphole_time_src',         95,  2, '>h',     0))  # Uphole time at source (ms)
+        self.append(BinaryField('uphole_time_grp',         97,  2, '>h',     0))  # Uphole time as group (ms)
+        self.append(BinaryField('src_static',              99,  2, '>h',     0))  # Source static corretion (ms)
+        self.append(BinaryField('grp_static',              101, 2, '>h',     0))  # Group static corretion (ms)
+        self.append(BinaryField('total_static',            103, 2, '>h',     0))  # Total static applied (ms)
+        self.append(BinaryField('lag_time_A',              105, 2, '>h',     0))  # Lag time A
+        self.append(BinaryField('lag_time_B',              107, 2, '>h',     0))  # Lag time B
+        self.append(BinaryField('delay_recording_time',    109, 2, '>h',     0))  # Delay recording time
+        self.append(BinaryField('mute_start',              111, 2, '>h',     0))  # Mute time - start
+        self.append(BinaryField('mute_end',                113, 2, '>h',     0))  # Mute time - end
+        self.append(BinaryField('number_of_samples',       115, 2, '>h',     0))  # Number of samples in this trace
+        self.append(BinaryField('sample_interval',         117, 2, '>h',  4000))  # Sample interval
+        self.append(BinaryField('gain_type',               119, 2, '>h',     0))  # Gain type of field instruments
+        self.append(BinaryField('inst_gain_constant',      121, 2, '>h',     0))  # Instrument gain constant
+        self.append(BinaryField('inst_ini_gain',           123, 2, '>h',     0))  # Instrument initial or early gain
+        self.append(BinaryField('correlated',              125, 2, '>h',     0))  # Correlated (0=no, 1=yes)
+        self.append(BinaryField('sweep_freq_start',        127, 2, '>h',     0))  # Sweep frequency at start
+        self.append(BinaryField('sweep_freq_end',          129, 2, '>h',     0))  # Sweep frequency at end
+        self.append(BinaryField('sweep_length',            131, 2, '>h',     0))  # Sweep length
+        self.append(BinaryField('sweep_type',              133, 2, '>h',     0))  # Sweep type
+        self.append(BinaryField('sweep_tr_tpr_len_start',  135, 2, '>h',     0))  # Sweep trace taper length at start
+        self.append(BinaryField('sweep_tr_tpr_len_end',    137, 2, '>h',     0))  # Sweep trace taper length at end
+        self.append(BinaryField('taper_type',              139, 2, '>h',     0))  # Taper type
+        self.append(BinaryField('alias_freq',              141, 2, '>h',     0))  # Alias filter frequency
+        self.append(BinaryField('alias_slope',             143, 2, '>h',     0))  # Alias filter slope
+        self.append(BinaryField('notch_freq',              145, 2, '>h',     0))  # Notch filter frequency
+        self.append(BinaryField('notch_slope',             147, 2, '>h',     0))  # Notch filter slope
+        self.append(BinaryField('lowcut_freq',             149, 2, '>h',     0))  # Lowcut filter frequency
+        self.append(BinaryField('highcut_freq',            151, 2, '>h',     0))  # Highcut filter frequency
+        self.append(BinaryField('lowcut_slope',            153, 2, '>h',     0))  # Lowcut filter slope
+        self.append(BinaryField('highcut_slope',           155, 2, '>h',     0))  # Highcut filter slope
+        self.append(BinaryField('year',                    157, 2, '>h',     0))  # Year data recorded
+        self.append(BinaryField('day',                     159, 2, '>h',     0))  # Day of year 
+        self.append(BinaryField('hour',                    161, 2, '>h',     0))  # Hour of day
+        self.append(BinaryField('minute',                  163, 2, '>h',     0))  # Minute of hour
+        self.append(BinaryField('second',                  165, 2, '>h',     0))  # Second of minute
+        self.append(BinaryField('time_basis',              167, 2, '>h',     0))  # Time basis code
+        self.append(BinaryField('weighting_factor',        169, 2, '>h',     0))  # Trace weighting factor
+        self.append(BinaryField('geophone_grp_n_roll_p_1', 171, 2, '>h',     0))  # Geophone group number of roll switch position one
+        self.append(BinaryField('geophone_grp_n_tr_1',     173, 2, '>h',     0))  # Geophone group number of trace one
+        self.append(BinaryField('geophone_grp_n_last_tr',  175, 2, '>h',     0))  # Geophone group number of last trace
+        self.append(BinaryField('gap_size',                177, 2, '>h',     0))  # Gap size (# of groups dropped)
+        self.append(BinaryField('over_travel_taper',       179, 2, '>h',     0))  # Over travel associated with taper at beginning or end of line
+        self.append(BinaryField('CDP_X',                   181, 4, '>i',     0))  # CDP X coordinate
+        self.append(BinaryField('CDP_Y',                   185, 4, '>i',     0))  # CDP Y coordinate
+        self.append(BinaryField('inline',                  189, 4, '>i',     0))  # Inline number
+        self.append(BinaryField('crossline',               193, 4, '>i',     0))  # Crossline number
+        self.append(BinaryField('shot_point_number',       197, 4, '>i',     0))  # Shot point number
+        self.append(BinaryField('shot_point_scalar',       201, 4, '>i',     0))  # Shot point scalar
+        self.append(BinaryField('trc_value_unit',          203, 2, '>h',     0))  # Trace value measurement unit
+        self.append(BinaryField('transduction_const_mant', 205, 4, '>i',     0))  # Transduction constant (mantissa)
+        self.append(BinaryField('transduction_const_pow',  209, 2, '>h',     0))  # Transduction constant (power)
+        self.append(BinaryField('transduction_unit',       211, 2, '>h',     0))  # Transduction unit
+        self.append(BinaryField('identifier',              213, 2, '>h',     0))  # Device/trace identifier
+        self.append(BinaryField('scalar_time',             215, 2, '>h',     0))  # Scalar to be applied to bytes 95-114 (basically concerning times)
+        self.append(BinaryField('source_tp_orient',        217, 2, '>h',     0))  # Source type/orientation
+        self.append(BinaryField('source_energy_direction', 219, 4, '>i',     0))  # Source energy direction
+        self.append(BinaryField('source_measurement_mant', 225, 4, '>i',     0))  # Source measurement (mantissa)
+        self.append(BinaryField('source_measurement_pow',  229, 2, '>h',     0))  # Source measurement (power)
 
 
-def _i2pack(integer):
-    r"""
-    pack the int (integer) value as an integer 2 (signed)
+def _vpack(fmt, value):
     """
-    return struct.pack('h', integer)
+    pack the value as as packed binary data
+     
+    * fmt : packing format (struct.pack)
+    * value : type to pack
+    """
+    # to avoid problems in bounds
+    if fmt == '>i':
+        value = np.int32(value)
+    elif fmt == '>I':
+        value = np.uint32(value)
+    elif fmt == '>h':
+        value = np.int16(value)
+    elif fmt == '>H':
+        value = np.uint16(value)
 
-def _i2(strpackedbin, byte):
+    return struct.pack(fmt, value)
+
+def _vunpack(strpackedbin, byte, fmt, size):
     r"""
-    Returns the 2-byte integer from <byte> position in strpackedbin
+    Returns the type (eg. int, uint, short etc.)
+    described in <fmt> from <strpackdin> begining at position 
+    <byte> with type <size>
+
     * strpackedbin : string containing packed binary data
+    * byte : byte position in strpackedbin to start reading
+    * fmt : unpacking format (struct.unpack)
+    * size : size in bytes of type being readed
     """
-    return( int(strpackedbin[(byte-1):(byte-1)+2].encode('hex'),16)  )
-
-def _i4pack(integer):
-    r"""
-    pack the int (integer) value as an integer 4 (signed)
-    """
-    return struct.pack('i', integer)
-
-def _i4(strpackedbin, byte): 
-    r"""
-    Returns the 4-byte integer from <byte> position in strpackedbin
-    * strpackedbin : string containing packed binary data
-    """
-    return( int(strpackedbin[(byte-1):(byte-1)+4].encode('hex'),16)  )
-    #return struct.unpack("i", strpackedbin[(byte-1):(byte-1)+4])  
-
-def _f4(strpackedbin, byte):
-    r"""
-    Returns the 4-byte floating point from <byte> position in strpackedbin
+    strpackedbin = strpackedbin[(byte-1):(byte-1+size)]
+    # to avoid problems in bounds
     
-    * strpackedbin : string containing packed binary data containing the float number
-    """
-    return struct.unpack("f", strpackedbin[(byte-1):(byte-1)+4])[0]
+    if size > 4 : 
+        return 0
 
-def _f4pack(_float):
-    r"""
-    pack the float32 (_float) value as an float 4 little endian
-    """
-    return struct.pack("f", _float)
+    # Data by SEG-Y rev 1 is big-endian '>'
+    return struct.unpack(fmt, strpackedbin)[0]
 
 def _f4ibm(strpackedbin, byte):
     r"""
@@ -262,7 +262,7 @@ def _str2floats(sampleformat, strpackedbin):
             samples.append(_f4ibm(strpackedbin, i+1))
     elif sampleformat == 5:  # IEEE float
         for i in range(0, len(strpackedbin), 4):
-            samples.append(_f4(strpackedbin, i+1))
+            samples.append(_vunpack(strpackedbin, i+1, '>f', 4))
     return samples
 
 
@@ -303,7 +303,15 @@ class Segy(object):
                 self._traces = traces
                 self.bheader = bheader
                 self.ebcdic = ebcdic
-
+                # overwride segy binary header with field from first trace
+                self.samplerate = int(traces[0].theader('sample_interval').value)
+                self.bheader("sample_interval").value = self.samplerate
+                self.samplestrace = int(traces[0].numbersamples())
+                self.bheader("samples_trace").value = self.samplestrace 
+                 
+                # set local fields
+                self.numbertraces = len(traces)
+                self.sampleformat = int(self.bheader("data_format").value)
 
     def __enter__(self):
         r"""
@@ -341,7 +349,6 @@ class Segy(object):
         self.samplestrace = self.bheader('samples_trace').value
         self.numbertraces = (self.filesize-(3200+400))/(self.samplestrace*4+240)
         self.sampleformat = self.bheader('data_format').value
-        
         self.samplerate = self.bheader('sample_interval').value
         
         return self
@@ -352,15 +359,12 @@ class Segy(object):
 
     def _getbinaryheader(self, strpackedbin):
         r""" 
-        Loads the binary header (string containing packed binary data) into a custom list for easy access. 
+        Loads the binary header (string containing packed binary data) into 
+        a custom list (SegyBH) for easy access. 
         """
-        segybh = SegyBH() # custom list for storing binary header information
+        segybh = SegyBH() # custom list (SegyBH) for storing binary header information
         for bf in segybh: # unpack based on information of field
-            if bf.size == 2:
-                bf.value = _i2(strpackedbin, bf.byte)
-            elif bf.size == 4:
-                bf.value = _i4(strpackedbin, bf.byte)
-        
+            bf.value = _vunpack(strpackedbin, bf.byte, bf.fmt, bf.size)
         return segybh
 
     def traces(self, key):
@@ -376,7 +380,7 @@ class Segy(object):
         if isinstance(self.file, file) and not self.file.closed:
             self.file.seek((3200+400)+(self.samplestrace*4+240)*key, 0) # 0 from begging of file
             tracestrpackedbin = self.file.read((self.samplestrace*4+240))
-            return Trace(self.bheader('samples_trace').value, self.bheader('data_format').value, tracestrpackedbin)
+            return Trace(tracestrpackedbin, self.bheader('data_format').value)
         else:
             return self._traces[key]
 
@@ -387,21 +391,19 @@ class Segy(object):
         strpackedbin = str()
         
         # ebcdic packing
-        strpackedbin += struct.pack('3200c', *self.ebcdic)
+        strpackedbin += struct.pack('>3200c', *self.ebcdic)
         
         # segy binary header
         for bf in self.bheader: # pack based on information of field
-            if bf.size == 2:
-                strvalue = _i2pack(bf.value)
-            elif bf.size == 4:
-                strvalue =_i4pack(bf.value)
+            if bf.size == 2 or bf.size == 4:
+                strvalue = _vpack(bf.fmt, bf.value)
             elif bf.size == 240: # empty block
-                strvalue = struct.pack('240c', *(240*' '))
+                strvalue = struct.pack('>240c', *(240*' '))
             strpackedbin += strvalue
         
         # binary header SegyBH contains information until byte 306,
         # padding 94 bytes more white spaces
-        strpackedbin += struct.pack('94c', *(94*' '))
+        strpackedbin += struct.pack('>94c', *(94*' '))
         
         # pack all traces inside
         for trace in self._traces:
@@ -421,32 +423,34 @@ class Trace(object):
     r"""
     Segy Trace utility class.
     """
-    def __init__(self, numbersamples, sampleformat=5, tracestrpackedbin=None, theader=None):
+    def __init__(self, tracestrpackedbin=None, sampleformat=5, theader=SegyTH()):
         r"""
         Create a trace object
-        
-        * numbersamples : number of samples for this trace
+
         * sampleformat  : 1 (IBM 4 bytes float) or 5 (IEEE 4 bytes float)
         
-        when writing a segy use:
-        * theader   : a custom list containg valid fields for this trace header
+        when writing a segy (samples shoud be added after) use:        
+        * theader   : a custom list (SegyTH) containg valid fields for this trace header
+        use 
         
         when reading a segy use:
-        * tracestrpackedbin    : a string containing packed binary data containg every byte data from one segy trace
-        loaded from a file (Segy class)
+        * tracestrpackedbin    : a string containing packed binary data containg 
+        every byte data from one segy trace loaded from a file (Segy class)
         """
 
         # reading a trace from file
         if isinstance(tracestrpackedbin, str): 
+            self.sampleformat = sampleformat
             # Convert every sample to a float array using correct format
             self.samples = _str2floats(sampleformat, tracestrpackedbin[240:])
             # get the trace header values
             self.theader = self._gettraceheader(tracestrpackedbin[:240])
         # creating a trace to write in file         
         elif isinstance(theader, str):
+            self.sampleformat = sampleformat
             self.theader = theader
-            # all trace samples start with 0.0 float value
-            #self.samples = np.zeros(self.theader['nsamples'].value,dtype=np.float32)
+            # trace start with no samples
+            # self.samples = np.zeros(self.theader['nsamples'].value,dtype=np.float32)
             self.samples = []
         else :
             raise Exception("see usage (docstring)")
@@ -482,15 +486,12 @@ class Trace(object):
 
     def _gettraceheader(self, strpackedbin):
         r"""
-        Load information from strpackedbin (string containing packed binary data) into a custom list for easy access. 
+        Load information from strpackedbin (string containing packed binary data) 
+        into a custom list (SegyTH) for easy access. 
         """
         segyth = SegyTH() # custom list for storing binary header information
         for bf in segyth: # unpack based on information of field
-            if bf.size == 2:
-                bf.value = _i2(strpackedbin, bf.byte)
-            elif bf.size == 4:
-                bf.value = _i4(strpackedbin, bf.byte)
-        
+            bf.value = _vunpack(strpackedbin, bf.byte, bf.fmt, bf.size)
         return segyth
 
     def _pack(self):
@@ -500,15 +501,15 @@ class Trace(object):
         strpackedbin = str()
         
         for bf in self.theader: # pack based on information of field
-            strvalue = _i2pack(bf.value) if bf.size == 2 else _i4pack(bf.value)
+            strvalue = _vpack(bf.fmt, bf.value)
             strpackedbin += strvalue
         
         # trace header SegyTH contains information until byte 230,
         # padding 10 bytes more white space
-        strpackedbin += struct.pack('10c', *(10*' '))
+        strpackedbin += struct.pack('>10c', *(10*' '))
         
         # now pack the samples float 32 IEEE
-        strpackedbin += struct.pack('%df' % len(self.samples), *self.samples)
+        strpackedbin += struct.pack('>%df' % len(self.samples), *self.samples)
             
         return strpackedbin
 
