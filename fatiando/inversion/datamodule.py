@@ -7,13 +7,7 @@ the role of the data modules.
 ----
 
 """
-
 import numpy
-
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.inversion.datamodule')
 
 
 class DataModule(object):

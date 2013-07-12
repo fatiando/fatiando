@@ -2,32 +2,24 @@
 Meshing: Generate a topographic model using prisms and calculate its gravity
 anomaly
 """
-from fatiando import logger, gridder, utils, mesher, gravmag
+from fatiando import gridder, utils, mesher, gravmag
 from fatiando.vis import myv, mpl
 
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
-log.info("Generating synthetic topography")
 area = (-150, 150, -300, 300)
 shape = (30, 15)
 x, y = gridder.regular(area, shape)
 height = (-80*utils.gaussian2d(x, y, 100, 200, x0=-50, y0=-100, angle=-60) +
           200*utils.gaussian2d(x, y, 50, 100, x0=80, y0=170))
 
-log.info("Generating the 3D relief")
 nodes = (x, y, -1*height)
 relief = mesher.PrismRelief(0, gridder.spacing(area,shape), nodes)
 relief.addprop('density', (2670 for i in xrange(relief.size)))
 
-log.info("Calculating gz effect")
 gridarea = (-80, 80, -220, 220)
 gridshape = (100, 100)
 xp, yp, zp = gridder.regular(gridarea, gridshape, z=-200)
 gz = gravmag.prism.gz(xp, yp, zp, relief)
 
-log.info("Plotting")
 mpl.figure(figsize=(10,7))
 mpl.subplot(1, 2, 1)
 mpl.title("Synthetic topography")

@@ -3,13 +3,8 @@ Seismic: Invert vertical seismic profile (VSP) traveltimes for the velocity of t
 layers
 """
 import numpy
-from fatiando import logger, utils, seismic, vis
+from fatiando import utils, seismic, vis
 
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
-log.info("Draw the layered model")
 # The limits in velocity and depths
 area = (0, 10000, 0, 100)
 vmin, vmax, zmin, zmax = area
@@ -18,13 +13,11 @@ vis.mpl.xlabel("Velocity (m/s)")
 vis.mpl.ylabel("Depth (m)")
 thickness, velocity = vis.mpl.draw_layers(area, figure.gca())
 
-log.info("Generating synthetic data")
 zp = numpy.arange(zmin + 0.5, zmax, 0.5)
 tts, error = utils.contaminate(
     seismic.profile.vertical(thickness, velocity, zp),
     0.02, percent=True, return_stddev=True)
 
-log.info("Preparing for the inversion")
 damping = 100.
 estimates = []
 for i in xrange(30):
@@ -34,7 +27,6 @@ for i in xrange(30):
 estimate = utils.vecmean(estimates)
 predicted = seismic.profile.vertical(thickness, estimate, zp)
 
-log.info("Plotting results...")
 vis.mpl.figure(figsize=(12,5))
 vis.mpl.subplot(1, 2, 1)
 vis.mpl.grid()

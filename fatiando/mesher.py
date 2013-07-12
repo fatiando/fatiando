@@ -36,10 +36,8 @@ import scipy.misc
 import scipy.special
 import matplotlib.mlab
 
-import fatiando.logger
 import fatiando.gridder
 
-log = fatiando.logger.dummy('fatiando.mesher')
 
 class GeometricElement(object):
     """
@@ -189,7 +187,6 @@ class SquareMesh(object):
 
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
-        log.info("Generating 2D regular square mesh:")
         ny, nx = shape
         size = int(nx*ny)
         x1, x2, y1, y2 = bounds
@@ -206,10 +203,6 @@ class SquareMesh(object):
             self.props = {}
         else:
             self.props = props
-        log.info("  bounds = (x1, x2, y1, y2) = %s" % (str(bounds)))
-        log.info("  shape = (ny, nx) = %s" % (str(shape)))
-        log.info("  number of squares = %d" % (size))
-        log.info("  square dimensions = (dx, dy) = %s" % (str(self.dims)))
         # The index of the current square in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
@@ -288,10 +281,6 @@ class SquareMesh(object):
             Name of the physical property
 
         """
-        log.info("Loading physical property from image file:")
-        log.info("  file: '%s'" % (fname))
-        log.info("  physical property: %s" % (prop))
-        log.info("  range: [vmin, vmax] = %s" % (str([vmin, vmax])))
         image = PIL.Image.open(fname)
         imagearray = scipy.misc.fromimage(image, flatten=True)
         # Invert the color scale
@@ -305,17 +294,14 @@ class SquareMesh(object):
         model = model.tolist()
         model.reverse()
         model = numpy.array(model)
-        log.info("  image shape: (ny, nx) = %s" % (str(model.shape)))
         # Check if the shapes match, if not, interpolate
         if model.shape != self.shape:
-            log.info("  interpolate image to match mesh shape")
             ny, nx = model.shape
             xs = numpy.arange(nx)
             ys = numpy.arange(ny)
             X, Y = numpy.meshgrid(xs, ys)
             model = fatiando.gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
                 self.shape)[2]
-            log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
         self.props[prop] = model.ravel()
 
     def get_xs(self):
@@ -833,10 +819,6 @@ class PrismRelief(object):
         self.ref = ref
         self.dy, self.dx = dims
         self.props = {}
-        log.info("Generating 3D relief with right rectangular prisms:")
-        log.info("  number of prisms = %d" % (self.size))
-        log.info("  reference level = %s" % (str(ref)))
-        log.info("  dimensions of prisms = %g x %g" % (dims[0], dims[1]))
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0

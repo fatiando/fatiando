@@ -66,15 +66,9 @@ Example using ``iterate = True`` to step through the solver algorithm::
 ----
 
 """
-
-import time
-
 import numpy
 
 from fatiando import inversion, utils
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.seismic.epic2d')
 
 
 class TTRFlat(inversion.datamodule.DataModule):
@@ -210,44 +204,27 @@ def homogeneous(ttres, recs, vp, vs, solver, damping=0., equality=0., ref={},
         regs.append(inversion.regularizer.Equality(equality, reference))
     if damping:
         regs.append(inversion.regularizer.Damping(damping, 2))
-    log.info("Estimating epicenter in 2D assuming a homogeneous Earth:")
-    log.info("  equality: %g" % (equality))
-    log.info("  reference parameters: %s" % (str(ref)))
-    log.info("  damping: %g" % (damping))
-    log.info("  iterate: %s" % (str(iterate)))
     if iterate:
         return _iterator(dms, regs, solver)
     else:
         return _solver(dms, regs, solver)
 
 def _solver(dms, regs, solver):
-    start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
             continue
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
 def _iterator(dms, regs, solver):
-    start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
             yield chset['estimate'], chset['residuals'][0]
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
 
 def mapgoal(xs, ys, ttres, recs, vp, vs, damping=0., equality=0., ref={}):
     """
