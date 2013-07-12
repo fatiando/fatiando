@@ -2,6 +2,7 @@ import numpy as np
 
 from fatiando.mesher import Prism
 from fatiando.gravmag import _prism, _cprism, _neprism
+from fatiando import utils
 
 model = None
 xp, yp, zp = None, None, None
@@ -10,13 +11,13 @@ precision = 10**(-15)
 
 def setup():
     global model, xp, yp, zp, inc, dec
+    inc, dec = -30, 50
+    reg_field = np.array(utils.dircos(inc, dec))
     model = [
         Prism(100, 300, -100, 100, 0, 400,
               {'density':1., 'magnetization':2}),
         Prism(-300, -100, -100, 100, 0, 200,
-            {'density':2., 'magnetization':1, 'declination':-10,
-             'inclination':25})]
-    inc, dec = -30, 50
+            {'density':2., 'magnetization':utils.dircos(25, -10)})]
     tmp = np.linspace(-500, 500, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1*np.ones_like(xp)

@@ -16,6 +16,7 @@ Generate and operate on various kinds of meshes and geometric elements
 * :class:`~fatiando.mesher.PrismMesh`
 * :class:`~fatiando.mesher.PrismRelief`
 * :class:`~fatiando.mesher.TesseroidMesh`
+* :class:`~fatiando.mesher.PointGrid`
 
 **Utility functions**
 
@@ -32,6 +33,7 @@ Generate and operate on various kinds of meshes and geometric elements
 import PIL.Image
 import numpy
 import scipy.misc
+import scipy.special
 import matplotlib.mlab
 
 import fatiando.logger
@@ -91,10 +93,9 @@ class Polygon(GeometricElement):
         self.y = y
         self.nverts = len(vertices)
 
-class Square(GeometricElement):
+class Square(Polygon):
     """
     Create a square object.
-
 
     Parameters:
 
@@ -113,11 +114,18 @@ class Square(GeometricElement):
         >>> print sq
         x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
 
+    A square can be used as a :class:`~fatiando.mesher.Polygon`::
+
+        >>> print sq.vertices
+        [[0, 2], [1, 2], [1, 4], [0, 4]]
+
     """
     def __init__(self, bounds, props=None):
-        GeometricElement.__init__(self, props)
         self.bounds = bounds
         self.x1, self.x2, self.y1, self.y2 = bounds
+        verts = [[self.x1, self.y1], [self.x2, self.y1],
+                 [self.x2, self.y2], [self.x1, self.y2]]
+        Polygon.__init__(self, verts, props)
 
     def __str__(self):
         """Return a string representation of the square."""
@@ -125,34 +133,6 @@ class Square(GeometricElement):
                  ('y2', self.y2)]
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def topolygon(self):
-        """
-        Convert this square into a polygon representation.
-
-        Vertices are ordered clockwise considering that x is North.
-
-        Returns:
-
-        * polygon : :class:`~fatiando.mesher.Polygon`
-            The polygon equivalente of the square
-
-        Example::
-
-            >>> square = Square((0, 1, 0, 3), {'vp':1000})
-            >>> poly = square.topolygon()
-            >>> print poly.x
-            [ 0.  1.  1.  0.]
-            >>> print poly.y
-            [ 0.  0.  3.  3.]
-            >>> print poly.props['vp']
-            1000
-
-        """
-        verts = [[self.x1, self.y1], [self.x2, self.y1],
-                 [self.x2, self.y2], [self.x1, self.y2]]
-        props = dict(self.props)
-        return Polygon(verts, props)
 
 class SquareMesh(object):
     """
@@ -462,13 +442,13 @@ class Prism(GeometricElement):
 
             >>> prism = Prism(1, 2, 1, 3, 0, 2)
             >>> print prism.center()
-            [1.5, 2.0, 1.0]
+            [ 1.5  2.   1. ]
 
         """
         xc = 0.5*(self.x1 + self.x2)
         yc = 0.5*(self.y1 + self.y2)
         zc = 0.5*(self.z1 + self.z2)
-        return [xc, yc, zc]
+        return numpy.array([xc, yc, zc])
 
 class Tesseroid(GeometricElement):
     """
@@ -551,6 +531,8 @@ class Sphere(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the sphere
+    * radius : float
+        The radius of the sphere
     * props : dict
         Physical properties assigned to the prism.
         Ex: ``props={'density':10, 'magnetization':10000}``
@@ -654,6 +636,162 @@ class PolygonalPrism(GeometricElement):
         """
         verts = numpy.transpose([self.x, self.y])
         return Polygon(verts, self.props)
+
+class PointGrid(object):
+    """
+    Create a grid of 3D point sources (spheres of unit volume).
+
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`s.
+    Grid points are ordered with x varying first, then y (like a C matrix).
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        The area where the grid will be spread out
+    * z : float
+        The z coordinate of the grid (remember, z is positive downward)
+    * shape : tuple = (ny, nx)
+        The number of points in the y and x directions
+    * props :  dict
+        Physical properties of each point in the grid.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property for
+        each point in the grid.
+
+    """
+
+    def __init__(self, area, z, shape, props=None):
+        object.__init__(self)
+        self.area = area
+        self.z = z
+        self.shape = shape
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
+        ny, nx = shape
+        self.size = nx*ny
+        self.radius = scipy.special.cbrt(3./(4.*numpy.pi))
+        x1, x2, y1, y2 = area
+        xs = numpy.linspace(x1, x2, nx)
+        ys = numpy.linspace(y1, y2, ny)
+        self.x, self.y = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        if index >= self.size or index < -self.size:
+            raise IndexError('grid index out of range')
+        # To walk backwards in the list
+        if index < 0:
+            index = self.size + index
+        props = dict([p, self.props[p][index]] for p in self.props)
+        sphere = Sphere(self.x[index], self.y[index], self.z, self.radius,
+                        props=props)
+        return sphere
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        if self.i >= self.size:
+            raise StopIteration
+        sphere = self.__getitem__(self.i)
+        self.i += 1
+        return sphere
+
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the points in the grid.
+
+        Different physical properties of the grid are stored in a dictionary.
+
+        Parameters:
+
+        * prop : str
+            Name of the physical property.
+        * values :  list or array
+            Value of this physical property in each point of the grid
+
+        """
+        self.props[prop] = values
+
+    def split(self, shape):
+        """
+        Divide the grid into subgrids.
+
+        Parameters:
+
+        * shape : tuple = (ny, nx)
+            Number of subgrids in the y and x directions, respectively
+
+        Returns:
+
+        * subgrids : list
+            List of :class:`~fatiando.mesher.PointGrid`s
+
+        Examples::
+
+            >>> g = PointGrid((1, 4, 1, 3), 10, (3, 4))
+            >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
+            >>> grids = g.split((3, 2))
+            >>> for s in grids:
+            ...     print s.props['bla']
+            [1 1]
+            [2 2]
+            [4 4]
+            [5 5]
+            [7 7]
+            [8 8]
+            >>> for s in grids:
+            ...     print s.x
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            [ 1.  2.]
+            [ 3.  4.]
+            >>> for s in grids:
+            ...     print s.y
+            [ 1.  1.]
+            [ 1.  1.]
+            [ 2.  2.]
+            [ 2.  2.]
+            [ 3.  3.]
+            [ 3.  3.]
+
+        """
+        ny, nx = shape
+        x1, x2, y1, y2 = self.area
+        totaly, totalx = self.shape
+        if totalx%nx != 0 or totaly%ny != 0:
+            raise ValueError(
+                'Cannot split! nx and ny must be divible by grid shape')
+        xs = numpy.linspace(x1, x2, totalx)
+        ys = numpy.linspace(y1, y2, totaly)
+        dx = totalx/nx
+        dy = totaly/ny
+        subs = []
+        for i in xrange(ny):
+            ystart = i*dy
+            yend = ystart + dy - 1
+            if yend >= totaly:
+                yend = totaly - 1
+            for j in xrange(nx):
+                xstart = j*dx
+                xend = xstart + dx - 1
+                if xend >= totalx:
+                    xend = totalx - 1
+                area = [xs[xstart], xs[xend], ys[ystart], ys[yend]]
+                shape = (yend - ystart + 1, xend - xstart + 1)
+                props = {}
+                for p in self.props:
+                    pmatrix = numpy.reshape(self.props[p], (totaly, totalx))
+                    props[p] = pmatrix[ystart:yend + 1, xstart:xend + 1].ravel()
+                subs.append(PointGrid(area, self.z, shape, props))
+        return subs
 
 class PrismRelief(object):
     """
@@ -862,7 +1000,7 @@ class PrismMesh(object):
 
     def __getitem__(self, index):
         if index >= self.size or index < -self.size:
-            raise IndexError('mesh index out of range')            
+            raise IndexError('mesh index out of range')
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
@@ -957,8 +1095,8 @@ class PrismMesh(object):
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
-                if (masked or 
-                    (cellz < h and self.zdown) or 
+                if (masked or
+                    (cellz < h and self.zdown) or
                     (cellz > h and not self.zdown)):
                     self.mask.append(c)
                 c += 1
@@ -1041,6 +1179,14 @@ class PrismMesh(object):
         layer = [self.__getitem__(p) for p in xrange(start, end)]
         return layer
 
+    def layers(self):
+        """
+        Returns an iterator over the layers of the mesh.
+        """
+        nz, ny, nx = self.shape
+        for i in xrange(nz):
+            yield self.get_layer(i)
+
     def dump(self, meshfile, propfile, prop):
         r"""
         Dump the mesh to a file in the format required by UBC-GIF program
@@ -1097,27 +1243,25 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = (v if i not in self.mask else -10000000
-                  for i, v in enumerate(self.props[prop]))
-        numpy.savetxt(
-            propfile,
-            numpy.ravel(numpy.reshape(numpy.fromiter(values, 'f'),
-                self.shape), order='F'),
-            fmt='%.4f')
+        values = numpy.fromiter(self.props[prop], dtype='f')
+        # Replace the masked cells with a dummy value
+        values[self.mask] = -10000000
+        reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
+        numpy.savetxt(propfile, reordered, fmt='%.4f')
 
 class TesseroidMesh(PrismMesh):
     """
     Generate a 3D regular mesh of tesseroids.
 
-    Tesseroids are ordered as follows: first layers (height coordinate), 
+    Tesseroids are ordered as follows: first layers (height coordinate),
     then N-S rows and finaly E-W.
 
-    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height 
+    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has height
     index 1 (second layer), y index 1 (second row), and x index 2 (
     third element in the column).
 
     This class can used as list of tesseroids. It acts
-    as an iteratior (so you can loop over tesseroids). 
+    as an iteratior (so you can loop over tesseroids).
     It also has a ``__getitem__``
     method to access individual elements in the mesh.
     In practice, it should be able to be
@@ -1130,7 +1274,7 @@ class TesseroidMesh(PrismMesh):
     Parameters:
 
     * bounds : list = [w, e, s, n, top, bottom]
-        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and 
+        Boundaries of the mesh. ``w, e, s, n`` in degrees, ``top`` and
         ``bottom`` are heights (positive upward) and in meters.
     * shape : tuple = (nr, nlat, nlon)
         Number of tesseroids in the radial, latitude, and longitude directions.
@@ -1226,8 +1370,12 @@ def vfilter(vmin, vmax, prop, cells):
 
     """
     def isin(cell):
-        if (cell is None or prop not in cell.props or cell.props[prop] < vmin
-            or cell.props[prop] > vmax):
+        if cell is None or prop not in cell.props:
+            return False
+        value = cell.props[prop]
+        if not isinstance(value, float) and not isinstance(value, int):
+            value = numpy.linalg.norm(cell.props[prop])
+        if value < vmin or value > vmax:
             return False
         return True
     return [c for c in cells if isin(c)]
@@ -1244,9 +1392,10 @@ def vremove(value, prop, cells):
     Parameters:
 
     * value : float
-        The value of the physical property to remove
+        The value of the physical property to remove. If the physical property
+        is a vector, will compare the norm of the vector to **value**.
     * prop : str
-        The name of the physicaRemove cells whose physical property value falls outside a given rangel property
+        The name of the physical property to remove
     * cells : list
         A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
         :class:`~fatiando.mesher.PolygonalPrism`, etc)
@@ -1273,7 +1422,16 @@ def vremove(value, prop, cells):
         x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | bar:1000
 
     """
-    removed = [c for c in cells
-        if c is not None and (prop not in c.props or c.props[prop] != value)]
-    return removed
+    def keep(cell):
+        if cell is None:
+            return False
+        if prop not in cell.props:
+            return True
+        p = cell.props[prop]
+        if not isinstance(p, float) and not isinstance(p, int):
+            p = numpy.linalg.norm(cell.props[prop])
+        if p != value:
+            return True
+        return False
+    return [c for c in cells if keep(c)]
 

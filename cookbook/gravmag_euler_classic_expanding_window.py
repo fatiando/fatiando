@@ -8,6 +8,8 @@ from fatiando.vis import mpl, myv
 log = logger.get()
 log.info(logger.header())
 
+# The regional field
+inc, dec = -45, 0
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
@@ -21,7 +23,7 @@ xp, yp, zp = gridder.regular(area, shape, z=-1)
 baselevel = 10
 # Convert from nanoTesla to Tesla because euler and derivatives require things
 # in SI
-tf = (utils.nt2si(gravmag.prism.tf(xp, yp, zp, model, inc=-45, dec=0))
+tf = (utils.nt2si(gravmag.prism.tf(xp, yp, zp, model, inc, dec))
       + baselevel)
 # Calculate the derivatives using FFT
 xderiv = gravmag.fourier.derivx(xp, yp, tf, shape)
