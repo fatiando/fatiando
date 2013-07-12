@@ -50,11 +50,11 @@ Then the total-field anomaly caused by the sphere is
 """
 import numpy
 
-from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
+from fatiando.constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
 from fatiando import utils
 
 
-def tf(xp, yp, zp, spheres, inc, dec):
+def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     """
     Calculate the total-field anomaly of spheres.
 
@@ -65,10 +65,9 @@ def tf(xp, yp, zp, spheres, inc, dec):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the anomaly will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
-        The spheres. Spheres must have the properties ``'magnetization'``,
-        ``'inclination'`` and ``'declination'``. If ``'inclination'`` and
-        ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead. Those without ``'magnetization'`` will be ignored.
+        The spheres. Spheres must have the physical property
+        ``'magnetization'``. Spheres without ``'magnetization'`` will be
+        ignored.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
@@ -86,20 +85,30 @@ def tf(xp, yp, zp, spheres, inc, dec):
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        if isinstance(pmag, float) or isinstance(pmag, int):
+            pintensity = pmag
+            pmx, pmy, pmz = fx, fy, fz
+        else:
+            pintensity = numpy.linalg.norm(pmag)
+            pmx, pmy, pmz = numpy.array(pmag)/pintensity
     for sphere in spheres:
-        if sphere is None or 'magnetization' not in sphere.props:
+        if sphere is None or ('magnetization' not in sphere.props
+                              and pmag is None):
             continue
         radius = sphere.radius
-        mag = sphere.props['magnetization']
-        # Get the 3 components of the unit vector in the direction of the
-        # magnetization from the inclination and declination
-        if 'inclination' in sphere.props and 'declination' in sphere.props:
-            inclination = sphere.props['inclination']
-            declination = sphere.props['declination']
-            mx, my, mz = utils.dircos(inclination, declination)
-        # If not given, use in the direction of the regional field
+        # Get the intensity and unit vector from the magnetization
+        if pmag is None:
+            mag = sphere.props['magnetization']
+            if isinstance(mag, float) or isinstance(mag, int):
+                intensity = mag
+                mx, my, mz = fx, fy, fz
+            else:
+                intensity = numpy.linalg.norm(mag)
+                mx, my, mz = numpy.array(mag)/intensity
         else:
-            mx, my, mz = fx, fy, fz
+            intensity = pintensity
+            mx, my, mz = pmx, pmy, pmz
         # First thing to do is make the computation point P the origin of the
         # coordinate system
         x = sphere.x - xp
@@ -109,7 +118,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
         dotprod = mx*x + my*y + mz*z
         r_sqr = x**2 + y**2 + z**2
         r5 = r_sqr**(2.5)
-        moment = mag*(4.*numpy.pi*(radius**3)/3.)
+        moment = intensity*(4.*numpy.pi*(radius**3)/3.)
         bx = moment*(3*dotprod*x - r_sqr*mx)/r5
         by = moment*(3*dotprod*y - r_sqr*my)/r5
         bz = moment*(3*dotprod*z - r_sqr*mz)/r5
@@ -117,7 +126,7 @@ def tf(xp, yp, zp, spheres, inc, dec):
     tf *= CM*T2NT
     return tf
 
-def gz(xp, yp, zp, spheres):
+def gz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -145,6 +154,49 @@ def gz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None or ('density' not in sphere.props and dens is None):
+            continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
+        radius = sphere.radius
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res = res + mass*dz/r_cb
+    return G*SI2MGAL*res
+
+def gzz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_zz` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those without
+        will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
         if sphere is None or 'density' not in sphere.props:
             continue
         radius = sphere.radius
@@ -152,7 +204,8 @@ def gz(xp, yp, zp, spheres):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
-        res = res - mass*dz/r_cb
-    return G*SI2MGAL*res
+        res = res + mass*(((3*dz**2) - r_2)/r_5)
+    return G*SI2EOTVOS*res

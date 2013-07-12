@@ -87,7 +87,7 @@ mpl.show()
 # Plot the result
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
-myv.prisms([mesh[s.i] for s in seeds], 'density')
+myv.prisms(seeds, 'density')
 myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
     nlabels=6)
 myv.wall_bottom(bounds)

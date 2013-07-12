@@ -12,11 +12,48 @@ Potential field processing using the Fast Fourier Transform
 * :func:`~fatiando.gravmag.fourier.derivz`: Calculate the n-th order
   derivative of a potential field in the z-direction
 
+**Transformations**
+
+* :func:`~fatiando.gravmag.fourier.ansig`: Calculate the amplitude of the
+  analytic signal
+
 ----
 """
 
 import numpy
 
+
+def ansig(x, y, data, shape):
+    """
+    Calculate the amplitude of the analytic signal of the data.
+
+    .. warning::
+
+        If the data is not in SI units, the derivatives will be in
+        strange units and so will the analytic signal! I strongly recommend
+        converting the data to SI **before** calculating the derivative (use one
+        of the unit conversion functions of :mod:`fatiando.utils`).
+
+    Parameters:
+
+    * x, y : 1D-arrays
+        The x and y coordinates of the grid points
+    * data : 1D-array
+        The potential field at the grid points
+    * shape : tuple = (ny, nx)
+        The shape of the grid
+
+    Returns:
+
+    * ansig : 1D-array
+        The amplitude of the analytic signal
+
+    """
+    dx = derivx(x, y, data, shape)
+    dy = derivy(x, y, data, shape)
+    dz = derivz(x, y, data, shape)
+    res = numpy.sqrt(dx**2 + dy**2 + dz**2)
+    return res
 
 def derivx(x, y, data, shape, order=1):
     """
