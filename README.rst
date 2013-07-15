@@ -23,11 +23,11 @@ The documentation reflects the *master* branch on Github_.
 Get fatiando
 ------------
 
-You can download 
-the stable version 
+You can download
+the stable version
 of Fatiando
 from `PyPI <https://pypi.python.org/pypi/fatiando>`_.
-You'll find more detailed explanations on the 
+You'll find more detailed explanations on the
 `install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`_.
 
 .. image:: https://pypip.in/v/fatiando/badge.png
@@ -44,6 +44,10 @@ Source code
 The source code of Fatiando is hosted on Github_.
 
 .. _Github: https://github.com/leouieda/fatiando
+
+.. image:: https://travis-ci.org/leouieda/fatiando.png
+    :target: https://travis-ci.org/leouieda/fatiando
+    :alt: Travis CI build status
 
 The authors
 -----------

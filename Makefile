@@ -41,8 +41,8 @@ view-docs:
 # RUN ALL TESTS
 .PHONY: test
 test:
-	$(NOSE) fatiando
-	$(NOSE) test
+	$(NOSE) fatiando/ --with-doctest -v
+	$(NOSE) test/ -v
 
 # INSTALL THE DEPENDENCIES
 .PHONY: deps
