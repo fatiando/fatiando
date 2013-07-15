@@ -9,6 +9,6 @@ install:
   - pip install --use-mirrors .
 script:
   - nosetests fatiando # Run the doctests
-  - nosetsts test # Run the unit tests
+  - nosetests test # Run the unit tests
 notifications:
   email: false
