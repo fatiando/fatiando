@@ -133,6 +133,24 @@ Just click through the installer and you should be done!
 
 .. _PyPI: http://pypi.python.org/pypi/fatiando
 
+Installing on Mac OS X
+----------------------
+
+Theoretically, the installation on a Mac OS X is equal that on Linux (see above).
+However, if you are using EPD or “other” virtualenv_, will not be possible to install Fatiando using ``pip``. The easiest way is to download Fatiando from its repository_ and run::
+
+    make build
+
+.. _repository: https://github.com/leouieda/fatiando
+
+Do not forget to set the ``PYTHONPATH`` variable in your ``.profile`` or ``.bash_profile``::
+
+    export PYTHONPATH=/Path_to_your_directory/fatiando:$PYTHONPATH
+
+where ``Path_to_your_directory`` is the complete path to the directory `fatiando`. Finally, to test the install use::
+
+    make test
+
 Testing the install
 -------------------
 
