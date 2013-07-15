@@ -10,6 +10,15 @@ Installing Fatiando
 .. _mailing list: https://groups.google.com/forum/#!forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 
+
+Python version
+--------------
+
+Fatiando requires `Python 2.7x`_.
+
+.. _Python 2.7x: http://www.python.org/download/
+
+
 Install the dependencies
 ------------------------
 
