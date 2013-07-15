@@ -24,11 +24,11 @@ Install the dependencies
 
 Fatiando requires the following packages:
 
-* `numpy <http://numpy.scipy.org/>`_
-* `scipy <http://scipy.org/>`_
-* `matplotlib <http://matplotlib.sourceforge.net/>`_
+* `Numpy <http://numpy.scipy.org/>`_
+* `Scipy <http://scipy.org/>`_
+* `Matplotlib <http://matplotlib.sourceforge.net/>`_
 * `PIL <http://www.pythonware.com/products/pil/>`_
-* `mayavi <http://code.enthought.com/projects/mayavi/>`_
+* `Mayavi <http://code.enthought.com/projects/mayavi/>`_
 * `Cython <http://cython.org/>`_: to compile faster modules in C. Needed only
   when installing from source (or using ``pip``).
 
@@ -54,12 +54,12 @@ When installing PythonXY,
 make sure the following are selected
 (or go with a full install to be sure):
 
-* numpy
-* scipy
-* matplotlib
+* Numpy
+* Scipy
+* Matplotlib
 * PIL
-* ETS (for mayavi)
-* VTK (for mayavi)
+* ETS (for Mayavi)
+* VTK (for Mayavi)
 
 .. _PythonXY: http://code.google.com/p/pythonxy/
 
