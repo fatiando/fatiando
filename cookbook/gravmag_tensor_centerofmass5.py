@@ -3,11 +3,7 @@ GravMag: Center of mass estimation using the first eigenvector of the gravity
 gradient tensor (vertical elongated model)
 """
 from fatiando.vis import mpl, myv
-from fatiando import logger, mesher, gridder, utils, gravmag
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
+from fatiando import mesher, gridder, utils, gravmag
 
 # Generate some synthetic data
 prisms = [mesher.Prism(-500,500,-500,500,000,4000,{'density':1000})]

@@ -10,13 +10,7 @@ derivatives and total mass.
 ----
 
 """
-import time
-
 import numpy
-
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.gravmag.transform')
 
 
 def upcontinue(gz, height, xp, yp, dims):
@@ -59,16 +53,10 @@ def upcontinue(gz, height, xp, yp, dims):
     if height < 0:
         raise ValueError("'height' should be positive")
     dy, dx = dims
-    log.info("Upward continuation using the analytical formula:")
-    log.info("  height increment: %g m" % (height))
-    log.info("  grid spacing [dy, dx]: %s m" % (str(dims)))
-    start = time.time()
     area = dx*dy
     deltaz_sqr = (height)**2
     gzcont = numpy.zeros_like(gz)
     for x, y, g in zip(xp, yp, gz):
         gzcont += g*area*((xp - x)**2 + (yp - y)**2 + deltaz_sqr)**(-1.5)
     gzcont *= abs(height)/(2*numpy.pi)
-    end = time.time()
-    log.info("  time to calculate: %g s" % (end - start))
     return gzcont
