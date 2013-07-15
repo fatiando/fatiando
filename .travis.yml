@@ -1,0 +1,12 @@
+language: python
+python:
+  - 2.7
+install:
+	- sudo apt-get -qq install python-dev python-imaging
+	- pip install -q --use-mirrors nose numpy scipy cython numexpr
+	- python setup.py build
+	- pip install --use-mirrors .
+script:
+	- make test
+notifications:
+  email: false
