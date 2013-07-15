@@ -181,16 +181,13 @@ The solution for P and SV waves is:
 
 import numpy
 
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.seismic.wavefd')
-
 from fatiando.seismic._wavefd import *
 
 try:
     from fatiando.seismic._cwavefd import *
 except ImportError:
     pass
+
 
 class MexHatSource(object):
     r"""

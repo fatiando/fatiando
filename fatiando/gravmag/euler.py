@@ -9,15 +9,10 @@ Euler deconvolution methods for potential fields.
 ----
 
 """
-import time
-
 import numpy
 
-import fatiando.logger
 import fatiando.gridder
 from fatiando import utils
-
-log = fatiando.logger.dummy('fatiando.gravmag.euler')
 
 
 def expanding_window(xp, yp, zp, field, xderiv, yderiv, zderiv, index,

@@ -1,12 +1,8 @@
 """
 Meshing: Make a 3D prism mesh with depth-varying density
 """
-from fatiando import logger, gridder, mesher
+from fatiando import gridder, mesher
 from fatiando.vis import myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 shape = (10, 20, 10)
 nz, ny, nx = shape

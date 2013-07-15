@@ -2,12 +2,8 @@
 GravMag: 2D forward modeling with polygons
 """
 import numpy
-from fatiando import logger, utils, mesher, gravmag, inversion
+from fatiando import utils, mesher, gravmag, inversion
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Notice that the last two number are switched.
 # This way, the z axis in the plots points down.

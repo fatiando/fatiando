@@ -11,9 +11,6 @@ import multiprocessing
 import math
 import numpy
 
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.seismic.ttime2d')
 
 try:
     from fatiando.seismic import _cttime2d

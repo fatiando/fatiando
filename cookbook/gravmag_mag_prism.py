@@ -2,12 +2,8 @@
 GravMag: 3D forward modeling of total-field magnetic anomaly using rectangular
 prisms (model with induced and remanent magnetization)
 """
-from fatiando import logger, mesher, gridder, gravmag, utils
+from fatiando import mesher, gridder, gravmag, utils
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # The regional field
 inc, dec = 30, -15

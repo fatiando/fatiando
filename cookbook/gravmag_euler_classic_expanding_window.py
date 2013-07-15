@@ -2,11 +2,8 @@
 GravMag: Classic 3D Euler deconvolution of magnetic data using an
 expanding window
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
 
 # The regional field
 inc, dec = -45, 0

@@ -2,14 +2,10 @@
 GravMag: 3D gravity gradient inversion by planting anomalous densities using
 ``harvester`` (with non-targeted sources)
 """
-from fatiando import logger, gridder, utils
+from fatiando import gridder, utils
 from fatiando import gravmag as gm
 from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generate a synthetic model
 bounds = [0, 5000, 0, 5000, 0, 1500]
@@ -62,10 +58,10 @@ seeds = gm.harvester.sow(
      (3300, 2050, 600, {'density':1200}),
      (3600, 2050, 600, {'density':1200}),
      (4000, 2050, 600, {'density':1200}),
-     (4300, 2050, 600, {'density':1200})], 
+     (4300, 2050, 600, {'density':1200})],
     mesh)
 # Run the inversion and collect the results
-estimate, predicted = gm.harvester.harvest(data, seeds, mesh, 
+estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
     compactness=1., threshold=0.0001)
 
 # Insert the estimated density values into the mesh

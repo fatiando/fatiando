@@ -2,12 +2,8 @@
 GravMag: 3D imaging using the Generalized Inverse method on synthetic gravity
 data (more complex model + noisy data)
 """
-from fatiando import logger, gridder, mesher, gravmag, utils
+from fatiando import gridder, mesher, gravmag, utils
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model
 prisms = [mesher.Prism(-4000,-1000,-4000,-2000,2000,5000,{'density':800}),

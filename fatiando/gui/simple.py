@@ -23,10 +23,7 @@ from fatiando.gravmag import talwani
 from fatiando.mesher import Polygon
 from fatiando import utils
 import fatiando.seismic
-import fatiando.logger
 
-
-log = fatiando.logger.dummy('fatiando.gui.simple')
 
 class Moulder():
     """

@@ -1,11 +1,7 @@
 """
 Vis: Plot a map using the Robinson map projection and contours
 """
-from fatiando import logger, gridder, utils, vis
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
+from fatiando import gridder, utils, vis
 
 # Generate some data to plot
 area = (-180, 180, -80, 80)

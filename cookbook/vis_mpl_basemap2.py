@@ -1,11 +1,7 @@
 """
 Vis: Plot a map using the Mercator map projection and pseudo-color
 """
-from fatiando import logger, gridder, utils, vis
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
+from fatiando import gridder, utils, vis
 
 # Generate some data to plot
 area = (-20, 40, 20, 80)

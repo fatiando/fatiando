@@ -3,13 +3,9 @@ Geothermal: Climate signal: What happens when assuming a climate change is
 linear, when in fact it was abrupt?
 """
 import numpy
-from fatiando import logger, utils
+from fatiando import utils
 from fatiando.geothermal import climsig
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generating synthetic data using an ABRUPT model
 amp = 3

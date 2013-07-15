@@ -77,10 +77,7 @@ import numpy.linalg.linalg
 from fatiando.seismic import ttime2d
 from fatiando.mesher import Square
 from fatiando import inversion, utils
-import fatiando.logger
 
-
-log = fatiando.logger.dummy('fatiando.seismic.profile')
 
 class VerticalSlownessDM(inversion.datamodule.DataModule):
     """
@@ -116,7 +113,6 @@ class VerticalSlownessDM(inversion.datamodule.DataModule):
         inversion.datamodule.DataModule.__init__(self, traveltimes)
         self.zp = zp
         self.thickness = thickness
-        log.info("  calculating Jacobian (sensitivity) matrix...")
         self.jac_T = self._get_jacobian()
 
     def _get_jacobian(self):
@@ -235,13 +231,6 @@ def ivertical(traveltimes, zp, thickness, solver=None, damping=0., smooth=0.,
         else:
             initial = numpy.min(traveltimes)/numpy.max(zp)*numpy.ones(nparams)
             solver = inversion.gradient.levmarq(initial=initial)
-    log.info("Invert a vertical seismic profile for slowness:")
-    log.info("  number of layers: %d" % (len(thickness)))
-    log.info("  iterate: %s" % (str(iterate)))
-    log.info("  damping: %g" % (damping))
-    log.info("  smoothness: %g" % (smooth))
-    log.info("  sharpness: %g" % (sharp))
-    log.info("  beta (total variation parameter): %g" % (beta))
     dms = [VerticalSlownessDM(traveltimes, zp, thickness)]
     regs = []
     if damping != 0.:
@@ -264,11 +253,6 @@ def _solver(dms, regs, solver):
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
 def _iterator(dms, regs, solver):
@@ -279,8 +263,3 @@ def _iterator(dms, regs, solver):
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))

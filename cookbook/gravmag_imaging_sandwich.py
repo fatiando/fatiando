@@ -2,12 +2,8 @@
 GravMag: 3D imaging using the sandwich model method on synthetic gravity data
 (simple example)
 """
-from fatiando import logger, gridder, mesher, gravmag
+from fatiando import gridder, mesher, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Make some synthetic gravity data from a simple prism model
 prisms = [mesher.Prism(-1000,1000,-2000,2000,2000,4000,{'density':500})]

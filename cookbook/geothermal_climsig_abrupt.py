@@ -3,13 +3,9 @@ Geothermal: Forward and inverse modeling of an abrupt change in temperature
 measured in a well
 """
 import numpy
-from fatiando import logger, utils
+from fatiando import utils
 from fatiando.geothermal import climsig
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generating synthetic data
 amp = 3

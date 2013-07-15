@@ -1,12 +1,8 @@
 """
 Meshing: Filter prisms from a 3D prism mesh based on their physical properties
 """
-from fatiando import logger, gridder, mesher
+from fatiando import gridder, mesher
 from fatiando.vis import myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 shape = (5, 20, 10)
 bounds = (0, 100, 0, 200, 0, 50)
@@ -22,7 +18,6 @@ mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 odd = mesher.vfilter(-1, 0, 'density', mesh)
 even = mesher.vfilter(0, 1, 'density', mesh)
 
-log.info("Showing solid ODD prisms and wireframe EVEN")
 myv.figure()
 myv.prisms(odd, prop='density', vmin=-1, vmax=1)
 myv.prisms(even, prop='density', style='wireframe', vmin=-1, vmax=1)

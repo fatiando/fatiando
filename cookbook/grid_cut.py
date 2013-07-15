@@ -1,12 +1,8 @@
 """
 Gridding: Cut a section from a grid
 """
-from fatiando import logger, gridder, utils
+from fatiando import gridder, utils
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generate some synthetic data on a regular grid
 x, y = gridder.regular((-10, 10, -10, 10), (100,100))

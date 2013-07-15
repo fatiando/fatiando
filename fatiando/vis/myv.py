@@ -37,12 +37,9 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 """
 import numpy
 
-import fatiando.logger
 from fatiando import utils
 from fatiando.constants import MEAN_EARTH_RADIUS
 
-
-log = fatiando.logger.dummy('fatiando.vis.myv')
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting

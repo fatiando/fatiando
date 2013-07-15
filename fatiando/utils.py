@@ -47,15 +47,11 @@ Miscellaneous utility functions and classes.
 ----
 
 """
-
 import math
 
 import numpy
 
 import fatiando.constants
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.utils')
 
 
 def vecnorm(vectors):
@@ -529,11 +525,9 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         contaminate it.
 
     """
-    log.info("Contaminating data with Gaussian noise:")
+
     if percent:
-        log.info("  noise level = %g percent" % (100*stddev))
         stddev = stddev*max(abs(data))
-    log.info("  noise stddev = %s" % (str(stddev)))
     if stddev == 0.:
         if return_stddev:
             return [data, stddev]

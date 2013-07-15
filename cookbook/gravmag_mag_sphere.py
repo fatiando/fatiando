@@ -1,12 +1,8 @@
 """
 GravMag: 3D forward modeling of total-field magnetic anomaly using spheres
 """
-from fatiando import logger, mesher, gridder, gravmag, utils
+from fatiando import mesher, gridder, gravmag, utils
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Set the inclination and declination of the regional field
 inc, dec = -30, 45

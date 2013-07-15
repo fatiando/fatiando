@@ -3,20 +3,12 @@ Seismic: 2D epicenter estimation on a flat Earth using equality constraints
 """
 import sys
 import numpy
-from fatiando import logger, mesher, seismic, utils, gridder, vis, inversion
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
-log.info("The data are noisy and receiver locations are bad.")
-log.info("So use a bit of regularization.")
+from fatiando import mesher, seismic, utils, gridder, vis, inversion
 
 area = (0, 10, 0, 10)
 vp, vs = 2, 1
 model = [mesher.Square(area, props={'vp':vp, 'vs':vs})]
 
-log.info("Generating synthetic travel-time data")
 src = (8, 7)
 stations = 10
 srcs, recs = utils.connect_points([src], [(4, 6), (5, 5.9), (6, 6)])
@@ -27,7 +19,6 @@ ttr_true = stime - ptime
 ttr, error = utils.contaminate(ttr_true, error_level, percent=True,
                                return_stddev=True)
 
-log.info("Choose the initial estimate for the gradient solvers")
 vis.mpl.figure()
 ax = vis.mpl.subplot(1, 1, 1)
 vis.mpl.axis('scaled')
@@ -36,14 +27,12 @@ vis.mpl.points(recs, '^r')
 vis.mpl.points(srcs, '*y')
 initial = vis.mpl.pick_points(area, ax, marker='*', color='k')
 if len(initial) > 1:
-    log.error("Don't be greedy! Pick only one initial estimate")
+    print "Don't be greedy! Pick only one initial estimate"
     sys.exit()
 initial = initial[0]
 
 ref = {'y':7}
 equality = 0.1
-log.info("Will solve the inverse problem using Newton's method")
-log.info("and with equality constaints for stability")
 nsolver = inversion.gradient.newton(initial)
 newton = [initial]
 iterator = seismic.epic2d.homogeneous(ttr, recs, vp, vs, nsolver,
@@ -52,7 +41,6 @@ for e, r in iterator:
     newton.append(e)
 newton_predicted = ttr - r
 
-log.info("and the Steepest Descent method")
 sdsolver = inversion.gradient.steepest(initial, step=0.1)
 steepest = [initial]
 iterator = seismic.epic2d.homogeneous(ttr, recs, vp, vs, sdsolver,
@@ -61,7 +49,6 @@ for e, r in iterator:
     steepest.append(e)
 steepest_predicted = ttr - r
 
-log.info("... and also the Levenberg-Marquardt algorithm for comparison")
 lmsolver = inversion.gradient.levmarq(initial)
 levmarq = [initial]
 iterator = seismic.epic2d.homogeneous(ttr, recs, vp, vs, lmsolver,
@@ -70,13 +57,11 @@ for e, r in iterator:
     levmarq.append(e)
 levmarq_predicted = ttr - r
 
-log.info("Build a map of the goal function")
 shape = (100, 100)
 xs, ys = gridder.regular(area, shape)
 goals = seismic.epic2d.mapgoal(xs, ys, ttr, recs, vp, vs, equality=equality,
     ref=ref)
 
-log.info("Plotting")
 vis.mpl.figure(figsize=(14, 4))
 vis.mpl.subplot(1, 3, 1)
 vis.mpl.title('Epicenter + recording stations')
