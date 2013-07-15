@@ -19,6 +19,7 @@ Version 0.2
   used as a ``Prism`` object.
 * :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
   data weights.
+* Removed module fatiando.logger
 
 Version 0.1
 -----------
@@ -63,7 +64,7 @@ Version 0.1
   web and convert them to useful formats (for now supports the CRUST2.0 global
   curstal model)
 * If building inplace or packaging, the setup script puts the Mercurial
-  changeset hash in a file. Then :ref:`fatiando.logger.header <fatiando_logger>`
+  changeset hash in a file. Then fatiando.logger.header
   loads the hash from file and put a "Unknown" if it can't read.
   This way importing fatiando won't fail if the there is no changeset
   information available.

@@ -129,18 +129,13 @@ algorithm::
 ----
 
 """
-
-import time
 import itertools
 import numpy
 
 from fatiando.gravmag import talwani
 from fatiando.mesher import Polygon
 from fatiando import inversion, utils
-import fatiando.logger
 
-
-log = fatiando.logger.dummy('fatiando.gravmag.basin2d')
 
 class TriangularGzDM(inversion.datamodule.DataModule):
     """
@@ -251,13 +246,11 @@ def triangular(xp, zp, data, verts, density, solver, iterate=False):
             predicted data)
 
     """
-    log.info("Estimating relief of a triangular basin:")
-    log.info("  iterate: %s" % (str(iterate)))
     dms = [TriangularGzDM(xp, zp, data, verts, density)]
     if iterate:
-        return _iterator(dms, solver, log)
+        return _iterator(dms, solver)
     else:
-        estimate, residuals = _solver(dms, solver, log)
+        estimate, residuals = _solver(dms, solver)
         left, right = verts
         return Polygon([left, right, estimate]), residuals
 
@@ -377,42 +370,28 @@ def trapezoidal(xp, zp, data, verts, density, solver, iterate=False):
             predicted data)
 
     """
-    log.info("Estimating relief of a trapezoidal basin:")
-    log.info("  iterate: %s" % (str(iterate)))
     dms = [TrapezoidalGzDM(xp, zp, data, verts, density)]
     if iterate:
-        return _iterator(dms, solver, log)
+        return _iterator(dms, solver)
     else:
-        estimate, residuals = _solver(dms, solver, log)
+        estimate, residuals = _solver(dms, solver)
         z1, z2 = estimate
         left, right = verts
         return Polygon([left, right, (right[0], z1), (left[0], z2)]), residuals
 
-def _solver(dms, solver, log):
-    start = time.time()
+def _solver(dms, solver):
     try:
         for i, chset in enumerate(solver(dms, [])):
             continue
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
-def _iterator(dms, solver, log):
-    start = time.time()
+def _iterator(dms, solver):
     try:
         for i, chset in enumerate(solver(dms, [])):
             yield chset['estimate'], chset['residuals'][0]
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))

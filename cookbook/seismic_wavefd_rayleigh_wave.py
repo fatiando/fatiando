@@ -1,14 +1,12 @@
 """
-Seismic: 2D finite difference simulation of elastic P and SV wave propagation 
+Seismic: 2D finite difference simulation of elastic P and SV wave propagation
 in a medium with a discontinuity (i.e., Moho), generating Rayleigh waves
 
 WARNING: Can be very slow!
 """
 from matplotlib import animation
 import numpy as np
-from fatiando import seismic, logger, gridder, vis
-
-log = logger.get()
+from fatiando import seismic, gridder, vis
 
 # Make some seismic sources using the mexican hat wavelet
 sources = [seismic.wavefd.MexHatSource(4+i, 20+i, 50, 0.5, delay=1.5 + 0.25*i)

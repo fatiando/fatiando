@@ -24,10 +24,6 @@ Create and operate on grids and profiles.
 import numpy
 import matplotlib.mlab
 
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.gridder')
 
 def regular(area, shape, z=None):
     """
@@ -52,14 +48,9 @@ def regular(area, shape, z=None):
         points
 
     """
-    log.info("Generating regular grid:")
     ny, nx = shape
     x1, x2, y1, y2 = area
     dy, dx = spacing(area, shape)
-    log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
-    log.info("  shape = (ny, nx) = %s" % (str(shape)))
-    log.info("  spacing = (dy, dx) = %s" % (str((dy, dx))))
-    log.info("  points = nx*ny = %d" % (nx*ny))
     x_range = numpy.arange(x1, x2, dx)
     y_range = numpy.arange(y1, y2, dy)
     # Need to make sure that the number of points in the grid is correct because
@@ -73,7 +64,6 @@ def regular(area, shape, z=None):
     assert len(y_range) == ny, "Failed! y_range doesn't have ny points"
     xcoords, ycoords = [mat.ravel() for mat in numpy.meshgrid(x_range, y_range)]
     if z is not None:
-        log.info("  z = %s" % (str(z)))
         zcoords = z*numpy.ones_like(xcoords)
         return [xcoords, ycoords, zcoords]
     else:
@@ -102,13 +92,9 @@ def scatter(area, n, z=None):
 
     """
     x1, x2, y1, y2 = area
-    log.info("Generating irregular grid (scatter):")
-    log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
-    log.info("  number of points = n = %s" % (str(n)))
     xcoords = numpy.random.uniform(x1, x2, n)
     ycoords = numpy.random.uniform(y1, y2, n)
     if z is not None:
-        log.info("  z = %s" % (str(z)))
         zcoords = z*numpy.ones(n)
         return [xcoords, ycoords, zcoords]
     else:

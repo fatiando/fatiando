@@ -64,17 +64,11 @@ from numpy.linalg import solve as linsys_solver
 import scipy.sparse
 import scipy.sparse.linalg
 
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.inversion.linear')
 
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
-    if res[1] > 0:
-        log.warning("Conjugate Gradient convergence not achieved")
     if res[1] < 0:
-        log.error("Conjugate Gradient illegal input or breakdown")
+        raise ValueError("Conjugate Gradient illegal input or breakdown")
     return res[0]
 
 def _zerovector(n):
@@ -92,7 +86,6 @@ def use_sparse():
         be implemented for each inverse problem separately.
 
     """
-    log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
     linsys_solver = _sparse_linsys_solver
     _zeromatrix = scipy.sparse.csr_matrix
@@ -175,8 +168,6 @@ def overdet(nparams):
     """
     if nparams <= 0:
         raise ValueError("nparams must be > 0")
-    log.info("Generating linear solver for overdetermined problems")
-    log.info("  number of parameters: %d" % (nparams))
     def solver(dms, regs, nparams=nparams):
         gradientchain = [_zerovector(nparams)]
         gradientchain.extend(itertools.chain(dms, regs))

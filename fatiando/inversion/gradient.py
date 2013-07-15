@@ -57,7 +57,7 @@ Yields:
 ----
 
 """
-
+import sys
 import itertools
 
 import numpy
@@ -65,17 +65,11 @@ from numpy.linalg import solve as linsys_solver
 import scipy.sparse
 import scipy.sparse.linalg
 
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.inversion.gradient')
 
 def _sparse_linsys_solver(A, x):
     res = scipy.sparse.linalg.cgs(A, x)
-    if res[1] > 0:
-        log.warning("Conjugate Gradient convergence not achieved")
     if res[1] < 0:
-        log.error("Conjugate Gradient illegal input or breakdown")
+        raise ValueError("Conjugate Gradient illegal input or breakdown")
     return res[0]
 
 def _zerovector(n):
@@ -93,7 +87,6 @@ def use_sparse():
         be implemented for each inverse problem separately.
 
     """
-    log.info("Using sparse conjugate gradient solver")
     global linsys_solver, _zeromatrix
     linsys_solver = _sparse_linsys_solver
     _zeromatrix = scipy.sparse.csr_matrix
@@ -175,13 +168,7 @@ def steepest(initial, step=0.1, maxit=500, tol=10**(-5), armijo=True,
     if step <= 0 or step >= 1.:
         raise ValueError("step parameter should be 1 > step > 0")
     initial_array = numpy.array(initial, dtype='f')
-    log.info("Generating Steepest Descent solver:")
-    log.info("  initial step size: %g" % (step))
-    log.info("  max iterations: %d" % (maxit))
-    log.info("  convergence tolerance: %g" % (tol))
-    log.info("  using Armijo rule: %s" % (str(armijo)))
     if armijo:
-        log.info("  max step iterations: %d" % (maxsteps))
         return _steepest_armijo(initial_array, float(step), maxsteps, maxit,
             float(tol))
     else:
@@ -269,7 +256,7 @@ def _steepest_armijo(initial, step, maxsteps, maxit, tol):
                     msg = "  Steepest Descent didn't take any steps"
                 else:
                     msg = "  Steepest Descent finished: couldn't take a step"
-                log.warning(msg)
+                print >> sys.stderr, msg
                 break
             p = ptmp
             residuals = restmp
@@ -344,13 +331,6 @@ def levmarq(initial, damp=1., factor=10., maxsteps=20, maxit=100, tol=10**(-5),
     if factor <= 0:
         raise ValueError("factor parameter should be > 0")
     initial_array = numpy.array(initial, dtype='f')
-    log.info("Generating Levenberg-Marquardt solver:")
-    log.info("  initial damping factor: %g" % (damp))
-    log.info("  damping factor increment/decrement: %g" % (factor))
-    log.info("  max step iterations: %d" % (maxsteps))
-    log.info("  max iterations: %d" % (maxit))
-    log.info("  convergence tolerance: %g" % (tol))
-    log.info("  use diagonal of Hessian: %s" % (diag))
     if diag:
         return _levmarq_diag(initial_array, float(damp), float(factor),
             maxsteps, maxit, float(tol))
@@ -415,7 +395,7 @@ def _levmarq(initial, damp, factor, maxsteps, maxit, tol):
                     msg = "  Levenberg-Marquardt didn't take any steps"
                 else:
                     msg = "  Levenberg-Marquardt finished: couldn't take a step"
-                log.warning(msg)
+                print >> sys.stderr, msg
                 break
             p = ptmp
             residuals = restmp
@@ -485,7 +465,7 @@ def _levmarq_diag(initial, damp, factor, maxsteps, maxit, tol):
                     msg = "  Levenberg-Marquardt didn't take any steps"
                 else:
                     msg = "  Levenberg-Marquardt finished: couldn't take a step"
-                log.warning(msg)
+                print >> sys.stderr, msg
                 break
             p = ptmp
             residuals = restmp
@@ -538,9 +518,6 @@ def newton(initial, maxit=100, tol=10**(-5)):
         raise ValueError("tol parameter should be > 0")
     if maxit <= 0:
         raise ValueError("maxit parameter should be > 0")
-    log.info("Generating Newton's method solver:")
-    log.info("  max iterations: %d" % (maxit))
-    log.info("  convergence tolerance: %g" % (tol))
     initial_array = numpy.array(initial, dtype='f')
     def solver(dms, regs, initial=initial_array, maxit=maxit, tol=tol):
         """

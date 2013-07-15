@@ -4,12 +4,9 @@ using ``multiprocessing``
 """
 import time
 from multiprocessing import Pool
-from fatiando import gravmag, gridder, logger, utils
+from fatiando import gravmag, gridder, utils
 from fatiando.mesher import Tesseroid
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
 
 # Make a "crust" model with some thinker crust and variable density
 marea = (-70, 70, -70, 70)
@@ -19,8 +16,8 @@ dlon, dlat = gridder.spacing(marea, mshape)
 depths = (30000 +
     70000*utils.gaussian2d(mlons, mlats, 10, 10, -20, -20) +
     20000*utils.gaussian2d(mlons, mlats, 5, 5, 20, 20))
-densities = (2700 +                                                               
-    500*utils.gaussian2d(mlons, mlats, 40, 40, -20, -20) +                    
+densities = (2700 +
+    500*utils.gaussian2d(mlons, mlats, 40, 40, -20, -20) +
     -300*utils.gaussian2d(mlons, mlats, 20, 20, 20, 20))
 model = [
     Tesseroid(lon - 0.5*dlon, lon + 0.5*dlon, lat - 0.5*dlat, lat + 0.5*dlat,
@@ -40,19 +37,17 @@ shape = (100, 100)
 lons, lats, heights = gridder.regular(area, shape, z=250000)
 
 # Divide the model into nproc slices and calculate them in parallel
-log.info('Calculating...')
 def calculate(chunk):
     return gravmag.tesseroid.gz(lons, lats, heights, chunk)
 start = time.time()
 nproc = 8 # Model size must be divisible by nproc
 chunksize = len(model)/nproc
 pool = Pool(processes=nproc)
-gz = sum(pool.map(calculate, 
+gz = sum(pool.map(calculate,
     [model[i*chunksize:(i + 1)*chunksize] for i in xrange(nproc)]))
 pool.close()
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
-log.info('Plotting...')
 mpl.figure()
 bm = mpl.basemap(area, 'ortho')
 bm.bluemarble()
