@@ -6,9 +6,9 @@ virtualenv:
 install:
   - sudo apt-get -qq install cython python-dev python-numexpr python-imaging python-numpy python-scipy python-matplotlib mayavi2 
   - pip install -q --use-mirrors nose
-  - python setup.py build
   - pip install --use-mirrors .
 script:
-  - make test
+  - nosetests fatiando # Run the doctests
+  - nosetsts test # Run the unit tests
 notifications:
   email: false
