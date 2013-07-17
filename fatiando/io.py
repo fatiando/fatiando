@@ -138,76 +138,61 @@ def _crust2_get_codec(archive):
     return codec
 
 def load_surfer(fname, fmt='ascii'):
-    """Read a Surfer grid file and return n 1d numpy arrays, where
-        fmt can be 'ascii' or 'binary'
-        
-        Surfer is a contouring, gridding and surface mapping software
-        from GoldenSoftware. The names and logos for Surfer and Golden
-        Software are registered trademarks of Golden Software, Inc.
-        http://www.goldensoftware.com/products/surfer
-        
-        Parameters:
-        
-        * fname : str
-            Name of the Surfer grid file
-        
-        * fmt : str
-            File type, can be 'ascii' or 'binary'
-        
-        Returns:
-        
-        * xc : 1d numpy array with the valors in the columns, geographically is the longitude
-        
-        * yr : 1d numpy array with the valors in the rows, geographically is the latitude
-        
-        * grd : 1d numpy array with the field valors. For example, topography, gravity anomaly etc
-        """
+    """
+    Read a Surfer grid file and return three 1d numpy arrays and the grid shape
     
-    # Write a condition to check if fmt is 'ascii' or 'binary'
-    # if fmt='ascii' is True, so:
-    """Load ASCII GRID File
-        
-        DSAA            'Surfer ASCII GRD ID
-        nCols nRows     'number of columns and rows
-        xMin xMax       'XYZ min max
-        yMin yMax
-        zMin zMax
-        z11 z21 z31 ... 'List of Z values
-        """
+    Surfer is a contouring, gridding and surface mapping software
+    from GoldenSoftware. The names and logos for Surfer and Golden
+    Software are registered trademarks of Golden Software, Inc.
     
-    ftext = open(fname, "r")
-    # DSAA is a Surfer ASCII GRD ID
-    id = ftext.readline()
+    http://www.goldensoftware.com/products/surfer
     
-    # Read the number of columns (nx) and rows (ny)
-    nxny = ftext.readline()
-    nx, ny = nxny.split()
-    nx, ny = int(nx), int(ny)
+    Parameters:
     
-    # Read the min/max value of x (columns/longitue)
-    xlim = ftext.readline()
-    xmin,xmax = xlim.split()
-    xmin,xmax = numpy.double(xmin),numpy.double(xmax)
+    * fname : str
+        Name of the Surfer grid file
+    * fmt : str
+        File type, can be 'ascii' or 'binary'
     
-    # Read the min/max value of  y(rows/latitude)
-    ylim = ftext.readline()
-    ymin,ymax = ylim.split()
-    ymin,ymax = numpy.double(ymin),numpy.double(ymax)
+    Returns:
     
-    # Read the min/max value of grd
-    zlim = ftext.readline()
-    zmin,zmax = zlim.split()
-    zmin,zmax = numpy.double(zmin),numpy.double(zmax)
+    * x : 1d-array
+        Value of the horizontal coordinate of each grid point. If the grid is in geographic coordinates, x will be longitude
     
-    ftext.close()
+    * y : 1d-array
+        Value of the vertical coordinate of each grid point. If the grid is in geographic coordinates, y will be latitude
     
-    grd = numpy.genfromtxt(fname,skip_header=5)
-    # Looking for NULL values
-    i,j = numpy.where(grd >= 1.70141e+38)
-    grd[i,j]=numpy.ones(i.size)*numpy.nan
+    * grd : 1d-array
+        Values of the field in each grid point. Field can be for example topography, gravity anomaly etc
     
-    # Create x and y numpy arrays
-    xc = numpy.linspace(xmin, xmax, num=nx)
-    yr = numpy.linspace(ymin, ymax, num=ny)
+    * shape : shape of the grid in the format (ny, nx)
+    """
+    assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be 'ascii' or 'binary'." % (fmt)
+    if fmt == 'ascii':
+        # Surfer ASCII grid structure
+        # DSAA            Surfer ASCII GRD ID
+        # nCols nRows     number of columns and rows
+        # xMin xMax       X min max
+        # yMin yMax       Y min max
+        # zMin zMax       Z min max
+        # z11 z21 z31 ... 'List of Z values
+        with open(fname) as ftext:
+            # DSAA is a Surfer ASCII GRD ID
+            id = ftext.readline()
+            # Read the number of columns (nx) and rows (ny)
+            nx, ny = [int(s) for s in ftext.readline().split()]
+            # Read the min/max value of x (columns/longitue)
+            xmin, xmax = [float(s) for s in ftext.readline().split()]
+            # Read the min/max value of  y(rows/latitude)
+            ymin, ymax = [float(s) for s in ftext.readline().split()]
+            # Read the min/max value of grd
+            zmin, zmax = [float(s) for s in ftext.readline().split()]
+        grd = numpy.ma.masked_greater_equal(numpy.genfromtxt(fname, skip_header=5), 1.70141e+38)
+        # Create x and y numpy arrays
+        x = numpy.linspace(xmin, xmax, nx)
+        y = numpy.linspace(ymin, ymax, ny)
+        x, y = [tmp.ravel() for tmp in numpy.meshgrid(x, y)]
+        return x, y, grd.ravel(), grd.shape
     
-    return xc, yr, grd
+    if fmt == 'binary':
+        raise NotImplementedError("Binary file support is not implemented yet. Sorry")
