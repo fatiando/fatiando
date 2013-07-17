@@ -136,3 +136,78 @@ def _crust2_get_codec(archive):
         codec[code] = {'vp':vp, 'vs':vs, 'density':density, 
                        'thickness':thickness}
     return codec
+
+def load_surfer(fname, fmt='ascii'):
+    """Read a Surfer grid file and return n 1d numpy arrays, where
+        fmt can be 'ascii' or 'binary'
+        
+        Surfer is a contouring, gridding and surface mapping software
+        from GoldenSoftware. The names and logos for Surfer and Golden
+        Software are registered trademarks of Golden Software, Inc.
+        http://www.goldensoftware.com/products/surfer
+        
+        Parameters:
+        
+        * fname : str
+            Name of the Surfer grid file
+        
+        * fmt : str
+            File type, can be 'ascii' or 'binary'
+        
+        Returns:
+        
+        * xc : 1d numpy array with the valors in the columns, geographically is the longitude
+        
+        * yr : 1d numpy array with the valors in the rows, geographically is the latitude
+        
+        * grd : 1d numpy array with the field valors. For example, topography, gravity anomaly etc
+        """
+    
+    # Write a condition to check if fmt is 'ascii' or 'binary'
+    # if fmt='ascii' is True, so:
+    """Load ASCII GRID File
+        
+        DSAA            'Surfer ASCII GRD ID
+        nCols nRows     'number of columns and rows
+        xMin xMax       'XYZ min max
+        yMin yMax
+        zMin zMax
+        z11 z21 z31 ... 'List of Z values
+        """
+    
+    ftext = open(fname, "r")
+    # DSAA is a Surfer ASCII GRD ID
+    id = ftext.readline()
+    
+    # Read the number of columns (nx) and rows (ny)
+    nxny = ftext.readline()
+    nx, ny = nxny.split()
+    nx, ny = int(nx), int(ny)
+    
+    # Read the min/max value of x (columns/longitue)
+    xlim = ftext.readline()
+    xmin,xmax = xlim.split()
+    xmin,xmax = numpy.double(xmin),numpy.double(xmax)
+    
+    # Read the min/max value of  y(rows/latitude)
+    ylim = ftext.readline()
+    ymin,ymax = ylim.split()
+    ymin,ymax = numpy.double(ymin),numpy.double(ymax)
+    
+    # Read the min/max value of grd
+    zlim = ftext.readline()
+    zmin,zmax = zlim.split()
+    zmin,zmax = numpy.double(zmin),numpy.double(zmax)
+    
+    ftext.close()
+    
+    grd = numpy.genfromtxt(fname,skip_header=5)
+    # Looking for NULL values
+    i,j = numpy.where(grd >= 1.70141e+38)
+    grd[i,j]=numpy.ones(i.size)*numpy.nan
+    
+    # Create x and y numpy arrays
+    xc = numpy.linspace(xmin, xmax, num=nx)
+    yr = numpy.linspace(ymin, ymax, num=ny)
+    
+    return xc, yr, grd
