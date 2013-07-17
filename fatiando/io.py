@@ -175,7 +175,7 @@ def load_surfer(fname, fmt='ascii'):
         # xMin xMax       X min max
         # yMin yMax       Y min max
         # zMin zMax       Z min max
-        # z11 z21 z31 ... 'List of Z values
+        # z11 z21 z31 ... List of Z values
         with open(fname) as ftext:
             # DSAA is a Surfer ASCII GRD ID
             id = ftext.readline()
@@ -187,12 +187,18 @@ def load_surfer(fname, fmt='ascii'):
             ymin, ymax = [float(s) for s in ftext.readline().split()]
             # Read the min/max value of grd
             zmin, zmax = [float(s) for s in ftext.readline().split()]
-        grd = numpy.ma.masked_greater_equal(numpy.genfromtxt(fname, skip_header=5), 1.70141e+38)
+            try:
+                data = numpy.loadtxt(ftext).ravel()
+            except ValueError:
+                data = numpy.fromiter((float(i) for line in ftext for i in line.split()), dtype='f')
+            grd = numpy.ma.masked_greater_equal(data, 1.70141e+38)
+#            grd = numpy.ma.masked_greater_equal(numpy.loadtxt(ftext), 1.70141e+38)
         # Create x and y numpy arrays
         x = numpy.linspace(xmin, xmax, nx)
         y = numpy.linspace(ymin, ymax, ny)
         x, y = [tmp.ravel() for tmp in numpy.meshgrid(x, y)]
-        return x, y, grd.ravel(), grd.shape
     
     if fmt == 'binary':
         raise NotImplementedError("Binary file support is not implemented yet. Sorry")
+
+    return x, y, grd.ravel(), grd.shape
