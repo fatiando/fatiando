@@ -159,7 +159,6 @@ def load_surfer(fname, fmt='ascii'):
     
     * fname : str
         Name of the Surfer grid file
-    
     * fmt : str
         File type, can be 'ascii' or 'binary'
     
@@ -167,14 +166,11 @@ def load_surfer(fname, fmt='ascii'):
     
     * x : 1d-array
         Value of the horizontal coordinate of each grid point.
-    
     * y : 1d-array
         Value of the vertical coordinate of each grid point.
-    
     * grd : 1d-array
         Values of the field in each grid point. Field can be for example
         topography, gravity anomaly etc
-        
     * shape : shape of the grid in the format (ny, nx)
         
     """
