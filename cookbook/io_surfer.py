@@ -11,13 +11,10 @@ log.info(logger.header())
 # Get the data from their website
 # Will download the archive and save it with the default name
 log.info("Fetching Bouguer anomaly model (Surfer ASCII grid file)")
-url = ('https://gist.github.com/leouieda/6023922/raw/' \
-       '948b0acbadb18e6ad49efe2092d9d9518b247780/bouguer_alps_egm08.grd')
-urllib.urlretrieve(url, 'bouguer_alps_egm08.grd')
-
+archive = io.fetch_bouguer_alps_egm()
 # Load the GRD file and convert in three numpy-arrays (y, x, bouguer)
 log.info('Loading the GRD file...')
-y, x, bouguer, shape = io.load_surfer('bouguer_alps_egm08.grd', fmt='ascii')
+y, x, bouguer, shape = io.load_surfer(archive, fmt='ascii')
 
 log.info('Plotting...')
 mpl.figure()
