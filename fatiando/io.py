@@ -150,7 +150,7 @@ def load_surfer(fname, fmt='ascii'):
     According to Surfer structure, x and y are horizontal and vertical
     screen-based coordinates respectively. If the grid is in geographic
     coordinates, x will be longitude and y latitude. If the coordinates
-    are cartesian, x will be the northing and y the easting coordinates.
+    are cartesian, x will be the easting and y the norting coordinates.
         
     WARNING: This is opposite to the convention used for Fatiando. 
     See io_surfer.py in cookbook.
