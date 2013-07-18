@@ -140,34 +140,46 @@ def _crust2_get_codec(archive):
 def load_surfer(fname, fmt='ascii'):
     """
     Read a Surfer grid file and return three 1d numpy arrays and the grid shape
+  
     
     Surfer is a contouring, gridding and surface mapping software
     from GoldenSoftware. The names and logos for Surfer and Golden
     Software are registered trademarks of Golden Software, Inc.
     
     http://www.goldensoftware.com/products/surfer
+        
+    According to Surfer structure, x and y are horizontal and vertical
+    screen-based coordinates respectively. If the grid is in geographic
+    coordinates, x will be longitude and y latitude. If the coordinates
+    are cartesian, x will be the northing and y the easting coordinates.
+        
+    WARNING: This is opposite to the convention used for Fatiando. 
+    See io_surfer.py in cookbook.
     
     Parameters:
     
     * fname : str
         Name of the Surfer grid file
+    
     * fmt : str
         File type, can be 'ascii' or 'binary'
     
     Returns:
     
     * x : 1d-array
-        Value of the horizontal coordinate of each grid point. If the grid is in geographic coordinates, x will be longitude
+        Value of the horizontal coordinate of each grid point.
     
     * y : 1d-array
-        Value of the vertical coordinate of each grid point. If the grid is in geographic coordinates, y will be latitude
+        Value of the vertical coordinate of each grid point.
     
     * grd : 1d-array
-        Values of the field in each grid point. Field can be for example topography, gravity anomaly etc
-    
+        Values of the field in each grid point. Field can be for example
+        topography, gravity anomaly etc
+        
     * shape : shape of the grid in the format (ny, nx)
     """
-    assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be 'ascii' or 'binary'." % (fmt)
+    assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be \
+        'ascii' or 'binary'." % (fmt)
     if fmt == 'ascii':
         # Surfer ASCII grid structure
         # DSAA            Surfer ASCII GRD ID
@@ -187,18 +199,15 @@ def load_surfer(fname, fmt='ascii'):
             ymin, ymax = [float(s) for s in ftext.readline().split()]
             # Read the min/max value of grd
             zmin, zmax = [float(s) for s in ftext.readline().split()]
-            try:
-                data = numpy.loadtxt(ftext).ravel()
-            except ValueError:
-                data = numpy.fromiter((float(i) for line in ftext for i in line.split()), dtype='f')
+            data = numpy.fromiter((float(i) for line in ftext for i in
+                                   line.split()), dtype='f')
             grd = numpy.ma.masked_greater_equal(data, 1.70141e+38)
-#            grd = numpy.ma.masked_greater_equal(numpy.loadtxt(ftext), 1.70141e+38)
         # Create x and y numpy arrays
         x = numpy.linspace(xmin, xmax, nx)
         y = numpy.linspace(ymin, ymax, ny)
         x, y = [tmp.ravel() for tmp in numpy.meshgrid(x, y)]
     
     if fmt == 'binary':
-        raise NotImplementedError("Binary file support is not implemented yet. Sorry")
-
-    return x, y, grd.ravel(), grd.shape
+        raise NotImplementedError("Binary file support is not implemented yet. \
+                                  Sorry")
+    return x, y, grd, (ny,nx)
