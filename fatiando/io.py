@@ -206,7 +206,6 @@ def load_surfer(fname, fmt='ascii'):
         x = numpy.linspace(xmin, xmax, nx)
         y = numpy.linspace(ymin, ymax, ny)
         x, y = [tmp.ravel() for tmp in numpy.meshgrid(x, y)]
-    
     if fmt == 'binary':
         raise NotImplementedError("Binary file support is not implemented yet. \
                                   Sorry")
