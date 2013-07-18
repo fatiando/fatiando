@@ -209,3 +209,24 @@ def load_surfer(fname, fmt='ascii'):
         raise NotImplementedError("Binary file support is not implemented yet. \
                                   Sorry")
     return x, y, grd, (ny,nx)
+
+def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
+    """
+    Download the Bouguer anomaly of Alps (EGM 2008 model) from
+    from https://gist.github.com/leouieda/6023922/raw/
+    948b0acbadb18e6ad49efe2092d9d9518b247780/
+    
+    Parameters:
+    
+    * fname : str
+    The name that the archive file will be saved when downloaded
+    
+    Returns:
+    
+    * fname : str
+    The downloaded file name
+    """
+    urllib.urlretrieve('https://gist.github.com/leouieda/6023922/raw/' \
+                       '948b0acbadb18e6ad49efe2092d9d9518b247780/' \
+                       'bouguer_alps_egm08.grd', filename=fname)
+    return fname
