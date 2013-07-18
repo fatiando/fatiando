@@ -139,9 +139,8 @@ def _crust2_get_codec(archive):
 
 def load_surfer(fname, fmt='ascii'):
     """
-    Read a Surfer grid file and return three 1d numpy arrays and the grid shape
-  
-    
+    Read a Surfer grid file and return three 1d numpy arrays and the grid shape.
+      
     Surfer is a contouring, gridding and surface mapping software
     from GoldenSoftware. The names and logos for Surfer and Golden
     Software are registered trademarks of Golden Software, Inc.
