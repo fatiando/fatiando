@@ -2,14 +2,10 @@
 GravMag: 3D gravity gradient inversion by planting anomalous densities using
 ``harvester`` (3 sources sources)
 """
-from fatiando import logger, gridder, utils
+from fatiando import gridder, utils
 import fatiando.gravmag as gm
 from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generate a synthetic model
 bounds = [0, 5000, 0, 5000, -500, 2000]
@@ -50,7 +46,7 @@ seeds = gm.harvester.sow(
      (3701, 1701, 501, {'density':1000}),
      (3201, 1701, 501, {'density':1000}),
      (2951, 3951, 301, {'density':800}),
-     (2951, 3951, 701, {'density':800})], 
+     (2951, 3951, 701, {'density':800})],
     mesh)
 # Run the inversion and collect the results
 estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
@@ -75,13 +71,13 @@ for i in xrange(len(tensor)):
 for i in xrange(len(tensor)):
     mpl.subplot(2, 2, i + 3)
     residuals = tensor[i] - predicted[i]
-    mpl.title('residuals stddev = %.2f' % (residuals.std())) 
+    mpl.title('residuals stddev = %.2f' % (residuals.std()))
     mpl.hist(residuals, bins=10)
     mpl.xlabel('Residual (Eotvos)')
 mpl.show()
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
-myv.prisms([mesh[s.i] for s in seeds], 'density')
+myv.prisms(seeds, 'density')
 myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
     nlabels=6)
 myv.wall_bottom(bounds)

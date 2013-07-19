@@ -4,9 +4,7 @@ homogeneous medium (no Love wave)
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import seismic, logger, gridder, vis
-
-log = logger.get()
+from fatiando import seismic, gridder, vis
 
 # Make a wave source from a mexican hat wavelet
 sources = [seismic.wavefd.MexHatSource(4, 20, 100, 0.5, delay=1.5),
@@ -21,7 +19,7 @@ dens = 2700*np.ones(shape)
 svel = 3000*np.ones(shape)
 
 # Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop bellow
+# computations take place at each iteration in the for loop below
 dt = 0.05
 maxit = 2400
 timesteps = seismic.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,

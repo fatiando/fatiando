@@ -31,9 +31,12 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
   Gaussian noise
 * :func:`~fatiando.utils.dircos`: Get the 3 coordinates of a unit vector
+* :func:`~fatiando.utils.ang2vec`: Convert intensity, inclination and
+  declination to a 3-component vector
+* :func:`~fatiando.utils.vecnorm`: Get the norm of a vector or list of vectors
 * :func:`~fatiando.utils.vecmean`: Take the mean array out of a list of arrays
-* :func:`~fatiando.utils.vecstd` Take the standard deviation array out of a list
-  of arrays
+* :func:`~fatiando.utils.vecstd`: Take the standard deviation array out of a
+  list of arrays
 * :class:`~fatiando.utils.SparseList`: Store only non-zero elements on an
   immutable list
 * :func:`~fatiando.utils.sec2hms`: Convert seconds to hours, minutes, and
@@ -44,16 +47,39 @@ Miscellaneous utility functions and classes.
 ----
 
 """
-
 import math
 
 import numpy
 
 import fatiando.constants
-import fatiando.logger
 
-log = fatiando.logger.dummy('fatiando.utils')
 
+def vecnorm(vectors):
+    """
+    Get the l2 norm of each vector in a list.
+
+    Use this to get, for example, the magnetization intensity from a list of
+    magnetization vectors.
+
+    Parameters:
+
+    * vectors : list of arrays
+        The vector
+
+    Returns:
+
+    * norms : list
+        The norms of the vectors
+
+    Examples::
+
+        >>> v = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
+        >>> print vecnorm(v)
+        [ 1.73205081  3.46410162  5.19615242]
+
+    """
+    norm = numpy.sqrt(sum(i**2 for i in numpy.transpose(vectors)))
+    return norm
 
 def sph2cart(lon, lat, height):
     """
@@ -179,6 +205,74 @@ def mgal2si(value):
 
     """
     return value/fatiando.constants.SI2MGAL
+
+def vec2ang(vector):
+    """
+    Convert a 3-component vector to intensity, inclination and declination.
+
+    .. note:: Coordinate system is assumed to be x->North, y->East, z->Down.
+        Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Parameter:
+
+    * vector : array = [x, y, z]
+        The vector
+
+    Returns:
+
+    * [intensity, inclination, declination] : floats
+        The intensity, inclination and declination (in degrees)
+
+    Examples::
+
+        >>> s = vec2ang([1.5, 1.5, 2.121320343559643])
+        >>> print "%.3f %.3f %.3f" % tuple(s)
+        3.000 45.000 45.000
+
+    """
+    intensity = numpy.linalg.norm(vector)
+    r2d = 180./numpy.pi
+    x, y, z = vector
+    declination = r2d*numpy.arctan2(y, x)
+    inclination = r2d*numpy.arcsin(z/intensity)
+    return [intensity, inclination, declination]
+
+def ang2vec(intensity, inc, dec):
+    """
+    Convert intensity, inclination and  declination to a 3-component vector
+
+    .. note:: Coordinate system is assumed to be x->North, y->East, z->Down.
+        Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Parameter:
+
+    * intensity : float or array
+        The intensity (norm) of the vector
+    * inc : float
+        The inclination of the vector (in degrees)
+    * dec : float
+        The declination of the vector (in degrees)
+
+    Returns:
+
+    * vec : array = [x, y, z]
+        The vector
+
+    Examples::
+
+        >>> import numpy
+        >>> print ang2vec(3, 45, 45)
+        [ 1.5         1.5         2.12132034]
+        >>> print ang2vec(numpy.arange(4), 45, 45)
+        [[ 0.          0.          0.        ]
+         [ 0.5         0.5         0.70710678]
+         [ 1.          1.          1.41421356]
+         [ 1.5         1.5         2.12132034]]
+
+    """
+    return numpy.transpose([intensity*i for i in dircos(inc, dec)])
 
 def dircos(inc, dec):
     """
@@ -308,9 +402,7 @@ class SparseList(object):
             index = self.size + index
         if index >= self.size or index < 0:
             raise IndexError('index out of range')
-        if index not in self.elements:
-            return 0.0
-        return self.elements[index]
+        return self.elements.get(index, 0.)
 
     def __setitem__(self, key, value):
         if key >= self.size:
@@ -433,11 +525,9 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
         contaminate it.
 
     """
-    log.info("Contaminating data with Gaussian noise:")
+
     if percent:
-        log.info("  noise level = %g percent" % (100*stddev))
         stddev = stddev*max(abs(data))
-    log.info("  noise stddev = %s" % (str(stddev)))
     if stddev == 0.:
         if return_stddev:
             return [data, stddev]

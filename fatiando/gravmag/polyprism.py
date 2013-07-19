@@ -29,13 +29,13 @@ applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 
 """
 import numpy
-from numpy import arctan2, log, sqrt, arctan
+from numpy import arctan2, log, sqrt
 
 from fatiando import utils
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, CM, T2NT
 
 
-def tf(xp, yp, zp, prisms, inc, dec):
+def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     """
     Calculate the total-field anomaly of polygonal prisms.
 
@@ -50,14 +50,16 @@ def tf(xp, yp, zp, prisms, inc, dec):
         Arrays with the x, y, and z coordinates of the computation points.
     * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
         The model used to calculate the total field anomaly.
-        Prisms must have the physical property ``'magnetization'`` will be
-        ignored. If the physical properties ``'inclination'`` and
-        ``'declination'`` are not present, will use the values of *inc* and
-        *dec* instead (regional field).
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored.
     * inc : float
         The inclination of the regional field (in degrees)
     * dec : float
         The declination of the regional field (in degrees)
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -70,23 +72,32 @@ def tf(xp, yp, zp, prisms, inc, dec):
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        if isinstance(pmag, float) or isinstance(pmag, int):
+            pintensity = pmag
+            pmx, pmy, pmz = fx, fy, fz
+        else:
+            pintensity = numpy.linalg.norm(pmag)
+            pmx, pmy, pmz = numpy.array(pmag)/pintensity
     res = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
-        if prism is None or 'magnetization' not in prism.props:
+        if prism is None or ('magnetization' not in prism.props
+                             and pmag is None):
             continue
-        magnetization = prism.props['magnetization']
+        if pmag is None:
+            mag = prism.props['magnetization']
+            if isinstance(mag, float) or isinstance(mag, int):
+                intensity = mag
+                mx, my, mz = fx, fy, fz
+            else:
+                intensity = numpy.linalg.norm(mag)
+                mx, my, mz = numpy.array(mag)/intensity
+        else:
+            intensity = pintensity
+            mx, my, mz = pmx, pmy, pmz
         nverts = prism.nverts
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
-        # Get the 3 components of the unit vector in the direction of the
-        # magnetization from the inclination and declination
-        # 1) given by the prism
-        if 'inclination' in prism.props and 'declination' in prism.props:
-            mx, my, mz = utils.dircos(prism.props['inclination'],
-                                      prism.props['declination'])
-        # 2) Use in the direction of the regional field
-        else:
-            mx, my, mz = fx, fy, fz
         # Now calculate the total field anomaly
         Z1 = z1 - zp
         Z2 = z2 - zp
@@ -101,7 +112,7 @@ def tf(xp, yp, zp, prisms, inc, dec):
             v4 = _integral_v4(X1, X2, Y1, Y2, Z1, Z2)
             v5 = _integral_v5(X1, X2, Y1, Y2, Z1, Z2)
             v6 = _integral_v6(X1, X2, Y1, Y2, Z1, Z2)
-            res += magnetization*(
+            res += intensity*(
                       mx*(v1*fx + v2*fy + v3*fz)
                     + my*(v2*fx + v4*fy + v5*fz)
                     + mz*(v3*fx + v5*fy + v6*fz))
@@ -455,8 +466,6 @@ def _integral_v1(X1, X2, Y1, Y2, Z1, Z2):
     aux1 = Y2 - Y1 + dummy
     n = (aux0/aux1)
     g = X1 - (Y1*n)
-    m = (aux1/aux0)
-    c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
     aux3 = (X1*Y2) - (X2*Y1)
     p = ((aux3/aux2)) + dummy
@@ -504,8 +513,6 @@ def _integral_v2(X1, X2, Y1, Y2, Z1, Z2):
     aux1 = Y2 - Y1 + dummy
     n = (aux0/aux1)
     g = X1 - (Y1*n)
-    m = (aux1/aux0)
-    c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
     aux3 = (X1*Y2) - (X2*Y1)
     p = ((aux3/aux2)) + dummy
@@ -553,11 +560,7 @@ def _integral_v3(X1, X2, Y1, Y2, Z1, Z2):
     aux1 = Y2 - Y1 + dummy
     n = (aux0/aux1)
     g = X1 - (Y1*n)
-    m = (aux1/aux0)
-    c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
-    aux3 = (X1*Y2) - (X2*Y1)
-    p = ((aux3/aux2)) + dummy
     aux4 = (aux0*X1) + (aux1*Y1)
     aux5 = (aux0*X2) + (aux1*Y2)
     d1 = ((aux4/aux2)) + dummy
@@ -591,8 +594,6 @@ def _integral_v4(X1, X2, Y1, Y2, Z1, Z2):
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
     aux1 = Y2 - Y1 + dummy
-    n = (aux0/aux1)
-    g = X1 - (Y1*n)
     m = (aux1/aux0)
     c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
@@ -640,13 +641,9 @@ def _integral_v5(X1, X2, Y1, Y2, Z1, Z2):
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
     aux1 = Y2 - Y1 + dummy
-    n = (aux0/aux1)
-    g = X1 - (Y1*n)
     m = (aux1/aux0)
     c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
-    aux3 = (X1*Y2) - (X2*Y1)
-    p = ((aux3/aux2)) + dummy
     aux4 = (aux0*X1) + (aux1*Y1)
     aux5 = (aux0*X2) + (aux1*Y2)
     d1 = ((aux4/aux2)) + dummy
@@ -680,10 +677,6 @@ def _integral_v6(X1, X2, Y1, Y2, Z1, Z2):
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
     aux1 = Y2 - Y1 + dummy
-    n = (aux0/aux1)
-    g = X1 - (Y1*n)
-    m = (aux1/aux0)
-    c = Y1 - (X1*m)
     aux2 = sqrt((aux0*aux0) + (aux1*aux1))
     aux3 = (X1*Y2) - (X2*Y1)
     p = ((aux3/aux2)) + dummy
@@ -708,9 +701,3 @@ def _integral_v6(X1, X2, Y1, Y2, Z1, Z2):
     aux12 = aux10 - aux11
     res -= aux12
     return res
-
-# Try to replace the functions here with the ones from the Cython module
-try:
-    from fatiando.gravmag._cpolyprism import *
-except ImportError:
-    pass

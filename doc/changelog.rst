@@ -3,10 +3,28 @@
 Changelog
 =========
 
+Version 0.2
+-----------
+
+**Release date**:
+
+**Changes**:
+
+* Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
+  equivalent layer processing of potential fields.
+* Refactored all magnetic modeling and inversion to use either scalar or vector
+  magnetization.
+* ``Seed`` class of
+  :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` can now be
+  used as a ``Prism`` object.
+* :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
+  data weights.
+* Removed module fatiando.logger
+
 Version 0.1
 -----------
 
-**Release date**: NOT RELEASED
+**Release date**: 2013-04-12
 
 **Changes**:
 
@@ -15,7 +33,7 @@ Version 0.1
 * Added a :ref:`Cookbook <cookbook>` section to the documentation with all the
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
-  densities" by Uieda and Barbosa (2012) in 
+  densities" by Uieda and Barbosa (2012) in
   :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>`
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
@@ -40,13 +58,13 @@ Version 0.1
 * Added module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>` with 2D
   Finite Difference simulations of elastic seismic waves
 * Added unit conversion functions to :ref:`fatiando.utils <fatiando_utils>`
-* Added tesseroids forward modeling :ref:`fatiando.gravmag.tesseroid 
+* Added tesseroids forward modeling :ref:`fatiando.gravmag.tesseroid
   <fatiando_gravmag_tesseroid>`, meshing and plotting with Mayavi
 * New :ref:`fatiando.io <fatiando_io>` module to fetch models and data from the
   web and convert them to useful formats (for now supports the CRUST2.0 global
   curstal model)
 * If building inplace or packaging, the setup script puts the Mercurial
-  changeset hash in a file. Then :ref:`fatiando.logger.header <fatiando_logger>`
+  changeset hash in a file. Then fatiando.logger.header
   loads the hash from file and put a "Unknown" if it can't read.
   This way importing fatiando won't fail if the there is no changeset
   information available.
@@ -65,7 +83,3 @@ Version 0.1
 * Functions in :ref:`fatiando.gravmag.basin2d <fatiando_gravmag_basin2d>` spit
   out Polygons instead of the vertices estimated. Now you don't have to build
   the polygons by hand.
-
-**Bug fixes**:
-
-

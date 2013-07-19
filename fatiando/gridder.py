@@ -24,10 +24,6 @@ Create and operate on grids and profiles.
 import numpy
 import matplotlib.mlab
 
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.gridder')
 
 def regular(area, shape, z=None):
     """
@@ -52,14 +48,9 @@ def regular(area, shape, z=None):
         points
 
     """
-    log.info("Generating regular grid:")
     ny, nx = shape
     x1, x2, y1, y2 = area
     dy, dx = spacing(area, shape)
-    log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
-    log.info("  shape = (ny, nx) = %s" % (str(shape)))
-    log.info("  spacing = (dy, dx) = %s" % (str((dy, dx))))
-    log.info("  points = nx*ny = %d" % (nx*ny))
     x_range = numpy.arange(x1, x2, dx)
     y_range = numpy.arange(y1, y2, dy)
     # Need to make sure that the number of points in the grid is correct because
@@ -73,7 +64,6 @@ def regular(area, shape, z=None):
     assert len(y_range) == ny, "Failed! y_range doesn't have ny points"
     xcoords, ycoords = [mat.ravel() for mat in numpy.meshgrid(x_range, y_range)]
     if z is not None:
-        log.info("  z = %s" % (str(z)))
         zcoords = z*numpy.ones_like(xcoords)
         return [xcoords, ycoords, zcoords]
     else:
@@ -102,13 +92,9 @@ def scatter(area, n, z=None):
 
     """
     x1, x2, y1, y2 = area
-    log.info("Generating irregular grid (scatter):")
-    log.info("  area = (x1, x2, y1, y2) = %s" % (str((x1,x2,y1,y2))))
-    log.info("  number of points = n = %s" % (str(n)))
     xcoords = numpy.random.uniform(x1, x2, n)
     ycoords = numpy.random.uniform(y1, y2, n)
     if z is not None:
-        log.info("  z = %s" % (str(z)))
         zcoords = z*numpy.ones(n)
         return [xcoords, ycoords, zcoords]
     else:
@@ -141,7 +127,7 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
     """
     Interpolate data onto a regular grid.
 
-    .. warning:: Doesn't extrapolate. Will return a masked array in the 
+    .. warning:: Doesn't extrapolate. Will return a masked array in the
         extrapolated areas.
 
     Parameters:
@@ -156,7 +142,7 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
         The are where the data will be interpolated. If None, then will get the
         area from *x* and *y*.
     * algorithm : string
-        Interpolation algorithm. Either ``'nn'`` for natural neighbor 
+        Interpolation algorithm. Either ``'nn'`` for natural neighbor
         or ``'linear'`` for linear interpolation. (see numpy.griddata)
 
     Returns:
@@ -179,7 +165,12 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
 
 def cut(x, y, scalars, area):
     """
-    Remove a subsection of the grid.
+    Return a subsection of a grid.
+
+    The returned subsection is not a copy! In technical terms, returns a slice
+    of the numpy arrays. So changes made to the subsection reflect on the
+    original grid. Use numpy.copy to make copies of the subsections and avoid
+    this.
 
     Parameters:
 
@@ -197,12 +188,8 @@ def cut(x, y, scalars, area):
 
     """
     xmin, xmax, ymin, ymax = area
-    inside = []
-    for i, coords in enumerate(zip(x, y)):
-        xp, yp = coords
-        if xp >= xmin and xp <= xmax and yp >= ymin and yp <= ymax:
-            inside.append(i)
-    subx = numpy.array([x[i] for i in inside])
-    suby = numpy.array([y[i] for i in inside])
-    subscalars = [numpy.array([scl[i] for i in inside]) for scl in scalars]
-    return [subx, suby, subscalars]
+    if len(x) != len(y):
+        raise ValueError("x and y must have the same length")
+    inside = [i for i in xrange(len(x))
+            if x[i] >= xmin and x[i] <= xmax and y[i] >= ymin and y[i] <= ymax]
+    return [x[inside], y[inside], [s[inside] for s in scalars]]

@@ -77,17 +77,13 @@ synthetic data::
 ----
 
 """
-
-import time
 import itertools
 import numpy
 import scipy.special
 
-import fatiando.logger
 from fatiando import inversion, utils
 from fatiando.constants import THERMAL_DIFFUSIVITY_YEAR
 
-log = fatiando.logger.dummy('fatiando.geothermal.climsig')
 
 class AbruptDM(inversion.datamodule.DataModule):
     """
@@ -207,17 +203,13 @@ def iabrupt(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=Fals
         data predicted by the estimated parameters.
 
     """
-    log.info("Estimating amplitude and age of an abrupt perturbation:")
-    log.info("  thermal diffusivity: %g" % (diffus))
-    log.info("  number of data: %d" % (len(temp)))
-    log.info("  iterate: %s" % (str(iterate)))
     dms = [AbruptDM(temp, zp, diffus)]
     if solver is None:
         solver = inversion.gradient.levmarq(initial=[1,1])
     if iterate:
-        return _iterator(dms, solver, log)
+        return _iterator(dms, solver)
     else:
-        return _solver(dms, solver, log)
+        return _solver(dms, solver)
 
 class LinearDM(inversion.datamodule.DataModule):
     """
@@ -337,43 +329,27 @@ def ilinear(temp, zp, solver=None, diffus=THERMAL_DIFFUSIVITY_YEAR, iterate=Fals
         data predicted by the estimated parameters.
 
     """
-    log.info("Estimating amplitude and age of a linear perturbation:")
-    log.info("  thermal diffusivity: %g" % (diffus))
-    log.info("  number of data: %d" % (len(temp)))
-    log.info("  iterate: %s" % (str(iterate)))
     dms = [LinearDM(temp, zp, diffus)]
     if solver is None:
         solver = inversion.gradient.levmarq(initial=[1,1])
     if iterate:
-        return _iterator(dms, solver, log)
+        return _iterator(dms, solver)
     else:
-        return _solver(dms, solver, log)
+        return _solver(dms, solver)
 
-def _solver(dms, solver, log):
-    start = time.time()
+def _solver(dms, solver):
     try:
         for i, chset in enumerate(solver(dms, [])):
             continue
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     return chset['estimate'], chset['residuals'][0]
 
-def _iterator(dms, solver, log):
-    start = time.time()
+def _iterator(dms, solver):
     try:
         for i, chset in enumerate(solver(dms, [])):
             yield chset['estimate'], chset['residuals'][0]
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError, ("Oops, the Hessian is a singular matrix." +
                            " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
