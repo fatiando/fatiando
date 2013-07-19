@@ -15,7 +15,22 @@ Load and convert the `CRUST2.0 global crustal model
 
 Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for 
 Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
+    
+**Surfer Grid File**
 
+Load an Surfer ASCII grid file.
+
+* :func:`~fatiando.io.load_surfer`: Read a Surfer grid file and return three 1d 
+  numpy arrays and the grid shape
+        
+**EGM2008**
+
+Download the `Bouguer anomaly of Alps (EGM 2008 model)
+<https://gist.github.com/leouieda/6023922>`_ in a Surfer ASCII grid format.
+    
+* :func:`~fatiando.io.fetch_bouguer_alps_egm`: Download the .grd archive with 
+  the Bouguer anomaly of Alps (EGM 2008 model) from the website
+    
 ----
 """
 import urllib
