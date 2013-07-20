@@ -10,26 +10,26 @@ Load and convert the `CRUST2.0 global crustal model
   from the website
 * :func:`~fatiando.io.crust2_to_tesseroids`: Convert the CRUST2.0 model to 
   tesseroids 
-
-**References**
-
-Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for 
-Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
     
-**Surfer Grid File**
+**Surfer Grid Files**
 
-Load an Surfer ASCII grid file.
+Input and output of regular grids in Surfer format.
 
 * :func:`~fatiando.io.load_surfer`: Read a Surfer grid file and return three 1d 
   numpy arrays and the grid shape
         
-**EGM2008**
-
-Download the `Bouguer anomaly of Alps (EGM 2008 model)
-<https://gist.github.com/leouieda/6023922>`_ in a Surfer ASCII grid format.
+**Sample data**
+    
+Download a `Bouguer anomaly map of Alps (EGM 2008 model)
+<https://gist.github.com/leouieda/6023922>`_ in Surfer ASCII grid file format.
     
 * :func:`~fatiando.io.fetch_bouguer_alps_egm`: Download the .grd archive with 
   the Bouguer anomaly of Alps (EGM 2008 model) from the website
+    
+**References**
+    
+Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for
+Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
     
 ----
 """
@@ -186,7 +186,9 @@ def load_surfer(fname, fmt='ascii'):
     * grd : 1d-array
         Values of the field in each grid point. Field can be for example
         topography, gravity anomaly etc
-    * shape : shape of the grid in the format (ny, nx)
+    * shape : tuple = (ny, nx)
+        The number of points in the vertical and horizontal grid dimensions, 
+        respectively
         
     """
     assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be \
@@ -224,8 +226,8 @@ def load_surfer(fname, fmt='ascii'):
 
 def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
     """
-    Download the Bouguer anomaly of Alps (EGM 2008 model) from
-    from https://gist.github.com/leouieda/6023922
+    Download the Bouguer anomaly of Alps (EGM 2008 model) in Surfer ASCII grid 
+    file format from https://gist.github.com/leouieda/6023922
     
     Parameters:
     
