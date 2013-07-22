@@ -64,7 +64,7 @@ class Moulder():
     """
 
     instructions = ("Click to start drawing - Choose density using the slider" +
-                    " - Left click to close polygon - 'e' to delete")
+                    " - Right click to close polygon - 'e' to delete")
     name = "Moulder - Direct gravimetric modeling"
 
     def __init__(self, area, xp, zp, gz=None):
@@ -275,7 +275,7 @@ class BasinTrap(Moulder):
 
     """
 
-    instructions = "Click to set node depth - Left click to change nodes"
+    instructions = "Click to set node depth - Right click to change nodes"
     name = "BasinTrap"
 
     def __init__(self, area, nodes, xp, zp, gz=None):
