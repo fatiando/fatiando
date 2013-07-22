@@ -329,7 +329,7 @@ class TrapezoidalGzDM(inversion.datamodule.DataModule):
 
 def trapezoidal(xp, zp, data, verts, density, solver, iterate=False):
     """
-    Estimate basement relief of a triangular basin. The basin is modeled as a
+    Estimate basement relief of a trapezoidal basin. The basin is modeled as a
     triangle with two known vertices at the surface. The parameters estimated
     are the x and z coordinates of the third vertice.
 
