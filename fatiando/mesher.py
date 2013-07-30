@@ -957,7 +957,7 @@ class PrismMesh(object):
         x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
 
     You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
-    methods for y and z) to get the x coordinates os the prisms in the mesh::
+    methods for y and z) to get the x coordinates of the prisms in the mesh::
 
         >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
         >>> print mesh.get_xs()
