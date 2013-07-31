@@ -2,19 +2,14 @@
 GravMag: Forward modeling of the gravitational potential and its derivatives
 using 3D prisms
 """
-from fatiando import logger, mesher, gridder, gravmag
+from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 prisms = [mesher.Prism(-4000,-3000,-4000,-3000,0,2000,{'density':1000}),
           mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':-900}),
           mesher.Prism(2000,4000,3000,4000,0,2000,{'density':1300})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-150)
-log.info("Calculating fileds...")
 fields = [gravmag.prism.potential(xp, yp, zp, prisms),
           gravmag.prism.gx(xp, yp, zp, prisms),
           gravmag.prism.gy(xp, yp, zp, prisms),
@@ -25,7 +20,6 @@ fields = [gravmag.prism.potential(xp, yp, zp, prisms),
           gravmag.prism.gyy(xp, yp, zp, prisms),
           gravmag.prism.gyz(xp, yp, zp, prisms),
           gravmag.prism.gzz(xp, yp, zp, prisms)]
-log.info("Plotting...")
 titles = ['potential', 'gx', 'gy', 'gz',
           'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
 mpl.figure(figsize=(8, 9))

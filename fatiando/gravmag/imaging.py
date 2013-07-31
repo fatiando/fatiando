@@ -48,8 +48,6 @@ Prospecting, 59(6), 1052-1071, doi:10.1111/j.1365-2478.2011.01005.x
 
 ----
 """
-import time
-
 import numpy
 
 from fatiando.mesher import PrismMesh
@@ -57,9 +55,6 @@ from fatiando.gravmag import fourier
 from fatiando.gravmag import prism as pot_prism
 from fatiando.constants import G
 from fatiando import utils
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.gravmag.imaging')
 
 
 def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
@@ -105,15 +100,8 @@ def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
     """
     nlayers, ny, nx = meshshape
     mesh = _makemesh(x, y, (ny, nx), zmin, zmax, nlayers)
-    log.info("3D migration of gravity data:")
     # This way, if z is not an array, it is now
     z = z*numpy.ones_like(x)
-    log.info("  number of data: %d" % (len(gz)))
-    log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
-    log.info("  mesh shape: %s" % (str(meshshape)))
-    log.info("  depth weighting power law: %g" % (power))
-    log.info("  depth weighting scale factor: %g" % (scale))
-    tstart = time.clock()
     dx, dy, dz = mesh.dims
     # Synthetic tests show that its not good to offset the weights with the data
     # z coordinate. No idea why
@@ -124,8 +112,6 @@ def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
         sensibility_T = numpy.array(
             [pot_prism.gz(x, y, z, [p], dens=1) for p in mesh.get_layer(l)])
         density.extend(scale*weights[l]*numpy.dot(sensibility_T, gz))
-    tend = time.clock()
-    log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
     mesh.addprop('density', numpy.array(density))
     return mesh
 
@@ -170,15 +156,8 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
 
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
-    log.info("Sandwich model of gravity data:")
     # This way, if z is not an array, it is now
     z = z*numpy.ones_like(x)
-    log.info("  data z coordinate: %g" % (z[0]))
-    log.info("  data shape: %s" % (str(shape)))
-    log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
-    log.info("  number of layers in the mesh: %d" % (nlayers))
-    log.info("  depth weighting power law: %g" % (power))
-    tstart = time.clock()
     freq, dataft = _getdataft(x, y, data, shape)
     dx, dy, dz = mesh.dims
     # Remove the last z because I only want depths to the top of the layers
@@ -198,8 +177,6 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
                       for h, w in zip(depths, weights)])
                 )
             ).ravel()))
-    tend = time.clock()
-    log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
     mesh.addprop('density', numpy.array(density))
     return mesh
 
@@ -244,14 +221,8 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
 
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
-    log.info("Generalized Inverse imaging of gravity data:")
     # This way, if z is not an array, it is now
     z = z*numpy.ones_like(x)
-    log.info("  data z coordinate: %g" % (z[0]))
-    log.info("  data shape: %s" % (str(shape)))
-    log.info("  mesh zmin and zmax: %g, %g" % (zmin, zmax))
-    log.info("  number of layers in the mesh: %d" % (nlayers))
-    tstart = time.clock()
     freq, dataft = _getdataft(x, y, data, shape)
     dx, dy, dz = mesh.dims
     # Remove the last z because I only want depths to the top of the layers
@@ -264,8 +235,6 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
                     numpy.exp(-freq*depth)*freq*dataft/(numpy.pi*G)
                 ).ravel()
             ))
-    tend = time.clock()
-    log.info("  total time for imaging: %s" % (utils.sec2hms(tend - tstart)))
     mesh.addprop('density', numpy.array(density))
     return mesh
 

@@ -1,13 +1,8 @@
 """
 GravMag: Generate synthetic gravity data on an irregular grid
 """
-import fatiando as ft
-from fatiando import logger, mesher, gridder, gravmag
+from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 prisms = [mesher.Prism(-2000, 2000, -2000, 2000, 0, 2000, {'density':1000})]
 xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), n=100, z=-100)

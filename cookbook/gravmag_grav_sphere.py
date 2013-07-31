@@ -2,12 +2,8 @@
 GravMag: Forward modeling of the gravity anomaly and the gzz component of the
 gravity gradient tensor using spheres (calculate on random points)
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils, gravmag
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 spheres = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
 # Create a set of points at 100m height

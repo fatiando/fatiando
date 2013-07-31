@@ -1,12 +1,8 @@
 """
 Gridding: Generate and plot irregular grids (scatter)
 """
-from fatiando import logger, gridder, utils
+from fatiando import gridder, utils
 from fatiando.vis import mpl
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generate random points
 x, y = gridder.scatter((-2, 2, -2, 2), n=200)

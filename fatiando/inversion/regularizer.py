@@ -24,10 +24,6 @@ plus a range of regularizing functions already implemented.
 import numpy
 import scipy.sparse
 
-import fatiando.logger
-
-
-log = fatiando.logger.dummy('fatiando.inversion.regularizer')
 
 class Regularizer(object):
     """
