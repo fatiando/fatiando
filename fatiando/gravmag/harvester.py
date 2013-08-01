@@ -220,7 +220,7 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
     Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
 
-    Paramters:
+    Parameters:
 
     * data : list of data (e.g., :class:`~fatiando.gravmag.harvester.Gz`)
         The data that will be inverted. Data used must match the physical
