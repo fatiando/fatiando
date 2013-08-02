@@ -72,7 +72,7 @@ Cython and many others 3rd-party libraries.
 
 
 In the same way, the new EPD's product, Canopy_, includes many Python packages, 
-but unfortunately, Maiavi and Cython are not present in the free_ version. 
+but unfortunately, Mayavi and Cython are not present in the free_ version. 
 If possible, I recommend to request the `academic license`_.
 
 .. _Canopy: https://www.enthought.com/products/canopy/
