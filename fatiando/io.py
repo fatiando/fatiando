@@ -17,6 +17,8 @@ Input and output of regular grids in Surfer format.
 
 * :func:`~fatiando.io.load_surfer`: Read a Surfer grid file and return three 1d 
   numpy arrays and the grid shape
+    
+* :func:`~fatiando.io.dump_surfer`: Write a Surfer grid file
         
 **Sample data**
     
@@ -226,7 +228,7 @@ def load_surfer(fname, fmt='ascii'):
 
 def dump_surfer(fname,data, shape, x, y, fmt='ascii'):
     """
-    Read a Surfer grid file and return three 1d numpy arrays and the grid shape.
+    Write a Surfer grid file.
     
     Surfer is a contouring, gridding and surface mapping software
     from GoldenSoftware. The names and logos for Surfer and Golden
@@ -246,31 +248,28 @@ def dump_surfer(fname,data, shape, x, y, fmt='ascii'):
     
     * fname : str
     Name of the Surfer grid file
-    * fmt : str
-    File type, can be 'ascii' or 'binary'
-    
-    Returns:
-    
-    * x : 1d-array
-    Value of the horizontal coordinate of each grid point.
-    * y : 1d-array
-    Value of the vertical coordinate of each grid point.
-    * grd : 1d-array
+    * data : 1d-array
     Values of the field in each grid point. Field can be for example
     topography, gravity anomaly etc
     * shape : tuple = (ny, nx)
     The number of points in the vertical and horizontal grid dimensions,
     respectively
+    * fmt : str
+    File type, can be 'ascii' or 'binary'
+    
+    Returns:
+    
+    * fname : Surfer grid file
+     The Surfer ASCII grid structure is:
+     DSAA            Surfer ASCII GRD ID
+     nCols nRows     number of columns and rows
+     xMin xMax       X min max
+     yMin yMax       Y min max
+     zMin zMax       Z min max
+     z11 z21 z31 ... List of Z values
     
     """
     if fmt == 'ascii':
-        # Surfer ASCII grid structure
-        # DSAA            Surfer ASCII GRD ID
-        # nCols nRows     number of columns and rows
-        # xMin xMax       X min max
-        # yMin yMax       Y min max
-        # zMin zMax       Z min max
-        # z11 z21 z31 ... List of Z values
         fname=str(fname)
         nx, ny = shape
         fixed = numpy.ma.fix_invalid(data)
@@ -287,6 +286,9 @@ def dump_surfer(fname,data, shape, x, y, fmt='ascii'):
                 for ix in list:
                    f.write("%f " % (ix))
                 f.write("\n\n")
+    if fmt == 'binary':
+        raise NotImplementedError("Binary file support is not implemented yet. \
+                                      Sorry")
     #    return?
 
 def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
