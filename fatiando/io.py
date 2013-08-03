@@ -224,6 +224,25 @@ def load_surfer(fname, fmt='ascii'):
                                   Sorry")
     return x, y, grd, (ny,nx)
 
+def dump_surfer(fname,bouguer, shape, x, y):
+    fname=str(fname)
+    nx, ny = shape
+    fixed = numpy.ma.fix_invalid(bouguer)
+    teste = fixed.data
+    teste = teste.reshape((nx,ny))
+    with open(fname, 'w') as f:
+        # DSAA is a Surfer ASCII GRD ID
+        f.write("DSAA\n")
+        f.write("%d %d\n" % (ny, nx))
+        f.write("%f %f\n" % (min(y), max(y)))
+        f.write("%f %f\n" % (min(x), max(x)))
+        f.write("%f %f\n" % (min(bouguer), max(bouguer)))
+        for list in teste:
+            for xx in list:
+               f.write("%f " % (xx))
+            f.write("\n\n")
+#    return?
+
 def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
     """
     Download the Bouguer anomaly of Alps (EGM 2008 model) in Surfer ASCII grid 
