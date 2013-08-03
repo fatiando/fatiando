@@ -47,4 +47,5 @@ mpl.show()
 
 # Name of the output file
 fname = ('bouguer_alps_egm08_height_%d_km.grd' % ((height/1000)))
+# Saving the upward continued data in a Surfer ascii grid file
 io.dump_surfer(fname,bouguercont, shape, x, y, fmt='ascii')
