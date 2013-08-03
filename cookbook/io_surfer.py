@@ -48,20 +48,3 @@ mpl.show()
 # Name of the output file
 fname = ('bouguer_alps_egm08_height_%d_km.grd' % ((height/1000)))
 io.dump_surfer(fname,bouguercont, shape, x, y, fmt='ascii')
-
-# Load the GRD file and convert in three numpy-arrays (y, x, bouguer)
-print "Loading the GRD file..."
-archive = str(('bouguer_alps_egm08_height_%d_km.grd' % (height/1000)))
-y, x, bouguercont2, shape = io.load_surfer(archive, fmt='ascii')
-
-print "Plotting..."
-mpl.figure()
-mpl.axis('scaled')
-mpl.title("Data loaded from a Surfer ASCII grid file")
-mpl.contourf(y, x, bouguercont2, shape, 15)
-cb = mpl.colorbar()
-cb.set_label('mGal')
-mpl.xlabel('y points to East (km)')
-mpl.ylabel('x points to North (km)')
-mpl.m2km()
-mpl.show()
