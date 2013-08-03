@@ -224,24 +224,70 @@ def load_surfer(fname, fmt='ascii'):
                                   Sorry")
     return x, y, grd, (ny,nx)
 
-def dump_surfer(fname,bouguer, shape, x, y):
-    fname=str(fname)
-    nx, ny = shape
-    fixed = numpy.ma.fix_invalid(bouguer)
-    teste = fixed.data
-    teste = teste.reshape((nx,ny))
-    with open(fname, 'w') as f:
-        # DSAA is a Surfer ASCII GRD ID
-        f.write("DSAA\n")
-        f.write("%d %d\n" % (ny, nx))
-        f.write("%f %f\n" % (min(y), max(y)))
-        f.write("%f %f\n" % (min(x), max(x)))
-        f.write("%f %f\n" % (min(bouguer), max(bouguer)))
-        for list in teste:
-            for xx in list:
-               f.write("%f " % (xx))
-            f.write("\n\n")
-#    return?
+def dump_surfer(fname,data, shape, x, y, fmt='ascii'):
+    """
+    Read a Surfer grid file and return three 1d numpy arrays and the grid shape.
+    
+    Surfer is a contouring, gridding and surface mapping software
+    from GoldenSoftware. The names and logos for Surfer and Golden
+    Software are registered trademarks of Golden Software, Inc.
+    
+    http://www.goldensoftware.com/products/surfer
+    
+    According to Surfer structure, x and y are horizontal and vertical
+    screen-based coordinates respectively. If the grid is in geographic
+    coordinates, x will be longitude and y latitude. If the coordinates
+    are cartesian, x will be the easting and y the norting coordinates.
+    
+    WARNING: This is opposite to the convention used for Fatiando.
+    See io_surfer.py in cookbook.
+    
+    Parameters:
+    
+    * fname : str
+    Name of the Surfer grid file
+    * fmt : str
+    File type, can be 'ascii' or 'binary'
+    
+    Returns:
+    
+    * x : 1d-array
+    Value of the horizontal coordinate of each grid point.
+    * y : 1d-array
+    Value of the vertical coordinate of each grid point.
+    * grd : 1d-array
+    Values of the field in each grid point. Field can be for example
+    topography, gravity anomaly etc
+    * shape : tuple = (ny, nx)
+    The number of points in the vertical and horizontal grid dimensions,
+    respectively
+    
+    """
+    if fmt == 'ascii':
+        # Surfer ASCII grid structure
+        # DSAA            Surfer ASCII GRD ID
+        # nCols nRows     number of columns and rows
+        # xMin xMax       X min max
+        # yMin yMax       Y min max
+        # zMin zMax       Z min max
+        # z11 z21 z31 ... List of Z values
+        fname=str(fname)
+        nx, ny = shape
+        fixed = numpy.ma.fix_invalid(data)
+        fixed = fixed.data
+        grd = fixed.reshape((nx,ny))
+        with open(fname, 'w') as f:
+            # DSAA is a Surfer ASCII GRD ID
+            f.write("DSAA\n")
+            f.write("%d %d\n" % (ny, nx))
+            f.write("%f %f\n" % (min(y), max(y)))
+            f.write("%f %f\n" % (min(x), max(x)))
+            f.write("%f %f\n" % (min(data), max(data)))
+            for list in grd:
+                for ix in list:
+                   f.write("%f " % (ix))
+                f.write("\n\n")
+    #    return?
 
 def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
     """
