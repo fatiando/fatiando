@@ -366,6 +366,92 @@ def _split_grid(split, nx, nz):
             parts.append([x1, x2, z1, z2])
     return parts
 
+def scalar(spacing, shape, vel, deltat, iterations, sources,
+    padding=1.0, partition=(1, 1)):
+    """
+    Simulate scalar waves using an explicit finite differences scheme.
+
+    Parameters:
+
+    * spacing : (dz, dx)
+        The node spacing of the finite differences grid
+    * shape : (nz, nx)
+        The number of nodes in the grid in the z and x directions
+    * vel : 2D-array (shape = *shape*)
+        The wave velocity at all the grid nodes
+    * deltat : float
+        The time interval between iterations
+    * iterations : int
+        Number of time steps to take
+    * sources : list
+        A list of the sources of waves
+        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
+        source)
+    * padding : float
+        The decimal percentage of padding to use in the grid to avoid
+        reflections at the borders
+    * partition : tuple = (sz, sx)
+        How to split the grid for parallel computation. Number of parts in z and
+        x, respectively
+
+    Yields:
+
+    * u : 2D-array
+        The scalar quantity disturbed    
+
+    """
+    nz, nx = shape
+    dz, dx = (float(i) for i in spacing)
+    # Add some nodes in x and z for padding to avoid reflections
+    pad = int(padding*max(shape)) # pad in percentage of max dimension
+    decay = float(20*pad) # 
+    nx += 2*pad # both sides left and right 
+    nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
+    # Pad the velocity as well
+    vel_pad = _add_pad(vel, pad, (nz, nx))
+    # Pack the particle position u at 3 different times in one 3d array
+    # u[0] = u(t-1)
+    # u[1] = u(t)
+    # u[2] = u(t+1)
+    u = numpy.zeros((3, nz, nx), dtype=numpy.float)
+    # Compute and yield the initial solutions
+    for src in sources:
+        i, j = src.coords()
+        u[1, i, j + pad] += (deltat*vel_pad[i,j])**2*src(0)
+    yield u[0, 2:-pad, pad:-pad]
+    yield u[1, 2:-pad, pad:-pad]
+    # Start the process pool
+    #jobs = partition[0]*partition[1]
+    #if jobs > 1:
+        #parts = _split_grid(split, nx, nz)
+        #shr_u = Array('d', u.ravel())
+        #shr_svel_pad = Array('d', svel_pad.ravel())
+        #u = numpy.frombuffer(shr_u.get_obj()).reshape((3, nz, nx))
+        #svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
+        #def init(u_, svel_):
+            #global u, svel_pad
+            #u = u_
+            #svel_pad = svel_
+        #pool = Pool(jobs, initializer=init, initargs=(u, vel_pad))
+    # Time steps
+    for t in xrange(1, iterations):
+        utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
+        _step_scalar(u[utp1], u[ut], u[utm1], 2, nx - 2, 2, nz - 2,
+            deltat, dx, dz, vel_pad)
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[utp1], nx, nz, pad, decay)
+        # Set the boundary conditions
+        _boundary_conditions(u[utp1], nx, nz)
+        # Update the sources
+        for src in sources:
+            i, j = src.coords()
+            u[utp1, i + 2, j + pad] += (deltat*vel_pad[i,j])**2*src(t*deltat)
+        yield u[utp1][2:-pad, pad:-pad]
+    #if jobs > 1:
+        #pool.close()
+        #pool.join()
+
+
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
     padding=1.0, partition=(1, 1)):
     """
