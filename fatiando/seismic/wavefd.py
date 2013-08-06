@@ -188,6 +188,7 @@ log = fatiando.logger.dummy('fatiando.seismic.wavefd')
 from fatiando.seismic._wavefd import *
 
 try:
+    import pyximport; pyximport.install()
     from fatiando.seismic._cwavefd import *
 except ImportError:
     pass
