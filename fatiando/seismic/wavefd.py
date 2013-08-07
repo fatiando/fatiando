@@ -374,8 +374,8 @@ def scalar(spacing, shape, vel, deltat, iterations, sources,
 
     Parameters:
 
-    * spacing : (dz, dx)
-        The node spacing of the finite differences grid
+    * spacing : float
+        The node spacing of the finite differences grid equal x and z
     * shape : (nz, nx)
         The number of nodes in the grid in the z and x directions
     * vel : 2D-array (shape = *shape*)
@@ -402,10 +402,10 @@ def scalar(spacing, shape, vel, deltat, iterations, sources,
 
     """
     nz, nx = shape
-    dz, dx = (float(i) for i in spacing)
+    ds = float(spacing)
     # Add some nodes in x and z for padding to avoid reflections
     pad = int(padding*max(shape)) # pad in percentage of max dimension
-    decay = float(20*pad) # 
+    decay = float(20*pad) # exponential decay proportional to padding size
     nx += 2*pad # both sides left and right 
     nz += pad + 2 # +2 is to remove the 2 nodes for the top boundary condition
     # Pad the velocity as well
@@ -416,41 +416,28 @@ def scalar(spacing, shape, vel, deltat, iterations, sources,
     # u[2] = u(t+1)
     u = numpy.zeros((3, nz, nx), dtype=numpy.float)
     # Compute and yield the initial solutions
+    # removing the dt multiplying to make source having exactly 
+    # expect amplitude
     for src in sources:
         i, j = src.coords()
-        u[1, i, j + pad] += (deltat*vel_pad[i,j])**2*src(0)
+        u[1, i + 2, j + pad] += src(0)
     yield u[0, 2:-pad, pad:-pad]
     yield u[1, 2:-pad, pad:-pad]
-    # Start the process pool
-    #jobs = partition[0]*partition[1]
-    #if jobs > 1:
-        #parts = _split_grid(split, nx, nz)
-        #shr_u = Array('d', u.ravel())
-        #shr_svel_pad = Array('d', svel_pad.ravel())
-        #u = numpy.frombuffer(shr_u.get_obj()).reshape((3, nz, nx))
-        #svel_pad = numpy.frombuffer(shr_svel_pad.get_obj()).reshape((nz, nx))
-        #def init(u_, svel_):
-            #global u, svel_pad
-            #u = u_
-            #svel_pad = svel_
-        #pool = Pool(jobs, initializer=init, initargs=(u, vel_pad))
-    # Time steps
+
     for t in xrange(1, iterations):
         utp1, ut, utm1 = (t + 1)%3, t%3, (t - 1)%3
+        # forth order +2-2 indexes needed
         _step_scalar(u[utp1], u[ut], u[utm1], 2, nx - 2, 2, nz - 2,
-            deltat, dx, dz, vel_pad)
+            deltat, ds, vel_pad)
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(u[utp1], nx, nz, pad, decay)
-        # Set the boundary conditions
+        # Set the boundary fixed zero
         _boundary_conditions(u[utp1], nx, nz)
         # Update the sources
         for src in sources:
             i, j = src.coords()
-            u[utp1, i + 2, j + pad] += (deltat*vel_pad[i,j])**2*src(t*deltat)
+            u[utp1, i + 2, j + pad] += src(t*deltat)
         yield u[utp1][2:-pad, pad:-pad]
-    #if jobs > 1:
-        #pool.close()
-        #pool.join()
 
 
 def elastic_sh(spacing, shape, svel, dens, deltat, iterations, sources,
