@@ -69,7 +69,7 @@ def regular(area, shape, z=None):
     else:
         return [xcoords, ycoords]
 
-def scatter(area, n, z=None):
+def scatter(area, n, z=None, seed=None):
     """
     Create an irregular grid with a random scattering of points.
 
@@ -82,6 +82,10 @@ def scatter(area, n, z=None):
     * z
         Optional. z coordinate of the points. If given, will return an
         array with the value *z*.
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers. If `None`, will use a
+        different seed every time. Use the same seed to generate the same
+        random points.
 
     Returns:
 
@@ -92,8 +96,10 @@ def scatter(area, n, z=None):
 
     """
     x1, x2, y1, y2 = area
+    numpy.random.seed(seed)
     xcoords = numpy.random.uniform(x1, x2, n)
     ycoords = numpy.random.uniform(y1, y2, n)
+    numpy.random.seed()
     if z is not None:
         zcoords = z*numpy.ones(n)
         return [xcoords, ycoords, zcoords]

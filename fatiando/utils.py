@@ -491,7 +491,7 @@ def year2sec(years):
     """
     return 31557600.0*float(years)
 
-def contaminate(data, stddev, percent=False, return_stddev=False):
+def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
     """
     Add pseudorandom gaussian noise to an array.
 
@@ -510,6 +510,10 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     * return_stddev : True or False
         If ``True``, will return also the standard deviation used to contaminate
         *data*
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers. If `None`, will use a
+        different seed every time. Use the same seed to generate the same
+        random sequence to contaminate the data.
 
     Returns:
 
@@ -533,7 +537,9 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
             return [data, stddev]
         else:
             return data
+    numpy.random.seed(seed)
     contam = numpy.array([numpy.random.normal(v, stddev) for v in data])
+    numpy.random.seed()
     if return_stddev:
         return [contam, stddev]
     else:
