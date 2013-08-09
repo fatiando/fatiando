@@ -1,8 +1,66 @@
 import numpy
 from fatiando import utils, gridder
 
+def test_utils_circular_points():
+    "utils.circular_points return diff sequence"
+    area = [-1000, 1200, -40, 200]
+    size = 1300
+    for i in xrange(20):
+        x1, y1 = utils.circular_points(area, size, random=True).T
+        x2, y2 = utils.circular_points(area, size, random=True).T
+        assert numpy.all(x1 != x2) and numpy.all(y1 != y2)
+
+def test_utils_circular_points_seed():
+    "utils.circular_points returns same sequence using same random seed"
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    for seed in numpy.random.randint(low=0, high=10000, size=20):
+        x1, y1 = utils.circular_points(area, size, random=True, seed=seed).T
+        x2, y2 = utils.circular_points(area, size, random=True, seed=seed).T
+        assert numpy.all(x1 == x2) and numpy.all(y1 == y2)
+
+def test_utils_circular_points_seed_noseed():
+    "utils.circular_points returns diff sequence after using random seed"
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    seed = 1242
+    x1, y1 = utils.circular_points(area, size, random=True, seed=seed).T
+    x2, y2 = utils.circular_points(area, size, random=True, seed=seed).T
+    assert numpy.all(x1 == x2) and numpy.all(y1 == y2)
+    x3, y3 = utils.circular_points(area, size, random=True).T
+    assert numpy.all(x1 != x3) and numpy.all(y1 != y3)
+
+def test_utils_random_points():
+    "utils.random_points return diff sequence"
+    area = [-1000, 1200, -40, 200]
+    size = 1300
+    for i in xrange(20):
+        x1, y1 = utils.random_points(area, size).T
+        x2, y2 = utils.random_points(area, size).T
+        assert numpy.all(x1 != x2) and numpy.all(y1 != y2)
+
+def test_utils_random_points_seed():
+    "utils.random_points returns same sequence using same random seed"
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    for seed in numpy.random.randint(low=0, high=10000, size=20):
+        x1, y1 = utils.random_points(area, size, seed=seed).T
+        x2, y2 = utils.random_points(area, size, seed=seed).T
+        assert numpy.all(x1 == x2) and numpy.all(y1 == y2)
+
+def test_utils_random_points_seed_noseed():
+    "utils.random_points returns diff sequence after using random seed"
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    seed = 1242
+    x1, y1 = utils.random_points(area, size, seed=seed).T
+    x2, y2 = utils.random_points(area, size, seed=seed).T
+    assert numpy.all(x1 == x2) and numpy.all(y1 == y2)
+    x3, y3 = utils.random_points(area, size).T
+    assert numpy.all(x1 != x3) and numpy.all(y1 != y3)
+
 def test_gridder_scatter():
-    "gridder.scatters returns diff sequence"
+    "gridder.scatter returns diff sequence"
     area = [-1000, 1200, -40, 200]
     size = 1300
     for i in xrange(20):
@@ -11,7 +69,7 @@ def test_gridder_scatter():
         assert numpy.all(x1 != x2) and numpy.all(y1 != y2)
 
 def test_gridder_scatter_seed():
-    "gridder.scatters returns same sequence using same random seed"
+    "gridder.scatter returns same sequence using same random seed"
     area = [0, 1000, 0, 1000]
     size = 1000
     for seed in numpy.random.randint(low=0, high=10000, size=20):
@@ -20,7 +78,7 @@ def test_gridder_scatter_seed():
         assert numpy.all(x1 == x2) and numpy.all(y1 == y2)
 
 def test_gridder_scatter_seed_noseed():
-    "gridder.scatters returns diff sequence after using random seed"
+    "gridder.scatter returns diff sequence after using random seed"
     area = [0, 1000, 0, 1000]
     size = 1000
     seed = 1242
