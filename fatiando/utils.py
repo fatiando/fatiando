@@ -538,7 +538,11 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         else:
             return data
     numpy.random.seed(seed)
-    contam = numpy.array([numpy.random.normal(v, stddev) for v in data])
+    noise = numpy.random.normal(scale=stddev, size=len(data))
+    # Subtract the mean so that the noise doesn't introduce a systematic shift
+    # in the data
+    noise -= noise.mean()
+    contam = numpy.array(data) + noise
     numpy.random.seed()
     if return_stddev:
         return [contam, stddev]
