@@ -188,7 +188,6 @@ log = fatiando.logger.dummy('fatiando.seismic.wavefd')
 from fatiando.seismic._wavefd import *
 
 try:
-    import pyximport; pyximport.install()
     from fatiando.seismic._cwavefd import *
 except ImportError:
     pass
@@ -420,7 +419,7 @@ def scalar(spacing, shape, vel, deltat, iterations, sources,
     # expect amplitude
     for src in sources:
         i, j = src.coords()
-        u[1, i + 2, j + pad] += src(0)
+        u[1, i + 2, j + pad] += ((vel_pad[i+2,j+pad]*deltat)**2)*src(0)
     yield u[0, 2:-pad, pad:-pad]
     yield u[1, 2:-pad, pad:-pad]
 
@@ -436,7 +435,7 @@ def scalar(spacing, shape, vel, deltat, iterations, sources,
         # Update the sources
         for src in sources:
             i, j = src.coords()
-            u[utp1, i + 2, j + pad] += src(t*deltat)
+            u[utp1, i + 2, j + pad] += ((vel_pad[i+2,j+pad]*deltat)**2)*src(t*deltat)
         yield u[utp1][2:-pad, pad:-pad]
 
 

@@ -46,8 +46,8 @@ def _boundary_conditions(numpy.ndarray[DTYPE_T, ndim=2] u not None,
     """
     cdef unsigned int i
     for i in xrange(nx):
-        u[1, i] *= u[2, i] #up
-        u[0, i] *= u[1, i] 
+        u[1, i] = u[2, i] #up
+        u[0, i] = u[1, i] 
         u[nz - 1, i] *= 0 #down
         u[nz - 2, i] *= 0
     for i in xrange(nz):
