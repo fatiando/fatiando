@@ -17,8 +17,9 @@ urllib.urlretrieve(
 model.img2prop('logo.png', 4000, 10000, 'vp')
 
 # Make some travel time data and add noise
-src_loc = utils.random_points(area, 80)
-rec_loc = utils.circular_points(area, 30, random=True)
+seed = 0 # Set the random seed so that points are the same everythime
+src_loc = utils.random_points(area, 80, seed=seed)
+rec_loc = utils.circular_points(area, 30, random=True, seed=seed)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
 start = time.time()
 tts = seismic.ttime2d.straight(model, 'vp', srcs, recs, par=True)
