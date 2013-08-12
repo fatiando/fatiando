@@ -10,6 +10,8 @@ Version 0.2
 
 **Changes**:
 
+* ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` returns
+  1D arrays like the rest of fatiando, instead of 2D.
 * Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
