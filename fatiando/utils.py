@@ -491,7 +491,7 @@ def year2sec(years):
     """
     return 31557600.0*float(years)
 
-def contaminate(data, stddev, percent=False, return_stddev=False):
+def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
     """
     Add pseudorandom gaussian noise to an array.
 
@@ -510,6 +510,10 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
     * return_stddev : True or False
         If ``True``, will return also the standard deviation used to contaminate
         *data*
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers. If `None`, will use a
+        different seed every time. Use the same seed to generate the same
+        random sequence to contaminate the data.
 
     Returns:
 
@@ -533,7 +537,13 @@ def contaminate(data, stddev, percent=False, return_stddev=False):
             return [data, stddev]
         else:
             return data
-    contam = numpy.array([numpy.random.normal(v, stddev) for v in data])
+    numpy.random.seed(seed)
+    noise = numpy.random.normal(scale=stddev, size=len(data))
+    # Subtract the mean so that the noise doesn't introduce a systematic shift
+    # in the data
+    noise -= noise.mean()
+    contam = numpy.array(data) + noise
+    numpy.random.seed()
     if return_stddev:
         return [contam, stddev]
     else:
@@ -625,7 +635,7 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     yhat = y - y0
     return numpy.exp(-(a*xhat**2 + 2.*b*xhat*yhat + c*yhat**2))
 
-def random_points(area, n):
+def random_points(area, n, seed=None):
     """
     Generate a set of n random points.
 
@@ -635,6 +645,10 @@ def random_points(area, n):
         Area inside of which the points are contained
     * n : int
         Number of points
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers. If `None`, will use a
+        different seed every time. Use the same seed to generate the same
+        random sequence.
 
     Result:
 
@@ -643,11 +657,13 @@ def random_points(area, n):
 
     """
     x1, x2, y1, y2 = area
+    numpy.random.seed(seed)
     xs = numpy.random.uniform(x1, x2, n)
     ys = numpy.random.uniform(y1, y2, n)
+    numpy.random.seed()
     return numpy.array([xs, ys]).T
 
-def circular_points(area, n, random=False):
+def circular_points(area, n, random=False, seed=None):
     """
     Generate a set of n points positioned in a circular array.
 
@@ -661,6 +677,10 @@ def circular_points(area, n, random=False):
         Number of points
     * random : True or False
         If True, positions of the points on the circle will be chosen at random
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers if `random==True`.
+        If `None`, will use a different seed every time.
+        Use the same seed to generate the same random sequence.
 
     Result:
 
@@ -671,7 +691,9 @@ def circular_points(area, n, random=False):
     x1, x2, y1, y2 = area
     radius = 0.5*min(x2 - x1, y2 - y1)
     if random:
+        numpy.random.seed(seed)
         angles = numpy.random.uniform(0, 2*math.pi, n)
+        numpy.random.seed()
     else:
         da = 2.*math.pi/float(n)
         angles = numpy.arange(0., 2.*math.pi, da)
