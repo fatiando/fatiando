@@ -67,8 +67,9 @@ def _boundary_conditions(double[:,::1] u not None,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _nonreflexive_psv_boundary_conditions(
-    double[:,::1] u_tp1 not None,
-    double[:,::1] u_t not None,
+    double[:,:,::1] ux not None,
+    double[:,:,::1] uz not None,
+    int tp1, int t, int tm1,
     unsigned int nx, unsigned int nz,
     double dt, double dx, double dz,
     double[:,::1] mu not None,
@@ -82,24 +83,35 @@ def _nonreflexive_psv_boundary_conditions(
     # Left
     for i in range(nz):
         for j in range(1):
-            u_tp1[i,j] = u_t[i,j] + \
+            ux[tp1,i,j] = ux[t,i,j] + \
                 dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    u_t[i,j+1] - u_t[i,j])/dx
+                    ux[t,i,j+1] - ux[t,i,j])/dx
+            uz[tp1,i,j] = uz[t,i,j] + \
+                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+                    uz[t,i,j+1] - uz[t,i,j])/dx
     # Right
     for i in range(nz):
         for j in range(nx - 1, nx):
-            u_tp1[i,j] = u_t[i,j] - \
+            ux[tp1,i,j] = ux[t,i,j] - \
                 dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    u_t[i,j] - u_t[i,j-1])/dx
+                    ux[t,i,j] - ux[t,i,j-1])/dx
+            uz[tp1,i,j] = uz[t,i,j] - \
+                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+                    uz[t,i,j] - uz[t,i,j-1])/dx
     # Bottom
     for i in range(nz - 1, nz):
         for j in range(nx):
-            u_tp1[i,j] = u_t[i,j] - \
+            ux[tp1,i,j] = ux[t,i,j] - \
                 dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    u_t[i,j] - u_t[i-1,j])/dz
+                    ux[t,i,j] - ux[t,i-1,j])/dz
+            uz[tp1,i,j] = uz[t,i,j] - \
+                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+                    uz[t,i,j] - uz[t,i-1,j])/dz
     # Top
-    for j in range(nx):
-        u_tp1[0,j] = u_tp1[1,j]
+    for j in range(1, nx - 1):
+        ux[tp1,0,j] = ux[tp1,1,j] + (0.5*dz/dx)*(uz[tp1,1,j+1] - uz[tp1,1,j-1])
+        uz[tp1,0,j] = uz[tp1,1,j] + (0.5*dz/dx)*(lamb[1,j]/(lamb[1,j] + 2*mu[1,j]))*(
+                ux[tp1,1,j+1] - ux[tp1,1,j-1])
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

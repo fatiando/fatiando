@@ -349,10 +349,8 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
         _apply_damping(uz[t], nx, nz, pad, taper)
         #_boundary_conditions(ux[utp1], nx, nz)
         #_boundary_conditions(uz[utp1], nx, nz)
-        _nonreflexive_psv_boundary_conditions(ux[tp1], ux[t], nx, nz, dt, dx,
-            dz, mu_pad, lamb_pad, dens_pad)
-        _nonreflexive_psv_boundary_conditions(uz[tp1], uz[t], nx, nz, dt, dx,
-            dz, mu_pad, lamb_pad, dens_pad)
+        _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,
+            dx, dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[tp1], nx, nz, pad, taper)
         _apply_damping(uz[tp1], nx, nz, pad, taper)
         for src in xsources:
