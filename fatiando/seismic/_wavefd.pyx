@@ -206,12 +206,11 @@ def _step_elastic_psv_x(
     """
     cdef:
         unsigned int i, j
-        double dt2, dx2, dz2, tauxx_p, tauxx_m, tauxz_p, tauxz_m, l, m
+        double dt2, tauxx_p, tauxx_m, tauxz_p, tauxz_m, l, m
     dt2 = dt**2
-    dx2 = dx**2
-    dz2 = dz**2
     for i in range(z1, z2):
         for j in range(x1, x2):
+            #l, m = lamb[i,j], mu[i,j]
             l = 0.5*(lamb[i,j+1] + lamb[i,j])
             m = 0.5*(mu[i,j+1] + mu[i,j])
             tauxx_p = (l + 2*m)*(ux_t[i,j+1] - ux_t[i,j])/dx + \
@@ -222,11 +221,11 @@ def _step_elastic_psv_x(
             tauxx_m = (l + 2*m)*(ux_t[i,j] - ux_t[i,j-1])/dx + \
                 (l/dz)*(
                     0.5*(uz[i+1,j-1] + uz[i,j]) - 0.5*(uz[i-1,j-1] + uz[i,j]))
-            tauxz_p = 0.5*(mu[i+1,j] + mu[i,j])*(
-                (ux_t[i+1,j] - ux_t[i,j])/dz +
+            m = 0.5*(mu[i+1,j] + mu[i,j])
+            tauxz_p = m*((ux_t[i+1,j] - ux_t[i,j])/dz +
                 (0.5*(uz[i+1,j+1] + uz[i,j]) - 0.5*(uz[i+1,j-1] + uz[i,j]))/dx)
-            tauxz_m = 0.5*(mu[i-1,j] + mu[i,j])*(
-                (ux_t[i,j] - ux_t[i-1,j])/dz +
+            m = 0.5*(mu[i-1,j] + mu[i,j])
+            tauxz_m = m*((ux_t[i,j] - ux_t[i-1,j])/dz +
                 (0.5*(uz[i-1,j+1] + uz[i,j]) - 0.5*(uz[i-1,j-1] + uz[i,j]))/dx)
             ux_tp1[i,j] = 2*ux_t[i,j] - ux_tm1[i,j] + (dt2/dens[i,j])*(
                 (tauxx_p - tauxx_m)/dx + (tauxz_p - tauxz_m)/dz)
@@ -249,12 +248,11 @@ def _step_elastic_psv_z(
     """
     cdef:
         unsigned int i, j
-        double dt2, dx2, dz2, tauzz_p, tauzz_m, tauxz_p, tauxz_m, l, m
+        double dt2, tauzz_p, tauzz_m, tauxz_p, tauxz_m, l, m
     dt2 = dt**2
-    dx2 = dx**2
-    dz2 = dz**2
     for i in range(z1, z2):
         for j in range(x1, x2):
+            #l, m = lamb[i,j], mu[i,j]
             l = 0.5*(lamb[i+1,j] + lamb[i,j])
             m = 0.5*(mu[i+1,j] + mu[i,j])
             tauzz_p = (l + 2*m)*(uz_t[i+1,j] - uz_t[i,j])/dz + \
@@ -265,11 +263,12 @@ def _step_elastic_psv_z(
             tauzz_m = (l + 2*m)*(uz_t[i,j] - uz_t[i-1,j])/dz + \
                 (l/dx)*(
                     0.5*(ux[i-1,j+1] + ux[i,j]) - 0.5*(ux[i-1,j-1] + ux[i,j]))
-            tauxz_p = 0.5*(mu[i,j+1] + mu[i,j])*(
+            m = 0.5*(mu[i,j+1] + mu[i,j])
+            tauxz_p = m*(
                 (uz_t[i,j+1] - uz_t[i,j])/dx +
                 (0.5*(ux[i+1,j+1] + ux[i,j]) - 0.5*(ux[i-1,j+1] + ux[i,j]))/dz)
-            tauxz_m = 0.5*(mu[i,j-1] + mu[i,j])*(
-                (uz_t[i,j] - uz_t[i,j-1])/dx +
+            m = 0.5*(mu[i,j-1] + mu[i,j])
+            tauxz_m = m*((uz_t[i,j] - uz_t[i,j-1])/dx +
                 (0.5*(ux[i+1,j-1] + ux[i,j]) - 0.5*(ux[i-1,j-1] + ux[i,j]))/dz)
             uz_tp1[i,j] = 2*uz_t[i,j] - uz_tm1[i,j] + (dt2/dens[i,j])*(
                 (tauzz_p - tauzz_m)/dz + (tauxz_p - tauxz_m)/dx)
