@@ -302,7 +302,7 @@ class SquareMesh(object):
             X, Y = numpy.meshgrid(xs, ys)
             model = fatiando.gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
                 self.shape)[2]
-        self.props[prop] = model.ravel()
+        self.props[prop] = model
 
     def get_xs(self):
         """
