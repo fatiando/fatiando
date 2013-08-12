@@ -153,8 +153,8 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
 
     Returns:
 
-    * ``[X, Y, V]``
-        Three 2D arrays with the interpolated x, y, and v
+    * ``[x, y, v]``
+        Three 1D arrays with the interpolated x, y, and v
 
     """
     if algorithm != 'nn' and algorithm != 'linear':
@@ -167,7 +167,7 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
     ys = numpy.linspace(y1, y2, ny)
     X, Y = numpy.meshgrid(xs, ys)
     V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
-    return [X, Y, V]
+    return [X.ravel(), Y.ravel(), V.ravel()]
 
 def cut(x, y, scalars, area):
     """
