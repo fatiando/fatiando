@@ -811,11 +811,10 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v = fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         ct_data = pyplot.contour(X, Y, V, levels, colors=color, picker=True)
         pyplot.xlim(X.min(), X.max())
@@ -870,11 +869,10 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v = fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         ct_data = pyplot.contourf(X, Y, V, levels, cmap=cmap, picker=True)
         pyplot.xlim(X.min(), X.max())
@@ -919,11 +917,10 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v= fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax,
                              picker=True)
