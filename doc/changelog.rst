@@ -10,6 +10,9 @@ Version 0.2
 
 **Changes**:
 
+* New ``extrapolate_nans`` function in
+  :ref:`fatiando.gridder <fatiando_gridder>` to fill NaNs and masked
+  values in arrays using the nearest data point.
 * ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` has option
   to extrapolate values outside the convex hull of the data (enabled by
   default). Uses better cubic interpolation by default and returns
