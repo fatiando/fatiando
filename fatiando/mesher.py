@@ -627,7 +627,7 @@ class PointGrid(object):
     """
     Create a grid of 3D point sources (spheres of unit volume).
 
-    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`s.
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
     Grid points are ordered with x varying first, then y (like a C matrix).
 
     Parameters:
@@ -716,7 +716,7 @@ class PointGrid(object):
         Returns:
 
         * subgrids : list
-            List of :class:`~fatiando.mesher.PointGrid`s
+            List of :class:`~fatiando.mesher.PointGrid`
 
         Examples::
 
