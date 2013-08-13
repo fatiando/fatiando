@@ -6,12 +6,15 @@ Create and operate on grids and profiles.
 * :func:`~fatiando.gridder.regular`
 * :func:`~fatiando.gridder.scatter`
 
-**Grid I/O**
-
 **Grid operations**
 
 * :func:`~fatiando.gridder.cut`
+
+**Interpolation**
+
 * :func:`~fatiando.gridder.interp`
+* :func:`~fatiando.gridder.interp_at`
+* :func:`~fatiando.gridder.extrapolate_nans`
 
 **Misc**
 
@@ -134,9 +137,6 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
     """
     Interpolate data onto a regular grid.
 
-    .. warning:: Doesn't extrapolate. Will return a masked array in the
-        extrapolated areas.
-
     Parameters:
 
     * x, y : 1D arrays
@@ -170,24 +170,78 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
     x1, x2, y1, y2 = area
     xs = numpy.linspace(x1, x2, nx)
     ys = numpy.linspace(y1, y2, ny)
-    gridx, gridy = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+    xp, yp = [i.ravel() for i in numpy.meshgrid(xs, ys)]
     if algorithm == 'nn':
-        grid = matplotlib.mlab.griddata(x, y, v, numpy.reshape(gridx, shape),
-                numpy.reshape(gridy, shape), interp='nn').ravel()
+        grid = matplotlib.mlab.griddata(x, y, v, numpy.reshape(xp, shape),
+                numpy.reshape(yp, shape), interp='nn').ravel()
+        if extrapolate and numpy.ma.is_masked(grid):
+            grid = extrapolate_nans(xp, yp, grid)
     else:
-        grid = scipy.interpolate.griddata((x, y), v, (gridx, gridy),
-                method=algorithm).ravel()
-    if extrapolate and algorithm != 'nearest' and (
-            numpy.any(numpy.isnan(grid)) or numpy.ma.is_masked(grid)):
-        if numpy.ma.is_masked(grid):
-            nans = grid.mask
-        else:
-            nans = numpy.isnan(grid)
-        notnans = numpy.logical_not(nans)
-        grid[nans] = scipy.interpolate.griddata(
-            (gridx[notnans], gridy[notnans]), grid[notnans],
-            (gridx[nans], gridy[nans]), method='nearest').ravel()
-    return [gridx, gridy, grid]
+        grid = interp_at(x, y, v, xp, yp, algorithm=algorithm,
+                         extrapolate=extrapolate)
+    return [xp, yp, grid]
+
+def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=True):
+    """
+    Interpolate data onto the specified points.
+
+    Parameters:
+
+    * x, y : 1D arrays
+        Arrays with the x and y coordinates of the data points.
+    * v : 1D array
+        Array with the scalar value assigned to the data points.
+    * xp, yp : 1D arrays
+        Points where the data values will be interpolated
+    * algorithm : string
+        Interpolation algorithm. Either ``'cubic'``, ``'nearest'``,
+        ``'linear'`` (see scipy.interpolate.griddata)
+    * extrapolate : True or False
+        If True, will extrapolate values outside of the convex hull of the data
+        points.
+
+    Returns:
+
+    * ``[x, y, v]``
+        Three 1D arrays with the interpolated x, y, and v
+
+    """
+    if algorithm not in ['cubic', 'linear', 'nearest']:
+        raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
+    grid = scipy.interpolate.griddata((x, y), v, (xp, yp),
+            method=algorithm).ravel()
+    if extrapolate and algorithm != 'nearest' and numpy.any(numpy.isnan(grid)):
+        grid = extrapolate_nans(xp, yp, grid)
+    return grid
+
+def extrapolate_nans(x, y, v):
+    """"
+    Extrapolate the NaNs or masked values in a grid INPLACE using nearest
+    value.
+
+    .. warning:: Replaces the NaN or masked values of the original array!
+
+    Parameters:
+
+    * x, y : 1D arrays
+        Arrays with the x and y coordinates of the data points.
+    * v : 1D array
+        Array with the scalar value assigned to the data points.
+
+    Returns:
+
+    * v : 1D array
+        The array with NaNs or masked values extrapolated.
+
+    """
+    if numpy.ma.is_masked(v):
+        nans = v.mask
+    else:
+        nans = numpy.isnan(v)
+    notnans = numpy.logical_not(nans)
+    v[nans] = scipy.interpolate.griddata((x[notnans], y[notnans]), v[notnans],
+        (x[nans], y[nans]), method='nearest').ravel()
+    return v
 
 def cut(x, y, scalars, area):
     """
