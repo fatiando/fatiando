@@ -10,7 +10,9 @@ Version 0.2
 
 **Changes**:
 
-* ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` returns
+* ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` has option
+  to extrapolate values outside the convex hull of the data (enabled by
+  default). Uses better cubic interpolation by default and returns
   1D arrays like the rest of fatiando, instead of 2D.
 * Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
   equivalent layer processing of potential fields.

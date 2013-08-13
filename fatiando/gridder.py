@@ -22,8 +22,7 @@ Create and operate on grids and profiles.
 """
 
 import numpy
-import matplotlib.mlab
-
+import scipy.interpolate
 
 def regular(area, shape, z=None):
     """
@@ -129,7 +128,7 @@ def spacing(area, shape):
     dy = float(y2 - y1)/float(ny - 1)
     return [dy, dx]
 
-def interp(x, y, v, shape, area=None, algorithm='nn'):
+def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
     """
     Interpolate data onto a regular grid.
 
@@ -148,8 +147,11 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
         The are where the data will be interpolated. If None, then will get the
         area from *x* and *y*.
     * algorithm : string
-        Interpolation algorithm. Either ``'nn'`` for natural neighbor
-        or ``'linear'`` for linear interpolation. (see numpy.griddata)
+        Interpolation algorithm. Either ``'cubic'``, ``'nearest'`` or
+        ``'linear'`` (see scipy.interpolate.griddata)
+    * extrapolate : True or False
+        If True, will extrapolate values outside of the convex hull of the data
+        points.
 
     Returns:
 
@@ -157,17 +159,24 @@ def interp(x, y, v, shape, area=None, algorithm='nn'):
         Three 1D arrays with the interpolated x, y, and v
 
     """
-    if algorithm != 'nn' and algorithm != 'linear':
-        raise ValueError("Invalid interpolation: %s" % (str(algorithm)))
+    if algorithm not in ['cubic', 'linear', 'nearest']:
+        raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
     ny, nx = shape
     if area is None:
         area = (x.min(), x.max(), y.min(), y.max())
     x1, x2, y1, y2 = area
     xs = numpy.linspace(x1, x2, nx)
     ys = numpy.linspace(y1, y2, ny)
-    X, Y = numpy.meshgrid(xs, ys)
-    V = matplotlib.mlab.griddata(x, y, v, X, Y, algorithm)
-    return [X.ravel(), Y.ravel(), V.ravel()]
+    gridx, gridy = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+    grid = scipy.interpolate.griddata((x, y), v, (gridx, gridy),
+            method=algorithm).ravel()
+    if extrapolate and algorithm != 'nearest' and numpy.any(numpy.isnan(grid)):
+        nans = numpy.isnan(grid)
+        notnans = numpy.logical_not(nans)
+        grid[nans] = scipy.interpolate.griddata(
+            (gridx[notnans], gridy[notnans]), grid[notnans],
+            (gridx[nans], gridy[nans]), method='nearest').ravel()
+    return [gridx, gridy, grid]
 
 def cut(x, y, scalars, area):
     """
