@@ -23,6 +23,8 @@ Create and operate on grids and profiles.
 
 import numpy
 import scipy.interpolate
+import matplotlib.mlab
+
 
 def regular(area, shape, z=None):
     """
@@ -147,8 +149,9 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
         The are where the data will be interpolated. If None, then will get the
         area from *x* and *y*.
     * algorithm : string
-        Interpolation algorithm. Either ``'cubic'``, ``'nearest'`` or
-        ``'linear'`` (see scipy.interpolate.griddata)
+        Interpolation algorithm. Either ``'cubic'``, ``'nearest'``,
+        ``'linear'`` (see scipy.interpolate.griddata), or ``'nn'`` for nearest
+        neighbors (using matplotlib.mlab.griddata)
     * extrapolate : True or False
         If True, will extrapolate values outside of the convex hull of the data
         points.
@@ -159,7 +162,7 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
         Three 1D arrays with the interpolated x, y, and v
 
     """
-    if algorithm not in ['cubic', 'linear', 'nearest']:
+    if algorithm not in ['cubic', 'linear', 'nearest', 'nn']:
         raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
     ny, nx = shape
     if area is None:
@@ -168,10 +171,18 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
     xs = numpy.linspace(x1, x2, nx)
     ys = numpy.linspace(y1, y2, ny)
     gridx, gridy = [i.ravel() for i in numpy.meshgrid(xs, ys)]
-    grid = scipy.interpolate.griddata((x, y), v, (gridx, gridy),
-            method=algorithm).ravel()
-    if extrapolate and algorithm != 'nearest' and numpy.any(numpy.isnan(grid)):
-        nans = numpy.isnan(grid)
+    if algorithm == 'nn':
+        grid = matplotlib.mlab.griddata(x, y, v, numpy.reshape(gridx, shape),
+                numpy.reshape(gridy, shape), interp='nn').ravel()
+    else:
+        grid = scipy.interpolate.griddata((x, y), v, (gridx, gridy),
+                method=algorithm).ravel()
+    if extrapolate and algorithm != 'nearest' and (
+            numpy.any(numpy.isnan(grid)) or numpy.ma.is_masked(grid)):
+        if numpy.ma.is_masked(grid):
+            nans = grid.mask
+        else:
+            nans = numpy.isnan(grid)
         notnans = numpy.logical_not(nans)
         grid[nans] = scipy.interpolate.griddata(
             (gridx[notnans], gridy[notnans]), grid[notnans],
