@@ -5,16 +5,43 @@ from fatiando import gridder, utils
 from fatiando.vis import mpl
 
 # Generate random points
-x, y = gridder.scatter((-2, 2, -2, 2), n=200, seed=0)
-# And calculate a 2D Gaussian on these points as sample data
-z = utils.gaussian2d(x, y, 1, 1)
+area = (-2, 2, -2, 2)
+x, y = gridder.scatter(area, n=200, seed=0)
+# And calculate 2D Gaussians on these points as sample data
+def data(x, y):
+    return (utils.gaussian2d(x, y, -0.6, -1)
+            - utils.gaussian2d(x, y, 1.5, 1.5))
+z = data(x, y)
 
 shape = (100, 100)
-grdx, grdy, grdz = gridder.interp(x, y, z, shape)
 
+# First, we need to know the real data at the grid points
+grdx, grdy = gridder.regular(area, shape)
+grdz = data(grdx, grdy)
 mpl.figure()
+mpl.subplot(2, 2, 1)
 mpl.axis('scaled')
-mpl.title("Interpolated grid")
+mpl.title("True grid data")
+mpl.plot(x, y, '.k', label='Data points')
+mpl.contourf(grdx, grdy, grdz, shape, 50)
+mpl.colorbar()
+mpl.legend(loc='lower right', numpoints=1)
+
+# Use the default interpolation (cubic)
+grdx, grdy, grdz = gridder.interp(x, y, z, shape)
+mpl.subplot(2, 2, 2)
+mpl.axis('scaled')
+mpl.title("Interpolated using cubic minimum-curvature")
+mpl.plot(x, y, '.k', label='Data points')
+mpl.contourf(grdx, grdy, grdz, shape, 50)
+mpl.colorbar()
+mpl.legend(loc='lower right', numpoints=1)
+
+# Use the nearest neighbors interpolation
+grdx, grdy, grdz = gridder.interp(x, y, z, shape, algorithm='nn')
+mpl.subplot(2, 2, 3)
+mpl.axis('scaled')
+mpl.title("Interpolated using nearest neighbors")
 mpl.plot(x, y, '.k', label='Data points')
 mpl.contourf(grdx, grdy, grdz, shape, 50)
 mpl.colorbar()
@@ -23,9 +50,9 @@ mpl.legend(loc='lower right', numpoints=1)
 # interp extrapolates the data by default. Lets see what happens if we disable
 # extrapolation
 grdx, grdy, grdz = gridder.interp(x, y, z, shape, extrapolate=False)
-mpl.figure()
+mpl.subplot(2, 2, 4)
 mpl.axis('scaled')
-mpl.title("Interpolated grid (no extrapolation)")
+mpl.title("Interpolated with no extrapolation")
 mpl.plot(x, y, '.k', label='Data points')
 mpl.contourf(grdx, grdy, grdz, shape, 50)
 mpl.colorbar()
