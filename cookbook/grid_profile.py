@@ -1,7 +1,6 @@
 """
-Gridding: Extract a profile of the data using interpolation
+Gridding: Extract a profile from map data
 """
-import numpy as np
 from fatiando import gridder, utils
 from fatiando.vis import mpl
 
@@ -11,25 +10,24 @@ x, y = gridder.scatter((-2, 2, -2, 2), n=300, seed=1)
 def data(x, y):
     return (utils.gaussian2d(x, y, -0.6, -1)
             - utils.gaussian2d(x, y, 1.5, 1.5))
-z = data(x, y)
+d = data(x, y)
 
 # Extract a profile along the diagonal
-xp = np.linspace(-2, 2, 100)
-yp = xp
-zp = gridder.interp_at(x, y, z, xp, yp)
-zp_true = data(xp, yp)
+p1, p2 = [-1.5, 0], [1.5, 1.5]
+xp, yp, distance, dp = gridder.profile(x, y, d, p1, p2, 100)
+dp_true = data(xp, yp)
 
 mpl.figure()
 mpl.subplot(2, 1, 2)
 mpl.title("Irregular grid")
-mpl.plot(x, y, '.k')
-mpl.plot(xp, yp, '-k', label='Profile')
-mpl.contourf(x, y, z, (100, 100) , 50, interp=True)
+mpl.plot(xp, yp, '-k', label='Profile', linewidth=2)
+mpl.contourf(x, y, d, (100, 100) , 50, interp=True)
 mpl.colorbar(orientation='horizontal')
 mpl.legend(loc='lower right')
 mpl.subplot(2, 1, 1)
 mpl.title('Profile')
-mpl.plot(xp, zp, '.b', label='Interpolated')
-mpl.plot(xp, zp_true, '-k', label='True')
+mpl.plot(distance, dp, '.b', label='Extracted')
+mpl.plot(distance, dp_true, '-k', label='True')
+mpl.xlim(distance.min(), distance.max())
 mpl.legend(loc='lower right')
 mpl.show()

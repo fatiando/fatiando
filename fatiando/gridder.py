@@ -9,6 +9,7 @@ Create and operate on grids and profiles.
 **Grid operations**
 
 * :func:`~fatiando.gridder.cut`
+* :func:`~fatiando.gridder.profile`
 
 **Interpolation**
 
@@ -213,6 +214,46 @@ def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=True):
     if extrapolate and algorithm != 'nearest' and numpy.any(numpy.isnan(grid)):
         grid = extrapolate_nans(xp, yp, grid)
     return grid
+
+def profile(x, y, v, point1, point2, size, extrapolate=False):
+    """
+    Extract a data profile between 2 points.
+
+    Uses interpolation to calculate the data values at the profile points.
+
+    Parameters:
+
+    * x, y : 1D arrays
+        Arrays with the x and y coordinates of the data points.
+    * v : 1D array
+        Array with the scalar value assigned to the data points.
+    * point1, point2 : lists = [x, y]
+        Lists the x, y coordinates of the 2 points between which the profile
+        will be extracted.
+    * size : int
+        Number of points along the profile.
+    * extrapolate : True or False
+        If True, will extrapolate values outside of the convex hull of the data
+        points.
+
+    Returns:
+
+    * [xp, yp, distances, vp] : 1d arrays
+        ``xp`` and ``yp`` are the x, y coordinates of the points along the
+        profile.
+        ``distances`` are the distances of the profile points to ``point1``
+        ``vp`` are the data points along the profile.
+
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+    maxdist = numpy.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    distances = numpy.linspace(0, maxdist, size)
+    angle = numpy.arctan2(y2 - y1, x2 - x1)
+    xp = x1 + distances*numpy.cos(angle)
+    yp = y1 + distances*numpy.sin(angle)
+    vp = interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=extrapolate)
+    return xp, yp, distances, vp
 
 def extrapolate_nans(x, y, v):
     """"
