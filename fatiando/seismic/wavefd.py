@@ -36,6 +36,8 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 ----
 
 """
+from __future__ import division
+
 import numpy
 
 from fatiando.seismic._wavefd import *
@@ -50,9 +52,12 @@ class MexHatSource(object):
 
     Parameters:
 
-    * i, j : int
-        The i,j coordinates of the source in the target finite difference grid.
-        i is the index for z, j for x
+    * x, z : float
+        The x, z coordinates of the source
+    * area : [xmin, xmax, zmin, zmax]
+        The area bounding the finite difference simulation
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
     * amp : float
         The amplitude of the source (:math:`A`)
     * frequency : float
@@ -62,9 +67,12 @@ class MexHatSource(object):
 
     """
 
-    def __init__(self, i, j, amp, frequency, delay=0):
-        self.i = i
-        self.j = j
+    def __init__(self, x, z, area, shape, amp, frequency, delay=0):
+        nz, nx = shape
+        dz, dx = sum(area[2:])/(nz - 1), sum(area[:2])/(nx - 1)
+        self.i = int(round((z - area[2])/dz))
+        self.j = int(round((x - area[0])/dx))
+        self.x, self.z = x, z
         self.amp = amp
         self.frequency = frequency
         self.f2 = frequency**2
@@ -77,6 +85,18 @@ class MexHatSource(object):
         return psi
 
     def coords(self):
+        """
+        Get the x, z coordinates of the source.
+
+        Returns:
+
+        * (x, z) : tuple
+            The x, z coordinates
+
+        """
+        return (self.x, self.z)
+
+    def indexes(self):
         """
         Get the i,j coordinates of the source in the finite difference grid.
 
@@ -98,9 +118,12 @@ class SinSqrSource(MexHatSource):
 
     Parameters:
 
-    * i, j : int
-        The i,j coordinates of the source in the target finite difference grid.
-        i is the index for z, j for x
+    * x, z : float
+        The x, z coordinates of the source
+    * area : [xmin, xmax, zmin, zmax]
+        The area bounding the finite difference simulation
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
     * amp : float
         The amplitude of the source (:math:`A`)
     * wlength : float
@@ -113,8 +136,10 @@ class SinSqrSource(MexHatSource):
 
     """
 
-    def __init__(self, i, j, amp, wlength, delay=0):
-        MexHatSource.__init__(self, i, j, amp, wlength, delay)
+    def __init__(self, x, z, area, shape, amp, wlength, delay=0):
+        super(SinSqrSource, self).__init__(self, x, z, area, shape, amp,
+                                           1./wlength, delay)
+        self.wlength = wlength
 
     def __call__(self, time):
         t = time - self.delay
@@ -183,45 +208,27 @@ def _add_pad(array, pad, shape):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
     return array_pad
 
-def _split_grid(split, nx, nz):
-    """
-    Split the grid in split=(Sz, Sx) parts.
-    """
-    jobsz, jobsx = split
-    nz_perjob = nz/jobsz
-    nx_perjob = nx/jobsx
-    parts = []
-    for i in xrange(jobsz):
-        z1 = i*nz_perjob
-        if i == jobsz - 1:
-            z2 = nz
-        else:
-            z2 = z1 + nz_perjob + 4
-        for j in xrange(jobsx):
-            x1 = j*nx_perjob
-            if j == jobsx - 1:
-                x2 = nx
-            else:
-                x2 = x1 + nx_perjob + 4
-            parts.append([x1, x2, z1, z2])
-    return parts
-
-def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
-    taper=0.005):
+def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
+    snapshot=None, padding=50, taper=0.005):
     """
     Simulate SH waves using the Equivalent Staggered Grid (ESG) finite
     differences scheme of Di Bartolo et al. (2012).
 
+    This is an iterator. It yields a panel of $u_y$ displacements and a list
+    of arrays with recorded displacements in a time series.
+    Parameter *snapshot* controls how often the iterator yields. The default
+    is only at the end, so only the final panel and full time series are
+    yielded.
+
     Parameters:
 
-    * spacing : (dz, dx)
-        The node spacing of the finite differences grid
-    * shape : (nz, nx)
-        The number of nodes in the grid in the z and x directions
-    * my : 2D-array (shape = *shape*)
+    * mu : 2D-array (shape = *shape*)
         The :math:`\mu` Lame parameter at all the grid nodes
     * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
     * dt : float
         The time interval between iterations
     * iterations : int
@@ -230,6 +237,13 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
         A list of the sources of waves
         (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
         source)
+    * stations : None or list
+        If not None, then a list of [x, z] pairs with the x and z coordinates
+        of the recording stations. These are physical coordinates, not the
+        indexes!
+    * snapshot : None or int
+        If not None, than yield a snapshot of the displacement at every
+        *snapshot* iterations.
     * padding : int
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
@@ -238,12 +252,25 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
 
     Yields:
 
-    * uy : 2D-array
-        The particle movement in the y direction at each time step
+    * t, uy, seismograms : int, 2D-array and list of 1D-arrays
+        The current iteration, the particle displacement in the y direction
+        and a list of the displacements recorded at each station until the
+        current iteration.
 
     """
-    nz, nx = shape
-    dz, dx = (float(i) for i in spacing)
+    if mu.shape != density.shape:
+        raise ValueError('Density and mu grids should have same shape')
+    x1, x2, z1, z2 = area
+    nz, nx = mu.shape
+    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    # Get the index of the closest point to the stations and start the
+    # seismograms
+    if stations is not None:
+        stations = [[int(round((z - z1)/dz)), int(round((x - x1)/dx))]
+                    for x, z in stations]
+        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+    else:
+        stations, seismograms = [], []
     # Add some padding to x and z. The padding region is where the wave is
     # absorbed
     pad = int(padding)
@@ -258,25 +285,33 @@ def elastic_sh(spacing, shape, mu, density, dt, iterations, sources, padding=50,
     u = numpy.zeros((2, nz, nx), dtype=numpy.float)
     # Compute and yield the initial solutions
     for src in sources:
-        i, j = src.coords()
+        i, j = src.indexes()
         u[1, i, j + pad] += (dt**2/density[i, j])*src(0)
-    yield u[1, :-pad, pad:-pad]
-    #yield u[1]
+    # Update seismograms
+    for station, seismogram in zip(stations, seismograms):
+        i, j = station
+        seismogram[0] = u[1, i, j + pad]
+    if snapshot is not None:
+        yield 0, u[1, :-pad, pad:-pad], seismograms
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
         tp1 = tm1
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3, dt, dx,
             dz, mu_pad, dens_pad)
         _apply_damping(u[t], nx, nz, pad, taper)
-        #_boundary_conditions(u[tp1], nx, nz)
         _nonreflexive_sh_boundary_conditions(u[tp1], u[t], nx, nz, dt, dx, dz,
             mu_pad, dens_pad)
         _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
-            i, j = src.coords()
+            i, j = src.indexes()
             u[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
-        yield u[tp1, :-pad, pad:-pad]
-        #yield u[tp1]
+        # Update seismograms
+        for station, seismogram in zip(stations, seismograms):
+            i, j = station
+            seismogram[iteration] = u[tp1, i, j + pad]
+        if snapshot is not None and iteration%snapshot == 0:
+            yield iteration, u[tp1, :-pad, pad:-pad], seismograms
+    yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
 def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
     zsources, padding=50, taper=0.002):
@@ -347,8 +382,6 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
             1, nz - 1, dt, dx, dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[t], nx, nz, pad, taper)
         _apply_damping(uz[t], nx, nz, pad, taper)
-        #_boundary_conditions(ux[utp1], nx, nz)
-        #_boundary_conditions(uz[utp1], nx, nz)
         _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,
             dx, dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[tp1], nx, nz, pad, taper)
