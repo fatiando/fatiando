@@ -362,7 +362,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
         current iteration, same for the z component.
 
     """
-    if mu.shape != lamd.shape != density.shape:
+    if mu.shape != lamb.shape != density.shape:
         raise ValueError('Density lambda, and mu grids should have same shape')
     x1, x2, z1, z2 = area
     nz, nx = mu.shape
@@ -403,10 +403,8 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
         tp1 = tm1
-        _step_elastic_psv_x(ux[tp1], ux[t], ux[tm1], uz[t], 1, nx - 1,
-            1, nz - 1, dt, dx, dz, mu_pad, lamb_pad, dens_pad)
-        _step_elastic_psv_z(uz[tp1], uz[t], uz[tm1], ux[t], 1, nx - 1,
-            1, nz - 1, dt, dx, dz, mu_pad, lamb_pad, dens_pad)
+        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1, dt, dx,
+            dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[t], nx, nz, pad, taper)
         _apply_damping(uz[t], nx, nz, pad, taper)
         _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,

@@ -12,8 +12,7 @@ cimport cython
 DTYPE = numpy.float
 ctypedef numpy.float_t double
 
-__all__ = ['_apply_damping', '_boundary_conditions', '_step_elastic_sh',
-    '_step_elastic_psv_x', '_step_elastic_psv_z',
+__all__ = ['_apply_damping', '_step_elastic_sh', '_step_elastic_psv',
     '_nonreflexive_sh_boundary_conditions',
     '_nonreflexive_psv_boundary_conditions']
 
@@ -39,30 +38,6 @@ def _apply_damping(double[:,::1] array not None,
     for i in range(nz - pad, nz):
         for j in range(nx):
             array[i,j] *= exp(-((decay*(i - nz + pad))**2))
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _boundary_conditions(double[:,::1] u not None,
-    unsigned int nx, unsigned int nz):
-    """
-    Apply the boundary conditions: free-surface at top, fixed on the others.
-    """
-    cdef:
-        unsigned int i
-    for i in range(nx):
-        u[2, i] = u[3, i]
-        u[1, i] = u[2, i]
-        u[0, i] = u[1, i]
-        u[nz - 1, i] *= 0
-        u[nz - 2, i] *= 0
-        u[nz - 3, i] *= 0
-    for i in range(nz):
-        u[i, 0] *= 0
-        u[i, 1] *= 0
-        u[i, 2] *= 0
-        u[i, nx - 1] *= 0
-        u[i, nx - 2] *= 0
-        u[i, nx - 3] *= 0
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -110,8 +85,8 @@ def _nonreflexive_psv_boundary_conditions(
     # Top
     for j in range(1, nx - 1):
         ux[tp1,0,j] = ux[tp1,1,j] + (0.5*dz/dx)*(uz[tp1,1,j+1] - uz[tp1,1,j-1])
-        uz[tp1,0,j] = uz[tp1,1,j] + (0.5*dz/dx)*(lamb[1,j]/(lamb[1,j] + 2*mu[1,j]))*(
-                ux[tp1,1,j+1] - ux[tp1,1,j-1])
+        uz[tp1,0,j] = uz[tp1,1,j] + (0.5*dz/dx)*(
+           (lamb[1,j]/(lamb[1,j] + 2*mu[1,j]))*(ux[tp1,1,j+1] - ux[tp1,1,j-1]))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -202,85 +177,64 @@ def _step_elastic_sh(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _step_elastic_psv_x(
-    double[:,::1] ux_tp1 not None,
-    double[:,::1] ux_t not None,
-    double[:,::1] ux_tm1 not None,
-    double[:,::1] uz not None,
+def _step_elastic_psv(
+    double[:,:,::1] ux not None,
+    double[:,:,::1] uz not None,
+    unsigned int tp1, unsigned int t, unsigned int tm1,
     unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
     double dt, double dx, double dz,
     double[:,::1] mu not None,
     double[:,::1] lamb not None,
     double[:,::1] dens not None):
     """
-    Perform a single time step in the Finite Difference solution for ux elastic
-    P and SV waves.
+    Perform a single time step in the Finite Difference solution for P-SV
+    elastic waves.
     """
     cdef:
         unsigned int i, j
-        double dt2, tauxx_p, tauxx_m, tauxz_p, tauxz_m, l, m
+        double dt2, tauzz_p, tauzz_m, tauxx_p, tauxx_m, tauxz_p, tauxz_m, l, m
     dt2 = dt**2
     for i in range(z1, z2):
         for j in range(x1, x2):
-            #l, m = lamb[i,j], mu[i,j]
+            # Step the ux component
             l = 0.5*(lamb[i,j+1] + lamb[i,j])
             m = 0.5*(mu[i,j+1] + mu[i,j])
-            tauxx_p = (l + 2*m)*(ux_t[i,j+1] - ux_t[i,j])/dx + \
-                (l/dz)*(
-                    0.5*(uz[i+1,j+1] + uz[i,j]) - 0.5*(uz[i-1,j+1] + uz[i,j]))
+            tauxx_p = (l + 2*m)*(ux[t,i,j+1] - ux[t,i,j])/dx + (l/dz)*(
+                0.5*(uz[t,i+1,j+1] + uz[t,i,j])
+                - 0.5*(uz[t,i-1,j+1] + uz[t,i,j]))
             l = 0.5*(lamb[i,j-1] + lamb[i,j])
             m = 0.5*(mu[i,j-1] + mu[i,j])
-            tauxx_m = (l + 2*m)*(ux_t[i,j] - ux_t[i,j-1])/dx + \
-                (l/dz)*(
-                    0.5*(uz[i+1,j-1] + uz[i,j]) - 0.5*(uz[i-1,j-1] + uz[i,j]))
+            tauxx_m = (l + 2*m)*(ux[t,i,j] - ux[t,i,j-1])/dx + (l/dz)*(
+                0.5*(uz[t,i+1,j-1] + uz[t,i,j])
+                - 0.5*(uz[t,i-1,j-1] + uz[t,i,j]))
             m = 0.5*(mu[i+1,j] + mu[i,j])
-            tauxz_p = m*((ux_t[i+1,j] - ux_t[i,j])/dz +
-                (0.5*(uz[i+1,j+1] + uz[i,j]) - 0.5*(uz[i+1,j-1] + uz[i,j]))/dx)
+            tauxz_p = m*((ux[t,i+1,j] - ux[t,i,j])/dz +
+                (0.5*(uz[t,i+1,j+1] + uz[t,i,j])
+                     - 0.5*(uz[t,i+1,j-1] + uz[t,i,j]))/dx)
             m = 0.5*(mu[i-1,j] + mu[i,j])
-            tauxz_m = m*((ux_t[i,j] - ux_t[i-1,j])/dz +
-                (0.5*(uz[i-1,j+1] + uz[i,j]) - 0.5*(uz[i-1,j-1] + uz[i,j]))/dx)
-            ux_tp1[i,j] = 2*ux_t[i,j] - ux_tm1[i,j] + (dt2/dens[i,j])*(
+            tauxz_m = m*((ux[t,i,j] - ux[t,i-1,j])/dz +
+                (0.5*(uz[t,i-1,j+1] + uz[t,i,j])
+                    - 0.5*(uz[t,i-1,j-1] + uz[t,i,j]))/dx)
+            ux[tp1,i,j] = 2*ux[t,i,j] - ux[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauxx_p - tauxx_m)/dx + (tauxz_p - tauxz_m)/dz)
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _step_elastic_psv_z(
-    double[:,::1] uz_tp1 not None,
-    double[:,::1] uz_t not None,
-    double[:,::1] uz_tm1 not None,
-    double[:,::1] ux not None,
-    unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
-    double dt, double dx, double dz,
-    double[:,::1] mu not None,
-    double[:,::1] lamb not None,
-    double[:,::1] dens not None):
-    """
-    Perform a single time step in the Finite Difference solution for uz elastic
-    P and SV waves.
-    """
-    cdef:
-        unsigned int i, j
-        double dt2, tauzz_p, tauzz_m, tauxz_p, tauxz_m, l, m
-    dt2 = dt**2
-    for i in range(z1, z2):
-        for j in range(x1, x2):
-            #l, m = lamb[i,j], mu[i,j]
+            # Step the uz component
             l = 0.5*(lamb[i+1,j] + lamb[i,j])
             m = 0.5*(mu[i+1,j] + mu[i,j])
-            tauzz_p = (l + 2*m)*(uz_t[i+1,j] - uz_t[i,j])/dz + \
-                (l/dx)*(
-                    0.5*(ux[i+1,j+1] + ux[i,j]) - 0.5*(ux[i+1,j-1] + ux[i,j]))
+            tauzz_p = (l + 2*m)*(uz[t,i+1,j] - uz[t,i,j])/dz + (l/dx)*(
+                0.5*(ux[t,i+1,j+1] + ux[t,i,j])
+                - 0.5*(ux[t,i+1,j-1] + ux[t,i,j]))
             l = 0.5*(lamb[i-1,j] + lamb[i,j])
             m = 0.5*(mu[i-1,j] + mu[i,j])
-            tauzz_m = (l + 2*m)*(uz_t[i,j] - uz_t[i-1,j])/dz + \
-                (l/dx)*(
-                    0.5*(ux[i-1,j+1] + ux[i,j]) - 0.5*(ux[i-1,j-1] + ux[i,j]))
+            tauzz_m = (l + 2*m)*(uz[t,i,j] - uz[t,i-1,j])/dz + (l/dx)*(
+                0.5*(ux[t,i-1,j+1] + ux[t,i,j])
+                - 0.5*(ux[t,i-1,j-1] + ux[t,i,j]))
             m = 0.5*(mu[i,j+1] + mu[i,j])
-            tauxz_p = m*(
-                (uz_t[i,j+1] - uz_t[i,j])/dx +
-                (0.5*(ux[i+1,j+1] + ux[i,j]) - 0.5*(ux[i-1,j+1] + ux[i,j]))/dz)
+            tauxz_p = m*((uz[t,i,j+1] - uz[t,i,j])/dx +
+                (0.5*(ux[t,i+1,j+1] + ux[t,i,j])
+                    - 0.5*(ux[t,i-1,j+1] + ux[t,i,j]))/dz)
             m = 0.5*(mu[i,j-1] + mu[i,j])
-            tauxz_m = m*((uz_t[i,j] - uz_t[i,j-1])/dx +
-                (0.5*(ux[i+1,j-1] + ux[i,j]) - 0.5*(ux[i-1,j-1] + ux[i,j]))/dz)
-            uz_tp1[i,j] = 2*uz_t[i,j] - uz_tm1[i,j] + (dt2/dens[i,j])*(
+            tauxz_m = m*((uz[t,i,j] - uz[t,i,j-1])/dx +
+                (0.5*(ux[t,i+1,j-1] + ux[t,i,j])
+                    - 0.5*(ux[t,i-1,j-1] + ux[t,i,j]))/dz)
+            uz[tp1,i,j] = 2*uz[t,i,j] - uz[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauzz_p - tauzz_m)/dz + (tauxz_p - tauxz_m)/dx)
