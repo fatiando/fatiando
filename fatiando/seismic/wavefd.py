@@ -313,24 +313,29 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
             yield iteration, u[tp1, :-pad, pad:-pad], seismograms
     yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
-def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
-    zsources, padding=50, taper=0.002):
+def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
+    stations=None, snapshot=None, padding=50, taper=0.002):
     """
     Simulate P and SV waves using the Parsimoneous Staggered Grid (PSG) finite
     differences scheme of Luo and Schuster (1990).
 
+    This is an iterator. It yields panels of $u_x$ and $u_z$ displacements
+    and a list of arrays with recorded displacements in a time series.
+    Parameter *snapshot* controls how often the iterator yields. The default
+    is only at the end, so only the final panel and full time series are
+    yielded.
+
     Parameters:
 
-    * spacing : (dz, dx)
-        The node spacing of the finite differences grid
-    * shape : (nz, nx)
-        The number of nodes in the grid in the z and x directions
     * mu : 2D-array (shape = *shape*)
         The :math:`\mu` Lame parameter at all the grid nodes
     * lamb : 2D-array (shape = *shape*)
         The :math:`\lambda` Lame parameter at all the grid nodes
     * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
     * dt : float
         The time interval between iterations
     * iterations : int
@@ -351,12 +356,27 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
 
     Yields:
 
-    * ux, uz : 2D-arrays
-        The particle movement in the x and z direction at each time step
+    * t, ux, xseismograms, uz, zseismograms : int, 2D-array, list of 1D-arrays
+        The current iteration, the particle displacement in the x direction
+        and a list of the displacements recorded at each station until the
+        current iteration, same for the z component.
 
     """
-    nz, nx = shape
-    dz, dx = (float(i) for i in spacing)
+    if mu.shape != lamd.shape != density.shape:
+        raise ValueError('Density lambda, and mu grids should have same shape')
+    x1, x2, z1, z2 = area
+    nz, nx = mu.shape
+    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    # Get the index of the closest point to the stations and start the
+    # seismograms
+    if stations is not None:
+        stations = [[int(round((z - z1)/dz)), int(round((x - x1)/dx))]
+                    for x, z in stations]
+        xseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+        zseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+    else:
+        stations, xseismograms, zseismograms = [], [], []
+    # Add padding to have an absorbing region to simulate an infinite medium
     pad = int(padding)
     nx += 2*pad
     nz += pad
@@ -367,12 +387,19 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
     ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
     uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
     for src in xsources:
-        i, j = src.coords()
+        i, j = src.indexes()
         ux[1, i, j + pad] += (dt**2/density[i, j])*src(0)
     for src in zsources:
-        i, j = src.coords()
+        i, j = src.indexes()
         uz[1, i, j + pad] += (dt**2/density[i, j])*src(0)
-    yield ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad]
+    # Update seismograms
+    for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
+        i, j = station
+        xseis[0] = ux[1, i, j + pad]
+        zseis[0] = uz[1, i, j + pad]
+    if snapshot is not None:
+        yield [0, ux[1, :-pad, pad:-pad], xseismograms,
+               uz[1, :-pad, pad:-pad], zseismograms]
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
         tp1 = tm1
@@ -387,9 +414,17 @@ def elastic_psv(spacing, shape, mu, lamb, density, dt, iterations, xsources,
         _apply_damping(ux[tp1], nx, nz, pad, taper)
         _apply_damping(uz[tp1], nx, nz, pad, taper)
         for src in xsources:
-            i, j = src.coords()
+            i, j = src.indexes()
             ux[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
         for src in zsources:
-            i, j = src.coords()
+            i, j = src.indexes()
             uz[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
-        yield ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad]
+        for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
+            i, j = station
+            xseis[iteration] = ux[1, i, j + pad]
+            zseis[iteration] = uz[1, i, j + pad]
+        if snapshot is not None and iteration%snapshot == 0:
+            yield [iteration, ux[tp1, :-pad, pad:-pad], xseismograms,
+                   uz[tp1, :-pad, pad:-pad], zseismograms]
+    yield [iteration, ux[tp1, :-pad, pad:-pad], xseismograms,
+           uz[tp1, :-pad, pad:-pad], zseismograms]
