@@ -39,6 +39,8 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 from __future__ import division
 
 import numpy
+import scipy.sparse
+import scipy.sparse.linalg
 
 from fatiando.seismic._wavefd import *
 
@@ -412,6 +414,18 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
     mu_pad = _add_pad(mu, pad, (nz, nx))
     lamb_pad = _add_pad(lamb, pad, (nz, nx))
     dens_pad = _add_pad(density, pad, (nz, nx))
+    # Pre-compute the matrices required for the free-surface boundary
+    dzdx = dz/dx
+    identity = scipy.sparse.identity(nx)
+    B = scipy.sparse.eye(nx, nx, k=1) - scipy.sparse.eye(nx, nx, k=-1)
+    gamma = scipy.sparse.spdiags(lamb_pad[0]/(lamb_pad[0] + 2*mu_pad[0]), [0],
+                                 nx, nx)
+    Mx1 = identity - 0.0625*(dzdx**2)*B*gamma*B
+    Mx2 = identity + 0.0625*(dzdx**2)*B*gamma*B
+    Mx3 = 0.5*dzdx*B
+    Mz1 = identity - 0.0625*(dzdx**2)*gamma*B*B
+    Mz2 = identity + 0.0625*(dzdx**2)*gamma*B*B
+    Mz3 = 0.5*dzdx*gamma*B
     # Compute and yield the initial solutions
     ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
     uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
@@ -436,6 +450,11 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
             dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[t], nx, nz, pad, taper)
         _apply_damping(uz[t], nx, nz, pad, taper)
+        # Free-surface boundary conditions
+        ux[tp1,0,:] = scipy.sparse.linalg.spsolve(Mx1,
+                      Mx2*ux[tp1,1,:] + Mx3*uz[tp1,1,:])
+        uz[tp1,0,:] = scipy.sparse.linalg.spsolve(Mz1,
+                      Mz2*uz[tp1,1,:] + Mz3*ux[tp1,1,:])
         _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,
             dx, dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[tp1], nx, nz, pad, taper)

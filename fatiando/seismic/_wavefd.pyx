@@ -85,36 +85,26 @@ def _nonreflexive_psv_boundary_conditions(
     """
     cdef:
         unsigned int i, j
-    # Left
     for i in range(nz):
-        j = 1
+        # Left
+        j = 0
         ux[tp1,i,j] = ux[t,i,j] + dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
             ux[t,i,j+1] - ux[t,i,j])/dx
         uz[tp1,i,j] = uz[t,i,j] + dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
             uz[t,i,j+1] - uz[t,i,j])/dx
-    # Right
-    for i in range(nz):
-        for j in range(nx - 1, nx):
-            ux[tp1,i,j] = ux[t,i,j] - \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    ux[t,i,j] - ux[t,i,j-1])/dx
-            uz[tp1,i,j] = uz[t,i,j] - \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    uz[t,i,j] - uz[t,i,j-1])/dx
+        # Right
+        j = nx - 1
+        ux[tp1,i,j] = ux[t,i,j] - dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            ux[t,i,j] - ux[t,i,j-1])/dx
+        uz[tp1,i,j] = uz[t,i,j] - dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            uz[t,i,j] - uz[t,i,j-1])/dx
     # Bottom
-    for i in range(nz - 1, nz):
-        for j in range(nx):
-            ux[tp1,i,j] = ux[t,i,j] - \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    ux[t,i,j] - ux[t,i-1,j])/dz
-            uz[tp1,i,j] = uz[t,i,j] - \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    uz[t,i,j] - uz[t,i-1,j])/dz
-    # Top
-    for j in range(1, nx - 1):
-        ux[tp1,0,j] = ux[tp1,1,j] + (0.5*dz/dx)*(uz[tp1,1,j+1] - uz[tp1,1,j-1])
-        uz[tp1,0,j] = uz[tp1,1,j] + (0.5*dz/dx)*(
-           (lamb[1,j]/(lamb[1,j] + 2*mu[1,j]))*(ux[tp1,1,j+1] - ux[tp1,1,j-1]))
+    i = nz - 1
+    for j in range(nx):
+        ux[tp1,i,j] = ux[t,i,j] - dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            ux[t,i,j] - ux[t,i-1,j])/dz
+        uz[tp1,i,j] = uz[t,i,j] - dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            uz[t,i,j] - uz[t,i-1,j])/dz
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -224,45 +214,39 @@ def _step_elastic_psv(
     dt2 = dt**2
     for i in range(z1, z2):
         for j in range(x1, x2):
+            #l = lamb[i,j]
+            #m = mu[i,j]
             # Step the ux component
             l = 0.5*(lamb[i,j+1] + lamb[i,j])
             m = 0.5*(mu[i,j+1] + mu[i,j])
-            tauxx_p = (l + 2*m)*(ux[t,i,j+1] - ux[t,i,j])/dx + (l/dz)*(
-                0.5*(uz[t,i+1,j+1] + uz[t,i,j])
-                - 0.5*(uz[t,i-1,j+1] + uz[t,i,j]))
+            tauxx_p = (l + 2*m)*(ux[t,i,j+1] - ux[t,i,j])/dx + l*0.25*(
+                uz[t,i+1,j+1] + uz[t,i+1,j] - uz[t,i-1,j+1] - uz[t,i-1,j])/dz
             l = 0.5*(lamb[i,j-1] + lamb[i,j])
             m = 0.5*(mu[i,j-1] + mu[i,j])
-            tauxx_m = (l + 2*m)*(ux[t,i,j] - ux[t,i,j-1])/dx + (l/dz)*(
-                0.5*(uz[t,i+1,j-1] + uz[t,i,j])
-                - 0.5*(uz[t,i-1,j-1] + uz[t,i,j]))
+            tauxx_m = (l + 2*m)*(ux[t,i,j] - ux[t,i,j-1])/dx + l*0.25*(
+                uz[t,i+1,j] + uz[t,i+1,j-1] - uz[t,i-1,j] - uz[t,i-1,j-1])/dz
             m = 0.5*(mu[i+1,j] + mu[i,j])
-            tauxz_p = m*((ux[t,i+1,j] - ux[t,i,j])/dz +
-                (0.5*(uz[t,i+1,j+1] + uz[t,i,j])
-                     - 0.5*(uz[t,i+1,j-1] + uz[t,i,j]))/dx)
+            tauxz_p = m*((ux[t,i+1,j] - ux[t,i,j])/dz + 0.25*(
+                uz[t,i+1,j+1] + uz[t,i,j+1]- uz[t,i+1,j-1] - uz[t,i,j-1])/dx)
             m = 0.5*(mu[i-1,j] + mu[i,j])
-            tauxz_m = m*((ux[t,i,j] - ux[t,i-1,j])/dz +
-                (0.5*(uz[t,i-1,j+1] + uz[t,i,j])
-                    - 0.5*(uz[t,i-1,j-1] + uz[t,i,j]))/dx)
+            tauxz_m = m*((ux[t,i,j] - ux[t,i-1,j])/dz + 0.25*(
+                uz[t,i,j+1] + uz[t,i-1,j+1]- uz[t,i,j-1]  - uz[t,i-1,j-1])/dx)
             ux[tp1,i,j] = 2*ux[t,i,j] - ux[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauxx_p - tauxx_m)/dx + (tauxz_p - tauxz_m)/dz)
             # Step the uz component
             l = 0.5*(lamb[i+1,j] + lamb[i,j])
             m = 0.5*(mu[i+1,j] + mu[i,j])
-            tauzz_p = (l + 2*m)*(uz[t,i+1,j] - uz[t,i,j])/dz + (l/dx)*(
-                0.5*(ux[t,i+1,j+1] + ux[t,i,j])
-                - 0.5*(ux[t,i+1,j-1] + ux[t,i,j]))
+            tauzz_p = (l + 2*m)*(uz[t,i+1,j] - uz[t,i,j])/dz + l*0.25*(
+                ux[t,i+1,j+1] + ux[t,i,j+1] - ux[t,i+1,j-1] - ux[t,i,j-1])/dx
             l = 0.5*(lamb[i-1,j] + lamb[i,j])
             m = 0.5*(mu[i-1,j] + mu[i,j])
-            tauzz_m = (l + 2*m)*(uz[t,i,j] - uz[t,i-1,j])/dz + (l/dx)*(
-                0.5*(ux[t,i-1,j+1] + ux[t,i,j])
-                - 0.5*(ux[t,i-1,j-1] + ux[t,i,j]))
+            tauzz_m = (l + 2*m)*(uz[t,i,j] - uz[t,i-1,j])/dz + l*0.25*(
+                ux[t,i,j+1] + ux[t,i-1,j+1] - ux[t,i,j-1] - ux[t,i-1,j-1])/dx
             m = 0.5*(mu[i,j+1] + mu[i,j])
-            tauxz_p = m*((uz[t,i,j+1] - uz[t,i,j])/dx +
-                (0.5*(ux[t,i+1,j+1] + ux[t,i,j])
-                    - 0.5*(ux[t,i-1,j+1] + ux[t,i,j]))/dz)
+            tauxz_p = m*((uz[t,i,j+1] - uz[t,i,j])/dx + 0.25*(
+                ux[t,i+1,j+1] + ux[t,i+1,j] - ux[t,i-1,j+1] - ux[t,i-1,j])/dz)
             m = 0.5*(mu[i,j-1] + mu[i,j])
-            tauxz_m = m*((uz[t,i,j] - uz[t,i,j-1])/dx +
-                (0.5*(ux[t,i+1,j-1] + ux[t,i,j])
-                    - 0.5*(ux[t,i-1,j-1] + ux[t,i,j]))/dz)
+            tauxz_m = m*((uz[t,i,j] - uz[t,i,j-1])/dx + 0.25*(
+                ux[t,i+1,j] + ux[t,i+1,j-1]- ux[t,i-1,j]  - ux[t,i-1,j-1])/dz)
             uz[tp1,i,j] = 2*uz[t,i,j] - uz[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauzz_p - tauzz_m)/dz + (tauxz_p - tauxz_m)/dx)
