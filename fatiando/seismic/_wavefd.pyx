@@ -12,10 +12,40 @@ cimport cython
 DTYPE = numpy.float
 ctypedef numpy.float_t double
 
-__all__ = ['_apply_damping', '_step_elastic_sh', '_step_elastic_psv',
+__all__ = ['_apply_damping', '_step_elastic_sh', '_step_elastic_psv', '_xz2ps',
     '_nonreflexive_sh_boundary_conditions',
     '_nonreflexive_psv_boundary_conditions']
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _xz2ps(
+    numpy.ndarray[double, ndim=2] ux not None,
+    numpy.ndarray[double, ndim=2] uz not None,
+    double[:,::1] p not None,
+    double[:,::1] s not None,
+    unsigned int nx, unsigned int nz,
+    double dx, double dz):
+    """
+    Convert ux and uz to P and S waves.
+    """
+    cdef:
+        unsigned int i, j
+    for i in range(1, nz - 1):
+        for j in range(1, nx - 1):
+            p[i,j] = (0.5*(uz[i+1,j] - uz[i-1,j])/dz
+                      + 0.5*(ux[i,j+1] - ux[i,j-1])/dx)
+            s[i,j] = (0.5*(ux[i+1,j] - ux[i-1,j])/dz
+                      - 0.5*(uz[i,j+1] - uz[i,j-1])/dx)
+    for i in range(nz):
+        p[i,nx-1] = p[i,nx-2]
+        p[i,0] = p[i,1]
+        s[i,nx-1] = s[i,nx-2]
+        s[i,0] = s[i,1]
+    for j in range(nx):
+        p[nz-1,j] = p[nz-2,j]
+        p[0,j] = p[1,j]
+        s[nz-1,j] = s[nz-2,j]
+        s[0,j] = s[1,j]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -57,13 +87,11 @@ def _nonreflexive_psv_boundary_conditions(
         unsigned int i, j
     # Left
     for i in range(nz):
-        for j in range(1):
-            ux[tp1,i,j] = ux[t,i,j] + \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    ux[t,i,j+1] - ux[t,i,j])/dx
-            uz[tp1,i,j] = uz[t,i,j] + \
-                dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
-                    uz[t,i,j+1] - uz[t,i,j])/dx
+        j = 1
+        ux[tp1,i,j] = ux[t,i,j] + dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            ux[t,i,j+1] - ux[t,i,j])/dx
+        uz[tp1,i,j] = uz[t,i,j] + dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
+            uz[t,i,j+1] - uz[t,i,j])/dx
     # Right
     for i in range(nz):
         for j in range(nx - 1, nx):

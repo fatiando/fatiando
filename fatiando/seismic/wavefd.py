@@ -148,6 +148,35 @@ class SinSqrSource(MexHatSource):
         psi = self.amp*numpy.sin(2.*numpy.pi*t/float(self.wlength))**2
         return psi
 
+def blast_source(x, z, area, shape, amp, frequency, delay=0):
+    """
+    Uses several MexHatSources to create a blast source that pushes in all
+    directions.
+
+    Returns:
+
+    * [xsources, zsources]:
+
+    """
+    nz, nx = shape
+    xsources, zsources = [], []
+    center = MexHatSource(x, z, area, shape, amp, frequency, delay)
+    i, j = center.indexes()
+    tmp = numpy.sqrt(2)
+    locations = [[i-1,j-1,-amp,-amp], [i-1,j,0,-tmp*amp], [i-1,j+1,amp,-amp],
+                 [i,j-1,-tmp*amp,0], [i,j+1,tmp*amp,0],
+                 [i+1,j-1,-amp,amp], [i+1,j,0,tmp*amp], [i+1,j+1,amp,amp]]
+    locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
+                 if i >= 0 and i < nz and j >= 0 and j < nx]
+    for i, j, xamp, zamp in locations:
+        xsrc = MexHatSource(x, z, area, shape, xamp, frequency, delay)
+        xsrc.i, xsrc.j = i, j
+        zsrc = MexHatSource(x, z, area, shape, zamp, frequency, delay)
+        zsrc.i, zsrc.j = i, j
+        xsources.append(xsrc)
+        zsources.append(zsrc)
+    return xsources, zsources
+
 def lame(pvel, svel, dens):
     r"""
     Calculate the Lame constants :math:`\lambda` and :math:`\mu` from the
@@ -426,3 +455,31 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
                    uz[tp1, :-pad, pad:-pad], zseismograms]
     yield [iteration, ux[tp1, :-pad, pad:-pad], xseismograms,
            uz[tp1, :-pad, pad:-pad], zseismograms]
+
+def xz2ps(ux, uz, area):
+    """
+    Convert the x and z displacements into P and S waves using the divergence
+    and curl, respectively.
+
+    Parameters:
+
+    * ux, uz : 2D-arrays
+        The x and z displacement panels
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
+
+    Returns:
+
+    * p, s : 2D-arrays
+        Panels corresponding to P and S wave components
+
+    """
+    if ux.shape != uz.shape:
+        raise ValueError('ux and uz grids should have same shape')
+    x1, x2, z1, z2 = area
+    nz, nx = ux.shape
+    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    p, s = numpy.empty_like(ux), numpy.empty_like(ux)
+    _xz2ps(ux, uz, p, s, nx, nz, dx, dz)
+    return p, s
