@@ -407,7 +407,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
 def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
-    stations=None, snapshot=None, padding=50, taper=0.002):
+    stations=None, snapshot=None, padding=50, taper=0.002, xz2ps=False):
     """
     Simulate P and SV waves using the Parsimoneous Staggered Grid (PSG) finite
     differences scheme of Luo and Schuster (1990).
@@ -454,6 +454,9 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     * taper : float
         The intensity of the gaussian taper function used for the absorbing
         boundary conditions
+    * xz2ps : True or False
+        If True, will yield P and S wave panels instead of ux, uz. See
+        :func:`~fatiando.seismic.wavefd.xz2ps`.
 
     Yields:
 
@@ -506,6 +509,8 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     # Compute and yield the initial solutions
     ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
     uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
+    if xz2ps:
+        p, s = numpy.empty_like(mu), numpy.empty_like(mu)
     for src in xsources:
         i, j = src.indexes()
         ux[1, i, j + pad] += (dt**2/density[i, j])*src(0)
@@ -518,8 +523,13 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
         xseis[0] = ux[1, i, j + pad]
         zseis[0] = uz[1, i, j + pad]
     if snapshot is not None:
-        yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
-               xseismograms, zseismograms]
+        if xz2ps:
+            _xz2ps(ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad], p, s,
+                   p.shape[1], p.shape[0], dx, dz)
+            yield [0, p, s, xseismograms, zseismograms]
+        else:
+            yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
+                   xseismograms, zseismograms]
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
         tp1 = tm1
@@ -544,13 +554,23 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
             uz[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
         for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
             i, j = station
-            xseis[iteration] = ux[1, i, j + pad]
-            zseis[iteration] = uz[1, i, j + pad]
+            xseis[iteration] = ux[tp1, i, j + pad]
+            zseis[iteration] = uz[tp1, i, j + pad]
         if snapshot is not None and iteration%snapshot == 0:
-            yield [iteration, ux[tp1, :-pad, pad:-pad],
-                   uz[tp1, :-pad, pad:-pad], xseismograms, zseismograms]
-    yield [iteration, ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad],
-           xseismograms, zseismograms]
+            if xz2ps:
+                _xz2ps(ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad], p,
+                       s, p.shape[1], p.shape[0], dx, dz)
+                yield [iteration, p, s, xseismograms, zseismograms]
+            else:
+                yield [iteration, ux[tp1, :-pad, pad:-pad],
+                       uz[tp1, :-pad, pad:-pad], xseismograms, zseismograms]
+    if xz2ps:
+        _xz2ps(ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad], p,
+               s, p.shape[1], p.shape[0], dx, dz)
+        yield [iteration, p, s, xseismograms, zseismograms]
+    else:
+        yield [iteration, ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad],
+               xseismograms, zseismograms]
 
 def xz2ps(ux, uz, area):
     r"""
