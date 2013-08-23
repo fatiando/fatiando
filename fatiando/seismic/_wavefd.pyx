@@ -34,21 +34,35 @@ def _xz2ps(
     """
     cdef:
         unsigned int i, j
-    for i in range(1, nz - 1):
-        for j in range(1, nx - 1):
-            p[i,j] = (0.5*(uz[i+1,j] - uz[i-1,j])/dz
-                      + 0.5*(ux[i,j+1] - ux[i,j-1])/dx)
-            s[i,j] = (0.5*(ux[i+1,j] - ux[i-1,j])/dz
-                      - 0.5*(uz[i,j+1] - uz[i,j-1])/dx)
+        double tmpx, tmpz
+    tmpx = dx*12.
+    tmpz = dz*12.
+    for i in range(2, nz - 2):
+        for j in range(2, nx - 2):
+            p[i,j] = (
+                (-uz[i+2,j] + 8*uz[i+1,j] - 8*uz[i-1,j] + uz[i-2,j])/tmpz
+                + (-ux[i,j+2] + 8*ux[i,j+1] - 8*ux[i,j-1] + ux[i,j-2])/tmpx)
+            s[i,j] = (
+                (-ux[i+2,j] + 8*ux[i+1,j] - 8*ux[i-1,j] + ux[i-2,j])/tmpz
+                - (-uz[i,j+2] + 8*uz[i,j+1] - 8*uz[i,j-1] + uz[i,j-2])/tmpx)
+    # Fill in the borders with the same values
     for i in range(nz):
+        p[i,nx-2] = p[i,nx-3]
         p[i,nx-1] = p[i,nx-2]
+        p[i,1] = p[i,2]
         p[i,0] = p[i,1]
+        s[i,nx-2] = s[i,nx-3]
         s[i,nx-1] = s[i,nx-2]
+        s[i,1] = s[i,2]
         s[i,0] = s[i,1]
     for j in range(nx):
+        p[nz-2,j] = p[nz-3,j]
         p[nz-1,j] = p[nz-2,j]
+        p[1,j] = p[2,j]
         p[0,j] = p[1,j]
+        s[nz-2,j] = s[nz-3,j]
         s[nz-1,j] = s[nz-2,j]
+        s[1,j] = s[2,j]
         s[0,j] = s[1,j]
 
 @cython.boundscheck(False)
