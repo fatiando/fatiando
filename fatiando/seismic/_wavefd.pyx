@@ -12,7 +12,11 @@ cimport cython
 DTYPE = numpy.float
 ctypedef numpy.float_t double
 
-__all__ = ['_apply_damping', '_step_elastic_sh', '_step_elastic_psv', '_xz2ps',
+__all__ = [
+    '_apply_damping',
+    '_step_elastic_sh',
+    '_step_elastic_psv',
+    '_xz2ps',
     '_nonreflexive_sh_boundary_conditions',
     '_nonreflexive_psv_boundary_conditions']
 
@@ -214,8 +218,6 @@ def _step_elastic_psv(
     dt2 = dt**2
     for i in range(z1, z2):
         for j in range(x1, x2):
-            #l = lamb[i,j]
-            #m = mu[i,j]
             # Step the ux component
             l = 0.5*(lamb[i,j+1] + lamb[i,j])
             m = 0.5*(mu[i,j+1] + mu[i,j])

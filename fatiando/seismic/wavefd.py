@@ -1,27 +1,26 @@
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
-.. warning::
-
-    Due to the high computational demmand of these simulations,
-    the pure Python time stepping functions are **very** slow!
-    I strongly recommend using the optimized Cython time stepping module.
-
-Simulates both elastic and acoustic waves:
-
 * :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
-  elastic waves
-* :func:`~fatiando.seismic.wavefd.elastic_sh`: Simulates SH elastic waves
+  elastic waves using the Parsimonious Staggered Grid method of Luo and
+  Schuster (1990)
+* :func:`~fatiando.seismic.wavefd.elastic_sh`: Simulates SH elastic waves using
+  the Equivalent Staggared Grid method of Di Bartolo et al. (2012)
 
 **Sources**
 
 * :class:`~fatiando.seismic.wavefd.MexHatSource`: Mexican hat wavelet source
 * :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared source
+* :func:`~fatiando.seismic.wavefd.blast_source`: A source blasting in all
+  directions
 
-**Auxiliary function**
+**Auxiliary functions**
 
-* :func:`~fatiando.seismic.wavefd.lame`: Calculate the Lame constants from P and
-  S wave velocities and density
+* :func:`~fatiando.seismic.wavefd.lame_lamb`: Calculate the lambda Lame
+  parameter
+* :func:`~fatiando.seismic.wavefd.lame_mu`: Calculate the mu Lame parameter
+* :func:`~fatiando.seismic.wavefd.xz2ps`: Convert x and z displacements to
+  representations of P and S waves
 
 **References**
 
@@ -42,7 +41,19 @@ import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 
-from fatiando.seismic._wavefd import *
+try:
+    from fatiando.seismic._wavefd import *
+except:
+    def not_implemented(*args, **kwargs):
+        raise NotImplementedError(
+        "Couldn't load C coded extension module for FD time steps")
+    _apply_damping = not_implemented
+    _step_elastic_sh = not_implemented
+    _step_elastic_psv = not_implemented
+    _xz2ps = not_implemented
+    _nonreflexive_sh_boundary_conditions = not_implemented
+    _nonreflexive_psv_boundary_conditions = not_implemented
+
 
 class MexHatSource(object):
     r"""
@@ -114,6 +125,8 @@ class SinSqrSource(MexHatSource):
     r"""
     A wave source that vibrates as a sine squared function.
 
+    This source vibrates for a time equal to one period (T).
+
     .. math::
 
         \psi(t) = A\sin\left(t\frac{2\pi}{T}\right)^2
@@ -128,41 +141,61 @@ class SinSqrSource(MexHatSource):
         The number of nodes in the finite difference grid
     * amp : float
         The amplitude of the source (:math:`A`)
-    * wlength : float
-        The wave length (:math:`T`)
+    * frequency : float
+        The frequency of the source
     * delay : float
         The delay before the source starts
 
-        .. note:: If you want the source to start with amplitude close to 0, use
-            ``delay = 3.5*wlength``.
+        .. note:: If you want the source to start with amplitude close to 0,
+            use ``delay = 3.5/frequency``.
 
     """
 
-    def __init__(self, x, z, area, shape, amp, wlength, delay=0):
+    def __init__(self, x, z, area, shape, amp, frequency, delay=0):
         super(SinSqrSource, self).__init__(self, x, z, area, shape, amp,
-                                           1./wlength, delay)
-        self.wlength = wlength
+                                           frequency, delay)
+        self.wlength = 1./frequency
 
     def __call__(self, time):
         t = time - self.delay
-        if t > self.wlength:
+        if t + self.delay > self.wlength:
             return 0
         psi = self.amp*numpy.sin(2.*numpy.pi*t/float(self.wlength))**2
         return psi
 
-def blast_source(x, z, area, shape, amp, frequency, delay=0):
+def blast_source(x, z, area, shape, amp, frequency, delay=0,
+    sourcetype=MexHatSource):
     """
     Uses several MexHatSources to create a blast source that pushes in all
     directions.
 
+    Parameters:
+
+    * x, z : float
+        The x, z coordinates of the source
+    * area : [xmin, xmax, zmin, zmax]
+        The area bounding the finite difference simulation
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
+    * amp : float
+        The amplitude of the source
+    * frequency : float
+        The frequency of the source
+    * delay : float
+        The delay before the source starts
+    * sourcetype : source class
+        The type of source to use, like
+        :class:`~fatiando.seismic.wavefd.MexHatSource`.
+
     Returns:
 
-    * [xsources, zsources]:
+    * [xsources, zsources]
+        Lists of sources for x- and z-displacements
 
     """
     nz, nx = shape
     xsources, zsources = [], []
-    center = MexHatSource(x, z, area, shape, amp, frequency, delay)
+    center = sourcetype(x, z, area, shape, amp, frequency, delay)
     i, j = center.indexes()
     tmp = numpy.sqrt(2)
     locations = [[i-1,j-1,-amp,-amp], [i-1,j,0,-tmp*amp], [i-1,j+1,amp,-amp],
@@ -171,27 +204,22 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0):
     locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
                  if i >= 0 and i < nz and j >= 0 and j < nx]
     for i, j, xamp, zamp in locations:
-        xsrc = MexHatSource(x, z, area, shape, xamp, frequency, delay)
+        xsrc = sourcetype(x, z, area, shape, xamp, frequency, delay)
         xsrc.i, xsrc.j = i, j
-        zsrc = MexHatSource(x, z, area, shape, zamp, frequency, delay)
+        zsrc = sourcetype(x, z, area, shape, zamp, frequency, delay)
         zsrc.i, zsrc.j = i, j
         xsources.append(xsrc)
         zsources.append(zsrc)
     return xsources, zsources
 
-def lame(pvel, svel, dens):
+def lame_lamb(pvel, svel, dens):
     r"""
-    Calculate the Lame constants :math:`\lambda` and :math:`\mu` from the
-    P and S wave velocities (:math:`\alpha` and :math:`\beta`) and the density
-    (:math:`\rho`).
+    Calculate the Lame parameter :math:`\lambda` P and S wave velocities
+    (:math:`\alpha` and :math:`\beta`) and the density (:math:`\rho`).
 
     .. math::
 
-        \mu = \beta^2 \rho
-
-    .. math::
-
-        \lambda = \alpha^2 \rho - 2\mu
+        \lambda = \alpha^2 \rho - 2\beta^2 \rho
 
     Parameters:
 
@@ -204,27 +232,58 @@ def lame(pvel, svel, dens):
 
     Returns:
 
-    * [lambda, mu] : floats or arrays
-        The Lame constants
+    * lambda : float or array
+        The Lame parameter
 
     Examples::
 
-        >>> print lame(2000, 1000, 2700)
-        (5400000000, 2700000000)
+        >>> print lame_lamb(2000, 1000, 2700)
+        5400000000
         >>> import numpy as np
         >>> pv = np.array([2000, 3000])
         >>> sv = np.array([1000, 1700])
         >>> dens = np.array([2700, 3100])
-        >>> lamb, mu = lame(pv, sv, dens)
-        >>> print lamb
+        >>> print lame_lamb(pv, sv, dens)
         [5400000000 9982000000]
-        >>> print mu
+
+    """
+    lamb = dens*pvel**2 - 2*dens*svel**2
+    return lamb
+
+def lame_mu(svel, dens):
+    r"""
+    Calculate the Lame parameter :math:`\mu` from S wave velocity
+    (:math:`\beta`) and the density (:math:`\rho`).
+
+    .. math::
+
+        \mu = \beta^2 \rho
+
+    Parameters:
+
+    * svel : float or array
+        The S wave velocity
+    * dens : float or array
+        The density
+
+    Returns:
+
+    * mu : float or array
+        The Lame parameter
+
+    Examples::
+
+        >>> print lame_mu(1000, 2700)
+        2700000000
+        >>> import numpy as np
+        >>> sv = np.array([1000, 1700])
+        >>> dens = np.array([2700, 3100])
+        >>> print lame_mu(sv, dens)
         [2700000000 8959000000]
 
     """
     mu = dens*svel**2
-    lamb = dens*pvel**2 - 2*mu
-    return lamb, mu
+    return mu
 
 def _add_pad(array, pad, shape):
     """
@@ -251,6 +310,9 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     is only at the end, so only the final panel and full time series are
     yielded.
 
+    Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
+    right boundaries. The top implements a free-surface boundary condition.
+
     Parameters:
 
     * mu : 2D-array (shape = *shape*)
@@ -271,7 +333,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     * stations : None or list
         If not None, then a list of [x, z] pairs with the x and z coordinates
         of the recording stations. These are physical coordinates, not the
-        indexes!
+        indexes
     * snapshot : None or int
         If not None, than yield a snapshot of the displacement at every
         *snapshot* iterations.
@@ -344,7 +406,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
             yield iteration, u[tp1, :-pad, pad:-pad], seismograms
     yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
-def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
+def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     stations=None, snapshot=None, padding=50, taper=0.002):
     """
     Simulate P and SV waves using the Parsimoneous Staggered Grid (PSG) finite
@@ -355,6 +417,10 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
     Parameter *snapshot* controls how often the iterator yields. The default
     is only at the end, so only the final panel and full time series are
     yielded.
+
+    Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
+    right boundaries. The top implements the free-surface boundary condition
+    of Vidale and Clayton (1986).
 
     Parameters:
 
@@ -371,14 +437,18 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
         The time interval between iterations
     * iterations : int
         Number of time steps to take
-    * xsources : list
-        A list of the sources of waves for the particle movement in the x
-        direction
+    * sources : [xsources, zsources] : lists
+        A lists of the sources of waves for the particle movement in the x and
+        z directions
         (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
         source)
-    * zsources : list
-        A list of the sources of waves for the particle movement in the z
-        direction
+    * stations : None or list
+        If not None, then a list of [x, z] pairs with the x and z coordinates
+        of the recording stations. These are physical coordinates, not the
+        indexes!
+    * snapshot : None or int
+        If not None, than yield a snapshot of the displacements at every
+        *snapshot* iterations.
     * padding : int
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
@@ -387,10 +457,16 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
 
     Yields:
 
-    * t, ux, xseismograms, uz, zseismograms : int, 2D-array, list of 1D-arrays
-        The current iteration, the particle displacement in the x direction
-        and a list of the displacements recorded at each station until the
-        current iteration, same for the z component.
+    * [t, ux, uz, xseismograms, zseismograms]
+        The current iteration, the particle displacements in the x and z
+        directions, lists of arrays containing the displacements recorded at
+        each station until the current iteration.
+
+    References:
+
+    Vidale, J. E., and R. W. Clayton (1986), A stable free-surface boundary
+    condition for two-dimensional elastic finite-difference wave simulation,
+    Geophysics, 51(12), 2247-2249.
 
     """
     if mu.shape != lamb.shape != density.shape:
@@ -398,6 +474,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
     x1, x2, z1, z2 = area
     nz, nx = mu.shape
     dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    xsources, zsources = sources
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
@@ -441,8 +518,8 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
         xseis[0] = ux[1, i, j + pad]
         zseis[0] = uz[1, i, j + pad]
     if snapshot is not None:
-        yield [0, ux[1, :-pad, pad:-pad], xseismograms,
-               uz[1, :-pad, pad:-pad], zseismograms]
+        yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
+               xseismograms, zseismograms]
     for iteration in xrange(1, iterations):
         t, tm1 = iteration%2, (iteration + 1)%2
         tp1 = tm1
@@ -470,15 +547,23 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, xsources, zsources,
             xseis[iteration] = ux[1, i, j + pad]
             zseis[iteration] = uz[1, i, j + pad]
         if snapshot is not None and iteration%snapshot == 0:
-            yield [iteration, ux[tp1, :-pad, pad:-pad], xseismograms,
-                   uz[tp1, :-pad, pad:-pad], zseismograms]
-    yield [iteration, ux[tp1, :-pad, pad:-pad], xseismograms,
-           uz[tp1, :-pad, pad:-pad], zseismograms]
+            yield [iteration, ux[tp1, :-pad, pad:-pad],
+                   uz[tp1, :-pad, pad:-pad], xseismograms, zseismograms]
+    yield [iteration, ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad],
+           xseismograms, zseismograms]
 
 def xz2ps(ux, uz, area):
-    """
-    Convert the x and z displacements into P and S waves using the divergence
-    and curl, respectively.
+    r"""
+    Convert the x and z displacements into representations of P and S waves
+    using the divergence and curl, respectively, after Kennett (2002, pp 57)
+
+    .. math::
+
+        P: \frac{\partial u_x}{\partial x} + \frac{\partial u_z}{\partial z}
+
+    .. math::
+
+        S: \frac{\partial u_x}{\partial z} - \frac{\partial u_z}{\partial x}
 
     Parameters:
 
@@ -492,6 +577,12 @@ def xz2ps(ux, uz, area):
 
     * p, s : 2D-arrays
         Panels corresponding to P and S wave components
+
+
+    References:
+
+    Kennett, B. L. N. (2002), The Seismic Wavefield: Volume 2, Interpretation
+    of Seismograms on Regional and Global Scales, Cambridge University Press.
 
     """
     if ux.shape != uz.shape:
