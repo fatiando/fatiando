@@ -55,13 +55,10 @@ try:
 except:
     pass
 
-import fatiando.logger
 import fatiando.gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
-
-log = fatiando.logger.dummy('fatiando.vis.mpl')
 
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
@@ -112,13 +109,6 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
         List of ``[x, y]`` pairs with the edges of the polygon
 
     """
-    log.info("Drawing polygon...")
-    log.info("  INSTRUCTIONS:")
-    log.info("  * Left click to pick the edges of the polygon;")
-    log.info("  * Draw edges CLOCKWISE;")
-    log.info("  * Press 'e' to erase the last edge;")
-    log.info("  * Right click to close the polygon;")
-    log.info("  * Close the figure window to finish;")
     axes.set_title("Click to draw polygon. Right click when done.")
     if xy2ne:
         axes.set_xlim(area[2], area[3])
@@ -231,11 +221,6 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
         List of ``[x, y]`` coordinates of the points
 
     """
-    log.info("Picking points...")
-    log.info("  INSTRUCTIONS:")
-    log.info("  * Left click to pick the points;")
-    log.info("  * Press 'e' to erase the last point picked;")
-    log.info("  * Close the figure window to finish;")
     axes.set_title("Click to pick points. Close window when done.")
     if xy2ne:
         axes.set_xlim(area[2], area[3])
@@ -331,11 +316,6 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
             The physical property value of each layer, in the same order
 
     """
-    log.info("Drawing layers...")
-    log.info("  INSTRUCTIONS:")
-    log.info("  * Click to make a new layer;")
-    log.info("  * Press 'e' to erase the last layer;")
-    log.info("  * Close the figure window to finish;")
     axes.set_title("Click to set a layer. Close the window when done.")
     axes.grid()
     vmin, vmax, zmin, zmax = area
@@ -504,7 +484,6 @@ def basemap(area, projection, resolution='c'):
         try:
             from mpl_toolkits.basemap import Basemap
         except ImportError:
-            log.error("matplotlib basemap toolkit not found")
             raise
     west, east, south, north = area
     lon_0 = 0.5*(east + west)
@@ -832,11 +811,10 @@ def contour(x, y, v, shape, levels, interp=False, color='k', label=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v = fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         ct_data = pyplot.contour(X, Y, V, levels, colors=color, picker=True)
         pyplot.xlim(X.min(), X.max())
@@ -891,11 +869,10 @@ def contourf(x, y, v, shape, levels, interp=False, cmap=pyplot.cm.jet,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v = fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         ct_data = pyplot.contourf(X, Y, V, levels, cmap=cmap, picker=True)
         pyplot.xlim(X.min(), X.max())
@@ -940,11 +917,10 @@ def pcolor(x, y, v, shape, interp=False, cmap=pyplot.cm.jet, vmin=None,
     if x.shape != y.shape != v.shape:
         raise ValueError, "Input arrays x, y, and v must have same shape!"
     if interp:
-        X, Y, V = fatiando.gridder.interp(x, y, v, shape)
-    else:
-        X = numpy.reshape(x, shape)
-        Y = numpy.reshape(y, shape)
-        V = numpy.reshape(v, shape)
+        x, y, v= fatiando.gridder.interp(x, y, v, shape)
+    X = numpy.reshape(x, shape)
+    Y = numpy.reshape(y, shape)
+    V = numpy.reshape(v, shape)
     if basemap is None:
         plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax,
                              picker=True)

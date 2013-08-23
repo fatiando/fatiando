@@ -34,11 +34,9 @@ import numpy
 import scipy.special
 import matplotlib.mlab
 
-import fatiando.logger
 import fatiando.io
 import fatiando.gridder
 
-log = fatiando.logger.dummy('fatiando.mesher')
 
 class GeometricElement(object):
     """
@@ -188,7 +186,6 @@ class SquareMesh(object):
 
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
-        log.info("Generating 2D regular square mesh:")
         ny, nx = shape
         size = int(nx*ny)
         x1, x2, y1, y2 = bounds
@@ -205,10 +202,6 @@ class SquareMesh(object):
             self.props = {}
         else:
             self.props = props
-        log.info("  bounds = (x1, x2, y1, y2) = %s" % (str(bounds)))
-        log.info("  shape = (ny, nx) = %s" % (str(shape)))
-        log.info("  number of squares = %d" % (size))
-        log.info("  square dimensions = (dx, dy) = %s" % (str(self.dims)))
         # The index of the current square in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
@@ -435,7 +428,7 @@ class Tesseroid(GeometricElement):
     * top, bottom : float
         Bottom and top of the tesseroid with respect to the mean earth radius
         in meters. Ex: if the top is 100 meters above the mean earth radius,
-        ``top=100``, if 100 meters bellow ``top=-100``.
+        ``top=100``, if 100 meters below ``top=-100``.
     * props : dict
         Physical properties assigned to the tesseroid.
         Ex: ``props={'density':10, 'magnetization':10000}``
@@ -702,7 +695,7 @@ class PointGrid(object):
         Returns:
 
         * subgrids : list
-            List of :class:`~fatiando.mesher.PointGrid`s
+            List of :class:`~fatiando.mesher.PointGrid`
 
         Examples::
 
@@ -805,10 +798,6 @@ class PrismRelief(object):
         self.ref = ref
         self.dy, self.dx = dims
         self.props = {}
-        log.info("Generating 3D relief with right rectangular prisms:")
-        log.info("  number of prisms = %d" % (self.size))
-        log.info("  reference level = %s" % (str(ref)))
-        log.info("  dimensions of prisms = %g x %g" % (dims[0], dims[1]))
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
@@ -849,7 +838,7 @@ class PrismRelief(object):
         """
         Add physical property values to the prisms.
 
-        .. warning:: If the z value of any point in the relief is bellow the
+        .. warning:: If the z value of any point in the relief is below the
             reference level, its corresponding prism will have the physical
             property value with oposite sign than was assigned to it.
 
@@ -929,7 +918,7 @@ class PrismMesh(object):
         x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
 
     You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
-    methods for y and z) to get the x coordinates os the prisms in the mesh::
+    methods for y and z) to get the x coordinates of the prisms in the mesh::
 
         >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
         >>> print mesh.get_xs()
@@ -1059,7 +1048,7 @@ class PrismMesh(object):
             topo = -1*topo
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
-        # bellow a masked topo point (ie, one with no height information)
+        # below a masked topo point (ie, one with no height information)
         if numpy.ma.isMA(topo):
             topo_mask = topo.mask
         else:

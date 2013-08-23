@@ -2,17 +2,12 @@
 GravMag: 3D forward modeling of total-field magnetic anomaly using polygonal
 prisms
 """
-from fatiando import logger, mesher, gridder, gravmag, utils
+from fatiando import mesher, gridder, gravmag, utils
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # The regional field
 inc, dec = 30, -15
 # Draw each polygonal prism (viewed from above)
-log.info("Draw the polygons one by one")
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 area = bounds[:4]
 axis = mpl.figure().gca()

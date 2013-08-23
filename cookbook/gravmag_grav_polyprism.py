@@ -1,14 +1,9 @@
 """
 GravMag: Forward gravity modeling using a stack of 3D polygonal prisms
 """
-from fatiando import logger, mesher, gridder, gravmag
+from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl, myv
 
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
-log.info("Draw the polygons one by one:")
 bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
 depths = [0, 1000, 2000, 3000, 4000]

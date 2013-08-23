@@ -70,17 +70,12 @@ Again, using simple synthetic data but this time use Newton's method to solve::
 ----
 
 """
-
-import time
 import numpy
 import scipy.sparse
 
 from fatiando import inversion, utils
 from fatiando.seismic import ttime2d
-import fatiando.logger
 
-
-log = fatiando.logger.dummy('fatiando.seismic.srtomo')
 
 class TravelTime(inversion.datamodule.DataModule):
     """
@@ -146,8 +141,6 @@ class TravelTime(inversion.datamodule.DataModule):
         Build the Jacobian (sensitivity) matrix using the travel-time data
         stored.
         """
-        log.info("  calculating Jacobian (sensitivity matrix):")
-        start = time.time()
         srcs, recs = self.srcs, self.recs
         if not self.sparse:
             jac = numpy.array(
@@ -165,20 +158,16 @@ class TravelTime(inversion.datamodule.DataModule):
             row, col, val = numpy.array(nonzero).T
             shape = (self.ndata, self.nparams)
             jac = scipy.sparse.csr_matrix((val, (row, col)), shape)
-        log.info("    time: %s" % (utils.sec2hms(time.time() - start)))
         return jac
 
     def _get_hessian(self):
         """
         Build the Hessian matrix by Gauss-Newton approximation.
         """
-        log.info("  calculating Hessian matrix:")
-        start = time.time()
         if not self.sparse:
             hess = numpy.dot(self.jacobian_T, self.jacobian)
         else:
             hess = self.jacobian_T*self.jacobian
-        log.info("    time: %s" % (utils.sec2hms(time.time() - start)))
         return hess
 
     def _get_predicted(self, p):
@@ -306,15 +295,6 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
                 inversion.gradient.use_sparse()
             solver = inversion.gradient.levmarq(
                 initial=numpy.ones(mesh.size, dtype='f'))
-    log.info("Running 2D straight-ray travel-time tomography (SrTomo):")
-    log.info("  number of parameters: %d" % (len(mesh)))
-    log.info("  number of data: %d" % (len(ttimes)))
-    log.info("  use sparse matrices: %s" % (str(sparse)))
-    log.info("  regularizing parameters:")
-    log.info("    damping: %g" % (damping))
-    log.info("    smoothness: %g" % (smooth))
-    log.info("    sharpness: %g" % (sharp))
-    log.info("    beta (total variation aux parameter): %g" % (beta))
     nparams = len(mesh)
     # Make the data modules and regularizers
     dms = [TravelTime(ttimes, srcs, recs, mesh, sparse)]
@@ -328,18 +308,12 @@ def run(ttimes, srcs, recs, mesh, solver=None, sparse=False, damping=0.,
     if sharp:
         regs.append(inversion.regularizer.TotalVariation2D(sharp, mesh.shape,
             beta, sparse=sparse))
-    start = time.time()
     try:
         for i, chset in enumerate(solver(dms, regs)):
             continue
     except numpy.linalg.linalg.LinAlgError:
         raise ValueError("Oops, the Hessian is a singular matrix." +
                          " Try applying more regularization")
-    stop = time.time()
-    log.info("  number of iterations: %d" % (i))
-    log.info("  final data misfit: %g" % (chset['misfits'][-1]))
-    log.info("  final goal function: %g" % (chset['goals'][-1]))
-    log.info("  time: %s" % (utils.sec2hms(stop - start)))
     slowness = chset['estimate']
     residuals = chset['residuals'][0]
     return slowness, residuals

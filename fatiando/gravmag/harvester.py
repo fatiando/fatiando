@@ -76,9 +76,6 @@ from fatiando.gravmag import prism as prism_engine
 from fatiando.gravmag import tesseroid as tesseroid_engine
 from fatiando import utils
 from fatiando.mesher import Prism
-import fatiando.logger
-
-log = fatiando.logger.dummy('fatiando.gravmag.harvester')
 
 
 def loadseeds(fname):
@@ -179,7 +176,6 @@ def sow(locations, mesh):
         :func:`~fatiando.gravmag.harvester.harvest`
 
     """
-    log.info("Fetching seeds from mesh:")
     seeds = []
     for x, y, z, props in locations:
         index = _find_index((x, y, z), mesh)
@@ -189,8 +185,6 @@ def sow(locations, mesh):
         # Check for duplicates
         if index not in (s.i for s in seeds):
             seeds.append(Seed(index, (x, y, z), mesh[index], props))
-    log.info("  points given: %d" % (len(locations)))
-    log.info("  unique seeds found: %d" % (len(seeds)))
     return seeds
 
 def _find_index(point, mesh):
@@ -226,7 +220,7 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
     Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
 
-    Paramters:
+    Parameters:
 
     * data : list of data (e.g., :class:`~fatiando.gravmag.harvester.Gz`)
         The data that will be inverted. Data used must match the physical
@@ -521,7 +515,7 @@ def _neighbor_indexes(n, mesh):
     tmp = n - nx*ny
     if tmp > 0:
         indexes.append(tmp)
-    # The guy bellow
+    # The guy below
     tmp = n + nx*ny
     if tmp < mesh.size:
         indexes.append(tmp)

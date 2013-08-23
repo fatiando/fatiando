@@ -17,7 +17,7 @@ dens = 2700*np.ones(shape)
 mu = 2700*(3000**2)*np.ones(shape)
 
 # Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop bellow
+# computations take place at each iteration in the for loop below
 dt = 0.05
 maxit = 1500
 timesteps = seismic.wavefd.elastic_sh(spacing, shape, mu, dens, dt, maxit,

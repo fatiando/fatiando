@@ -3,9 +3,7 @@ Seismic: 2D finite difference simulation of elastic P and SV wave propagation
 """
 from matplotlib import animation
 import numpy as np
-from fatiando import seismic, logger, gridder, vis
-
-log = logger.get()
+from fatiando import seismic, gridder, vis
 
 # Make a wave source from a mexican hat wavelet
 sources = [seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
@@ -19,7 +17,7 @@ svel = 3000*np.ones(shape)
 pvel = 4000*np.ones(shape)
 
 # Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop bellow
+# computations take place at each iteration in the for loop below
 dt = 0.05
 maxit = 300
 timesteps = seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
