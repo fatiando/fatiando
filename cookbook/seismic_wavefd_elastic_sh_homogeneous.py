@@ -22,7 +22,7 @@ sources = [wavefd.MexHatSource(10000, 10000, area, shape, 100000, 0.5, delay=2)]
 
 # Get the iterator. This part only generates an iterator object. The actual
 # computations take place at each iteration in the for loop below
-dt = 0.1
+dt = wavefd.maxdt(area, shape, svel.max())
 duration = 250
 maxit = int(duration/dt)
 stations = [[100000, 0], [700000, 0]]

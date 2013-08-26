@@ -30,7 +30,7 @@ sources = [
 
 # Get the iterator. This part only generates an iterator object. The actual
 # computations take place at each iteration in the for loop below
-dt = 0.048
+dt = wavefd.maxdt(area, shape, pvel.max())
 duration = 130
 maxit = int(duration/dt)
 stations = [[400000, 0]]

@@ -21,6 +21,8 @@ Finite difference solution of the 2D wave equation for isotropic media.
 * :func:`~fatiando.seismic.wavefd.lame_mu`: Calculate the mu Lame parameter
 * :func:`~fatiando.seismic.wavefd.xz2ps`: Convert x and z displacements to
   representations of P and S waves
+* :func:`~fatiando.seismic.wavefd.maxdt`: Calculate the maximum time step for
+  a simulation
 
 **Theory**
 
@@ -695,3 +697,31 @@ def xz2ps(ux, uz, area):
     p, s = numpy.empty_like(ux), numpy.empty_like(ux)
     _xz2ps(ux, uz, p, s, nx, nz, dx, dz)
     return p, s
+
+def maxdt(area, shape, maxvel):
+    """
+    Calculate the maximum time step that can be used in the simulation.
+
+    Uses the result of the Von Neumann type analysis of Di Bartolo et al.
+    (2012).
+
+    Parameters:
+
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
+    * maxvel : float
+        The maximum velocity in the medium
+
+    Returns:
+
+    * maxdt : float
+        The maximum time step
+
+    """
+    x1, x2, z1, z2 = area
+    nz, nx = shape
+    spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
+    return 0.606*spacing/maxvel

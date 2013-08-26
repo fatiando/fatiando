@@ -19,7 +19,7 @@ mu = wavefd.lame_mu(velocity, density)
 sources = [wavefd.MexHatSource(30000, 15000, area, shape, 100, 1, delay=2)]
 
 # Get the iterator for the simulation
-dt = 0.065
+dt = wavefd.maxdt(area, shape, velocity)
 duration = 20
 maxit = int(duration/dt)
 stations = [[50000, 0]] # x, z coordinate of the seismometer
