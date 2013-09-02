@@ -71,6 +71,6 @@ To cite Fatiando a Terra in publications, please use:
 
 Uieda, L., V. C. Oliveira Jr and V. C. F. Barbosa (2013), Modeling the Earth
 with Fatiando a Terra, Proceedings of the 12th Python in Science Conference.
-[pdf](http://fatiando.org/papers/Uieda,OliveiraJr,Barbosa_2013.pdf)
+[`pdf <http://fatiando.org/papers/Uieda,OliveiraJr,Barbosa_2013.pdf>`__]
 
 See the CITATION file for more information and a BibTex entry.
