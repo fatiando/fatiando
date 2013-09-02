@@ -134,7 +134,7 @@ def spacing(area, shape):
     dy = float(y2 - y1)/float(ny - 1)
     return [dy, dx]
 
-def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
+def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
     """
     Interpolate data onto a regular grid.
 
@@ -182,7 +182,7 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=True):
                          extrapolate=extrapolate)
     return [xp, yp, grid]
 
-def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=True):
+def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=False):
     """
     Interpolate data onto the specified points.
 

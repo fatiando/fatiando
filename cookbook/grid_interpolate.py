@@ -47,12 +47,12 @@ mpl.contourf(grdx, grdy, grdz, shape, 50)
 mpl.colorbar()
 mpl.legend(loc='lower right', numpoints=1)
 
-# interp extrapolates the data by default. Lets see what happens if we disable
-# extrapolation
-grdx, grdy, grdz = gridder.interp(x, y, z, shape, extrapolate=False)
+# interp doesn't extrapolates the data by default. Lets see what happens if we
+# enable extrapolation
+grdx, grdy, grdz = gridder.interp(x, y, z, shape, extrapolate=True)
 mpl.subplot(2, 2, 4)
 mpl.axis('scaled')
-mpl.title("Interpolated with no extrapolation")
+mpl.title("Interpolated with extrapolation")
 mpl.plot(x, y, '.k', label='Data points')
 mpl.contourf(grdx, grdy, grdz, shape, 50)
 mpl.colorbar()
