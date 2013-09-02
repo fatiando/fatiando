@@ -53,7 +53,7 @@ The authors
 -----------
 
 Fatiando is developed by working geophysicists. Work done here is
-part of some Masters and Phd projects. See a list of `people involved`_.
+part of some Masters and PhD projects. See a list of `people involved`_.
 
 .. _people involved: http://readthedocs.org/docs/fatiando/en/latest/contributors.html
 
@@ -64,3 +64,13 @@ Fatiando a Terra is free software: you can redistribute it and/or modify it
 under the terms of the **BSD License**. A copy of this license is provided in
 LICENSE.txt and at http://readthedocs.org/docs/fatiando/en/latest/license.html
 
+Citing
+------
+
+To cite Fatiando a Terra in publications, please use:
+
+Uieda, L., V. C. Oliveira Jr and V. C. F. Barbosa (2013), Modeling the Earth
+with Fatiando a Terra, Proceedings of the 12th Python in Science Conference.
+[pdf](http://fatiando.org/papers/Uieda,OliveiraJr,Barbosa_2013.pdf)
+
+See the CITATION file for more information and a BibTex entry.
