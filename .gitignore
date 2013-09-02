@@ -1,6 +1,7 @@
 *.pyc
 *.so
 _c*.c
+_*.c
 build
 .*.swp
 doc/_build
@@ -8,3 +9,6 @@ doc/_static/cookbook
 doc/cookbook
 doc/fatiando*.pdf
 benchmarks/*.tmp
+benchmarks/*.profile
+cookbook/_tmp*.png
+notebooks/_tmp*.png
