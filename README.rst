@@ -67,10 +67,16 @@ LICENSE.txt and at http://readthedocs.org/docs/fatiando/en/latest/license.html
 Citing
 ------
 
-To cite Fatiando a Terra in publications, please use:
+Many of us are scientists too,
+so citations help justify the effort
+that goes into building Fatiando.
+If you use Fatiando in your research,
+please consider citing it in your publications.
 
-Uieda, L., V. C. Oliveira Jr and V. C. F. Barbosa (2013), Modeling the Earth
-with Fatiando a Terra, Proceedings of the 12th Python in Science Conference.
-[`pdf <http://fatiando.org/papers/Uieda,OliveiraJr,Barbosa_2013.pdf>`__]
-
-See the CITATION file for more information and a BibTex entry.
+See our `CITATION file
+<https://github.com/leouieda/fatiando/blob/master/CITATION.rst>`__
+for more information.
+Read `this
+<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
+if you haven't heard of CITATION files yet.
+They're the latest trend!
