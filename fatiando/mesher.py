@@ -486,6 +486,58 @@ class Tesseroid(GeometricElement):
         """
         return [self.w, self.e, self.s, self.n, self.top, self.bottom]
 
+    def split(self, nlon, nlat, nh):
+        """
+        Split the tesseroid into smaller ones.
+
+        The smaller tesseroids will share the large one's props.
+
+        Parameters:
+
+        * nlon, nlat, nh : int
+            The number of sections to split in the longitudinal, latitudinal,
+            and vertical dimensions
+
+        Returns:
+
+        * tesseroids : list
+            A list of nlon*nlat*nh tesseroids that make up the larger one.
+
+
+        Examples::
+
+        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+        >>> split = tess.split(1, 2, 2)
+        >>> print len(split)
+        4
+        >>> for t in split:
+        ...     print t
+        w:-10 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:-10 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+        >>> split = tess.split(3, 1, 1)
+        >>> print len(split)
+        3
+        >>> for t in split:
+        ...     print t
+        w:-15 | e:-5 | s:-20 | n:20 | top:0 | bottom:-40
+        w:-5 | e:5 | s:-20 | n:20 | top:0 | bottom:-40
+        w:5 | e:15 | s:-20 | n:20 | top:0 | bottom:-40
+
+        """
+        wests = numpy.linspace(self.w, self.e, nlon + 1)
+        souths = numpy.linspace(self.s, self.n, nlat + 1)
+        bottoms = numpy.linspace(self.bottom, self.top, nh + 1)
+        dlon = wests[1] - wests[0]
+        dlat = souths[1] - souths[0]
+        dh = bottoms[1] - bottoms[0]
+        tesseroids = [
+            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
+            for i in wests[:-1] for j in souths[:-1] for k in bottoms[:-1]]
+        return tesseroids
+
 class Sphere(GeometricElement):
     """
     Create a sphere.
