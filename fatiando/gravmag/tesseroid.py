@@ -3,9 +3,7 @@ Calculates the potential fields of a tesseroid.
 """
 import numpy
 
-from fatiando.mesher import Tesseroid
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
-
 
 try:
     from fatiando.gravmag import _ctesseroid as _kernels
@@ -114,7 +112,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     radii = MEAN_EARTH_RADIUS + heights
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
-    maxsize = 10000
+    #maxsize = 10000
     for tesseroid in tesseroids:
         if (tesseroid is None or
             ('density' not in tesseroid.props and dens is None)):
@@ -138,25 +136,13 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
                 #    log.warning("Maximum LIFO size reached")
                 #    dont_divide.extend(need_divide)
                 #else:
-                #    lifo.extend([need_divide, t] for t in _split(tess))
-                lifo.extend([need_divide, t] for t in _split(tess))
+                #    lifo.extend([need_divide, t] for t in tess.split(2, 2, 2)
+                lifo.extend([need_divide, t] for t in tess.split(2, 2, 2))
             if len(dont_divide):
                 result[dont_divide] += G*density*kernel(
                     tess, rlons[dont_divide], rlats[dont_divide],
                     radii[dont_divide], _glq_nodes, _glq_weights)
     return result
-
-def _split(tesseroid):
-    dlon = 0.5*(tesseroid.e - tesseroid.w)
-    dlat = 0.5*(tesseroid.n - tesseroid.s)
-    dh = 0.5*(tesseroid.top - tesseroid.bottom)
-    wests = [tesseroid.w, tesseroid.w + dlon]
-    souths = [tesseroid.s, tesseroid.s + dlat]
-    bottoms = [tesseroid.bottom, tesseroid.bottom + dh]
-    split = [
-        Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=tesseroid.props)
-        for i in wests for j in souths for k in bottoms]
-    return split
 
 def _distance(tesseroid, lon, lat, radius, points):
     lons = lon[points]
