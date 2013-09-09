@@ -129,7 +129,7 @@ def show():
     _lazy_import_mlab()
     mlab.show()
 
-def points(points, color=(0, 0, 0), opacity=1, size=200.):
+def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
     """
     Plot a series of 3D points.
 
@@ -142,18 +142,34 @@ def points(points, color=(0, 0, 0), opacity=1, size=200.):
         x, y, and z coordinates of the point
     * color : tuple = (r, g, b)
         RGB of the color of the points
+    * size : float
+        The size of the points in meters
     * opacity : float
         Decimal percentage of opacity
-    * size : float
-        The size of the points (relative to their spacing)
+    * spherical : True or False
+        If True, will assume the points are in [lon, lat, height] format (in
+        degrees and meters)
+
+    Returns:
+
+    * glyph
+        The Mayavi Glyph object corresponding to the points
 
     """
     _lazy_import_mlab()
-    x, y, z = numpy.transpose(points)
-    mlab.points3d(x, y, z, color=color, opacity=opacity, scale_factor=size)
+    if spherical:
+        lon, lat, height = numpy.transpose(points)
+        x, y, z = utils.sph2cart(lon, lat, height)
+    else:
+        x, y, z = numpy.transpose(points)
+    glyph = mlab.points3d(x, y, z, color=color, opacity=opacity)
+    glyph.glyph.glyph.scaling = False
+    glyph.glyph.glyph_source.glyph_source.radius = size
+    return glyph
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0)):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
 
@@ -181,8 +197,13 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all prisms to have this RGB color
     * linewidth : float
         The width of the lines (edges) of the prisms.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
 
     Returns:
 
@@ -267,11 +288,16 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
+            edge.actor.property.color = edgecolor
     surf.actor.property.opacity = opacity
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
     return surf
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -300,8 +326,13 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all tesseroids to have this RGB color
     * linewidth : float
-        The width of the lines (edges).
+        The width of the lines (edges) of the tesseroids.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
 
     Returns:
 
@@ -314,11 +345,9 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
-
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
-
     if prop is None:
         label = 'scalar'
     else:
@@ -400,12 +429,17 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
+            edge.actor.property.color = edgecolor
     surf.actor.property.opacity = opacity
-    surf.actor.property.backface_culling = 1
+    surf.actor.property.backface_culling = False
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
     return surf
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0)):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -433,8 +467,13 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all prisms to have this RGB color
     * linewidth : float
         The width of the lines (edges) of the prisms.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
 
     Returns:
 
@@ -447,11 +486,9 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
-
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
-
     if prop is None:
         label = 'scalar'
     else:
@@ -507,11 +544,14 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         if edges:
             surf.actor.property.edge_visibility = 1
             surf.actor.property.line_width = linewidth
+            surf.actor.property.edge_color = edgecolor
     surf.actor.property.opacity = opacity
-    surf.actor.property.backface_culling = 1
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
     return surf
 
-def figure(size=None, zdown=True):
+def figure(size=None, zdown=True, color=(1, 1, 1)):
     """
     Create a default figure in Mayavi with white background
 
@@ -521,6 +561,8 @@ def figure(size=None, zdown=True):
         The size of the figure. If ``None`` will use the default size.
     * zdown : True or False
         If True, will turn the figure upside-down to make the z-axis point down
+    * color : tuple = (r, g, b)
+        RGB of the color of the background
 
     Return:
 
@@ -530,16 +572,16 @@ def figure(size=None, zdown=True):
     """
     _lazy_import_mlab()
     if size is None:
-        fig = mlab.figure(bgcolor=(1, 1, 1))
+        fig = mlab.figure(bgcolor=color)
     else:
-        fig = mlab.figure(bgcolor=(1, 1, 1), size=size)
+        fig = mlab.figure(bgcolor=color, size=size)
     if zdown:
         fig.scene.camera.view_up = numpy.array([0., 0., -1.])
         fig.scene.camera.elevation(60.)
         fig.scene.camera.azimuth(180.)
     return fig
 
-def outline(extent=None, color=(0,0,0), width=2):
+def outline(extent=None, color=(0, 0, 0), width=2):
     """
     Create a default outline in Mayavi2.
 
