@@ -38,15 +38,26 @@ Then the total-field anomaly caused by the sphere is
 
     \Delta T \approx \hat{\mathbf{F}}\cdot\Delta\mathbf{F}.
 
-
 **Gravity**
 
+Calculates the gravitational acceleration and gravity gradient tensor
+components.
 
+* :func:`fatiando.gravmag.sphere.gz`
+* :func:`fatiando.gravmag.sphere.gxx`
+* :func:`fatiando.gravmag.sphere.gxy`
+* :func:`fatiando.gravmag.sphere.gxz`
+* :func:`fatiando.gravmag.sphere.gyy`
+* :func:`fatiando.gravmag.sphere.gyz`
+* :func:`fatiando.gravmag.sphere.gzz`
 
 **References**
 
+Blakely, R. J. (1995), Potential Theory in Gravity and Magnetic Applications,
+Cambridge University Press.
 
 ----
+
 """
 import numpy
 
@@ -149,7 +160,6 @@ def gz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -167,7 +177,8 @@ def gz(xp, yp, zp, spheres, dens=None):
         r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*dz/r_cb
-    return G*SI2MGAL*res
+    res *= G*SI2MGAL
+    return res
 
 def gxx(xp, yp, zp, spheres):
     """
@@ -192,7 +203,6 @@ def gxx(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -208,7 +218,8 @@ def gxx(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(((3*dx**2) - r_2)/r_5)
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
 
 def gxy(xp, yp, zp, spheres):
     """
@@ -233,7 +244,6 @@ def gxy(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -249,7 +259,8 @@ def gxy(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(3*dx*dy)/r_5
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
 
 def gxz(xp, yp, zp, spheres):
     """
@@ -274,7 +285,6 @@ def gxz(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -290,7 +300,8 @@ def gxz(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(3*dx*dz)/r_5
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
 
 def gyy(xp, yp, zp, spheres):
     """
@@ -315,7 +326,6 @@ def gyy(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -331,7 +341,8 @@ def gyy(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(((3*dy**2) - r_2)/r_5)
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
 
 def gyz(xp, yp, zp, spheres):
     """
@@ -356,7 +367,6 @@ def gyz(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -372,7 +382,8 @@ def gyz(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(3*dy*dz)/r_5
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
 
 def gzz(xp, yp, zp, spheres):
     """
@@ -397,7 +408,6 @@ def gzz(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -413,4 +423,5 @@ def gzz(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
         res += mass*(((3*dz**2) - r_2)/r_5)
-    return G*SI2EOTVOS*res
+    res *= G*SI2EOTVOS
+    return res
