@@ -129,7 +129,7 @@ def show():
     _lazy_import_mlab()
     mlab.show()
 
-def points(points, color=(0, 0, 0), opacity=1, size=200.):
+def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
     """
     Plot a series of 3D points.
 
@@ -142,15 +142,30 @@ def points(points, color=(0, 0, 0), opacity=1, size=200.):
         x, y, and z coordinates of the point
     * color : tuple = (r, g, b)
         RGB of the color of the points
+    * size : float
+        The size of the points in meters
     * opacity : float
         Decimal percentage of opacity
-    * size : float
-        The size of the points (relative to their spacing)
+    * spherical : True or False
+        If True, will assume the points are in [lon, lat, height] format (in
+        degrees and meters)
+
+    Returns:
+
+    * glyph
+        The Mayavi Glyph object corresponding to the points
 
     """
     _lazy_import_mlab()
-    x, y, z = numpy.transpose(points)
-    mlab.points3d(x, y, z, color=color, opacity=opacity, scale_factor=size)
+    if spherical:
+        lon, lat, height = numpy.transpose(points)
+        x, y, z = utils.sph2cart(lon, lat, height)
+    else:
+        x, y, z = numpy.transpose(points)
+    glyph = mlab.points3d(x, y, z, color=color, opacity=opacity)
+    glyph.glyph.glyph.scaling = False
+    glyph.glyph.glyph_source.glyph_source.radius = size
+    return glyph
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
