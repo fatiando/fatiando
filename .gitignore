@@ -10,5 +10,6 @@ doc/cookbook
 doc/fatiando*.pdf
 benchmarks/*.tmp
 benchmarks/*.profile
+benchmarks/.ipynb_checkpoints
 cookbook/_tmp*.png
 notebooks/_tmp*.png
