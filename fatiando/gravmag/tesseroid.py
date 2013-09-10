@@ -98,8 +98,8 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
 
 def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     """
-    Calculate the effect of a given kernal in the most precise way by adaptively
-    discretizing the tesseroids into smaller ones.
+    Calculate the effect of a given kernel in the most precise way by
+    adaptively discretizing the tesseroids into smaller ones.
     """
     ndata = len(lons)
     # Convert things to radians
@@ -116,6 +116,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     coslatc = numpy.zeros(2, numpy.float)
     rc = numpy.zeros(2, numpy.float)
     allpoints = numpy.arange(ndata)
+    lifo = [[]]*1000
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
     for tesseroid in tesseroids:
@@ -126,9 +127,11 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        lifo = [[allpoints, tesseroid]]
-        while lifo:
-            points, tess = lifo.pop()
+        lifo[0] = [allpoints, tesseroid]
+        top = 0
+        while top >= 0:
+            points, tess = lifo[top]
+            top -= 1
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
@@ -137,7 +140,11 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             need_divide, dont_divide = _kernels.too_close(points, distances,
                     ratio*size)
             if len(need_divide):
-                lifo.extend([need_divide, t] for t in tess.half())
+                if top + 8 >= 1000:
+                    raise ValueError('LIFO overflow')
+                for i, t in enumerate(tess.half()):
+                    lifo[top + i + 1] = [need_divide, t]
+                top += 8
             if len(dont_divide):
                 result[dont_divide] += density*kernel(
                     tess, rlons[dont_divide], sinlats[dont_divide],
