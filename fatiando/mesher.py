@@ -486,6 +486,70 @@ class Tesseroid(GeometricElement):
         """
         return [self.w, self.e, self.s, self.n, self.top, self.bottom]
 
+    def half(self, lon=True, lat=True, r=True):
+        """
+        Divide the tesseroid in 2 halfs for each dimension (total 8)
+
+        The smaller tesseroids will share the large one's props.
+
+        Parameters:
+
+        * lon, lat, r : True or False
+            Dimensions along which the tesseroid will be split in half.
+
+        Returns:
+
+        * tesseroids : list
+            A list of maximum 8 tesseroids that make up the larger one.
+
+        Examples::
+
+        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+        >>> split = tess.half()
+        >>> print len(split)
+        8
+        >>> for t in split:
+        ... print t
+        w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:0 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        w:0 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:0 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:0 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:0 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+        >>> split = tess.half(lat=False)
+        >>> print len(split)
+        4
+        >>> for t in split:
+        ... print t
+        w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
+        w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
+        w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
+        w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
+
+        """
+        dlon = 0.5*(self.e - self.w)
+        dlat = 0.5*(self.n - self.s)
+        dh = 0.5*(self.top - self.bottom)
+        wests = [self.w, self.w + dlon]
+        souths = [self.s, self.s + dlat]
+        bottoms = [self.bottom, self.bottom + dh]
+        if not lon:
+            dlon *= 2
+            wests.pop()
+        if not lat:
+            dlat *= 2
+            souths.pop()
+        if not r:
+            dh *= 2
+            bottoms.pop()
+        split = [
+            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
+            for i in wests for j in souths for k in bottoms]
+        return split
+
     def split(self, nlon, nlat, nh):
         """
         Split the tesseroid into smaller ones.
