@@ -128,15 +128,14 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = tesseroid.props['density']
         lifo = [[allpoints, tesseroid]]
         while lifo:
-            points_to_calc, tess = lifo.pop()
+            points, tess = lifo.pop()
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distances = _kernels._distance(tess, rlons, sinlats, coslats,
-                    radii, points_to_calc, buff)
-            too_close = (distances > 0) & (distances < ratio*size)
-            need_divide = points_to_calc[too_close]
-            dont_divide = points_to_calc[~too_close]
+            distances = _kernels.distance(tess, rlons, sinlats, coslats,
+                    radii, points, buff)
+            need_divide, dont_divide = _kernels.too_close(points, distances,
+                    ratio*size)
             if len(need_divide):
                 lifo.extend([need_divide, t] for t in tess.half())
             if len(dont_divide):

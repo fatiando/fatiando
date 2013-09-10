@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Pure Python implementations of functions in fatiando.gravmag.tesseroid.
 Used instead of Cython versions if those are not available.
@@ -16,9 +15,29 @@ cdef:
     double[::1] weights = numpy.array([1., 1.])
     unsigned int order = len(nodes)
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _distance(tesseroid,
+def too_close(numpy.ndarray[long, ndim=1] points,
+        numpy.ndarray[double, ndim=1] distance, double value):
+    cdef:
+        int i, j, l, size = len(points)
+        numpy.ndarray[long, ndim=1] buff
+    buff = numpy.empty(size, dtype=numpy.int)
+    i = 0
+    j = size - 1
+    for l in range(size):
+        if distance[l] > 0 and distance[l] < value:
+            buff[i] = points[l]
+            i += 1
+        else:
+            buff[j] = points[l]
+            j -= 1
+    return buff[:i], buff[j + 1:size]
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def distance(tesseroid,
     numpy.ndarray[double, ndim=1] lon,
     numpy.ndarray[double, ndim=1] sinlat,
     numpy.ndarray[double, ndim=1] coslat,
