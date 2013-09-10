@@ -509,7 +509,7 @@ class Tesseroid(GeometricElement):
         >>> print len(split)
         8
         >>> for t in split:
-        ... print t
+        ...     print t
         w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
         w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
         w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
@@ -523,7 +523,7 @@ class Tesseroid(GeometricElement):
         >>> print len(split)
         4
         >>> for t in split:
-        ... print t
+        ...     print t
         w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
         w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
         w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
