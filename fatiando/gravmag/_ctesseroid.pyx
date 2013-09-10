@@ -24,7 +24,7 @@ def _distance(tesseroid,
     numpy.ndarray[double, ndim=1] coslat,
     numpy.ndarray[double, ndim=1] radius,
     numpy.ndarray[numpy.int_t, ndim=1] points,
-    numpy.ndarray[double, ndim=1] distance):
+    numpy.ndarray[double, ndim=1] buff):
     cdef:
         unsigned int i, l, size = len(points)
         double tes_radius, tes_lat, tes_lon
@@ -33,10 +33,10 @@ def _distance(tesseroid,
     tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
     for l in range(size):
         i = points[l]
-        distance[l] = sqrt(radius[i]**2 + tes_radius**2 -
+        buff[l] = sqrt(radius[i]**2 + tes_radius**2 -
             2.*radius[i]*tes_radius*(sinlat[i]*sin(tes_lat) +
                 coslat[i]*cos(tes_lat)*cos(lon[i] - tes_lon)))
-    return distance[:size]
+    return buff[:size]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -81,14 +81,14 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in xrange(order):
-                #for k in xrange(order):
+            #for j in range(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -119,15 +119,15 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in xrange(order):
+            #for j in range(order):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -158,15 +158,15 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in xrange(order):
-                #for k in xrange(order):
+            #for j in range(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -197,15 +197,15 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in xrange(order):
+            #for j in range(order):
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -236,15 +236,15 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in xrange(order):
+            #for j in range(order):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -275,16 +275,16 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in xrange(order):
+            #for j in range(order):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -315,16 +315,16 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in xrange(order):
+            #for j in range(order):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -356,15 +356,15 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in xrange(order):
-                #for k in xrange(order):
+            #for j in range(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -396,16 +396,16 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     #sinlatc = numpy.sin(latc)
     #coslatc = numpy.cos(latc)
     ## Start the numerical integration
-    #for l in xrange(ndata):
+    #for l in range(ndata):
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in xrange(order):
+        #for i in range(order):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in xrange(order):
+            #for j in range(order):
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in xrange(order):
+                #for k in range(order):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -419,39 +419,36 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
 
 def gzz(tesseroid,
     numpy.ndarray[double, ndim=1] lons,
-    numpy.ndarray[double, ndim=1] lats,
-    numpy.ndarray[double, ndim=1] radii):
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc,
+    numpy.ndarray[double, ndim=1] buff):
     """
     Integrate gzz using the Gauss-Legendre Quadrature
     """
     cdef unsigned ndata = len(lons), i, j, k, l
-    cdef numpy.ndarray[double, ndim=1] lonc, rc, sinlatc, coslatc
-    cdef numpy.ndarray[double, ndim=1] result
     cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
     cdef double cospsi, deltaz
     # Put the nodes in the corrent range
-    lonc = numpy.zeros(order, numpy.float)
-    sinlatc = numpy.zeros(order, numpy.float)
-    coslatc = numpy.zeros(order, numpy.float)
-    rc = numpy.zeros(order, numpy.float)
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
-    result = numpy.zeros(ndata, numpy.float)
     # Start the numerical integration
-    for l in xrange(ndata):
-        sinlat = sin(lats[l])
-        coslat = cos(lats[l])
+    for l in range(ndata):
+        sinlat = sinlats[l]
+        coslat = coslats[l]
         radii_sqr = radii[l]**2
-        for i in xrange(order):
+        buff[l] = 0
+        for i in range(order):
             coslon = cos(lons[l] - lonc[i])
-            for j in xrange(order):
+            for j in range(order):
                 cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in xrange(order):
+                for k in range(order):
                     l_sqr = (radii_sqr + rc[k]**2 -
                              2.*radii[l]*rc[k]*(
                                 sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
                     kappa = (rc[k]**2)*coslatc[j]
                     deltaz = rc[k]*cospsi - radii[l]
-                    result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
+                    buff[l] += scale*(weights[i]*weights[j]*weights[k]*
                         kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5))
-        result[l] = result[l]*scale
-    return result
+    return buff[:ndata]

@@ -105,15 +105,19 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     # Convert things to radians
     d2r = numpy.pi/180.
     rlons = d2r*lons
-    rlats = d2r*lats
-    sinlats = numpy.sin(rlats)
-    coslats = numpy.cos(rlats)
+    sinlats = numpy.sin(d2r*lats)
+    coslats = numpy.cos(d2r*lats)
     # Transform the heights into radii
     radii = MEAN_EARTH_RADIUS + heights
+    # Create some buffers to reduce memory allocation
+    buff = numpy.zeros(ndata, numpy.float)
+    lonc = numpy.zeros(2, numpy.float)
+    sinlatc = numpy.zeros(2, numpy.float)
+    coslatc = numpy.zeros(2, numpy.float)
+    rc = numpy.zeros(2, numpy.float)
+    allpoints = numpy.arange(ndata)
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
-    buff = numpy.zeros(ndata, numpy.float)
-    #maxsize = 10000
     for tesseroid in tesseroids:
         if (tesseroid is None or
             ('density' not in tesseroid.props and dens is None)):
@@ -122,7 +126,7 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        lifo = [[numpy.arange(ndata), tesseroid]]
+        lifo = [[allpoints, tesseroid]]
         while lifo:
             points_to_calc, tess = lifo.pop()
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
@@ -136,7 +140,9 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             if len(need_divide):
                 lifo.extend([need_divide, t] for t in tess.half())
             if len(dont_divide):
-                result[dont_divide] += G*density*kernel(
-                    tess, rlons[dont_divide], rlats[dont_divide],
-                    radii[dont_divide])
+                result[dont_divide] += density*kernel(
+                    tess, rlons[dont_divide], sinlats[dont_divide],
+                    coslats[dont_divide], radii[dont_divide], lonc, sinlatc,
+                    coslatc, rc, buff)
+    result *= G
     return result
