@@ -11,8 +11,6 @@ except ImportError:
     from fatiando.gravmag import _tesseroid as _kernels
 
 
-_glq_nodes = numpy.array([-0.577350269, 0.577350269])
-_glq_weights = numpy.array([1., 1.])
 
 
 def potential(lons, lats, heights, tesseroids, dens=None, ratio=1.):
@@ -108,10 +106,13 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     d2r = numpy.pi/180.
     rlons = d2r*lons
     rlats = d2r*lats
+    sinlats = numpy.sin(rlats)
+    coslats = numpy.cos(rlats)
     # Transform the heights into radii
     radii = MEAN_EARTH_RADIUS + heights
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
+    buff = numpy.zeros(ndata, numpy.float)
     #maxsize = 10000
     for tesseroid in tesseroids:
         if (tesseroid is None or
@@ -127,35 +128,15 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distances = _distance(tess, rlons, rlats, radii, points_to_calc)
+            distances = _kernels._distance(tess, rlons, sinlats, coslats,
+                    radii, points_to_calc, buff)
             too_close = (distances > 0) & (distances < ratio*size)
             need_divide = points_to_calc[too_close]
             dont_divide = points_to_calc[~too_close]
             if len(need_divide):
-                #if len(lifo) + 8 > maxsize:
-                #    log.warning("Maximum LIFO size reached")
-                #    dont_divide.extend(need_divide)
-                #else:
-                #    lifo.extend([need_divide, t] for t in tess.split(2, 2, 2)
-                lifo.extend([need_divide, t] for t in tess.split(2, 2, 2))
+                lifo.extend([need_divide, t] for t in tess.half())
             if len(dont_divide):
                 result[dont_divide] += G*density*kernel(
                     tess, rlons[dont_divide], rlats[dont_divide],
-                    radii[dont_divide], _glq_nodes, _glq_weights)
+                    radii[dont_divide])
     return result
-
-def _distance(tesseroid, lon, lat, radius, points):
-    lons = lon[points]
-    lats = lat[points]
-    radii = radius[points]
-    d2r = numpy.pi/180.
-    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
-    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
-    distance = numpy.sqrt(
-        radii**2 + tes_radius**2 - 2.*radii*tes_radius*(
-            numpy.sin(lats)*numpy.sin(tes_lat) +
-            numpy.cos(lats)*numpy.cos(tes_lat)*
-            numpy.cos(lons - tes_lon)
-        ))
-    return distance
