@@ -1,3 +1,4 @@
+# cython: profile=True
 """
 Pure Python implementations of functions in fatiando.gravmag.tesseroid.
 Used instead of Cython versions if those are not available.
@@ -11,10 +12,8 @@ cimport cython
 
 cdef:
     double d2r = numpy.pi/180.
-    double[::1] nodes = numpy.array([-0.577350269, 0.577350269])
-    double[::1] weights = numpy.array([1., 1.])
-    unsigned int order = len(nodes)
-
+    double[::1] nodes
+nodes = numpy.array([-0.577350269, 0.577350269])
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -42,7 +41,7 @@ def distance(tesseroid,
     numpy.ndarray[double, ndim=1] sinlat,
     numpy.ndarray[double, ndim=1] coslat,
     numpy.ndarray[double, ndim=1] radius,
-    numpy.ndarray[numpy.int_t, ndim=1] points,
+    numpy.ndarray[long, ndim=1] points,
     numpy.ndarray[double, ndim=1] buff):
     cdef:
         unsigned int i, l, size = len(points)
@@ -55,12 +54,14 @@ def distance(tesseroid,
         buff[l] = sqrt(radius[i]**2 + tes_radius**2 -
             2.*radius[i]*tes_radius*(sinlat[i]*sin(tes_lat) +
                 coslat[i]*cos(tes_lat)*cos(lon[i] - tes_lon)))
-    return buff[:size]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
-        double[::1] sinlatc, double[::1] coslatc, double[::1] rc):
+cdef inline double _scale_nodes(tesseroid,
+        numpy.ndarray[double, ndim=1] lonc,
+        numpy.ndarray[double, ndim=1] sinlatc,
+        numpy.ndarray[double, ndim=1] coslatc,
+        numpy.ndarray[double, ndim=1] rc):
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
         unsigned int i
@@ -71,7 +72,7 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
     mlat = 0.5*(tesseroid.n + tesseroid.s)
     mr = 0.5*(tesseroid.top + tesseroid.bottom + 2.*MEAN_EARTH_RADIUS)
     # Scale the GLQ nodes to the integration limits
-    for i in range(order):
+    for i in range(2):
         lonc[i] = d2r*(0.5*dlon*nodes[i] + mlon)
         latc = d2r*(0.5*dlat*nodes[i] + mlat)
         sinlatc[i] = sin(latc)
@@ -104,10 +105,10 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in range(order):
-                #for k in range(order):
+            #for j in range(2):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -142,11 +143,11 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in range(order):
+            #for j in range(2):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -181,11 +182,11 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(order):
-                #for k in range(order):
+            #for j in range(2):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -220,11 +221,11 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in range(order):
+            #for j in range(2):
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -259,11 +260,11 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in range(order):
+            #for j in range(2):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -298,12 +299,12 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(order):
+            #for j in range(2):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -338,12 +339,12 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
-            #for j in range(order):
+            #for j in range(2):
                 #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -379,11 +380,11 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(order):
-                #for k in range(order):
+            #for j in range(2):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -419,12 +420,12 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #sinlat = sin(lats[l])
         #coslat = cos(lats[l])
         #radii_sqr = radii[l]**2
-        #for i in range(order):
+        #for i in range(2):
             #coslon = cos(lons[l] - lonc[i])
             #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(order):
+            #for j in range(2):
                 #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(order):
+                #for k in range(2):
                     #l_sqr = (radii_sqr + rc[k]**2 -
                              #2.*radii[l]*rc[k]*(
                                 #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
@@ -436,38 +437,44 @@ cdef inline double _scale_nodes(tesseroid, double[::1] lonc,
         #result[l] = result[l]*scale
     #return result
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def gzz(tesseroid,
+    double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] buff):
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
     """
     Integrate gzz using the Gauss-Legendre Quadrature
     """
-    cdef unsigned ndata = len(lons), i, j, k, l
-    cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    cdef double cospsi, deltaz
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
     # Put the nodes in the corrent range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
-    for l in range(ndata):
+    for p in range(len(points)):
+        l = points[p]
         sinlat = sinlats[l]
         coslat = coslats[l]
         radii_sqr = radii[l]**2
-        buff[l] = 0
-        for i in range(order):
+        for i in range(2):
             coslon = cos(lons[l] - lonc[i])
-            for j in range(order):
+            for j in range(2):
                 cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(order):
+                for k in range(2):
                     l_sqr = (radii_sqr + rc[k]**2 -
                              2.*radii[l]*rc[k]*(
                                 sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
                     kappa = (rc[k]**2)*coslatc[j]
                     deltaz = rc[k]*cospsi - radii[l]
-                    buff[l] += scale*(weights[i]*weights[j]*weights[k]*
+                    result[l] += density*scale*(
                         kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5))
-    return buff[:ndata]

@@ -1,6 +1,7 @@
 """
 Calculates the potential fields of a tesseroid.
 """
+from collections import deque
 import numpy
 
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
@@ -110,13 +111,12 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     # Transform the heights into radii
     radii = MEAN_EARTH_RADIUS + heights
     # Create some buffers to reduce memory allocation
-    buff = numpy.zeros(ndata, numpy.float)
+    distances = numpy.zeros(ndata, numpy.float)
     lonc = numpy.zeros(2, numpy.float)
     sinlatc = numpy.zeros(2, numpy.float)
     coslatc = numpy.zeros(2, numpy.float)
     rc = numpy.zeros(2, numpy.float)
     allpoints = numpy.arange(ndata)
-    lifo = [[]]*1000
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
     for tesseroid in tesseroids:
@@ -127,28 +127,22 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        lifo[0] = [allpoints, tesseroid]
-        top = 0
-        while top >= 0:
-            points, tess = lifo[top]
-            top -= 1
+        queue = [[allpoints, tesseroid]]
+        while queue:
+            points, tess = queue.pop()
             size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
                         MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
                         tess.top - tess.bottom])
-            distances = _kernels.distance(tess, rlons, sinlats, coslats,
-                    radii, points, buff)
+            _kernels.distance(tess, rlons, sinlats, coslats, radii, points,
+                    distances)
             need_divide, dont_divide = _kernels.too_close(points, distances,
                     ratio*size)
             if len(need_divide):
-                if top + 8 >= 1000:
-                    raise ValueError('LIFO overflow')
-                for i, t in enumerate(tess.half()):
-                    lifo[top + i + 1] = [need_divide, t]
-                top += 8
+                if len(queue) >= 1000:
+                    raise ValueError('Tesseroid queue overflow')
+                queue.extend([need_divide, t] for t in tess.half())
             if len(dont_divide):
-                result[dont_divide] += density*kernel(
-                    tess, rlons[dont_divide], sinlats[dont_divide],
-                    coslats[dont_divide], radii[dont_divide], lonc, sinlatc,
-                    coslatc, rc, buff)
+                kernel(tess, density, rlons, sinlats, coslats, radii, lonc,
+                       sinlatc, coslatc, rc, result, dont_divide)
     result *= G
     return result
