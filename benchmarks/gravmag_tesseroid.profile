@@ -1,23 +1,26 @@
-         3173434 function calls in 20.518 seconds
+         3271730 function calls in 12.216 seconds
 
    Ordered by: internal time
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    7.466    7.466   20.518   20.518 tesseroid.py:99(_optimal_discretize)
-   390384    7.347    0.000    7.347    0.000 {fatiando.gravmag._ctesseroid.gzz}
-   390384    1.780    0.000    1.780    0.000 {fatiando.gravmag._ctesseroid.too_close}
-   390384    1.780    0.000    1.780    0.000 {fatiando.gravmag._ctesseroid.distance}
-   390384    0.873    0.000    1.201    0.000 mesher.py:455(__init__)
-    48748    0.598    0.000    1.798    0.000 mesher.py:489(half)
-   390384    0.329    0.000    0.329    0.000 mesher.py:46(__init__)
-   390384    0.257    0.000    0.257    0.000 {max}
-   780769    0.081    0.000    0.081    0.000 {len}
-      400    0.005    0.000    0.007    0.000 mesher.py:1078(__getitem__)
-      401    0.001    0.000    0.008    0.000 mesher.py:1103(next)
+   390384    6.681    0.000    6.681    0.000 {fatiando.gravmag._ctesseroid.gzz}
+        1    1.842    1.842   12.216   12.216 tesseroid.py:96(_optimal_discretize)
+   390384    1.665    0.000    1.665    0.000 {fatiando.gravmag._ctesseroid.too_close}
+   390384    1.332    0.000    1.332    0.000 {fatiando.gravmag._ctesseroid.distance}
+   390384    0.214    0.000    0.214    0.000 {max}
+   438732    0.152    0.000    0.152    0.000 tesseroid.py:147(_half)
+    48748    0.126    0.000    0.278    0.000 {method 'extend' of 'list' objects}
+   390384    0.111    0.000    0.111    0.000 {method 'pop' of 'list' objects}
+   829517    0.080    0.000    0.080    0.000 {len}
+      400    0.006    0.000    0.010    0.000 mesher.py:1078(__getitem__)
+      400    0.002    0.000    0.003    0.000 mesher.py:455(__init__)
+      401    0.001    0.000    0.011    0.000 mesher.py:1103(next)
       800    0.001    0.000    0.001    0.000 mesher.py:1096(<genexpr>)
-        1    0.000    0.000   20.518   20.518 tesseroid.py:90(gzz)
+      400    0.001    0.000    0.001    0.000 mesher.py:46(__init__)
+      400    0.000    0.000    0.000    0.000 mesher.py:471(get_bounds)
+        1    0.000    0.000   12.216   12.216 tesseroid.py:87(gzz)
         6    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
         1    0.000    0.000    0.000    0.000 {numpy.core.multiarray.arange}
-        1    0.000    0.000   20.518   20.518 <string>:1(<module>)
+        1    0.000    0.000   12.216   12.216 <string>:1(<module>)
         1    0.000    0.000    0.000    0.000 mesher.py:1099(__iter__)
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
