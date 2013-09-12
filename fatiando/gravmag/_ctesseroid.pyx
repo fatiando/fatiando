@@ -84,361 +84,353 @@ cdef inline double _scale_nodes(tesseroid,
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return scale
 
-#def potential(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate potential using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #for j in range(2):
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa/sqrt(l_sqr))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def potential(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            for j in range(2):
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(kappa/sqrt(l_sqr))
 
-#def gx(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gx using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double kphi
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #for j in range(2):
-                #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*rc[k]*kphi/(l_sqr**1.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gx(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            for j in range(2):
+                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*rc[k]*kphi/(l_sqr**1.5))
 
-#def gy(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gy using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double sinlon
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(2):
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gy(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            sinlon = sin(lonc[i] - lons[l])
+            for j in range(2):
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
 
-#def gz(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gz using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double cospsi
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #for j in range(2):
-                #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*(rc[k]*cospsi - radii[l])/(l_sqr**1.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gz(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            for j in range(2):
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*(rc[k]*cospsi - radii[l])/(l_sqr**1.5))
 
-#def gxx(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gxx using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double kphi
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #for j in range(2):
-                #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*(3.*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gxx(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            for j in range(2):
+                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*(3.*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5))
 
-#def gxy(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gxy using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double kphi, sinlon
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(2):
-                #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*3.*(rc[k]**2)*kphi*coslatc[j]*sinlon/(l_sqr**2.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gxy(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            sinlon = sin(lonc[i] - lons[l])
+            for j in range(2):
+                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*3.*(rc[k]**2)*kphi*coslatc[j]*sinlon/(
+                            l_sqr**2.5))
 
-#def gxz(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gxz using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double kphi, cospsi
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #for j in range(2):
-                #kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*3.*rc[k]*kphi*(rc[k]*cospsi - radii[l])/
-                        #(l_sqr**2.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gxz(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            for j in range(2):
+                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    result[l] += density*scale*(
+                        kappa*3.*rc[k]*kphi*(rc[k]*cospsi - radii[l])/
+                        (l_sqr**2.5))
 
-#def gyy(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gyy using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double sinlon, deltay
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(2):
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #deltay = rc[k]*coslatc[j]*sinlon
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*(3.*(deltay**2) - l_sqr)/(l_sqr**2.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gyy(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            sinlon = sin(lonc[i] - lons[l])
+            for j in range(2):
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    deltay = rc[k]*coslatc[j]*sinlon
+                    result[l] += density*scale*(
+                        kappa*(3.*(deltay**2) - l_sqr)/(l_sqr**2.5))
 
-#def gyz(tesseroid,
-    #numpy.ndarray[double, ndim=1] lons,
-    #numpy.ndarray[double, ndim=1] lats,
-    #numpy.ndarray[double, ndim=1] radii,
-    #numpy.ndarray[double, ndim=1] nodes,
-    #numpy.ndarray[double, ndim=1] weights):
-    #"""
-    #Integrate gyz using the Gauss-Legendre Quadrature
-    #"""
-    #cdef unsigned int order = len(nodes), ndata = len(lons), i, j, k, l
-    #cdef numpy.ndarray[double, ndim=1] lonc, latc, rc, sinlatc, coslatc
-    #cdef numpy.ndarray[double, ndim=1] result
-    #cdef double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-    #cdef double sinlon, deltay, deltaz, cospsi
-    ## Put the nodes in the corrent range
-    #lonc, latc, rc, scale = _scale_nodes(tesseroid, nodes)
-    #result = numpy.zeros(ndata, numpy.float)
-    ## Pre-compute sines, cossines and powers
-    #sinlatc = numpy.sin(latc)
-    #coslatc = numpy.cos(latc)
-    ## Start the numerical integration
-    #for l in range(ndata):
-        #sinlat = sin(lats[l])
-        #coslat = cos(lats[l])
-        #radii_sqr = radii[l]**2
-        #for i in range(2):
-            #coslon = cos(lons[l] - lonc[i])
-            #sinlon = sin(lonc[i] - lons[l])
-            #for j in range(2):
-                #cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                #for k in range(2):
-                    #l_sqr = (radii_sqr + rc[k]**2 -
-                             #2.*radii[l]*rc[k]*(
-                                #sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    #kappa = (rc[k]**2)*coslatc[j]
-                    #deltay = rc[k]*coslatc[j]*sinlon
-                    #deltaz = rc[k]*cospsi - radii[l]
-                    #result[l] = result[l] + (weights[i]*weights[j]*weights[k]*
-                        #kappa*3.*deltay*deltaz/(l_sqr**2.5))
-        #result[l] = result[l]*scale
-    #return result
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def gyz(tesseroid,
+    double density,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] lonc,
+    numpy.ndarray[double, ndim=1] sinlatc,
+    numpy.ndarray[double, ndim=1] coslatc,
+    numpy.ndarray[double, ndim=1] rc,
+    numpy.ndarray[double, ndim=1] result,
+    numpy.ndarray[long, ndim=1] points):
+    cdef:
+        unsigned int i, j, k, l, p
+        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
+        double cospsi, deltaz
+    # Put the nodes in the corrent range
+    scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    # Start the numerical integration
+    for p in range(len(points)):
+        l = points[p]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radii_sqr = radii[l]**2
+        for i in range(2):
+            coslon = cos(lons[l] - lonc[i])
+            sinlon = sin(lonc[i] - lons[l])
+            for j in range(2):
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+                for k in range(2):
+                    l_sqr = (radii_sqr + rc[k]**2 -
+                             2.*radii[l]*rc[k]*(
+                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
+                    kappa = (rc[k]**2)*coslatc[j]
+                    deltay = rc[k]*coslatc[j]*sinlon
+                    deltaz = rc[k]*cospsi - radii[l]
+                    result[l] += density*scale*(
+                        kappa*3.*deltay*deltaz/(l_sqr**2.5))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -454,9 +446,6 @@ def gzz(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
-    """
-    Integrate gzz using the Gauss-Legendre Quadrature
-    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
