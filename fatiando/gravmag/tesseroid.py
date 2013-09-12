@@ -1,7 +1,6 @@
 """
 Calculates the potential fields of a tesseroid.
 """
-from collections import deque
 import numpy
 
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
@@ -9,10 +8,7 @@ from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 try:
     from fatiando.gravmag import _ctesseroid as _kernels
 except ImportError:
-    from fatiando.gravmag import _tesseroid as _kernels
-
-
-
+    pass
 
 def potential(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -127,12 +123,13 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             density = dens
         else:
             density = tesseroid.props['density']
-        queue = [[allpoints, tesseroid]]
+        queue = [(allpoints, tesseroid.get_bounds())]
         while queue:
             points, tess = queue.pop()
-            size = max([MEAN_EARTH_RADIUS*d2r*(tess.e - tess.w),
-                        MEAN_EARTH_RADIUS*d2r*(tess.n - tess.s),
-                        tess.top - tess.bottom])
+            w, e, s, n, top, bottom = tess
+            size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
+                        MEAN_EARTH_RADIUS*d2r*(n - s),
+                        top - bottom])
             _kernels.distance(tess, rlons, sinlats, coslats, radii, points,
                     distances)
             need_divide, dont_divide = _kernels.too_close(points, distances,
@@ -140,9 +137,23 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             if len(need_divide):
                 if len(queue) >= 1000:
                     raise ValueError('Tesseroid queue overflow')
-                queue.extend([need_divide, t] for t in tess.half())
+                queue.extend(_half(tess, need_divide))
             if len(dont_divide):
                 kernel(tess, density, rlons, sinlats, coslats, radii, lonc,
                        sinlatc, coslatc, rc, result, dont_divide)
     result *= G
     return result
+
+def _half(bounds, points):
+    w, e, s, n, top, bottom = bounds
+    dlon = 0.5*(e - w)
+    dlat = 0.5*(n - s)
+    dh = 0.5*(top - bottom)
+    yield (points, (w, w + dlon, s, s + dlat, bottom + dh, bottom))
+    yield (points, (w, w + dlon, s, s + dlat, top, bottom + dh))
+    yield (points, (w, w + dlon, s + dlat, n, bottom + dh, bottom))
+    yield (points, (w, w + dlon, s + dlat, n, top, bottom + dh))
+    yield (points, (w + dlon, e, s, s + dlat, bottom + dh, bottom))
+    yield (points, (w + dlon, e, s, s + dlat, top, bottom + dh))
+    yield (points, (w + dlon, e, s + dlat, n, bottom + dh, bottom))
+    yield (points, (w + dlon, e, s + dlat, n, top, bottom + dh))

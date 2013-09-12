@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Pure Python implementations of functions in fatiando.gravmag.tesseroid.
 Used instead of Cython versions if those are not available.
@@ -46,9 +45,11 @@ def distance(tesseroid,
     cdef:
         unsigned int i, l, size = len(points)
         double tes_radius, tes_lat, tes_lon
-    tes_radius = tesseroid.top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(tesseroid.s + tesseroid.n)
-    tes_lon = d2r*0.5*(tesseroid.w + tesseroid.e)
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
+    tes_radius = top + MEAN_EARTH_RADIUS
+    tes_lat = d2r*0.5*(s + n)
+    tes_lon = d2r*0.5*(w + e)
     for l in range(size):
         i = points[l]
         buff[l] = sqrt(radius[i]**2 + tes_radius**2 -
@@ -65,12 +66,14 @@ cdef inline double _scale_nodes(tesseroid,
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
         unsigned int i
-    dlon = tesseroid.e - tesseroid.w
-    dlat = tesseroid.n - tesseroid.s
-    dr = tesseroid.top - tesseroid.bottom
-    mlon = 0.5*(tesseroid.e + tesseroid.w)
-    mlat = 0.5*(tesseroid.n + tesseroid.s)
-    mr = 0.5*(tesseroid.top + tesseroid.bottom + 2.*MEAN_EARTH_RADIUS)
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
+    dlon = e - w
+    dlat = n - s
+    dr = top - bottom
+    mlon = 0.5*(e + w)
+    mlat = 0.5*(n + s)
+    mr = 0.5*(top + bottom + 2.*MEAN_EARTH_RADIUS)
     # Scale the GLQ nodes to the integration limits
     for i in range(2):
         lonc[i] = d2r*(0.5*dlon*nodes[i] + mlon)
