@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-def potential(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
     """
     Calculate the gravitational potential due to a tesseroid model.
     """
@@ -43,7 +43,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernels.gz, ratio, dens)
 
-def gxx(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the xx (North-North) component of the gravity gradient tensor
     due to a tesseroid model.
@@ -51,7 +51,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=3):
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernels.gxx, ratio, dens)
 
-def gxy(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the xy (North-East) component of the gravity gradient tensor
     due to a tesseroid model.
@@ -59,7 +59,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernels.gxy, ratio, dens)
 
-def gxz(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the xz (North-radial) component of the gravity gradient tensor
     due to a tesseroid model.
@@ -67,7 +67,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=3):
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernels.gxz, ratio, dens)
 
-def gyy(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the yy (East-East) component of the gravity gradient tensor
     due to a tesseroid model.
@@ -75,7 +75,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=3):
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
         _kernels.gyy, ratio, dens)
 
-def gyz(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the yz (East-radial) component of the gravity gradient tensor
     due to a tesseroid model.
@@ -84,7 +84,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=3):
         _kernels.gyz, ratio, dens)
 
 
-def gzz(lons, lats, heights, tesseroids, dens=None, ratio=3):
+def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
     Calculate the zz (radial-radial) component of the gravity gradient tensor
     due to a tesseroid model.
