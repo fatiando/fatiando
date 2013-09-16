@@ -297,7 +297,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0)):
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -333,6 +333,10 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     * edgecolor : tuple = (r, g, b)
         RGB of the color of the edges. If style='wireframe', then will be
         ignored. Use parameter *color* instead
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -365,6 +369,12 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         if tess is None or (prop is not None and prop not in tess.props):
             continue
         w, e, s, n, top, bottom = tess.get_bounds()
+        w *= scale[0]
+        e *= scale[0]
+        s *= scale[1]
+        n *= scale[1]
+        top *= scale[2]
+        bottom *= scale[2]
         if prop is None:
             scalar = 0.
         else:
