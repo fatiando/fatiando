@@ -281,6 +281,58 @@ class SinSqrSource(MexHatSource):
         psi = self.amp*numpy.sin(2.*numpy.pi*t/float(self.wlength))**2
         return psi
 
+class GaussSource(object):
+    r"""
+    A wave source that vibrates as a gaussian derivative wavelet.
+
+    .. math::
+
+        \psi(t) = \frac{2 \sqrt{e}}{w} te^\left(\frac{-2t^2}{\sigma^2}\right)
+        
+
+    Parameters:
+
+    * i, j : int
+        The i,j coordinates of the source in the target finite difference grid.
+        i is the index for z, j for x
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * wlength : float
+        The aproximate "wave length" (:math:`\sigma`)
+    * delay : float
+        The delay before the source starts
+
+        .. note:: If you want the source to start with amplitude close to 0, use
+            ``delay = 3.0*wlength``.
+
+    """
+
+    def __init__(self, i, j, amp, wlength, delay=0):
+        self.i = i
+        self.j = j
+        self.amp = amp
+        self.wlength = wlength
+        self.delay = delay
+
+    def __call__(self, time):
+        t = time - self.delay
+        psi = self.amp*((2*numpy.sqrt(numpy.e)/(self.wlength))
+               *t*numpy.exp(-2*(t**2)/(self.wlength**2))
+            )
+        return psi
+
+    def coords(self):
+        """
+        Get the i,j coordinates of the source in the finite difference grid.
+
+        Returns:
+
+        * (i,j) : tuple
+            The i,j coordinates
+
+        """
+        return (self.i, self.j)
+
 def lame(pvel, svel, dens):
     r"""
     Calculate the Lame constants :math:`\lambda` and :math:`\mu` from the
