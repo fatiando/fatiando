@@ -55,8 +55,6 @@ def gz(xp, zp, polygons):
     if xp.shape != zp.shape:
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
-    # Extract the indexes of an array that have cond == True
-    subset = lambda cond: [i for i, istrue in enumerate(cond) if istrue]
     for polygon in polygons:
         if polygon is None or 'density' not in polygon.props:
             continue
@@ -78,24 +76,24 @@ def gz(xp, zp, polygons):
             # Temporary fix. The analytical conditions for these limits don't
             # work. So if the conditions are breached, sum 0.01 meters to the
             # coodinates and be happy
-            xv[subset(xv == 0.)] += 0.01
-            xv[subset(xv == xvp1)] += 0.01
-            zv[subset(zv[subset(xv == zv)] == 0.)] += 0.01
-            zv[subset(zv == zvp1)] += 0.01
-            zvp1[subset(zvp1[subset(xvp1 == zvp1)] == 0.)] += 0.01
-            xvp1[subset(xvp1 == 0.)] += 0.01
+            xv[xv == 0.] += 0.01
+            xv[xv == xvp1] += 0.01
+            zv[zv[xv == zv] == 0.] += 0.01
+            zv[zv == zvp1] += 0.01
+            zvp1[zvp1[xvp1 == zvp1] == 0.] += 0.01
+            xvp1[xvp1 == 0.] += 0.01
             # End of fix
             phi_v = arctan2(zvp1 - zv, xvp1 - xv)
             ai = xvp1 + zvp1*(xvp1 - xv)/(zv - zvp1)
             theta_v = arctan2(zv, xv)
             theta_vp1 = arctan2(zvp1, xvp1)
-            theta_v[subset(theta_v < 0)] += pi
-            theta_vp1[subset(theta_vp1 < 0)] += pi
+            theta_v[theta_v < 0] += pi
+            theta_vp1[theta_vp1 < 0] += pi
             tmp = ai*sin(phi_v)*cos(phi_v)*(
                     theta_v - theta_vp1 + tan(phi_v)*log(
                         (cos(theta_v)*(tan(theta_v) - tan(phi_v)))/
                         (cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))))
-            tmp[subset(theta_v == theta_vp1)] = 0.
+            tmp[theta_v == theta_vp1] = 0.
             res = res + tmp*density
     res = res*SI2MGAL*2.0*G
     return res

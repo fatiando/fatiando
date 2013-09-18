@@ -1,37 +1,34 @@
 """
-GravMag: Forward modeling of the gravity anomaly and the gzz component of the
-gravity gradient tensor using spheres (calculate on random points)
+GravMag: Forward modeling of the gravity anomaly and gravity gradient tensor
+using spheres
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl
 
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
 spheres = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
-# Create a set of points at 100m height
 area = (-5000, 5000, -5000, 5000)
-xp, yp, zp = gridder.scatter(area, 500, z=-100)
-# Calculate the anomaly
-gz = utils.contaminate(gravmag.sphere.gz(xp, yp, zp, spheres), 0.1)
-gzz = utils.contaminate(gravmag.sphere.gzz(xp, yp, zp, spheres), 5.0)
-# Plot
 shape = (100, 100)
+x, y, z = gridder.regular(area, shape, z=-100)
+gz = gravmag.sphere.gz(x, y, z, spheres)
+tensor = [gravmag.sphere.gxx(x, y, z, spheres),
+          gravmag.sphere.gxy(x, y, z, spheres),
+          gravmag.sphere.gxz(x, y, z, spheres),
+          gravmag.sphere.gyy(x, y, z, spheres),
+          gravmag.sphere.gyz(x, y, z, spheres),
+          gravmag.sphere.gzz(x, y, z, spheres)]
 mpl.figure()
-mpl.title("gz (mGal)")
 mpl.axis('scaled')
-mpl.plot(yp*0.001, xp*0.001, '.k')
-mpl.contourf(yp*0.001, xp*0.001, gz, shape, 15, interp=True)
+mpl.title('gz')
+mpl.contourf(y, x, gz, shape, 15)
 mpl.colorbar()
-mpl.xlabel('East y (km)')
-mpl.ylabel('North x (km)')
+mpl.m2km()
 mpl.figure()
-mpl.title("gzz (Eotvos)")
-mpl.axis('scaled')
-mpl.plot(yp*0.001, xp*0.001, '.k')
-mpl.contourf(yp*0.001, xp*0.001, gzz, shape, 15, interp=True)
-mpl.colorbar()
-mpl.xlabel('East y (km)')
-mpl.ylabel('North x (km)')
+titles = ['gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
+for i, field in enumerate(tensor):
+    mpl.subplot(2, 3, i + 1)
+    mpl.axis('scaled')
+    mpl.title(titles[i])
+    levels = mpl.contourf(y, x, field, shape, 15)
+    mpl.colorbar()
+    mpl.m2km()
 mpl.show()

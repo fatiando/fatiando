@@ -30,16 +30,13 @@ Generate and operate on various kinds of meshes and geometric elements
 ----
 
 """
-import PIL.Image
 import numpy
-import scipy.misc
 import scipy.special
 import matplotlib.mlab
 
-import fatiando.logger
+import fatiando.io
 import fatiando.gridder
 
-log = fatiando.logger.dummy('fatiando.mesher')
 
 class GeometricElement(object):
     """
@@ -189,7 +186,6 @@ class SquareMesh(object):
 
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
-        log.info("Generating 2D regular square mesh:")
         ny, nx = shape
         size = int(nx*ny)
         x1, x2, y1, y2 = bounds
@@ -206,10 +202,6 @@ class SquareMesh(object):
             self.props = {}
         else:
             self.props = props
-        log.info("  bounds = (x1, x2, y1, y2) = %s" % (str(bounds)))
-        log.info("  shape = (ny, nx) = %s" % (str(shape)))
-        log.info("  number of squares = %d" % (size))
-        log.info("  square dimensions = (dx, dy) = %s" % (str(self.dims)))
         # The index of the current square in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
@@ -288,35 +280,8 @@ class SquareMesh(object):
             Name of the physical property
 
         """
-        log.info("Loading physical property from image file:")
-        log.info("  file: '%s'" % (fname))
-        log.info("  physical property: %s" % (prop))
-        log.info("  range: [vmin, vmax] = %s" % (str([vmin, vmax])))
-        image = PIL.Image.open(fname)
-        imagearray = scipy.misc.fromimage(image, flatten=True)
-        # Invert the color scale
-        model = numpy.max(imagearray) - imagearray
-        # Normalize
-        model = model/numpy.max(numpy.abs(imagearray))
-        # Put it in the interval [vmin,vmax]
-        model = model*(vmax - vmin) + vmin
-        # Convert the model to a list so that I can reverse it (otherwise the
-        # image will be upside down)
-        model = model.tolist()
-        model.reverse()
-        model = numpy.array(model)
-        log.info("  image shape: (ny, nx) = %s" % (str(model.shape)))
-        # Check if the shapes match, if not, interpolate
-        if model.shape != self.shape:
-            log.info("  interpolate image to match mesh shape")
-            ny, nx = model.shape
-            xs = numpy.arange(nx)
-            ys = numpy.arange(ny)
-            X, Y = numpy.meshgrid(xs, ys)
-            model = fatiando.gridder.interp(X.ravel(), Y.ravel(), model.ravel(),
-                self.shape)[2]
-            log.info("  new image shape: (ny, nx) = %s" % (str(model.shape)))
-        self.props[prop] = model.ravel()
+        self.props[prop] = fatiando.io.fromimage(fname, ranges=[vmin, vmax],
+                shape=self.shape)[::-1,:].ravel()
 
     def get_xs(self):
         """
@@ -521,6 +486,122 @@ class Tesseroid(GeometricElement):
         """
         return [self.w, self.e, self.s, self.n, self.top, self.bottom]
 
+    def half(self, lon=True, lat=True, r=True):
+        """
+        Divide the tesseroid in 2 halfs for each dimension (total 8)
+
+        The smaller tesseroids will share the large one's props.
+
+        Parameters:
+
+        * lon, lat, r : True or False
+            Dimensions along which the tesseroid will be split in half.
+
+        Returns:
+
+        * tesseroids : list
+            A list of maximum 8 tesseroids that make up the larger one.
+
+        Examples::
+
+        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+        >>> split = tess.half()
+        >>> print len(split)
+        8
+        >>> for t in split:
+        ...     print t
+        w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:0 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        w:0 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:0 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:0 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:0 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+        >>> split = tess.half(lat=False)
+        >>> print len(split)
+        4
+        >>> for t in split:
+        ...     print t
+        w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
+        w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
+        w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
+        w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
+
+        """
+        dlon = 0.5*(self.e - self.w)
+        dlat = 0.5*(self.n - self.s)
+        dh = 0.5*(self.top - self.bottom)
+        wests = [self.w, self.w + dlon]
+        souths = [self.s, self.s + dlat]
+        bottoms = [self.bottom, self.bottom + dh]
+        if not lon:
+            dlon *= 2
+            wests.pop()
+        if not lat:
+            dlat *= 2
+            souths.pop()
+        if not r:
+            dh *= 2
+            bottoms.pop()
+        split = [
+            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
+            for i in wests for j in souths for k in bottoms]
+        return split
+
+    def split(self, nlon, nlat, nh):
+        """
+        Split the tesseroid into smaller ones.
+
+        The smaller tesseroids will share the large one's props.
+
+        Parameters:
+
+        * nlon, nlat, nh : int
+            The number of sections to split in the longitudinal, latitudinal,
+            and vertical dimensions
+
+        Returns:
+
+        * tesseroids : list
+            A list of nlon*nlat*nh tesseroids that make up the larger one.
+
+
+        Examples::
+
+        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+        >>> split = tess.split(1, 2, 2)
+        >>> print len(split)
+        4
+        >>> for t in split:
+        ...     print t
+        w:-10 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+        w:-10 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+        w:-10 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+        >>> split = tess.split(3, 1, 1)
+        >>> print len(split)
+        3
+        >>> for t in split:
+        ...     print t
+        w:-15 | e:-5 | s:-20 | n:20 | top:0 | bottom:-40
+        w:-5 | e:5 | s:-20 | n:20 | top:0 | bottom:-40
+        w:5 | e:15 | s:-20 | n:20 | top:0 | bottom:-40
+
+        """
+        wests = numpy.linspace(self.w, self.e, nlon + 1)
+        souths = numpy.linspace(self.s, self.n, nlat + 1)
+        bottoms = numpy.linspace(self.bottom, self.top, nh + 1)
+        dlon = wests[1] - wests[0]
+        dlat = souths[1] - souths[0]
+        dh = bottoms[1] - bottoms[0]
+        tesseroids = [
+            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
+            for i in wests[:-1] for j in souths[:-1] for k in bottoms[:-1]]
+        return tesseroids
+
 class Sphere(GeometricElement):
     """
     Create a sphere.
@@ -641,7 +722,7 @@ class PointGrid(object):
     """
     Create a grid of 3D point sources (spheres of unit volume).
 
-    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`s.
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
     Grid points are ordered with x varying first, then y (like a C matrix).
 
     Parameters:
@@ -730,7 +811,7 @@ class PointGrid(object):
         Returns:
 
         * subgrids : list
-            List of :class:`~fatiando.mesher.PointGrid`s
+            List of :class:`~fatiando.mesher.PointGrid`
 
         Examples::
 
@@ -833,10 +914,6 @@ class PrismRelief(object):
         self.ref = ref
         self.dy, self.dx = dims
         self.props = {}
-        log.info("Generating 3D relief with right rectangular prisms:")
-        log.info("  number of prisms = %d" % (self.size))
-        log.info("  reference level = %s" % (str(ref)))
-        log.info("  dimensions of prisms = %g x %g" % (dims[0], dims[1]))
         # The index of the current prism in an iteration. Needed when mesh is
         # used as an iterator
         self.i = 0
@@ -957,7 +1034,7 @@ class PrismMesh(object):
         x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
 
     You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
-    methods for y and z) to get the x coordinates os the prisms in the mesh::
+    methods for y and z) to get the x coordinates of the prisms in the mesh::
 
         >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
         >>> print mesh.get_xs()

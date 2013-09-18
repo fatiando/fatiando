@@ -10,6 +10,13 @@ Version 0.2
 
 **Changes**:
 
+* New ``extrapolate_nans`` function in
+  :ref:`fatiando.gridder <fatiando_gridder>` to fill NaNs and masked
+  values in arrays using the nearest data point.
+* ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` has option
+  to extrapolate values outside the convex hull of the data (enabled by
+  default). Uses better cubic interpolation by default and returns
+  1D arrays like the rest of fatiando, instead of 2D.
 * Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
@@ -19,6 +26,7 @@ Version 0.2
   used as a ``Prism`` object.
 * :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
   data weights.
+* Removed module fatiando.logger
 
 Version 0.1
 -----------
@@ -63,7 +71,7 @@ Version 0.1
   web and convert them to useful formats (for now supports the CRUST2.0 global
   curstal model)
 * If building inplace or packaging, the setup script puts the Mercurial
-  changeset hash in a file. Then :ref:`fatiando.logger.header <fatiando_logger>`
+  changeset hash in a file. Then fatiando.logger.header
   loads the hash from file and put a "Unknown" if it can't read.
   This way importing fatiando won't fail if the there is no changeset
   information available.

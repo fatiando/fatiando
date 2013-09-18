@@ -4,81 +4,72 @@ medium with a discontinuity (i.e., Moho), generating Love waves.
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import seismic, logger, gridder, vis
+from fatiando import gridder, io
+from fatiando.seismic import wavefd
+from fatiando.vis import mpl
 
-log = logger.get()
+# Set the parameters of the finite difference grid
+shape = (200, 1000)
+area = [0, 800000, 0, 160000]
+
+# Make a density and S wave velocity model
+density = 2400*np.ones(shape)
+svel = 3500*np.ones(shape)
+moho = 50
+density[moho:] = 2800
+svel[moho:] = 4500
+mu = wavefd.lame_mu(svel, density)
 
 # Make a wave source from a mexican hat wavelet
-sources = [seismic.wavefd.MexHatSource(4, 20, 100, 0.5, delay=1.5),
-           seismic.wavefd.MexHatSource(6, 22, 100, 0.5, delay=1.75),
-           seismic.wavefd.MexHatSource(8, 24, 100, 0.5, delay=2)]
-# Set the parameters of the finite difference grid
-shape = (80, 400)
-spacing = (1000, 1000)
-area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
-# Make a density and S wave velocity model
-moho_index = 30
-moho = moho_index*spacing[0]
-dens = np.ones(shape)
-dens[:moho_index,:] *= 2700
-dens[moho_index:,:] *= 3100
-svel = np.ones(shape)
-svel[:moho_index,:] *= 3000
-svel[moho_index:,:] *= 6000
+sources = [wavefd.MexHatSource(10000, 10000, area, shape, 100000, 0.5, delay=2)]
 
 # Get the iterator. This part only generates an iterator object. The actual
 # computations take place at each iteration in the for loop below
-dt = 0.05
-maxit = 4200
-timesteps = seismic.wavefd.elastic_sh(spacing, shape, svel, dens, dt, maxit,
-    sources, padding=0.8)
+dt = wavefd.maxdt(area, shape, svel.max())
+duration = 250
+maxit = int(duration/dt)
+stations = [[100000, 0], [700000, 0]]
+snapshots = int(1./dt)
+simulation = wavefd.elastic_sh(mu, density, area, dt, maxit, sources, stations,
+                               snapshots, padding=70, taper=0.005)
 
 # This part makes an animation using matplotlibs animation API
-rec = 300 # The grid node used to record the seismogram
-vmin, vmax = -3*10**(-4), 3*10**(-4)
-fig = vis.mpl.figure(figsize=(10,6))
-vis.mpl.subplots_adjust(left=0.1, right=0.98)
-vis.mpl.subplot(2, 1, 2)
-vis.mpl.axis('scaled')
-x, z = gridder.regular(area, shape)
-wavefield = vis.mpl.pcolor(x, z, np.zeros(shape).ravel(), shape,
-    vmin=vmin, vmax=vmax)
-vis.mpl.plot([rec*spacing[1]], [2000], '^b')
-vis.mpl.hlines([moho], 0, area[1], 'k', '-')
-vis.mpl.text(area[1] - 35000, moho + 10000, 'Moho')
-vis.mpl.text(area[1] - 90000, 15000,
-    r'$\rho = %g g/cm^3$ $\beta = %g km/s$' % (2.7, 3))
-vis.mpl.text(area[1] - 90000, area[-1] - 10000,
-    r'$\rho = %g g/cm^3$ $\beta = %g km/s$' % (3.1, 6))
-vis.mpl.ylim(area[-1], area[-2])
-vis.mpl.m2km()
-vis.mpl.xlabel("x (km)")
-vis.mpl.ylabel("z (km)")
-vis.mpl.subplot(2, 1, 1)
-seismogram, = vis.mpl.plot([], [], '-k')
-vis.mpl.xlim(0, dt*maxit)
-vis.mpl.ylim(vmin*10.**(6), vmax*10.**(6))
-vis.mpl.xlabel("Time (s)")
-vis.mpl.ylabel("Amplitude ($\mu$m)")
-times = []
-addtime = times.append
-amps = []
-addamp = amps.append
+background = svel*5*10**-7
+fig = mpl.figure(figsize=(10, 8))
+mpl.subplots_adjust(right=0.98, left=0.11, hspace=0.3, top=0.93)
+mpl.subplot(3, 1, 1)
+mpl.title('Seismogram 1')
+seismogram1, = mpl.plot([],[],'-k')
+mpl.xlim(0, duration)
+mpl.ylim(-0.1, 0.1)
+mpl.ylabel('Amplitude')
+mpl.subplot(3, 1, 2)
+mpl.title('Seismogram 2')
+seismogram2, = mpl.plot([],[],'-k')
+mpl.xlim(0, duration)
+mpl.ylim(-0.1, 0.1)
+mpl.ylabel('Amplitude')
+ax = mpl.subplot(3, 1, 3)
+mpl.title('time: 0.0 s')
+wavefield = mpl.imshow(background, extent=area, cmap=mpl.cm.gray_r,
+                       vmin=-0.005, vmax=0.005)
+mpl.points(stations, '^b', size=8)
+mpl.text(750000, 20000, 'Crust')
+mpl.text(740000, 100000, 'Mantle')
+fig.text(0.82, 0.33, 'Seismometer 2')
+fig.text(0.16, 0.33, 'Seismometer 1')
+mpl.ylim(area[2:][::-1])
+mpl.xlabel('x (km)')
+mpl.ylabel('z (km)')
+mpl.m2km()
+times = np.linspace(0, dt*maxit, maxit)
 # This function updates the plot every few timesteps
-steps_per_frame = 100
-#steps_per_frame = 1
 def animate(i):
-    # i is the number of the animation frame
-    for t, u in enumerate(timesteps):
-        addamp(10.**(6)*u[0, rec])
-        addtime(dt*(t + i*steps_per_frame))
-        if t == steps_per_frame - 1:
-            vis.mpl.title('time: %0.1f s' % (i*steps_per_frame*dt))
-            seismogram.set_data(times, amps)
-            wavefield.set_array(u[0:-1,0:-1].ravel())
-            break
-    return seismogram, wavefield
-anim = animation.FuncAnimation(fig, animate, frames=maxit/steps_per_frame,
-    interval=1, blit=False)
-#anim.save('love_wave.mp4', fps=100)
-vis.mpl.show()
+    t, u, seismogram = simulation.next()
+    mpl.title('time: %0.1f s' % (times[t]))
+    wavefield.set_array((background + u)[::-1])
+    seismogram1.set_data(times[:t+1], seismogram[0][:t+1])
+    seismogram2.set_data(times[:t+1], seismogram[1][:t+1])
+    return wavefield, seismogram1, seismogram2
+anim = animation.FuncAnimation(fig, animate, frames=maxit/snapshots, interval=1)
+mpl.show()

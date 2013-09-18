@@ -1,19 +1,13 @@
 """
 Meshing: Make and plot a tesseroid mesh with topography
 """
-
-from fatiando import logger, gridder, utils, mesher
+from fatiando import gridder, utils, mesher
 from fatiando.vis import myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 w, e = -2, 2
 s, n = -2, 2
 bounds = (w, e, s, n, 500000, 0)
 
-log.info("Generating synthetic topography")
 x, y = gridder.regular((w, e, s, n), (50, 50))
 height = (250000 +
           -100000*utils.gaussian2d(x, y, 1, 5, x0=-1, y0=-1, angle=-60) +

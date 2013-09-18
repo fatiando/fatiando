@@ -1,11 +1,8 @@
 """
 GravMag: Classic 3D Euler deconvolution of magnetic data (single window)
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
 
 # The regional field
 inc, dec = -45, 0
@@ -45,7 +42,7 @@ print "Base level used: %g" % (baselevel)
 print "Estimated base level: %g" % (results['baselevel'])
 
 myv.figure()
-myv.points([results['point']], size=300.)
+myv.points([results['point']], size=100.)
 myv.prisms(model, 'magnetization', opacity=0.5)
 axes = myv.axes(myv.outline(extent=bounds))
 myv.wall_bottom(axes.axes.bounds, opacity=0.2)

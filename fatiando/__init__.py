@@ -25,8 +25,6 @@ Modules for gridding, meshing, visualization, user interface, input/output etc:
   Graphical user interfaces (still very primitive)
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
-* :mod:`logger <fatiando.logger>`:
-  A simpler interface to the Python :mod:`logging` module for log files
 * :mod:`~fatiando.constants`:
   Physical constants and unit conversions
 

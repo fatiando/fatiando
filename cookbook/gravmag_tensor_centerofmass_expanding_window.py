@@ -2,12 +2,8 @@
 GravMag: Center of mass estimation using the first eigenvector of the gravity
 gradient tensor (2 sources with expanding windows)
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
 
 # Generate some synthetic data
 prisms = [mesher.Prism(-2500,-500,-1000,1000,500,2500,{'density':1000}),
@@ -55,7 +51,7 @@ for center in centers:
 # Plot the prism and the estimated center of mass
 # It won't work well because we're using only a single window
 myv.figure()
-myv.points(cms, size=300.)
+myv.points(cms, size=200.)
 myv.prisms(prisms, prop='density', opacity=0.5)
 axes = myv.axes(myv.outline(extent=[-5000, 5000, -5000, 5000, 0, 5000]))
 myv.wall_bottom(axes.axes.bounds, opacity=0.2)

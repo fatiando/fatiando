@@ -2,11 +2,8 @@
 GravMag: Classic 3D Euler deconvolution of magnetic data using an
 expanding window
 """
-from fatiando import logger, mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils, gravmag
 from fatiando.vis import mpl, myv
-
-log = logger.get()
-log.info(logger.header())
 
 # The regional field
 inc, dec = -45, 0
@@ -63,7 +60,7 @@ for center in centers:
     print "Estimated source location: %s" % (str(results[-1]['point']))
 
 myv.figure()
-myv.points([r['point'] for r in results], size=300.)
+myv.points([r['point'] for r in results], size=100.)
 myv.prisms(model, opacity=0.5)
 axes = myv.axes(myv.outline(bounds), ranges=[b*0.001 for b in bounds])
 myv.wall_bottom(bounds)
