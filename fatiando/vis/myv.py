@@ -169,7 +169,7 @@ def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0)):
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
 
@@ -204,6 +204,10 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * edgecolor : tuple = (r, g, b)
         RGB of the color of the edges. If style='wireframe', then will be
         ignored. Use parameter *color* instead
+    * scale : (sx, sy, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -289,15 +293,17 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
             edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
             edge.actor.property.color = edgecolor
+            edge.actor.actor.scale = scale
     surf.actor.property.opacity = opacity
     if color is not None:
         surf.actor.mapper.scalar_visibility = 0
         surf.actor.property.color = color
+    surf.actor.actor.scale = scale
     return surf
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0)):
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -333,6 +339,10 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     * edgecolor : tuple = (r, g, b)
         RGB of the color of the edges. If style='wireframe', then will be
         ignored. Use parameter *color* instead
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -365,6 +375,12 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         if tess is None or (prop is not None and prop not in tess.props):
             continue
         w, e, s, n, top, bottom = tess.get_bounds()
+        w *= scale[0]
+        e *= scale[0]
+        s *= scale[1]
+        n *= scale[1]
+        top *= scale[2]
+        bottom *= scale[2]
         if prop is None:
             scalar = 0.
         else:
@@ -439,7 +455,7 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0)):
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -474,6 +490,10 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * edgecolor : tuple = (r, g, b)
         RGB of the color of the edges. If style='wireframe', then will be
         ignored. Use parameter *color* instead
+    * scale : (sx, sy, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -549,6 +569,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     if color is not None:
         surf.actor.mapper.scalar_visibility = 0
         surf.actor.property.color = color
+    surf.actor.actor.scale = scale
     return surf
 
 def figure(size=None, zdown=True, color=(1, 1, 1)):
@@ -581,7 +602,7 @@ def figure(size=None, zdown=True, color=(1, 1, 1)):
         fig.scene.camera.azimuth(180.)
     return fig
 
-def outline(extent=None, color=(0, 0, 0), width=2):
+def outline(extent=None, color=(0, 0, 0), width=2, scale=(1, 1, 1)):
     """
     Create a default outline in Mayavi2.
 
@@ -593,6 +614,10 @@ def outline(extent=None, color=(0, 0, 0), width=2):
         RGB of the color of the axes and text
     * width : float
         Line width
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -604,6 +629,7 @@ def outline(extent=None, color=(0, 0, 0), width=2):
     outline = mlab.outline(color=color, line_width=width)
     if extent is not None:
         outline.bounds = extent
+    outline.actor.actor.scale = scale
     return outline
 
 def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
@@ -649,7 +675,7 @@ def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     a.axes.x_label, a.axes.y_label, a.axes.z_label = "N", "E", "Z"
     return a
 
-def wall_north(bounds, color=(0,0,0), opacity=0.1):
+def wall_north(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the North side.
 
@@ -663,15 +689,16 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([n, n, w, e, b, t], color, opacity)
+    _wall([n, n, w, e, b, t], color, opacity, scale)
 
-def wall_south(bounds, color=(0,0,0), opacity=0.1):
+def wall_south(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the South side.
 
@@ -685,15 +712,16 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, s, w, e, b, t], color, opacity)
+    _wall([s, s, w, e, b, t], color, opacity, scale)
 
-def wall_east(bounds, color=(0,0,0), opacity=0.1):
+def wall_east(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the East side.
 
@@ -707,15 +735,16 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, e, e, b, t], color, opacity)
+    _wall([s, n, e, e, b, t], color, opacity, scale)
 
-def wall_west(bounds, color=(0,0,0), opacity=0.1):
+def wall_west(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the West side.
 
@@ -729,15 +758,16 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, w, b, t], color, opacity)
+    _wall([s, n, w, w, b, t], color, opacity, scale)
 
-def wall_top(bounds, color=(0,0,0), opacity=0.1):
+def wall_top(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Top side.
 
@@ -751,15 +781,16 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, e, t, t], color, opacity)
+    _wall([s, n, w, e, t, t], color, opacity, scale)
 
-def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
+def wall_bottom(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Bottom side.
 
@@ -773,15 +804,16 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, e, b, b], color, opacity)
+    _wall([s, n, w, e, b, b], color, opacity, scale)
 
-def _wall(bounds, color, opacity):
+def _wall(bounds, color, opacity, scale):
     """Generate a 3D wall in Mayavi"""
     _lazy_import_mlab()
     p = mlab.pipeline.builtin_surface()
@@ -791,6 +823,7 @@ def _wall(bounds, color, opacity):
     su = mlab.pipeline.surface(p)
     su.actor.property.color = color
     su.actor.property.opacity = opacity
+    su.actor.actor.scale = scale
 
 def continents(color=(0, 0, 0), linewidth=1, resolution=2, opacity=1,
     radius=MEAN_EARTH_RADIUS):
