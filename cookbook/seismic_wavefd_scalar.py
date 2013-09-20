@@ -1,11 +1,14 @@
 """
 Seismic: 2D finite difference simulation of scalar wave propagation.
 
-Difraction example in difraction model
+Difraction example in cylindrical wedge model. Based on:
+R. M. Alford, K. R. Kelly and D. M. Boore - 
+Accuracy of finite-difference modeling of the acoustic wave equation. 
+Geophysics  1974
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import seismic
+from fatiando.seismic import wavefd
 from fatiando.vis import mpl
 
 # Set the parameters of the finite difference grid
@@ -16,21 +19,20 @@ area = [0, shape[0]*ds, 0, shape[1]*ds]
 velocity = np.zeros(shape)+6000.
 velocity[100:,100:] = 0.
 fc = 15.
-# first example R. M. Alford (x, z) 
-sources = [seismic.wavefd.GaussSource(125*ds, 75*ds, area, shape,  1., fc)]
-dt = 0.01 # stability requires velocity*dt/ds <~ 0.601
+sources = [wavefd.GaussSource(125*ds, 75*ds, area, shape,  1., fc)]
+dt = wavefd.scalar_maxdt(area, shape, np.max(velocity))
 duration = 2.5
 maxit = int(duration/dt)
 stations = [[75*ds, 125*ds]] # x, z coordinate of the seismometer
 snapshots = 3 # every 3 iterations plots one
-simulation = seismic.wavefd.scalar(ds, shape, velocity, dt, maxit, sources, stations, snapshots)
+simulation = wavefd.scalar(velocity, area, dt, maxit, sources, stations, snapshots)
 
 # This part makes an animation using matplotlibs animation API
 background = (velocity-4000)*10**-1
 fig = mpl.figure(figsize=(8, 6))
 mpl.subplots_adjust(right=0.98, left=0.11, hspace=0.5, top=0.93)
 mpl.subplot2grid((4, 3), (0,0), colspan=3,rowspan=3)
-wavefield = imshow(np.zeros_like(velocity), extent=area, cmap=mpl.cm.gray_r,
+wavefield = mpl.imshow(np.zeros_like(velocity), extent=area, cmap=mpl.cm.gray_r,
                        vmin=-1000, vmax=1000)
 mpl.points(stations, '^b', size=8)
 mpl.ylim(area[2:][::-1])
@@ -38,7 +40,7 @@ mpl.xlabel('x (km)')
 mpl.ylabel('z (km)')
 mpl.m2km()
 mpl.subplot2grid((4,3), (3,0), colspan=3)
-seismogram1, = plot([],[],'-k')
+seismogram1, = mpl.plot([],[],'-k')
 mpl.xlim(0, duration)
 mpl.ylim(-200, 200)
 mpl.ylabel('Amplitude')

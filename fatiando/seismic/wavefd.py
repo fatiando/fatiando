@@ -428,20 +428,20 @@ def _add_pad(array, pad, shape):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
     return array_pad
 
-def scalar(spacing, shape, vel, dt, iterations, sources, stations=None,
+def scalar(vel, area, dt, iterations, sources, stations=None,
     snapshot=None, padding=50, taper=0.005):
     """
+    
     Simulate scalar waves using an explicit finite differences scheme 4th order
-    space.
+    space. Space increment must be equal in x and z.
 
     Parameters:
 
-    * spacing : float
-        The node spacing of the finite differences grid equal x and z
-    * shape : (nz, nx)
-        The number of nodes in the grid in the z and x directions
-    * vel : 2D-array (shape = *shape*)
+    * vel : 2D-array (defines shape simulation)
         The wave velocity at all the grid nodes
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
     * dt : float
         The time interval between iterations
     * iterations : int
@@ -471,10 +471,15 @@ def scalar(spacing, shape, vel, dt, iterations, sources, stations=None,
         station until the current iteration.
 
     """
-    nz, nx = shape
-    ds = float(spacing)
 
-    x1, x2, z1, z2 = 0, ds*nx, 0, ds*nz
+    nz, nx = numpy.shape(vel) # get simulation dimensions
+    x1, x2, z1, z2 = area
+    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    
+    if dz != dx:
+        raise ValueError('Space increment must be equal in x and z')
+    
+    ds = dz # dz or dx doesn't matter
 
     # Get the index of the closest point to the stations and start the
     # seismograms
@@ -883,3 +888,53 @@ def maxdt(area, shape, maxvel):
     nz, nx = shape
     spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
     return 0.606*spacing/maxvel
+
+
+def scalar_maxdt(area, shape, maxvel):
+    """
+    Calculate the maximum time step that can be used in the
+    FD scalar simulation with 4th order space 1st time backward. 
+    
+    References
+
+    Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of finite-difference
+    modeling of the acoustic wave equation Geophysics, 39 (6), P. 834-842
+
+    Chen, Jing-Bo (2011) A stability formula for Lax-Wendroff methods 
+    with fourth-order in time and general-order in space for 
+    the scalar wave equation Geophysics, v. 76, p. T37-T42
+
+    Convergence
+     
+    .. math::
+     
+         \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N} (|w_a^1| + |w_a^2|)}}
+    
+         = \frac{ \Delta s \sqrt{3}}{ V_{max} \sqrt{8}}
+    
+    Where w_a are the centered differences weights
+    
+    Parameters:
+
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the swallowest point is
+        at zmin, the deepest at zmax.
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
+    * maxvel : float
+        The maximum velocity in the medium
+
+    Returns:
+
+    * maxdt : float
+        The maximum time step
+
+    """
+    x1, x2, z1, z2 = area
+    nz, nx = shape
+    spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
+    factor = numpy.sqrt(3./8.)
+    factor -= factor/100. # 1% smaller to guarantee criteria
+    # the closer to stability criteria the better the convergence
+    
+    return factor*spacing/maxvel
