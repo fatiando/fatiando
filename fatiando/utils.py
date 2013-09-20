@@ -729,3 +729,33 @@ def connect_points(pts1, pts2):
             append1(p1)
             append2(p2)
     return [connect1, connect2]
+
+
+from obspy import Trace, Stream
+from obspy.core.trace import Stats
+
+def matrix2stream(matrix, header=None):
+    """    
+    Header can be any acceptable dictionary pair in Trace.stats
+    like header={'delta': 0.004}
+    
+    """
+    
+    arraytraces = np.require(matrix, dtype=np.float32)
+    stream = Stream()
+    for array in arraytraces:
+        trace = Trace(data=array, header=header)
+        stream.append(trace)
+        
+    return stream
+
+def stream2matrix(stream):
+    """
+    
+    return
+        matrix, stats header
+    """
+    
+    return
+    
+    
