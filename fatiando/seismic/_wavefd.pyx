@@ -18,7 +18,9 @@ __all__ = [
     '_step_elastic_psv',
     '_xz2ps',
     '_nonreflexive_sh_boundary_conditions',
-    '_nonreflexive_psv_boundary_conditions']
+    '_nonreflexive_psv_boundary_conditions',
+    '_reflexive_scalar_boundary_conditions',
+    '_step_scalar']
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -266,3 +268,50 @@ def _step_elastic_psv(
                 ux[t,i+1,j] + ux[t,i+1,j-1]- ux[t,i-1,j]  - ux[t,i-1,j-1])/dz)
             uz[tp1,i,j] = 2*uz[t,i,j] - uz[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauzz_p - tauzz_m)/dz + (tauxz_p - tauxz_m)/dx)
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _reflexive_scalar_boundary_conditions(
+    numpy.ndarray[double, ndim=2] u not None,
+    unsigned int nx, unsigned int nz):
+    """
+    Apply the boundary conditions: free-surface at top, fixed on the others.
+    4th order (+2-2) indexes
+    """
+    cdef unsigned int i
+    # Top
+    for i in xrange(nx): 
+        u[1, i] = u[2, i] #up
+        u[0, i] = u[1, i] 
+        u[nz - 1, i] *= 0 #down
+        u[nz - 2, i] *= 0
+    # Sides
+    for i in xrange(nz):
+        u[i, 0] *= 0 #left
+        u[i, 1] *= 0
+        u[i, nx - 1] *= 0 #right
+        u[i, nx - 2] *= 0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _step_scalar(
+    numpy.ndarray[double, ndim=2] u_tp1 not None,
+    numpy.ndarray[double, ndim=2] u_t not None,
+    numpy.ndarray[double, ndim=2] u_tm1 not None,
+    unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
+    double dt, double ds,
+    numpy.ndarray[double, ndim=2] vel not None):
+    """
+    Perform a single time step in the Finite Difference solution for scalar
+    waves 4th order in space
+    """
+    cdef unsigned int i, j
+    for i in xrange(z1, z2):
+        for j in xrange(x1, x2):
+            u_tp1[i,j] = (2.*u_t[i,j] - u_tm1[i,j]
+                + ((vel[i,j]*dt/ds)**2)*(
+                    (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
+                     16.*u_t[i,j - 1] - u_t[i,j - 2])/12. +
+                    (-u_t[i + 2,j] + 16.*u_t[i + 1,j] - 30.*u_t[i,j] +
+                     16.*u_t[i - 1,j] - u_t[i - 2,j])/12.))
