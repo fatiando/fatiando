@@ -25,7 +25,9 @@ Finite difference solution of the 2D wave equation for isotropic media.
 * :func:`~fatiando.seismic.wavefd.xz2ps`: Convert x and z displacements to
   representations of P and S waves
 * :func:`~fatiando.seismic.wavefd.maxdt`: Calculate the maximum time step for
-  a simulation
+  elastic wave simulations
+* :func:`~fatiando.seismic.wavefd.scalar_maxdt`: Calculate the maximum time
+  step for a scalar wave simulation
 
 **Theory**
 
@@ -167,7 +169,7 @@ class MexHatSource(object):
         The delay before the source starts
 
         .. note:: If you want the source to start with amplitude close to 0, use
-            ``delay = 3.5*wlength``.
+            ``delay = 3.5/frequency``.
 
     """
 
@@ -309,7 +311,7 @@ class GaussSource(MexHatSource):
 
     .. math::
 
-        \psi(t) = 2 \sqrt{e} f te^\left(-2t^2f^2\right)
+        \psi(t) = A 2 \sqrt{e}\ f\ t\ e^\left(-2t^2f^2\right)
 
     Parameters:
 
