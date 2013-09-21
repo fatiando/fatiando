@@ -272,7 +272,7 @@ def _step_elastic_psv(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _reflexive_scalar_boundary_conditions(
-    numpy.ndarray[double, ndim=2] u not None,
+    double[:,::1] u not None,
     unsigned int nx, unsigned int nz):
     """
     Apply the boundary conditions: free-surface at top, fixed on the others.
@@ -280,9 +280,9 @@ def _reflexive_scalar_boundary_conditions(
     """
     cdef unsigned int i
     # Top
-    for i in xrange(nx): 
+    for i in xrange(nx):
         u[1, i] = u[2, i] #up
-        u[0, i] = u[1, i] 
+        u[0, i] = u[1, i]
         u[nz - 1, i] *= 0 #down
         u[nz - 2, i] *= 0
     # Sides
@@ -292,16 +292,15 @@ def _reflexive_scalar_boundary_conditions(
         u[i, nx - 1] *= 0 #right
         u[i, nx - 2] *= 0
 
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _step_scalar(
-    numpy.ndarray[double, ndim=2] u_tp1 not None,
-    numpy.ndarray[double, ndim=2] u_t not None,
-    numpy.ndarray[double, ndim=2] u_tm1 not None,
+    double[:,::1] u_tp1 not None,
+    double[:,::1] u_t not None,
+    double[:,::1] u_tm1 not None,
     unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
     double dt, double ds,
-    numpy.ndarray[double, ndim=2] vel not None):
+    double[:,::1] vel not None):
     """
     Perform a single time step in the Finite Difference solution for scalar
     waves 4th order in space
