@@ -1,4 +1,4 @@
-.. _fatiando_seismic_ttime:
+.. _fatiando_seismic_ttime2d:
 
 2D seismic ray travel-time modeling (``fatiando.seismic.ttime2d``)
 ==========================================================================
