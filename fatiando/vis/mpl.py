@@ -22,6 +22,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.mpl.squaremesh`
 * :func:`~fatiando.vis.mpl.polygon`
 * :func:`~fatiando.vis.mpl.layers`
+* :func:`~fatiando.vis.mpl.wiggle`
 
 **Interactive**
 
@@ -46,16 +47,20 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 """
 
 import numpy
+
 from matplotlib import pyplot, widgets
 # Quick hack so that the docs can build using the mocks for readthedocs
 # Ideal would be to log an error message saying that functions from pyplot
 # were not imported
+import obspy
+
 try:
     from matplotlib.pyplot import *
 except:
     pass
 
 import fatiando.gridder
+
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -1008,4 +1013,40 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     #plot = pyplot.plot(xs, zs, style, linewidth=linewidth, label=label)
 #
     #return plot[0]
+
+def wiggle(stream, scale=1, color='k', normalize=False):
+    """
+    Plot a seismic section (`obspy.Stream` class) as wiggles.
+    
+    Parameters:
+    
+    * stream :  (`obspy.Stream` class list of `obspy.Trace`) 
+        seismic section of traces to plot
+    * scale : float
+        scale factor multiplied my the stream values before plotting
+    * color : str
+        Color for filling the wiggle.
+    * normalize : 
+        normalizes all trace in the stream if True (use global max)
+        Warning I copy will be made for that reason.
+    
+    """
+    maxtraces = len(stream)
+    n = maxtraces
+    if n < 1 :
+        raise IndexError("Nothing to plot")
+    npts = len(stream[0].data)
+    if npts < 1 :
+        raise IndexError("Nothing to plot")
+    t = stream[0].times()
+    if normalize :
+        stream = stream.copy() # values will be modified     
+        stream.normalize(global_max=True)
+    pyplot.ylim(max(t),0)
+    pyplot.xlim(-1,maxtraces)
+    pyplot.ylabel('t (ms)')    
+    for i, trace in enumerate(stream.traces):
+        tr = trace.data*scale
+        pyplot.plot(i+tr, t, 'k')
+        pyplot.fill_betweenx(t, i, i+tr, tr>=0, color=color);
 
