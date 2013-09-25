@@ -4,12 +4,12 @@ python:
 virtualenv:
   system_site_packages: true
 install:
-  - sudo apt-get -qq install python-dev python-numexpr python-imaging python-numpy python-scipy python-matplotlib mayavi2 
-  - pip install -q --use-mirrors nose cython
-  - pip install --use-mirrors .
-  - python setup.py build_ext --inplace
+  - sudo apt-get -qq install python-dev python-numexpr python-imaging python-numpy python-scipy python-matplotlib mayavi2
+  - pip install -q --use-mirrors nose cython sphinx
+  - pip install .
 script:
   - nosetests fatiando -v --with-doctest # Run the doctests
   - nosetests test -v # Run the unit tests
+  - cd doc; sphinx-build -b html _build/html
 notifications:
   email: false
