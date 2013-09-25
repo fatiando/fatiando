@@ -739,7 +739,6 @@ def connect_points(pts1, pts2):
 
 def matrix2stream(matrix, header=None):
     """
-    
     Fill a `obspy.Stream class` with traces given by *matrix* array.
     The values in *matrix* will be converted to numpy.float32.
     
@@ -781,32 +780,23 @@ def matrix2stream(matrix, header=None):
     * Stream: list of traces [ Trace0, Trace1 ... Tracen]
         where tracen = [ matrix[n][0], matrix[n][1] ...  matrix[n][m]]
     
-    Example::
-
-        >>> stream = matrix2stream(numpy.random.rand(20,100),\
-header={'delta': 0.004})
-        
-        creates a Stream of 20 Trace's with 100 samples each and delta 4 ms 
-    
     """
-    
-    arraytraces = numpy.require(matrix, dtype=numpy.float32)
+    # obspy requirement for Trace
+    if not isinstance(matrix, np.ndarray):
+        raise ValueError("matrix must be a NumPy array.")
     stream = obspy.Stream()
-    for array in arraytraces:
+    for array in matrix:
         trace = obspy.Trace(data=array, header=header)
         stream.append(trace)
-        
     return stream
 
 
 def stream2matrix(stream):
     """
-    Gives a 2D array from a `obspy.Stream class`.
-    
+    Gives a 2D array from a seismic section (`obspy.Stream class`).
     If there are any header associated with *stream* it will be a `AttribDict` 
     class stored in the field `Stream.stats`. It will be returned if existent. 
-    
-    `obspy.Stream.traces` headers are ignored. 
+    Note that `obspy.Stream.traces` headers are ignored. 
     
     Returns:
     
@@ -814,35 +804,16 @@ def stream2matrix(stream):
         A 2D array (samples, traces), dictionary of headers 
         (or empty dictionary) in *stream*
     
-    Example::
-        
-        stream comming from a segy file
-        ....
-        >>> traces, stats = stream2matrix(stream)
-        >>> sample_rate = stats.binary_file_header.\
-sample_interval_in_microseconds*1000
-        
-        stream we don't care its headers
-        ....
-        >>> traces, = stream2matrix(stream)
-        
     """
-
     n = len(stream)
-    
     if n < 1 : 
-        raise "There must be at least one trace this Stream"
-    
+        raise IndexError("There must be at least one trace this Stream")
     m = len(stream[0])
-        
     if m < 1 :
-        raise "There are no samples on this Stream"
-        
+        raise IndexError("There are no samples on this Stream")
     traces = numpy.empty((m,n), dtype=stream[0].data.dtype)
-    
     for i, trace in enumerate(stream):
         traces[:,i] = trace.data
-    
     stats = {}
     if hasattr(stream, 'stats'):
         stats = stream.stats
