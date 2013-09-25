@@ -11,6 +11,5 @@ Inverse problem solving tools (``fatiando.inversion``)
 
     inversion.linear.rst
     inversion.gradient.rst
-    inversion.heuristic.rst
     inversion.regularizer.rst
     inversion.datamodule.rst
