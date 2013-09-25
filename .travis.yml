@@ -3,14 +3,15 @@ python:
   - 2.7
 virtualenv:
   system_site_packages: true
-install:
+before_install:
   - sudo apt-get -qq install python-dev python-numexpr python-imaging python-numpy python-scipy python-matplotlib mayavi2
   - pip install -q --use-mirrors nose cython sphinx
+  - cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html
+install:
   - pip install .
   - python setup.py build_ext --inplace
 script:
   - nosetests fatiando -v --with-doctest # Run the doctests
   - nosetests test -v # Run the unit tests
-  - find . -name "*.so" -exec rm -v {} \ ; cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html
 notifications:
   email: false
