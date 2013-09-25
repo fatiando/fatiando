@@ -22,7 +22,6 @@ general structure the solvers expect from regularizer classes.
 
 * :mod:`~fatiando.inversion.linear`
 * :mod:`~fatiando.inversion.gradient`
-* :mod:`~fatiando.inversion.heuristic`
 
 These modules have factory functions that generate generic inverse problem
 solvers. Instead of solving the inverse problem, they return a solver function
@@ -155,6 +154,5 @@ Some modules that use the :mod:`~fatiando.inversion` API:
 from fatiando.inversion import (datamodule,
                                 regularizer,
                                 gradient,
-                                heuristic,
                                 linear)
 
