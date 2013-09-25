@@ -715,7 +715,7 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     return plot
 
 def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
-    xy2ne=False):
+    xy2ne=False, linealpha=1.):
     """
     Plot a polygon.
 
@@ -732,6 +732,9 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         filled
     * alpha : float
         Transparency of the fill (1 >= alpha >= 0). 0 is transparent and 1 is
+        opaque
+    * linealpha : float
+        Transparency of the line (1 >= alpha >= 0). 0 is transparent and 1 is
         opaque
     * label : str
         String with the label identifying the polygon in the legend
@@ -757,7 +760,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         tmpx.append(polygon.x[0])
         tmpy = [y for y in polygon.y]
         tmpy.append(polygon.y[0])
-    kwargs = {'linewidth':linewidth}
+    kwargs = {'linewidth':linewidth, 'alpha':linealpha}
     if label is not None:
         kwargs['label'] = label
     line, = pyplot.plot(tmpx, tmpy, style, **kwargs)

@@ -10,6 +10,16 @@ Version 0.2
 
 **Changes**:
 
+* 300x speed-up of :ref:`fatiando.seismic.ttime2d <fatiando_seismic_ttime2d>`
+  with new Cython code.
+* Speed-up of :ref:`fatiando.gravmag.tesseroid <fatiando_gravmag_tesseroid>`
+  with better Cython code.
+* Better support for random numbers. ``contaminate`` function now guaranteed to
+  use errors with zero mean. Can now control the random seed used in all
+  functions relying on random numbers.
+* New algorithms in :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
+  for elastic waves and a new scalar wave solver! Using staggered grid finite
+  differences makes elastic wave methods are more stable.
 * New ``extrapolate_nans`` function in
   :ref:`fatiando.gridder <fatiando_gridder>` to fill NaNs and masked
   values in arrays using the nearest data point.
@@ -25,7 +35,7 @@ Version 0.2
   :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` can now be
   used as a ``Prism`` object.
 * :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
-  data weights.
+  data weights and magnetic data inversion.
 * Removed module fatiando.logger
 
 Version 0.1

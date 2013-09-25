@@ -5,12 +5,15 @@ Finite difference solution of the 2D wave equation for isotropic media.
   elastic waves using the Parsimonious Staggered Grid method of Luo and
   Schuster (1990)
 * :func:`~fatiando.seismic.wavefd.elastic_sh`: Simulates SH elastic waves using
-  the Equivalent Staggared Grid method of Di Bartolo et al. (2012)
+  the Equivalent Staggered Grid method of Di Bartolo et al. (2012)
+* :func:`~fatiando.seismic.wavefd.scalar`: Simulates scalar waves using simple
+  explicit finite differences scheme
 
 **Sources**
 
 * :class:`~fatiando.seismic.wavefd.MexHatSource`: Mexican hat wavelet source
 * :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared source
+* :class:`~fatiando.seismic.wavefd.GaussSource`: Gauss derivative source
 * :func:`~fatiando.seismic.wavefd.blast_source`: A source blasting in all
   directions
 
@@ -22,7 +25,9 @@ Finite difference solution of the 2D wave equation for isotropic media.
 * :func:`~fatiando.seismic.wavefd.xz2ps`: Convert x and z displacements to
   representations of P and S waves
 * :func:`~fatiando.seismic.wavefd.maxdt`: Calculate the maximum time step for
-  a simulation
+  elastic wave simulations
+* :func:`~fatiando.seismic.wavefd.scalar_maxdt`: Calculate the maximum time
+  step for a scalar wave simulation
 
 **Theory**
 
@@ -37,7 +42,7 @@ where :math:`\tau_{ij}` is the stress tensor, :math:`\rho` the density,
 term.
 But what I'm interested in modeling are the displacements in x, y and z.
 They are what is recorded by the seismometers.
-Luckly, I can use Hooke's law to write the stress tensor as a function of the
+Luckily, I can use Hooke's law to write the stress tensor as a function of the
 displacements
 
 .. math::
@@ -67,8 +72,8 @@ Substituting the stress formula in the above equation yields
     \partial_x\mu\partial_x u_y  + \partial_z\mu\partial_z u_y
     - \rho\partial_t^2 u_y = -f_y
 
-which is the wave equation for horizontaly polarized S waves, i.e. SH waves.
-This equation is solved here using the Equivalent Staggared Grid (ESG) method
+which is the wave equation for horizontally polarized S waves, i.e. SH waves.
+This equation is solved here using the Equivalent Staggered Grid (ESG) method
 of Di Bartolo et al. (2012).
 This method was developed for acoustic (pressure) waves but can be applied
 without modification to SH waves.
@@ -100,9 +105,9 @@ And the corresponding stress components are
 
 This means that the displacements in x and z are coupled and must be solved
 together.
-This equation describes the motion of pressure (P) and verticaly polarized S
+This equation describes the motion of pressure (P) and vertically polarized S
 waves (SV).
-The method used here to solve these equations is the Parsimonious Staggared
+The method used here to solve these equations is the Parsimonious Staggered
 Grid (PSG) of Luo and Schuster (1990).
 
 
@@ -137,11 +142,12 @@ except:
     _xz2ps = not_implemented
     _nonreflexive_sh_boundary_conditions = not_implemented
     _nonreflexive_psv_boundary_conditions = not_implemented
-
+    _step_scalar = not_implemented
+    _reflexive_scalar_boundary_conditions = not_implemented
 
 class MexHatSource(object):
     r"""
-    A wave source that vibrates as a mexicam hat (Ricker) wavelet.
+    A wave source that vibrates as a Mexican hat (Ricker) wavelet.
 
     .. math::
 
@@ -161,6 +167,9 @@ class MexHatSource(object):
         The peak frequency of the wavelet
     * delay : float
         The delay before the source starts
+
+        .. note:: If you want the source to start with amplitude close to 0, use
+            ``delay = 3.5/frequency``.
 
     """
 
@@ -236,7 +245,7 @@ class SinSqrSource(MexHatSource):
     """
 
     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
-        super(SinSqrSource, self).__init__(self, x, z, area, shape, amp,
+        super(SinSqrSource, self).__init__(x, z, area, shape, amp,
                                            frequency, delay)
         self.wlength = 1./frequency
 
@@ -295,6 +304,46 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0,
         xsources.append(xsrc)
         zsources.append(zsrc)
     return xsources, zsources
+
+class GaussSource(MexHatSource):
+    r"""
+    A wave source that vibrates as a Gaussian derivative wavelet.
+
+    .. math::
+
+        \psi(t) = A 2 \sqrt{e}\ f\ t\ e^\left(-2t^2f^2\right)
+
+    Parameters:
+
+    * x, z : float
+        The x, z coordinates of the source
+    * area : [xmin, xmax, zmin, zmax]
+        The area bounding the finite difference simulation
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * frequency : float
+        The approximate frequency of the source
+    * delay : float
+        The delay before the source starts
+
+    .. note:: If you want the source to start with amplitude close to 0,
+        use ``delay = 3.0/frequency``.
+    """
+
+    def __init__(self, x, z, area, shape, amp, frequency, delay=None):
+        super(GaussSource, self).__init__(x, z, area, shape, amp,
+                                           frequency, delay)
+        if (delay == None):
+            self.delay = 3.0/frequency
+
+    def __call__(self, time):
+        t = time - self.delay
+        psi = self.amp*((2*numpy.sqrt(numpy.e)*self.frequency)
+               *t*numpy.exp(-2*(t**2)*self.f2)
+            )
+        return psi
 
 def lame_lamb(pvel, svel, dens):
     r"""
@@ -382,6 +431,113 @@ def _add_pad(array, pad, shape):
         array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
     return array_pad
 
+def scalar(vel, area, dt, iterations, sources, stations=None,
+    snapshot=None, padding=50, taper=0.005):
+    """
+
+    Simulate scalar waves using an explicit finite differences scheme 4th order
+    space. Space increment must be equal in x and z.
+
+    Parameters:
+
+    * vel : 2D-array (defines shape simulation)
+        The wave velocity at all the grid nodes
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the shallowest point is
+        at zmin, the deepest at zmax.
+    * dt : float
+        The time interval between iterations
+    * iterations : int
+        Number of time steps to take
+    * sources : list
+        A list of the sources of waves
+        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
+        source)
+    * stations : None or list
+        If not None, then a list of [x, z] pairs with the x and z coordinates
+        of the recording stations. These are physical coordinates, not the
+        indexes
+    * snapshot : None or int
+        If not None, than yield a snapshot of the displacement at every
+        *snapshot* iterations.
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the Gaussian taper function used for the absorbing
+        boundary conditions
+
+    Yields:
+
+    * i, u, seismograms : int, 2D-array and list of 1D-arrays
+        The current iteration, the scalar quantity disturbed
+        and a list of the scalar quantity disturbed recorded at each
+        station until the current iteration.
+
+    """
+
+    nz, nx = numpy.shape(vel) # get simulation dimensions
+    x1, x2, z1, z2 = area
+    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+
+    if dz != dx:
+        raise ValueError('Space increment must be equal in x and z')
+
+    ds = dz # dz or dx doesn't matter
+
+    # Get the index of the closest point to the stations and start the
+    # seismograms
+    if stations is not None:
+        stations = [[int(round((z - z1)/ds)), int(round((x - x1)/ds))]
+                    for x, z in stations]
+        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+    else:
+        stations, seismograms = [], []
+    # Add some padding to x and z. The padding region is where the wave is
+    # absorbed
+    pad = int(padding)
+    nx += 2*pad
+    nz += pad
+    # Pad the velocity as well
+    vel_pad = _add_pad(vel, pad, (nz, nx))
+    # Pack the particle position u at 2 different times in one 3d array
+    # u[0] = u(t-1)
+    # u[1] = u(t)
+    # The next time step overwrites the t-1 panel
+    u = numpy.zeros((2, nz, nx), dtype=numpy.float)
+    # Compute and yield the initial solutions
+    for src in sources:
+        i, j = src.indexes()
+        u[1, i, j + pad] += -((vel[i,j]*dt)**2)*src(0)
+    # Update seismograms
+    for station, seismogram in zip(stations, seismograms):
+        i, j = station
+        seismogram[0] = u[1, i, j + pad]
+    if snapshot is not None:
+        yield 0, u[1, :-pad, pad:-pad], seismograms
+
+    for iteration in xrange(1, iterations):
+        t, tm1 = iteration%2, (iteration + 1)%2
+        tp1 = tm1
+        _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
+                     dt, ds, vel_pad)
+        # forth order +2-2 indexes needed
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[t], nx, nz, pad, taper)
+        # not PML yet or anything similar
+        _reflexive_scalar_boundary_conditions(u[tp1], nx, nz)
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[tp1], nx, nz, pad, taper)
+        for src in sources:
+            i, j = src.indexes()
+            u[tp1, i, j + pad] += -((vel[i,j]*dt)**2)*src(iteration*dt)
+        # Update seismograms
+        for station, seismogram in zip(stations, seismograms):
+            i, j = station
+            seismogram[iteration] = u[tp1, i, j + pad]
+        if snapshot is not None and iteration%snapshot == 0:
+            yield iteration, u[tp1, :-pad, pad:-pad], seismograms
+    yield iteration, u[tp1, :-pad, pad:-pad], seismograms
+
 def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     snapshot=None, padding=50, taper=0.005):
     """
@@ -404,7 +560,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
     * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the swallowest point is
+        The x, z limits of the simulation area, e.g., the shallowest point is
         at zmin, the deepest at zmax.
     * dt : float
         The time interval between iterations
@@ -424,7 +580,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     * padding : int
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
-        The intensity of the gaussian taper function used for the absorbing
+        The intensity of the Gaussian taper function used for the absorbing
         boundary conditions
 
     Yields:
@@ -493,7 +649,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
 def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     stations=None, snapshot=None, padding=50, taper=0.002, xz2ps=False):
     """
-    Simulate P and SV waves using the Parsimoneous Staggered Grid (PSG) finite
+    Simulate P and SV waves using the Parsimonious Staggered Grid (PSG) finite
     differences scheme of Luo and Schuster (1990).
 
     This is an iterator. It yields panels of $u_x$ and $u_z$ displacements
@@ -515,7 +671,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     * density : 2D-array (shape = *shape*)
         The value of the density at all the grid nodes
     * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the swallowest point is
+        The x, z limits of the simulation area, e.g., the shallowest point is
         at zmin, the deepest at zmax.
     * dt : float
         The time interval between iterations
@@ -536,7 +692,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     * padding : int
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
-        The intensity of the gaussian taper function used for the absorbing
+        The intensity of the Gaussian taper function used for the absorbing
         boundary conditions
     * xz2ps : True or False
         If True, will yield P and S wave panels instead of ux, uz. See
@@ -674,7 +830,7 @@ def xz2ps(ux, uz, area):
     * ux, uz : 2D-arrays
         The x and z displacement panels
     * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the swallowest point is
+        The x, z limits of the simulation area, e.g., the shallowest point is
         at zmin, the deepest at zmax.
 
     Returns:
@@ -708,7 +864,7 @@ def maxdt(area, shape, maxvel):
     Parameters:
 
     * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the swallowest point is
+        The x, z limits of the simulation area, e.g., the shallowest point is
         at zmin, the deepest at zmax.
     * shape : (nz, nx)
         The number of nodes in the finite difference grid
@@ -725,3 +881,52 @@ def maxdt(area, shape, maxvel):
     nz, nx = shape
     spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
     return 0.606*spacing/maxvel
+
+
+def scalar_maxdt(area, shape, maxvel):
+    r"""
+    Calculate the maximum time step that can be used in the
+    FD scalar simulation with 4th order space 1st time backward.
+
+    References
+
+    Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of finite-difference
+    modeling of the acoustic wave equation Geophysics, 39 (6), P. 834-842
+
+    Chen, Jing-Bo (2011) A stability formula for Lax-Wendroff methods
+    with fourth-order in time and general-order in space for
+    the scalar wave equation Geophysics, v. 76, p. T37-T42
+
+    Convergence
+
+    .. math::
+
+         \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N} (|w_a^1| +
+         |w_a^2|)}}
+         = \frac{ \Delta s \sqrt{3}}{ V_{max} \sqrt{8}}
+
+    Where w_a are the centered differences weights
+
+    Parameters:
+
+    * area : [xmin, xmax, zmin, zmax]
+        The x, z limits of the simulation area, e.g., the shallowest point is
+        at zmin, the deepest at zmax.
+    * shape : (nz, nx)
+        The number of nodes in the finite difference grid
+    * maxvel : float
+        The maximum velocity in the medium
+
+    Returns:
+
+    * maxdt : float
+        The maximum time step
+
+    """
+    x1, x2, z1, z2 = area
+    nz, nx = shape
+    spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
+    factor = numpy.sqrt(3./8.)
+    factor -= factor/100. # 1% smaller to guarantee criteria
+    # the closer to stability criteria the better the convergence
+    return factor*spacing/maxvel
