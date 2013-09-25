@@ -22,6 +22,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.mpl.squaremesh`
 * :func:`~fatiando.vis.mpl.polygon`
 * :func:`~fatiando.vis.mpl.layers`
+* :func:`~fatiando.vis.mpl.wiggle`
 
 **Interactive**
 
@@ -46,6 +47,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 """
 
 import numpy
+import obspy
 from matplotlib import pyplot, widgets
 # Quick hack so that the docs can build using the mocks for readthedocs
 # Ideal would be to log an error message saying that functions from pyplot
@@ -56,6 +58,7 @@ except:
     pass
 
 import fatiando.gridder
+
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -1005,4 +1008,105 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     #plot = pyplot.plot(xs, zs, style, linewidth=linewidth, label=label)
 #
     #return plot[0]
+
+
+# def __normalization_factors(traces, ntrace, mode):
+#     """Normalize traces' amplitude values.
+#     
+#     Input:
+#         traces - array/matrix containing the traces' samples
+#         mode   - what kind of normalization will be performed
+#     Output:
+#         returns a vector containing the normalization factors to be used ijn the normalization process
+#     
+#     
+#     Modes are:
+#         0 - no normalization (returns vector filled with 1's)
+#         1 - single trace normalization
+#         2 - all traces normalization
+#     
+#     Normalizing a trace means all of it's amplitudes will stay within the [-1,+1] interval. 
+#     The normalization process is basically devide all samples by the maximum absolute sample value.
+#     If the chosen mode is 2 (all traces normalization), the maximum value is picked from all traces, and all traces are normalized using this single value.
+#     In this particular case, the returned vector will contain the same value in all positions.
+# 
+#     """
+#     
+#     factors = []
+#     
+#     #no normalization
+#     if (mode == 0):
+#         for i in range(ntrace):
+#             factors.append(1)
+#     
+#     #single trace normalization
+#     if (mode == 1):
+#     
+#         for i in range(ntrace):
+#             factors.append(max(absolute(asarray(traces[i]))))
+#     
+#     #all traces normalization
+#     if (mode == 2):
+#     
+#         tmpmax = []
+#         for i in range(ntrace):
+#             tmpmax.append(max(absolute(asarray(traces[i]))))
+#             factors.append(1)
+#         
+#     
+#     return factors
+#     
+    
+    
+def wiggle(stream, scale=1, normalize=False):
+    """
+    
+    Display `obspy.Stream` class traces as wiggles.
+    
+    Parameters:
+    
+    * stream : `obspy.Stream` list of `obspy.Trace` 
+        stream of traces to plot
+    * scale : float
+        scale factor
+    * normalize : 
+        normalizes all trace in the stream if True (use global max) 
+    
+    Example::
+
+        >>> stream = utils.matrix2stream(numpy.random.rand(20,100), header={'delta': 0.004})
+        creates a Stream of 20 Trace's with 100 samples each and delta 4 ms 
+        >>> wiggle(stream, normalize=True)
+    
+    """
+
+    if not isinstance(stream, obspy.Stream):
+        raise "stream is not a obspy.Stream class"
+
+    maxtraces = len(stream)
+    n = maxtraces
+    
+    if n < 1 :
+        raise "nothing to plot"
+    
+    npts = len(stream[0].data)
+    
+    if npts < 1 :
+        raise "nothing to plot"
+    
+    t = stream[0].times()
+    
+    stream = stream.copy() # values will be modified
+    
+    if normalize == True: 
+        stream.normalize(global_max=True)
+    
+    pyplot.ylim(max(t),0)
+    pyplot.xlim(-1,maxtraces)
+    pyplot.ylabel('t (ms)')
+    
+    for i, trace in enumerate(stream.traces):
+        trace.data *= scale
+        pyplot.plot(i+trace.data, t, 'k')
+        pyplot.fill_betweenx(t, i, i+trace.data, trace.data>=0, color='k');
 
