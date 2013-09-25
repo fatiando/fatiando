@@ -22,7 +22,8 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.mpl.squaremesh`
 * :func:`~fatiando.vis.mpl.polygon`
 * :func:`~fatiando.vis.mpl.layers`
-* :func:`~fatiando.vis.mpl.wiggle`
+* :func:`~fatiando.vis.mpl.seismic_wiggle`
+* :func:`~fatiando.vis.mpl.seismic_image`
 
 **Interactive**
 
@@ -60,6 +61,7 @@ except:
     pass
 
 import fatiando.gridder
+import fatiando.utils
 
 
 # Dummy variable to laizy import the basemap toolkit (slow)
@@ -1014,9 +1016,10 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
 #
     #return plot[0]
 
-def wiggle(stream, scale=1, color='k', normalize=False):
+def seismic_wiggle(stream, scale=1, color='k', normalize=False):
     """
     Plot a seismic section (`obspy.Stream` class) as wiggles.
+    Slow for more than 200 traces, in this case use `seismic_image`.  
     
     Parameters:
     
@@ -1028,12 +1031,11 @@ def wiggle(stream, scale=1, color='k', normalize=False):
         Color for filling the wiggle.
     * normalize : 
         normalizes all trace in the stream if True (use global max)
-        Warning I copy will be made for that reason.
+        Warning a copy will be made for that reason.
     
     """
     maxtraces = len(stream)
-    n = maxtraces
-    if n < 1 :
+    if maxtraces < 1 :
         raise IndexError("Nothing to plot")
     npts = len(stream[0].data)
     if npts < 1 :
@@ -1044,9 +1046,39 @@ def wiggle(stream, scale=1, color='k', normalize=False):
         stream.normalize(global_max=True)
     pyplot.ylim(max(t),0)
     pyplot.xlim(-1,maxtraces)
-    pyplot.ylabel('t (ms)')    
     for i, trace in enumerate(stream.traces):
         tr = trace.data*scale
         pyplot.plot(i+tr, t, 'k')
         pyplot.fill_betweenx(t, i, i+tr, tr>=0, color=color);
 
+def seismic_image(section, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
+    """
+    Plot a seismic section (`obspy.Stream` class) as an image.
+    
+    Parameters:
+    
+    * section :  (`obspy.Stream` class list of `obspy.Trace`) 
+        seismic section of traces to plot
+    * cmap : colormap
+        color map to be used. (see pyplot.cm module)
+    * aspect : matplotlib imshow aspect parameter 
+        ratio between axes 
+    * vmin, vmax : float
+        min and max values for imshow
+    
+    """
+    maxtraces = len(section)
+    if maxtraces < 1 :
+        raise IndexError("Nothing to plot")
+    npts = len(section[0].data)
+    if npts < 1 :
+        raise IndexError("Nothing to plot")
+    t = section[0].times()
+    data = fatiando.utils.stream2matrix(section)[0]
+    extent = (0, maxtraces, t[-1:], t[0])
+    if aspect == None: # guarantee a rectangular picture
+        aspect = numpy.round(maxtraces/numpy.max(t))
+        aspect -= aspect*0.2
+    pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper', 
+                  extent=extent, vmin=vmin, vmax=vmax)
+    
