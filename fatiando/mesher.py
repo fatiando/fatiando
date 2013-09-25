@@ -504,30 +504,30 @@ class Tesseroid(GeometricElement):
 
         Examples::
 
-        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
-        >>> split = tess.half()
-        >>> print len(split)
-        8
-        >>> for t in split:
-        ...     print t
-        w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-        w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-        w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-        w:-10 | e:0 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-        w:0 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-        w:0 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-        w:0 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-        w:0 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
-        >>> split = tess.half(lat=False)
-        >>> print len(split)
-        4
-        >>> for t in split:
-        ...     print t
-        w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
-        w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
-        w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
-        w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
+            >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+            >>> split = tess.half()
+            >>> print len(split)
+            8
+            >>> for t in split:
+            ...     print t
+            w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+            w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+            w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+            w:-10 | e:0 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+            w:0 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+            w:0 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+            w:0 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+            w:0 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+            >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+            >>> split = tess.half(lat=False)
+            >>> print len(split)
+            4
+            >>> for t in split:
+            ...     print t
+            w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
+            w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
+            w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
+            w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
 
         """
         dlon = 0.5*(self.e - self.w)
@@ -570,25 +570,25 @@ class Tesseroid(GeometricElement):
 
         Examples::
 
-        >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
-        >>> split = tess.split(1, 2, 2)
-        >>> print len(split)
-        4
-        >>> for t in split:
-        ...     print t
-        w:-10 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-        w:-10 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-        w:-10 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-        w:-10 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-        >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
-        >>> split = tess.split(3, 1, 1)
-        >>> print len(split)
-        3
-        >>> for t in split:
-        ...     print t
-        w:-15 | e:-5 | s:-20 | n:20 | top:0 | bottom:-40
-        w:-5 | e:5 | s:-20 | n:20 | top:0 | bottom:-40
-        w:5 | e:15 | s:-20 | n:20 | top:0 | bottom:-40
+            >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
+            >>> split = tess.split(1, 2, 2)
+            >>> print len(split)
+            4
+            >>> for t in split:
+            ...     print t
+            w:-10 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
+            w:-10 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
+            w:-10 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
+            w:-10 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
+            >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
+            >>> split = tess.split(3, 1, 1)
+            >>> print len(split)
+            3
+            >>> for t in split:
+            ...     print t
+            w:-15 | e:-5 | s:-20 | n:20 | top:0 | bottom:-40
+            w:-5 | e:5 | s:-20 | n:20 | top:0 | bottom:-40
+            w:5 | e:15 | s:-20 | n:20 | top:0 | bottom:-40
 
         """
         wests = numpy.linspace(self.w, self.e, nlon + 1)
