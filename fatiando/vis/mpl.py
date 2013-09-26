@@ -1016,37 +1016,37 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
 #
     #return plot[0]
 
-def seismic_wiggle(stream, scale=1, color='k', normalize=False):
+def seismic_wiggle(section, scale=1, color='k', normalize=False):
     """
     Plot a seismic section (`obspy.Stream` class) as wiggles.
     Slow for more than 200 traces, in this case use `seismic_image`.  
     
     Parameters:
     
-    * stream :  (`obspy.Stream` class list of `obspy.Trace`) 
+    * section :  (`obspy.Stream` class list of `obspy.Trace`) 
         seismic section of traces to plot
     * scale : float
-        scale factor multiplied my the stream values before plotting
+        scale factor multiplied my the section values before plotting
     * color : str
         Color for filling the wiggle.
     * normalize : 
-        normalizes all trace in the stream if True (use global max)
+        normalizes all trace in the section if True (use global max)
         Warning a copy will be made for that reason.
     
     """
-    maxtraces = len(stream)
+    maxtraces = len(section)
     if maxtraces < 1 :
         raise IndexError("Nothing to plot")
-    npts = len(stream[0].data)
+    npts = len(section[0].data)
     if npts < 1 :
         raise IndexError("Nothing to plot")
-    t = stream[0].times()
+    t = section[0].times()
     if normalize :
-        stream = stream.copy() # values will be modified     
-        stream.normalize(global_max=True)
+        section = section.copy() # values will be modified     
+        section.normalize(global_max=True)
     pyplot.ylim(max(t),0)
     pyplot.xlim(-1,maxtraces)
-    for i, trace in enumerate(stream.traces):
+    for i, trace in enumerate(section.traces):
         tr = trace.data*scale
         pyplot.plot(i+tr, t, 'k')
         pyplot.fill_betweenx(t, i, i+tr, tr>=0, color=color);
@@ -1061,8 +1061,8 @@ def seismic_image(section, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=Non
         seismic section of traces to plot
     * cmap : colormap
         color map to be used. (see pyplot.cm module)
-    * aspect : matplotlib imshow aspect parameter 
-        ratio between axes 
+    * aspect : float
+        matplotlib imshow aspect parameter, ratio between axes 
     * vmin, vmax : float
         min and max values for imshow
     
