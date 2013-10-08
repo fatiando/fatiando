@@ -1016,7 +1016,7 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
 #
     #return plot[0]
 
-def seismic_wiggle(section, scale=1, color='k', normalize=False):
+def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
     """
     Plot a seismic section (`obspy.Stream` class) as wiggles.
     Slow for more than 200 traces, in this case use `seismic_image`.  
@@ -1025,6 +1025,8 @@ def seismic_wiggle(section, scale=1, color='k', normalize=False):
     
     * section :  (`obspy.Stream` class list of `obspy.Trace`) 
         seismic section of traces to plot
+    * ranges : (x1, x2)  
+        min and max horizontal values (default trace number)
     * scale : float
         scale factor multiplied my the section values before plotting
     * color : str
@@ -1045,13 +1047,19 @@ def seismic_wiggle(section, scale=1, color='k', normalize=False):
         section = section.copy() # values will be modified     
         section.normalize(global_max=True)
     pyplot.ylim(max(t),0)
-    pyplot.xlim(-1,maxtraces)
+    if ranges == None:
+        ranges = (0, maxtraces)
+    x0, x1 = ranges
+    # horizontal increment
+    dx = float(x1-x0)/maxtraces
+    pyplot.xlim(x0, x1)
     for i, trace in enumerate(section.traces):
-        tr = trace.data*scale
-        pyplot.plot(i+tr, t, 'k')
-        pyplot.fill_betweenx(t, i, i+tr, tr>=0, color=color);
+        tr = trace.data*scale*dx
+        x = x0+i*dx # x positon for this trace
+        pyplot.plot(x+tr, t, 'k')
+        pyplot.fill_betweenx(t, x, x+tr, tr>=0, color=color);
 
-def seismic_image(section, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
+def seismic_image(section, ranges=None, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
     """
     Plot a seismic section (`obspy.Stream` class) as an image.
     
@@ -1059,6 +1067,8 @@ def seismic_image(section, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=Non
     
     * section :  (`obspy.Stream` class list of `obspy.Trace`) 
         seismic section of traces to plot
+    * ranges : (x1, x2)  
+        min and max horizontal values (default trace number)
     * cmap : colormap
         color map to be used. (see pyplot.cm module)
     * aspect : float
@@ -1075,9 +1085,12 @@ def seismic_image(section, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=Non
         raise IndexError("Nothing to plot")
     t = section[0].times()
     data = fatiando.utils.stream2matrix(section)[0]
-    extent = (0, maxtraces, t[-1:], t[0])
+    if ranges == None:
+        ranges = (0, maxtraces)
+    x0, x1 = ranges
+    extent = (x0, x1, t[-1:], t[0])
     if aspect == None: # guarantee a rectangular picture
-        aspect = numpy.round(maxtraces/numpy.max(t))
+        aspect = numpy.round((x1-x0)/numpy.max(t))
         aspect -= aspect*0.2
     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper', 
                   extent=extent, vmin=vmin, vmax=vmax)
