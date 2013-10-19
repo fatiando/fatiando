@@ -4,7 +4,6 @@ in a medium with a discontinuity (i.e., Moho), generating Rayleigh waves
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import gridder
 from fatiando.seismic import wavefd
 from fatiando.vis import mpl
 
@@ -25,8 +24,8 @@ lamb = wavefd.lame_lamb(pvel, svel, density)
 
 # Make a wave source from a mexican hat wavelet for the x and z directions
 sources = [
-    [wavefd.MexHatSource(10000, 10000, area, shape, 100000, 0.5, delay=2)],
-    [wavefd.MexHatSource(10000, 10000, area, shape, 100000, 0.5, delay=2)]]
+    [wavefd.MexHatSource((10000, 10000), area, shape, 100000, 0.5, delay=2)],
+    [wavefd.MexHatSource((10000, 10000), area, shape, 100000, 0.5, delay=2)]]
 
 # Get the iterator. This part only generates an iterator object. The actual
 # computations take place at each iteration in the for loop below
