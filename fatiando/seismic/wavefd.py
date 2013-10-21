@@ -147,6 +147,7 @@ except:
             "Couldn't load C coded extension module for FD time steps")
 
     _apply_damping = not_implemented
+    _apply_damping3 = not_implemented
     _step_elastic_sh = not_implemented
     _step_elastic_psv = not_implemented
     _xz2ps = not_implemented
@@ -155,6 +156,7 @@ except:
     _step_scalar = not_implemented
     _step_scalar3_esg = not_implemented
     _reflexive_scalar_boundary_conditions = not_implemented
+    _reflexive_scalar3_boundary_conditions = not_implemented
 
 # Finite differences wave equation support geometric classes ICoord3 and ICoord2
 
@@ -549,7 +551,7 @@ def _add_pad(array, pad, shape):
             array_pad[-(pad - k), pad:-pad, :] = array_pad[-(pad + 1), pad:-pad, :]
         for j in xrange(pad):  # replicate to y padding regions
             array_pad[:, -(j + 1), :] = array_pad[:, -(pad + 1), :]  # east
-            array_pad[:, j, :] = array_pad[:, 0, :]  # west
+            array_pad[:, j, :] = array_pad[:, pad, :]  # west
         return array_pad
 
 
@@ -747,11 +749,11 @@ def scalar3_esg(c, density, area, dt, iterations, sources, stations=None,
     for src in sources:
         k, j, i = src.indexes()
         # TODO improve to better version of second source derivative
-        d2src = numpy.diff(src(numpy.linspace(0, iterations * dt, iterations)), n=2)
+        d2src = numpy.diff(src(numpy.linspace(0., iterations * dt, iterations)), n=2)
         d2src = numpy.append(d2src, [0., 0.]) / dt ** 2  # due difference 2nd
         src.d2src = d2src
         u[1, k, j + pad, i + pad] += kmod[k, j, i] * (dt ** 2) * src.d2src[0]
-        # Update seismograms
+    # Update seismograms
     for station, seismogram in zip(stations, seismograms):
         k, j, i = station
         seismogram[0] = u[1, k, j + pad, i + pad]
@@ -762,15 +764,15 @@ def scalar3_esg(c, density, area, dt, iterations, sources, stations=None,
         tp1 = tm1
         _step_scalar3_esg(u[tp1], u[t], u[tm1], 3, nx - 3, 3, ny - 3,
                           3, nz - 3, dt, dx, dy, dz, b_pad, kmod_pad)
-        #_apply_damping3(u[t], nx, ny, nz, pad, taper)
+        _apply_damping3(u[t], nx, ny, nz, pad, taper)
         # not PML yet or anything similar
-        #_reflexive_scalar_boundary_conditions(u[tp1], nx, nz)
-        #_apply_damping3(u[tp1], nx, nz, pad, taper)
+        _reflexive_scalar3_boundary_conditions(u[tp1], nx, ny, nz)
+        _apply_damping3(u[tp1], nx, ny, nz, pad, taper)
         for src in sources:
             k, j, i = src.indexes()
             u[tp1, k, j + pad, i + pad] += ((dt ** 2) * kmod[k, j, i] *
                                             src.d2src[iteration])
-            # Update seismograms
+        # Update seismograms
         for station, seismogram in zip(stations, seismograms):
             k, j, i = station
             seismogram[iteration] = u[tp1, k, j + pad, i + pad]
@@ -1101,16 +1103,15 @@ def xz2ps(ux, uz, area):
 def maxdt(area, shape, maxvel):
     """
     Calculate the maximum time step that can be used in the simulation.
-
-    Uses the result of the Von Neumann type analysis of Di Bartolo et al.
-    (2012).
+    2D/3D Uses the result of the Von Neumann type analysis of Di Bartolo et al.
+    (2012) from Saenger et al. 2000.
 
     Parameters:
 
-    * area : [xmin, xmax, zmin, zmax]
+    * area : [xmin, xmax, zmin, zmax] or  [xmin, xmax, ymin, ymax, zmin, zmax]
         The x, z limits of the simulation area, e.g., the shallowest point is
         at zmin, the deepest at zmax.
-    * shape : (nz, nx)
+    * shape : (nz, nx) or (nz, ny, nx)
         The number of nodes in the finite difference grid
     * maxvel : float
         The maximum velocity in the medium
@@ -1121,11 +1122,20 @@ def maxdt(area, shape, maxvel):
         The maximum time step
 
     """
-    x1, x2, z1, z2 = area
-    nz, nx = shape
-    spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
-    return 0.606 * spacing / maxvel
-
+    if len(shape) == 2:
+        x1, x2, z1, z2 = area
+        nz, nx = shape
+        spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
+        #factor = 1./(numpy.sqrt(2)*7./6)
+        return 0.606 * spacing / maxvel
+    else:  # 3D
+        x1, x2, y1, y2, z1, z2 = area
+        nz, ny, nx = shape
+        spacing = min([(x2 - x1) / (nx - 1), (y2 - y1) / (ny - 1), (z2 - z1) / (nz - 1)])
+        factor = 1./(numpy.sqrt(3)*7./6)
+        factor -= factor/100.  # 1% smaller to guarantee criteria
+        # the closer to stability criteria the better the convergence
+        return factor * spacing / maxvel
 
 def scalar_maxdt(area, shape, maxvel):
     r"""
