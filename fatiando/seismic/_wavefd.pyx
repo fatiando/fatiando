@@ -21,6 +21,7 @@ __all__ = [
     '_nonreflexive_sh_boundary_conditions',
     '_nonreflexive_psv_boundary_conditions',
     '_reflexive_scalar_boundary_conditions',
+    '_reflexive_scalar3_boundary_conditions',
     '_step_scalar',
     '_step_scalar3_esg']
 
@@ -93,25 +94,33 @@ def _apply_damping(double[:,::1] array not None,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _apply_damping3(double[:,:,:1] array not None,
-    unsigned int nx, unsigned int ny, unsigned int nz, unsigned int pad, double decay):
+def _apply_damping3(double[:,:,::1] array not None,
+    unsigned int nx, unsigned int ny, unsigned int nz,
+    unsigned int pad, double decay):
     """
-    Apply a decay factor to the values of the array in the padding region. 3D
+    Apply a decay factor to the values of the array in the padding region.
+    Damping 3D padding regions. x (north), y (east), z (down)
     """
-    #cdef:
-    #    unsigned int i, j, k
-    ## Damping on the left top/down
-    #for i in range(nz):
-    #    for j in range(pad):
-    #        array[i,j] *= exp(-((decay*(pad - j))**2))
-    ## Damping on the right
-    #for i in range(nz):
-    #    for j in range(nx - pad, nx):
-    #        array[i,j] *= exp(-((decay*(j - nx + pad))**2))
-    ## Damping on the bottom
-    #for i in range(nz - pad, nz):
-    #    for j in range(nx):
-    #        array[i,j] *= exp(-((decay*(i - nz + pad))**2))
+    cdef:
+        unsigned int i, j, k
+    # Damping on the north/south
+    for k in range(nz-pad):
+        for j in range(pad,ny-pad):  # avoid double damping
+            for i in range(pad):
+                array[k, j, i] *= exp(-(decay*(pad - i))**2) # south
+                array[k, j, (nx-pad) + i] *= exp(-(decay*i)**2) # north
+    # Damping on the east/west
+    for k in range(nz-pad):
+        for i in range(nx):
+            for j in range(pad):
+                array[k, j, i] *= exp(-(decay*(pad - j))**2) # west
+                array[k, (ny-pad) + j, i] *= exp(-(decay*j)**2) # east
+    # Damping on the bottom
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(pad):
+                array[(nz-pad) + k, i, j] *= exp(-(decay*k)**2)
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -341,50 +350,95 @@ def _step_scalar(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def _reflexive_scalar3_boundary_conditions(
+    double[:,:,::1] u not None,
+    unsigned int nx, unsigned int ny, unsigned int nz):
+    """
+    Apply the boundary conditions: free-surface at top, fixed on the others. 3D
+    4th order Staggered (+3-3) indexes, x (north), y (east), z (down)
+    """
+    cdef unsigned int i, j, k
+    # Top
+    for j in range(ny):
+        for i in range(nx):
+            u[0, j, i] = u[1, j, i]
+            u[1, j, i] = u[2, j, i]  # up reflexive
+            u[2, j, i] = u[3, j, i]
+            u[nz - 1, j, i] *= 0  # down fixed
+            u[nz - 2, j, i] *= 0
+            u[nz - 3, j, i] *= 0
+    # Sides
+    for k in range(nz):
+        for j in range(ny):
+            u[k, j, 0] *= 0 #south reflexive
+            u[k, j, 1] *= 0
+            u[k, j, 2] *= 0
+            u[k, j, nx-1] *= 0 #north reflexive
+            u[k, j, nx-2] *= 0
+            u[k, j, nx-3] *= 0
+    for k in range(nz):
+        for i in range(nx):
+            u[k, 0, i] *= 0 #west reflexive
+            u[k, 1, i] *= 0
+            u[k, 2, i] *= 0
+            u[k, ny-1, i] *= 0 #east reflexive
+            u[k, ny-2, i] *= 0
+            u[k, ny-3, i] *= 0
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _step_scalar3_esg(
-    double[:,:,:1] p_tp1 not None,
-    double[:,:,:1] p_t not None,
-    double[:,:,:1] p_tm1 not None,
+    double[:,:,::1] p_tp1 not None,
+    double[:,:,::1] p_t not None,
+    double[:,:,::1] p_tm1 not None,
     unsigned int x1, unsigned int x2,
     unsigned int y1, unsigned int y2,
     unsigned int z1, unsigned int z2,
-    double[:,:,:1] u_tm1 not None,
     double dt, double dx, double dy, double dz,
-    double[:,:,:1] b not None,
-    double[:,:,:1] kmod not None):
+    double[:,:,::1] b not None,
+    double[:,:,::1] kmod not None):
     """
     Perform a single time step in Equivalent Staggered FD 3D solution for
     scalar waves 4th order in space
     """
-    cdef unsigned int i, j, k
-    for k in xrange(z1, z2):
-        for j in xrange(y1, y2):
-            for i in xrange(x1, x2):
+
+    cdef:
+        unsigned int i, j, k
+        double dt2, dx2, dy2, dz2
+    dt2 = dt**2
+    dx2 = 1./(dx**2)
+    dy2 = 1./(dy**2)
+    dz2 = 1./(dz**2)
+    c1 = (3./64)
+    c2 = (1./576)
+    for k in range(z1, z2):
+        for j in range(y1, y2):
+            for i in range(x1, x2):
                 p_tp1[k, j, i] = ( 2.*p_t[k, j, i] - p_tm1[k, j, i] +
-                    kmod[k, j, i] * dt**2 * (
-                    +(1./dx**2)*(3./128)*( (b[k, j, i+1]-b[k, j, i])*(27*
+                    kmod[k, j, i] * dt2 * (
+                    +dx2*c1*( 0.5*(b[k, j, i+1]+b[k, j, i])*(27*
                     (p_t[k, j, i+1]-p_t[k, j, i])-p_t[k, j, i+2]+p_t[k, j, i-1])-
-                    (b[k, j, i-1]-b[k, j, i])*(27*(p_t[k, j, i]-
+                    0.5*(b[k, j, i-1]+b[k, j, i])*(27*(p_t[k, j, i]-
                     p_t[k, j, i-1])-p_t[k, j, i+1]+p_t[k, j, i-2]) )
-                    -(1./dx**2)*(1./1152)*( (b[k, j, i+2]-b[k, j, i+1])*(27*
+                    -dx2*c2*( 0.5*(b[k, j, i+2]+b[k, j, i+1])*(27*
                     (p_t[k, j, i+2]-p_t[k, j, i+1])-p_t[k, j, i+3]+p_t[k, j, i])-
-                    (b[k, j, i-2]-b[k, j, i-1])*(27*(p_t[k, j, i-1]-
+                    0.5*(b[k, j, i-2]+b[k, j, i-1])*(27*(p_t[k, j, i-1]-
                     p_t[k, j, i-2])-p_t[k, j, i]+p_t[k, j, i-3]) )
-                    +(1./dy**2)*(3./128)*( (b[k, j+1, i]-b[k, j, i])*(27*
+                    +dy2*c1*( 0.5*(b[k, j+1, i]+b[k, j, i])*(27*
                     (p_t[k, j+1, i]-p_t[k, j, i])-p_t[k, j+2, i]+p_t[k, j-1, i])-
-                    (b[k, j-1, i]-b[k, j, i])*(27*(p_t[k, j, i]-
+                    0.5*(b[k, j-1, i]+b[k, j, i])*(27*(p_t[k, j, i]-
                     p_t[k, j-1, i])-p_t[k, j+1, i]+p_t[k, j-2, i]) )
-                    -(1./dy**2)*(1./1152)*( (b[k, j+2, i]-b[k, j+1, i])*(27*
+                    -dy2*c2*( 0.5*(b[k, j+2, i]+b[k, j+1, i])*(27*
                     (p_t[k, j+2, i]-p_t[k, j+1, i])-p_t[k, j+3, i]+p_t[k, j, i])-
-                    (b[k, j-2, i]-b[k, j-1, i])*(27*(p_t[k, j-1, i]-
+                    0.5*(b[k, j-2, i]+b[k, j-1, i])*(27*(p_t[k, j-1, i]-
                     p_t[k, j-2, i])-p_t[k, j, i]+p_t[k, j-3, i]) )
-                    +(1./dz**2)*(3./128)*( (b[k+1, j, i]-b[k, j, i])*(27*
+                    +dz2*c1*( 0.5*(b[k+1, j, i]+b[k, j, i])*(27*
                     (p_t[k+1, j, i]-p_t[k, j, i])-p_t[k+2, j, i]+p_t[k-1, j, i])-
-                    (b[k-1, j, i]-b[k, j, i])*(27*(p_t[k, j, i]-
+                    0.5*(b[k-1, j, i]+b[k, j, i])*(27*(p_t[k, j, i]-
                     p_t[k-1, j, i])-p_t[k+1, j, i]+p_t[k-2, j, i]) )
-                    -(1./dz**2)*(1./1152)*( (b[k+2, j, i]-b[k+1, j, i])*(27*
+                    -dz2*c2*( 0.5*(b[k+2, j, i]+b[k+1, j, i])*(27*
                     (p_t[k+2, j, i]-p_t[k+1, j, i])-p_t[k+3, j, i]+p_t[k, j, i])-
-                    (b[k-2, j, i]-b[k-1, j, i])*(27*(p_t[k-1, j, i]-
+                    0.5*(b[k-2, j, i]+b[k-1, j, i])*(27*(p_t[k-1, j, i]-
                     p_t[k-2, j, i])-p_t[k, j, i]+p_t[k-3, j, i]) )
                     )
                 )
