@@ -34,9 +34,9 @@ Finite difference solution of wave equation for isotropic media.
 * :func:`~fatiando.seismic.wavefd.xz2ps`: Convert x and z displacements to
   representations of P and S waves
 * :func:`~fatiando.seismic.wavefd.maxdt`: Calculate the maximum time step for
-  elastic wave simulations 
+  staggered grid wave simulations with 2nd in time and 4th in space
 * :func:`~fatiando.seismic.wavefd.scalar_maxdt`: Calculate the maximum time
-  step for a scalar wave simulation
+  step for a scalar (non-staggered grid) wave simulation
 
 **Theory**
 
@@ -291,15 +291,17 @@ class MexHatSource(object):
     * frequency : float
         The peak frequency of the wavelet
     * delay : float
-        The delay before the source starts
-
-        .. note:: If you want the source to start with amplitude close to 0, use
-            ``delay = 3.5/frequency``.
+        The delay before the source start default = 3.5/frequency
+        to start with amplitude close to 0
 
     """
 
-    def __init__(self, coords, area, shape, amp, frequency, delay=0):
-        if len(coords) == 3:
+    def __init__(self, coords, area, shape, amp, frequency, delay=None):
+        if coords is None:
+            self.indexes = None
+            self.coordinates = None
+            self.indexes = None
+        elif len(coords) == 3:
             self.coordinates = ICoord3(coords[0], coords[1], coords[2], area, shape)
             self.indexes = self.coordinates.indexes
             self.coords = self.coordinates.coords
@@ -310,13 +312,38 @@ class MexHatSource(object):
         self.amp = amp
         self.frequency = frequency
         self.f2 = frequency ** 2
+        if delay is None:  # default behavior
+            delay = 3.5/frequency
         self.delay = delay
 
     def __call__(self, time):
         t2 = (time - self.delay) ** 2
         pi2 = numpy.pi ** 2
-        psi = self.amp * (1 - 2 * pi2 * self.f2 * t2) * numpy.exp(-pi2 * self.f2 * t2)
+        psi = self.amp * ((1 - 2 * pi2 * self.f2 * t2) *
+                          numpy.exp(-pi2 * self.f2 * t2))
         return psi
+
+    @classmethod
+    def simple(cls, amp, frequency, delay=None):
+        """
+        Creates a Simple Source class without grid information
+
+        Parameters:
+
+        * amp : float
+        The amplitude of the source (:math:`A`)
+        * frequency : float
+        The peak frequency of the wavelet
+        * delay : float
+        The delay before the source start.
+        Default start with amplitude close to 0
+
+        Usage:
+
+        MexHatSource.simple(1, 20.2)
+
+        """
+        return cls(None, None, None, amp, frequency, delay)
 
 
 class SinSqrSource(MexHatSource):
@@ -342,14 +369,12 @@ class SinSqrSource(MexHatSource):
     * frequency : float
         The frequency of the source
     * delay : float
-        The delay before the source starts
-
-        .. note:: If you want the source to start with amplitude close to 0,
-            use ``delay = 3.5/frequency``.
+        The delay before the source start default = 3.5/frequency
+        to start with amplitude close to 0
 
     """
 
-    def __init__(self, x, z, area, shape, amp, frequency, delay=0):
+    def __init__(self, x, z, area, shape, amp, frequency, delay=None):
         super(SinSqrSource, self).__init__((x, z), area, shape, amp,
                                            frequency, delay)
         self.wlength = 1. / frequency
@@ -362,7 +387,7 @@ class SinSqrSource(MexHatSource):
         return psi
 
 
-def blast_source(x, z, area, shape, amp, frequency, delay=0,
+def blast_source(x, z, area, shape, amp, frequency, delay=None,
                  sourcetype=MexHatSource):
     """
     Uses several MexHatSources to create a blast source that pushes in all
@@ -432,15 +457,14 @@ class GaussSource(MexHatSource):
     * frequency : float
         The peak frequency of the wavelet
     * delay : float
-        The delay before the source starts
+        The delay before the source start default = 3.0/frequency
+        to start with amplitude close to 0
 
-    .. note:: If you want the source to start with amplitude close to 0,
-        use ``delay = 3.0/frequency``.
     """
 
     def __init__(self, coords, area, shape, amp, frequency, delay=None):
-        if (delay == None):
-            delay = 3.0 / frequency
+        if delay is None:
+            delay = 3.0/frequency
         super(GaussSource, self).__init__(coords, area, shape, amp,
                                           frequency, delay)
 
@@ -1133,7 +1157,7 @@ def maxdt(area, shape, maxvel):
         nz, ny, nx = shape
         spacing = min([(x2 - x1) / (nx - 1), (y2 - y1) / (ny - 1), (z2 - z1) / (nz - 1)])
         factor = 1./(numpy.sqrt(3)*7./6)
-        factor -= factor/100.  # 1% smaller to guarantee criteria
+        factor -= 5*factor/100.  # 5% smaller to guarantee criteria
         # the closer to stability criteria the better the convergence
         return factor * spacing / maxvel
 
