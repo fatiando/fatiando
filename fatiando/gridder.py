@@ -203,8 +203,8 @@ def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=False):
 
     Returns:
 
-    * ``[x, y, v]``
-        Three 1D arrays with the interpolated x, y, and v
+    * v : 1D array
+        1D array with the interpolated v values.
 
     """
     if algorithm not in ['cubic', 'linear', 'nearest']:
