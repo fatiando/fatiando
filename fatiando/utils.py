@@ -43,16 +43,56 @@ Miscellaneous utility functions and classes.
   seconds
 * :func:`~fatiando.utils.sec2year`: Convert seconds to Julian years
 * :func:`~fatiando.utils.year2sec`: Convert Julian years to seconds
-
+* :func:`~fatiando.utils.fromimage`: Load array of normalized gray-scale values
+  from an image
 ----
 
 """
 import math
 
 import numpy
+import PIL.Image
+import scipy.misc
 
 import fatiando.constants
 
+
+def fromimage(fname, ranges=None, shape=None):
+    """
+    Load an array of normalized gray-scale values from an image file.
+
+    The values will be in the range [0, 1]. The shape of the array is the shape
+    of the image (ny, nx), i.e., number of pixels in vertical (height) and
+    horizontal (width) dimensions.
+
+    Parameters:
+
+    * fname : str
+        Name of the image file
+    * ranges : [vmax, vmin] = floats
+        If not ``None``, will set the gray-scale values to this range.
+    * shape : (ny, nx)
+        If not ``None``, will interpolate the array to match this new shape
+
+    Returns:
+
+    * values : 2d-array
+        The array of gray-scale values
+
+    """
+    image = scipy.misc.fromimage(PIL.Image.open(fname), flatten=True)
+    # Invert the color scale and normalize
+    values = (image.max() - image)/numpy.abs(image).max()
+    if ranges is not None:
+        vmin, vmax = ranges
+        values *= vmax - vmin
+        values += vmin
+    if shape is not None and tuple(shape) != values.shape:
+        ny, nx = values.shape
+        X, Y = numpy.meshgrid(range(nx), range(ny))
+        values = fatiando.gridder.interp(X.ravel(), Y.ravel(), values.ravel(),
+            shape)[2].reshape(shape)
+    return values
 
 def vecnorm(vectors):
     """
