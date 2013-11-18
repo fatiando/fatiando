@@ -13,9 +13,9 @@ import numpy
 
 
 try:
-    from fatiando.seismic import _cttime2d
+    from fatiando.seismic import _ttime2d
 except ImportError:
-    _cttime2d = None
+    _ttime2d = None
 
 
 def straight(cells, prop, srcs, recs, velocity=None, par=False):
@@ -76,10 +76,10 @@ def straight(cells, prop, srcs, recs, velocity=None, par=False):
     if len(srcs) != len(recs):
         raise ValueError("Must have the same number of sources and receivers")
     if not par:
-        if _cttime2d is not None:
+        if _ttime2d is not None:
             x_src, y_src = numpy.transpose(srcs).astype(numpy.float)
             x_rec, y_rec = numpy.transpose(recs).astype(numpy.float)
-            times = _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs),
+            times = _ttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs),
                 cells, velocity, prop)
         else:
             times = _straight(cells, prop, srcs, recs, velocity)
@@ -110,10 +110,10 @@ def straight(cells, prop, srcs, recs, velocity=None, par=False):
     return numpy.array(times)
 
 def _straight_job(pipe, srcs, recs, cells, velocity, prop):
-    if _cttime2d is not None:
+    if _ttime2d is not None:
         x_src, y_src = numpy.transpose(srcs).astype(numpy.float)
         x_rec, y_rec = numpy.transpose(recs).astype(numpy.float)
-        times = _cttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs), cells,
+        times = _ttime2d.straight(x_src, y_src, x_rec, y_rec, len(srcs), cells,
                                    velocity, prop)
     else:
         times = _straight(cells, prop, srcs, recs, velocity)

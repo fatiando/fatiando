@@ -21,13 +21,13 @@ try:
                   libraries=['m'],
                   extra_compile_args=['-O3'],
                   include_dirs=[numpy.get_include()]),
-        Extension("fatiando.seismic._cttime2d",
-                  [join('fatiando', 'seismic', '_cttime2d.pyx')],
+        Extension("fatiando.seismic._ttime2d",
+                  [join('fatiando', 'seismic', '_ttime2d.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'],
                   include_dirs=[numpy.get_include()]),
-        Extension("fatiando.seismic._cwavefd",
-                  [join('fatiando', 'seismic', '_cwavefd.pyx')],
+        Extension("fatiando.seismic._wavefd",
+                  [join('fatiando', 'seismic', '_wavefd.pyx')],
                   libraries=['m'],
                   extra_compile_args=['-O3'],
                   include_dirs=[numpy.get_include()])]
@@ -40,7 +40,7 @@ except ImportError:
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Geophysical modeling and inversion"
-VERSION = '0.2.dev'
+VERSION = '0.2'
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',

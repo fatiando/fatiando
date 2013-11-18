@@ -57,20 +57,19 @@ which results in something like this:
     :align: center
     :width: 300px
 
-For those of you not so interested in potential fields,
-there is a new module :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
-for **2D finite difference simulations
-of seismic waves**!
+
+Interested? Well, *Fatiando* does much more!
+Watch `Leonardo Uieda`_ talk about the motivation behind  *Fatiando a Terra*
+and some of the main features at the `2013 Scipy conference`_:
+http://youtu.be/Ec38h1oB8cc
 
 .. raw:: html
 
-    <iframe width="560" height="315" 
-     src="https://www.youtube.com/embed/Mvd8FANLqy4" 
-     frameborder="0" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="//www.youtube.com/embed/Ec38h1oB8cc" frameborder="0" allowfullscreen></iframe>
 
-    <iframe width="420" height="315" 
-     src="https://www.youtube.com/embed/YjhSvEpbzps" 
-     frameborder="0" allowfullscreen></iframe>
+.. _Leonardo Uieda: http://fatiando.org/people/uieda/
+.. _2013 Scipy conference: http://conference.scipy.org/scipy2013/index.php
+
 
 .. raw:: html
 

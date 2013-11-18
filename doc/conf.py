@@ -39,7 +39,7 @@ class Mock(object):
 MOCK_MODULES = [
     'numpy', 'numpy.linalg', 'numpy.linalg.linalg',
     'scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.misc',
-    'scipy.special',
+    'scipy.special', 'scipy.interpolate',
     'matplotlib',
     'matplotlib.mlab', 'matplotlib.pyplot', 'matplotlib.widgets',
     'matplotlib.nxutils',

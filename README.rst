@@ -53,7 +53,7 @@ The authors
 -----------
 
 Fatiando is developed by working geophysicists. Work done here is
-part of some Masters and Phd projects. See a list of `people involved`_.
+part of some Masters and PhD projects. See a list of `people involved`_.
 
 .. _people involved: http://readthedocs.org/docs/fatiando/en/latest/contributors.html
 
@@ -64,3 +64,19 @@ Fatiando a Terra is free software: you can redistribute it and/or modify it
 under the terms of the **BSD License**. A copy of this license is provided in
 LICENSE.txt and at http://readthedocs.org/docs/fatiando/en/latest/license.html
 
+Citing
+------
+
+Many of us are scientists too,
+so citations help justify the effort
+that goes into building Fatiando.
+If you use Fatiando in your research,
+please consider citing it in your publications.
+
+See our `CITATION file
+<https://github.com/leouieda/fatiando/blob/master/CITATION.rst>`__
+for more information.
+Read `this
+<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
+if you haven't heard of CITATION files yet.
+They're the latest trend!

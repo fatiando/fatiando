@@ -45,7 +45,7 @@ print "Base level used: %g" % (baselevel)
 print "Estimated base level: %g" % (results['baselevel'])
 
 myv.figure()
-myv.points([results['point']], size=300.)
+myv.points([results['point']], size=100.)
 myv.prisms(model, 'magnetization', opacity=0.5)
 axes = myv.axes(myv.outline(extent=bounds))
 myv.wall_bottom(axes.axes.bounds, opacity=0.2)

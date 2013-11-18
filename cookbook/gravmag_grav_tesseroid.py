@@ -29,7 +29,7 @@ myv.show()
 
 # Create the computation grid
 area = (-80, -30, -40, 10)
-shape = (50, 50)
+shape = (100, 100)
 lons, lats, heights = gridder.regular(area, shape, z=250000)
 
 start = time.time()
@@ -48,12 +48,24 @@ print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
 titles = ['potential', 'gx', 'gy', 'gz',
           'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
+bm = mpl.basemap(area, 'merc')
 mpl.figure()
-bm = mpl.basemap(area, 'ortho')
-for i, field in enumerate(fields):
-    mpl.subplot(4, 3, i + 3)
-    mpl.title(titles[i])
-    mpl.contourf(lons, lats, field, shape, 15, basemap=bm)
+mpl.title(titles[0])
+mpl.contourf(lons, lats, fields[0], shape, 40, basemap=bm)
+bm.drawcoastlines()
+mpl.colorbar()
+mpl.figure()
+for i, field in enumerate(fields[1:4]):
+    mpl.subplot(1, 3, i + 1)
+    mpl.title(titles[i + 1])
+    mpl.contourf(lons, lats, field, shape, 40, basemap=bm)
+    bm.drawcoastlines()
+    mpl.colorbar()
+mpl.figure()
+for i, field in enumerate(fields[4:]):
+    mpl.subplot(2, 3, i + 1)
+    mpl.title(titles[i + 4])
+    mpl.contourf(lons, lats, field, shape, 40, basemap=bm)
     bm.drawcoastlines()
     mpl.colorbar()
 mpl.show()

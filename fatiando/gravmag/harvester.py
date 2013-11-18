@@ -75,7 +75,7 @@ import numpy
 from fatiando.gravmag import prism as prism_engine
 from fatiando.gravmag import tesseroid as tesseroid_engine
 from fatiando import utils
-from fatiando.mesher import Prism
+from fatiando.mesher import Prism, Tesseroid
 
 
 def loadseeds(fname):
@@ -171,12 +171,16 @@ def sow(locations, mesh):
 
     Returns:
 
-    * seeds : list of :class:`~fatiando.gravmag.harvester.Seed`
+    * seeds : list of seeds
         The seeds that can be passed to
         :func:`~fatiando.gravmag.harvester.harvest`
 
     """
     seeds = []
+    if mesh.celltype == Tesseroid:
+        seedtype = TesseroidSeed
+    elif mesh.celltype == Prism:
+        seedtype = PrismSeed
     for x, y, z, props in locations:
         index = _find_index((x, y, z), mesh)
         if index is None:
@@ -184,7 +188,7 @@ def sow(locations, mesh):
                 "Couldn't find seed at location (%g,%g,%g)" % (x, y, z))
         # Check for duplicates
         if index not in (s.i for s in seeds):
-            seeds.append(Seed(index, (x, y, z), mesh[index], props))
+            seeds.append(seedtype(index, (x, y, z), mesh[index], props))
     return seeds
 
 def _find_index(point, mesh):
@@ -538,14 +542,26 @@ def _neighbor_indexes(n, mesh):
     # Filter out the ones that do not exist or are masked (topography)
     return [i for i in indexes if i is not None and mesh[i] is not None]
 
-class Seed(Prism):
+class PrismSeed(Prism):
     """
-    A seed.
+    A seed that is a right rectangular prism.
     """
 
     def __init__(self, i, location, prism, props):
         Prism.__init__(self, prism.x1, prism.x2, prism.y1, prism.y2, prism.z1,
             prism.z2, props=props)
+        self.i = i
+        self.seed = i
+        self.x, self.y, self.z = location
+
+class TesseroidSeed(Tesseroid):
+    """
+    A seed that is a tesseroid (spherical prism).
+    """
+
+    def __init__(self, i, location, tess, props):
+        Tesseroid.__init__(self, tess.w, tess.e, tess.s, tess.n, tess.top,
+            tess.bottom, props=props)
         self.i = i
         self.seed = i
         self.x, self.y, self.z = location

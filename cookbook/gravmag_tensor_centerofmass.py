@@ -35,7 +35,7 @@ cm, sigma = gravmag.tensor.center_of_mass(xp, yp, zp, eigenvecs[0])
 print "Sigma = %g" % (sigma)
 # Plot the prism and the estimated center of mass
 myv.figure()
-myv.points([cm], size=300.)
+myv.points([cm], size=200.)
 myv.prisms(prisms, prop='density', opacity=0.5)
 axes = myv.axes(
     myv.outline(extent=[-5000, 5000, -5000, 5000, 0, 5000]))

@@ -129,7 +129,7 @@ def show():
     _lazy_import_mlab()
     mlab.show()
 
-def points(points, color=(0, 0, 0), opacity=1, size=200.):
+def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
     """
     Plot a series of 3D points.
 
@@ -142,18 +142,34 @@ def points(points, color=(0, 0, 0), opacity=1, size=200.):
         x, y, and z coordinates of the point
     * color : tuple = (r, g, b)
         RGB of the color of the points
+    * size : float
+        The size of the points in meters
     * opacity : float
         Decimal percentage of opacity
-    * size : float
-        The size of the points (relative to their spacing)
+    * spherical : True or False
+        If True, will assume the points are in [lon, lat, height] format (in
+        degrees and meters)
+
+    Returns:
+
+    * glyph
+        The Mayavi Glyph object corresponding to the points
 
     """
     _lazy_import_mlab()
-    x, y, z = numpy.transpose(points)
-    mlab.points3d(x, y, z, color=color, opacity=opacity, scale_factor=size)
+    if spherical:
+        lon, lat, height = numpy.transpose(points)
+        x, y, z = utils.sph2cart(lon, lat, height)
+    else:
+        x, y, z = numpy.transpose(points)
+    glyph = mlab.points3d(x, y, z, color=color, opacity=opacity)
+    glyph.glyph.glyph.scaling = False
+    glyph.glyph.glyph_source.glyph_source.radius = size
+    return glyph
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
 
@@ -181,8 +197,17 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all prisms to have this RGB color
     * linewidth : float
         The width of the lines (edges) of the prisms.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
+    * scale : (sx, sy, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -267,11 +292,18 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
+            edge.actor.property.color = edgecolor
+            edge.actor.actor.scale = scale
     surf.actor.property.opacity = opacity
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
+    surf.actor.actor.scale = scale
     return surf
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -300,8 +332,17 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all tesseroids to have this RGB color
     * linewidth : float
-        The width of the lines (edges).
+        The width of the lines (edges) of the tesseroids.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -314,11 +355,9 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
-
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
-
     if prop is None:
         label = 'scalar'
     else:
@@ -336,6 +375,12 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         if tess is None or (prop is not None and prop not in tess.props):
             continue
         w, e, s, n, top, bottom = tess.get_bounds()
+        w *= scale[0]
+        e *= scale[0]
+        s *= scale[1]
+        n *= scale[1]
+        top *= scale[2]
+        bottom *= scale[2]
         if prop is None:
             scalar = 0.
         else:
@@ -400,12 +445,17 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
             edge.actor.property.opacity = opacity
+            edge.actor.property.color = edgecolor
     surf.actor.property.opacity = opacity
-    surf.actor.property.backface_culling = 1
+    surf.actor.property.backface_culling = False
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
     return surf
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', linewidth=0.1):
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -433,8 +483,17 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     * cmap : Mayavi colormap
         Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
         for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all prisms to have this RGB color
     * linewidth : float
         The width of the lines (edges) of the prisms.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
+    * scale : (sx, sy, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -447,11 +506,9 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
         raise ValueError, msg
-
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
-
     if prop is None:
         label = 'scalar'
     else:
@@ -507,11 +564,15 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         if edges:
             surf.actor.property.edge_visibility = 1
             surf.actor.property.line_width = linewidth
+            surf.actor.property.edge_color = edgecolor
     surf.actor.property.opacity = opacity
-    surf.actor.property.backface_culling = 1
+    if color is not None:
+        surf.actor.mapper.scalar_visibility = 0
+        surf.actor.property.color = color
+    surf.actor.actor.scale = scale
     return surf
 
-def figure(size=None, zdown=True):
+def figure(size=None, zdown=True, color=(1, 1, 1)):
     """
     Create a default figure in Mayavi with white background
 
@@ -521,6 +582,8 @@ def figure(size=None, zdown=True):
         The size of the figure. If ``None`` will use the default size.
     * zdown : True or False
         If True, will turn the figure upside-down to make the z-axis point down
+    * color : tuple = (r, g, b)
+        RGB of the color of the background
 
     Return:
 
@@ -530,16 +593,16 @@ def figure(size=None, zdown=True):
     """
     _lazy_import_mlab()
     if size is None:
-        fig = mlab.figure(bgcolor=(1, 1, 1))
+        fig = mlab.figure(bgcolor=color)
     else:
-        fig = mlab.figure(bgcolor=(1, 1, 1), size=size)
+        fig = mlab.figure(bgcolor=color, size=size)
     if zdown:
         fig.scene.camera.view_up = numpy.array([0., 0., -1.])
         fig.scene.camera.elevation(60.)
         fig.scene.camera.azimuth(180.)
     return fig
 
-def outline(extent=None, color=(0,0,0), width=2):
+def outline(extent=None, color=(0, 0, 0), width=2, scale=(1, 1, 1)):
     """
     Create a default outline in Mayavi2.
 
@@ -551,6 +614,10 @@ def outline(extent=None, color=(0,0,0), width=2):
         RGB of the color of the axes and text
     * width : float
         Line width
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     Returns:
 
@@ -562,6 +629,7 @@ def outline(extent=None, color=(0,0,0), width=2):
     outline = mlab.outline(color=color, line_width=width)
     if extent is not None:
         outline.bounds = extent
+    outline.actor.actor.scale = scale
     return outline
 
 def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
@@ -607,7 +675,7 @@ def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     a.axes.x_label, a.axes.y_label, a.axes.z_label = "N", "E", "Z"
     return a
 
-def wall_north(bounds, color=(0,0,0), opacity=0.1):
+def wall_north(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the North side.
 
@@ -621,15 +689,16 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([n, n, w, e, b, t], color, opacity)
+    _wall([n, n, w, e, b, t], color, opacity, scale)
 
-def wall_south(bounds, color=(0,0,0), opacity=0.1):
+def wall_south(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the South side.
 
@@ -643,15 +712,16 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, s, w, e, b, t], color, opacity)
+    _wall([s, s, w, e, b, t], color, opacity, scale)
 
-def wall_east(bounds, color=(0,0,0), opacity=0.1):
+def wall_east(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the East side.
 
@@ -665,15 +735,16 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, e, e, b, t], color, opacity)
+    _wall([s, n, e, e, b, t], color, opacity, scale)
 
-def wall_west(bounds, color=(0,0,0), opacity=0.1):
+def wall_west(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the West side.
 
@@ -687,15 +758,16 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, w, b, t], color, opacity)
+    _wall([s, n, w, w, b, t], color, opacity, scale)
 
-def wall_top(bounds, color=(0,0,0), opacity=0.1):
+def wall_top(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Top side.
 
@@ -709,15 +781,16 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, e, t, t], color, opacity)
+    _wall([s, n, w, e, t, t], color, opacity, scale)
 
-def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
+def wall_bottom(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Bottom side.
 
@@ -731,15 +804,16 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1):
         RGB of the color of the wall
     * opacity : float
         Decimal percentage of opacity
-
-    .. tip:: You can use :func:`~fatiando.vis.myv.add_axes` to create and
-        `axes` variable and get the bounds as ``axes.axes.bounds``
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
 
     """
     s, n, w, e, t, b = bounds
-    _wall([s, n, w, e, b, b], color, opacity)
+    _wall([s, n, w, e, b, b], color, opacity, scale)
 
-def _wall(bounds, color, opacity):
+def _wall(bounds, color, opacity, scale):
     """Generate a 3D wall in Mayavi"""
     _lazy_import_mlab()
     p = mlab.pipeline.builtin_surface()
@@ -749,6 +823,7 @@ def _wall(bounds, color, opacity):
     su = mlab.pipeline.surface(p)
     su.actor.property.color = color
     su.actor.property.opacity = opacity
+    su.actor.actor.scale = scale
 
 def continents(color=(0, 0, 0), linewidth=1, resolution=2, opacity=1,
     radius=MEAN_EARTH_RADIUS):

@@ -1,65 +1,68 @@
 """
 Seismic: 2D finite difference simulation of elastic P and SV wave propagation
 """
-from matplotlib import animation
 import numpy as np
-from fatiando import seismic, gridder, vis
+from matplotlib import animation
+from fatiando import gridder
+from fatiando.seismic import wavefd
+from fatiando.vis import mpl
 
-# Make a wave source from a mexican hat wavelet
-sources = [seismic.wavefd.MexHatSource(25, 25, 100, 0.5, delay=1.5)]
 # Set the parameters of the finite difference grid
-shape = (100, 100)
-spacing = (500, 500)
-area = (0, spacing[1]*shape[1], 0, spacing[0]*shape[0])
+shape = (200, 200)
+area = [0, 60000, 0, 60000]
 # Make a density and S wave velocity model
-dens = 2700*np.ones(shape)
-svel = 3000*np.ones(shape)
-pvel = 4000*np.ones(shape)
+density = 2400*np.ones(shape)
+pvel = 6600
+svel = 3700
+mu = wavefd.lame_mu(svel, density)
+lamb = wavefd.lame_lamb(pvel, svel, density)
 
-# Get the iterator. This part only generates an iterator object. The actual
-# computations take place at each iteration in the for loop below
-dt = 0.05
-maxit = 300
-timesteps = seismic.wavefd.elastic_psv(spacing, shape, pvel, svel, dens, dt,
-    maxit, sources, sources, padding=0.5)
+# Make a wave source from a mexican hat wavelet that vibrates in the x and z
+# directions equaly
+sources = [[wavefd.MexHatSource(30000, 40000, area, shape, 10000, 1, delay=1)],
+           [wavefd.MexHatSource(30000, 40000, area, shape, 10000, 1, delay=1)]]
+
+# Get the iterator for the simulation
+dt = wavefd.maxdt(area, shape, pvel)
+duration = 20
+maxit = int(duration/dt)
+stations = [[55000, 0]] # x, z coordinate of the seismometer
+snapshot = int(0.5/dt) # Plot a snapshot of the simulation every 0.5 seconds
+simulation = wavefd.elastic_psv(lamb, mu, density, area, dt, maxit, sources,
+        stations, snapshot, padding=50, taper=0.01, xz2ps=True)
 
 # This part makes an animation using matplotlibs animation API
-vmin, vmax = -1*10**(-4), 1*10**(-4)
-x, z = gridder.regular(area, shape)
-fig = vis.mpl.figure()
-ax_x = vis.mpl.subplot(1, 2, 1)
-vis.mpl.axis('scaled')
+fig = mpl.figure(figsize=(12, 5))
+mpl.subplot(2, 2, 2)
+mpl.title('x component')
+xseismogram, = mpl.plot([],[],'-k')
+mpl.xlim(0, duration)
+mpl.ylim(-10**(-3), 10**(-3))
+mpl.subplot(2, 2, 4)
+mpl.title('z component')
+zseismogram, = mpl.plot([],[],'-k')
+mpl.xlim(0, duration)
+mpl.ylim(-10**(-3), 10**(-3))
+mpl.subplot(1, 2, 1)
 # Start with everything zero and grab the plot so that it can be updated later
-wavefieldx = vis.mpl.pcolor(x, z, np.zeros(shape).ravel(), shape, vmin=vmin,
-    vmax=vmax)
-# Make z positive down
-vis.mpl.ylim(area[-1], area[-2])
-vis.mpl.m2km()
-vis.mpl.xlabel("x (km)")
-vis.mpl.ylabel("z (km)")
-# Do the same for z component of the displacement
-ax_z = vis.mpl.subplot(1, 2, 2)
-vis.mpl.axis('scaled')
-wavefieldz = vis.mpl.pcolor(x, z, np.zeros(shape).ravel(), shape, vmin=vmin,
-    vmax=vmax)
-# Make z positive down
-vis.mpl.ylim(area[-1], area[-2])
-vis.mpl.m2km()
-vis.mpl.xlabel("x (km)")
-vis.mpl.ylabel("z (km)")
+wavefield = mpl.imshow(np.zeros(shape), extent=area, vmin=-10**-6, vmax=10**-6,
+    cmap=mpl.cm.gray_r)
+mpl.points(stations, '^k')
+mpl.ylim(area[2:][::-1])
+mpl.xlabel('x (km)')
+mpl.ylabel('z (km)')
+mpl.m2km()
+times = np.linspace(0, maxit*dt, maxit)
 # This function updates the plot every few timesteps
-steps_per_frame = 10
 def animate(i):
-    for t, update in enumerate(timesteps):
-        if t == steps_per_frame - 1:
-            ux, uz = update
-            ax_x.set_title('ux time: %0.1f s' % (i*steps_per_frame*dt))
-            wavefieldx.set_array(ux[0:-1,0:-1].ravel())
-            ax_z.set_title('uz time: %0.1f s' % (i*steps_per_frame*dt))
-            wavefieldz.set_array(ux[0:-1,0:-1].ravel())
-            break
-    return wavefieldx, wavefieldz
-anim = animation.FuncAnimation(fig, animate,
-    frames=maxit/steps_per_frame, interval=1, blit=False)
-#anim.save('p_and_sv_waves.mp4', fps=10)
-vis.mpl.show()
+    # Simulation will yield panels corresponding to P and S waves because
+    # xz2ps=True
+    t, p, s, xcomp, zcomp = simulation.next()
+    mpl.title('time: %0.1f s' % (times[t]))
+    wavefield.set_array((p + s)[::-1])
+    xseismogram.set_data(times[:t+1], xcomp[0][:t+1])
+    zseismogram.set_data(times[:t+1], zcomp[0][:t+1])
+    return wavefield, xseismogram, zseismogram
+anim = animation.FuncAnimation(fig, animate, frames=maxit/snapshot, interval=1)
+#anim.save('psv_wave.mp4', fps=20, dpi=200, bitrate=4000)
+mpl.show()

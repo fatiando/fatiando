@@ -38,15 +38,26 @@ Then the total-field anomaly caused by the sphere is
 
     \Delta T \approx \hat{\mathbf{F}}\cdot\Delta\mathbf{F}.
 
-
 **Gravity**
 
+Calculates the gravitational acceleration and gravity gradient tensor
+components.
 
+* :func:`fatiando.gravmag.sphere.gz`
+* :func:`fatiando.gravmag.sphere.gxx`
+* :func:`fatiando.gravmag.sphere.gxy`
+* :func:`fatiando.gravmag.sphere.gxz`
+* :func:`fatiando.gravmag.sphere.gyy`
+* :func:`fatiando.gravmag.sphere.gyz`
+* :func:`fatiando.gravmag.sphere.gzz`
 
 **References**
 
+Blakely, R. J. (1995), Potential Theory in Gravity and Magnetic Applications,
+Cambridge University Press.
 
 ----
+
 """
 import numpy
 
@@ -122,7 +133,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         bx = moment*(3*dotprod*x - r_sqr*mx)/r5
         by = moment*(3*dotprod*y - r_sqr*my)/r5
         bz = moment*(3*dotprod*z - r_sqr*mz)/r5
-        tf = tf + (fx*bx + fy*by + fz*bz)
+        tf += (fx*bx + fy*by + fz*bz)
     tf *= CM*T2NT
     return tf
 
@@ -130,8 +141,8 @@ def gz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI and output in mGal!
 
@@ -140,8 +151,8 @@ def gz(xp, yp, zp, spheres, dens=None):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the field will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
-        The spheres. Spheres must have the property ``'density'``. Those without
-        will be ignored.
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
 
     Returns:
 
@@ -149,7 +160,6 @@ def gz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -166,15 +176,16 @@ def gz(xp, yp, zp, spheres, dens=None):
         dz = sphere.z - zp
         r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
-        res = res + mass*dz/r_cb
-    return G*SI2MGAL*res
+        res += mass*dz/r_cb
+    res *= G*SI2MGAL
+    return res
 
-def gzz(xp, yp, zp, spheres):
+def gxx(xp, yp, zp, spheres):
     """
-    Calculates the :math:`g_zz` gravity gradient component.
+    Calculates the :math:`g_xx` gravity gradient component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI and output in Eotvos!
 
@@ -183,8 +194,8 @@ def gzz(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the field will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
-        The spheres. Spheres must have the property ``'density'``. Those without
-        will be ignored.
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
 
     Returns:
 
@@ -192,7 +203,6 @@ def gzz(xp, yp, zp, spheres):
         The field calculated on xp, yp, zp
 
     """
-
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -207,5 +217,211 @@ def gzz(xp, yp, zp, spheres):
         r_2 = (dx**2 + dy**2 + dz**2)
         r_5 = r_2**(2.5)
         mass = density*4.*numpy.pi*(radius**3)/3.
-        res = res + mass*(((3*dz**2) - r_2)/r_5)
-    return G*SI2EOTVOS*res
+        res += mass*(((3*dx**2) - r_2)/r_5)
+    res *= G*SI2EOTVOS
+    return res
+
+def gxy(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_xy` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res += mass*(3*dx*dy)/r_5
+    res *= G*SI2EOTVOS
+    return res
+
+def gxz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_xz` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res += mass*(3*dx*dz)/r_5
+    res *= G*SI2EOTVOS
+    return res
+
+def gyy(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_yy` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res += mass*(((3*dy**2) - r_2)/r_5)
+    res *= G*SI2EOTVOS
+    return res
+
+def gyz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_yz` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res += mass*(3*dy*dz)/r_5
+    res *= G*SI2EOTVOS
+    return res
+
+def gzz(xp, yp, zp, spheres):
+    """
+    Calculates the :math:`g_zz` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or 'density' not in sphere.props:
+            continue
+        radius = sphere.radius
+        density = sphere.props['density']
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        mass = density*4.*numpy.pi*(radius**3)/3.
+        res += mass*(((3*dz**2) - r_2)/r_5)
+    res *= G*SI2EOTVOS
+    return res
