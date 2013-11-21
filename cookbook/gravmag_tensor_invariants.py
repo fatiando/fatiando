@@ -5,7 +5,7 @@ import numpy
 from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl
 
-print("Draw the polygons one by one")
+print "Draw the polygons one by one"
 area = [-10000, 10000, -10000, 10000]
 dataarea = [-5000, 5000, -5000, 5000]
 prisms = []

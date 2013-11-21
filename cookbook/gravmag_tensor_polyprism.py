@@ -4,7 +4,7 @@ GravMag: Generate synthetic gradient tensor data from polygonal prisms
 from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl, myv
 
-print("Draw the polygons one by one")
+print "Draw the polygons one by one"
 bounds = [-10000, 10000, -10000, 10000, 0, 5000]
 area = bounds[:4]
 axis = mpl.figure().gca()
