@@ -3,7 +3,6 @@ Seismic: 2D finite difference simulation of elastic P and SV wave propagation
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import gridder
 from fatiando.seismic import wavefd
 from fatiando.vis import mpl
 
@@ -19,8 +18,8 @@ lamb = wavefd.lame_lamb(pvel, svel, density)
 
 # Make a wave source from a mexican hat wavelet that vibrates in the x and z
 # directions equaly
-sources = [[wavefd.MexHatSource(30000, 40000, area, shape, 10000, 1, delay=1)],
-           [wavefd.MexHatSource(30000, 40000, area, shape, 10000, 1, delay=1)]]
+sources = [[wavefd.MexHatSource((30000, 40000), area, shape, 10000, 1, delay=1)],
+           [wavefd.MexHatSource((30000, 40000), area, shape, 10000, 1, delay=1)]]
 
 # Get the iterator for the simulation
 dt = wavefd.maxdt(area, shape, pvel)
