@@ -2,14 +2,10 @@
 GravMag: Calculate the gravity gradient tensor invariants
 """
 import numpy
-from fatiando import logger, mesher, gridder, gravmag
+from fatiando import mesher, gridder, gravmag
 from fatiando.vis import mpl
 
-log = logger.get()
-log.info(logger.header())
-log.info(__doc__)
-
-log.info("Draw the polygons one by one")
+print "Draw the polygons one by one"
 area = [-10000, 10000, -10000, 10000]
 dataarea = [-5000, 5000, -5000, 5000]
 prisms = []
