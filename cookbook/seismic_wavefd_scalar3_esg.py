@@ -29,32 +29,46 @@ stations = [[45*ds, 45*ds, 65*ds], [65*ds, 65*ds, 30*ds]]
 snapshots = 5  # every 1 iterations plots one
 simulation = wavefd.scalar3_esg(velocity, density, area, dt, maxit,
                                 sources, stations, snapshots)
-# 3d contour iso surfaces
+
 from mayavi import mlab
-fig = mlab.figure(size=(600,600))
-t, u, seismogram = simulation.next()
-min = u.min(); max = u.max()
-min = min+0.65*(max-min); max = min+0.9*(max-min)
-u = u.transpose()[::-1]
-sscalar = mlab.contour3d(u, contours=[min, 0.8*max])
-extent = [0, shape[0], 0, shape[1], 0, shape[2]]
-mlab.axes(extent=extent)
-mlab.outline(extent=extent)
-azimuth = 27.087178769208965
-elevation = -120.9368000828039
-distance = 334.60652149512919
-focalpoint = [53.01525703,  57.20435378,  61.16758842]
-mlab.view(azimuth, elevation, distance, focalpoint, reset_roll=True)
 import sys
-for t, u, seismogram in simulation:
+# doesn't  work with ui=False
+@mlab.animate(delay=100)
+def anim():
+    fig = mlab.figure(size=(600,600))
+    t, u, seismogram = simulation.next()
     min = u.min(); max = u.max()
     min = min+0.65*(max-min); max = min+0.9*(max-min)
-    u = u.transpose()[::-1] # solving z up
-    sscalar.mlab_source.set(scalars=u, contours=[min, 0.8*max])
-    sys.stdout.write("\rprogressing .. %.1f%% time %.3f"%(100.0*float(t)/maxit, (dt*t)))
-    sys.stdout.flush()
+    u = u.transpose()[::-1]
+    sscalar = mlab.pipeline.scalar_field(u)
+    extent = [0, shape[0], 0, shape[1], 0, shape[2]]
+    mlab.axes(extent=extent)
+    mlab.outline(extent=extent)
+    azimuth = 27.087178769208965
+    elevation = -120.9368000828039
+    distance = 334.60652149512919
+    focalpoint = [53.01525703,  57.20435378,  61.16758842]
+    mlab.view(azimuth, elevation, distance, focalpoint, reset_roll=True)
+    min = u.min(); max = u.max()
+    min = min+0.65*(max-min); max = min+0.9*(max-min)
+    # vmin=0.2, vmax=0.4)
+    svolume = mlab.pipeline.volume(sscalar)
+    #svolume.volume_property.shade = 0 # remove shade better visualization
+    #sv.voloume.property.get_scalar_opacity    
+    for t, u, seismogram in simulation:
+        min = u.min(); max = u.max()
+        min = min+0.65*(max-min); max = min+0.9*(max-min)
+        u = u.transpose()[::-1] # solving z up
+        svolume.mlab_source.scalars = u
+        sys.stdout.write("\rprogressing .. %.1f%% time %.3f"%(100.0*float(t)/maxit, (dt*t)))
+        sys.stdout.flush()
+        yield
+        # the data created on the simulation is lost...
+        # since the iterator is just a loop needed... nothing more...
+
+anim()
 mlab.show()  # make possible to manipulate at the end
 
-# mlab.pipeline.surface
-# with enable contours = True; would be perfect
-# or mlab.pipeline.volume
+#vtk manuals
+#http://www.dcs.ed.ac.uk/teaching/cs4/www/visualisation/vtk/vtkhtml/manhtml/vtkVolumeProperty.html#toc5
+#void SetColor( vtkColorTransferFunction *function );
