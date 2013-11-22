@@ -150,9 +150,3 @@ Some modules that use the :mod:`~fatiando.inversion` API:
 ----
 
 """
-
-from fatiando.inversion import (datamodule,
-                                regularizer,
-                                gradient,
-                                linear)
-
