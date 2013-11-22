@@ -6,6 +6,9 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.normal`
 * :func:`~fatiando.utils.gaussian`
 * :func:`~fatiando.utils.gaussian2d`
+* :func:`~fatiando.utils.safe_solve`
+* :func:`~fatiando.utils.safe_dot`
+* :func:`~fatiando.utils.safe_diagonal`
 
 **Point scatter generation**
 
@@ -50,9 +53,86 @@ Miscellaneous utility functions and classes.
 import math
 
 import numpy
+import scipy.sparse
 
 import fatiando.constants
 
+
+def safe_solve(matrix, vector):
+    """
+    Solve a linear system using an apropriate algorithm.
+
+    Uses the standard :func:`numpy.linalg.solve` if both *matrix* and *vector*
+    are dense.
+
+    If any of the two is sparse (from :mod:`scipy.sparse`) then will use the
+    Conjugate Gradient Method (:func:`scipy.sparse.cgs`).
+
+    Parameters:
+
+    * matrix : 2d-array
+        The matrix defining the linear system
+    * vector : 1d or 2d-array
+        The right-side vector of the system
+
+    Returns:
+
+    * solution : 1d or 2d-array
+        The solution of the linear system
+
+
+    """
+    if scipy.sparse.issparse(matrix) or scipy.sparse.issparse(vector):
+        estimate, status = scipy.sparse.linalg.cgs(matrix, vector)
+        if status >= 0:
+            return estimate
+        else:
+            raise ValueError('CGS exited with input error')
+    else:
+        return numpy.linalg.solve(matrix, vector)
+
+def safe_dot(a, b):
+    """
+    Make the dot product using the appropriate method.
+
+    If *a* and *b* are dense, will use :func:`numpy.dot`. If either is sparse
+    (from :mod:`scipy.sparse`) will use the multiplication operator (i.e., \*).
+
+    Parameters:
+
+    * a, b : array or matrix
+        The vectors/matrices to take the dot product of.
+
+    Returns:
+
+    * prod : array or matrix
+        The dot product of *a* and *b*
+
+    """
+    if scipy.sparse.issparse(a) or scipy.sparse.issparse(b):
+        return a*b
+    else:
+        return numpy.dot(a, b)
+
+def safe_diagonal(matrix):
+    """
+    Get the diagonal of a matrix using the appropriate method.
+
+    Parameters:
+
+    * matrix : 2d-array, matrix, sparse matrix
+        The matrix...
+
+    Returns:
+
+    * diag : 1d-array
+        A numpy array with the diagonal of the matrix
+
+    """
+    if scipy.sparse.issparse(matrix):
+        return numpy.array(matrix.diagonal())
+    else:
+        return numpy.diagonal(matrix).copy()
 
 def vecnorm(vectors):
     """
