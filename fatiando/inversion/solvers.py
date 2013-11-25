@@ -373,7 +373,7 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
         parameters.
     * archive_size : int
         The number of solutions to keep in the solution archive. Defaults to
-        20 x nants
+        10 x nants
     * maxit : int
         The number of iterations to run.
     * diverse : float
@@ -396,7 +396,7 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     if nants is None:
         nants = nparams
     if archive_size is None:
-        archive_size = 20*nants
+        archive_size = 10*nants
     # Check is giving bounds for each parameter or one for all
     bounds = numpy.array(bounds)
     if bounds.size == 2:
