@@ -1,5 +1,28 @@
 """
-Gradient descent and heuristic optimizing functions.
+Methods to optimize a given objective function.
+
+**Gradient descent**
+
+* :func:`~fatiando.inversion.solvers.linear`: Solver for a linear problem
+* :func:`~fatiando.inversion.solvers.newton`: Newton's method
+* :func:`~fatiando.inversion.solvers.levmarq`: Levemberg-Marquardt algorithm
+* :func:`~fatiando.inversion.solvers.steepest`: Steepest Descent method
+
+**Heuristic methods**
+
+* :func:`~fatiando.inversion.solvers.acor`: ACO-R: Ant Colony Optimization for
+  Continuous Domains (Socha and Dorigo, 2008)
+
+
+**References**
+
+Socha, K., and M. Dorigo (2008), Ant colony optimization for continuous
+domains, European Journal of Operational Research, 185(3), 1155-1173,
+doi:10.1016/j.ejor.2006.06.046.
+
+
+----
+
 """
 import numpy
 import scipy.sparse
