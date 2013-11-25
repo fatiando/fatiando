@@ -98,6 +98,33 @@ class Objective(object):
         """
         raise NotImplementedError("Hessian matrix not implemented")
 
+    # Overload some operators. Adding and multiplying by a scalar transform the
+    # objective function into a multiobjetive function (weighted sum of
+    # objective functions)
+    ###########################################################################
+    def __add__(self, other):
+        if not isinstance(other, Objective):
+            raise TypeError('Can only add derivatives of the Objective class')
+        goal = MultiObjective()
+        if isinstance(other, MultiObjective):
+            goal.merge(other)
+        else:
+            goal.add_misfit(other)
+        if isinstance(self, MultiObjective):
+            goal.merge(self)
+        else:
+            goal.add_misfit(self)
+        return goal
+
+    def __mul__(self, other):
+        if not isinstance(other, int) and not isinstance(other, float):
+            raise TypeError('Can only multiply a Objective by a float or int')
+        return MultiObjective([(other, self)])
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+    ###########################################################################
+
     def _init_stats(self):
         "Initialize the *stats* attribute with default values"
         self.stats = {
@@ -482,3 +509,5 @@ class Objective(object):
                 archive_size=archive_size, maxit=maxit, diverse=diverse,
                 evap=evap, seed=seed)
         return solver
+
+
