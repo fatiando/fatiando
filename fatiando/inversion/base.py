@@ -511,7 +511,50 @@ class Objective(object):
         return solver
 
 class MultiObjective(Objective):
-    """
+    r"""
+    A multi-objective function.
+
+    It is a weighted sum of objective functions:
+
+    .. math::
+
+        \Gamma(\bar{p}) = \sum\limits_{k=1}^{N} \mu_k \phi_k(\bar{p})
+
+    :math:`\mu_k` are regularization parameters that control the trade-off
+    between each objective function.
+
+    MultiObjective have the same methods that Objective has and can be
+    optimized in the same way to produce an estimated parameter vector.
+
+    There are several ways of creating MultiObjective functions:
+
+    1. Pass a list of lists to the constructor like so::
+
+        multiobj = MultiObjective([[mu1, obj1], [mu2, obj2], ...])
+
+    2. Sum objective functions::
+
+        multiobj = obj1 + mu2*obj2 + mu3*obj3 + ...
+
+    3. Use the ``add_objective`` method::
+
+        multiobj = MultiObjective()
+        multiobj.add_objective(obj1, regul_param=mu1)
+        multiobj.add_objective(obj2, regul_param=mu2)
+        ...
+
+    You can access the different objective functions in a MultiObjective like
+    lists::
+
+       mu1, obj1 = multiobj[0]
+       mu5, obj5 = multiobj[4]
+
+    and like lists, you can iterate over them as well::
+
+        for mu, obj in multiobj:
+            print mu
+            obj.fit()
+
     """
 
     def __init__(self, objs=None):
@@ -523,6 +566,17 @@ class MultiObjective(Objective):
 
     def add_objective(self, obj, regul_param=1):
         """
+        Add an objective function to the multi-objective.
+
+        Parameters:
+
+        * obj : Objective
+            A derivative of the Objective class (like data-misfit,
+            regularization, etc.)
+        * regul_param : float
+            A positive scalar that controls the weight of this objective on the
+            multi-objective (like the regularization parameters).
+
         """
         nparams = obj.nparams
         if self.nparams is not None:
@@ -543,6 +597,15 @@ class MultiObjective(Objective):
 
     def merge(self, multiobj):
         """
+        Merge an multi-objective function to this one.
+
+        Will append it's objective functions to this one.
+
+        Parameters:
+
+        * multiobj : MultiObjective
+            The multi-objective
+
         """
         for mu, obj in multiobj:
             self.add_objective(obj, regul_param=mu)
@@ -558,7 +621,7 @@ class MultiObjective(Objective):
             self.add_objective(other)
         return self
 
-    # Allow iterating of the multi-objective, returning pairs [mu, obj]
+    # Allow iterating over the multi-objective, returning pairs [mu, obj]
     def __len__(self):
         return len(self.objs)
 
@@ -584,15 +647,78 @@ class MultiObjective(Objective):
         return description
 
     def value(self, p):
+        """
+        The value of the multi-objective function for a given parameter vector.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * value : float
+            The value of the objective function
+
+        """
         return sum(mu*obj.value(p) for mu, obj in self.objs)
 
     def gradient(self, p):
+        """
+        The gradient of the multi-objective function for a parameter vector
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector where the gradient is evaluated.
+
+        Returns:
+
+        * gradient : 1d-array
+            The gradient vector
+
+        """
         return sum(mu*obj.gradient(p) for mu, obj in self.objs)
 
     def hessian(self, p):
+        """
+        The Hessian matrix of the multi-objective function
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector where the Hessian is evaluated
+
+        Returns:
+
+        * hessian : 2d-array
+            The Hessian matrix
+
+        """
         return sum(mu*obj.hessian(p) for mu, obj in self.objs)
 
     def predicted(self, p):
+        """
+        The predicted data for all data-misfit functions in the multi-objective
+
+        Will compute the predicted data for each data-misfit at the given
+        parameter vector.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * pred : list or 1d-array
+            A list with 1d-arrays of predicted data for each data-misfit
+            function that makes up the multi-objective. They will be in the
+            order in which the data-misfits were added to the multi-objective.
+            If there is only one data-misfit, will return the 1d-array, not a
+            list.
+
+        """
         pred = []
         for mu, obj in self.objs:
             if callable(getattr(obj, 'predicted', None)):
@@ -600,3 +726,33 @@ class MultiObjective(Objective):
         if len(pred) == 1:
             pred = pred[0]
         return pred
+
+    def residuals(self, p):
+        """
+        The residuals vector for data-misfit functions in the multi-objective
+
+        Will compute the residual vector for each data-misfit at the given
+        parameter vector.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * res : list or 1d-array
+            A list with 1d-arrays of residual vectors for each data-misfit
+            function that makes up the multi-objective. They will be in the
+            order in which the data-misfits were added to the multi-objective.
+            If there is only one data-misfit, will return the 1d-array, not a
+            list.
+
+        """
+        res = []
+        for mu, obj in self.objs:
+            if callable(getattr(obj, 'residuals', None)):
+                res.append(obj.residuals(p))
+        if len(res) == 1:
+            res = res[0]
+        return res
