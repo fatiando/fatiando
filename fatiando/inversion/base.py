@@ -192,7 +192,7 @@ class Objective(object):
         p = linear(hessian, gradient, precondition=precondition)
         return p
 
-    def levmarq(self, initial, maxit=30, maxsteps=10, lamb=10, dlamb=2,
+    def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
                 tol=10**-5, precondition=True):
         """
         Solve using the Levemberg-Marquardt algorithm.
@@ -227,14 +227,14 @@ class Objective(object):
 
         """
         self._init_stats()
-        solver = levmarq(initial, self.hessian, self.gradient, self.valeu,
+        solver = levmarq(initial, self.hessian, self.gradient, self.value,
                 maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
-                tol=tol, precondition=preconditioni, stats=self.stats)
+                tol=tol, precondition=precondition, stats=self.stats)
         for p in solver:
             continue
         return p
 
-    def ilevmarq(self, initial, maxit=30, maxsteps=10, lamb=10, dlamb=2,
+    def ilevmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
                  tol=10**-5, precondition=True):
         """
         Solve using the Levemberg-Marquardt algorithm.
@@ -272,7 +272,7 @@ class Objective(object):
 
         """
         self._init_stats()
-        solver = levmarq(initial, self.hessian, self.gradient, self.valeu,
+        solver = levmarq(initial, self.hessian, self.gradient, self.value,
                 maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
                 tol=tol, precondition=precondition, stats=self.stats)
         return solver

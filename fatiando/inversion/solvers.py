@@ -24,6 +24,7 @@ doi:10.1016/j.ejor.2006.06.046.
 ----
 
 """
+from __future__ import division
 import numpy
 import scipy.sparse
 
