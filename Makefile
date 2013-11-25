@@ -1,12 +1,8 @@
 # Build, package and clean Fatiando
-PY=python
-PIP=pip
-NOSE=nosetests
+PY := python
+PIP := pip
+NOSE := nosetests
 
-# To upload to PyPI run:
-# python setup.py sdist --formats=zip,gztar upload
-
-.PHONY: help
 help:
 	@echo "Commands:"
 	@echo ""
@@ -20,46 +16,31 @@ help:
 	@echo "    clean         clean up"
 	@echo ""
 
-# BUILD EXTENSION MODULES
-.PHONY: build
 build:
 	$(PY) setup.py build_ext --inplace
 
-# BUILD THE DOCS
-.PHONY: docs
 docs: clean
 	cd doc; make html
 
-.PHONY: docs-pdf
 docs-pdf: clean
 	cd doc; make latexpdf
 
-.PHONY: view-docs
 view-docs:
 	firefox doc/_build/html/index.html &
 
-# RUN ALL TESTS
-.PHONY: test
 test:
 	$(NOSE) fatiando/ --with-doctest -v
 	$(NOSE) test/ -v
 
-# INSTALL THE DEPENDENCIES
-.PHONY: deps
-deps: requires.txt
-	$(PIP) install -r $<
+test-docs:
+	$(NOSE) fatiando/ --with-doctest -v
 
-# MAKE A SOURCE DISTRIBUTION
-.PHONY: package
 package: docs-pdf
 	$(PY) setup.py sdist --formats=zip,gztar
 
-# UPLOAD TO PYPI
-.PHONY: upload
+upload:
 	python setup.py register sdist --formats=zip,gztar upload
 
-# CLEAN THINGS UP
-.PHONY: clean
 clean:
 	find . -name "*.so" -exec rm -v {} \;
 	find "fatiando" -name "*.c" -exec rm -v {} \;
@@ -71,7 +52,5 @@ clean:
 	rm -rvf logo.png cookbook/logo.png
 	rm -rvf crust2.tar.gz cookbook/crust2.tar.gz
 
-.PHONY: clean-docs
 clean-docs:
-	# Clean the docs as well
 	cd doc; make clean
