@@ -233,7 +233,7 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
         if stop:
             break
 
-def steepest(initial, gradient, value, stepsize=0.1, maxsteps=30, maxit=1000,
+def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
              tol=10**-5, stats=None):
     r"""
     Minimize an objective function using the Steepest Descent method.
@@ -271,9 +271,6 @@ def steepest(initial, gradient, value, stepsize=0.1, maxsteps=30, maxit=1000,
 
     * initial : 1d-array
         The initial estimate for the gradient descent.
-    * hessian : function
-        A function that returns the Hessian matrix of the objective function
-        when given a parameter vector.
     * gradient : function
         A function that returns the gradient vector of the objective function
         when given a parameter vector.
@@ -284,16 +281,11 @@ def steepest(initial, gradient, value, stepsize=0.1, maxsteps=30, maxit=1000,
         The maximum number of iterations allowed.
     * maxsteps : int
         The maximum number of times to try to take a step before giving up.
-    * lamb : float
-        Initial amount of step regularization. The larger this is, the more the
-        algorithm will resemble Steepest Descent in the initial iterations.
-    * dlamb : float
-        Factor by which *lamb* is divided or multiplied when taking steps.
+    * stepsize : float
+        Initial amount of step step size.
     * tol : float
         The convergence criterion. The lower it is, the more steps are
         permitted.
-    * precondition : True or False
-        If True, will use Jacobi preconditioning.
     * stats : None or a dictionary
         If a dict, will fill the dictionary with information about the
         optimization procedure.
