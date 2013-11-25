@@ -47,7 +47,7 @@ def linear(hessian, gradient, precondition=True):
 
 def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
            precontition=True, stats=None):
-    """
+    r"""
     Minimize an objective function using Newton's method.
 
     Newton's method searches for the minimum of an objective function
@@ -122,7 +122,7 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
 
 def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
             dlamb=2, tol=10**-5, precondition=True, stats=None):
-    """
+    r"""
     Minimize an objective function using the Levemberg-Marquardt algorithm.
 
     Parameters:
@@ -279,6 +279,10 @@ def steepest(initial, gradient, value, stepsize=0.1, maxsteps=30, maxit=1000,
 
     * estimate : 1d-array
         The estimated parameter vector at the current iteration.
+
+    References:
+
+    Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
 
     """
     p = initial
