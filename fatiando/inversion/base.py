@@ -105,16 +105,16 @@ class Objective(object):
     def __add__(self, other):
         if not isinstance(other, Objective):
             raise TypeError('Can only add derivatives of the Objective class')
-        goal = MultiObjective()
+        multiobj = MultiObjective()
         if isinstance(other, MultiObjective):
-            goal.merge(other)
+            multiobj.merge(other)
         else:
-            goal.add_misfit(other)
+            multiobj.add_misfit(other)
         if isinstance(self, MultiObjective):
-            goal.merge(self)
+            multiobj.merge(self)
         else:
-            goal.add_misfit(self)
-        return goal
+            multiobj.add_misfit(self)
+        return multiobj
 
     def __mul__(self, other):
         if not isinstance(other, int) and not isinstance(other, float):
@@ -510,4 +510,93 @@ class Objective(object):
                 evap=evap, seed=seed)
         return solver
 
+class MultiObjective(Objective):
+    """
+    """
 
+    def __init__(self, objs=None):
+        super(MultiObjective, self).__init__(nparams=None, islinear=False)
+        self.objs = []
+        if objs is not None:
+            for mu, obj in objs:
+                self.add_objective(obj, regul_param=mu)
+
+    def add_objective(self, obj, regul_param=1):
+        """
+        """
+        nparams = obj.nparams
+        if self.nparams is not None:
+            if numpy.any([nparams != obj.nparams for _, obj in self.objs]):
+                raise ValueError(
+                    'Objective function must have %d parameters, not %d'
+                    % (self.nparams, nparams))
+        else:
+            self.nparams = nparams
+        self.objs.append([regul_param, obj])
+        if numpy.any([not obj.islinear for _, obj in self.objs]):
+            self.islinear = False
+            self.fit = self.levmarq
+        else:
+            self.islinear = True
+            self.fit = self.linear
+        return self
+
+    def merge(self, multiobj):
+        """
+        """
+        for mu, obj in multiobj:
+            self.add_objective(obj, regul_param=mu)
+        return self
+
+    # Can increment instead of add_objective or merge
+    def __iadd__(self, other):
+        if not isinstance(other, Objective):
+            raise TypeError('Can only add derivatives of the Objective class')
+        if isinstance(other, MultiObjective):
+            self.merge(other)
+        else:
+            self.add_objective(other)
+        return self
+
+    # Allow iterating of the multi-objective, returning pairs [mu, obj]
+    def __len__(self):
+        return len(self.objs)
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __getitem__(self, index):
+        return self.objs[index]
+
+    def next(self):
+        if self.index >= len(self.objs):
+            raise StopIteration
+        mu, obj = self.__getitem__(self.index)
+        self.index += 1
+        return mu, obj
+
+    def __str__(self):
+        description = '\n'.join(
+            ['Goal function composed of:'] +
+            ['  %g*%s' % (mu, str(obj.__name__))
+             for mu, obj in self.objs])
+        return description
+
+    def value(self, p):
+        return sum(mu*obj.value(p) for mu, obj in self.objs)
+
+    def gradient(self, p):
+        return sum(mu*obj.gradient(p) for mu, obj in self.objs)
+
+    def hessian(self, p):
+        return sum(mu*obj.hessian(p) for mu, obj in self.objs)
+
+    def predicted(self, p):
+        pred = []
+        for mu, obj in self.objs:
+            if callable(getattr(obj, 'predicted', None)):
+                pred.append(obj.predicted(p))
+        if len(pred) == 1:
+            pred = pred[0]
+        return pred
