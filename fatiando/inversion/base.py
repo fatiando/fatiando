@@ -9,9 +9,9 @@ from __future__ import division
 import hashlib
 
 import numpy
-import scipy.sparse
 
-from ..utils import safe_solve, safe_diagonal, safe_dot
+from .solvers import linear
+
 
 class Objective(object):
     """
@@ -117,10 +117,22 @@ class Objective(object):
         """
         Solve for the parameter vector assuming that the problem is linear.
 
+        See :func:`fatiando.inversion.solvers.linear` for more details.
+
         Parameters:
 
         * precondition : True or False
             If True, will use Jacobi preconditioning.
 
+        Returns:
+
+        * estimate : 1d-array
+            The estimated parameter vector
+
         """
-        pass
+        hessian = self.hessian(None)
+        gradient = self.gradient(None)
+        p = linear(hessian, gradient, precondition=precondition)
+        return p
+
+
