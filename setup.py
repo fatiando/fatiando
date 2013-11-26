@@ -26,7 +26,6 @@ AUTHOR_EMAIL = 'leouieda@gmail.com'
 LICENSE = "BSD License"
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
-#SCRIPTS = ['scripts/harvester']
 SCRIPTS = []
 CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
                "Intended Audience :: Science/Research",
