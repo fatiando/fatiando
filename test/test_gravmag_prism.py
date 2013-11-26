@@ -1,7 +1,7 @@
 import numpy as np
 
 from fatiando.mesher import Prism
-from fatiando.gravmag import _prism, _cprism, _neprism
+from fatiando.gravmag import _prism, _cprism
 from fatiando import utils
 
 model = None
@@ -97,81 +97,4 @@ def test_tf():
     py = _prism.tf(xp, yp, zp, model, inc, dec)
     cy = _cprism.tf(xp, yp, zp, model, inc, dec)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_potential_ne():
-    "gravmag.prism.potential python vs numexpr implementation"
-    py = _prism.potential(xp, yp, zp, model)
-    ne = _neprism.potential(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gx_ne():
-    "gravmag.prism.gx python vs numexpr implementation"
-    py = _prism.gx(xp, yp, zp, model)
-    ne = _neprism.gx(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gy_ne():
-    "gravmag.prism.gy python vs numexpr implementation"
-    py = _prism.gy(xp, yp, zp, model)
-    ne = _neprism.gy(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gz_ne():
-    "gravmag.prism.gz python vs numexpr implementation"
-    py = _prism.gz(xp, yp, zp, model)
-    ne = _neprism.gz(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gxx_ne():
-    "gravmag.prism.gxx python vs numexpr implementation"
-    py = _prism.gxx(xp, yp, zp, model)
-    ne = _neprism.gxx(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gxy_ne():
-    "gravmag.prism.gxy python vs numexpr implementation"
-    py = _prism.gxy(xp, yp, zp, model)
-    ne = _neprism.gxy(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gxz_ne():
-    "gravmag.prism.gxz python vs numexpr implementation"
-    py = _prism.gxz(xp, yp, zp, model)
-    ne = _neprism.gxz(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gyy_ne():
-    "gravmag.prism.gyy python vs numexpr implementation"
-    py = _prism.gyy(xp, yp, zp, model)
-    ne = _neprism.gyy(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gyz_ne():
-    "gravmag.prism.gyz python vs numexpr implementation"
-    py = _prism.gyz(xp, yp, zp, model)
-    ne = _neprism.gyz(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_gzz_ne():
-    "gravmag.prism.gzz python vs numexpr implementation"
-    py = _prism.gzz(xp, yp, zp, model)
-    ne = _neprism.gzz(xp, yp, zp, model)
-    diff = np.abs(py - ne)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-def test_tf_ne():
-    "gravmag.prism.tf python vs numexpr implementation"
-    py = _prism.tf(xp, yp, zp, model, inc, dec)
-    ne = _neprism.tf(xp, yp, zp, model, inc, dec)
-    diff = np.abs(py - ne)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
