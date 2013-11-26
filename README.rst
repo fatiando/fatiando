@@ -45,7 +45,7 @@ The source code of Fatiando is hosted on Github_.
 
 .. _Github: https://github.com/leouieda/fatiando
 
-.. image:: https://travis-ci.org/leouieda/fatiando.png
+.. image:: https://travis-ci.org/leouieda/fatiando.png?branch=master
     :target: https://travis-ci.org/leouieda/fatiando
     :alt: Travis CI build status
 
