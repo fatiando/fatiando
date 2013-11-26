@@ -4,18 +4,31 @@ Calculates the potential fields of a tesseroid.
 import numpy
 
 from fatiando.constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
-
 try:
-    from fatiando.gravmag import _ctesseroid as _kernels
-except ImportError:
-    pass
+    from fatiando.gravmag._tesseroid import *
+except:
+    def not_implemented(*args, **kwargs):
+        raise NotImplementedError(
+        "Couldn't load C coded extension module.")
+    _potential = not_implemented
+    _gx = not_implemented
+    _gy = not_implemented
+    _gz = not_implemented
+    _gxx = not_implemented
+    _gxy = not_implemented
+    _gxz = not_implemented
+    _gyy = not_implemented
+    _gyz = not_implemented
+    _gzz = not_implemented
+    _distance = not_implemented
+    _too_close = not_implemented
 
 def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
     """
     Calculate the gravitational potential due to a tesseroid model.
     """
     return _optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.potential, ratio, dens)
+        _potential, ratio, dens)
 
 def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -23,7 +36,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gx, ratio, dens)
+        _gx, ratio, dens)
 
 def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -31,7 +44,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     tesseroid model.
     """
     return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gy, ratio, dens)
+        _gy, ratio, dens)
 
 def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
@@ -41,7 +54,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
     return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gz, ratio, dens)
+        _gz, ratio, dens)
 
 def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
@@ -49,7 +62,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gxx, ratio, dens)
+        _gxx, ratio, dens)
 
 def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
@@ -57,7 +70,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gxy, ratio, dens)
+        _gxy, ratio, dens)
 
 def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
@@ -65,7 +78,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gxz, ratio, dens)
+        _gxz, ratio, dens)
 
 def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
@@ -73,7 +86,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gyy, ratio, dens)
+        _gyy, ratio, dens)
 
 def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
@@ -81,7 +94,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gyz, ratio, dens)
+        _gyz, ratio, dens)
 
 
 def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
@@ -90,7 +103,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     due to a tesseroid model.
     """
     result = SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
-        _kernels.gzz, ratio, dens)
+        _gzz, ratio, dens)
     return result
 
 def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
@@ -130,9 +143,8 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
             size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
                         MEAN_EARTH_RADIUS*d2r*(n - s),
                         top - bottom])
-            _kernels.distance(tess, rlons, sinlats, coslats, radii, points,
-                    distances)
-            need_divide, dont_divide = _kernels.too_close(points, distances,
+            _distance(tess, rlons, sinlats, coslats, radii, points, distances)
+            need_divide, dont_divide = _too_close(points, distances,
                     ratio*size)
             if len(need_divide):
                 if len(queue) >= 1000:

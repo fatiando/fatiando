@@ -11,7 +11,6 @@ import multiprocessing
 import math
 import numpy
 
-
 try:
     from fatiando.seismic import _ttime2d
 except ImportError:

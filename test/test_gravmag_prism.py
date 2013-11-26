@@ -1,7 +1,7 @@
 import numpy as np
 
 from fatiando.mesher import Prism
-from fatiando.gravmag import _prism, _cprism
+from fatiando.gravmag import _prism_numpy, prism
 from fatiando import utils
 
 model = None
@@ -24,77 +24,77 @@ def setup():
 
 def test_potential():
     "gravmag.prism.potential python vs cython implementation"
-    py = _prism.potential(xp, yp, zp, model)
-    cy = _cprism.potential(xp, yp, zp, model)
+    py = _prism_numpy.potential(xp, yp, zp, model)
+    cy = prism.potential(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gx():
     "gravmag.prism.gx python vs cython implementation"
-    py = _prism.gx(xp, yp, zp, model)
-    cy = _cprism.gx(xp, yp, zp, model)
+    py = _prism_numpy.gx(xp, yp, zp, model)
+    cy = prism.gx(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gy():
     "gravmag.prism.gy python vs cython implementation"
-    py = _prism.gy(xp, yp, zp, model)
-    cy = _cprism.gy(xp, yp, zp, model)
+    py = _prism_numpy.gy(xp, yp, zp, model)
+    cy = prism.gy(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gz():
     "gravmag.prism.gz python vs cython implementation"
-    py = _prism.gz(xp, yp, zp, model)
-    cy = _cprism.gz(xp, yp, zp, model)
+    py = _prism_numpy.gz(xp, yp, zp, model)
+    cy = prism.gz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gxx():
     "gravmag.prism.gxx python vs cython implementation"
-    py = _prism.gxx(xp, yp, zp, model)
-    cy = _cprism.gxx(xp, yp, zp, model)
+    py = _prism_numpy.gxx(xp, yp, zp, model)
+    cy = prism.gxx(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gxy():
     "gravmag.prism.gxy python vs cython implementation"
-    py = _prism.gxy(xp, yp, zp, model)
-    cy = _cprism.gxy(xp, yp, zp, model)
+    py = _prism_numpy.gxy(xp, yp, zp, model)
+    cy = prism.gxy(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gxz():
     "gravmag.prism.gxx python vs cython implementation"
-    py = _prism.gxz(xp, yp, zp, model)
-    cy = _cprism.gxz(xp, yp, zp, model)
+    py = _prism_numpy.gxz(xp, yp, zp, model)
+    cy = prism.gxz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gyy():
     "gravmag.prism.gyy python vs cython implementation"
-    py = _prism.gyy(xp, yp, zp, model)
-    cy = _cprism.gyy(xp, yp, zp, model)
+    py = _prism_numpy.gyy(xp, yp, zp, model)
+    cy = prism.gyy(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gyz():
     "gravmag.prism.gyz python vs cython implementation"
-    py = _prism.gyz(xp, yp, zp, model)
-    cy = _cprism.gyz(xp, yp, zp, model)
+    py = _prism_numpy.gyz(xp, yp, zp, model)
+    cy = prism.gyz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gzz():
     "gravmag.prism.gzz python vs cython implementation"
-    py = _prism.gzz(xp, yp, zp, model)
-    cy = _cprism.gzz(xp, yp, zp, model)
+    py = _prism_numpy.gzz(xp, yp, zp, model)
+    cy = prism.gzz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_tf():
     "gravmag.prism.tf python vs cython implementation"
-    py = _prism.tf(xp, yp, zp, model, inc, dec)
-    cy = _cprism.tf(xp, yp, zp, model, inc, dec)
+    py = _prism_numpy.tf(xp, yp, zp, model, inc, dec)
+    cy = prism.tf(xp, yp, zp, model, inc, dec)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
