@@ -16,6 +16,7 @@ help:
 	@echo "    clean         clean up"
 	@echo ""
 
+.PHONY: build
 build:
 	$(PY) setup.py build_ext --inplace
 
@@ -31,6 +32,7 @@ docs-pdf: clean
 view-docs:
 	firefox doc/_build/html/index.html &
 
+.PHONY: test
 test:
 	$(NOSE) fatiando/ --with-doctest -v
 	$(NOSE) test/ -v
