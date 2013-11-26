@@ -33,11 +33,10 @@ view-docs:
 	firefox doc/_build/html/index.html &
 
 .PHONY: test
-test:
-	$(NOSE) fatiando/ --with-doctest -v
+test: build test-docs
 	$(NOSE) test/ -v
 
-test-docs:
+test-docs: build
 	$(NOSE) fatiando/ --with-doctest -v
 
 package: docs-pdf
