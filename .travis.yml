@@ -5,10 +5,10 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get -qq install python-dev python-imaging python-numpy python-scipy python-matplotlib
   - pip install -q --use-mirrors nose sphinx
+  - cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html; cd ..
 install:
   - python setup.py build_ext --inplace
 script:
-  - export PYTHONPATH=.; cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html; cd ..
   - nosetests fatiando -v --with-doctest # Run the doctests
   - nosetests test -v # Run the unit tests
 notifications:
