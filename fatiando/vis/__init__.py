@@ -13,5 +13,3 @@ libraries.
 ----
 
 """
-from fatiando.vis import mpl, myv
-

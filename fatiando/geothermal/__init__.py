@@ -11,6 +11,3 @@ temperature perturbations in the surface.
 ----
 
 """
-
-from fatiando.geothermal import climsig
-
