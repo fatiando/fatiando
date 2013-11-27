@@ -117,7 +117,7 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
         The estimated parameter vector at the current iteration.
 
     """
-    p = initial.astype(numpy.float)
+    p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
     if stats is not None:
         stats['method'] = 'Newton'
@@ -186,7 +186,7 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
         The estimated parameter vector at the current iteration.
 
     """
-    p = initial
+    p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
     if stats is not None:
         stats['method'] = 'Levemberg-Marquardt'
@@ -301,7 +301,7 @@ def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
 
     """
-    p = initial
+    p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
     if stats is not None:
         stats['method'] = 'Steepest Descent'

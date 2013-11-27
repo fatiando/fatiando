@@ -39,7 +39,6 @@ class Homogeneous(L2Norm):
 
     Using synthetic data.
 
-        >>> import numpy
         >>> from fatiando.mesher import Square
         >>> from fatiando.seismic import ttime2d
         >>> # Generate synthetic travel-time residuals
@@ -58,7 +57,7 @@ class Homogeneous(L2Norm):
         >>> # Pass the data to the solver class
         >>> solver = Homogeneous(ttres, recs, vp, vs)
         >>> # Estimate the epicenter
-        >>> x, y = solver.fit(initial=numpy.array([1, 1]))
+        >>> x, y = solver.fit(initial=[1, 1])
         >>> print "(%.4f, %.4f)" % (x, y)
         (5.0000, 5.0000)
 

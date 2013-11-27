@@ -46,9 +46,9 @@ if len(initial) > 1:
     print "Don't be greedy! Pick only one point"
     sys.exit()
 # Fit using many different solvers
-levmarq = [e for e in  solver.ilevmarq(numpy.array(initial[0]))]
-steepest = [e for e in  solver.isteepest(numpy.array(initial[0]))]
-newton = [e for e in  solver.inewton(numpy.array(initial[0]))]
+levmarq = [e for e in  solver.ilevmarq(initial[0])]
+steepest = [e for e in  solver.isteepest(initial[0])]
+newton = [e for e in  solver.inewton(initial[0])]
 ACO_R = [e for e in  solver.iacor(area, maxit=100)]
 # Make a map of the objective function
 shape = (100, 100)

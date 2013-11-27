@@ -48,7 +48,7 @@ amplitude and age of the change. The available inversion solvers are:
     >>> temp = abrupt(amp, age, zp)
     >>> # Run the inversion for the amplitude and time
     >>> # Need an initial estimate because this is a non-linear problem
-    >>> initial = numpy.array([1, 1])
+    >>> initial = [1, 1]
     >>> data = SingleChange(temp, zp, mode='abrupt')
     >>> est_amp, est_age = data.fit(initial)
     >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)

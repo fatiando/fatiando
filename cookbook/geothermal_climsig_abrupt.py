@@ -17,7 +17,7 @@ temp, error = utils.contaminate(climsig.abrupt(amp, age, zp), 0.02,
 
 # Preparing for the inversion
 data = climsig.SingleChange(temp, zp, mode='abrupt')
-estimate = data.fit(numpy.array([1, 1]))
+estimate = data.fit(initial=[1, 1])
 est_amp, est_age = estimate
 
 print "Abrupt change in temperature"
