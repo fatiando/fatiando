@@ -136,6 +136,9 @@ class SingleChange(L2Norm):
 
     The parameters of the change are its amplitude and age.
 
+    See the docstring of :mod:`fatiando.geothermal.climsig` for more
+    information and examples.
+
     Parameters:
 
     * temp : array
