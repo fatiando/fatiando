@@ -135,7 +135,7 @@ try:
 except:
     def not_implemented(*args, **kwargs):
         raise NotImplementedError(
-        "Couldn't load C coded extension module for FD time steps")
+        "Couldn't load C coded extension module.")
     _apply_damping = not_implemented
     _step_elastic_sh = not_implemented
     _step_elastic_psv = not_implemented
