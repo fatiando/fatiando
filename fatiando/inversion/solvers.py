@@ -70,7 +70,7 @@ def linear(hessian, gradient, precondition=True):
     return p
 
 def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
-           precontition=True, stats=None):
+           precondition=True, stats=None):
     r"""
     Minimize an objective function using Newton's method.
 
