@@ -2,40 +2,11 @@
 Build extention modules, package and install Fatiando.
 Uses the numpy's extension of distutils to build the f2py extension modules
 """
-import subprocess
+import sys
 import os
-from os.path import join
 from distutils.core import setup
 from distutils.extension import Extension
-try:
-    from Cython.Distutils import build_ext
-    import numpy
-    ext_modules = [
-        Extension("fatiando.gravmag._cprism",
-                  [join('fatiando', 'gravmag', '_cprism.pyx')],
-                  libraries=['m'],
-                  extra_compile_args=['-O3'],
-                  include_dirs=[numpy.get_include()]),
-        Extension("fatiando.gravmag._ctesseroid",
-                  [join('fatiando', 'gravmag', '_ctesseroid.pyx')],
-                  libraries=['m'],
-                  extra_compile_args=['-O3'],
-                  include_dirs=[numpy.get_include()]),
-        Extension("fatiando.seismic._ttime2d",
-                  [join('fatiando', 'seismic', '_ttime2d.pyx')],
-                  libraries=['m'],
-                  extra_compile_args=['-O3'],
-                  include_dirs=[numpy.get_include()]),
-        Extension("fatiando.seismic._wavefd",
-                  [join('fatiando', 'seismic', '_wavefd.pyx')],
-                  libraries=['m'],
-                  extra_compile_args=['-O3'],
-                  include_dirs=[numpy.get_include()])]
-    CYTHON = True
-except ImportError:
-    print ("Couldn't find Cython to build C extension.\n" +
-        "Don't panic! Will use Python alternatives instead.")
-    CYTHON = False
+import numpy
 
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
@@ -69,49 +40,42 @@ CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
                "Development Status :: 3 - Alpha",
                "Natural Language :: English"]
 
-def setrevison():
-    # Check if the script is building/packaging or if this is a src dist
-    if os.path.exists('.hg'):
-        with open(join('fatiando','changeset.txt'), 'w') as versionfile:
-            proc = subprocess.Popen('hg tip', shell=True,
-                                    stdout=subprocess.PIPE)
-            csline, bline = [l.strip() for l in proc.stdout.readlines()[0:2]]
-            changeset = csline.split(':')[-1].strip()
-            branch = bline.split(':')[-1].strip()
-            if branch == 'tip':
-                branch = 'default'
-            versionfile.write("%s" % (changeset))
+# The runing setup.py with --cython, then set things up to generate the Cython
+# .c files. If not, then compile the pre-converted C files.
+USE_CYTHON = True if '--cython' in sys.argv else False
+ext = '.pyx' if USE_CYTHON else '.c'
+libs = []
+if os.name == 'posix':
+    libs.append('m')
+extensions = [
+        Extension('.'.join(e), [os.path.join(*e) + ext],
+            libraries=libs,
+            include_dirs=[numpy.get_include()])
+	for e in [
+		['fatiando', 'gravmag', '_prism'],
+        ['fatiando', 'gravmag', '_tesseroid'],
+		['fatiando', 'seismic', '_ttime2d'],
+		['fatiando', 'seismic', '_wavefd']
+		]
+	]
+if USE_CYTHON:
+    sys.argv.remove('--cython')
+    from Cython.Build import cythonize
+    extensions = cythonize(extensions)
 
 if __name__ == '__main__':
-    setrevison()
-    if CYTHON:
-        setup(name=NAME,
-              fullname=FULLNAME,
-              description=DESCRIPTION,
-              long_description=LONG_DESCRIPTION,
-              version=VERSION,
-              author=AUTHOR,
-              author_email=AUTHOR_EMAIL,
-              license=LICENSE,
-              url=URL,
-              platforms=PLATFORMS,
-              scripts=SCRIPTS,
-              packages=PACKAGES,
-              ext_modules=ext_modules,
-              cmdclass = {'build_ext': build_ext},
-              classifiers=CLASSIFIERS)
-    else:
-        setup(name=NAME,
-              fullname=FULLNAME,
-              description=DESCRIPTION,
-              long_description=LONG_DESCRIPTION,
-              version=VERSION,
-              author=AUTHOR,
-              author_email=AUTHOR_EMAIL,
-              license=LICENSE,
-              url=URL,
-              platforms=PLATFORMS,
-              scripts=SCRIPTS,
-              packages=PACKAGES,
-              classifiers=CLASSIFIERS)
+	setup(name=NAME,
+		  fullname=FULLNAME,
+		  description=DESCRIPTION,
+		  long_description=LONG_DESCRIPTION,
+		  version=VERSION,
+		  author=AUTHOR,
+		  author_email=AUTHOR_EMAIL,
+		  license=LICENSE,
+		  url=URL,
+		  platforms=PLATFORMS,
+		  scripts=SCRIPTS,
+		  packages=PACKAGES,
+		  ext_modules=extensions,
+		  classifiers=CLASSIFIERS)
 

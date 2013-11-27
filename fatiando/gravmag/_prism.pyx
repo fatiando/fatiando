@@ -1,5 +1,7 @@
+#cython: embedsignature=True
 """
-Cython implementation of the potential field effects of right rectangular prisms
+Cython implementation of the gravity and magnetic fields of right rectangular
+prisms.
 """
 import numpy
 
