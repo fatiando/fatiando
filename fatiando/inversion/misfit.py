@@ -16,6 +16,16 @@ from ..utils import safe_dot
 
 class L2Norm(Objective):
     """
+
+    Examples:
+
+        >>> import numpy
+        >>> solver = L2Norm(numpy.array([1, 2, 3]), 2)
+        >>> solver
+        L2Norm(data=array([1, 2, 3]), nparams=2, weights=None, islinear=False)
+        >>> solver.set_data(numpy.array([4, 5, 6]))
+        L2Norm(data=array([4, 5, 6]), nparams=2, weights=None, islinear=False)
+
     """
 
     def __init__(self, data, nparams, weights=None, islinear=False):
@@ -29,6 +39,11 @@ class L2Norm(Objective):
             self.set_weights(weights)
         else:
             self.weights = None
+
+    def __repr__(self):
+        return 'L2Norm(data=%s, nparams=%d, weights=%s, islinear=%s)' % (
+                repr(self.data), self.nparams, repr(self.weights),
+                str(self.islinear))
 
     def _get_predicted(self, p):
         raise NotImplementedError("Predicted data not implemented")
