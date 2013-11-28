@@ -22,9 +22,17 @@ class L2Norm(Objective):
         >>> import numpy
         >>> solver = L2Norm(numpy.array([1, 2, 3]), 2)
         >>> solver
-        L2Norm(data=array([1, 2, 3]), nparams=2, weights=None, islinear=False)
+        L2Norm(
+            data=array([1, 2, 3]),
+            nparams=2,
+            islinear=False,
+            weights=None)
         >>> solver.set_data(numpy.array([4, 5, 6]))
-        L2Norm(data=array([4, 5, 6]), nparams=2, weights=None, islinear=False)
+        L2Norm(
+            data=array([4, 5, 6]),
+            nparams=2,
+            islinear=False,
+            weights=None)
 
     """
 
@@ -41,9 +49,19 @@ class L2Norm(Objective):
             self.weights = None
 
     def __repr__(self):
-        return 'L2Norm(data=%s, nparams=%d, weights=%s, islinear=%s)' % (
-                repr(self.data), self.nparams, repr(self.weights),
-                str(self.islinear))
+        lw = 60
+        prec = 3
+        text = '\n'.join([
+            'L2Norm(',
+            '    data=%s,' % (numpy.array_repr(
+                self.data, max_line_width=lw, precision=prec)),
+            '    nparams=%d,'  % (self.nparams),
+            '    islinear=%s,' % (repr(self.islinear)),
+            '    weights=%s)' % (
+                repr(self.weights) if self.weights is None
+                else numpy.array_repr(
+                    self.weights, max_line_width=lw, precision=prec))])
+        return text
 
     def _get_predicted(self, p):
         raise NotImplementedError("Predicted data not implemented")
