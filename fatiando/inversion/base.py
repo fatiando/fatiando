@@ -109,11 +109,11 @@ class Objective(object):
         if isinstance(other, MultiObjective):
             multiobj.merge(other)
         else:
-            multiobj.add_misfit(other)
+            multiobj.add_objective(other)
         if isinstance(self, MultiObjective):
             multiobj.merge(self)
         else:
-            multiobj.add_misfit(self)
+            multiobj.add_objective(self)
         return multiobj
 
     def __mul__(self, other):
@@ -528,32 +528,40 @@ class MultiObjective(Objective):
 
     There are several ways of creating MultiObjective functions:
 
-    1. Pass a list of lists to the constructor like so::
+    1. Pass a list of lists to the constructor like so:
 
-        multiobj = MultiObjective([[mu1, obj1], [mu2, obj2], ...])
+        >>> mu1, obj1 = 1, Objective(nparams=3)
+        >>> mu2, obj2 = 0.01, Objective(nparams=3)
+        >>> multiobj = MultiObjective([[mu1, obj1], [mu2, obj2]])
 
     2. Sum objective functions::
 
-        multiobj = obj1 + mu2*obj2 + mu3*obj3 + ...
+        >>> multiobj = mu1*obj1 + mu2*obj2
+        >>> # Since mu1 == 1, the following is the equivalent
+        >>> multiobj = obj1 + mu2*obj2
 
     3. Use the ``add_objective`` method::
 
-        multiobj = MultiObjective()
-        multiobj.add_objective(obj1, regul_param=mu1)
-        multiobj.add_objective(obj2, regul_param=mu2)
-        ...
+        >>> multiobj = MultiObjective()
+        >>> multiobj.add_objective(obj1, regul_param=mu1)
+        >>> multiobj.add_objective(obj2, regul_param=mu2)
 
     You can access the different objective functions in a MultiObjective like
     lists::
 
-       mu1, obj1 = multiobj[0]
-       mu5, obj5 = multiobj[4]
+       >>> mu1, obj1 = multiobj[0]
+       >>> print mu1
+       1
+       >>> mu2, obj2 = multiobj[1]
+       >>> print mu2
+       0.01
 
     and like lists, you can iterate over them as well::
 
-        for mu, obj in multiobj:
-            print mu
-            obj.fit()
+        >>> for mu, obj in multiobj:
+        ...     print mu, obj.nparams
+        1 3
+        0.01 3
 
     """
 
