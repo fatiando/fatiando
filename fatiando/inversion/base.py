@@ -47,6 +47,10 @@ class Objective(object):
             self.islinear = False
         self.nparams = nparams
 
+    def __repr__(self):
+        return 'Objective(nparams=%d, islinear=%s)' % (self.nparams,
+                str(self.islinear))
+
     def value(self, p):
         """
         The value of the objective function for a given parameter vector.
@@ -106,14 +110,14 @@ class Objective(object):
         if not isinstance(other, Objective):
             raise TypeError('Can only add derivatives of the Objective class')
         multiobj = MultiObjective()
-        if isinstance(other, MultiObjective):
-            multiobj.merge(other)
-        else:
-            multiobj.add_objective(other)
         if isinstance(self, MultiObjective):
             multiobj.merge(self)
         else:
             multiobj.add_objective(self)
+        if isinstance(other, MultiObjective):
+            multiobj.merge(other)
+        else:
+            multiobj.add_objective(other)
         return multiobj
 
     def __mul__(self, other):
@@ -526,42 +530,76 @@ class MultiObjective(Objective):
     MultiObjective have the same methods that Objective has and can be
     optimized in the same way to produce an estimated parameter vector.
 
-    There are several ways of creating MultiObjective functions:
+    There are several ways of creating MultiObjective from
+    :class:`~fatiando.inversion.base.Objective` instances and its derivatives
+    (like :class:`~fatiando.inversion.misfit.L2Norm` and
+    :class:`~fatiando.inversion.regularization.Damping`):
+
+        >>> obj1 = Objective(nparams=3)
+        >>> obj1
+        Objective(nparams=3, islinear=False)
+        >>> obj2 = Objective(nparams=3, islinear=True)
+        >>> obj2
+        Objective(nparams=3, islinear=True)
 
     1. Pass a list of lists to the constructor like so:
 
-        >>> mu1, obj1 = 1, Objective(nparams=3)
-        >>> mu2, obj2 = 0.01, Objective(nparams=3)
+        >>> mu1, mu2 = 1, 0.01
         >>> multiobj = MultiObjective([[mu1, obj1], [mu2, obj2]])
+        >>> multiobj
+        MultiObjective(objs=[
+            [1, Objective(nparams=3, islinear=False)],
+            [0.01, Objective(nparams=3, islinear=True)],
+        ])
 
     2. Sum objective functions::
 
         >>> multiobj = mu1*obj1 + mu2*obj2
+        >>> multiobj
+        MultiObjective(objs=[
+            [1, Objective(nparams=3, islinear=False)],
+            [0.01, Objective(nparams=3, islinear=True)],
+        ])
         >>> # Since mu1 == 1, the following is the equivalent
         >>> multiobj = obj1 + mu2*obj2
+        >>> multiobj
+        MultiObjective(objs=[
+            [1, Objective(nparams=3, islinear=False)],
+            [0.01, Objective(nparams=3, islinear=True)],
+        ])
 
     3. Use the ``add_objective`` method::
 
         >>> multiobj = MultiObjective()
-        >>> multiobj.add_objective(obj1, regul_param=mu1)
+        >>> multiobj
+        MultiObjective(objs=[
+        ])
+        >>> multiobj.add_objective(obj1)
+        MultiObjective(objs=[
+            [1, Objective(nparams=3, islinear=False)],
+        ])
         >>> multiobj.add_objective(obj2, regul_param=mu2)
+        MultiObjective(objs=[
+            [1, Objective(nparams=3, islinear=False)],
+            [0.01, Objective(nparams=3, islinear=True)],
+        ])
 
     You can access the different objective functions in a MultiObjective like
     lists::
 
-       >>> mu1, obj1 = multiobj[0]
-       >>> print mu1
-       1
-       >>> mu2, obj2 = multiobj[1]
-       >>> print mu2
-       0.01
+        >>> mu1, obj1 = multiobj[0]
+        >>> print mu1, obj1
+        1 Objective(nparams=3, islinear=False)
+        >>> mu2, obj2 = multiobj[1]
+        >>> print mu2, obj2
+        0.01 Objective(nparams=3, islinear=True)
 
     and like lists, you can iterate over them as well::
 
         >>> for mu, obj in multiobj:
-        ...     print mu, obj.nparams
-        1 3
-        0.01 3
+        ...     print mu, obj
+        1 Objective(nparams=3, islinear=False)
+        0.01 Objective(nparams=3, islinear=True)
 
     """
 
@@ -571,6 +609,12 @@ class MultiObjective(Objective):
         if objs is not None:
             for mu, obj in objs:
                 self.add_objective(obj, regul_param=mu)
+
+    def __repr__(self):
+        text = '\n'.join(['MultiObjective(objs=['] +
+            ['    [%g, %s],' % (mu, repr(obj)) for mu, obj in self.objs] +
+            ['])'])
+        return text
 
     def add_objective(self, obj, regul_param=1):
         """
@@ -588,19 +632,19 @@ class MultiObjective(Objective):
         """
         nparams = obj.nparams
         if self.nparams is not None:
-            if numpy.any([nparams != obj.nparams for _, obj in self.objs]):
+            if numpy.any([nparams != o.nparams for _, o in self.objs]):
                 raise ValueError(
                     'Objective function must have %d parameters, not %d'
                     % (self.nparams, nparams))
         else:
             self.nparams = nparams
         self.objs.append([regul_param, obj])
-        if numpy.any([not obj.islinear for _, obj in self.objs]):
-            self.islinear = False
-            self.fit = self.levmarq
-        else:
+        if numpy.all([o.islinear for _, o in self.objs]):
             self.islinear = True
             self.fit = self.linear
+        else:
+            self.islinear = False
+            self.fit = self.levmarq
         return self
 
     def merge(self, multiobj):
@@ -646,13 +690,6 @@ class MultiObjective(Objective):
         mu, obj = self.__getitem__(self.index)
         self.index += 1
         return mu, obj
-
-    def __str__(self):
-        description = '\n'.join(
-            ['Goal function composed of:'] +
-            ['  %g*%s' % (mu, str(obj.__name__))
-             for mu, obj in self.objs])
-        return description
 
     def value(self, p):
         """
