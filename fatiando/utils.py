@@ -9,6 +9,7 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.safe_solve`
 * :func:`~fatiando.utils.safe_dot`
 * :func:`~fatiando.utils.safe_diagonal`
+* :func:`~fatiando.utils.safe_inverse`
 
 **Point scatter generation**
 
@@ -57,6 +58,30 @@ import scipy.sparse
 
 import fatiando.constants
 
+
+def safe_inverse(matrix):
+    """
+    Calculate the inverse of a matrix using an apropriate algorithm.
+
+    Uses the standard :func:`numpy.linalg.inv` if *matrix* is dense.
+    If it is sparse (from :mod:`scipy.sparse`) then will use
+    :func:`scipy.sparse.linalg.inv`.
+
+    Parameters:
+
+    * matrix : 2d-array
+        The matrix
+
+    Returns:
+
+    * inverse : 2d-array
+        The inverse of *matrix*
+
+    """
+    if scipy.sparse.issparse(matrix):
+        return scipy.sparse.linalg.inv(matrix)
+    else:
+        return numpy.linalg.inv(matrix)
 
 def safe_solve(matrix, vector):
     """
