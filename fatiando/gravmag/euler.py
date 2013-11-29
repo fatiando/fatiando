@@ -37,6 +37,12 @@ class Classic(L2Norm):
         can calculate the derivatives of non-gridded data (using an Equivalent
         Layer, for example).
 
+    .. warning::
+
+        Units of the input data (x, y, z, field, derivatives) must be in SI
+        units! Otherwise, the results will be in strange units. Use functions
+        in :mod:`fatiando.utils` to convert between units.
+
     Parameters:
 
     * x, y, z : 1d-arrays
