@@ -22,6 +22,14 @@ class Objective(object):
     defaults to a linear solver for linear problems and the Levemberg-Marquardt
     algorithm for non-linear problems.
 
+    Solvers:
+
+    * :mesh:`~fatiando.inversion.base.Objective.linear`
+    * :mesh:`~fatiando.inversion.base.Objective.levmarq`
+    * :mesh:`~fatiando.inversion.base.Objective.newton`
+    * :mesh:`~fatiando.inversion.base.Objective.steepest`
+    * :mesh:`~fatiando.inversion.base.Objective.acor`
+
     Objective functions also know how to calculate their value, gradient and/or
     Hessian matrix for a given parameter vector *p*. These functions are
     problem specific and need to be implemented when subclassing *Objective*.
@@ -515,7 +523,52 @@ class Objective(object):
         return solver
 
 class Misfit(Objective):
-    """
+    r"""
+    An l2-norm data-misfit function.
+
+    This is a kind of objective function that measures the misfit between
+    observed data :math:`\bar{d}^o` and data predicted by a set of model
+    parameters :math:`\bar{d} = \bar{f}(\bar{p})`.
+
+    The l2-norm data-misfit is defined as:
+
+    .. math::
+
+        \phi(\bar{p}) = \dfrac{\bar{r}^T\bar{r}}{N}
+
+    where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector and
+    :math:`N` is the number of data.
+
+    This class inherits the solvers from
+    :class:`~fatiando.inversion.base.Objective` that estimate a parameter
+    vector :math:`\bar{p}` that minimizes it.
+    See :class:`~fatiando.inversion.base.Objective` for more details.
+
+    When subclassing this class, you must implement methods two methods:
+
+    * ``_get_predicted(self, p)``: calculates the predicted data
+      :math:`\bar{d}` for a given parameter vector ``p``
+    * ``_get_jacobian(self, p)``: calculates the Jacobian matrix of
+      :math:`\bar{f}(\bar{p})` evaluated at ``p``
+
+    If :math:`\bar{f}` is linear, then the Jacobian will be cached in memory so
+    that it is only calculated once when using the class multiple times. So
+    solving the same problem with different methods or using an iterative
+    method doesn't have the penalty of recalculating the Jacobian.
+
+
+    Parameters:
+
+    * data : 1d-array
+        The observed data vector :math:`\bar{d}^o`
+    * nparams : int
+        The number of parameters in parameter vector :math:`\bar{p}`
+    * weights : 1d-array
+        Weights to be applied to the each element in *data* when computing the
+        l2-norm. Effectively the diagonal of a matrix :math:`\bar{\bar{W}}`
+        such that :math:`\phi = \bar{r}^T\bar{\bar{W}}\bar{r}`
+    * islinear : True or False
+        Whether :math:`\bar{f}` is linear or not.
 
     Examples:
 
@@ -571,12 +624,28 @@ class Misfit(Objective):
 
     def set_data(self, data):
         """
+        Set the observed data vector.
+
+        Parameters:
+
+        * data : 1d-array
+            The observed data vector.
+
         """
         self.data = data
         return self
 
     def set_weights(self, weights):
         """
+        Set the data weights array.
+
+        See :class:`~fatiando.inversion.base.Misfit` for more information.
+
+        Parameters:
+
+        * weights : 1d-array
+            A vector with the data weights.
+
         """
         self.weights = scipy.sparse.diags(weights, 0)
         # Weights change the Hessian
@@ -585,11 +654,35 @@ class Misfit(Objective):
 
     def residuals(self, p):
         """
+        Calculate the residuals vector (observed - predicted data).
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector used to calculate the predicted data.
+
+        Returns:
+
+        * residuals : 1d-array
+            The residual vector
+
         """
         return self.data - self.predicted(p)
 
     def predicted(self, p):
         """
+        Calculate the predicted data for a given parameter vector.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector used to calculate the predicted data.
+
+        Returns:
+
+        * predicted : 1d-array
+            The predicted data
+
         """
         if p is None:
             pred = 0
@@ -603,6 +696,22 @@ class Misfit(Objective):
 
     def jacobian(self, p):
         """
+        Calculate the Jacobian matrix evaluated at a given parameter vector.
+
+        The Jacobian matrix is cached in memory, so passing the same
+        parameter vector again will not trigger a re-calculation. However, only
+        one matrix is cached at a time.
+
+        Parameters:
+
+        * p : 1d-array or None
+            The parameter vector. If the problem is linear, pass ``None``
+
+        Returns:
+
+        * jacobian : 2d-array
+            The Jacobian matrix
+
         """
         if self.islinear:
             hash = ''
@@ -615,7 +724,29 @@ class Misfit(Objective):
         return self._cache['jacobian']['array']
 
     def value(self, p):
-        """
+        r"""
+        Calculate the value of the misfit for a given parameter vector.
+
+        The value is given by:
+
+        .. math::
+
+            \phi(\bar{p}) = \dfrac{\bar{r}^T\bar{\bar{W}}\bar{r}}{N}
+
+
+        where :math:`\bar{r}` is the residual vector and :math:`bar{\bar{W}}`
+        are optional data weights.
+
+        Parameters:
+
+        * p : 1d-array or None
+            The parameter vector. If the problem is linear, pass ``None``
+
+        Returns:
+
+        * value : float
+            The value of the misfit function.
+
         """
         if self.weights is None:
             return numpy.linalg.norm(
@@ -627,7 +758,30 @@ class Misfit(Objective):
                         )/self.ndata
 
     def hessian(self, p):
-        """
+        r"""
+        The Hessian of the misfit function with respect to the parameters
+
+        Calculated using the Gauss approximation:
+
+        .. math::
+
+            \bar{\bar{H}} \approx 2\bar{\bar{J}}^T\bar{\bar{J}}
+
+        where :math:`\bar{\bar{J}}` is the Jacobian matrix.
+
+        For linear problems, the Hessian matrix is cached in memory, so calling
+        this method again will not trigger a re-calculation.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector where the Hessian is evaluated
+
+        Returns:
+
+        * hessian : 2d-array
+            The Hessian matrix
+
         """
         if self.islinear and self._cache['hessian']['array'] is not None:
             hessian = self._cache['hessian']['array']
@@ -643,7 +797,26 @@ class Misfit(Objective):
         return hessian
 
     def gradient(self, p):
-        """
+        r"""
+        The gradient vector of the misfit function.
+
+        .. math::
+
+            \bar{g} = -2\bar{\bar{J}}^T\bar{r}
+
+        where :math:`\bar{\bar{J}}` is the Jacobian matrix and :math:`\bar{r}`
+        is the residual vector.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector where the Hessian is evaluated
+
+        Returns:
+
+        * gradient : 1d-array
+            The gradient vector.
+
         """
         jacobian = self.jacobian(p)
         if self.weights is None:
