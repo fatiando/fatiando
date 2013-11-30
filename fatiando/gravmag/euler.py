@@ -19,11 +19,11 @@ from __future__ import division
 import numpy
 
 from .. import gridder
-from ..inversion.misfit import L2Norm
+from ..inversion.base import Misfit
 from ..utils import safe_inverse, safe_dot, safe_diagonal
 
 
-class Classic(L2Norm):
+class Classic(Misfit):
     """
     Classic 3D Euler deconvolution of potential field data.
 

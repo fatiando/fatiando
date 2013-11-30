@@ -16,13 +16,13 @@ More complex and realistic parametrizations are:
 from __future__ import division
 import numpy
 
-from ..inversion.misfit import L2Norm
+from ..inversion.base import Misfit
 from . import talwani
 from ..mesher import Polygon
 from .. import utils
 
 
-class Triangular(L2Norm):
+class Triangular(Misfit):
     """
     Estimate the relief of a triangular basin.
 
@@ -139,7 +139,7 @@ class Triangular(L2Norm):
         left, right = self.verts
         return Polygon([left, right, p], props=self.props)
 
-class Trapezoidal(L2Norm):
+class Trapezoidal(Misfit):
     """
     Estimate the relief of a trapezoidal basin.
 

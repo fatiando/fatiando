@@ -17,10 +17,10 @@ distribution.
 from __future__ import division
 import numpy
 
-from ..inversion.misfit import L2Norm
+from ..inversion.base import Misfit
 
 
-class Homogeneous(L2Norm):
+class Homogeneous(Misfit):
     r"""
     Estimate the epicenter assuming a homogeneous Earth.
 

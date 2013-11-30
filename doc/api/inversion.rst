@@ -9,7 +9,6 @@ Inverse problems framework (``fatiando.inversion``)
 
 .. toctree::
 
-    inversion.misfit.rst
+    inversion.base.rst
     inversion.solvers.rst
     inversion.regularization.rst
-    inversion.base.rst

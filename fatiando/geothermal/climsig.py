@@ -48,7 +48,7 @@ from __future__ import division
 import numpy
 import scipy.special
 
-from ..inversion.misfit import L2Norm
+from ..inversion.base import Misfit
 from ..constants import THERMAL_DIFFUSIVITY_YEAR
 
 
@@ -109,7 +109,7 @@ def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
     return amp*(1. - scipy.special.erf(zp/numpy.sqrt(4.*diffus*age)))
 
-class SingleChange(L2Norm):
+class SingleChange(Misfit):
     r"""
     Invert the well temperature data for a single change in temperature.
 

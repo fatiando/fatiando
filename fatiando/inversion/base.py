@@ -5,12 +5,12 @@ The base classes for inverse problem solving.
 
 """
 from __future__ import division
-
 import hashlib
-
 import numpy
+import scipy.sparse
 
 from .solvers import linear, levmarq, steepest, newton, acor
+from ..utils import safe_dot
 
 
 class Objective(object):
@@ -514,6 +514,150 @@ class Objective(object):
                 evap=evap, seed=seed)
         return solver
 
+class Misfit(Objective):
+    """
+
+    Examples:
+
+        >>> import numpy
+        >>> solver = Misfit(numpy.array([1, 2, 3]), 2)
+        >>> solver
+        Misfit(
+            data=array([1, 2, 3]),
+            nparams=2,
+            islinear=False,
+            weights=None)
+        >>> solver.set_data(numpy.array([4, 5, 6]))
+        Misfit(
+            data=array([4, 5, 6]),
+            nparams=2,
+            islinear=False,
+            weights=None)
+
+    """
+
+    def __init__(self, data, nparams, weights=None, islinear=False):
+        super(Misfit, self).__init__(nparams, islinear=islinear)
+        self.data = data
+        self.ndata = len(data)
+        self._cache['predicted'] = {'hash':'', 'array':None}
+        self._cache['jacobian'] = {'hash':'', 'array':None}
+        self._cache['hessian'] = {'hash':'', 'array':None}
+        if weights is not None:
+            self.set_weights(weights)
+        else:
+            self.weights = None
+
+    def __repr__(self):
+        lw = 60
+        prec = 3
+        text = '\n'.join([
+            'Misfit(',
+            '    data=%s,' % (numpy.array_repr(
+                self.data, max_line_width=lw, precision=prec)),
+            '    nparams=%d,'  % (self.nparams),
+            '    islinear=%s,' % (repr(self.islinear)),
+            '    weights=%s)' % (
+                repr(self.weights) if self.weights is None
+                else numpy.array_repr(
+                    self.weights, max_line_width=lw, precision=prec))])
+        return text
+
+    def _get_predicted(self, p):
+        raise NotImplementedError("Predicted data not implemented")
+
+    def _get_jacobian(self, p):
+        raise NotImplementedError("Jacobian matrix not implemented")
+
+    def set_data(self, data):
+        """
+        """
+        self.data = data
+        return self
+
+    def set_weights(self, weights):
+        """
+        """
+        self.weights = scipy.sparse.diags(weights, 0)
+        # Weights change the Hessian
+        self._cache['hessian'] = {'hash':'', 'array':None}
+        return self
+
+    def residuals(self, p):
+        """
+        """
+        return self.data - self.predicted(p)
+
+    def predicted(self, p):
+        """
+        """
+        if p is None:
+            pred = 0
+        else:
+            hash = self.hasher(p)
+            if hash != self._cache['predicted']['hash']:
+                self._cache['predicted']['array'] = self._get_predicted(p)
+                self._cache['predicted']['hash'] = hash
+            pred = self._cache['predicted']['array']
+        return pred
+
+    def jacobian(self, p):
+        """
+        """
+        if self.islinear:
+            hash = ''
+        else:
+            hash = self.hasher(p)
+        if (hash != self._cache['jacobian']['hash'] or
+                self._cache['jacobian']['array'] is None):
+            self._cache['jacobian']['array'] = self._get_jacobian(p)
+            self._cache['jacobian']['hash'] = hash
+        return self._cache['jacobian']['array']
+
+    def value(self, p):
+        """
+        """
+        if self.weights is None:
+            return numpy.linalg.norm(
+                self.data - self.predicted(p)
+                )**2/self.ndata
+        else:
+            return numpy.sum(self.weights*(
+                        (self.data - self.predicted(p))**2)
+                        )/self.ndata
+
+    def hessian(self, p):
+        """
+        """
+        if self.islinear and self._cache['hessian']['array'] is not None:
+            hessian = self._cache['hessian']['array']
+        else:
+            jacobian = self.jacobian(p)
+            if self.weights is None:
+                hessian = (2/self.ndata)*safe_dot(jacobian.T, jacobian)
+            else:
+                hessian = (2/self.ndata)*safe_dot(
+                    jacobian.T, self.weights*jacobian)
+            if self.islinear:
+                self._cache['hessian']['array'] = hessian
+        return hessian
+
+    def gradient(self, p):
+        """
+        """
+        jacobian = self.jacobian(p)
+        if self.weights is None:
+            grad = (-2/self.ndata)*safe_dot(
+                jacobian.T, self.data - self.predicted(p))
+        else:
+            grad = (-2/self.ndata)*safe_dot(
+                jacobian.T, self.weights*(self.data - self.predicted(p)))
+        # Check if the gradient isn't a one column matrix
+        if len(grad.shape) > 1:
+            # Need to convert it to a 1d array so that hell won't break loose
+            grad = numpy.array(grad).ravel()
+        return grad
+
 class MultiObjective(Objective):
     r"""
     A multi-objective function.
@@ -532,12 +676,17 @@ class MultiObjective(Objective):
 
     There are several ways of creating MultiObjective from
     :class:`~fatiando.inversion.base.Objective` instances and its derivatives
-    (like :class:`~fatiando.inversion.misfit.L2Norm` and
+    (like :class:`~fatiando.inversion.base.Misfit` and
     :class:`~fatiando.inversion.regularization.Damping`):
 
-        >>> obj1 = Objective(nparams=3)
+        >>> import numpy
+        >>> obj1 = Misfit(data=numpy.array([1, 2, 3, 4]), nparams=3)
         >>> obj1
-        Objective(nparams=3, islinear=False)
+        Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)
         >>> obj2 = Objective(nparams=3, islinear=True)
         >>> obj2
         Objective(nparams=3, islinear=True)
@@ -548,7 +697,11 @@ class MultiObjective(Objective):
         >>> multiobj = MultiObjective([[mu1, obj1], [mu2, obj2]])
         >>> multiobj
         MultiObjective(objs=[
-            [1, Objective(nparams=3, islinear=False)],
+            [1, Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)],
             [0.01, Objective(nparams=3, islinear=True)],
         ])
 
@@ -557,14 +710,22 @@ class MultiObjective(Objective):
         >>> multiobj = mu1*obj1 + mu2*obj2
         >>> multiobj
         MultiObjective(objs=[
-            [1, Objective(nparams=3, islinear=False)],
+            [1, Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)],
             [0.01, Objective(nparams=3, islinear=True)],
         ])
         >>> # Since mu1 == 1, the following is the equivalent
         >>> multiobj = obj1 + mu2*obj2
         >>> multiobj
         MultiObjective(objs=[
-            [1, Objective(nparams=3, islinear=False)],
+            [1, Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)],
             [0.01, Objective(nparams=3, islinear=True)],
         ])
 
@@ -576,11 +737,19 @@ class MultiObjective(Objective):
         ])
         >>> multiobj.add_objective(obj1)
         MultiObjective(objs=[
-            [1, Objective(nparams=3, islinear=False)],
+            [1, Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)],
         ])
         >>> multiobj.add_objective(obj2, regul_param=mu2)
         MultiObjective(objs=[
-            [1, Objective(nparams=3, islinear=False)],
+            [1, Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)],
             [0.01, Objective(nparams=3, islinear=True)],
         ])
 
@@ -589,7 +758,11 @@ class MultiObjective(Objective):
 
         >>> mu1, obj1 = multiobj[0]
         >>> print mu1, obj1
-        1 Objective(nparams=3, islinear=False)
+        1 Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)
         >>> mu2, obj2 = multiobj[1]
         >>> print mu2, obj2
         0.01 Objective(nparams=3, islinear=True)
@@ -598,13 +771,25 @@ class MultiObjective(Objective):
 
         >>> for mu, obj in multiobj:
         ...     print mu, obj
-        1 Objective(nparams=3, islinear=False)
+        1 Misfit(
+            data=array([1, 2, 3, 4]),
+            nparams=3,
+            islinear=False,
+            weights=None)
         0.01 Objective(nparams=3, islinear=True)
+
+    You can check which of the objective functions has data associated with it
+    (i.e., is a data-misfit function)::
+
+        >>> multiobj.havedata
+        [0]
+
 
     """
 
     def __init__(self, objs=None):
         super(MultiObjective, self).__init__(nparams=None, islinear=False)
+        self.havedata = []
         self.objs = []
         if objs is not None:
             for mu, obj in objs:
@@ -645,6 +830,8 @@ class MultiObjective(Objective):
         else:
             self.islinear = False
             self.fit = self.levmarq
+        if hasattr(obj, 'data'):
+            self.havedata.append(len(self.objs) - 1)
         return self
 
     def merge(self, multiobj):
