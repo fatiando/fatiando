@@ -85,6 +85,18 @@ class Classic(Misfit):
 
     def covariance(self, p):
         """
+        Estimate the covariance matrix of the estimated parameters.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * cov : 2d-array
+            The estimated covariance matrix
+
         """
         variance = numpy.linalg.norm(self.residuals(p))**2/(self.ndata - 4)
         covar = variance*safe_inverse(self.hessian(p))
