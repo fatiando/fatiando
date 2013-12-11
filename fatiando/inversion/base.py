@@ -17,14 +17,18 @@ class Objective(object):
     """
     An objective function for an inverse problem.
 
-    Objective functions have methods to find the parameter vector *p* that
-    minimizes them:
+    Objective functions have a :methd:`~fatiando.inversion.base.Objective.fit``
+    method that finds the parameter vector *p* that minimizes them. You can
+    specify a range of optimization methods through the ``method`` argument.
+    Alternatively, you can call the optimization methods directly:
 
     * :mesh:`~fatiando.inversion.base.Objective.linear`
     * :mesh:`~fatiando.inversion.base.Objective.levmarq`
     * :mesh:`~fatiando.inversion.base.Objective.newton`
     * :mesh:`~fatiando.inversion.base.Objective.steepest`
     * :mesh:`~fatiando.inversion.base.Objective.acor`
+
+    Keep in mind that using ``fit`` is the **preferred way**.
 
     Objective functions also know how to calculate their value, gradient and/or
     Hessian matrix for a given parameter vector *p*. These functions are
