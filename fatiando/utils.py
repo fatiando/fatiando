@@ -597,16 +597,16 @@ def year2sec(years):
     return 31557600.0*float(years)
 
 def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
-    """
+    r"""
     Add pseudorandom gaussian noise to an array.
 
-    Noise added is normally distributed.
+    Noise added is normally distributed with zero mean.
 
     Parameters:
 
-    * data : list or array
+    * data : array or list of arrays
         Data to contaminate
-    * stddev : float
+    * stddev : float or list of floats
         Standard deviation of the Gaussian noise that will be added to *data*
     * percent : True or False
         If ``True``, will consider *stddev* as a decimal percentage and the
@@ -624,7 +624,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
 
     if *return_stddev* is ``False``:
 
-    * contam : array
+    * contam : array or list of arrays
         The contaminated data array
 
     else:
@@ -633,22 +633,48 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         The contaminated data array and the standard deviation used to
         contaminate it.
 
-    """
+    Examples:
 
-    if percent:
-        stddev = stddev*max(abs(data))
-    if stddev == 0.:
-        if return_stddev:
-            return [data, stddev]
-        else:
-            return data
+    >>> import numpy as np
+    >>> data = np.ones(5)
+    >>> noisy = contaminate(data, 0.1, seed=0)
+    >>> print noisy
+    [ 1.03137726  0.89498775  0.95284582  1.07906135  1.04172782]
+    >>> noisy, std = contaminate(data, 0.05, seed=0, percent=True,
+    ...                          return_stddev=True)
+    >>> print std
+    0.05
+    >>> print noisy
+    [ 1.01568863  0.94749387  0.97642291  1.03953067  1.02086391]
+    >>> data = [np.zeros(5), np.ones(3)]
+    >>> noisy = contaminate(data, [0.1, 0.2], seed=0)
+    >>> print noisy[0]
+    [ 0.03137726 -0.10501225 -0.04715418  0.07906135  0.04172782]
+    >>> print noisy[1]
+    [ 0.81644754  1.20192079  0.98163167]
+
+    """
     numpy.random.seed(seed)
-    noise = numpy.random.normal(scale=stddev, size=len(data))
-    # Subtract the mean so that the noise doesn't introduce a systematic shift
-    # in the data
-    noise -= noise.mean()
-    contam = numpy.array(data) + noise
+    # Check if dealing with an array or list of arrays
+    if not isinstance(stddev, list):
+        stddev = [stddev]
+        data = [data]
+    contam = []
+    for i in xrange(len(stddev)):
+        if stddev[i] == 0.:
+            contam.append(data[i])
+            continue
+        if percent:
+            stddev[i] = stddev[i]*max(abs(data[i]))
+        noise = numpy.random.normal(scale=stddev[i], size=len(data[i]))
+        # Subtract the mean so that the noise doesn't introduce a systematic
+        # shift in the data
+        noise -= noise.mean()
+        contam.append(numpy.array(data[i]) + noise)
     numpy.random.seed()
+    if len(contam) == 1:
+        contam = contam[0]
+        stddev = stddev[0]
     if return_stddev:
         return [contam, stddev]
     else:

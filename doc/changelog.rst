@@ -10,6 +10,8 @@ Version 0.2
 
 **Changes**:
 
+* :ref:`fatiando.utils.contaminate <fatiando_utils>` can now take multiple data
+  vectors and stddevs
 * 2x speed-up of :ref:`fatiando.gravmag.talwani <fatiando_gravmag_talwani>`
   with smarter numpy array usage. (`PR 57
   <https://github.com/leouieda/fatiando/pull/57>`_)
