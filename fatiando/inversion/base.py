@@ -18,11 +18,7 @@ class Objective(object):
     An objective function for an inverse problem.
 
     Objective functions have methods to find the parameter vector *p* that
-    minimizes them. The :meth:`~fatiando.inversion.base.Objective.fit` method
-    defaults to a linear solver for linear problems and the Levemberg-Marquardt
-    algorithm for non-linear problems.
-
-    Solvers:
+    minimizes them:
 
     * :mesh:`~fatiando.inversion.base.Objective.linear`
     * :mesh:`~fatiando.inversion.base.Objective.levmarq`
@@ -44,16 +40,12 @@ class Objective(object):
     """
 
     def __init__(self, nparams, islinear=False):
-        self._init_stats()
         self._cache = {}
         self.hasher = lambda x: hashlib.sha1(x).hexdigest()
-        if islinear:
-            self.fit = self.linear
-            self.islinear = True
-        else:
-            self.fit = self.levmarq
-            self.islinear = False
+        self.islinear = islinear
         self.nparams = nparams
+        self.ndata = 0
+        self.default_solver = 'linear' if islinear else 'levmarq'
 
     def __repr__(self):
         return 'Objective(nparams=%d, islinear=%s)' % (self.nparams,
@@ -137,50 +129,42 @@ class Objective(object):
         return self.__mul__(other)
     ###########################################################################
 
-    def _init_stats(self):
-        "Initialize the *stats* attribute with default values"
-        self.stats = {
-            'method':'',
-            'iterations':'N/A',
-            'misfit/iteration':'N/A',
-            'step search stagnation':'N/A',
-            'trial steps/iteration':'N/A',
-            'preconditioned':'N/A'}
-
-    def report(self, summary=True):
+    def fit(self, method='default', **kwargs):
         """
-        Produce a report of the last optimization method used.
-
-        Uses the information in the *stats* attribute of the class to produce
-        the output.
+        Solve for the parameter vector that minimizes this objective function.
 
         Parameters:
 
-        * summary : True or False
-            If True, will make a summary report.
+        * method : string
+            The optimization method to use. If *method* is ``'default'``, will
+            use the solver defined in ``default_solver`` class attribute.
 
         Returns:
 
-        * report : string
-            The report.
+        * estimate : 1d-array
+            The estimated parameter vector
+
+        Optimization methods:
+
+        * 'linear': directly solve a linear problem
+        * 'levmarq': gradient descent with the Levemberg-Marquardt algorithm
+        * 'newton': gradient descent with Newton's method
+        * 'steepest': gradient descent with the Steepest Descent method
+        * 'acor': heuristic Ant Colony Optimization for Continuous Domains
+
+        For other arguments that can be passed to each specific optimization
+        method, see the docstrings for respectively named class methods. These
+        options should be passed as keyword arguments.
 
         """
-        text = '\n'.join([
-            'method: %s' % (self.stats['method']),
-            'iterations: %s' % (str(self.stats['iterations'])),
-            'preconditioned: %s' % (str(self.stats['preconditioned'])),
-            'step search stagnation: %s' % (
-                str(self.stats['step search stagnation']))
-            ])
-        if not summary:
-            text = '\n'.join([text,
-                'misfit/iteration: %s' % (str(self.stats['misfit/iteration'])),
-                'step size/iteration: %s' % (
-                    str(self.stats['step size/iteration'])),
-                'trial steps/iteration: %s' % (
-                    str(self.stats['trial steps/iteration']))
-                ])
-        return text
+        if method == 'default':
+            method = self.default_solver
+        solvers = {'linear':self.linear, 'steepest':self.steepest,
+                   'newton':self.newton, 'levmarq':self.levmarq,
+                   'acor':self.acor}
+        if method not in solvers:
+            raise ValueError("Invalid optimization method '%s'" % (method))
+        return solvers[method](**kwargs)
 
     def linear(self, precondition=True):
         """
@@ -205,7 +189,7 @@ class Objective(object):
         return p
 
     def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
-                tol=10**-5, precondition=True):
+                tol=10**-5, precondition=True, iterate=False):
         """
         Solve using the Levemberg-Marquardt algorithm.
 
@@ -231,6 +215,9 @@ class Objective(object):
             permitted
         * precondition : True or False
             If True, will use Jacobi preconditioning
+        * iterate : True or False
+            If True, will return an iterator that yields one estimated
+            parameter vector at a time for each iteration of the algorithm
 
         Returns:
 
@@ -238,58 +225,17 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        self._init_stats()
         solver = levmarq(initial, self.hessian, self.gradient, self.value,
                 maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
-                tol=tol, precondition=precondition, stats=self.stats)
+                tol=tol, precondition=precondition)
+        if iterate:
+            return solver
         for p in solver:
             continue
         return p
 
-    def ilevmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
-                 tol=10**-5, precondition=True):
-        """
-        Solve using the Levemberg-Marquardt algorithm.
-
-        This is the iterator version of the solver. Instead of running until
-        the end, will yield the solution one iteration at a time.
-
-        See :func:`fatiando.inversion.solvers.levmarq` for more details.
-
-        Parameters:
-
-        * initial : 1d-array
-            The initial estimate for the gradient descent.
-        * maxit : int
-            The maximum number of iterations allowed.
-        * maxsteps : int
-            The maximum number of times to try to take a step before giving
-            up
-        * lamb : float
-            Initial amount of step regularization. The larger this is, the
-            more the algorithm will resemble Steepest Descent in the initial
-            iterations.
-        * dlamb : float
-            Factor by which *lamb* is divided or multiplied when taking steps
-         * tol : float
-            The convergence criterion. The lower it is, the more steps are
-            permitted
-        * precondition : True or False
-            If True, will use Jacobi preconditioning
-
-        Yields:
-
-        * estimate : 1d-array
-            The estimated parameter vector at each iteration
-
-        """
-        self._init_stats()
-        solver = levmarq(initial, self.hessian, self.gradient, self.value,
-                maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
-                tol=tol, precondition=precondition, stats=self.stats)
-        return solver
-
-    def newton(self, initial, maxit=30, tol=10**-5, precondition=True):
+    def newton(self, initial, maxit=30, tol=10**-5, precondition=True,
+               iterate=False):
         """
         Minimize an objective function using Newton's method.
 
@@ -306,6 +252,9 @@ class Objective(object):
             permitted.
         * precondition : True or False
             If True, will use Jacobi preconditioning.
+        * iterate : True or False
+            If True, will return an iterator that yields one estimated
+            parameter vector at a time for each iteration of the algorithm
 
         Returns:
 
@@ -313,49 +262,16 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        self._init_stats()
         solver = newton(initial, self.hessian, self.gradient, self.value,
-                maxit=maxit, tol=tol, precondition=precondition,
-                stats=self.stats)
+                maxit=maxit, tol=tol, precondition=precondition)
+        if iterate:
+            return solver
         for p in solver:
             continue
         return p
-
-    def inewton(self, initial, maxit=30, tol=10**-5, precondition=True):
-        """
-        Minimize an objective function using Newton's method.
-
-        This is the iterator version of the solver. Instead of running until
-        the end, will yield the solution one iteration at a time.
-
-        See :func:`fatiando.inversion.solvers.newton` for more details.
-
-        Parameters:
-
-        * initial : 1d-array
-            The initial estimate for the gradient descent.
-        * maxit : int
-            The maximum number of iterations allowed.
-        * tol : float
-            The convergence criterion. The lower it is, the more steps are
-            permitted.
-        * precondition : True or False
-            If True, will use Jacobi preconditioning.
-
-        Yields:
-
-        * estimate : 1d-array
-            The estimated parameter vector at each iteration
-
-        """
-        self._init_stats()
-        solver = newton(initial, self.hessian, self.gradient, self.value,
-                maxit=maxit, tol=tol, precondition=precondition,
-                stats=self.stats)
-        return solver
 
     def steepest(self, initial, stepsize=0.1, maxsteps=30, maxit=1000,
-                 tol=10**-5):
+                 tol=10**-5, iterate=False):
         """
         Minimize an objective function using the Steepest Descent method.
 
@@ -375,6 +291,9 @@ class Objective(object):
         * tol : float
             The convergence criterion. The lower it is, the more steps are
             permitted.
+        * iterate : True or False
+            If True, will return an iterator that yields one estimated
+            parameter vector at a time for each iteration of the algorithm
 
         Returns:
 
@@ -382,53 +301,16 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        self._init_stats()
         solver = steepest(initial, self.gradient, self.value, maxit=maxit,
-                maxsteps=maxsteps, stepsize=stepsize, tol=tol,
-                stats=self.stats)
+                maxsteps=maxsteps, stepsize=stepsize, tol=tol)
+        if iterate:
+            return solver
         for p in solver:
             continue
         return p
 
-    def isteepest(self, initial, stepsize=0.1, maxsteps=30, maxit=1000,
-                 tol=10**-5):
-        """
-        Minimize an objective function using the Steepest Descent method.
-
-        This is the iterator version of the solver. Instead of running until
-        the end, will yield the solution one iteration at a time.
-
-        See :func:`fatiando.inversion.solvers.steepest` for more details.
-
-        Parameters:
-
-        * initial : 1d-array
-            The initial estimate for the gradient descent.
-        * maxit : int
-            The maximum number of iterations allowed.
-        * maxsteps : int
-            The maximum number of times to try to take a step before giving
-            up
-        * stepsize : float
-            Initial amount of step step size.
-        * tol : float
-            The convergence criterion. The lower it is, the more steps are
-            permitted.
-
-        Yields:
-
-        * estimate : 1d-array
-            The estimated parameter vector at each iteration
-
-        """
-        self._init_stats()
-        solver = steepest(initial, self.gradient, self.value, maxit=maxit,
-                maxsteps=maxsteps, stepsize=stepsize, tol=tol,
-                stats=self.stats)
-        return solver
-
     def acor(self, bounds, nants=None, archive_size=None, maxit=1000,
-             diverse=0.5, evap=0.85, seed=None):
+             diverse=0.5, evap=0.85, seed=None, iterate=True):
         """
         Minimize the objective function using ACO-R.
 
@@ -459,6 +341,9 @@ class Objective(object):
             out the search is.
         * seed : None or int
             Seed for the random number generator.
+        * iterate : True or False
+            If True, will return an iterator that yields one estimated
+            parameter vector at a time for each iteration of the algorithm
 
         Returns:
 
@@ -466,61 +351,14 @@ class Objective(object):
             The best estimate
 
         """
-        self._init_stats()
         solver = acor(self.value, bounds, self.nparams, nants=nants,
                 archive_size=archive_size, maxit=maxit, diverse=diverse,
                 evap=evap, seed=seed)
+        if iterate:
+            return solver
         for p in solver:
             continue
         return p
-
-    def iacor(self, bounds, nants=None, archive_size=None, maxit=1000,
-             diverse=0.5, evap=0.85, seed=None):
-        """
-        Minimize the objective function using ACO-R.
-
-        This is the iterator version of the solver. Instead of running until
-        the end, will yield the solution one iteration at a time.
-
-        See :func:`fatiando.inversion.solvers.acor` for more details.
-
-        Parameters:
-
-        * bounds : list
-            The bounds of the search space. If only two values are given,
-            will interpret as the minimum and maximum, respectively, for all
-            parameters.
-            Alternatively, you can given a minimum and maximum for each
-            parameter, e.g., for a problem with 3 parameters you could give
-            `bounds = [min1, max1, min2, max2, min3, max3]`.
-        * nants : int
-            The number of ants to use in the search. Defaults to the number
-            of parameters.
-        * archive_size : int
-            The number of solutions to keep in the solution archive.
-            Defaults to 10 x nants
-        * maxit : int
-            The number of iterations to run.
-        * diverse : float
-            Scalar from 0 to 1, non-inclusive, that controls how much better
-            solutions are favored when constructing new ones.
-        * evap : float
-            The pheromone evaporation rate (evap > 0). Controls how spread
-            out the search is.
-        * seed : None or int
-            Seed for the random number generator.
-
-        Yields:
-
-        * estimate : 1d-array
-            The best estimate at each iteration
-
-        """
-        self._init_stats()
-        solver = acor(self.value, bounds, self.nparams, nants=nants,
-                archive_size=archive_size, maxit=maxit, diverse=diverse,
-                evap=evap, seed=seed)
-        return solver
 
 class Misfit(Objective):
     r"""
@@ -596,10 +434,9 @@ class Misfit(Objective):
         self._cache['predicted'] = {'hash':'', 'array':None}
         self._cache['jacobian'] = {'hash':'', 'array':None}
         self._cache['hessian'] = {'hash':'', 'array':None}
+        self.weights = None
         if weights is not None:
             self.set_weights(weights)
-        else:
-            self.weights = None
 
     def __repr__(self):
         lw = 60

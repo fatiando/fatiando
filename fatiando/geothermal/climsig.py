@@ -171,7 +171,7 @@ class SingleChange(Misfit):
             diffus=31.5576)
         >>> # Need an initial estimate because this is a non-linear problem
         >>> initial = [1, 1]
-        >>> est_amp, est_age = solver.fit(initial)
+        >>> est_amp, est_age = solver.fit(initial=initial)
         >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
         amp: 2.00  age: 100.00
         >>> # For a LINEAR change
@@ -179,7 +179,7 @@ class SingleChange(Misfit):
         >>> age = 52.5
         >>> temp = linear(amp, age, zp)
         >>> solver = SingleChange(temp, zp, mode='linear')
-        >>> est_amp, est_age = solver.fit(initial)
+        >>> est_amp, est_age = solver.fit(initial=initial)
         >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
         amp: 3.45  age: 52.50
 

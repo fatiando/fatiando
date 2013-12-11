@@ -46,10 +46,14 @@ if len(initial) > 1:
     print "Don't be greedy! Pick only one point"
     sys.exit()
 # Fit using many different solvers
-levmarq = [e for e in  solver.ilevmarq(initial[0])]
-steepest = [e for e in  solver.isteepest(initial[0])]
-newton = [e for e in  solver.inewton(initial[0])]
-ACO_R = [e for e in  solver.iacor(area, maxit=100)]
+levmarq = [e for e in solver.fit(method='levmarq', initial=initial[0],
+    iterate=True)]
+steepest = [e for e in  solver.fit(method='steepest', initial=initial[0],
+    iterate=True)]
+newton = [e for e in  solver.fit(method='newton', initial=initial[0],
+    iterate=True)]
+ACO_R = [e for e in  solver.fit(method='acor', bounds=area, maxit=100,
+    iterate=True)]
 # Make a map of the objective function
 shape = (100, 100)
 xs, ys = gridder.regular(area, shape)

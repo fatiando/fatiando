@@ -44,7 +44,7 @@ initial = mpl.pick_points(area, mpl.gca(), marker='*', color='b')
 if len(initial) > 1:
     print "Don't be greedy! Pick only one point"
     sys.exit()
-estimate = solver.fit(initial[0])
+estimate = solver.fit(initial=initial[0])
 
 mpl.figure(figsize=(10,4))
 mpl.subplot(1, 2, 1)
