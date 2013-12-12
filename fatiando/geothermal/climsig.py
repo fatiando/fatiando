@@ -218,15 +218,16 @@ class SingleChange(Misfit):
     """
 
     def __init__(self, temp, zp, mode, diffus=THERMAL_DIFFUSIVITY_YEAR):
-        super(SingleChange, self).__init__(temp, nparams=2, islinear=False)
         if len(temp) != len(zp):
             raise ValueError("temp and zp must be of same length")
         if mode not in ['abrupt', 'linear']:
             raise ValueError("Invalid mode: %s. Must be 'abrupt' or 'linear'"
                 % (mode))
-        self.zp = zp
-        self.diffus = float(diffus)
-        self.mode = mode
+        super(SingleChange, self).__init__(
+            data=temp,
+            positional=dict(zp=zp),
+            model=dict(diffus=float(diffus), mode=mode),
+            nparams=2, islinear=False)
 
     def __repr__(self):
         lw = 60
@@ -236,30 +237,35 @@ class SingleChange(Misfit):
             '    temp=%s,' % (numpy.array_repr(
                 self.data, max_line_width=lw, precision=prec)),
             '    zp=%s,' % (numpy.array_repr(
-                self.zp, max_line_width=lw, precision=prec)),
-            "    mode='%s'," % (self.mode),
-            '    diffus=%g)' % (self.diffus)])
+                self.positional['zp'], max_line_width=lw, precision=prec)),
+            "    mode='%s'," % (self.model['mode']),
+            '    diffus=%g)' % (self.model['diffus'])])
         return text
 
     def _get_predicted(self, p):
         amp, age = p
-        if self.mode == 'abrupt':
-            return abrupt(amp, age, self.zp, self.diffus)
-        if self.mode == 'linear':
-            return linear(amp, age, self.zp, self.diffus)
+        zp = self.positional['zp']
+        diffus = self.model['diffus']
+        if self.model['mode'] == 'abrupt':
+            return abrupt(amp, age, zp, diffus)
+        if self.model['mode'] == 'linear':
+            return linear(amp, age, zp, diffus)
 
     def _get_jacobian(self, p):
         amp, age = p
-        if self.mode == 'abrupt':
-            tmp = self.zp/numpy.sqrt(4.*self.diffus*age)
+        zp = self.positional['zp']
+        diffus = self.model['diffus']
+        mode = self.model['mode']
+        if mode == 'abrupt':
+            tmp = zp/numpy.sqrt(4.*diffus*age)
             jac = numpy.transpose([
-                abrupt(1., age, self.zp, self.diffus),
+                abrupt(1., age, zp, diffus),
                 amp*tmp*numpy.exp(-(tmp**2))/(numpy.sqrt(numpy.pi)*age)])
-        if self.mode == 'linear':
+        if mode == 'linear':
             delta = 0.5
-            at_p = linear(amp, age, self.zp, self.diffus)
+            at_p = linear(amp, age, zp, diffus)
             jac = numpy.transpose([
-                linear(1., age, self.zp, self.diffus),
-                (linear(amp, age + delta, self.zp, self.diffus) -
-                 linear(amp, age - delta, self.zp, self.diffus))/(2*delta)])
+                linear(1., age, zp, diffus),
+                (linear(amp, age + delta, zp, diffus) -
+                 linear(amp, age - delta, zp, diffus))/(2*delta)])
         return jac
