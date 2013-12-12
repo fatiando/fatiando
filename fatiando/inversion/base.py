@@ -1,6 +1,52 @@
 """
 The base classes for inverse problem solving.
 
+
+Examples:
+
+Here is an example of how to implement a simple linear regression using the
+:class:`~fatiando.inversion.base.Misfit` class.
+
+>>> import numpy as np
+>>> class Regression(Misfit):
+...     "Perform a linear regression"
+...     def __init__(self, x, y):
+...         super(Regression, self).__init__(data=y, positional={'x':x},
+...             model={}, nparams=2, islinear=True)
+...     def _get_predicted(self, p):
+...         a, b = p
+...         return a*self.postional['x'] + b
+...     def _get_jacobian(self, p):
+...         return np.transpose([self.positional['x'], np.ones(self.ndata)])
+>>> x = np.linspace(0, 5, 10)
+>>> y = 2*x + 5
+>>> solver = Regression(x, y)
+>>> solver.fit()
+array([ 2.,  5.])
+
+A more complicated example would be to implement a generic polynomial fit.
+
+>>> class PolynomialRegression(Misfit):
+...     "Perform a polynomial regression"
+...     def __init__(self, x, y, degree):
+...         super(PolynomialRegression, self).__init__(
+...             data=y, positional={'x':x},
+...             model={'degree':degree}, nparams=degree + 1, islinear=True)
+...     def _get_predicted(self, p):
+...         return sum(p[i]*self.postional['x']**i
+...                    for i in xrange(self.model['degree'] + 1))
+...     def _get_jacobian(self, p):
+...         return np.transpose([self.positional['x']**i
+...                             for i in xrange(self.model['degree'] + 1)])
+>>> solver = PolynomialRegression(x, y, 1)
+>>> solver.fit()
+array([ 5.,  2.])
+>>> y = 0.1*x**2 + 3*x + 6
+>>> solver = PolynomialRegression(x, y, 2)
+>>> solver.fit()
+array([ 6. ,  3. ,  0.1])
+
+
 ----
 
 """
@@ -403,6 +449,13 @@ class Misfit(Objective):
 
     * data : 1d-array
         The observed data vector :math:`\bar{d}^o`
+    * positional : dict
+        A dictionary with the positional arguments of the data, for example, x,
+        y coordinates, depths, etc. Keys should the string name of the argument
+        and values should be 1d-arrays with the same size as *data*.
+    * model : dict
+        A dictionary with the model parameters, like the mesh, physical
+        properties, etc.
     * nparams : int
         The number of parameters in parameter vector :math:`\bar{p}`
     * weights : 1d-array
@@ -415,26 +468,57 @@ class Misfit(Objective):
     Examples:
 
         >>> import numpy
-        >>> solver = Misfit(numpy.array([1, 2, 3]), 2)
+        >>> solver = Misfit(numpy.array([1, 2, 3]),
+        ...                 positional={'x':numpy.array([4, 5, 6])},
+        ...                 model={},
+        ...                 nparams=2)
         >>> solver
         Misfit(
             data=array([1, 2, 3]),
+            positional={
+                'x':array([4, 5, 6]),
+                },
+            model={
+                },
             nparams=2,
             islinear=False,
             weights=None)
-        >>> solver.set_data(numpy.array([4, 5, 6]))
+        >>> solver.use_tmp_data(numpy.array([4, 5, 6]))
         Misfit(
             data=array([4, 5, 6]),
+            positional={
+                'x':array([4, 5, 6]),
+                },
+            model={
+                },
+            nparams=2,
+            islinear=False,
+            weights=None)
+        >>> solver.reset_data()
+        Misfit(
+            data=array([1, 2, 3]),
+            positional={
+                'x':array([4, 5, 6]),
+                },
+            model={
+                },
             nparams=2,
             islinear=False,
             weights=None)
 
     """
 
-    def __init__(self, data, nparams, weights=None, islinear=False):
+    def __init__(self, data, positional, model, nparams, weights=None,
+                 islinear=False):
         super(Misfit, self).__init__(nparams, islinear=islinear)
         self.data = data
+        self._backup_data = data
         self.ndata = len(data)
+        self.subset = None
+        self.positional = positional
+        self._backup_positional = positional.copy()
+        self._backup_jacobian = None
+        self.model = model
         self._cache['predicted'] = {'hash':'', 'array':None}
         self._cache['jacobian'] = {'hash':'', 'array':None}
         self._cache['hessian'] = {'hash':'', 'array':None}
@@ -442,20 +526,43 @@ class Misfit(Objective):
         if weights is not None:
             self.set_weights(weights)
 
+    def _clear_cache(self):
+        "Reset the cached matrices"
+        self._cache['predicted'] = {'hash':'', 'array':None}
+        self._cache['jacobian'] = {'hash':'', 'array':None}
+        self._cache['hessian'] = {'hash':'', 'array':None}
+
     def __repr__(self):
         lw = 60
         prec = 3
-        text = '\n'.join([
+        text = [
             'Misfit(',
             '    data=%s,' % (numpy.array_repr(
                 self.data, max_line_width=lw, precision=prec)),
+            '    positional={',]
+        if self.positional:
+            text.append(
+            '%s' % ('\n'.join([
+                "        '%s':%s," % (k, numpy.array_repr(self.positional[k],
+                    max_line_width=lw, precision=prec))
+                for k in self.positional])))
+        text.extend([
+            '        },',
+            '    model={'])
+        if self.model:
+            text.append(
+            '%s' % ('\n'.join([
+                "        '%s':%s," % (k, str(self.model[k]))
+                for k in self.model])))
+        text.extend([
+            '        },',
             '    nparams=%d,'  % (self.nparams),
             '    islinear=%s,' % (repr(self.islinear)),
             '    weights=%s)' % (
                 repr(self.weights) if self.weights is None
                 else numpy.array_repr(
                     self.weights, max_line_width=lw, precision=prec))])
-        return text
+        return '\n'.join(text)
 
     def _get_predicted(self, p):
         raise NotImplementedError("Predicted data not implemented")
@@ -463,9 +570,12 @@ class Misfit(Objective):
     def _get_jacobian(self, p):
         raise NotImplementedError("Jacobian matrix not implemented")
 
-    def set_data(self, data):
+    def use_tmp_data(self, data):
         """
-        Set the observed data vector.
+        Temporarily use the given data vector instead.
+
+        To reset the original data, use
+        :meth:`~fatiando.inversion.base.Misfit.reset_data`.
 
         Parameters:
 
@@ -474,6 +584,44 @@ class Misfit(Objective):
 
         """
         self.data = data
+        return self
+
+    def reset_data(self):
+        """
+        Reset the original data vector.
+
+        See :meth:`~fatiando.inversion.base.Misfit.use_tmp_data`.
+        """
+        self.data = self._backup_data
+        return self
+
+    def use_all(self):
+        """
+        Use all the data in the original data vector.
+
+        See :meth:`~fatiando.inversion.base.Misfit.use_subset`.
+        """
+        self.data = self._backup_data
+        self.positional = self._backup_positional
+        self.ndata = len(self.data)
+        self._clear_cache()
+        return self
+
+    def use_subset(self, indices):
+        """
+        Use only a subset of the observed data.
+
+        Parameters:
+
+        * indices : list
+            The indeces of the elements in the data array that will be used.
+
+        """
+        self.data = self.data[indices]
+        self.positional = dict((k, self.positional[k][indices])
+                              for k in self.positional)
+        self.ndata = len(indices)
+        self._clear_cache()
         return self
 
     def set_weights(self, weights):
@@ -694,10 +842,15 @@ class MultiObjective(Objective):
     :class:`~fatiando.inversion.regularization.Damping`):
 
         >>> import numpy
-        >>> obj1 = Misfit(data=numpy.array([1, 2, 3, 4]), nparams=3)
+        >>> obj1 = Misfit(data=numpy.array([1, 2, 3, 4]), positional={},
+        ...               model={}, nparams=3)
         >>> obj1
         Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)
@@ -713,6 +866,10 @@ class MultiObjective(Objective):
         MultiObjective(objs=[
             [1, Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)],
@@ -726,6 +883,10 @@ class MultiObjective(Objective):
         MultiObjective(objs=[
             [1, Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)],
@@ -737,6 +898,10 @@ class MultiObjective(Objective):
         MultiObjective(objs=[
             [1, Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)],
@@ -753,6 +918,10 @@ class MultiObjective(Objective):
         MultiObjective(objs=[
             [1, Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)],
@@ -761,6 +930,10 @@ class MultiObjective(Objective):
         MultiObjective(objs=[
             [1, Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)],
@@ -774,6 +947,10 @@ class MultiObjective(Objective):
         >>> print mu1, obj1
         1 Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)
@@ -787,6 +964,10 @@ class MultiObjective(Objective):
         ...     print mu, obj
         1 Misfit(
             data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
             nparams=3,
             islinear=False,
             weights=None)
@@ -795,15 +976,22 @@ class MultiObjective(Objective):
     You can check which of the objective functions has data associated with it
     (i.e., is a data-misfit function)::
 
-        >>> multiobj.havedata
-        [0]
+        >>> multiobj.havedata()
+        [Misfit(
+            data=array([1, 2, 3, 4]),
+            positional={
+                },
+            model={
+                },
+            nparams=3,
+            islinear=False,
+            weights=None)]
 
 
     """
 
     def __init__(self, objs=None):
         super(MultiObjective, self).__init__(nparams=None, islinear=False)
-        self.havedata = []
         self.objs = []
         if objs is not None:
             for mu, obj in objs:
@@ -840,12 +1028,10 @@ class MultiObjective(Objective):
         self.objs.append([regul_param, obj])
         if numpy.all([o.islinear for _, o in self.objs]):
             self.islinear = True
-            self.fit = self.linear
+            self.default_solver = 'linear'
         else:
             self.islinear = False
-            self.fit = self.levmarq
-        if hasattr(obj, 'data'):
-            self.havedata.append(len(self.objs) - 1)
+            self.default_solver = 'levmarq'
         return self
 
     def merge(self, multiobj):
@@ -863,6 +1049,12 @@ class MultiObjective(Objective):
         for mu, obj in multiobj:
             self.add_objective(obj, regul_param=mu)
         return self
+
+    def havedata(self):
+        """
+        Return a list of objectives that have data in this multi-objective.
+        """
+        return [o for  _, o in self.objs if o.ndata > 0]
 
     # Can increment instead of add_objective or merge
     def __iadd__(self, other):

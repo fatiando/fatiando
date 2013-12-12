@@ -3,7 +3,8 @@ Euler deconvolution methods for potential fields.
 
 * :class:`~fatiando.gravmag.euler.Classic`: The classic 3D solution to Euler's
   equation for potential fields (Reid et al., 1990).
-
+* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run an Euler deconvolution
+  on an expanding window and return the best estimate.
 
 **References**
 
@@ -58,96 +59,92 @@ class Classic(Misfit):
 
     """
 
-    def __init__(self, x, y, z, field, xderiv, yderiv, zderiv, index):
+    def __init__(self, x, y, z, field, xderiv, yderiv, zderiv,
+                 structural_index):
         if (len(x) != len(y) != len(z) != len(field) != len(xderiv)
             != len(yderiv) != len(zderiv)):
             raise ValueError("x, y, z, field, xderiv, yderiv, zderiv must " +
                 "have the same number of elements")
-        if index < 0:
+        if structural_index < 0:
             raise ValueError("Invalid structural index '%g'. Should be >= 0"
-                % (index))
+                % (structural_index))
         super(Classic, self).__init__(
-            data=-x*xderiv - y*yderiv - z*zderiv - index*field,
+            data=-x*xderiv - y*yderiv - z*zderiv - structural_index*field,
+            positional=dict(x=x, y=y, z=z, field=field, xderiv=xderiv,
+                yderiv=yderiv, zderiv=zderiv),
+            model=dict(structural_index=structural_index),
             nparams=4, islinear=True)
-        self.x, self.y, self.z = x, y, z
-        self.structural_index = index
-        self.field = field
-        self.xderiv, self.yderiv, self.zderiv = xderiv, yderiv, zderiv
 
     def _get_jacobian(self, p):
         jac = numpy.transpose(
-            [-self.xderiv, -self.yderiv, -self.zderiv,
-             -self.structural_index*numpy.ones_like(self.field)])
+            [-self.positional['xderiv'], -self.positional['yderiv'],
+             -self.positional['zderiv'],
+             -self.model['structural_index']*numpy.ones(self.ndata)])
         return jac
 
     def _get_predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
-    def covariance(self, p):
+
+class ExpandingWindow(object):
+    """
+    Solve an Euler deconvolution problem using an expanding window scheme.
+
+    Uses data inside a window of growing size to perform the Euler
+    deconvolution. Keeps the best result, judged by the estimated error.
+
+    Like any other Euler solver, use the
+    :meth:`~fatiando.gravmag.euler.ExpandingWindow.fit` method to produce an
+    estimate.
+
+    Parameters:
+
+    * euler : Euler solver
+        An instance of an Euler deconvolution solver, like
+        :class:`~fatiando.gravmag.euler.Classic`.
+    * center : [x, y]
+        The x, y coordinates of the center of the expanding windows.
+    * sizes : list or 1d-array
+        The sizes of the windows.
+
+    """
+
+    def __init__(self, euler, center, sizes):
+        self.euler = euler
+        self.center = center
+        self.sizes = sizes
+
+    def fit(self, **kwargs):
         """
-        Estimate the covariance matrix of the estimated parameters.
+        Perform the Euler deconvolution with expanding windows.
 
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
+        Keyword arguments given will be passed to the ``fit`` method of the
+        Euler solver.
 
         Returns:
 
-        * cov : 2d-array
-            The estimated covariance matrix
+        * estimate : 1d-array
+            The best estimate out of all windows.
 
         """
-        variance = numpy.linalg.norm(self.residuals(p))**2/(self.ndata - 4)
-        covar = variance*safe_inverse(self.hessian(p))
-        return covar
-
-    def expanding_window(self, center, ranges, nwin=20, covariance=False):
-        """
-        Run Euler deconvolution on windows of growing size and return the best
-        Parameters:
-
-        * center : list = [x, y]
-            The coordinates of the center of the expanding window
-        * ranges : list = [min, max]
-            The minimum and maximum size of the expanding window
-        * nwin : int
-            Number of windows to use between the minimum and maximum sizes
-        * covariance : True or False
-            If True, will also return the covariance matrix of the estimate
-
-        Returns:
-
-        If ``covariance==True``
-
-        * p, cov : 1d-array and 2d-array
-            The best estimate and it's covariance matrix
-
-        Else
-
-        * p : 1d-array
-            The best estimate
-
-        """
-        xc, yc = center
+        xc, yc = self.center
+        euler = self.euler
+        x, y = euler.positional['x'], euler.positional['y']
         results = []
         errors = []
-        minsize, maxsize = ranges
-        for size in numpy.linspace(minsize, maxsize, nwin):
+        for size in self.sizes:
             ds = 0.5*size
-            area = [xc - ds, xc + ds, yc - ds, yc + ds]
-            wx, wy, wscalars = gridder.cut(self.x, self.y,
-                [self.z, self.field, self.xderiv, self.yderiv, self.zderiv],
-                area)
-            wz, wfield, wxderiv, wyderiv, wzderiv  = wscalars
-            euler = self.__class__(wx, wy, wz, wfield, wxderiv, wyderiv,
-                wzderiv, self.structural_index)
-            p = euler.fit()
-            cov = euler.covariance(p)
-            if covariance:
-                results.append([p, cov])
-            else:
-                results.append(p)
+            xmin, xmax, ymin, ymax = xc - ds, xc + ds, yc - ds, yc + ds
+            indices = [i for i in xrange(euler.ndata)
+                if x[i] >= xmin and x[i] <= xmax
+                and y[i] >= ymin and y[i] <= ymax]
+            if not indices:
+                continue
+            euler.use_subset(indices)
+            p = euler.fit(**kwargs)
+            euler.use_all()
+            results.append(p)
+            cov = safe_inverse(euler.hessian(p))
             uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
             mean_error = numpy.linalg.norm(uncertainty)
             errors.append(mean_error)

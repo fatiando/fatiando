@@ -41,15 +41,10 @@ mpl.show()
 # Run the Euler deconvolution on the whole dataset
 euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
 results = euler.fit()
-covariance = euler.covariance(results)
-uncertainty = utils.safe_diagonal(covariance)**0.5
 print "Base level used: %g" % (baselevel)
 print "Estimated:"
 print "  Base level:             %g" % (results[3])
-print "  Base level uncertainty: %g" % (uncertainty[3])
 print "  Source location:        %s" % (str(results[:3]))
-print "  Source uncertainty:     %s" % (str(uncertainty[:3]))
-print "  Covariance matrix:\n%s" % (str(covariance))
 
 myv.figure()
 myv.points([results[:3]], size=100.)

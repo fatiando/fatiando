@@ -2,10 +2,11 @@
 GravMag: Classic 3D Euler deconvolution of magnetic data using an
 expanding window
 """
+import numpy as np
 from fatiando.mesher import Prism
 from fatiando import gridder, utils
 from fatiando.gravmag import prism, fourier
-from fatiando.gravmag.euler import Classic
+from fatiando.gravmag.euler import Classic, ExpandingWindow
 from fatiando.vis import mpl, myv
 
 # The regional field
@@ -52,8 +53,9 @@ centers = mpl.pick_points(area, mpl.gca(), xy2ne=True)
 
 # Run the euler deconvolution on an expanding window
 # Structural index is 3
-euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, index=3)
-results = [euler.expanding_window(c, [500, 5000]) for c in centers]
+euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
+sizes = np.linspace(500, 5000, 20)
+results = [ExpandingWindow(euler, c, sizes).fit() for c in centers]
 
 print "Base level used: %g" % (baselevel)
 for i, res in enumerate(results):

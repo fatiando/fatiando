@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from fatiando.gravmag.euler import Classic
+from fatiando.gravmag.euler import Classic, ExpandingWindow
 from fatiando.gravmag import sphere, fourier
 from fatiando.mesher import Sphere
 from fatiando import utils, gridder
@@ -34,6 +34,17 @@ def setup():
 def test_euler_classic_sphere_mag():
     "gravmag.euler.Classic for sphere model and magnetic data"
     euler = Classic(x, y, z, field, xderiv, yderiv, zderiv, struct_ind)
+    result = euler.fit()
+    assert (base - result[3])/base <= precision, \
+            'baselevel: %g estimated: %g' % (base, result[3])
+    assert np.all((pos - result[:3])/pos <= precision), \
+            'position: %s estimated: %s' % (str(pos), str(result[:3]))
+
+def test_euler_classic_expandingwindow_sphere_mag():
+    "gravmag.euler.ExpandingWindow w Classic for sphere model + magnetic data"
+    euler = ExpandingWindow(
+            Classic(x, y, z, field, xderiv, yderiv, zderiv, struct_ind),
+            center=[1000, 1000], sizes=np.linspace(100, 2000, 20))
     result = euler.fit()
     assert (base - result[3])/base <= precision, \
             'baselevel: %g estimated: %g' % (base, result[3])
