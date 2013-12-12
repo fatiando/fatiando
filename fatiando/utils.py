@@ -55,6 +55,7 @@ import math
 
 import numpy
 import scipy.sparse
+import scipy.sparse.linalg
 
 import fatiando.constants
 
