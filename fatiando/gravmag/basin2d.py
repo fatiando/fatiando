@@ -86,34 +86,36 @@ class Triangular(Misfit):
     """
 
     def __init__(self, x, z, gz, verts, density):
-        super(Triangular, self).__init__(gz, nparams=2, islinear=False)
         if len(x) != len(z) != len(gz):
             raise ValueError("x, z, and data must be of same length")
         if len(verts) != 2:
             raise ValueError("Need exactly 2 vertices. %d given" %
                     (len(verts)))
-        self.x = numpy.array(x, dtype=numpy.float)
-        self.z = numpy.array(z, dtype=numpy.float)
-        self.props = {'density':density}
-        self.verts = list(verts)
+        super(Triangular, self).__init__(
+            data=gz,
+            positional=dict(x=numpy.array(x, dtype=numpy.float),
+                            z=numpy.array(z, dtype=numpy.float)),
+            model=dict(density=density, verts=list(verts)),
+            nparams=2, islinear=False)
 
     def _get_predicted(self, p):
-        polygon = Polygon(self.verts + [p], self.props)
-        return talwani.gz(self.x, self.z, [polygon])
+        polygon = Polygon(self.model['verts'] + [p],
+                          {'density':self.model['density']})
+        x, z = self.positional['x'], self.positional['z']
+        return talwani.gz(x, z, [polygon])
 
     def _get_jacobian(self, p):
         delta = 1.
+        props = {'density':self.model['density']}
+        verts = self.model['verts']
+        xp, zp = self.positional['x'], self.positional['z']
         x, z = p
         jac = numpy.transpose([
-            (talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x + delta, z]], self.props)])
-             - talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x - delta, z]], self.props)])
+            (talwani.gz(xp, zp, [Polygon(verts + [[x + delta, z]], props)])
+             - talwani.gz(xp, zp, [Polygon(verts + [[x - delta, z]], props)])
             )/(2.*delta),
-            (talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x, z + delta]], self.props)])
-             - talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x, z - delta]], self.props)])
+            (talwani.gz(xp, zp, [Polygon(verts + [[x, z + delta]], props)])
+             - talwani.gz(xp, zp, [Polygon(verts + [[x, z - delta]], props)])
             )/(2.*delta)])
         return jac
 
@@ -136,8 +138,9 @@ class Triangular(Misfit):
             A polygon representation of the estimate.
 
         """
-        left, right = self.verts
-        return Polygon([left, right, p], props=self.props)
+        left, right = self.model['verts']
+        props = {'density':self.model['density']}
+        return Polygon([left, right, p], props=props)
 
 class Trapezoidal(Misfit):
     """
@@ -205,38 +208,43 @@ class Trapezoidal(Misfit):
     """
 
     def __init__(self, x, z, gz, verts, density):
-        super(Trapezoidal, self).__init__(gz, nparams=2, islinear=False)
         if len(x) != len(z) != len(gz):
             raise ValueError, "x, z, and data must be of same length"
         if len(verts) != 2:
             raise ValueError, "Need exactly 2 vertices. %d given" % (len(verts))
-        self.x = numpy.array(x, dtype=numpy.float)
-        self.z = numpy.array(z, dtype=numpy.float)
-        self.props = {'density':density}
-        self.verts = list(verts)
-        self.x1, self.x2 = self.verts[1][0], self.verts[0][0]
+        super(Trapezoidal, self).__init__(
+            data=gz,
+            positional=dict(x=numpy.array(x, dtype=numpy.float),
+                            z=numpy.array(z, dtype=numpy.float)),
+            model=dict(density=density, verts=list(verts)),
+            nparams=2, islinear=False)
 
     def _get_predicted(self, p):
         z1, z2 = p
-        pred = talwani.gz(self.x, self.z,
-            [Polygon(self.verts + [[self.x1, z1], [self.x2, z2]], self.props)])
+        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
+        x, z = self.positional['x'], self.positional['z']
+        props = {'density':self.model['density']}
+        pred = talwani.gz(x, z,
+            [Polygon(self.model['verts'] + [[x1, z1], [x2, z2]], props)])
         return pred
 
     def _get_jacobian(self, p):
         z1, z2 = p
-        x1, x2 = self.x1, self.x2
-        props = self.props
+        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
+        props = {'density':self.model['density']}
+        x, z = self.positional['x'], self.positional['z']
+        verts = self.model['verts']
         delta = 1.
         jac = numpy.transpose([
-            (talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x1, z1 + delta], [x2, z2]], props)])
-             - talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x1, z1 - delta], [x2, z2]], props)])
+            (talwani.gz(x, z,
+                [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)])
+             - talwani.gz(x, z,
+                [Polygon(verts + [[x1, z1 - delta], [x2, z2]], props)])
             )/(2.*delta),
-            (talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x1, z1], [x2, z2 + delta]], props)])
-             - talwani.gz(self.x, self.z,
-                [Polygon(self.verts + [[x1, z1], [x2, z2 - delta]], props)])
+            (talwani.gz(x, z,
+                [Polygon(verts + [[x1, z1], [x2, z2 + delta]], props)])
+             - talwani.gz(x, z,
+                [Polygon(verts + [[x1, z1], [x2, z2 - delta]], props)])
             )/(2.*delta)])
         return jac
 
@@ -260,6 +268,7 @@ class Trapezoidal(Misfit):
 
         """
         z1, z2 = p
-        x1, x2 = self.x1, self.x2
-        left, right = self.verts
-        return Polygon([left, right, (x1, z1), (x2, z2)], self.props)
+        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
+        props = {'density':self.model['density']}
+        left, right = self.model['verts']
+        return Polygon([left, right, (x1, z1), (x2, z2)], props)
