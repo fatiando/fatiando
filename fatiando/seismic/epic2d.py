@@ -91,18 +91,24 @@ class Homogeneous(Misfit):
     """
 
     def __init__(self, ttres, recs, vp, vs):
-        super(Homogeneous, self).__init__(ttres, nparams=2, islinear=False)
-        self.x_rec, self.y_rec = numpy.transpose(recs)
-        self.alpha = 1./vs - 1./vp
+        super(Homogeneous, self).__init__(
+            data=ttres,
+            positional=dict(recs=numpy.array(recs)),
+            model=dict(vp=vp, vs=vs),
+            nparams=2, islinear=False)
 
     def _get_predicted(self, p):
         x, y = p
-        return self.alpha*numpy.sqrt((self.x_rec - x)**2 + (self.y_rec - y)**2)
+        alpha = 1./self.model['vs'] - 1./self.model['vp']
+        return alpha*numpy.sqrt((self.positional['recs'][:,0] - x)**2 +
+                                (self.positional['recs'][:,1] - y)**2)
 
     def _get_jacobian(self, p):
         x, y = p
-        sqrt = numpy.sqrt((self.x_rec - x)**2 + (self.y_rec - y)**2)
+        alpha = 1./self.model['vs'] - 1./self.model['vp']
+        sqrt = numpy.sqrt((self.positional['recs'][:,0] - x)**2 +
+                          (self.positional['recs'][:,1] - y)**2)
         jac = numpy.transpose([
-                -self.alpha*(self.x_rec - x)/sqrt,
-                -self.alpha*(self.y_rec - y)/sqrt])
+                -alpha*(self.positional['recs'][:,0] - x)/sqrt,
+                -alpha*(self.positional['recs'][:,1] - y)/sqrt])
         return jac
