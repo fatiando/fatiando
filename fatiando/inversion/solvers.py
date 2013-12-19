@@ -69,8 +69,8 @@ def linear(hessian, gradient, precondition=True):
     p = safe_solve(hessian, -gradient)
     return p
 
-def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
-           precondition=True, stats=None):
+def newton(hessian, gradient, value, initial, maxit=30, tol=10**-5,
+           precondition=True):
     r"""
     Minimize an objective function using Newton's method.
 
@@ -89,8 +89,6 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
 
     Parameters:
 
-    * initial : 1d-array
-        The initial estimate for the gradient descent.
     * hessian : function
         A function that returns the Hessian matrix of the objective function
         when given a parameter vector.
@@ -100,6 +98,8 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
     * value : function
         A function that returns the value of the objective function evaluated
         at a given parameter vector.
+    * initial : 1d-array
+        The initial estimate for the gradient descent.
     * maxit : int
         The maximum number of iterations allowed.
     * tol : float
@@ -107,9 +107,6 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
         permitted.
     * precondition : True or False
         If True, will use Jacobi preconditioning.
-    * stats : None or a dictionary
-        If a dict, will fill the dictionary with information about the
-        optimization procedure.
 
     Yields:
 
@@ -119,11 +116,6 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    if stats is not None:
-        stats['method'] = 'Newton'
-        stats['iterations'] = 0
-        stats['misfit/iteration'] = [misfit]
-        stats['preconditioned'] = precondition
     yield p
     for iteration in xrange(maxit):
         hess = hessian(p)
@@ -139,20 +131,15 @@ def newton(initial, hessian, gradient, value, maxit=30, tol=10**-5,
         if newmisfit > misfit or abs((newmisfit - misfit)/misfit) < tol:
             break
         misfit = newmisfit
-        if stats is not None:
-            stats['iterations'] += 1
-            stats['misfit/iteration'].append(misfit)
         yield p
 
-def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
-            dlamb=2, tol=10**-5, precondition=True, stats=None):
+def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
+            dlamb=2, tol=10**-5, precondition=True):
     r"""
     Minimize an objective function using the Levemberg-Marquardt algorithm.
 
     Parameters:
 
-    * initial : 1d-array
-        The initial estimate for the gradient descent.
     * hessian : function
         A function that returns the Hessian matrix of the objective function
         when given a parameter vector.
@@ -162,6 +149,8 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
     * value : function
         A function that returns the value of the objective function evaluated
         at a given parameter vector.
+    * initial : 1d-array
+        The initial estimate for the gradient descent.
     * maxit : int
         The maximum number of iterations allowed.
     * maxsteps : int
@@ -176,9 +165,6 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
         permitted.
     * precondition : True or False
         If True, will use Jacobi preconditioning.
-    * stats : None or a dictionary
-        If a dict, will fill the dictionary with information about the
-        optimization procedure.
 
     Yields:
 
@@ -188,13 +174,6 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    if stats is not None:
-        stats['method'] = 'Levemberg-Marquardt'
-        stats['iterations'] = 0
-        stats['misfit/iteration'] = [misfit]
-        stats['step search stagnation'] = False
-        stats['trial steps/iteration'] = []
-        stats['preconditioned'] = precondition
     yield p
     for iteration in xrange(maxit):
         hess = hessian(p)
@@ -220,22 +199,16 @@ def levmarq(initial, hessian, gradient, value, maxit=30, maxsteps=10, lamb=10,
                 break
         if stagnation:
             stop = True
-            if stats is not None:
-                stats['step search stagnation'] = True
         else:
             stop = newmisfit > misfit or abs((newmisfit - misfit)/misfit) < tol
             p = newp
             misfit = newmisfit
-            if stats is not None:
-                stats['iterations'] += 1
-                stats['misfit/iteration'].append(newmisfit)
-                stats['trial steps/iteration'].append(step + 1)
             yield p
         if stop:
             break
 
-def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
-             tol=10**-5, stats=None):
+def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
+             tol=10**-5):
     r"""
     Minimize an objective function using the Steepest Descent method.
 
@@ -270,14 +243,14 @@ def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
 
     Parameters:
 
-    * initial : 1d-array
-        The initial estimate for the gradient descent.
     * gradient : function
         A function that returns the gradient vector of the objective function
         when given a parameter vector.
     * value : function
         A function that returns the value of the objective function evaluated
         at a given parameter vector.
+    * initial : 1d-array
+        The initial estimate for the gradient descent.
     * maxit : int
         The maximum number of iterations allowed.
     * maxsteps : int
@@ -287,9 +260,6 @@ def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
     * tol : float
         The convergence criterion. The lower it is, the more steps are
         permitted.
-    * stats : None or a dictionary
-        If a dict, will fill the dictionary with information about the
-        optimization procedure.
 
     Yields:
 
@@ -303,12 +273,6 @@ def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    if stats is not None:
-        stats['method'] = 'Steepest Descent'
-        stats['iterations'] = 0
-        stats['misfit/iteration'] = [misfit]
-        stats['step search stagnation'] = False
-        stats['trial steps/iteration'] = []
     yield p
     # This is a mystic parameter of the Armijo rule
     alpha = 10**(-4)
@@ -327,16 +291,10 @@ def steepest(initial, gradient, value, maxit=1000, maxsteps=30, stepsize=0.1,
                 break
         if stagnation:
             stop = True
-            if stats is not None:
-                stats['step search stagnation'] = True
         else:
             stop = abs((newmisfit - misfit)/misfit) < tol
             p = newp
             misfit = newmisfit
-            if stats is not None:
-                stats['iterations'] += 1
-                stats['misfit/iteration'].append(misfit)
-                stats['trial steps/iteration'].append(i + 1)
             yield p
         if stop:
             break

@@ -89,7 +89,7 @@ class Objective(object):
 
     """
 
-    def __init__(self, nparams, islinear=False):
+    def __init__(self, nparams, islinear):
         self._cache = {}
         self.hasher = lambda x: hashlib.sha1(x).hexdigest()
         self.islinear = islinear
@@ -275,7 +275,7 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        solver = levmarq(initial, self.hessian, self.gradient, self.value,
+        solver = levmarq(self.hessian, self.gradient, self.value, initial,
                 maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
                 tol=tol, precondition=precondition)
         if iterate:
@@ -312,7 +312,7 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        solver = newton(initial, self.hessian, self.gradient, self.value,
+        solver = newton(self.hessian, self.gradient, self.value, initial,
                 maxit=maxit, tol=tol, precondition=precondition)
         if iterate:
             return solver
@@ -351,7 +351,7 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        solver = steepest(initial, self.gradient, self.value, maxit=maxit,
+        solver = steepest(self.gradient, self.value, initial, maxit=maxit,
                 maxsteps=maxsteps, stepsize=stepsize, tol=tol)
         if iterate:
             return solver
