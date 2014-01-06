@@ -74,14 +74,24 @@ class Triangular(Misfit):
         >>> left, middle, right = verts
         >>> model = Polygon(verts, {'density':500})
         >>> # Generate the synthetic gz profile
-        >>> x = numpy.arange(0, 100000, 10000)
+        >>> x = numpy.linspace(0, 100000, 50)
         >>> z = numpy.zeros_like(x)
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
         >>> solver = Triangular(x, z, gz, [left, middle], 500)
-        >>> x, z = solver.fit(initial=[10000, 1000])
+        >>> x, z = solver.fit(initial=[10000, 1000]).estimate_
         >>> print '%.1f, %.1f' % (x, z)
         50000.0, 5000.0
+        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
+        True
+        >>> # The parameter vector is not useful so transform it to a Polygon
+        >>> poly = solver.get_polygon()
+        >>> poly.vertices
+        array([[  1.00000000e+04,   1.00000000e+00],
+               [  9.00000000e+04,   1.00000000e+00],
+               [  5.00000006e+04,   5.00000021e+03]])
+        >>> poly.props
+        {'density': 500}
 
     """
 
@@ -119,7 +129,7 @@ class Triangular(Misfit):
             )/(2.*delta)])
         return jac
 
-    def topolygon(self, p):
+    def get_polygon(self, p=None):
         """
         Convert the estimated parameter vector *p* to a Polygon.
 
@@ -129,8 +139,8 @@ class Triangular(Misfit):
         Parameters:
 
         * p : 1d-array
-            The estimate parameter vector. Produced by fitting the data (using
-            :meth:`~fatiando.gravmag.basin2d.Triangular.fit` for example).
+            The estimate parameter vector. If None, will use the one stored in
+            ``estimate_``.
 
         Returns:
 
@@ -138,9 +148,11 @@ class Triangular(Misfit):
             A polygon representation of the estimate.
 
         """
+        if p is None:
+            p = self.estimate_
         left, right = self.model['verts']
         props = {'density':self.model['density']}
-        return Polygon([left, right, p], props=props)
+        return Polygon(numpy.array([left, right, p]), props=props)
 
 class Trapezoidal(Misfit):
     """
@@ -193,17 +205,28 @@ class Trapezoidal(Misfit):
         >>> from fatiando.gravmag import talwani
         >>> # Make a trapezoidal basin model (will estimate the z coordinates
         >>> # of the last two points)
-        >>> verts = [(10000, 1), (90000, 1), (90000, 5000), (10000, 3000)]
+        >>> verts = [[10000, 1], [90000, 1], [90000, 5000], [10000, 3000]]
         >>> model = Polygon(verts, {'density':500})
         >>> # Generate the synthetic gz profile
-        >>> x = numpy.arange(0, 100000, 10000)
+        >>> x = numpy.linspace(0, 100000, 50)
         >>> z = numpy.zeros_like(x)
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
         >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500)
-        >>> z1, z2 = solver.fit(initial=[1000, 500])
+        >>> z1, z2 = solver.fit(initial=[1000, 500]).estimate_
         >>> print '%.1f, %.1f' % (z1, z2)
         5000.0, 3000.0
+        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
+        True
+        >>> # The parameter vector is not useful so transform it to a Polygon
+        >>> poly = solver.get_polygon()
+        >>> poly.vertices
+        array([[  1.00000000e+04,   1.00000000e+00],
+               [  9.00000000e+04,   1.00000000e+00],
+               [  9.00000000e+04,   5.00000005e+03],
+               [  1.00000000e+04,   3.00000006e+03]])
+        >>> poly.props
+        {'density': 500}
 
     """
 
@@ -248,18 +271,18 @@ class Trapezoidal(Misfit):
             )/(2.*delta)])
         return jac
 
-    def topolygon(self, p):
+    def get_polygon(self, p=None):
         """
-        Convert the estimated parameter vector *p* to a Polygon.
+        Convert the estimated parameter vector to a Polygon.
 
         This way, the :class:`fatiando.mesher.Polygon` can be passed to
         plotting functions and forward modeling functions.
 
         Parameters:
 
-        * p : 1d-array
-            The estimate parameter vector. Produced by fitting the data (using
-            :meth:`~fatiando.gravmag.basin2d.Trapezoidal.fit` for example).
+        * p : 1d-array or None
+            The estimate parameter vector. If None, will use the one stored in
+            ``estimate_``.
 
         Returns:
 
@@ -267,8 +290,10 @@ class Trapezoidal(Misfit):
             A polygon representation of the estimate.
 
         """
+        if p is None:
+            p = self.estimate_
         z1, z2 = p
         x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
         props = {'density':self.model['density']}
         left, right = self.model['verts']
-        return Polygon([left, right, (x1, z1), (x2, z2)], props)
+        return Polygon(numpy.array([left, right, [x1, z1], [x2, z2]]), props)

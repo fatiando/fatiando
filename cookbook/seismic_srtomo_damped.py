@@ -32,8 +32,8 @@ mesh = SquareMesh(area, shape)
 # and run the inversion
 start = time.time()
 tomo = srtomo.SRTomo(tts, srcs, recs, mesh) + 10**6*Damping(mesh.size)
-estimate = tomo.fit()
-residuals = tomo.residuals(estimate)
+estimate = tomo.fit().estimate_
+residuals = tomo.residuals()
 print "time: %g s" % (time.time() - start)
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', srtomo.slowness2vel(estimate))

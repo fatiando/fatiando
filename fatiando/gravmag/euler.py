@@ -113,6 +113,7 @@ class ExpandingWindow(object):
         self.euler = euler
         self.center = center
         self.sizes = sizes
+        self.estimate_ = None
 
     def fit(self, **kwargs):
         """
@@ -141,13 +142,13 @@ class ExpandingWindow(object):
             if not indices:
                 continue
             euler.use_subset(indices)
-            p = euler.fit(**kwargs)
+            p = euler.fit(**kwargs).estimate_
             euler.use_all()
             results.append(p)
             cov = safe_inverse(euler.hessian(p))
             uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
             mean_error = numpy.linalg.norm(uncertainty)
             errors.append(mean_error)
-        best = results[numpy.argmin(errors)]
-        return best
+        self.estimate_ = results[numpy.argmin(errors)]
+        return self
 

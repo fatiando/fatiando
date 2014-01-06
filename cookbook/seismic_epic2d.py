@@ -44,7 +44,7 @@ initial = mpl.pick_points(area, mpl.gca(), marker='*', color='b')
 if len(initial) > 1:
     print "Don't be greedy! Pick only one point"
     sys.exit()
-estimate = solver.fit(initial=initial[0])
+estimate = solver.fit(initial=initial[0]).estimate_
 
 mpl.figure(figsize=(10,4))
 mpl.subplot(1, 2, 1)
@@ -64,7 +64,7 @@ s = numpy.arange(len(traveltime)) + 1
 width = 0.3
 mpl.bar(s - width, traveltime, width, color='g', label="Observed",
            yerr=error)
-mpl.bar(s, solver.predicted(estimate), width, color='r', label="Predicted")
+mpl.bar(s, solver.predicted(), width, color='r', label="Predicted")
 ax.set_xticks(s)
 mpl.legend(loc='upper right', shadow=True, prop={'size':12})
 mpl.xlabel("Station number")

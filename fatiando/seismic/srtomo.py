@@ -76,7 +76,8 @@ class SRTomo(Misfit):
     >>> # Make a mesh to represent the two blocks
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Run the tomography
-    >>> estimate = SRTomo(ttimes, srcs, recs, mesh).fit()
+    >>> tomo = SRTomo(ttimes, srcs, recs, mesh)
+    >>> estimate = tomo.fit().estimate_
     >>> # Actually returns slowness instead of velocity
     >>> for velocity in slowness2vel(estimate):
     ...     print '%.4f' % (velocity),
@@ -85,8 +86,7 @@ class SRTomo(Misfit):
     Using the steepest descent method to solve (no linear systems):
 
     >>> # Use steepest descent to solve this (requires an initial guess)
-    >>> estimate = SRTomo(ttimes, srcs, recs, mesh).fit(method='steepest',
-    ...                                                 initial=[0, 0])
+    >>> estimate = tomo.fit(method='steepest', initial=[0, 0]).estimate_
     >>> # Actually returns slowness instead of velocity
     >>> for velocity in slowness2vel(estimate):
     ...     print '%.4f' % (velocity),

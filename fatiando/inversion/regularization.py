@@ -53,7 +53,7 @@ class Damping(Objective):
         return 2*scipy.sparse.identity(self.nparams).tocsr()
 
     def gradient(self, p):
-        if p is None:
+        if p is 'null':
             grad = 0
         else:
             grad = 2.*p
@@ -76,7 +76,7 @@ class Smoothness(Objective):
         return self._cache['hessian']['array']
 
     def gradient(self, p):
-        if p is None:
+        if p is 'null':
             grad = 0
         else:
             grad = safe_dot(self.hessian(p), p)

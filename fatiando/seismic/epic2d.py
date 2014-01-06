@@ -57,7 +57,7 @@ class Homogeneous(Misfit):
         >>> # Pass the data to the solver class
         >>> solver = Homogeneous(ttres, recs, vp, vs)
         >>> # Estimate the epicenter
-        >>> x, y = solver.fit(initial=[1, 1])
+        >>> x, y = solver.fit(initial=[1, 1]).estimate_
         >>> print "(%.4f, %.4f)" % (x, y)
         (5.0000, 5.0000)
 

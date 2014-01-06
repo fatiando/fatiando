@@ -15,14 +15,18 @@ Here is an example of how to implement a simple linear regression using the
 ...             model={}, nparams=2, islinear=True)
 ...     def _get_predicted(self, p):
 ...         a, b = p
-...         return a*self.postional['x'] + b
+...         return a*self.positional['x'] + b
 ...     def _get_jacobian(self, p):
 ...         return np.transpose([self.positional['x'], np.ones(self.ndata)])
->>> x = np.linspace(0, 5, 10)
+>>> x = np.linspace(0, 5, 6)
 >>> y = 2*x + 5
+>>> y
+array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> solver = Regression(x, y)
->>> solver.fit()
+>>> solver.fit().estimate_
 array([ 2.,  5.])
+>>> solver.predicted()
+array([  5.,   7.,   9.,  11.,  13.,  15.])
 
 A more complicated example would be to implement a generic polynomial fit.
 
@@ -33,19 +37,21 @@ A more complicated example would be to implement a generic polynomial fit.
 ...             data=y, positional={'x':x},
 ...             model={'degree':degree}, nparams=degree + 1, islinear=True)
 ...     def _get_predicted(self, p):
-...         return sum(p[i]*self.postional['x']**i
+...         return sum(p[i]*self.positional['x']**i
 ...                    for i in xrange(self.model['degree'] + 1))
 ...     def _get_jacobian(self, p):
 ...         return np.transpose([self.positional['x']**i
 ...                             for i in xrange(self.model['degree'] + 1)])
 >>> solver = PolynomialRegression(x, y, 1)
->>> solver.fit()
+>>> solver.fit().estimate_
 array([ 5.,  2.])
+>>> # Use a second order polynomial
 >>> y = 0.1*x**2 + 3*x + 6
 >>> solver = PolynomialRegression(x, y, 2)
->>> solver.fit()
+>>> solver.fit().estimate_
 array([ 6. ,  3. ,  0.1])
-
+>>> np.all(np.abs(solver.residuals()) < 10**-10)
+True
 
 ----
 
@@ -95,6 +101,7 @@ class Objective(object):
         self.islinear = islinear
         self.nparams = nparams
         self.ndata = 0
+        self.estimate_ = None
         self.default_solver = 'linear' if islinear else 'levmarq'
 
     def __repr__(self):
@@ -214,7 +221,8 @@ class Objective(object):
                    'acor':self.acor}
         if method not in solvers:
             raise ValueError("Invalid optimization method '%s'" % (method))
-        return solvers[method](**kwargs)
+        self.estimate_ = solvers[method](**kwargs)
+        return self
 
     def linear(self, precondition=True):
         """
@@ -233,8 +241,8 @@ class Objective(object):
             The estimated parameter vector
 
         """
-        hessian = self.hessian(None)
-        gradient = self.gradient(None)
+        hessian = self.hessian('null')
+        gradient = self.gradient('null')
         p = linear(hessian, gradient, precondition=precondition)
         return p
 
@@ -641,14 +649,15 @@ class Misfit(Objective):
         self._cache['hessian'] = {'hash':'', 'array':None}
         return self
 
-    def residuals(self, p):
+    def residuals(self, p=None):
         """
         Calculate the residuals vector (observed - predicted data).
 
         Parameters:
 
-        * p : 1d-array
-            The parameter vector used to calculate the predicted data.
+        * p : 1d-array or None
+            The parameter vector used to calculate the residuals. If None, will
+            use the current estimate stored in ``estimate_``.
 
         Returns:
 
@@ -658,14 +667,15 @@ class Misfit(Objective):
         """
         return self.data - self.predicted(p)
 
-    def predicted(self, p):
+    def predicted(self, p=None):
         """
         Calculate the predicted data for a given parameter vector.
 
         Parameters:
 
-        * p : 1d-array
-            The parameter vector used to calculate the predicted data.
+        * p : 1d-array or None
+            The parameter vector used to calculate the predicted data. If None,
+            will use the current estimate stored in ``estimate_``.
 
         Returns:
 
@@ -673,9 +683,11 @@ class Misfit(Objective):
             The predicted data
 
         """
-        if p is None:
+        if p == 'null':
             pred = 0
         else:
+            if p is None:
+                p = self.estimate_
             hash = self.hasher(p)
             if hash != self._cache['predicted']['hash']:
                 self._cache['predicted']['array'] = self._get_predicted(p)
@@ -1135,7 +1147,7 @@ class MultiObjective(Objective):
         """
         return sum(mu*obj.hessian(p) for mu, obj in self.objs)
 
-    def predicted(self, p):
+    def predicted(self, p=None):
         """
         The predicted data for all data-misfit functions in the multi-objective
 
@@ -1157,6 +1169,8 @@ class MultiObjective(Objective):
             list.
 
         """
+        if p is None:
+            p = self.estimate_
         pred = []
         for mu, obj in self.objs:
             if callable(getattr(obj, 'predicted', None)):
@@ -1165,7 +1179,7 @@ class MultiObjective(Objective):
             pred = pred[0]
         return pred
 
-    def residuals(self, p):
+    def residuals(self, p=None):
         """
         The residuals vector for data-misfit functions in the multi-objective
 
@@ -1187,6 +1201,8 @@ class MultiObjective(Objective):
             list.
 
         """
+        if p is None:
+            p = self.estimate_
         res = []
         for mu, obj in self.objs:
             if callable(getattr(obj, 'residuals', None)):

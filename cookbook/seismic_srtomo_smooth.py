@@ -31,8 +31,8 @@ tts, error = utils.contaminate(tts, 0.01, percent=True, return_stddev=True)
 mesh = SquareMesh(area, shape)
 # and run the inversion
 tomo = srtomo.SRTomo(tts, srcs, recs, mesh) + 10**6*Smoothness2D(mesh.shape)
-estimate = tomo.fit()
-residuals = tomo.residuals(estimate)
+estimate = tomo.fit().estimate_
+residuals = tomo.residuals()
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', srtomo.slowness2vel(estimate))
 

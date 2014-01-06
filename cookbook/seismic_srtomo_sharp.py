@@ -37,8 +37,8 @@ tomo = srtomo.SRTomo(tts, srcs, recs, mesh) \
 # Since Total Variation is a non-linear function, then the tomography becomes
 # non-linear. So fit uses the Levemberg-Marquardt algorithm, a gradient descent
 # method, that requires an initial estimate
-estimate = tomo.fit(initial=0.0005*numpy.ones(mesh.size))
-residuals = tomo.residuals(estimate)
+estimate = tomo.fit(initial=0.0005*numpy.ones(mesh.size)).estimate_
+residuals = tomo.residuals()
 # Convert the slowness estimate to velocities and add it the mesh
 mesh.addprop('vp', srtomo.slowness2vel(estimate))
 

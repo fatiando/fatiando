@@ -140,38 +140,9 @@ class SingleChange(Misfit):
         >>> temp = abrupt(amp, age, zp)
         >>> # Run the inversion for the amplitude and time
         >>> solver = SingleChange(temp, zp, mode='abrupt')
-        >>> solver
-        SingleChange(
-            temp=array([ 2.   ,  1.98 ,  1.96 ,  1.94 ,  1.92 ,  1.9  ,
-                1.88 ,  1.86 ,  1.84 ,  1.82 ,  1.8  ,  1.78 ,
-                1.76 ,  1.74 ,  1.72 ,  1.7  ,  1.681,  1.661,
-                1.642,  1.622,  1.602,  1.583,  1.564,  1.544,
-                1.525,  1.506,  1.487,  1.468,  1.449,  1.43 ,
-                1.411,  1.393,  1.374,  1.356,  1.337,  1.319,
-                1.301,  1.283,  1.265,  1.247,  1.229,  1.212,
-                1.194,  1.177,  1.159,  1.142,  1.125,  1.108,
-                1.091,  1.075,  1.058,  1.042,  1.026,  1.009,
-                0.993,  0.977,  0.962,  0.946,  0.931,  0.915,
-                0.9  ,  0.885,  0.87 ,  0.856,  0.841,  0.827,
-                0.812,  0.798,  0.784,  0.77 ,  0.757,  0.743,
-                0.73 ,  0.716,  0.703,  0.69 ,  0.678,  0.665,
-                0.652,  0.64 ,  0.628,  0.616,  0.604,  0.592,
-                0.581,  0.569,  0.558,  0.547,  0.536,  0.525,
-                0.515,  0.504,  0.494,  0.484,  0.473,  0.464,
-                0.454,  0.444,  0.435,  0.425]),
-            zp=array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12,
-               13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-               26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
-               39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
-               52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-               65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77,
-               78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-               91, 92, 93, 94, 95, 96, 97, 98, 99]),
-            mode='abrupt',
-            diffus=31.5576)
         >>> # Need an initial estimate because this is a non-linear problem
         >>> initial = [1, 1]
-        >>> est_amp, est_age = solver.fit(initial=initial)
+        >>> est_amp, est_age = solver.fit(initial=initial).estimate_
         >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
         amp: 2.00  age: 100.00
         >>> # For a LINEAR change
@@ -179,7 +150,7 @@ class SingleChange(Misfit):
         >>> age = 52.5
         >>> temp = linear(amp, age, zp)
         >>> solver = SingleChange(temp, zp, mode='linear')
-        >>> est_amp, est_age = solver.fit(initial=initial)
+        >>> est_amp, est_age = solver.fit(initial=initial).estimate_
         >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
         amp: 3.45  age: 52.50
 

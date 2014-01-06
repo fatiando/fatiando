@@ -55,7 +55,7 @@ centers = mpl.pick_points(area, mpl.gca(), xy2ne=True)
 # Structural index is 3
 euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
 sizes = np.linspace(500, 5000, 20)
-results = [ExpandingWindow(euler, c, sizes).fit() for c in centers]
+results = [ExpandingWindow(euler, c, sizes).fit().estimate_ for c in centers]
 
 print "Base level used: %g" % (baselevel)
 for i, res in enumerate(results):

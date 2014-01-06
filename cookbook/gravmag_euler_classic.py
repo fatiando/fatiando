@@ -40,7 +40,7 @@ mpl.show()
 
 # Run the Euler deconvolution on the whole dataset
 euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
-results = euler.fit()
+results = euler.fit().estimate_
 print "Base level used: %g" % (baselevel)
 print "Estimated:"
 print "  Base level:             %g" % (results[3])

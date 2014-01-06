@@ -17,8 +17,7 @@ temp, error = utils.contaminate(climsig.abrupt(amp, age, zp), 0.02,
 
 # Preparing for the inversion
 data = climsig.SingleChange(temp, zp, mode='linear')
-estimate = data.fit(initial=[1, 1])
-est_amp, est_age = estimate
+est_amp, est_age = data.fit(initial=[1, 1]).estimate_
 
 print "Trying to invert an abrupt change as linear"
 print "  true:      amp=%.3f age=%.3f" % (amp, age)
@@ -27,7 +26,7 @@ print "  estimated: amp=%.3f age=%.3f" % (est_amp, est_age)
 mpl.figure(figsize=(4,5))
 mpl.title("Residual well temperature")
 mpl.plot(temp, zp, 'ok', label='Observed')
-mpl.plot(data.predicted(estimate), zp, '--r', linewidth=3, label='Predicted')
+mpl.plot(data.predicted(), zp, '--r', linewidth=3, label='Predicted')
 mpl.legend(loc='lower right', numpoints=1)
 mpl.xlabel("Temperature (C)")
 mpl.ylabel("Z (m)")

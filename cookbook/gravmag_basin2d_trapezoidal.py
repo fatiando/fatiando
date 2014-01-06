@@ -14,18 +14,18 @@ z = numpy.zeros_like(x)
 gz = utils.contaminate(talwani.gz(x, z, [model]), 0.5)
 
 solver = basin2d.Trapezoidal(x, z, gz, verts[0:2], density=-100)
-estimate = solver.fit(initial=[9000, 500])
+estimate = solver.fit(initial=[9000, 500]).get_polygon()
 
 mpl.figure()
 mpl.subplot(2, 1, 1)
 mpl.title("Gravity anomaly")
 mpl.plot(x, gz, 'ok', label='Observed')
-mpl.plot(x, solver.predicted(estimate), '-r', linewidth=2, label='Predicted')
+mpl.plot(x, solver.predicted(), '-r', linewidth=2, label='Predicted')
 mpl.legend(loc='lower left', numpoints=1)
 mpl.ylabel("mGal")
 mpl.xlim(0, 100000)
 mpl.subplot(2, 1, 2)
-mpl.polygon(solver.topolygon(estimate), 'o-r', linewidth=2, fill='r',
+mpl.polygon(estimate, 'o-r', linewidth=2, fill='r',
     alpha=0.3, label='Estimated')
 mpl.polygon(model, '--k', linewidth=2, label='True')
 mpl.legend(loc='lower left', numpoints=1)
