@@ -29,6 +29,9 @@ array([ 2.,  5.])
 array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> solver.residuals()
 array([ 0.,  0.,  0.,  0.,  0.,  0.])
+>>> # Configure solver to use a non-linear gradient method
+>>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
+array([ 2.,  5.])
 
 A more complicated example would be to implement a generic polynomial fit.
 
@@ -140,7 +143,6 @@ class Objective(object):
         self.nparams = nparams
         self.ndata = 0
         self.estimate_ = None
-        self.default_solver = 'linear' if islinear else 'levmarq'
 
     def __repr__(self):
         return 'Objective instance'
@@ -172,42 +174,141 @@ class Objective(object):
         return self.__mul__(other)
     ###########################################################################
 
-    def fit(self, method='default', **kwargs):
+class FitMixin(object):
+    """
+    A mixin class for the *fit* method that minimizes the Objective function.
+
+    The :meth:`~fatiando.inversion.base.FitMixin.fit` method uses the
+    optimization method defined in the *fit_method* attribute.
+    When calling the optimization, will pass keyword arguments
+    defined in the *fit_args* atttribute.
+    Use the :meth:`~fatiando.inversion.base.FitMixin.config` method to set
+    these parameters.
+
+    Also specifies methods for the individual solvers in
+    :mod:`fatiando.inversion.solvers`:
+
+    * :meth:`~fatiando.inversion.base.FitMixin.linear`
+    * :meth:`~fatiando.inversion.base.FitMixin.newton`
+    * :meth:`~fatiando.inversion.base.FitMixin.levmarq`
+    * :meth:`~fatiando.inversion.base.FitMixin.steepest`
+    * :meth:`~fatiando.inversion.base.FitMixin.acor`
+
+    """
+
+    default_solver_args = {
+        'linear':{'precondition':True},
+        'newton':{'initial':None, 'maxit':30, 'tol':10**-5,
+                  'precondition':True},
+        'levmarq':{'initial':None, 'maxit':30, 'maxsteps':10, 'lamb':1,
+                   'dlamb':2, 'tol':10**-5, 'precondition':True},
+        'steepest':{'initial':None, 'stepsize':0.1, 'maxsteps':30,
+                    'maxit':1000, 'tol':10**-5},
+        'acor':{'bounds':None, 'nants':None, 'archive_size':None, 'maxit':1000,
+                'diverse':0.5, 'evap':0.85, 'seed':None}}
+
+    def config(self, method, **kwargs):
         """
-        Solve for the parameter vector that minimizes this objective function.
+        Configure the optimization method and its parameters.
+
+        This sets the method used by
+        :meth:`~fatiando.inversion.base.FitMixin.fit` and the keyword arguments
+        that are passed to it.
 
         Parameters:
 
         * method : string
-            The optimization method to use. If *method* is ``'default'``, will
-            use the solver defined in ``default_solver`` class attribute.
+            The optimization method. One of: ``'linear'``, ``'newton'``,
+            ``'levmarq'``, ``'steepest'``, ``'acor'``
 
-        Returns:
+        Other keyword arguments that can be passed are the ones allowed by each
+        method. See the corresponding docstrings for more information:
 
-        * estimate : 1d-array
-            The estimated parameter vector
+        * :meth:`~fatiando.inversion.base.FitMixin.linear`
+        * :meth:`~fatiando.inversion.base.FitMixin.newton`
+        * :meth:`~fatiando.inversion.base.FitMixin.levmarq`
+        * :meth:`~fatiando.inversion.base.FitMixin.steepest`
+        * :meth:`~fatiando.inversion.base.FitMixin.acor`
 
-        Optimization methods:
+        .. note:: The *iterate* keyword is not supported by *fit*.
 
-        * 'linear': directly solve a linear problem
-        * 'levmarq': gradient descent with the Levemberg-Marquardt algorithm
-        * 'newton': gradient descent with Newton's method
-        * 'steepest': gradient descent with the Steepest Descent method
-        * 'acor': heuristic Ant Colony Optimization for Continuous Domains
 
-        For other arguments that can be passed to each specific optimization
-        method, see the docstrings for respectively named class methods. These
-        options should be passed as keyword arguments.
+        Examples:
+
+        >>> s = FitMixin().config(method='newton', precondition=False,
+        ...                       initial=[0, 0], maxit=10, tol=0.01)
+        >>> s.fit_method
+        'newton'
+        >>> for k, v in sorted(s.fit_args.items()):
+        ...     print k, ':', v
+        initial : [0, 0]
+        maxit : 10
+        precondition : False
+        tol : 0.01
+        >>> # Omitted arguments will fall back to the method defaults
+        >>> s = s.config(method='levmarq', initial=[1, 1])
+        >>> for k, v in sorted(s.fit_args.items()):
+        ...     print k, ':', v
+        dlamb : 2
+        initial : [1, 1]
+        lamb : 1
+        maxit : 30
+        maxsteps : 10
+        precondition : True
+        tol : 1e-05
+        >>> # For non-linear gradient solvers, *initial* is required
+        >>> s.config(method='newton')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Missing required *initial* argument for 'newton'
+        >>> # For ACO-R, *bounds* is required
+        >>> s.config(method='acor')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Missing required *bounds* argument for 'acor'
+        >>> # fit doesn't support the *iterate* argument
+        >>> s.config(method='steepest', iterate=True, initial=[1, 1])
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid argument 'iterate'
+        >>> # You can only pass arguments for that specific solver
+        >>> s.config(method='newton', lamb=10, initial=[1, 1])
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid argument 'lamb' for 'newton'
 
         """
-        if method == 'default':
-            method = self.default_solver
-        solvers = {'linear':self.linear, 'steepest':self.steepest,
-                   'newton':self.newton, 'levmarq':self.levmarq,
-                   'acor':self.acor}
-        if method not in solvers:
-            raise ValueError("Invalid optimization method '%s'" % (method))
-        self.estimate_ = solvers[method](**kwargs)
+        if method not in self.default_solver_args:
+            raise ValueError("Invalid method '%s'" % (method))
+        if 'iterate' in kwargs:
+            raise AttributeError("Invalid argument 'iterate'")
+        if (method in ['newton', 'levmarq', 'steepest'] and
+            'initial' not in kwargs):
+            raise AttributeError(
+                "Missing required *initial* argument for '%s'" % (method))
+        if method == 'acor' and 'bounds' not in kwargs:
+            raise AttributeError(
+                "Missing required *bounds* argument for '%s'" % (method))
+        args = self.default_solver_args[method].copy()
+        for k in kwargs:
+            if k not in args:
+                raise AttributeError("Invalid argument '%s' for '%s'" % (k,
+                    method))
+            args[k] = kwargs[k]
+        self.fit_method = method
+        self.fit_args = args
+        return self
+
+    def fit(self):
+        """
+        Solve for the parameter vector that minimizes this objective function.
+
+        Uses the optimization method and parameters defined using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+
+        The estimated parameter vector is stored in the *estimate_* attribute.
+        """
+        self.estimate_ = getattr(self, self.fit_method)(**self.fit_args)
         return self
 
     def linear(self, precondition=True):
@@ -404,7 +505,7 @@ class Objective(object):
             continue
         return p
 
-class Misfit(Objective):
+class Misfit(Objective, FitMixin):
     r"""
     An l2-norm data-misfit function.
 
@@ -503,6 +604,8 @@ class Misfit(Objective):
         self.weights = None
         if weights is not None:
             self.set_weights(weights)
+        if islinear:
+            self.config(method='linear')
 
     def _clear_cache(self):
         "Reset the cached matrices"
@@ -767,7 +870,7 @@ class Misfit(Objective):
             grad = numpy.array(grad).ravel()
         return grad
 
-class MultiObjective(Objective):
+class MultiObjective(Objective, FitMixin):
     r"""
     A multi-objective function.
 
@@ -871,6 +974,8 @@ class MultiObjective(Objective):
         if objs is not None:
             for mu, obj in objs:
                 self.add_objective(obj, regul_param=mu)
+        if self.islinear:
+            self.config(method='linear')
 
     def __repr__(self):
         text = '\n'.join(['MultiObjective(objs=['] +
