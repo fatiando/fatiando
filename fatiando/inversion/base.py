@@ -136,8 +136,6 @@ class Objective(object):
     """
 
     def __init__(self, nparams, islinear):
-        self._cache = {}
-        self.hasher = lambda x: hashlib.sha1(x).hexdigest()
         self.islinear = islinear
         self.nparams = nparams
         self.ndata = 0
@@ -487,16 +485,21 @@ class Misfit(Objective):
                  islinear=False):
         super(Misfit, self).__init__(nparams, islinear=islinear)
         self.data = data
-        self._backup_data = data
         self.ndata = len(data)
-        self.subset = None
         self.positional = positional
+        self.model = model
+        # Dumb hack to use only subsets of the data. Need a better solution
+        self.subset = None
+        self._backup_data = data
         self._backup_positional = positional.copy()
         self._backup_jacobian = None
-        self.model = model
+        # To cache the lastest computations (or for linear problems)
+        self.hasher = lambda x: hashlib.sha1(x).hexdigest()
+        self._cache = {}
         self._cache['predicted'] = {'hash':'', 'array':None}
         self._cache['jacobian'] = {'hash':'', 'array':None}
         self._cache['hessian'] = {'hash':'', 'array':None}
+        # Data weights
         self.weights = None
         if weights is not None:
             self.set_weights(weights)
