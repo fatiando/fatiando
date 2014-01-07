@@ -109,57 +109,6 @@ class Objective(object):
     def __repr__(self):
         return 'Objective instance'
 
-    def value(self, p):
-        """
-        The value of the objective function for a given parameter vector.
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * value : float
-            The value of the objective function
-
-        """
-        raise NotImplementedError("Misfit value not implemented")
-
-    def gradient(self, p):
-        """
-        The gradient of the objective function with respect to the parameter
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector where the gradient is evaluated.
-
-        Returns:
-
-        * gradient : 1d-array
-            The gradient vector
-
-        """
-        raise NotImplementedError("Gradient vector not implemented")
-
-    def hessian(self, p):
-        """
-        The Hessian of the objective function with respect to the parameters
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector where the Hessian is evaluated
-
-        Returns:
-
-        * hessian : 2d-array
-            The Hessian matrix
-
-        """
-        raise NotImplementedError("Hessian matrix not implemented")
-
     # Overload some operators. Adding and multiplying by a scalar transform the
     # objective function into a multiobjetive function (weighted sum of
     # objective functions)
@@ -522,12 +471,6 @@ class Misfit(Objective):
 
     def __repr__(self):
         return 'Misfit instance'
-
-    def _get_predicted(self, p):
-        raise NotImplementedError("Predicted data not implemented")
-
-    def _get_jacobian(self, p):
-        raise NotImplementedError("Jacobian matrix not implemented")
 
     def use_tmp_data(self, data):
         """
