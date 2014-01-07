@@ -27,6 +27,8 @@ array([  5.,   7.,   9.,  11.,  13.,  15.])
 array([ 2.,  5.])
 >>> solver.predicted()
 array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> solver.residuals()
+array([ 0.,  0.,  0.,  0.,  0.,  0.])
 
 A more complicated example would be to implement a generic polynomial fit.
 
@@ -105,8 +107,7 @@ class Objective(object):
         self.default_solver = 'linear' if islinear else 'levmarq'
 
     def __repr__(self):
-        return 'Objective(nparams=%d, islinear=%s)' % (self.nparams,
-                str(self.islinear))
+        return 'Objective instance'
 
     def value(self, p):
         """
@@ -480,39 +481,18 @@ class Misfit(Objective):
         ...                 positional={'x':numpy.array([4, 5, 6])},
         ...                 model={},
         ...                 nparams=2)
-        >>> solver
-        Misfit(
-            data=array([1, 2, 3]),
-            positional={
-                'x':array([4, 5, 6]),
-                },
-            model={
-                },
-            nparams=2,
-            islinear=False,
-            weights=None)
         >>> solver.use_tmp_data(numpy.array([4, 5, 6]))
-        Misfit(
-            data=array([4, 5, 6]),
-            positional={
-                'x':array([4, 5, 6]),
-                },
-            model={
-                },
-            nparams=2,
-            islinear=False,
-            weights=None)
+        Misfit instance
+        >>> solver.data
+        array([4, 5, 6])
+        >>> solver.positional
+        {'x': array([4, 5, 6])}
         >>> solver.reset_data()
-        Misfit(
-            data=array([1, 2, 3]),
-            positional={
-                'x':array([4, 5, 6]),
-                },
-            model={
-                },
-            nparams=2,
-            islinear=False,
-            weights=None)
+        Misfit instance
+        >>> solver.data
+        array([1, 2, 3])
+        >>> solver.positional
+        {'x': array([4, 5, 6])}
 
     """
 
@@ -541,36 +521,7 @@ class Misfit(Objective):
         self._cache['hessian'] = {'hash':'', 'array':None}
 
     def __repr__(self):
-        lw = 60
-        prec = 3
-        text = [
-            'Misfit(',
-            '    data=%s,' % (numpy.array_repr(
-                self.data, max_line_width=lw, precision=prec)),
-            '    positional={',]
-        if self.positional:
-            text.append(
-            '%s' % ('\n'.join([
-                "        '%s':%s," % (k, numpy.array_repr(self.positional[k],
-                    max_line_width=lw, precision=prec))
-                for k in self.positional])))
-        text.extend([
-            '        },',
-            '    model={'])
-        if self.model:
-            text.append(
-            '%s' % ('\n'.join([
-                "        '%s':%s," % (k, str(self.model[k]))
-                for k in self.model])))
-        text.extend([
-            '        },',
-            '    nparams=%d,'  % (self.nparams),
-            '    islinear=%s,' % (repr(self.islinear)),
-            '    weights=%s)' % (
-                repr(self.weights) if self.weights is None
-                else numpy.array_repr(
-                    self.weights, max_line_width=lw, precision=prec))])
-        return '\n'.join(text)
+        return 'Misfit instance'
 
     def _get_predicted(self, p):
         raise NotImplementedError("Predicted data not implemented")
@@ -857,18 +808,10 @@ class MultiObjective(Objective):
         >>> obj1 = Misfit(data=numpy.array([1, 2, 3, 4]), positional={},
         ...               model={}, nparams=3)
         >>> obj1
-        Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)
+        Misfit instance
         >>> obj2 = Objective(nparams=3, islinear=True)
         >>> obj2
-        Objective(nparams=3, islinear=True)
+        Objective instance
 
     1. Pass a list of lists to the constructor like so:
 
@@ -876,16 +819,8 @@ class MultiObjective(Objective):
         >>> multiobj = MultiObjective([[mu1, obj1], [mu2, obj2]])
         >>> multiobj
         MultiObjective(objs=[
-            [1, Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)],
-            [0.01, Objective(nparams=3, islinear=True)],
+            [1, Misfit instance],
+            [0.01, Objective instance],
         ])
 
     2. Sum objective functions::
@@ -893,31 +828,15 @@ class MultiObjective(Objective):
         >>> multiobj = mu1*obj1 + mu2*obj2
         >>> multiobj
         MultiObjective(objs=[
-            [1, Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)],
-            [0.01, Objective(nparams=3, islinear=True)],
+            [1, Misfit instance],
+            [0.01, Objective instance],
         ])
         >>> # Since mu1 == 1, the following is the equivalent
         >>> multiobj = obj1 + mu2*obj2
         >>> multiobj
         MultiObjective(objs=[
-            [1, Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)],
-            [0.01, Objective(nparams=3, islinear=True)],
+            [1, Misfit instance],
+            [0.01, Objective instance],
         ])
 
     3. Use the ``add_objective`` method::
@@ -928,28 +847,12 @@ class MultiObjective(Objective):
         ])
         >>> multiobj.add_objective(obj1)
         MultiObjective(objs=[
-            [1, Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)],
+            [1, Misfit instance],
         ])
         >>> multiobj.add_objective(obj2, regul_param=mu2)
         MultiObjective(objs=[
-            [1, Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)],
-            [0.01, Objective(nparams=3, islinear=True)],
+            [1, Misfit instance],
+            [0.01, Objective instance],
         ])
 
     You can access the different objective functions in a MultiObjective like
@@ -957,47 +860,23 @@ class MultiObjective(Objective):
 
         >>> mu1, obj1 = multiobj[0]
         >>> print mu1, obj1
-        1 Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)
+        1 Misfit instance
         >>> mu2, obj2 = multiobj[1]
         >>> print mu2, obj2
-        0.01 Objective(nparams=3, islinear=True)
+        0.01 Objective instance
 
     and like lists, you can iterate over them as well::
 
         >>> for mu, obj in multiobj:
         ...     print mu, obj
-        1 Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)
-        0.01 Objective(nparams=3, islinear=True)
+        1 Misfit instance
+        0.01 Objective instance
 
     You can check which of the objective functions has data associated with it
     (i.e., is a data-misfit function)::
 
         >>> multiobj.havedata()
-        [Misfit(
-            data=array([1, 2, 3, 4]),
-            positional={
-                },
-            model={
-                },
-            nparams=3,
-            islinear=False,
-            weights=None)]
+        [Misfit instance]
 
 
     """
