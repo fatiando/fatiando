@@ -71,22 +71,60 @@ class Objective(object):
     """
     An objective function for an inverse problem.
 
-    Objective functions have a :methd:`~fatiando.inversion.base.Objective.fit``
-    method that finds the parameter vector *p* that minimizes them. You can
-    specify a range of optimization methods through the ``method`` argument.
-    Alternatively, you can call the optimization methods directly:
+    Objective functions know how to calculate their value, gradient and/or
+    Hessian matrix for a given parameter vector *p*. The methods that implement
+    these should have the following format::
 
-    * :mesh:`~fatiando.inversion.base.Objective.linear`
-    * :mesh:`~fatiando.inversion.base.Objective.levmarq`
-    * :mesh:`~fatiando.inversion.base.Objective.newton`
-    * :mesh:`~fatiando.inversion.base.Objective.steepest`
-    * :mesh:`~fatiando.inversion.base.Objective.acor`
+        def value(self, p):
+            '''
+            Calculate the value of the objetive function.
 
-    Keep in mind that using ``fit`` is the **preferred way**.
+            Parameters:
 
-    Objective functions also know how to calculate their value, gradient and/or
-    Hessian matrix for a given parameter vector *p*. These functions are
-    problem specific and need to be implemented when subclassing *Objective*.
+            * p : 1d-array or None
+                The parameter vector.
+
+            Returns:
+
+            * value : float
+
+            '''
+            ...
+
+        def hessian(self, p):
+            '''
+            Calculates the Hessian matrix.
+
+            Parameters:
+
+            * p : 1d-array
+                The parameter vector where the Hessian is evaluated
+
+            Returns:
+
+            * hessian : 2d-array
+
+            '''
+            ...
+
+        def gradient(self, p):
+            '''
+            The gradient vector.
+
+            Parameters:
+
+            * p : 1d-array
+                The parameter vector where the gradient is evaluated
+
+            Returns:
+
+            * gradient : 1d-array
+
+            '''
+            ...
+
+    These methods are problem specific and need to be implemented when
+    subclassing *Objective*.
 
     Parameters:
 
@@ -635,7 +673,7 @@ class Misfit(Objective):
         Parameters:
 
         * p : 1d-array or None
-            The parameter vector. If the problem is linear, pass ``None``
+            The parameter vector.
 
         Returns:
 
@@ -654,7 +692,7 @@ class Misfit(Objective):
 
     def hessian(self, p):
         r"""
-        The Hessian of the misfit function with respect to the parameters
+        The Hessian of the misfit function with respect to the parameters.
 
         Calculated using the Gauss approximation:
 
@@ -705,7 +743,7 @@ class Misfit(Objective):
         Parameters:
 
         * p : 1d-array
-            The parameter vector where the Hessian is evaluated
+            The parameter vector where the gradient is evaluated
 
         Returns:
 
