@@ -5,10 +5,7 @@ refraction)
 **Solver**
 
 * :class:`~fatiando.seismic.srtomo.SRTomo`: Data misfit class that runs the
-  tomography. Generaly requires regularization, like
-  :class:`~fatiando.inversion.regularization.Damping` or
-  :class:`~fatiando.inversion.regularization.Smoothness2D`
-
+  tomography.
 
 **Functions**
 
@@ -41,6 +38,10 @@ class SRTomo(Misfit):
 
         To safely convert slowness to velocity, use
         :func:`~fatiando.seismic.srtomo.slowness2vel`.
+
+    Generaly requires regularization, like
+    :class:`~fatiando.inversion.regularization.Damping` or
+    :class:`~fatiando.inversion.regularization.Smoothness2D`.
 
     Parameters:
 
@@ -77,18 +78,18 @@ class SRTomo(Misfit):
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Run the tomography
     >>> tomo = SRTomo(ttimes, srcs, recs, mesh)
-    >>> estimate = tomo.fit().estimate_
+    >>> slow = tomo.fit().estimate_
     >>> # Actually returns slowness instead of velocity
-    >>> for velocity in slowness2vel(estimate):
+    >>> for velocity in slowness2vel(slow):
     ...     print '%.4f' % (velocity),
     2.0000 5.0000
 
     Using the steepest descent method to solve (no linear systems):
 
     >>> # Use steepest descent to solve this (requires an initial guess)
-    >>> estimate = tomo.fit(method='steepest', initial=[0, 0]).estimate_
+    >>> slow = tomo.config(method='steepest', initial=[0, 0]).fit().estimate_
     >>> # Actually returns slowness instead of velocity
-    >>> for velocity in slowness2vel(estimate):
+    >>> for velocity in slowness2vel(slow):
     ...     print '%.4f' % (velocity),
     2.0000 5.0000
 
