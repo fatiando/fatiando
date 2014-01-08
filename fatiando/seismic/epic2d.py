@@ -35,6 +35,14 @@ class Homogeneous(Misfit):
     * vs : float
         Assumed velocity of S waves
 
+    .. note::
+
+        The recommended solver for this inverse problem is the
+        Levemberg-Marquardt method. Since this is a non-linear problem, set the
+        desired method and initial solution using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        See the example bellow.
+
     Examples:
 
     Using synthetic data.
@@ -55,9 +63,10 @@ class Homogeneous(Misfit):
         >>> stime = ttime2d.straight(model, 'vs', srcs, recs)
         >>> ttres = stime - ptime
         >>> # Pass the data to the solver class
-        >>> solver = Homogeneous(ttres, recs, vp, vs)
+        >>> solver = Homogeneous(ttres, recs, vp, vs).config('levmarq',
+        ...                                                  initial=[1, 1])
         >>> # Estimate the epicenter
-        >>> x, y = solver.fit(initial=[1, 1]).estimate_
+        >>> x, y = solver.fit().estimate_
         >>> print "(%.4f, %.4f)" % (x, y)
         (5.0000, 5.0000)
 

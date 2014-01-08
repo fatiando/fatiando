@@ -6,7 +6,8 @@ import numpy
 from fatiando import gridder, utils
 from fatiando.mesher import Square
 from fatiando.vis import mpl
-from fatiando.seismic import ttime2d, epic2d
+from fatiando.seismic import ttime2d
+from fatiando.seismic.epic2d import Homogeneous
 
 # Make a velocity model to calculate traveltimes
 area = (0, 10, 0, 10)
@@ -33,7 +34,7 @@ stime = ttime2d.straight(model, 'vs', srcs, recs)
 # Calculate the residual time (S - P) with added noise
 traveltime, error = utils.contaminate(stime - ptime, 0.05, percent=True,
                                       return_stddev=True)
-solver = epic2d.Homogeneous(traveltime, recs, vp, vs)
+solver = Homogeneous(traveltime, recs, vp, vs)
 # Pick the initial estimate and fit
 mpl.figure()
 mpl.axis('scaled')
@@ -44,7 +45,7 @@ initial = mpl.pick_points(area, mpl.gca(), marker='*', color='b')
 if len(initial) > 1:
     print "Don't be greedy! Pick only one point"
     sys.exit()
-estimate = solver.fit(initial=initial[0]).estimate_
+estimate = solver.config('levmarq', initial=initial[0]).fit().estimate_
 
 mpl.figure(figsize=(10,4))
 mpl.subplot(1, 2, 1)
