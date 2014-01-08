@@ -30,52 +30,93 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 ----
 
 """
+from __future__ import division
 import numpy
 from scipy.sparse import linalg, lil_matrix, csc_matrix
 
-from fatiando.gravmag import sphere as kernel
-from fatiando import utils
+from . import sphere as kernel
+from ..utils import dircos, safe_dot
+from ..inversion.base import Misfit
 
 
-class Data(object):
+class EQLGravity(Misfit):
     """
-    Wrap data for use in the equivalent layer inversion.
-    """
+    Estimate an equivalent layer from gravity data.
 
-    def __init__(self, x, y, z, data):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.data = data
-        self.size = len(data)
-
-class Gz(Data):
-    """
-    A container for data of the gravity anomaly.
-
-    Coordinate system used: x->North y->East z->Down
+    .. note:: Assumes x = North, y = East, z = Down.
 
     Parameters:
 
-    * x, y, z : 1D arrays
-        Arrays with the x, y, z coordinates of the data points
+    * x, y, z : 1d-arrays
+        The x, y, z coordinates of each data point.
+    * data : 1d-array
+        The gravity data at each point.
+    * grid : :class:`~fatiando.mesher.PointGrid`
+        The sources in the equivalent layer. Will invert for the density of
+        each point in the grid.
+    * field : string
+        Which gravitational field is the data. Options are: ``'gz'`` (gravity
+        anomaly), ``'gxx'``, ``'gxy'``, ..., ``'gzz'`` (gravity gradient
+        tensor). Defaults to ``'gz'``.
 
-    * data : 1D array
-        The values of the data at the observation points
+    Examples:
+
+    Use the layer to fit some gravity data and check is our layer is able to
+    produce data at a different locations (i.e., interpolate)
+
+    >>> import numpy as np
+    >>> from fatiando import gridder
+    >>> from fatiando.gravmag import sphere
+    >>> from fatiando.mesher import Sphere, PointGrid
+    >>> from fatiando.inversion.regularization import Damping
+    >>> # Produce some gravity data
+    >>> area = (0, 1000, 0, 1000)
+    >>> x, y, z = gridder.scatter(area, 20, z=-1, seed=0)
+    >>> model = [Sphere(500, 500, 500, 400, {'density':1000})]
+    >>> gz = sphere.gz(x, y, z, model)
+    >>> # Setup a layer
+    >>> layer = PointGrid(area, 500, (10, 10))
+    >>> solver = (EQLGravity(x, y, z, gz, layer) +
+    ...           10**-35*Damping(layer.size)).fit()
+    >>> # Check the fit
+    >>> np.allclose(gz, solver.predicted(), rtol=0.01)
+    True
+    >>> # Add the densities to the layer
+    >>> layer.addprop('density', solver.estimate_)
+    >>> # Make a regular grid
+    >>> x, y, z = gridder.regular(area, (5, 5), z=-1)
+    >>> # Check agains the model
+    >>> gz_up = sphere.gz(x, y, z, layer)
+    >>> gz_true = sphere.gz(x, y, z, model)
+    >>> np.allclose(gz_up, gz_true, rtol=0.01, atol=0.5)
+    True
+
 
     """
 
-    def __init__(self, x, y, z, data):
-        Data.__init__(self, x, y, z, data)
+    def __init__(self, x, y, z, data, grid, field='gz'):
+        super(EQLGravity, self).__init__(data=data,
+            positional={'x':x, 'y':y, 'z':z},
+            model={'grid':grid},
+            nparams=grid.size, islinear=True)
+        self.field = field
 
-    def sensitivity(self, grid):
-        x, y, z = self.x, self.y, self.z
-        sens = numpy.empty((self.size, len(grid)), dtype=float)
-        for i, s in enumerate(grid):
-            sens[:,i] = kernel.gz(x, y, z, [s], dens=1.)
-        return sens
+    def _get_predicted(self, p):
+        return safe_dot(self.jacobian(p), p)
 
-class TotalField(Data):
+    def _get_jacobian(self, p):
+        x = self.positional['x']
+        y = self.positional['y']
+        z = self.positional['z']
+        func = getattr(kernel, self.field)
+        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
+        for i, c in enumerate(self.model['grid']):
+            jac[:,i] = func(x, y, z, [c], dens=1.)
+        return jac
+
+
+
+class TotalField():
     """
     A container for data of the total field magnetic anomaly.
 
@@ -116,7 +157,7 @@ class TotalField(Data):
     def sensitivity(self, grid):
         x, y, z = self.x, self.y, self.z
         inc, dec = self.inc, self.dec
-        mag = utils.dircos(self.sinc, self.sdec)
+        mag = dircos(self.sinc, self.sdec)
         sens = numpy.empty((self.size, len(grid)), dtype=float)
         for i, s in enumerate(grid):
             sens[:,i] = kernel.tf(x, y, z, [s], inc, dec, pmag=mag)
