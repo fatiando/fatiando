@@ -69,6 +69,7 @@ class Smoothness(Objective):
 
     def __init__(self, fdmat):
         super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
+        self._cache = {}
         self._cache['hessian'] = {'hash':'',
                                   'array':2*safe_dot(fdmat.T, fdmat)}
 
