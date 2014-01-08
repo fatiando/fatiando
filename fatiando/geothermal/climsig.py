@@ -130,6 +130,14 @@ class SingleChange(Misfit):
     * diffus : float
         Thermal diffusivity of the medium (in m^2/year)
 
+    .. note::
+
+        The recommended solver for this inverse problem is the
+        Levemberg-Marquardt method. Since this is a non-linear problem, set the
+        desired method and initial solution using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        See the example bellow.
+
     Example with synthetic data:
 
         >>> import numpy
@@ -139,19 +147,21 @@ class SingleChange(Misfit):
         >>> age = 100 # Uses years to avoid overflows
         >>> temp = abrupt(amp, age, zp)
         >>> # Run the inversion for the amplitude and time
-        >>> solver = SingleChange(temp, zp, mode='abrupt')
-        >>> # Need an initial estimate because this is a non-linear problem
-        >>> initial = [1, 1]
-        >>> est_amp, est_age = solver.fit(initial=initial).estimate_
-        >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
+        >>> # This is a non-linear problem, so use the Levemberg-Marquardt
+        >>> # algorithm with an initial estimate
+        >>> solver = SingleChange(temp, zp, mode='abrupt').config(
+        ...             'levmarq', initial=[1, 1])
+        >>> amp_, age_ = solver.fit().estimate_
+        >>> print "amp: %.2f  age: %.2f" % (amp_, age_)
         amp: 2.00  age: 100.00
         >>> # For a LINEAR change
         >>> amp = 3.45
         >>> age = 52.5
         >>> temp = linear(amp, age, zp)
-        >>> solver = SingleChange(temp, zp, mode='linear')
-        >>> est_amp, est_age = solver.fit(initial=initial).estimate_
-        >>> print "amp: %.2f  age: %.2f" % (est_amp, est_age)
+        >>> solver = SingleChange(temp, zp, mode='linear').config(
+        ...             'levmarq', initial=[1, 1])
+        >>> amp_, age_ = solver.fit().estimate_
+        >>> print "amp: %.2f  age: %.2f" % (amp_, age_)
         amp: 3.45  age: 52.50
 
     Notes:
