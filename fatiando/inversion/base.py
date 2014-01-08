@@ -1,62 +1,8 @@
 """
 The base classes for inverse problem solving.
 
-
-Examples:
-
-Here is an example of how to implement a simple linear regression using the
-:class:`~fatiando.inversion.base.Misfit` class.
-
->>> import numpy as np
->>> class Regression(Misfit):
-...     "Perform a linear regression"
-...     def __init__(self, x, y):
-...         super(Regression, self).__init__(data=y, positional={'x':x},
-...             model={}, nparams=2, islinear=True)
-...     def _get_predicted(self, p):
-...         a, b = p
-...         return a*self.positional['x'] + b
-...     def _get_jacobian(self, p):
-...         return np.transpose([self.positional['x'], np.ones(self.ndata)])
->>> x = np.linspace(0, 5, 6)
->>> y = 2*x + 5
->>> y
-array([  5.,   7.,   9.,  11.,  13.,  15.])
->>> solver = Regression(x, y)
->>> solver.fit().estimate_
-array([ 2.,  5.])
->>> solver.predicted()
-array([  5.,   7.,   9.,  11.,  13.,  15.])
->>> solver.residuals()
-array([ 0.,  0.,  0.,  0.,  0.,  0.])
->>> # Configure solver to use a non-linear gradient method
->>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
-array([ 2.,  5.])
-
-A more complicated example would be to implement a generic polynomial fit.
-
->>> class PolynomialRegression(Misfit):
-...     "Perform a polynomial regression"
-...     def __init__(self, x, y, degree):
-...         super(PolynomialRegression, self).__init__(
-...             data=y, positional={'x':x},
-...             model={'degree':degree}, nparams=degree + 1, islinear=True)
-...     def _get_predicted(self, p):
-...         return sum(p[i]*self.positional['x']**i
-...                    for i in xrange(self.model['degree'] + 1))
-...     def _get_jacobian(self, p):
-...         return np.transpose([self.positional['x']**i
-...                             for i in xrange(self.model['degree'] + 1)])
->>> solver = PolynomialRegression(x, y, 1)
->>> solver.fit().estimate_
-array([ 5.,  2.])
->>> # Use a second order polynomial
->>> y = 0.1*x**2 + 3*x + 6
->>> solver = PolynomialRegression(x, y, 2)
->>> solver.fit().estimate_
-array([ 6. ,  3. ,  0.1])
->>> np.all(np.abs(solver.residuals()) < 10**-10)
-True
+All classes derive from :class:`~fatiando.inversion.base.Objective`. This class
+represents an objetive function, a scalar function of a parameter vector.
 
 ----
 
@@ -198,14 +144,29 @@ class FitMixin(object):
 
     default_solver_args = {
         'linear':{'precondition':True},
-        'newton':{'initial':None, 'maxit':30, 'tol':10**-5,
+        'newton':{'initial':None,
+                  'maxit':30,
+                  'tol':10**-5,
                   'precondition':True},
-        'levmarq':{'initial':None, 'maxit':30, 'maxsteps':10, 'lamb':1,
-                   'dlamb':2, 'tol':10**-5, 'precondition':True},
-        'steepest':{'initial':None, 'stepsize':0.1, 'maxsteps':30,
-                    'maxit':1000, 'tol':10**-5},
-        'acor':{'bounds':None, 'nants':None, 'archive_size':None, 'maxit':1000,
-                'diverse':0.5, 'evap':0.85, 'seed':None}}
+        'levmarq':{'initial':None,
+                   'maxit':30,
+                   'maxsteps':10,
+                   'lamb':1,
+                   'dlamb':2,
+                   'tol':10**-5,
+                   'precondition':True},
+        'steepest':{'initial':None,
+                    'stepsize':0.1,
+                    'maxsteps':30,
+                    'maxit':1000,
+                    'tol':10**-5},
+        'acor':{'bounds':None,
+                'nants':None,
+                'archive_size':None,
+                'maxit':1000,
+                'diverse':0.5,
+                'evap':0.85,
+                'seed':None}}
 
     def config(self, method, **kwargs):
         """
@@ -222,7 +183,16 @@ class FitMixin(object):
             ``'levmarq'``, ``'steepest'``, ``'acor'``
 
         Other keyword arguments that can be passed are the ones allowed by each
-        method. See the corresponding docstrings for more information:
+        method.
+
+        Some methods have required arguments:
+
+        * *newton*, *levmarq* and *steepest* require the ``initial`` argument
+          (an initial estimate for the gradient descent)
+        * *acor* requires the ``bounds`` argument (min/max values for the
+          search space)
+
+        See the corresponding docstrings for more information:
 
         * :meth:`~fatiando.inversion.base.FitMixin.linear`
         * :meth:`~fatiando.inversion.base.FitMixin.newton`
@@ -230,7 +200,10 @@ class FitMixin(object):
         * :meth:`~fatiando.inversion.base.FitMixin.steepest`
         * :meth:`~fatiando.inversion.base.FitMixin.acor`
 
-        .. note:: The *iterate* keyword is not supported by *fit*.
+        .. note::
+
+            The *iterate* keyword is not supported by *fit*.
+            Use the individual methods to step through iterations.
 
 
         Examples:
@@ -355,7 +328,7 @@ class FitMixin(object):
             iterations.
         * dlamb : float
             Factor by which *lamb* is divided or multiplied when taking steps
-         * tol : float
+        * tol : float
             The convergence criterion. The lower it is, the more steps are
             permitted
         * precondition : True or False
@@ -527,7 +500,7 @@ class Misfit(Objective, FitMixin):
     vector :math:`\bar{p}` that minimizes it.
     See :class:`~fatiando.inversion.base.Objective` for more details.
 
-    When subclassing this class, you must implement methods two methods:
+    When subclassing this class, you must implement two methods:
 
     * ``_get_predicted(self, p)``: calculates the predicted data
       :math:`\bar{d}` for a given parameter vector ``p``

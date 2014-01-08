@@ -1,151 +1,118 @@
 """
 Everything you need to solve inverse problems!
 
-The main components of this package are:
+Examples
+--------
 
-**Regularizing functions**
+Linear Regression
+=================
 
-* :mod:`~fatiando.inversion.regularizer`
+Here is an example of how to implement a simple linear regression using the
+:class:`~fatiando.inversion.base.Misfit` class.
 
-This module has many classes that implement a range of regularizing functions.
-These classes know how to calculate the Hessian matrix, gradient vector, and
-value of the regularizing function for a given parameter vector. Most of these
-classes are generic and can be applied to any inverse problem, though some are
-designed for a specific parametrization (2D or 3D grids, for example).
+>>> import numpy as np
+>>> from fatiando.inversion.base import Misfit
+>>> class Regression(Misfit):
+...     "Perform a linear regression"
+...     def __init__(self, x, y):
+...         super(Regression, self).__init__(data=y, positional={'x':x},
+...             model={}, nparams=2, islinear=True)
+...     def _get_predicted(self, p):
+...         a, b = p
+...         return a*self.positional['x'] + b
+...     def _get_jacobian(self, p):
+...         return np.transpose([self.positional['x'], np.ones(self.ndata)])
+>>> x = np.linspace(0, 5, 6)
+>>> y = 2*x + 5
+>>> y
+array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> solver = Regression(x, y)
+>>> solver.fit().estimate_
+array([ 2.,  5.])
+>>> solver.predicted()
+array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> np.abs(solver.residuals() < 10**10)
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
-The regularizer classes can be passed to any inverse problem solver (below).
+Polynomial fit
+==============
 
-See the :class:`~fatiando.inversion.regularizer.Regularizer` class for the
-general structure the solvers expect from regularizer classes.
+A more complicated example would be to implement a generic polynomial fit.
 
-**Inverse problem solvers**
+>>> class PolynomialRegression(Misfit):
+...     "Perform a polynomial regression"
+...     def __init__(self, x, y, degree):
+...         super(PolynomialRegression, self).__init__(
+...             data=y, positional={'x':x},
+...             model={'degree':degree}, nparams=degree + 1, islinear=True)
+...     def _get_predicted(self, p):
+...         return sum(p[i]*self.positional['x']**i
+...                    for i in xrange(self.model['degree'] + 1))
+...     def _get_jacobian(self, p):
+...         return np.transpose([self.positional['x']**i
+...                             for i in xrange(self.model['degree'] + 1)])
+>>> solver = PolynomialRegression(x, y, 1)
+>>> solver.fit().estimate_
+array([ 5.,  2.])
+>>> # Use a second order polynomial
+>>> y = 0.1*x**2 + 3*x + 6
+>>> solver = PolynomialRegression(x, y, 2)
+>>> solver.fit().estimate_
+array([ 6. ,  3. ,  0.1])
+>>> np.abs(solver.residuals()) < 10**10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
-* :mod:`~fatiando.inversion.linear`
-* :mod:`~fatiando.inversion.gradient`
+You can also configure the solver to use a different optimization method:
 
-These modules have factory functions that generate generic inverse problem
-solvers. Instead of solving the inverse problem, they return a solver function
-with they solver parameters (step size, maximum iterations, etc) already set.
-The solver functions are actually Python generators_. Generators are special
-Python functions that have a ``yield`` statement instead of a ``return``. The
-difference is that generators should be used in ``for`` loops and return one
-iteration of the solving process per loop iteration.
-
-The solver functions receive only two parameters: a list of data modules
-(see :mod:`~fatiando.inversion.datamodule`) and a list of regularizers
-(see :mod:`~fatiando.inversion.regularizer`). Data modules know how to calculate
-things like the Hessian matrix and gradient vector for a given data set and
-parametrization (specific to a given inverse problem). Regularizers know how to
-calculate the same things but for a given regularizing function and
-parametrization. This way, the user can combine any number of data sets and
-regularizers as he/she wants. So we can program the solvers and regularizers
-once and use them in any inverse problem!
-
-.. _generators: http://wiki.python.org/moin/Generators
-
-A typical factory function for an iterative solver looks like::
-
-    def factory(initial, step, maxit):
-        # Define the solver generator. The parameters need by this specific
-        # solver are passed to it as optional parameters.
-        # dms is a list of data modules and regs is a list of regularizers
-        def solver(dms, regs, initial=initial, step=step, maxit=maxit):
-            # Initialize the solver parameters
-            ...
-            for it in xrange(maxit):
-                # Do an iteration and find an estimate p
-                ...
-                # Now comes the cool part! Spit out a changeset with the result
-                # of this iteration in a dictionary. goals is a list of the
-                # goal function values until this iteration. misfits is the same
-                # but for the data-misfit function. residuals is a list of the
-                # residual vectors of each data module
-                yield {'estimate':p, 'goals':goals, 'misfits':misfits,
-                       'residuals':residuals}
-        # The factory function returns the solver function (Python magic) which
-        # can be passed to a particular inverse problem.
-        return solver
-
-
-**Example of using a solver**
-
-Lets say I have a module that solves a particular inverse problem called
-``myinvprob.py``. This module would look something like this::
-
-    # myinvprob.py
-    from fatiando import inversion
-
-    class MyDataModule(inversion.datamodule.DataModule):
-        \"""
-        My personal data module. Implements the methods in the DataModule class
-        for this specific problem.
-        \"""
-        def __init__(self, data):
-            ...
-        ...
-
-    # Make a solver for this inverse problem using damping regularization
-    def solve(data, solver, damping=0):
-        \"""
-        Damping solver.
-
-        Parameters:
-        ...
-        * solver
-            A solver generator produced by a factory function
-
-        \"""
-        dms = [MyDataModule(data)]
-        regs = [inversion.regularizer.Damping(damping)]
-        # Now, run all iterations until the solver generator stops
-        for chset in solver(dms, regs):
-            continue
-        # collect the results from the last changeset
-        estimate = chset['estimate']
-        # and return
-        return estimate
-
-    # You can also make an generator solver for this problem. This way the user
-    # can run through the iterations to see how they progress
-    def iterate(data, solver, damping=0):
-        ...
-        # Define data modules and regularizers the same way
-        ...
-        # But this time, yield the estimate at each iteration
-        for chset in solver(dms, regs):
-            yield chset['estimate']
+>>> # Configure solver to use the Levemberg-Marquardt method
+>>> solver.config('levmarq', initial=[1, 1, 1]).fit().estimate_
+array([ 6. ,  3. ,  0.1])
+>>> np.abs(solver.residuals()) < 10**10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
 
-These solvers can then be called from scripts, like so::
+Non-linear Gaussian fit
+=======================
 
-    # My script
-    from fatiando import myinvprob
-    from fatiando.inversion import gradient
+In this example, I want to fit an equation of the form
 
-    # Load the data or generate synthetic data and pick an initial estimate
-    ...
+.. math::
 
-    # Solve the problem using Newton's method
-    solver = gradient.newton(initial, maxit=100, tol=10**(-5))
+    f(x) = a\exp(-b(x + c)^{2})
 
-    # Solve it all in one go
-    estimate = myinvprob.solve(data, solver, damping=0.1)
+Function *f* is non-linear with respect to inversion parameters *a, b, c*.
 
-    # or run through the iterations, plotting each step
-    for estimate in myinvprob.iterate(data, solver, damping=0.1):
-        # Plot estimate
-        ...
+>>> class GaussianFit(Misfit):
+...     def __init__(self, x, y):
+...         super(GaussianFit, self).__init__(data=y,
+...             positional={'x':x},
+...             model={},
+...             nparams=3, islinear=False)
+...     def _get_predicted(self, p):
+...         a, b, c = p
+...         x = self.positional['x']
+...         return a*np.exp(-b*(x + c)**2)
+...     def _get_jacobian(self, p):
+...         a, b, c = p
+...         x = self.positional['x']
+...         jac = np.transpose([
+...             np.exp(-b*(x + c)**2),
+...             # Do a numerical derivative for these two because I'm lazy
+...             (a*np.exp(-(b + 0.005)*(x + c)**2) -
+...              a*np.exp(-(b - 0.005)*(x + c)**2))/0.01,
+...             (a*np.exp(-(b)*(x + c + 0.005)**2) -
+...              a*np.exp(-(b)*(x + c - 0.005)**2))/0.01])
+...         return jac
+>>> x = np.linspace(0, 10, 1000)
+>>> a, b, c = 100, 0.1, -2
+>>> y = a*np.exp(-b*(x + c)**2)
+>>> # Non-linear solvers have to be configured. Lets use Levemberg-Marquardt.
+>>> solver = GaussianFit(x, y).config('levmarq', initial=[1, 1, 1])
+>>> solver.fit().estimate_
+array([ 100. ,    0.1,   -2. ])
+>>> np.all(np.abs(solver.residuals()) < 10**-10)
+True
 
-
-**Real usage examples**
-
-Some modules that use the :mod:`~fatiando.inversion` API:
-
-* :mod:`fatiando.seismic.profile`
-* :mod:`fatiando.seismic.srtomo`
-* :mod:`fatiando.seismic.epic2d`
-* :mod:`fatiando.geothermal.climsig`
-* :mod:`fatiando.gravmag.basin2d`
 
 ----
 
