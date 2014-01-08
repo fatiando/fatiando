@@ -947,8 +947,6 @@ class MultiObjective(Objective, FitMixin):
         if objs is not None:
             for mu, obj in objs:
                 self.add_objective(obj, regul_param=mu)
-        if self.islinear:
-            self.config(method='linear')
 
     def __repr__(self):
         text = '\n'.join(['MultiObjective(objs=['] +
@@ -980,11 +978,7 @@ class MultiObjective(Objective, FitMixin):
             self.nparams = nparams
         self.objs.append([regul_param, obj])
         if numpy.all([o.islinear for _, o in self.objs]):
-            self.islinear = True
-            self.default_solver = 'linear'
-        else:
-            self.islinear = False
-            self.default_solver = 'levmarq'
+            self.config(method='linear')
         return self
 
     def merge(self, multiobj):
