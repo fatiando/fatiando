@@ -64,6 +64,14 @@ class Triangular(Misfit):
     * delta : float
         Interval used to calculate the approximate derivatives
 
+    .. note::
+
+        The recommended solver for this inverse problem is the
+        Levemberg-Marquardt method. Since this is a non-linear problem, set the
+        desired method and initial solution using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        See the example bellow.
+
     Example using synthetic data::
 
         >>> import numpy
@@ -78,8 +86,9 @@ class Triangular(Misfit):
         >>> z = numpy.zeros_like(x)
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
-        >>> solver = Triangular(x, z, gz, [left, middle], 500)
-        >>> x, z = solver.fit(initial=[10000, 1000]).estimate_
+        >>> solver = Triangular(x, z, gz, [left, middle], 500).config(
+        ...     'levmarq', initial=[10000, 1000])
+        >>> x, z = solver.fit().estimate_
         >>> print '%.1f, %.1f' % (x, z)
         50000.0, 5000.0
         >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
@@ -198,6 +207,14 @@ class Trapezoidal(Misfit):
     * delta : float
         Interval used to calculate the approximate derivatives
 
+    .. note::
+
+        The recommended solver for this inverse problem is the
+        Levemberg-Marquardt method. Since this is a non-linear problem, set the
+        desired method and initial solution using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        See the example bellow.
+
     Example with synthetic data:
 
         >>> import numpy
@@ -212,8 +229,9 @@ class Trapezoidal(Misfit):
         >>> z = numpy.zeros_like(x)
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
-        >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500)
-        >>> z1, z2 = solver.fit(initial=[1000, 500]).estimate_
+        >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500).config(
+        ...     'levmarq', initial=[1000, 500])
+        >>> z1, z2 = solver.fit().estimate_
         >>> print '%.1f, %.1f' % (z1, z2)
         5000.0, 3000.0
         >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)

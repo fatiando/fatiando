@@ -13,8 +13,9 @@ x = numpy.arange(0., 100000., 1000.)
 z = numpy.zeros_like(x)
 gz = utils.contaminate(talwani.gz(x, z, [model]), 0.5)
 
-solver = basin2d.Trapezoidal(x, z, gz, verts[0:2], density=-100)
-estimate = solver.fit(initial=[9000, 500]).get_polygon()
+solver = basin2d.Trapezoidal(x, z, gz, verts[0:2], density=-100).config(
+        'levmarq', initial=[9000, 500])
+estimate = solver.fit().get_polygon()
 
 mpl.figure()
 mpl.subplot(2, 1, 1)
