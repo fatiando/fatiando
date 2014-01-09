@@ -31,7 +31,7 @@ array([  5.,   7.,   9.,  11.,  13.,  15.])
 array([ 2.,  5.])
 >>> solver.predicted()
 array([  5.,   7.,   9.,  11.,  13.,  15.])
->>> np.abs(solver.residuals() < 10**10)
+>>> np.abs(solver.residuals()) < 10**10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
 Polynomial fit
@@ -112,6 +112,36 @@ Function *f* is non-linear with respect to inversion parameters *a, b, c*.
 array([ 100. ,    0.1,   -2. ])
 >>> np.all(np.abs(solver.residuals()) < 10**-10)
 True
+
+Joint inversion
+===============
+
+Sometimes multiple data types depend on the same parameters (e.g., gravity
+and gravity gradients depend of density). In these cases, the inversion of both
+datasets can be performed simultaneously:
+
+>>> x1 = np.linspace(0, 5, 6)
+>>> y1 = 2*x1 + 5
+>>> y1
+array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> x2 = np.linspace(100, 1000, 4)
+>>> y2 = 2*x2 + 5
+>>> y2
+array([  205.,   805.,  1405.,  2005.])
+>>> solver = Regression(x1, y1) + Regression(x2, y2)
+>>> solver.fit().estimate_
+array([ 2.,  5.])
+>>> y1pred, y2pred = solver.predicted()
+>>> y1pred
+array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> y2pred
+array([  205.,   805.,  1405.,  2005.])
+>>> res1, res2 = solver.residuals()
+>>> np.abs(res1) < 10**-10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
+>>> np.abs(res2) < 10**-10
+array([ True,  True,  True,  True], dtype=bool)
+
 
 
 ----
