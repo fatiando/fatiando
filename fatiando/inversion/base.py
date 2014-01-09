@@ -932,13 +932,6 @@ class MultiObjective(Objective, FitMixin):
         1 Misfit instance
         0.01 Objective instance
 
-    You can check which of the objective functions has data associated with it
-    (i.e., is a data-misfit function)::
-
-        >>> multiobj.havedata()
-        [Misfit instance]
-
-
     """
 
     def __init__(self, objs=None):
@@ -996,12 +989,6 @@ class MultiObjective(Objective, FitMixin):
         for mu, obj in multiobj:
             self.add_objective(obj, regul_param=mu)
         return self
-
-    def havedata(self):
-        """
-        Return a list of objectives that have data in this multi-objective.
-        """
-        return [o for  _, o in self.objs if o.ndata > 0]
 
     # Can increment instead of add_objective or merge
     def __iadd__(self, other):
