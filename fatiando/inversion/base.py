@@ -9,6 +9,8 @@ represents an objetive function, a scalar function of a parameter vector.
 """
 from __future__ import division
 import hashlib
+import types
+import copy
 import numpy
 import scipy.sparse
 
@@ -82,6 +84,28 @@ class Objective(object):
     * islinear : True or False
         Wether the functions is linear with respect to the parameters.
 
+    Operations:
+
+    You can add *Objective*s together and multiply them by scalars:
+
+    >>> a = Objective(10, True)
+    >>> a.value = lambda p: 2*p
+    >>> a.value(3)
+    6
+    >>> b = Objective(10, True)
+    >>> b.value = lambda p: -3*p
+    >>> b.value(3)
+    -9
+    >>> c = a + b
+    >>> c.value(3)
+    -3
+    >>> d = 0.5*c
+    >>> d.value(3)
+    -1.5
+    >>> e = a + 2*b
+    >>> e.value(3)
+    -12
+
     """
 
     def __init__(self, nparams, islinear):
@@ -89,36 +113,59 @@ class Objective(object):
         self.nparams = nparams
         self.ndata = 0
         self.estimate_ = None
+        self._scale = None
 
     def __repr__(self):
         return 'Objective instance'
 
-    # Overload some operators. Adding and multiplying by a scalar transform the
-    # objective function into a multiobjetive function (weighted sum of
-    # objective functions)
-    ###########################################################################
+    def value(self, p):
+        raise NotImplementedError()
+
+    def gradient(self, p):
+        raise NotImplementedError()
+
+    def hessian(self, p):
+        raise NotImplementedError()
+
     def __add__(self, other):
-        if not isinstance(other, Objective):
-            raise TypeError('Can only add derivatives of the Objective class')
-        multiobj = MultiObjective()
-        if isinstance(self, MultiObjective):
-            multiobj.merge(self)
-        else:
-            multiobj.add_objective(self)
-        if isinstance(other, MultiObjective):
-            multiobj.merge(other)
-        else:
-            multiobj.add_objective(other)
-        return multiobj
+        if self.nparams != other.nparams:
+            raise ValueError(
+                "Can only add functions with same number of parameters")
+        def wrap(name, obj):
+            func = getattr(self, name)
+            def wrapper(self, p):
+                return func(p) + getattr(other, name)(p)
+            wrapper.__doc__ = getattr(self, name).__doc__
+            setattr(obj, name, types.MethodType(wrapper, obj))
+        # Make a shallow copy of self to return. If returned self, would
+        # overwrite the original class and might get recurrence issues
+        tmp = copy.copy(self)
+        # Wrap the hessian, gradient and value to be the sums
+        wrap('hessian', tmp)
+        wrap('gradient', tmp)
+        wrap('value', tmp)
+        return tmp
 
     def __mul__(self, other):
         if not isinstance(other, int) and not isinstance(other, float):
             raise TypeError('Can only multiply a Objective by a float or int')
-        return MultiObjective([(other, self)])
+        def wrap(name, obj):
+            func = getattr(self, name)
+            def wrapper(self, p):
+                return other*func(p)
+            wrapper.__doc__ = getattr(self, name).__doc__
+            setattr(obj, name, types.MethodType(wrapper, obj))
+        # Make a shallow copy of self to return. If returned self, would
+        # overwrite the original class and might get recurrence issues
+        tmp = copy.copy(self)
+        # Wrap the hessian, gradient and value to be the products
+        wrap('hessian', tmp)
+        wrap('gradient', tmp)
+        wrap('value', tmp)
+        return tmp
 
     def __rmul__(self, other):
         return self.__mul__(other)
-    ###########################################################################
 
 class FitMixin(object):
     """
@@ -843,292 +890,67 @@ class Misfit(Objective, FitMixin):
             grad = numpy.array(grad).ravel()
         return grad
 
-class MultiObjective(Objective, FitMixin):
-    r"""
-    A multi-objective function.
 
-    It is a weighted sum of objective functions:
-
-    .. math::
-
-        \Gamma(\bar{p}) = \sum\limits_{k=1}^{N} \mu_k \phi_k(\bar{p})
-
-    :math:`\mu_k` are regularization parameters that control the trade-off
-    between each objective function.
-
-    MultiObjective have the same methods that Objective has and can be
-    optimized in the same way to produce an estimated parameter vector.
-
-    There are several ways of creating MultiObjective from
-    :class:`~fatiando.inversion.base.Objective` instances and its derivatives
-    (like :class:`~fatiando.inversion.base.Misfit` and
-    :class:`~fatiando.inversion.regularization.Damping`):
-
-        >>> import numpy
-        >>> obj1 = Misfit(data=numpy.array([1, 2, 3, 4]), positional={},
-        ...               model={}, nparams=3)
-        >>> obj1
-        Misfit instance
-        >>> obj2 = Objective(nparams=3, islinear=True)
-        >>> obj2
-        Objective instance
-
-    1. Pass a list of lists to the constructor like so:
-
-        >>> mu1, mu2 = 1, 0.01
-        >>> multiobj = MultiObjective([[mu1, obj1], [mu2, obj2]])
-        >>> multiobj
-        MultiObjective(objs=[
-            [1, Misfit instance],
-            [0.01, Objective instance],
-        ])
-
-    2. Sum objective functions::
-
-        >>> multiobj = mu1*obj1 + mu2*obj2
-        >>> multiobj
-        MultiObjective(objs=[
-            [1, Misfit instance],
-            [0.01, Objective instance],
-        ])
-        >>> # Since mu1 == 1, the following is the equivalent
-        >>> multiobj = obj1 + mu2*obj2
-        >>> multiobj
-        MultiObjective(objs=[
-            [1, Misfit instance],
-            [0.01, Objective instance],
-        ])
-
-    3. Use the ``add_objective`` method::
-
-        >>> multiobj = MultiObjective()
-        >>> multiobj
-        MultiObjective(objs=[
-        ])
-        >>> multiobj.add_objective(obj1)
-        MultiObjective(objs=[
-            [1, Misfit instance],
-        ])
-        >>> multiobj.add_objective(obj2, regul_param=mu2)
-        MultiObjective(objs=[
-            [1, Misfit instance],
-            [0.01, Objective instance],
-        ])
-
-    You can access the different objective functions in a MultiObjective like
-    lists::
-
-        >>> mu1, obj1 = multiobj[0]
-        >>> print mu1, obj1
-        1 Misfit instance
-        >>> mu2, obj2 = multiobj[1]
-        >>> print mu2, obj2
-        0.01 Objective instance
-
-    and like lists, you can iterate over them as well::
-
-        >>> for mu, obj in multiobj:
-        ...     print mu, obj
-        1 Misfit instance
-        0.01 Objective instance
-
-    """
-
-    def __init__(self, objs=None):
-        super(MultiObjective, self).__init__(nparams=None, islinear=False)
-        self.objs = []
-        if objs is not None:
-            for mu, obj in objs:
-                self.add_objective(obj, regul_param=mu)
-
-    def __repr__(self):
-        text = '\n'.join(['MultiObjective(objs=['] +
-            ['    [%g, %s],' % (mu, repr(obj)) for mu, obj in self.objs] +
-            ['])'])
-        return text
-
-    def add_objective(self, obj, regul_param=1):
-        """
-        Add an objective function to the multi-objective.
-
-        Parameters:
-
-        * obj : Objective
-            A derivative of the Objective class (like data-misfit,
-            regularization, etc.)
-        * regul_param : float
-            A positive scalar that controls the weight of this objective on the
-            multi-objective (like the regularization parameters).
-
-        """
-        nparams = obj.nparams
-        if self.nparams is not None:
-            if numpy.any([nparams != o.nparams for _, o in self.objs]):
-                raise ValueError(
-                    'Objective function must have %d parameters, not %d'
-                    % (self.nparams, nparams))
-        else:
-            self.nparams = nparams
-        self.objs.append([regul_param, obj])
-        if numpy.all([o.islinear for _, o in self.objs]):
-            self.config(method='linear')
-        return self
-
-    def merge(self, multiobj):
-        """
-        Merge an multi-objective function to this one.
-
-        Will append it's objective functions to this one.
-
-        Parameters:
-
-        * multiobj : MultiObjective
-            The multi-objective
-
-        """
-        for mu, obj in multiobj:
-            self.add_objective(obj, regul_param=mu)
-        return self
-
-    # Can increment instead of add_objective or merge
-    def __iadd__(self, other):
-        if not isinstance(other, Objective):
-            raise TypeError('Can only add derivatives of the Objective class')
-        if isinstance(other, MultiObjective):
-            self.merge(other)
-        else:
-            self.add_objective(other)
-        return self
-
-    # Allow iterating over the multi-objective, returning pairs [mu, obj]
-    def __len__(self):
-        return len(self.objs)
-
-    def __iter__(self):
-        self.index = 0
-        return self
-
-    def __getitem__(self, index):
-        return self.objs[index]
-
-    def next(self):
-        if self.index >= len(self.objs):
-            raise StopIteration
-        mu, obj = self.__getitem__(self.index)
-        self.index += 1
-        return mu, obj
-
-    def value(self, p):
-        """
-        The value of the multi-objective function for a given parameter vector.
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * value : float
-            The value of the objective function
-
-        """
-        return sum(mu*obj.value(p) for mu, obj in self.objs)
-
-    def gradient(self, p):
-        """
-        The gradient of the multi-objective function for a parameter vector
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector where the gradient is evaluated.
-
-        Returns:
-
-        * gradient : 1d-array
-            The gradient vector
-
-        """
-        return sum(mu*obj.gradient(p) for mu, obj in self.objs)
-
-    def hessian(self, p):
-        """
-        The Hessian matrix of the multi-objective function
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector where the Hessian is evaluated
-
-        Returns:
-
-        * hessian : 2d-array
-            The Hessian matrix
-
-        """
-        return sum(mu*obj.hessian(p) for mu, obj in self.objs)
-
-    def predicted(self, p=None):
-        """
-        The predicted data for all data-misfit functions in the multi-objective
-
-        Will compute the predicted data for each data-misfit at the given
-        parameter vector.
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * pred : list or 1d-array
-            A list with 1d-arrays of predicted data for each data-misfit
-            function that makes up the multi-objective. They will be in the
-            order in which the data-misfits were added to the multi-objective.
-            If there is only one data-misfit, will return the 1d-array, not a
-            list.
-
-        """
-        if p is None:
-            p = self.estimate_
-        pred = []
-        for mu, obj in self.objs:
-            if callable(getattr(obj, 'predicted', None)):
-                pred.append(obj.predicted(p))
-        if len(pred) == 1:
-            pred = pred[0]
-        return pred
-
-    def residuals(self, p=None):
-        """
-        The residuals vector for data-misfit functions in the multi-objective
-
-        Will compute the residual vector for each data-misfit at the given
-        parameter vector.
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * res : list or 1d-array
-            A list with 1d-arrays of residual vectors for each data-misfit
-            function that makes up the multi-objective. They will be in the
-            order in which the data-misfits were added to the multi-objective.
-            If there is only one data-misfit, will return the 1d-array, not a
-            list.
-
-        """
-        if p is None:
-            p = self.estimate_
-        res = []
-        for mu, obj in self.objs:
-            if callable(getattr(obj, 'residuals', None)):
-                res.append(obj.residuals(p))
-        if len(res) == 1:
-            res = res[0]
-        return res
+    #def predicted(self, p=None):
+        #"""
+        #The predicted data for all data-misfit functions in the multi-objective
+
+        #Will compute the predicted data for each data-misfit at the given
+        #parameter vector.
+
+        #Parameters:
+
+        #* p : 1d-array
+            #The parameter vector
+
+        #Returns:
+
+        #* pred : list or 1d-array
+            #A list with 1d-arrays of predicted data for each data-misfit
+            #function that makes up the multi-objective. They will be in the
+            #order in which the data-misfits were added to the multi-objective.
+            #If there is only one data-misfit, will return the 1d-array, not a
+            #list.
+
+        #"""
+        #if p is None:
+            #p = self.estimate_
+        #pred = []
+        #for mu, obj in self.objs:
+            #if callable(getattr(obj, 'predicted', None)):
+                #pred.append(obj.predicted(p))
+        #if len(pred) == 1:
+            #pred = pred[0]
+        #return pred
+
+    #def residuals(self, p=None):
+        #"""
+        #The residuals vector for data-misfit functions in the multi-objective
+
+        #Will compute the residual vector for each data-misfit at the given
+        #parameter vector.
+
+        #Parameters:
+
+        #* p : 1d-array
+            #The parameter vector
+
+        #Returns:
+
+        #* res : list or 1d-array
+            #A list with 1d-arrays of residual vectors for each data-misfit
+            #function that makes up the multi-objective. They will be in the
+            #order in which the data-misfits were added to the multi-objective.
+            #If there is only one data-misfit, will return the 1d-array, not a
+            #list.
+
+        #"""
+        #if p is None:
+            #p = self.estimate_
+        #res = []
+        #for mu, obj in self.objs:
+            #if callable(getattr(obj, 'residuals', None)):
+                #res.append(obj.residuals(p))
+        #if len(res) == 1:
+            #res = res[0]
+        #return res
