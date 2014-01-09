@@ -82,6 +82,33 @@ class EQLGravity(Misfit):
     >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
     True
 
+    If you have multiple types of gravity data (like gravity anomaly and
+    gradient tensor components), you can add EQLGravity instances together for
+    a joint inversion:
+
+    >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
+    >>> gz = prism.gz(x, y, z, model)
+    >>> gzz = prism.gzz(x, y, z, model)
+    >>> # Setup a layer
+    >>> layer = PointGrid(area, 500, (25, 25))
+    >>> solver = (EQLGravity(x, y, z, gz, layer, field='gz') +
+    ...           EQLGravity(x, y, z, gzz, layer, field='gzz') +
+    ...           10**-24*Damping(layer.size)).fit()
+    >>> # Check the fit
+    >>> gz_pred, gzz_pred = solver.predicted()
+    >>> np.allclose(gz, gz_pred, rtol=0.01, atol=0.5)
+    True
+    >>> np.allclose(gzz, gzz_pred, rtol=0.01, atol=1)
+    True
+    >>> # Add the densities to the layer
+    >>> layer.addprop('density', solver.estimate_)
+    >>> # Upward continue gzz only and check agains model data
+    >>> zup = z - 50
+    >>> gzz_layer = sphere.gzz(x, y, zup, layer)
+    >>> gzz_model = prism.gzz(x, y, zup, model)
+    >>> np.allclose(gzz_layer, gzz_model, rtol=0.01, atol=1)
+    True
+
     """
 
     def __init__(self, x, y, z, data, grid, field='gz'):

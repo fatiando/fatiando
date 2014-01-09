@@ -83,6 +83,10 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The inclination of the regional field (in degrees)
     * dec : float
         The declination of the regional field (in degrees)
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the spheres. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -153,6 +157,9 @@ def gz(xp, yp, zp, spheres, dens=None):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -180,7 +187,7 @@ def gz(xp, yp, zp, spheres, dens=None):
     res *= G*SI2MGAL
     return res
 
-def gxx(xp, yp, zp, spheres):
+def gxx(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_xx` gravity gradient component.
 
@@ -196,6 +203,9 @@ def gxx(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -207,10 +217,13 @@ def gxx(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
@@ -221,7 +234,7 @@ def gxx(xp, yp, zp, spheres):
     res *= G*SI2EOTVOS
     return res
 
-def gxy(xp, yp, zp, spheres):
+def gxy(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_xy` gravity gradient component.
 
@@ -237,6 +250,9 @@ def gxy(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -248,10 +264,13 @@ def gxy(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
@@ -262,7 +281,7 @@ def gxy(xp, yp, zp, spheres):
     res *= G*SI2EOTVOS
     return res
 
-def gxz(xp, yp, zp, spheres):
+def gxz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_xz` gravity gradient component.
 
@@ -278,6 +297,9 @@ def gxz(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -289,10 +311,13 @@ def gxz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
@@ -303,7 +328,7 @@ def gxz(xp, yp, zp, spheres):
     res *= G*SI2EOTVOS
     return res
 
-def gyy(xp, yp, zp, spheres):
+def gyy(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_yy` gravity gradient component.
 
@@ -319,6 +344,9 @@ def gyy(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -330,10 +358,13 @@ def gyy(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
@@ -344,7 +375,7 @@ def gyy(xp, yp, zp, spheres):
     res *= G*SI2EOTVOS
     return res
 
-def gyz(xp, yp, zp, spheres):
+def gyz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_yz` gravity gradient component.
 
@@ -360,6 +391,9 @@ def gyz(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -371,10 +405,13 @@ def gyz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
@@ -385,7 +422,7 @@ def gyz(xp, yp, zp, spheres):
     res *= G*SI2EOTVOS
     return res
 
-def gzz(xp, yp, zp, spheres):
+def gzz(xp, yp, zp, spheres, dens=None):
     """
     Calculates the :math:`g_zz` gravity gradient component.
 
@@ -401,6 +438,9 @@ def gzz(xp, yp, zp, spheres):
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the property ``'density'``. Those
         without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
 
     Returns:
 
@@ -412,10 +452,13 @@ def gzz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
-        if sphere is None or 'density' not in sphere.props:
+        if sphere is None or ('density' not in sphere.props and dens is None):
             continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
         radius = sphere.radius
-        density = sphere.props['density']
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
