@@ -210,19 +210,6 @@ class SingleChange(Misfit):
             model=dict(diffus=float(diffus), mode=mode),
             nparams=2, islinear=False)
 
-    def __repr__(self):
-        lw = 60
-        prec = 3
-        text = '\n'.join([
-            'SingleChange(',
-            '    temp=%s,' % (numpy.array_repr(
-                self.data, max_line_width=lw, precision=prec)),
-            '    zp=%s,' % (numpy.array_repr(
-                self.positional['zp'], max_line_width=lw, precision=prec)),
-            "    mode='%s'," % (self.model['mode']),
-            '    diffus=%g)' % (self.model['diffus'])])
-        return text
-
     def _get_predicted(self, p):
         amp, age = p
         zp = self.positional['zp']
