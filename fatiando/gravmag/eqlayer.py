@@ -6,21 +6,6 @@ Then you can use the estimated layer to perform tranformations (gridding,
 continuation, derivation, reduction to the pole, etc.) by forward modeling
 the layer. Use :mod:`fatiando.gravmag.sphere` for forward modeling.
 
-**Functions**
-
-* :func:`~fatiando.gravmag.eqlayer.classic`: The classic equivalent layer with
-  damping regularization formulated in the data space
-* :func:`~fatiando.gravmag.eqlayer.pel`: The polynomial equivalent layer of
-  Oliveira Jr et al. (2012). A more efficient and robust algorithm.
-
-**Data containers**
-
-All equivalent layer functions require that you supply the data in containers.
-These are classes that group the data, position arrays, etc.
-
-* :class:`~fatiando.gravmag.eqlayer.TotalField`: Total field magnetic anomaly
-* :class:`~fatiando.gravmag.eqlayer.Gz`: Vertical component of gravity (i.e.,
-  the gravity anomaly)
 
 **References**
 
@@ -32,7 +17,7 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 """
 from __future__ import division
 import numpy
-from scipy.sparse import linalg, lil_matrix, csc_matrix
+import scipy.sparse
 
 from . import sphere as kernel
 from ..utils import dircos, safe_dot
@@ -213,76 +198,149 @@ class EQLTotalField(Misfit):
             jac[:,i] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
         return jac
 
-#def classic(data, layer, damping=0.):
-    #"""
-    #The classic equivalent layer in the data space with damping regularization.
+class PELFitMixin(object):
+    """
+    Overwrite the *fit* method to convert the coefficients to physical property
+    """
 
-    #Parameters:
+    def fit(self):
+        """
+        """
+        super(self.__class__, self).fit()
+    #def _coefs2prop(coefs, grid, grids, windows, degree):
+        #ny, nx = windows
+        #pergrid = _ncoefficients(degree)
+        #estimate = numpy.empty(grid.shape, dtype=float)
+        #k = 0
+        #ystart = 0
+        #gny, gnx = grids[0].shape
+        #for i in xrange(ny):
+            #yend = ystart + gny
+            #xstart = 0
+            #for j in xrange(nx):
+                #xend = xstart + gnx
+                #g = grids[k]
+                #estimate[ystart:yend,xstart:xend] = numpy.dot(_bkmatrix(g, degree),
+                    #coefs[k*pergrid:(k + 1)*pergrid]).reshape(g.shape)
+                #xstart = xend
+                #k += 1
+            #ystart = yend
+        #return estimate.ravel()
 
-    #* data : list
-        #List of observed data wrapped in data containers (like
-        #:class:`~fatiando.gravmag.eqlayer.TotalField`). Will make a layer that
-        #fits all of the observed data. For the moment, still can't mix gravity
-        #and magnetic data.
+class PELGravity(Misfit):
+    """
+    Estimate a polynomial equivalent layer from gravity data.
 
-    #* layer : :class:`fatiando.mesher.PointGrid`
-        #The equivalent layer
+    .. note:: Assumes x = North, y = East, z = Down.
 
-    #* damping : float
-        #The ammount of damping regularization to apply. Must be positive!
-        #Need to apply enough for the data fit to not be perfect but reflect the
-        #error in the data.
+    Parameters:
 
-    #Returns:
+    * x, y, z : 1d-arrays
+        The x, y, z coordinates of each data point.
+    * data : 1d-array
+        The gravity data at each point.
+    * grid : :class:`~fatiando.mesher.PointGrid`
+        The sources in the equivalent layer. Will invert for the density of
+        each point in the grid.
+    * windows : tuple = (ny, nx)
+        The number of windows that the layer will be divided in the y and x
+        directions, respectively
+    * degree : int
+        The degree of the bivariate polynomials used in each window of the PEL
+    * field : string
+        Which gravitational field is the data. Options are: ``'gz'`` (gravity
+        anomaly), ``'gxx'``, ``'gxy'``, ..., ``'gzz'`` (gravity gradient
+        tensor). Defaults to ``'gz'``.
 
-    #* [estimate, predicted] : array, list of arrays
-        #*estimate* is the estimated physical property distribution. *predicted*
-        #is a list of the predicted data vector in the same order as supplied in
-        #*data*
+    Examples:
 
-    #"""
-    #ndata = sum(d.size for d in data)
-    #sensitivity = numpy.empty((ndata, layer.size), dtype=float)
-    #datavec = numpy.empty(ndata, dtype=float)
-    #bottom = 0
-    #for d in data:
-        #sensitivity[bottom:bottom + d.size, :] = d.sensitivity(layer)
-        #datavec[bottom:bottom + d.size] = d.data
-        #bottom += d.size
-    #system = numpy.dot(sensitivity, sensitivity.T)
-    #if damping != 0.:
-        #order = len(system)
-        #scale = float(numpy.trace(system))/order
-        #diag = range(order)
-        #system[diag, diag] += damping*scale
-    #tmp = linalg.cg(system, datavec)[0]
-    #estimate = numpy.dot(sensitivity.T, tmp)
-    #pred = numpy.dot(sensitivity, estimate)
-    #predicted = []
-    #start = 0
-    #for d in data:
-        #predicted.append(pred[start:start + d.size])
-        #start += d.size
-    #return estimate, predicted
+    Use the layer to fit some gravity data and check is our layer is able to
+    produce data at a different locations (i.e., interpolate, upward continue)
 
-## Polynomial Equivalent Layer (PEL)
+    >>> import numpy as np
+    >>> from fatiando import gridder
+    >>> from fatiando.gravmag import sphere, prism
+    >>> from fatiando.mesher import Sphere, Prism, PointGrid
+    >>> # Produce some gravity data
+    >>> area = (0, 10000, 0, 10000)
+    >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
+    >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000, {'density':1000})]
+    >>> gz = prism.gz(x, y, z, model)
+    >>> # Setup a layer
+    >>> layer = PointGrid(area, 500, (25, 25))
+    >>> windows = (20, 20)
+    >>> solver = (PELGravity(x, y, z, gz, layer, windows, 1) +
+    ...           10**-2*PELSmoothness(layer, windows)).fit()
+    >>> # Check the fit
+    >>> np.allclose(gz, solver.predicted(), rtol=0.01, atol=0.5)
+    True
+    >>> # Add the densities to the layer
+    >>> layer.addprop('density', solver.estimate_)
+    >>> # Make a regular grid
+    >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
+    >>> # Interpolate and check agains the model
+    >>> gz_layer = sphere.gz(x, y, z, layer)
+    >>> gz_model = prism.gz(x, y, z, model)
+    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
+    True
+    >>> # Upward continue and check agains model data
+    >>> zup = z - 50
+    >>> gz_layer = sphere.gz(x, y, zup, layer)
+    >>> gz_model = prism.gz(x, y, zup, model)
+    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
+    True
 
-#def _ncoefficients(degree):
-    #"""
-    #Return the number of a coefficients in a bivarite polynomail of a given
-    #degree.
+    """
 
-    #>>> _ncoefficients(1)
-    #3
-    #>>> _ncoefficients(2)
-    #6
-    #>>> _ncoefficients(3)
-    #10
-    #>>> _ncoefficients(4)
-    #15
+    def __init__(self, x, y, z, data, grid, windows, degree, field='gz'):
+        super(PELGravity, self).__init__(data=data,
+            positional={'x':x, 'y':y, 'z':z},
+            model={'grid':grid, 'windows':windows, 'degree':degree},
+            nparams=grid.size,
+            #nparams=windows[0]*windows[1]*ncoeffs(degree),
+            islinear=True)
+        self.field = field
 
-    #"""
-    #return sum(xrange(1, degree + 2))
+    def _get_predicted(self, p):
+        return safe_dot(self.jacobian(p), p)
+
+    def _get_jacobian(self, p):
+        x = self.positional['x']
+        y = self.positional['y']
+        z = self.positional['z']
+        func = getattr(kernel, self.field)
+        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
+        for i, c in enumerate(self.model['grid']):
+            jac[:,i] = func(x, y, z, [c], dens=1.)
+        return jac
+
+def ncoeffs(degree):
+    """
+    Calculate the number of coefficients in a bivarite polynomail.
+
+    Parameters:
+
+    * degree : int
+        The degree of the polynomial
+
+    Returns:
+
+    * n : int
+        The number of coefficients
+
+    Examples:
+
+    >>> ncoeffs(1)
+    3
+    >>> ncoeffs(2)
+    6
+    >>> ncoeffs(3)
+    10
+    >>> ncoeffs(4)
+    15
+
+    """
+    return sum(xrange(1, degree + 2))
 
 #def _bkmatrix(grid, degree):
     #"""
@@ -424,28 +482,6 @@ class EQLTotalField(Misfit):
     #smoothmatrix = numpy.dot(rb.T, rb)
     #return modelmatrix, smoothmatrix, rightside
 
-#def _coefs2prop(coefs, grid, grids, windows, degree):
-    #"""
-    #Convert the coefficients to the physical property estimate.
-    #"""
-    #ny, nx = windows
-    #pergrid = _ncoefficients(degree)
-    #estimate = numpy.empty(grid.shape, dtype=float)
-    #k = 0
-    #ystart = 0
-    #gny, gnx = grids[0].shape
-    #for i in xrange(ny):
-        #yend = ystart + gny
-        #xstart = 0
-        #for j in xrange(nx):
-            #xend = xstart + gnx
-            #g = grids[k]
-            #estimate[ystart:yend,xstart:xend] = numpy.dot(_bkmatrix(g, degree),
-                #coefs[k*pergrid:(k + 1)*pergrid]).reshape(g.shape)
-            #xstart = xend
-            #k += 1
-        #ystart = yend
-    #return estimate.ravel()
 
 #def pel(data, layer, windows, degree=1, damping=0., smoothness=0.,
         #matrices=None):
