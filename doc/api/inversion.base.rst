@@ -1,6 +1,6 @@
 .. _fatiando_inversion_base:
 
-Base classes for objective functions (``fatiando.inversion.base``)
+Base classes for solving inverse problems (``fatiando.inversion.base``)
 ========================================================================
 
 .. automodule:: fatiando.inversion.base

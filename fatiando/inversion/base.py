@@ -2,7 +2,18 @@
 The base classes for inverse problem solving.
 
 All classes derive from :class:`~fatiando.inversion.base.Objective`. This class
-represents an objetive function, a scalar function of a parameter vector.
+represents an objective function, a scalar function of a parameter vector.
+
+The main powerhouse of this module is the
+:class:`~fatiando.inversion.base.Misfit` class. It represents a data misfit
+function and knows how to fit a specified model to data using various solvers
+(see :mod:`~fatiando.inversion.solvers`). A model is specified by subclassing
+Misfit and implementing the
+:meth:`~fatiando.inversion.base.Misfit._get_predicted` and
+:meth:`~fatiando.inversion.base.Misfit._get_jacobian` methods, which are
+problem specific.
+
+See :mod:`fatiando.inversion` for examples, regularization, and more.
 
 ----
 
@@ -86,7 +97,9 @@ class Objective(object):
 
     Operations:
 
-    You can add *Objective*s together and multiply them by scalars:
+    For joint inversion and regularization, you can add *Objective*
+    instances together and multiply them by scalars (i.e., regularization
+    parameters):
 
     >>> a = Objective(10, True)
     >>> a.value = lambda p: 2*p
@@ -609,6 +622,9 @@ class Misfit(Objective, FitMixin):
     solving the same problem with different methods or using an iterative
     method doesn't have the penalty of recalculating the Jacobian.
 
+    .. tip::
+
+        See :mod:`fatiando.inversion` for examples of usage.
 
     Parameters:
 
