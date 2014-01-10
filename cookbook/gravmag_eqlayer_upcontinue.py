@@ -1,4 +1,3 @@
-
 """
 GravMag: Use an equivalent layer to upward continue gravity data
 """
