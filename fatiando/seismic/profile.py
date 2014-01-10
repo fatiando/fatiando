@@ -74,14 +74,16 @@ def layered_straight_ray(thickness, velocity, zp):
 
 class LayeredStraight(Misfit):
     r"""
-    Inversion of straight-ray travel-times for the slowness of a layered medium
+    Inversion of straight-ray travel-times for the velocity of a layered medium
 
     Assumes that the source is at the top of the well and that rays follow a
     straight path (no reflection or refraction). Also assumes known
     thicknesses (may be a fine discretization if real thickness is not known).
 
-    Inverts for the slowness (1/velocity) so that the problem becomes linear
-    and more manageable.
+    Actually solves for the slowness (1/velocity) so that the problem becomes
+    linear and more manageable. Use the ``estimate_`` attribute to get the
+    estimated velocities. Slowness with stored in the estimated parameter
+    vector ``p_``.
 
     Uses :func:`fatiando.seismic.ttime2d.straight` for forward modeling.
 
@@ -111,8 +113,8 @@ class LayeredStraight(Misfit):
 
         t_i(z_i) = \sum\limits_{j=1}^M \frac{d_{ij}}{v_j}
 
-    The distance :math:`d_{ij}` is smaller or equal to the thickness of the layer
-    :math:`s_j`. Notice that :math:`d_{ij} = 0` if the jth layer is below
+    The distance :math:`d_{ij}` is smaller or equal to the thickness of the
+    layer :math:`s_j`. Notice that :math:`d_{ij} = 0` if the jth layer is below
     :math:`z_i`, :math:`d_{ij} = s_j` if the jth layer is above :math:`z_i`,
     and :math:`d_{ij} < s_j` if :math:`z_i` is inside the jth layer.
 
@@ -150,9 +152,12 @@ class LayeredStraight(Misfit):
     >>> tts = layered_straight_ray(thicks, vels, zp)
     >>> # Solve for the slowness assuming known thicknesses
     >>> solver = LayeredStraight(tts, zp, thicks).fit()
-    >>> # Make velocities out of the slowness
-    >>> 1./solver.estimate_
+    >>> # The estimated velocities
+    >>> solver.estimate_
     array([ 2.,  4., 10.,  8.])
+    >>> # and the corresponding slownesses
+    >>> solver.p_
+    array([ 0.5  ,  0.25 ,  0.1  ,  0.125])
     >>> # Check the fit
     >>> np.all(np.abs(solver.residuals()) < 10**-10)
     True
@@ -186,3 +191,19 @@ class LayeredStraight(Misfit):
         jac = numpy.transpose(
             [ttime2d.straight([l], 'vp', srcs, recs) for l in layers])
         return jac
+
+    def fit(self):
+        """
+        Solve for the velocities of each layer.
+
+        Actually uses slowness instead of velocity to make the problem linear.
+        The estimated slowness is stored in the ``p_`` attribute. The
+        corresponding velocities are in ``estimate_``.
+
+        See the docstring of :class:`~fatiando.seismic.profile.LayeredStraight`
+        for examples.
+
+        """
+        super(LayeredStraight, self).fit()
+        self._estimate = 1./self.p_
+        return self

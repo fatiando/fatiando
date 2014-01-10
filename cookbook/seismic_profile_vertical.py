@@ -23,8 +23,9 @@ tts, error = utils.contaminate(
     0.02, percent=True, return_stddev=True)
 # Make the solver and run the inversion using damping regularization
 # (assumes known thicknesses of the layers)
-solver = LayeredStraight(tts, zp, thickness) + 0.1*Damping(len(thickness))
-velocity_ = 1./solver.fit().estimate_
+solver = (LayeredStraight(tts, zp, thickness) +
+          0.1*Damping(len(thickness))).fit()
+velocity_ = solver.estimate_
 
 # Plot the results
 mpl.figure(figsize=(12, 5))

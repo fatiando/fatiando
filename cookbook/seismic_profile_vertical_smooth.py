@@ -20,8 +20,9 @@ tts, error = utils.contaminate(
 # thin layers and invert for each slowness
 thick = 10.
 mesh = [thick]*int(sum(thickness)/thick)
-solver = LayeredStraight(tts, zp, mesh) + 5*Smoothness1D(len(mesh))
-velocity_ = 1./solver.fit().estimate_
+solver = (LayeredStraight(tts, zp, mesh) +
+          5*Smoothness1D(len(mesh))).fit()
+velocity_ = solver.estimate_
 
 mpl.figure(figsize=(12,5))
 mpl.subplot(1, 2, 1)
