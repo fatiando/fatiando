@@ -32,12 +32,8 @@ class SRTomo(Misfit):
     2D travel-time straight-ray tomography.
 
     Use the :meth:`~fatiando.seismic.srtomo.SRTomo.fit` method to run the
-    tomography and produce a slowness estimate.
-
-    .. note::
-
-        To safely convert slowness to velocity, use
-        :func:`~fatiando.seismic.srtomo.slowness2vel`.
+    tomography and produce a velocity estimate. The estimate is stored in the
+    ``estimate_`` attribute.
 
     Generaly requires regularization, like
     :class:`~fatiando.inversion.regularization.Damping` or
@@ -78,20 +74,14 @@ class SRTomo(Misfit):
     >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
     >>> # Run the tomography
     >>> tomo = SRTomo(ttimes, srcs, recs, mesh)
-    >>> slow = tomo.fit().estimate_
-    >>> # Actually returns slowness instead of velocity
-    >>> for velocity in slowness2vel(slow):
-    ...     print '%.4f' % (velocity),
-    2.0000 5.0000
+    >>> tomo.fit().estimate_
+    array([ 2.,  5.])
 
     Using the steepest descent method to solve (no linear systems):
 
     >>> # Use steepest descent to solve this (requires an initial guess)
-    >>> slow = tomo.config(method='steepest', initial=[0, 0]).fit().estimate_
-    >>> # Actually returns slowness instead of velocity
-    >>> for velocity in slowness2vel(slow):
-    ...     print '%.4f' % (velocity),
-    2.0000 5.0000
+    >>> tomo.config(method='steepest', initial=[0, 0]).fit().estimate_
+    array([ 2.,  5.])
 
     .. note::
 
@@ -130,6 +120,22 @@ class SRTomo(Misfit):
             pred = numpy.array(pred.T).ravel()
         return pred
 
+    def fit(self):
+        """
+        Solve the tomography for the velocity of each cell.
+
+        Actually solves for the slowness to make the inverse problem linear.
+        The ``estimate_`` attribute holds the estimated velocities and ``p_``
+        the respective slownesses.
+
+        See the docstring of :class:`~fatiando.seismic.srtomo.SRTomo` for
+        examples.
+
+        """
+        super(SRTomo, self).fit()
+        self._estimate = slowness2vel(self.p_, tol=10**-8)
+        return self
+
 def slowness2vel(slowness, tol=10**(-8)):
     """
     Safely convert slowness to velocity.
@@ -156,6 +162,8 @@ def slowness2vel(slowness, tol=10**(-8)):
     array([ 1.  ,  0.5 ,  0.  ,  0.25])
 
     """
-    velocity = 1./slowness
+    velocity = numpy.array(slowness)
     velocity[slowness < tol] = 0
+    divide = slowness >= tol
+    velocity[divide] = 1./slowness[divide]
     return velocity

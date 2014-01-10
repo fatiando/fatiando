@@ -33,8 +33,7 @@ mesh = SquareMesh(area, shape)
 tomo = srtomo.SRTomo(tts, srcs, recs, mesh) + 10**6*Smoothness2D(mesh.shape)
 estimate = tomo.fit().estimate_
 residuals = tomo.residuals()
-# Convert the slowness estimate to velocities and add it the mesh
-mesh.addprop('vp', srtomo.slowness2vel(estimate))
+mesh.addprop('vp', estimate)
 
 # Calculate and print the standard deviation of the residuals
 # it should be close to the data error if the inversion was able to fit the data

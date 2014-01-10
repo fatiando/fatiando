@@ -35,12 +35,11 @@ mesh = SquareMesh(area, shape)
 tomo = (srtomo.SRTomo(tts, srcs, recs, mesh) +
         1*TotalVariation2D(10**-8, mesh.shape))
 # Since Total Variation is a non-linear function, then the tomography becomes
-# non-linear. So fit uses the Levemberg-Marquardt algorithm, a gradient descent
-# method, that requires an initial estimate
+# non-linear. So we need to configure fit to use the Levemberg-Marquardt
+# algorithm, a gradient descent method, that requires an initial estimate
 tomo.config('levmarq', initial=0.0005*numpy.ones(mesh.size)).fit()
 residuals = tomo.residuals()
-# Convert the slowness estimate to velocities and add it the mesh
-mesh.addprop('vp', srtomo.slowness2vel(tomo.estimate_))
+mesh.addprop('vp', tomo.estimate_)
 
 # Calculate and print the standard deviation of the residuals
 # it should be close to the data error if the inversion was able to fit the data
