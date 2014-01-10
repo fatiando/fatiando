@@ -303,7 +303,24 @@ class PELBase(Misfit):
 
 def _bkmatrix(grid, degree):
     """
-    Make the Bk polynomial matrix for a given PointGrid.
+    Make the Bk polynomial coefficient matrix for a given PointGrid.
+
+    This matrix converts the coefficients into physical property values.
+
+    Parameters:
+
+    * grid : :class:`~fatiando.mesher.PointGrid`
+        The sources in the equivalent layer
+    * degree : int
+        The degree of the bivariate polynomial
+
+    Returns:
+
+    * bk : 2d-array
+        The matrix
+
+
+    Examples:
 
     >>> from fatiando.mesher import PointGrid
     >>> grid = PointGrid((0, 1, 0, 2), 10, (2, 2))
@@ -546,6 +563,29 @@ class PELTotalField(PELBase):
         return jac
 
 class PELSmoothness(Smoothness):
+    """
+    Regularization to "join" neighboring windows in the PEL.
+
+    Use this with :class:`~fatiando.gravmag.eqlayer.PELGravity` and
+    :class:`~fatiando.gravmag.eqlayer.PELTotalField`.
+
+    Parameters passed to PELSmoothness must be the same as passed to the PEL
+    solvers.
+
+    Parameters:
+
+    * grid : :class:`~fatiando.mesher.PointGrid`
+        The sources in the equivalent layer.
+    * windows : tuple = (ny, nx)
+        The number of windows that the layer will be divided in the y and x
+        directions, respectively.
+    * degree : int
+        The degree of the bivariate polynomials used in each window of the PEL
+
+    See the docstring of :class:`~fatiando.gravmag.eqlayer.PELGravity` for an
+    example usage.
+
+    """
     def __init__(self, grid, windows, degree):
         super(PELSmoothness, self).__init__(
             _pel_fdmatrix(windows, grid, degree))
