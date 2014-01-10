@@ -795,7 +795,7 @@ class Misfit(Objective, FitMixin):
             pred = 0
         else:
             if p is None:
-                p = self.estimate_
+                p = self.p_
             hash = self.hasher(p)
             if hash != self._cache['predicted']['hash']:
                 self._cache['predicted']['array'] = self._get_predicted(p)
