@@ -39,8 +39,8 @@ class Triangular(Misfit):
 
     .. tip::
 
-        Use :meth:`~fatiando.gravmag.basin2d.Triangular.topolygon` to
-        produce a polygon from the estimate returned by ``fit``.
+        Use the ``estimate_`` attribute to produce a polygon from the
+        estimated parameter vector (``p_``).
 
 
     Parameters:
@@ -87,20 +87,23 @@ class Triangular(Misfit):
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
         >>> solver = Triangular(x, z, gz, [left, middle], 500).config(
-        ...     'levmarq', initial=[10000, 1000])
-        >>> x, z = solver.fit().estimate_
+        ...     'levmarq', initial=[10000, 1000]).fit()
+        >>> # p_ is the estimated parameter vector (x and z in this case)
+        >>> x, z = solver.p_
         >>> print '%.1f, %.1f' % (x, z)
         50000.0, 5000.0
-        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
-        True
-        >>> # The parameter vector is not useful so transform it to a Polygon
-        >>> poly = solver.get_polygon()
+        >>> # The parameter vector is not that useful so use estimate_ to get a
+        >>> # Polygon object
+        >>> poly = solver.estimate_
         >>> poly.vertices
         array([[  1.00000000e+04,   1.00000000e+00],
                [  9.00000000e+04,   1.00000000e+00],
                [  5.00000006e+04,   5.00000021e+03]])
         >>> poly.props
         {'density': 500}
+        >>> # Check is the residuals are all small
+        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
+        True
 
     """
 
@@ -138,30 +141,26 @@ class Triangular(Misfit):
             )/(2.*delta)])
         return jac
 
-    def get_polygon(self, p=None):
+    def fit(self):
         """
-        Convert the estimated parameter vector *p* to a Polygon.
+        Solve for the third vertice of the triangle.
 
-        This way, the :class:`fatiando.mesher.Polygon` can be passed to
-        plotting functions and forward modeling functions.
+        After solving, use the ``estimate_`` attribute to get a
+        :class:`~fatiando.mesher.Polygon` representing the triangle.
 
-        Parameters:
+        The estimate parameter vector (x and z) can be accessed through the
+        ``p_`` attribute.
 
-        * p : 1d-array
-            The estimate parameter vector. If None, will use the one stored in
-            ``estimate_``.
-
-        Returns:
-
-        * polygon : :class:`fatiando.mesher.Polygon`
-            A polygon representation of the estimate.
+        See the the docstring of :class:`~fatiando.gravmag.basin2d.Triangular`
+        for examples.
 
         """
-        if p is None:
-            p = self.estimate_
+        super(Triangular, self).fit()
         left, right = self.model['verts']
         props = {'density':self.model['density']}
-        return Polygon(numpy.array([left, right, p]), props=props)
+        self._estimate = Polygon(numpy.array([left, right, self.p_]),
+                                 props=props)
+        return self
 
 class Trapezoidal(Misfit):
     """
@@ -230,14 +229,14 @@ class Trapezoidal(Misfit):
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
         >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500).config(
-        ...     'levmarq', initial=[1000, 500])
-        >>> z1, z2 = solver.fit().estimate_
+        ...     'levmarq', initial=[1000, 500]).fit()
+        >>> # p_ is the estimated parameter vector (z1 and z2 in this case)
+        >>> z1, z2 = solver.p_
         >>> print '%.1f, %.1f' % (z1, z2)
         5000.0, 3000.0
-        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
-        True
-        >>> # The parameter vector is not useful so transform it to a Polygon
-        >>> poly = solver.get_polygon()
+        >>> # The parameter vector is not that useful so use estimate_ to get a
+        >>> # Polygon object
+        >>> poly = solver.estimate_
         >>> poly.vertices
         array([[  1.00000000e+04,   1.00000000e+00],
                [  9.00000000e+04,   1.00000000e+00],
@@ -245,6 +244,9 @@ class Trapezoidal(Misfit):
                [  1.00000000e+04,   3.00000006e+03]])
         >>> poly.props
         {'density': 500}
+        >>> # Check is the residuals are all small
+        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
+        True
 
     """
 
@@ -289,29 +291,25 @@ class Trapezoidal(Misfit):
             )/(2.*delta)])
         return jac
 
-    def get_polygon(self, p=None):
+    def fit(self):
         """
-        Convert the estimated parameter vector to a Polygon.
+        Solve for the depths of the two side vertices of the trapezoid.
 
-        This way, the :class:`fatiando.mesher.Polygon` can be passed to
-        plotting functions and forward modeling functions.
+        After solving, use the ``estimate_`` attribute to get a
+        :class:`~fatiando.mesher.Polygon` representing the trapezoid.
 
-        Parameters:
+        The estimate parameter vector (z1 and z2) can be accessed through the
+        ``p_`` attribute.
 
-        * p : 1d-array or None
-            The estimate parameter vector. If None, will use the one stored in
-            ``estimate_``.
-
-        Returns:
-
-        * polygon : :class:`fatiando.mesher.Polygon`
-            A polygon representation of the estimate.
+        See the the docstring of :class:`~fatiando.gravmag.basin2d.Trapezoidal`
+        for examples.
 
         """
-        if p is None:
-            p = self.estimate_
-        z1, z2 = p
+        super(Trapezoidal, self).fit()
+        z1, z2 = self.p_
         x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
         props = {'density':self.model['density']}
         left, right = self.model['verts']
-        return Polygon(numpy.array([left, right, [x1, z1], [x2, z2]]), props)
+        self._estimate = Polygon(
+            numpy.array([left, right, [x1, z1], [x2, z2]]), props)
+        return self

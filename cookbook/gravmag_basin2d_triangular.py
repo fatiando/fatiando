@@ -14,8 +14,8 @@ z = numpy.zeros_like(x)
 gz = utils.contaminate(talwani.gz(x, z, [model]), 1)
 
 solver = basin2d.Triangular(x, z, gz, verts[0:2], density=-100).config(
-        'levmarq', initial=[10000, 1000])
-estimate = solver.fit().get_polygon()
+        'levmarq', initial=[10000, 1000]).fit()
+estimate = solver.estimate_
 
 mpl.figure()
 mpl.subplot(2, 1, 1)
