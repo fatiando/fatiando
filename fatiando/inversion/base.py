@@ -112,8 +112,8 @@ class Objective(object):
         self.islinear = islinear
         self.nparams = nparams
         self.ndata = 0
-        self.estimate_ = None
         self._scale = None
+        self._components = []
 
     def __repr__(self):
         return 'Objective instance'
@@ -140,6 +140,7 @@ class Objective(object):
         # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
+        tmp._components = [other] + other._components
         # Wrap the hessian, gradient and value to be the sums
         wrap('hessian', tmp)
         wrap('gradient', tmp)
@@ -319,6 +320,49 @@ class FitMixin(object):
         self.fit_args = args
         return self
 
+    @property
+    def p_(self):
+        """
+        The current estimated parameter vector.
+
+        Returns:
+
+        * p : 1d-array or None
+            The parameter vector. None, if
+            :meth:`~fatiando.inversion.base.FitMixin.fit` hasn't been called
+            yet.
+
+        """
+        if hasattr(self, '_p'):
+            return self._p
+        else:
+            return None
+
+    @property
+    def estimate_(self):
+        """
+        The current estimate.
+
+        .. note::
+
+            May be a formatted version of the parameter vector. It is
+            recommened that you use this when accessing the estimate and use
+            :meth:`~fatiando.inversion.base.FitMixin.p_` when you want the raw
+            parameter vector.
+
+        Returns:
+
+        * p : 1d-array or None
+            The parameter vector. None, if
+            :meth:`~fatiando.inversion.base.FitMixin.fit` hasn't been called
+            yet.
+
+        """
+        if hasattr(self, '_estimate'):
+            return self._estimate
+        else:
+            return None
+
     def fit(self):
         """
         Solve for the parameter vector that minimizes this objective function.
@@ -326,9 +370,15 @@ class FitMixin(object):
         Uses the optimization method and parameters defined using the
         :meth:`~fatiando.inversion.base.FitMixin.config` method.
 
-        The estimated parameter vector is stored in the *estimate_* attribute.
+        The estimated parameter vector can be accessed through the
+        :meth:`~fatiando.inversion.base.FitMixin.p_` property. A (possibly)
+        formatted version (converted to a more manageble type) of the estimate
+        can be accessed through
+        :meth:`~fatiando.inversion.base.FitMixin.estimate_`.
+
         """
-        self.estimate_ = getattr(self, self.fit_method)(**self.fit_args)
+        self._p = getattr(self, self.fit_method)(**self.fit_args)
+        self._estimate = self._p
         return self
 
     def linear(self, precondition=True):
@@ -890,67 +940,30 @@ class Misfit(Objective, FitMixin):
             grad = numpy.array(grad).ravel()
         return grad
 
-
-    #def predicted(self, p=None):
-        #"""
-        #The predicted data for all data-misfit functions in the multi-objective
-
-        #Will compute the predicted data for each data-misfit at the given
-        #parameter vector.
-
-        #Parameters:
-
-        #* p : 1d-array
-            #The parameter vector
-
-        #Returns:
-
-        #* pred : list or 1d-array
-            #A list with 1d-arrays of predicted data for each data-misfit
-            #function that makes up the multi-objective. They will be in the
-            #order in which the data-misfits were added to the multi-objective.
-            #If there is only one data-misfit, will return the 1d-array, not a
-            #list.
-
-        #"""
-        #if p is None:
-            #p = self.estimate_
-        #pred = []
-        #for mu, obj in self.objs:
-            #if callable(getattr(obj, 'predicted', None)):
-                #pred.append(obj.predicted(p))
-        #if len(pred) == 1:
-            #pred = pred[0]
-        #return pred
-
-    #def residuals(self, p=None):
-        #"""
-        #The residuals vector for data-misfit functions in the multi-objective
-
-        #Will compute the residual vector for each data-misfit at the given
-        #parameter vector.
-
-        #Parameters:
-
-        #* p : 1d-array
-            #The parameter vector
-
-        #Returns:
-
-        #* res : list or 1d-array
-            #A list with 1d-arrays of residual vectors for each data-misfit
-            #function that makes up the multi-objective. They will be in the
-            #order in which the data-misfits were added to the multi-objective.
-            #If there is only one data-misfit, will return the 1d-array, not a
-            #list.
-
-        #"""
-        #if p is None:
-            #p = self.estimate_
-        #res = []
-        #for mu, obj in self.objs:
-            #if callable(getattr(obj, 'residuals', None)):
-                #res.append(obj.residuals(p))
-        #if len(res) == 1:
-            #res = res[0]
-        #return res
+    # Overload the add function to make predicted and residuals return a list
+    # of all predicted and residual vectors from all the components.
+    def __add__(self, other):
+        tmp = super(Misfit, self).__add__(other)
+        def wrap(name, obj):
+            func = getattr(self, name)
+            def wrapper(self, p=None):
+                if p is None:
+                    p = self.p_
+                res = [func(p)]
+                for o in obj._components:
+                    ofunc = getattr(o, name, None)
+                    if callable(ofunc):
+                        aux = ofunc(p)
+                        if isinstance(aux, list):
+                            res.extend(aux)
+                        else:
+                            res.append(aux)
+                if len(res) == 1:
+                    return res[0]
+                else:
+                    return res
+            wrapper.__doc__ = getattr(self, name).__doc__
+            setattr(obj, name, types.MethodType(wrapper, obj))
+        wrap('predicted', tmp)
+        wrap('residuals', tmp)
+        return tmp
