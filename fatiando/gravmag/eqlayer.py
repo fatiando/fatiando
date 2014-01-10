@@ -24,7 +24,21 @@ from ..utils import dircos, safe_dot
 from ..inversion.base import Misfit
 
 
-class EQLGravity(Misfit):
+class EQLBase(Misfit):
+    """
+    Base class for the classic equivalent layer.
+    """
+
+    def __init__(self, x, y, z, data, grid):
+        super(EQLBase, self).__init__(data=data,
+            positional={'x':x, 'y':y, 'z':z},
+            model={'grid':grid},
+            nparams=grid.size, islinear=True)
+
+    def _get_predicted(self, p):
+        return safe_dot(self.jacobian(p), p)
+
+class EQLGravity(EQLBase):
     """
     Estimate an equivalent layer from gravity data.
 
@@ -112,14 +126,8 @@ class EQLGravity(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid, field='gz'):
-        super(EQLGravity, self).__init__(data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'grid':grid},
-            nparams=grid.size, islinear=True)
+        super(EQLGravity, self).__init__(x, y, z, data, grid)
         self.field = field
-
-    def _get_predicted(self, p):
-        return safe_dot(self.jacobian(p), p)
 
     def _get_jacobian(self, p):
         x = self.positional['x']
@@ -128,10 +136,10 @@ class EQLGravity(Misfit):
         func = getattr(kernel, self.field)
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         for i, c in enumerate(self.model['grid']):
-            jac[:,i] = func(x, y, z, [c], dens=1.)
+            jac[:, i] = func(x, y, z, [c], dens=1.)
         return jac
 
-class EQLTotalField(Misfit):
+class EQLTotalField(EQLBase):
     """
     Estimate an equivalent layer from total field magnetic anomaly data.
 
@@ -203,16 +211,10 @@ class EQLTotalField(Misfit):
     """
 
     def __init__(self, x, y, z, data, inc, dec, grid, sinc=None, sdec=None):
-        super(EQLTotalField, self).__init__(data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'grid':grid,
-                   'inc':sinc if sinc is not None else inc,
-                   'dec':sdec if sdec is not None else dec},
-            nparams=grid.size, islinear=True)
+        super(EQLTotalField, self).__init__(x, y, z, data, grid)
         self.inc, self.dec = inc, dec
-
-    def _get_predicted(self, p):
-        return safe_dot(self.jacobian(p), p)
+        self.model['inc'] = sinc if sinc is not None else inc
+        self.model['dec'] = sdec if sdec is not None else dec
 
     def _get_jacobian(self, p):
         x = self.positional['x']
@@ -222,39 +224,70 @@ class EQLTotalField(Misfit):
         mag = dircos(self.model['inc'], self.model['dec'])
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         for i, c in enumerate(self.model['grid']):
-            jac[:,i] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
+            jac[:, i] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
         return jac
 
-class PELFitMixin(object):
+class PELBase(Misfit):
     """
-    Overwrite the *fit* method to convert the coefficients to physical property
+    Base class for the Polynomial Equivalent Layer.
+
+    .. note::
+
+        Overloads *fit* to convert the estimated coefficients to physical
+        properties. The coefficients are stored in the ``coeffs_`` attribute.
+
     """
+
+    def __init__(self, x, y, z, data, grid, windows, degree):
+        super(PELBase, self).__init__(data=data,
+            positional={'x':x, 'y':y, 'z':z},
+            model={'grid':grid, 'windows':windows, 'degree':degree},
+            nparams=windows[0]*windows[1]*ncoeffs(degree),
+            islinear=True)
+
+    def _get_predicted(self, p):
+        return safe_dot(self.jacobian(p), p)
 
     def fit(self):
         """
+        Solve for the physical property distribution that fits the data.
+
+        Uses the optimization method and parameters defined using the
+        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+
+        The estimated physical properties can be accessed through
+        :meth:`~fatiando.inversion.base.FitMixin.estimate_`.
+        The estimate polynomial coefficients are stored in the ``coeffs_``
+        attribute.
+
         """
         super(self.__class__, self).fit()
-    #def _coefs2prop(coefs, grid, grids, windows, degree):
-        #ny, nx = windows
-        #pergrid = _ncoefficients(degree)
-        #estimate = numpy.empty(grid.shape, dtype=float)
-        #k = 0
-        #ystart = 0
-        #gny, gnx = grids[0].shape
-        #for i in xrange(ny):
-            #yend = ystart + gny
-            #xstart = 0
-            #for j in xrange(nx):
-                #xend = xstart + gnx
-                #g = grids[k]
-                #estimate[ystart:yend,xstart:xend] = numpy.dot(_bkmatrix(g, degree),
-                    #coefs[k*pergrid:(k + 1)*pergrid]).reshape(g.shape)
-                #xstart = xend
-                #k += 1
-            #ystart = yend
-        #return estimate.ravel()
+        coefs = self.p_
+        ny, nx = self.model['windows']
+        pergrid = ncoeffs(self.model['degree'])
+        estimate = numpy.empty(self.model['grid'].shape, dtype=float)
+        grids = self.model['grid'].split(self.model['windows'])
+        k = 0
+        ystart = 0
+        gny, gnx = grids[0].shape
+        for i in xrange(ny):
+            yend = ystart + gny
+            xstart = 0
+            for j in xrange(nx):
+                xend = xstart + gnx
+                g = grids[k]
+                estimate[ystart:yend, xstart:xend] = safe_dot(
+                        self._bkmatrix(g, degree),
+                        coefs[k*pergrid:(k + 1)*pergrid]
+                        ).reshape(g.shape)
+                xstart = xend
+                k += 1
+            ystart = yend
+        self.coeffs_ = self.p_
+        self._estimate = estimate.ravel()
+        return self
 
-class PELGravity(Misfit):
+class PELGravity(PELBase):
     """
     Estimate a polynomial equivalent layer from gravity data.
 
@@ -320,16 +353,8 @@ class PELGravity(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree, field='gz'):
-        super(PELGravity, self).__init__(data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'grid':grid, 'windows':windows, 'degree':degree},
-            nparams=grid.size,
-            #nparams=windows[0]*windows[1]*ncoeffs(degree),
-            islinear=True)
+        super(PELGravity, self).__init__(x, y, z, data, grid, windows, degre)
         self.field = field
-
-    def _get_predicted(self, p):
-        return safe_dot(self.jacobian(p), p)
 
     def _get_jacobian(self, p):
         x = self.positional['x']
