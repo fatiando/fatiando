@@ -1,4 +1,3 @@
-
 """
 GravMag: Use the polynomial equivalent layer to upward continue gravity data
 """
@@ -10,16 +9,17 @@ from fatiando.vis import mpl
 # Make synthetic data
 props = {'density':1000}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
-shape = (25, 25)
+shape = (50, 50)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
 gz = utils.contaminate(prism.gz(x, y, z, model), 0.1)
 # Setup the layer
-layer = mesher.PointGrid([-6000, 6000, -6000, 6000], 500, (50, 50))
+layer = mesher.PointGrid([-5000, 5000, -5000, 5000], 200, (100, 100))
 # Estimate the density using the PEL (it is faster and more memory efficient
 # than the traditional equivalent layer).
 windows = (20, 20)
-solver = (PELGravity(x, y, z, gz, layer, windows) +
-          10**-2*PELSmoothness(layer, windows)).fit()
+degree = 1
+solver = (PELGravity(x, y, z, gz, layer, windows, degree) +
+          10**-21*PELSmoothness(layer, windows, degree)).fit()
 layer.addprop('density', solver.estimate_)
 residuals = solver.residuals()
 print "Residuals:"
