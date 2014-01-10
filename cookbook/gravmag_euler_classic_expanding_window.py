@@ -55,16 +55,16 @@ centers = mpl.pick_points(area, mpl.gca(), xy2ne=True)
 # Structural index is 3
 euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
 sizes = np.linspace(500, 5000, 20)
-results = [ExpandingWindow(euler, c, sizes).fit().estimate_ for c in centers]
+results = [ExpandingWindow(euler, c, sizes).fit() for c in centers]
 
 print "Base level used: %g" % (baselevel)
 for i, res in enumerate(results):
     print "Center %d:" % (i + 1)
-    print "  Base level: %g" % (res[-1])
-    print "  Source location: %s" % (str(res[:3]))
+    print "  Base level: %g" % (res.baselevel_)
+    print "  Source location: %s" % (str(res.estimate_))
 
 myv.figure()
-myv.points([r[:3] for r in results], size=100.)
+myv.points([r.estimate_ for r in results], size=100.)
 myv.prisms(model, opacity=0.5)
 axes = myv.axes(myv.outline(bounds), ranges=[b*0.001 for b in bounds])
 myv.wall_bottom(bounds)

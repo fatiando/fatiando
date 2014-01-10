@@ -33,22 +33,20 @@ def setup():
 
 def test_euler_classic_sphere_mag():
     "gravmag.euler.Classic for sphere model and magnetic data"
-    euler = Classic(x, y, z, field, xderiv, yderiv, zderiv, struct_ind)
-    result = euler.fit().estimate_
-    assert (base - result[3])/base <= precision, \
-            'baselevel: %g estimated: %g' % (base, result[3])
-    assert np.all((pos - result[:3])/pos <= precision), \
-            'position: %s estimated: %s' % (str(pos), str(result[:3]))
+    euler = Classic(x, y, z, field, xderiv, yderiv, zderiv, struct_ind).fit()
+    assert (base - euler.baselevel_)/base <= precision, \
+            'baselevel: %g estimated: %g' % (base, euler.baselevel_)
+    assert np.all((pos - euler.estimate_)/pos <= precision), \
+            'position: %s estimated: %s' % (str(pos), str(euler.estimate_))
 
 def test_euler_classic_expandingwindow_sphere_mag():
     "gravmag.euler.ExpandingWindow w Classic for sphere model + magnetic data"
     euler = ExpandingWindow(
             Classic(x, y, z, field, xderiv, yderiv, zderiv, struct_ind),
-            center=[1000, 1000], sizes=np.linspace(100, 2000, 20))
-    result = euler.fit().estimate_
-    assert (base - result[3])/base <= precision, \
-            'baselevel: %g estimated: %g' % (base, result[3])
-    assert np.all((pos - result[:3])/pos <= precision), \
-            'position: %s estimated: %s' % (str(pos), str(result[:3]))
+            center=[1000, 1000], sizes=np.linspace(100, 2000, 20)).fit()
+    assert (base - euler.baselevel_)/base <= precision, \
+            'baselevel: %g estimated: %g' % (base, euler.baselevel_)
+    assert np.all((pos - euler.estimate_)/pos <= precision), \
+            'position: %s estimated: %s' % (str(pos), str(euler.estimate_))
 
 

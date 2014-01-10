@@ -1,10 +1,15 @@
 """
 Euler deconvolution methods for potential fields.
 
+**Implementations**
+
 * :class:`~fatiando.gravmag.euler.Classic`: The classic 3D solution to Euler's
-  equation for potential fields (Reid et al., 1990).
-* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run an Euler deconvolution
-  on an expanding window and return the best estimate.
+  equation for potential fields (Reid et al., 1990). Runs on the whole dataset.
+
+**Solution selection procedures**
+
+* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run a given Euler
+  deconvolution on an expanding window and keep the best estimate.
 
 **References**
 
@@ -28,15 +33,19 @@ class Classic(Misfit):
     """
     Classic 3D Euler deconvolution of potential field data.
 
-    Works on any potential field that satisfies Euler's homogeneity equation.
+    Follows the formulation of Reid et al. (1990). Performs the deconvolution
+    on the whole data set. For windowed approaches, use
+    :class:`~fatiando.gravmag.euler.ExpandingWindow`.
 
-    Follows the formulation of Reid et al. (1990).
+    Works on any potential field that satisfies Euler's homogeneity equation.
 
     .. note::
 
         The data does **not** need to be gridded for this! So long as you
         can calculate the derivatives of non-gridded data (using an Equivalent
         Layer, for example).
+
+    .. note:: x is North, y is East, and z is down.
 
     .. warning::
 
@@ -85,6 +94,17 @@ class Classic(Misfit):
     def _get_predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
+    def fit(self):
+        """
+        Solve the deconvolution on the whole data set.
+
+        Estimates an (x, y, z) point (stored in ``estimate_``) and a base level
+        (stored in ``baselevel_``).
+        """
+        super(Classic, self).fit()
+        self._estimate = self.p_[:3]
+        self.baselevel_ = self.p_[3]
+        return self
 
 class ExpandingWindow(object):
     """
@@ -95,7 +115,8 @@ class ExpandingWindow(object):
 
     Like any other Euler solver, use the
     :meth:`~fatiando.gravmag.euler.ExpandingWindow.fit` method to produce an
-    estimate.
+    estimate. The estimated point is stored in ``estimate_``, the base level in
+    ``baselevel_``.
 
     Parameters:
 
@@ -114,18 +135,14 @@ class ExpandingWindow(object):
         self.center = center
         self.sizes = sizes
         self.estimate_ = None
+        self.p_ = None
 
-    def fit(self, **kwargs):
+    def fit(self):
         """
         Perform the Euler deconvolution with expanding windows.
 
-        Keyword arguments given will be passed to the ``fit`` method of the
-        Euler solver.
-
-        Returns:
-
-        * estimate : 1d-array
-            The best estimate out of all windows.
+        The estimated point is stored in ``estimate_``, the base level in
+        ``baselevel_``.
 
         """
         xc, yc = self.center
@@ -142,13 +159,15 @@ class ExpandingWindow(object):
             if not indices:
                 continue
             euler.use_subset(indices)
-            p = euler.fit(**kwargs).estimate_
+            p = euler.fit().p_
             euler.use_all()
             results.append(p)
             cov = safe_inverse(euler.hessian(p))
             uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
             mean_error = numpy.linalg.norm(uncertainty)
             errors.append(mean_error)
-        self.estimate_ = results[numpy.argmin(errors)]
+        self.p_ = results[numpy.argmin(errors)]
+        self.estimate_ = self.p_[:3]
+        self.baselevel_ = self.p_[3]
         return self
 

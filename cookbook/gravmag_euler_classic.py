@@ -39,15 +39,14 @@ for i, f in enumerate([tf, xderiv, yderiv, zderiv]):
 mpl.show()
 
 # Run the Euler deconvolution on the whole dataset
-euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3)
-results = euler.fit().estimate_
+euler = Classic(xp, yp, zp, tf, xderiv, yderiv, zderiv, 3).fit()
 print "Base level used: %g" % (baselevel)
 print "Estimated:"
-print "  Base level:             %g" % (results[3])
-print "  Source location:        %s" % (str(results[:3]))
+print "  Base level:             %g" % (euler.baselevel_)
+print "  Source location:        %s" % (str(euler.estimate_))
 
 myv.figure()
-myv.points([results[:3]], size=100.)
+myv.points([euler.estimate_], size=100.)
 myv.prisms(model, 'magnetization', opacity=0.5)
 axes = myv.axes(myv.outline(extent=bounds))
 myv.wall_bottom(axes.axes.bounds, opacity=0.2)
