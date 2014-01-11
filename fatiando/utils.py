@@ -60,6 +60,11 @@ import fatiando.constants
 
 import obspy
 
+# to be able to use other features from Obspy like read
+try:
+    from obspy import *
+except:
+    pass
 
 def vecnorm(vectors):
     """
@@ -782,7 +787,7 @@ def matrix2stream(matrix, header=None):
     
     """
     # obspy requirement for Trace
-    if not isinstance(matrix, np.ndarray):
+    if not isinstance(matrix, numpy.ndarray):
         raise ValueError("matrix must be a NumPy array.")
     stream = obspy.Stream()
     for array in matrix:
@@ -819,3 +824,6 @@ def stream2matrix(stream):
         stats = stream.stats
     
     return traces, stats
+
+def Read():
+    obspy.read()

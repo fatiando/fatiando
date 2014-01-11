@@ -53,7 +53,6 @@ from matplotlib import pyplot, widgets
 # Quick hack so that the docs can build using the mocks for readthedocs
 # Ideal would be to log an error message saying that functions from pyplot
 # were not imported
-import obspy
 
 try:
     from matplotlib.pyplot import *
