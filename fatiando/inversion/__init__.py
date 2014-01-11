@@ -1,6 +1,32 @@
 """
 Everything you need to solve inverse problems!
 
+This package provides the basic building blocks to implement inverse problem
+solvers. The main class for this is :class:`~fatiando.inversion.base.Misfit`.
+It represents a data-misfit function and has all the tools needed to fit a
+model to some data. All you have to do is implement methods to calculate the
+predicted (or modeled) data and (optionally) the Jacobian (or sensitivity)
+matrix. With only that, you have access to a range of optimization methods,
+regularization, joint inversion, etc.
+
+**Modules**
+
+* :mod:`~fatiando.inversion.base`: Base classes for building inverse problem
+  solvers
+* :mod:`~fatiando.inversion.regularization`: Classes for common regularizing
+  functions and base classes for building new ones
+* :mod:`~fatiando.inversion.solvers`: Functions for several optimization
+  methods (used by :class:`~fatiando.inversion.base.Misfit`)
+
+Have a look at the examples bellow on how to use the package. More geophysical
+examples include :mod:`fatiando.seismic.srtomo`,
+:mod:`fatiando.seismic.profile`,
+:mod:`fatiando.gravmag.basin2d`,
+:mod:`fatiando.gravmag.eqlayer`,
+and
+:mod:`fatiando.gravmag.euler`.
+
+
 Examples
 --------
 
@@ -56,13 +82,14 @@ A more complicated example would be to implement a generic polynomial fit.
 array([ 5.,  2.])
 >>> # Use a second order polynomial
 >>> y = 0.1*x**2 + 3*x + 6
->>> solver = PolynomialRegression(x, y, 2)
->>> solver.fit().estimate_
+>>> solver = PolynomialRegression(x, y, 2).fit()
+>>> solver.estimate_
 array([ 6. ,  3. ,  0.1])
 >>> np.abs(solver.residuals()) < 10**10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
-You can also configure the solver to use a different optimization method:
+You can also configure the solver to use a different (non-linear) optimization
+method:
 
 >>> # Configure solver to use the Levemberg-Marquardt method
 >>> solver.config('levmarq', initial=[1, 1, 1]).fit().estimate_
@@ -81,6 +108,8 @@ In this example, I want to fit an equation of the form
     f(x) = a\exp(-b(x + c)^{2})
 
 Function *f* is non-linear with respect to inversion parameters *a, b, c*.
+Thus, we need to configure the solver and choose an optimization method before
+we can call ``fit()``.
 
 >>> class GaussianFit(Misfit):
 ...     def __init__(self, x, y):
@@ -107,8 +136,8 @@ Function *f* is non-linear with respect to inversion parameters *a, b, c*.
 >>> a, b, c = 100, 0.1, -2
 >>> y = a*np.exp(-b*(x + c)**2)
 >>> # Non-linear solvers have to be configured. Lets use Levemberg-Marquardt.
->>> solver = GaussianFit(x, y).config('levmarq', initial=[1, 1, 1])
->>> solver.fit().estimate_
+>>> solver = GaussianFit(x, y).config('levmarq', initial=[1, 1, 1]).fit()
+>>> solver.estimate_
 array([ 100. ,    0.1,   -2. ])
 >>> np.all(np.abs(solver.residuals()) < 10**-10)
 True
@@ -118,7 +147,10 @@ Joint inversion
 
 Sometimes multiple data types depend on the same parameters (e.g., gravity
 and gravity gradients depend of density). In these cases, the inversion of both
-datasets can be performed simultaneously:
+datasets can be performed simultaneously by simply adding the Misfits together.
+
+Lets go back to the regression example and pretend that the same linear
+equation can represent 2 types of data, ``y1`` and ``y2``:
 
 >>> x1 = np.linspace(0, 5, 6)
 >>> y1 = 2*x1 + 5
@@ -141,6 +173,9 @@ array([  205.,   805.,  1405.,  2005.])
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
 >>> np.abs(res2) < 10**-10
 array([ True,  True,  True,  True], dtype=bool)
+>>> # We can configure the joint solver just like any other
+>>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
+array([ 2.,  5.])
 
 
 
