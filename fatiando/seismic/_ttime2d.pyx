@@ -9,7 +9,7 @@ cimport numpy
 cimport cython
 
 
-#@cython.boundscheck(False)
+@cython.boundscheck(False)
 #@cython.wraparound(False)
 def straight(
     numpy.ndarray[double, ndim=1] x_src,
@@ -65,8 +65,8 @@ def straight(
                 # Angular and linear coefficients of the ray
                 a_ray = float(yr - ys)/(xr - xs)
                 b_ray = ys - a_ray*(xs)
-                # Add the src and rec locations so that the travel time of a src
-                # or rec inside a cell is accounted for
+                # Add the src and rec locations so that the travel time of a
+                # src or rec inside a cell is accounted for
                 xps[0] = x1
                 xps[1] = x2
                 xps[2] = (y1 - b_ray)/a_ray

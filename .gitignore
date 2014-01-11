@@ -1,9 +1,8 @@
 *.pyc
 *.so
-_c*.c
-_*.c
 build
 .*.swp
+.coverage
 doc/_build
 doc/_static/cookbook
 doc/cookbook

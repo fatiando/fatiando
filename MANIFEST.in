@@ -5,3 +5,4 @@ include MANIFEST.in
 include doc/fatiando*.pdf
 recursive-include cookbook *
 recursive-include fatiando *.pyx
+recursive-include fatiando *.c

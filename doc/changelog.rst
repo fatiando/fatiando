@@ -10,24 +10,52 @@ Version 0.2
 
 **Changes**:
 
+* 2x speed-up of :ref:`fatiando.gravmag.talwani <fatiando_gravmag_talwani>`
+  with smarter numpy array usage. (`PR 57
+  <https://github.com/leouieda/fatiando/pull/57>`_)
 * 300x speed-up of :ref:`fatiando.seismic.ttime2d <fatiando_seismic_ttime2d>`
-  with new Cython code.
+  with new Cython code. (`PR 62
+  <https://github.com/leouieda/fatiando/pull/62>`_)
 * Speed-up of :ref:`fatiando.gravmag.tesseroid <fatiando_gravmag_tesseroid>`
-  with better Cython code.
+  with better Cython code. (`PR 58
+  <https://github.com/leouieda/fatiando/pull/58>`_)
+* Various tweaks to :ref:`fatiando.vis.myv <fatiando_vis_myv>`. (`PR 56
+  <https://github.com/leouieda/fatiando/pull/56>`_ and `PR 60
+  <https://github.com/leouieda/fatiando/pull/60>`_)
+* **New** gravity gradient tensor modeling with spheres in
+  :ref:`fatiando.gravmag.sphere <fatiando_gravmag_sphere>`. (`PR 55
+  <https://github.com/leouieda/fatiando/pull/55>`_ and `PR 24
+  <https://github.com/leouieda/fatiando/pull/24>`_, the first one by
+  `Vanderlei <http://fatiando.org/people/oliveira-jr/>`__)
+* **New** function :ref:`fatiando.gridder.profile <fatiando_gridder>` to
+  extract a profile (cross-section) from map data. (`PR 46
+  <https://github.com/leouieda/fatiando/pull/46>`_)
 * Better support for random numbers. ``contaminate`` function now guaranteed to
   use errors with zero mean. Can now control the random seed used in all
-  functions relying on random numbers.
-* New algorithms in :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
-  for elastic waves and a new scalar wave solver! Using staggered grid finite
-  differences makes elastic wave methods are more stable.
-* New ``extrapolate_nans`` function in
+  functions relying on random numbers. (`PR 41
+  <https://github.com/leouieda/fatiando/pull/41>`_)
+* **New** scalar wave 2D finite differences modeling in
+  :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`. (`PR 38
+  <https://github.com/leouieda/fatiando/pull/38>`_ the first by `Andre
+  <http://www.fatiando.org/people/ferreira/>`__!)
+* **New** algorithms in :ref:`fatiando.seismic.wavefd
+  <fatiando_seismic_wavefd>` for elastic waves and a new scalar wave solver!
+  Using staggered grid finite
+  differences makes elastic wave methods are more stable. (`PR 52
+  <https://github.com/leouieda/fatiando/pull/52>`_)
+* **New** ``extrapolate_nans`` function in
   :ref:`fatiando.gridder <fatiando_gridder>` to fill NaNs and masked
   values in arrays using the nearest data point.
 * ``interp`` function of :ref:`fatiando.gridder <fatiando_gridder>` has option
   to extrapolate values outside the convex hull of the data (enabled by
   default). Uses better cubic interpolation by default and returns
-  1D arrays like the rest of fatiando, instead of 2D.
-* Added module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
+  1D arrays like the rest of fatiando, instead of 2D. (`PR 44
+  <https://github.com/leouieda/fatiando/pull/44>`_ and `PR 42
+  <https://github.com/leouieda/fatiando/pull/42>`_)
+* **New** function to load a grid in Surfer format. (`PR
+  <https://github.com/leouieda/fatiando/pull/33>`_ the first by `Henrique
+  <http://fatiando.org/people/santos/>`__!)
+* **New** module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
   magnetization.
@@ -36,7 +64,8 @@ Version 0.2
   used as a ``Prism`` object.
 * :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
   data weights and magnetic data inversion.
-* Removed module fatiando.logger
+* Removed module ``fatiando.logger``. (`PR 30
+  <https://github.com/leouieda/fatiando/pull/30>`_)
 
 Version 0.1
 -----------

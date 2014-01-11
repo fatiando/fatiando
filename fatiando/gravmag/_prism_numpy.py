@@ -1,11 +1,6 @@
 """
-.. note::
-
-    This is a Python + Numpy implementation of the potential field effects of
-    right rectangular prisms. There is a Cython implementation in _cprism.pyx
-    It will be loaded automatically if it is compiled.
-
-----
+This is a Python + Numpy implementation of the potential field effects of
+right rectangular prisms.
 """
 import numpy
 from numpy import sqrt, log, arctan2

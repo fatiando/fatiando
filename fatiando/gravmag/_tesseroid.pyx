@@ -1,6 +1,7 @@
 """
-Pure Python implementations of functions in fatiando.gravmag.tesseroid.
-Used instead of Cython versions if those are not available.
+Cython kernels for the fatiando.gravmag.tesseroid module.
+
+Used to optimize some slow tasks and compute the actual gravitational fields.
 """
 import numpy
 from libc.math cimport sin, cos, sqrt
@@ -9,6 +10,10 @@ from fatiando.constants import MEAN_EARTH_RADIUS
 cimport numpy
 cimport cython
 
+__all__ = ['_potential', '_gx', '_gy', '_gz', '_gxx', '_gxy', '_gxz',
+    '_gyy', '_gyz', '_gzz', '_distance', '_too_close']
+
+
 cdef:
     double d2r = numpy.pi/180.
     double[::1] nodes
@@ -16,8 +21,13 @@ nodes = numpy.array([-0.577350269, 0.577350269])
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def too_close(numpy.ndarray[long, ndim=1] points,
+def _too_close(numpy.ndarray[long, ndim=1] points,
         numpy.ndarray[double, ndim=1] distance, double value):
+    """
+    Separate 'points' into two lists, ones that are too close and ones that
+    aren't. How close is allowed depends on 'value'. 'points' is a list of the
+    indices corresponding to observation points.
+    """
     cdef:
         int i, j, l, size = len(points)
         numpy.ndarray[long, ndim=1] buff
@@ -35,13 +45,18 @@ def too_close(numpy.ndarray[long, ndim=1] points,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def distance(tesseroid,
+def _distance(tesseroid,
     numpy.ndarray[double, ndim=1] lon,
     numpy.ndarray[double, ndim=1] sinlat,
     numpy.ndarray[double, ndim=1] coslat,
     numpy.ndarray[double, ndim=1] radius,
     numpy.ndarray[long, ndim=1] points,
     numpy.ndarray[double, ndim=1] buff):
+    """
+    Calculate the distance between a tesseroid and some observation points.
+    Which points to calculate are specified by the indices in 'points'. Returns
+    the values in 'buff'.
+    """
     cdef:
         unsigned int i, l, size = len(points)
         double tes_radius, tes_lat, tes_lon
@@ -63,6 +78,7 @@ cdef inline double _scale_nodes(tesseroid,
         numpy.ndarray[double, ndim=1] sinlatc,
         numpy.ndarray[double, ndim=1] coslatc,
         numpy.ndarray[double, ndim=1] rc):
+    "Put GLQ nodes in the integration limits for a tesseroid"
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
         unsigned int i
@@ -86,7 +102,7 @@ cdef inline double _scale_nodes(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def potential(tesseroid,
+def _potential(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -98,11 +114,15 @@ def potential(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -122,7 +142,7 @@ def potential(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gx(tesseroid,
+def _gx(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -134,11 +154,15 @@ def gx(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -160,7 +184,7 @@ def gx(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gy(tesseroid,
+def _gy(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -172,11 +196,15 @@ def gy(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -198,7 +226,7 @@ def gy(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gz(tesseroid,
+def _gz(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -210,11 +238,15 @@ def gz(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -236,7 +268,7 @@ def gz(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gxx(tesseroid,
+def _gxx(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -248,11 +280,15 @@ def gxx(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -274,7 +310,7 @@ def gxx(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gxy(tesseroid,
+def _gxy(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -286,11 +322,15 @@ def gxy(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -314,7 +354,7 @@ def gxy(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gxz(tesseroid,
+def _gxz(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -326,11 +366,15 @@ def gxz(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -354,7 +398,7 @@ def gxz(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gyy(tesseroid,
+def _gyy(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -366,11 +410,15 @@ def gyy(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -393,7 +441,7 @@ def gyy(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gyz(tesseroid,
+def _gyz(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -405,11 +453,15 @@ def gyz(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
@@ -434,7 +486,7 @@ def gyz(tesseroid,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def gzz(tesseroid,
+def _gzz(tesseroid,
     double density,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
@@ -446,11 +498,15 @@ def gzz(tesseroid,
     numpy.ndarray[double, ndim=1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
+    """
+    Calculate this gravity field of a tesseroid at given locations (specified
+    by the indices in 'points').
+    """
     cdef:
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
         double cospsi, deltaz
-    # Put the nodes in the corrent range
+    # Put the nodes in the current range
     scale = _scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
