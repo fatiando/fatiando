@@ -17,8 +17,6 @@ rc[3:-3, 20] = 1.  # wedge top 80 ms
 for i in xrange(3, 67, 1):  # wedge base 2ms:trace
     rc[i, 20 + int(i*0.45)] = -1.
 traces = utils.matrix2stream(rc, header={'delta': 0.004})  # sample rate 4 ms
-# stream.filter changes de dtype from data to float64 ferrando tudo!!!
-#traces.filter('bandpass', freqmin=15.0, freqmax=45., zerophase=True)  # convolves
 mpl.seismic_wiggle(traces, normalize=True)
 mpl.show()
 # save as a segy file
@@ -29,9 +27,9 @@ wedge = utils.read('wedge.segy')
 # filtering using a IIR (infinite impulse response) recursive filter
 # band defined as f1=0.1Fn f2=0.4Fn [ 12.5 Hz, 50.0 Hz ]
 b, a = signal.butter(8, (0.1, 0.4), btype='bandpass')
-for trac in wedge: # convolve with the traces
+for trac in wedge:  # convolve with the traces
     trac.data = signal.filtfilt(b, a, trac.data)
-    trac.data = trac.data.astype('float32') # convert back to float32 to save
+    trac.data = trac.data.astype('float32')  # convert back to float32 to save
 mpl.seismic_image(wedge, cmap=mpl.pyplot.cm.jet)
 mpl.seismic_wiggle(wedge, scale=2.0)
 mpl.show()
