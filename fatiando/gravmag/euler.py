@@ -158,14 +158,12 @@ class ExpandingWindow(object):
                 and y[i] >= ymin and y[i] <= ymax]
             if not indices:
                 continue
-            euler.use_subset(indices)
-            p = euler.fit().p_
-            euler.use_all()
-            results.append(p)
-            cov = safe_inverse(euler.hessian(p))
+            solver = euler.subset(indices).fit()
+            cov = safe_inverse(solver.hessian(solver.p_))
             uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
             mean_error = numpy.linalg.norm(uncertainty)
             errors.append(mean_error)
+            results.append(solver.p_)
         self.p_ = results[numpy.argmin(errors)]
         self.estimate_ = self.p_[:3]
         self.baselevel_ = self.p_[3]

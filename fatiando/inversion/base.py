@@ -646,26 +646,6 @@ class Misfit(Objective, FitMixin):
     * islinear : True or False
         Whether :math:`\bar{f}` is linear or not.
 
-    Examples:
-
-        >>> import numpy
-        >>> solver = Misfit(numpy.array([1, 2, 3]),
-        ...                 positional={'x':numpy.array([4, 5, 6])},
-        ...                 model={},
-        ...                 nparams=2)
-        >>> solver.use_tmp_data(numpy.array([4, 5, 6]))
-        Misfit instance
-        >>> solver.data
-        array([4, 5, 6])
-        >>> solver.positional
-        {'x': array([4, 5, 6])}
-        >>> solver.reset_data()
-        Misfit instance
-        >>> solver.data
-        array([1, 2, 3])
-        >>> solver.positional
-        {'x': array([4, 5, 6])}
-
     """
 
     def __init__(self, data, positional, model, nparams, weights=None,
@@ -675,12 +655,7 @@ class Misfit(Objective, FitMixin):
         self.ndata = len(data)
         self.positional = positional
         self.model = model
-        # Dumb hack to use only subsets of the data. Need a better solution
-        self.subset = None
-        self._backup_data = data
-        self._backup_positional = positional.copy()
-        self._backup_jacobian = None
-        # To cache the lastest computations (or for linear problems)
+        # To cache the latest computations (or for linear problems)
         self.hasher = lambda x: hashlib.sha1(x).hexdigest()
         self._cache = {}
         self._cache['predicted'] = {'hash':'', 'array':None}
@@ -702,59 +677,86 @@ class Misfit(Objective, FitMixin):
     def __repr__(self):
         return 'Misfit instance'
 
-    def use_tmp_data(self, data):
+    def subset(self, indices):
         """
-        Temporarily use the given data vector instead.
+        Produce a shallow copy of this object with only a subset of the data.
 
-        To reset the original data, use
-        :meth:`~fatiando.inversion.base.Misfit.reset_data`.
+        Additionally cuts the *positional* arguments and Jacobian matrix (if it
+        is present in the cache).
 
         Parameters:
 
-        * data : 1d-array
-            The observed data vector.
+        * indices : list of ints
+            The indices that correspond to the subset.
+
+        Returns:
+
+        * subset : Misfit
+            A copy of this object
+
+        Examples:
+
+        >>> import numpy as np
+        >>> solver = Misfit(np.array([1, 2, 3, 10]),
+        ...                 positional={'x':np.array([4, 5, 6, 100])},
+        ...                 model={'d':12},
+        ...                 nparams=2)
+        >>> # Populate the cache to show what happens to it
+        >>> solver._cache['jacobian']['array'] = np.array(
+        ...     [[1, 2],
+        ...      [3, 4],
+        ...      [5, 6],
+        ...      [7, 8]])
+        >>> solver._cache['hessian']['array'] = np.ones((2, 2))
+        >>> solver._cache['predicted']['array'] = np.ones(4)
+        >>> # Get the subset
+        >>> sub = solver.subset([1, 3])
+        >>> sub
+        Misfit instance
+        >>> sub.data
+        array([ 2, 10])
+        >>> sub.positional
+        {'x': array([  5, 100])}
+        >>> sub.model
+        {'d': 12}
+        >>> sub._cache['jacobian']['array']
+        array([[3, 4],
+               [7, 8]])
+        >>> sub._cache['hessian']['array'] is None
+        True
+        >>> sub._cache['predicted']['array'] is None
+        True
+        >>> # The original solver stays the same
+        >>> solver.data
+        array([ 1,  2,  3, 10])
+        >>> solver.positional
+        {'x': array([  4,   5,   6, 100])}
+        >>> solver.model
+        {'d': 12}
+        >>> solver._cache['jacobian']['array']
+        array([[1, 2],
+               [3, 4],
+               [5, 6],
+               [7, 8]])
+        >>> solver._cache['hessian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.]])
+        >>> solver._cache['predicted']['array']
+        array([ 1.,  1.,  1.,  1.])
 
         """
-        self.data = data
-        return self
-
-    def reset_data(self):
-        """
-        Reset the original data vector.
-
-        See :meth:`~fatiando.inversion.base.Misfit.use_tmp_data`.
-        """
-        self.data = self._backup_data
-        return self
-
-    def use_all(self):
-        """
-        Use all the data in the original data vector.
-
-        See :meth:`~fatiando.inversion.base.Misfit.use_subset`.
-        """
-        self.data = self._backup_data
-        self.positional = self._backup_positional
-        self.ndata = len(self.data)
-        self._clear_cache()
-        return self
-
-    def use_subset(self, indices):
-        """
-        Use only a subset of the observed data.
-
-        Parameters:
-
-        * indices : list
-            The indeces of the elements in the data array that will be used.
-
-        """
-        self.data = self.data[indices]
-        self.positional = dict((k, self.positional[k][indices])
-                              for k in self.positional)
-        self.ndata = len(indices)
-        self._clear_cache()
-        return self
+        sub = copy.copy(self)
+        sub.model = self.model.copy()
+        sub._cache = self._cache.copy()
+        sub.data = sub.data[indices]
+        sub.positional = dict((k, sub.positional[k][indices])
+                               for k in sub.positional)
+        sub._clear_cache()
+        if self._cache['jacobian']['array'] is not None:
+            sub._cache['jacobian']['array'] = \
+                self._cache['jacobian']['array'][indices]
+        sub.ndata = len(indices)
+        return sub
 
     def set_weights(self, weights):
         """
