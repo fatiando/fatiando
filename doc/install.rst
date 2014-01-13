@@ -10,16 +10,25 @@ Installing Fatiando
 .. _mailing list: https://groups.google.com/forum/#!forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 
+
+Python version
+--------------
+
+Fatiando requires `Python 2.7x`_.
+
+.. _Python 2.7x: http://www.python.org/download/
+
+
 Install the dependencies
 ------------------------
 
 Fatiando requires the following packages:
 
-* `numpy <http://numpy.scipy.org/>`_
-* `scipy <http://scipy.org/>`_
+* `Numpy <http://numpy.scipy.org/>`_
+* `Scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
 * `PIL <http://www.pythonware.com/products/pil/>`_
-* `mayavi <http://code.enthought.com/projects/mayavi/>`_
+* `Mayavi <http://code.enthought.com/projects/mayavi/>`_
 * `Cython <http://cython.org/>`_: to compile faster modules in C. Needed only
   when installing from source (or using ``pip``).
 
@@ -45,14 +54,47 @@ When installing PythonXY,
 make sure the following are selected
 (or go with a full install to be sure):
 
-* numpy
-* scipy
+* Numpy
+* Scipy
 * matplotlib
 * PIL
-* ETS (for mayavi)
-* VTK (for mayavi)
+* ETS (for Mayavi)
+* VTK (for Mayavi)
 
 .. _PythonXY: http://code.google.com/p/pythonxy/
+
+Some times, **Mac OS X** install can be a challenge.
+I recommend downloading the full `Enthought Python Distribution (EPD)`_, 
+it will provide Python, Numpy, Scipy, matplotlib, PIL, Mayavi, 
+Cython and many others 3rd-party libraries. 
+
+.. _Enthought Python Distribution (EPD): https://www.enthought.com/
+
+
+In the same way, the new EPD's product, Canopy_, includes many Python packages, 
+but unfortunately, Mayavi and Cython are not present in the free_ version. 
+If possible, I recommend to request the `academic license`_.
+
+.. _Canopy: https://www.enthought.com/products/canopy/
+.. _free: https://www.enthought.com/products/epd/free/
+.. _academic license: https://www.enthought.com/products/canopy/academic/
+
+**Warning**: There are a problem_ with VTK and consequently Mayavi on 
+Mac OS X and unresolved problems with graphics that depends which Mac 
+EPD installations (`32 or 64 bit`_) has been using. In order to preserve 
+uniformity between 32 or 64 bit installations of EPD, I recommend to use 
+**PyQt** instead of **wxPython**. To this, the environment variable ``ETS_TOOLKIT`` 
+has to be set to ``qt4`` in your ``.profile`` or ``.bash_profile``::
+
+    export ETS_TOOLKIT = qt4
+
+If for some reason you prefer install the dependencies by hand, 
+you can search for binary installers or try to install using homebrew_ or macports_.
+
+.. _problem: https://support.enthought.com/entries/23419888-VTK-Mayavi-on-Mac-OS-X
+.. _32 or 64 bit: https://support.enthought.com/entries/22961778-EPD-for-Mac-OS-X-32-and-64-bit-versions
+.. _homebrew: http://mxcl.github.io/homebrew/
+.. _macports: http://www.macports.org/
 
 Installing on Linux
 -------------------
@@ -90,6 +132,24 @@ download the latest Windows installer from PyPI_.
 Just click through the installer and you should be done!
 
 .. _PyPI: http://pypi.python.org/pypi/fatiando
+
+Installing on Mac OS X
+----------------------
+
+Theoretically, the installation on a Mac OS X is equal that on Linux (see above).
+However, if you are using EPD or “other” virtualenv_, will not be possible to install Fatiando using ``pip``. The easiest way is to download Fatiando from its repository_ and run::
+
+    make build
+
+.. _repository: https://github.com/leouieda/fatiando
+
+Do not forget to set the ``PYTHONPATH`` variable in your ``.profile`` or ``.bash_profile``::
+
+    export PYTHONPATH=/Path_to_your_directory/fatiando:$PYTHONPATH
+
+where ``Path_to_your_directory`` is the complete path to the directory `fatiando`. Finally, to test the install use::
+
+    make test
 
 Testing the install
 -------------------
