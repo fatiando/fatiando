@@ -4,7 +4,7 @@ medium with a discontinuity (i.e., Moho), generating Love waves.
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import gridder, io
+from fatiando import gridder
 from fatiando.seismic import wavefd
 from fatiando.vis import mpl
 
