@@ -29,14 +29,28 @@ Modules for gridding, meshing, visualization, user interface, input/output etc:
   Physical constants and unit conversions
 
 Also included is the :mod:`fatiando.inversion` package with utilities for
-implementing inverse problems. There you'll find common regularizing functions,
-linear inverse problem solvers, and non-linear gradient solvers. This package
-is generaly only used from inside Fatiando itself, not when using Fatiando in
-scripts. For usage examples, see the source of modules
-:mod:`fatiando.seismic.epic2d` and :mod:`fatiando.gravmag.basin2d`.
+implementing inverse problems. There you'll find:
 
-See the documentation for each module to find out more about what they do and
-how to use them.
+* :mod:`~fatiando.inversion.regularization`: Common regularizing functions and
+  base classes for building custom ones
+* :mod:`~fatiando.inversion.base`: Base classes to implement your inverse
+  problem. They do most of the heavy lifting for you!
+* :mod:`~fatiando.inversion.solvers`: Functions for optimization (used by
+  :mod:`~fatiando.inversion.base` classes)
+
+Inversion methods in Fatiando leverage :mod:`fatiando.inversion`, providing a
+common interface and usage patters. For examples, see modules
+:mod:`fatiando.seismic.epic2d`,
+:mod:`fatiando.seismic.srtomo`,
+:mod:`fatiando.gravmag.basin2d`,
+:mod:`fatiando.gravmag.euler`,
+:mod:`fatiando.gravmag.eqlayer`,
+etc.
+
+The design of :mod:`fatiando.inversion` was inspired by `scikit-learn`_, an
+amazing machine-learning library.
+
+.. _scikit-learn: http://scikit-learn.org
 
 ----
 

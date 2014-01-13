@@ -1,6 +1,6 @@
 .. _fatiando_inversion:
 
-Inverse problem solving tools (``fatiando.inversion``)
+Inverse problems framework (``fatiando.inversion``)
 ==============================================================
 
 .. automodule:: fatiando.inversion
@@ -9,7 +9,6 @@ Inverse problem solving tools (``fatiando.inversion``)
 
 .. toctree::
 
-    inversion.linear.rst
-    inversion.gradient.rst
-    inversion.regularizer.rst
-    inversion.datamodule.rst
+    inversion.base.rst
+    inversion.solvers.rst
+    inversion.regularization.rst
