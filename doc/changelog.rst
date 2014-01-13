@@ -15,7 +15,7 @@ Version 0.2
   interface. (`PR 72 <https://github.com/leouieda/fatiando/pull/72>`_)
 * Renamed the ``fatiando.io`` module to
   :ref:`fatiando.datasets <fatiando_datasets>`
-  (`PR <>`_)
+  (`PR 82 <https://github.com/leouieda/fatiando/pull/82>`_)
 * :ref:`fatiando.utils.contaminate <fatiando_utils>` can now take multiple data
   vectors and stddevs
 * 2x speed-up of :ref:`fatiando.gravmag.talwani <fatiando_gravmag_talwani>`
