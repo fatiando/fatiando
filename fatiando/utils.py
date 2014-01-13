@@ -32,6 +32,7 @@ Miscellaneous utility functions and classes.
 
 **Others**
 
+* :func:`~fatiando.utils.fromimage`: Load a matrix from an image file
 * :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
   Gaussian noise
 * :func:`~fatiando.utils.dircos`: Get the 3 coordinates of a unit vector
@@ -56,9 +57,48 @@ import math
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
+import scipy.misc
+import PIL.Image
 
-import fatiando.constants
+from . import constants, gridder
 
+
+def fromimage(fname, ranges=None, shape=None):
+    """
+    Load an array of normalized gray-scale values from an image file.
+
+    The values will be in the range [0, 1]. The shape of the array is the shape
+    of the image (ny, nx), i.e., number of pixels in vertical (height) and
+    horizontal (width) dimensions.
+
+    Parameters:
+
+    * fname : str
+        Name of the image file
+    * ranges : [vmax, vmin] = floats
+        If not ``None``, will set the gray-scale values to this range.
+    * shape : (ny, nx)
+        If not ``None``, will interpolate the array to match this new shape
+
+    Returns:
+
+    * values : 2d-array
+        The array of gray-scale values
+
+    """
+    image = scipy.misc.fromimage(PIL.Image.open(fname), flatten=True)
+    # Invert the color scale and normalize
+    values = (image.max() - image)/numpy.abs(image).max()
+    if ranges is not None:
+        vmin, vmax = ranges
+        values *= vmax - vmin
+        values += vmin
+    if shape is not None and tuple(shape) != values.shape:
+        ny, nx = values.shape
+        X, Y = numpy.meshgrid(range(nx), range(ny))
+        values = gridder.interp(X.ravel(), Y.ravel(), values.ravel(),
+            shape)[2].reshape(shape)
+    return values
 
 def safe_inverse(matrix):
     """
@@ -204,7 +244,7 @@ def sph2cart(lon, lat, height):
 
     """
     d2r = numpy.pi/180.0
-    radius = fatiando.constants.MEAN_EARTH_RADIUS + height
+    radius = constants.MEAN_EARTH_RADIUS + height
     x = numpy.cos(d2r*lat)*numpy.cos(d2r*lon)*radius
     y = numpy.cos(d2r*lat)*numpy.sin(d2r*lon)*radius
     z = numpy.sin(d2r*lat)*radius
@@ -225,7 +265,7 @@ def si2nt(value):
         The value in nanoTesla
 
     """
-    return value*fatiando.constants.T2NT
+    return value*constants.T2NT
 
 def nt2si(value):
     """
@@ -242,7 +282,7 @@ def nt2si(value):
         The value in SI
 
     """
-    return value/fatiando.constants.T2NT
+    return value/constants.T2NT
 
 def si2eotvos(value):
     """
@@ -259,7 +299,7 @@ def si2eotvos(value):
         The value in Eotvos
 
     """
-    return value*fatiando.constants.SI2EOTVOS
+    return value*constants.SI2EOTVOS
 
 def eotvos2si(value):
     """
@@ -276,7 +316,7 @@ def eotvos2si(value):
         The value in SI
 
     """
-    return value/fatiando.constants.SI2EOTVOS
+    return value/constants.SI2EOTVOS
 
 def si2mgal(value):
     """
@@ -293,7 +333,7 @@ def si2mgal(value):
         The value in mGal
 
     """
-    return value*fatiando.constants.SI2MGAL
+    return value*constants.SI2MGAL
 
 def mgal2si(value):
     """
@@ -310,7 +350,7 @@ def mgal2si(value):
         The value in SI
 
     """
-    return value/fatiando.constants.SI2MGAL
+    return value/constants.SI2MGAL
 
 def vec2ang(vector):
     """

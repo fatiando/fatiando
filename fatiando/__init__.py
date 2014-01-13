@@ -19,8 +19,8 @@ Modules for gridding, meshing, visualization, user interface, input/output etc:
   Grid generation and operations (e.g., interpolation)
 * :mod:`vis <fatiando.vis>`:
   Plotting utilities for 2D (using matplotlib) and 3D (using mayavi)
-* :mod:`io <fatiando.io>`:
-  Input/Output of models, data sets, etc (fetch from web repositories)
+* :mod:`datasets <fatiando.datasets>`:
+  Fetch and load datasets and models from web repositories
 * :mod:`gui <fatiando.gui>`:
   Graphical user interfaces (still very primitive)
 * :mod:`utils <fatiando.utils>`:

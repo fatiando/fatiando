@@ -1,18 +1,18 @@
 """
-I/O: Fetch the CRUST2.0 model, convert it to tesseroids and calculate its
+Datasets: Fetch the CRUST2.0 model, convert it to tesseroids and calculate its
 gravity signal in parallel
 """
 import time
 from multiprocessing import Pool
-from fatiando import gridder, utils, io
+from fatiando import gridder, utils, datasets
 from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid
 from fatiando.vis import mpl, myv
 
 # Get the data from their website and convert it to tesseroids
 # Will download the archive and save it with the default name
-archive = io.fetch_crust2()
-model = io.crust2_to_tesseroids(archive)
+archive = datasets.fetch_crust2()
+model = datasets.crust2_to_tesseroids(archive)
 
 # Plot the tesseroid model
 myv.figure(zdown=False)
