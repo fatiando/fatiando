@@ -6,6 +6,10 @@ Miscellaneous utility functions and classes.
 * :func:`~fatiando.utils.normal`
 * :func:`~fatiando.utils.gaussian`
 * :func:`~fatiando.utils.gaussian2d`
+* :func:`~fatiando.utils.safe_solve`
+* :func:`~fatiando.utils.safe_dot`
+* :func:`~fatiando.utils.safe_diagonal`
+* :func:`~fatiando.utils.safe_inverse`
 
 **Point scatter generation**
 
@@ -50,9 +54,111 @@ Miscellaneous utility functions and classes.
 import math
 
 import numpy
+import scipy.sparse
+import scipy.sparse.linalg
 
 import fatiando.constants
 
+
+def safe_inverse(matrix):
+    """
+    Calculate the inverse of a matrix using an apropriate algorithm.
+
+    Uses the standard :func:`numpy.linalg.inv` if *matrix* is dense.
+    If it is sparse (from :mod:`scipy.sparse`) then will use
+    :func:`scipy.sparse.linalg.inv`.
+
+    Parameters:
+
+    * matrix : 2d-array
+        The matrix
+
+    Returns:
+
+    * inverse : 2d-array
+        The inverse of *matrix*
+
+    """
+    if scipy.sparse.issparse(matrix):
+        return scipy.sparse.linalg.inv(matrix)
+    else:
+        return numpy.linalg.inv(matrix)
+
+def safe_solve(matrix, vector):
+    """
+    Solve a linear system using an apropriate algorithm.
+
+    Uses the standard :func:`numpy.linalg.solve` if both *matrix* and *vector*
+    are dense.
+
+    If any of the two is sparse (from :mod:`scipy.sparse`) then will use the
+    Conjugate Gradient Method (:func:`scipy.sparse.cgs`).
+
+    Parameters:
+
+    * matrix : 2d-array
+        The matrix defining the linear system
+    * vector : 1d or 2d-array
+        The right-side vector of the system
+
+    Returns:
+
+    * solution : 1d or 2d-array
+        The solution of the linear system
+
+
+    """
+    if scipy.sparse.issparse(matrix) or scipy.sparse.issparse(vector):
+        estimate, status = scipy.sparse.linalg.cgs(matrix, vector)
+        if status >= 0:
+            return estimate
+        else:
+            raise ValueError('CGS exited with input error')
+    else:
+        return numpy.linalg.solve(matrix, vector)
+
+def safe_dot(a, b):
+    """
+    Make the dot product using the appropriate method.
+
+    If *a* and *b* are dense, will use :func:`numpy.dot`. If either is sparse
+    (from :mod:`scipy.sparse`) will use the multiplication operator (i.e., \*).
+
+    Parameters:
+
+    * a, b : array or matrix
+        The vectors/matrices to take the dot product of.
+
+    Returns:
+
+    * prod : array or matrix
+        The dot product of *a* and *b*
+
+    """
+    if scipy.sparse.issparse(a) or scipy.sparse.issparse(b):
+        return a*b
+    else:
+        return numpy.dot(a, b)
+
+def safe_diagonal(matrix):
+    """
+    Get the diagonal of a matrix using the appropriate method.
+
+    Parameters:
+
+    * matrix : 2d-array, matrix, sparse matrix
+        The matrix...
+
+    Returns:
+
+    * diag : 1d-array
+        A numpy array with the diagonal of the matrix
+
+    """
+    if scipy.sparse.issparse(matrix):
+        return numpy.array(matrix.diagonal())
+    else:
+        return numpy.diagonal(matrix).copy()
 
 def vecnorm(vectors):
     """
@@ -492,16 +598,16 @@ def year2sec(years):
     return 31557600.0*float(years)
 
 def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
-    """
+    r"""
     Add pseudorandom gaussian noise to an array.
 
-    Noise added is normally distributed.
+    Noise added is normally distributed with zero mean.
 
     Parameters:
 
-    * data : list or array
+    * data : array or list of arrays
         Data to contaminate
-    * stddev : float
+    * stddev : float or list of floats
         Standard deviation of the Gaussian noise that will be added to *data*
     * percent : True or False
         If ``True``, will consider *stddev* as a decimal percentage and the
@@ -519,7 +625,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
 
     if *return_stddev* is ``False``:
 
-    * contam : array
+    * contam : array or list of arrays
         The contaminated data array
 
     else:
@@ -528,22 +634,48 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         The contaminated data array and the standard deviation used to
         contaminate it.
 
-    """
+    Examples:
 
-    if percent:
-        stddev = stddev*max(abs(data))
-    if stddev == 0.:
-        if return_stddev:
-            return [data, stddev]
-        else:
-            return data
+    >>> import numpy as np
+    >>> data = np.ones(5)
+    >>> noisy = contaminate(data, 0.1, seed=0)
+    >>> print noisy
+    [ 1.03137726  0.89498775  0.95284582  1.07906135  1.04172782]
+    >>> noisy, std = contaminate(data, 0.05, seed=0, percent=True,
+    ...                          return_stddev=True)
+    >>> print std
+    0.05
+    >>> print noisy
+    [ 1.01568863  0.94749387  0.97642291  1.03953067  1.02086391]
+    >>> data = [np.zeros(5), np.ones(3)]
+    >>> noisy = contaminate(data, [0.1, 0.2], seed=0)
+    >>> print noisy[0]
+    [ 0.03137726 -0.10501225 -0.04715418  0.07906135  0.04172782]
+    >>> print noisy[1]
+    [ 0.81644754  1.20192079  0.98163167]
+
+    """
     numpy.random.seed(seed)
-    noise = numpy.random.normal(scale=stddev, size=len(data))
-    # Subtract the mean so that the noise doesn't introduce a systematic shift
-    # in the data
-    noise -= noise.mean()
-    contam = numpy.array(data) + noise
+    # Check if dealing with an array or list of arrays
+    if not isinstance(stddev, list):
+        stddev = [stddev]
+        data = [data]
+    contam = []
+    for i in xrange(len(stddev)):
+        if stddev[i] == 0.:
+            contam.append(data[i])
+            continue
+        if percent:
+            stddev[i] = stddev[i]*max(abs(data[i]))
+        noise = numpy.random.normal(scale=stddev[i], size=len(data[i]))
+        # Subtract the mean so that the noise doesn't introduce a systematic
+        # shift in the data
+        noise -= noise.mean()
+        contam.append(numpy.array(data[i]) + noise)
     numpy.random.seed()
+    if len(contam) == 1:
+        contam = contam[0]
+        stddev = stddev[0]
     if return_stddev:
         return [contam, stddev]
     else:

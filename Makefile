@@ -7,13 +7,17 @@ help:
 	@echo "Commands:"
 	@echo ""
 	@echo "    build         build the extension modules inplace"
+	@echo "    cython        generate C code from Cython files before building"
 	@echo "    docs          build the html documentation"
 	@echo "    docs-pdf      build the pdf documentation"
-	@echo "    view-docs     show the html docs on firefox"
+	@echo "    view-docs     show the html docs on Firefox"
 	@echo "    test          run the test suite (including doctests)"
-	@echo "    deps          installs development requirements"
+	@echo "    test-par      run tests in parallel with all available cores"
+	@echo "    coverage      calculate test coverage using Coverage"
 	@echo "    package       create source distributions"
-	@echo "    clean         clean up"
+	@echo "    upload        upload source distribuitions to PyPI"
+	@echo "    clean         clean up build and generated files"
+	@echo "    clean-docs    clean up the docs dir"
 	@echo ""
 
 .PHONY: build
@@ -33,11 +37,14 @@ view-docs:
 	firefox doc/_build/html/index.html &
 
 .PHONY: test
-test: build test-docs
-	$(NOSE) test/ -v
+test: build
+	$(NOSE) --with-doctest -v fatiando/ test/
 
-test-docs: build
-	$(NOSE) fatiando/ --with-doctest -v
+test-par: build
+	$(NOSE) --with-doctest -v --processes=`nproc` fatiando/ test/
+
+coverage: build
+	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ test/
 
 package: docs-pdf
 	$(PY) setup.py sdist --formats=zip,gztar

@@ -10,6 +10,11 @@ Version 0.2
 
 **Changes**:
 
+* Complete re-implementation of :ref:`fatiando.inversion <fatiando_inversion>`
+  and all modules that depended on it. Inversion routines now have a standard
+  interface. (`PR 72 <https://github.com/leouieda/fatiando/pull/72>`_)
+* :ref:`fatiando.utils.contaminate <fatiando_utils>` can now take multiple data
+  vectors and stddevs
 * 2x speed-up of :ref:`fatiando.gravmag.talwani <fatiando_gravmag_talwani>`
   with smarter numpy array usage. (`PR 57
   <https://github.com/leouieda/fatiando/pull/57>`_)
