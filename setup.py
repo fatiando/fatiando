@@ -12,8 +12,12 @@ NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Geophysical modeling and inversion"
 VERSION = '0.2'
-with open("README.rst") as f:
-    LONG_DESCRIPTION = ''.join(f.readlines())
+try:
+    with open("README.rst") as f:
+        LONG_DESCRIPTION = ''.join(f.readlines())
+except IOError:
+    with open("README.txt") as f:
+        LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.gravmag',
             'fatiando.seismic',
