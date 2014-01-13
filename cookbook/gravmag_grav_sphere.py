@@ -1,21 +1,22 @@
 """
 GravMag: Forward modeling of the gravity anomaly and gravity gradient tensor
-using spheres
+using model
 """
-from fatiando import mesher, gridder, gravmag
+from fatiando import mesher, gridder
+from fatiando.gravmag import sphere
 from fatiando.vis import mpl
 
-spheres = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
+model = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
 area = (-5000, 5000, -5000, 5000)
 shape = (100, 100)
 x, y, z = gridder.regular(area, shape, z=-100)
-gz = gravmag.sphere.gz(x, y, z, spheres)
-tensor = [gravmag.sphere.gxx(x, y, z, spheres),
-          gravmag.sphere.gxy(x, y, z, spheres),
-          gravmag.sphere.gxz(x, y, z, spheres),
-          gravmag.sphere.gyy(x, y, z, spheres),
-          gravmag.sphere.gyz(x, y, z, spheres),
-          gravmag.sphere.gzz(x, y, z, spheres)]
+gz = sphere.gz(x, y, z, model)
+tensor = [sphere.gxx(x, y, z, model),
+          sphere.gxy(x, y, z, model),
+          sphere.gxz(x, y, z, model),
+          sphere.gyy(x, y, z, model),
+          sphere.gyz(x, y, z, model),
+          sphere.gzz(x, y, z, model)]
 mpl.figure()
 mpl.axis('scaled')
 mpl.title('gz')

@@ -2,7 +2,8 @@
 GravMag: 2D forward modeling with polygons
 """
 import numpy
-from fatiando import utils, mesher, gravmag, inversion
+from fatiando import utils, mesher
+from fatiando.gravmag import talwani
 from fatiando.vis import mpl
 
 # Notice that the last two number are switched.
@@ -16,7 +17,7 @@ polygons = [mesher.Polygon(mpl.draw_polygon(area, axes),
                               {'density':500})]
 xp = numpy.arange(-4500, 4500, 100)
 zp = numpy.zeros_like(xp)
-gz = gravmag.talwani.gz(xp, zp, polygons)
+gz = talwani.gz(xp, zp, polygons)
 
 mpl.figure()
 mpl.axis('scaled')
