@@ -3,7 +3,7 @@ Everything you need to solve inverse problems!
 
 This package provides the basic building blocks to implement inverse problem
 solvers. The main class for this is :class:`~fatiando.inversion.base.Misfit`.
-It represents a data-misfit function and has all the tools needed to fit a
+It represents a data-misfit function and contains various tools to fit a
 model to some data. All you have to do is implement methods to calculate the
 predicted (or modeled) data and (optionally) the Jacobian (or sensitivity)
 matrix. With only that, you have access to a range of optimization methods,
@@ -160,14 +160,17 @@ array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> y2 = 2*x2 + 5
 >>> y2
 array([  205.,   805.,  1405.,  2005.])
+>>> # Simply sum the 2 classes! Note: the order matters!
 >>> solver = Regression(x1, y1) + Regression(x2, y2)
 >>> solver.fit().estimate_
 array([ 2.,  5.])
+>>> # Returns each predicted data in the order of the sum
 >>> y1pred, y2pred = solver.predicted()
 >>> y1pred
 array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> y2pred
 array([  205.,   805.,  1405.,  2005.])
+>>> # The residuals are also returned in the order of the sum
 >>> res1, res2 = solver.residuals()
 >>> np.abs(res1) < 10**-10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
