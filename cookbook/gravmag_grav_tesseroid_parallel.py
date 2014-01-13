@@ -4,7 +4,8 @@ using ``multiprocessing``
 """
 import time
 from multiprocessing import Pool
-from fatiando import gravmag, gridder, utils
+from fatiando import gridder, utils
+from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid
 from fatiando.vis import mpl, myv
 
@@ -38,7 +39,7 @@ lons, lats, heights = gridder.regular(area, shape, z=250000)
 
 # Divide the model into nproc slices and calculate them in parallel
 def calculate(chunk):
-    return gravmag.tesseroid.gz(lons, lats, heights, chunk)
+    return tesseroid.gz(lons, lats, heights, chunk)
 start = time.time()
 nproc = 8 # Model size must be divisible by nproc
 chunksize = len(model)/nproc

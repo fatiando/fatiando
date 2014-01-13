@@ -2,7 +2,8 @@
 Meshing: Generate a topographic model using prisms and calculate its gravity
 anomaly
 """
-from fatiando import gridder, utils, mesher, gravmag
+from fatiando import gridder, utils, mesher
+from fatiando.gravmag import prism
 from fatiando.vis import myv, mpl
 
 area = (-150, 150, -300, 300)
@@ -18,7 +19,7 @@ relief.addprop('density', (2670 for i in xrange(relief.size)))
 gridarea = (-80, 80, -220, 220)
 gridshape = (100, 100)
 xp, yp, zp = gridder.regular(gridarea, gridshape, z=-200)
-gz = gravmag.prism.gz(xp, yp, zp, relief)
+gz = prism.gz(xp, yp, zp, relief)
 
 mpl.figure(figsize=(10,7))
 mpl.subplot(1, 2, 1)
