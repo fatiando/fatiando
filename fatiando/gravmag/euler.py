@@ -10,6 +10,8 @@ Euler deconvolution methods for potential fields.
 
 * :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run a given Euler
   deconvolution on an expanding window and keep the best estimate.
+* :class:`~fatiando.gravmag.euler.MovingWindow`: Run a given Euler
+  deconvolution on a moving window to produce a set of estimates.
 
 **References**
 
@@ -153,10 +155,8 @@ class ExpandingWindow(object):
         for size in self.sizes:
             ds = 0.5*size
             xmin, xmax, ymin, ymax = xc - ds, xc + ds, yc - ds, yc + ds
-            indices = [i for i in xrange(euler.ndata)
-                if x[i] >= xmin and x[i] <= xmax
-                and y[i] >= ymin and y[i] <= ymax]
-            if not indices:
+            indices = (x >= xmin) & (x <= xmax) & (y >= ymin) & (y <= ymax)
+            if not numpy.any(indices):
                 continue
             solver = euler.subset(indices).fit()
             cov = safe_inverse(solver.hessian(solver.p_))
@@ -167,5 +167,86 @@ class ExpandingWindow(object):
         self.p_ = results[numpy.argmin(errors)]
         self.estimate_ = self.p_[:3]
         self.baselevel_ = self.p_[3]
+        return self
+
+class MovingWindow(object):
+    """
+    Solve an Euler deconvolution problem using a moving window scheme.
+
+    Uses data inside a window moving to perform the Euler deconvolution. Keeps
+    the estimate from all windows.
+
+    Like any other Euler solver, use the
+    :meth:`~fatiando.gravmag.euler.MovingWindow.fit` method to produce an
+    estimate. The estimated points are stored in ``estimate_``, the base levels
+    in ``baselevel_``.
+
+    Parameters:
+
+    * euler : Euler solver
+        An instance of an Euler deconvolution solver, like
+        :class:`~fatiando.gravmag.euler.Classic`.
+    * windows : (ny, nx)
+        The number of windows in the y and x directions
+    * size : (dy, dx)
+        The size of the windows in the y and x directions
+    * keep : float
+        Decimal percentage of solutions to keep. Will rank the solutions by
+        increasing error and keep only the first *keep* percent.
+
+    """
+
+    def __init__(self, euler, windows, size, keep=0.2):
+        self.euler = euler
+        self.windows = windows
+        self.size = size
+        self.keep = keep
+        self.window_centers = None
+        self.estimate_ = None
+        self.p_ = None
+
+    def fit(self):
+        """
+        Perform the Euler deconvolution on a moving window.
+
+        The estimated points are stored in ``estimate_``, the base levels in
+        ``baselevel_``.
+
+        """
+        ny, nx = self.windows
+        dy, dx = self.size
+        euler = self.euler
+        x, y = euler.positional['x'], euler.positional['y']
+        x1, x2, y1, y2 = x.min(), x.max(), y.min(), y.max()
+        paramvecs = []
+        estimates = []
+        baselevels = []
+        errors = []
+        # Thank you Saulinho for the solution!
+        # Calculate the mid-points of the windows
+        self.window_centers = []
+        xmidpoints = numpy.linspace(x1 + 0.5*dx, x2 -  0.5*dx, nx)
+        ymidpoints = numpy.linspace(y1 + 0.5*dy, y2 -  0.5*dy, ny)
+        for yc in ymidpoints:
+            for xc in xmidpoints:
+                self.window_centers.append([xc, yc])
+                # Separate the indices that fall inside the window with center
+                # (xc, yc)
+                indices = ((x >= xc - 0.5*dx) & (x <= xc + 0.5*dx) &
+                           (y >= yc - 0.5*dy) & (y <= yc + 0.5*dy))
+                if not numpy.any(indices):
+                    continue
+                solver = euler.subset(indices).fit()
+                cov = safe_inverse(solver.hessian(solver.p_))
+                uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
+                mean_error = numpy.linalg.norm(uncertainty)
+                errors.append(mean_error)
+                paramvecs.append(solver.p_)
+                estimates.append(solver.estimate_)
+                baselevels.append(solver.baselevel_)
+        best = numpy.argsort(errors)[:int(self.keep*len(errors))]
+        self.p_ = numpy.array(paramvecs)[best]
+        self.estimate_ = numpy.array(estimates)[best]
+        self.baselevel_ = numpy.array(baselevels)[best]
         return self
 
