@@ -686,7 +686,7 @@ class Misfit(Objective, FitMixin):
 
         Parameters:
 
-        * indices : list of ints
+        * indices : list of ints or 1d-array of bools
             The indices that correspond to the subset.
 
         Returns:
@@ -711,8 +711,8 @@ class Misfit(Objective, FitMixin):
         >>> solver._cache['predicted']['array'] = np.ones(4)
         >>> # Get the subset
         >>> sub = solver.subset([1, 3])
-        >>> sub
-        Misfit instance
+        >>> sub.ndata
+        2
         >>> sub.data
         array([ 2, 10])
         >>> sub.positional
@@ -743,6 +743,23 @@ class Misfit(Objective, FitMixin):
                [ 1.,  1.]])
         >>> solver._cache['predicted']['array']
         array([ 1.,  1.,  1.,  1.])
+        >>> # Can also use a numpy array of booleans
+        >>> sub = solver.subset(np.array([False, True, False, True]))
+        >>> sub.ndata
+        2
+        >>> sub.data
+        array([ 2, 10])
+        >>> sub.positional
+        {'x': array([  5, 100])}
+        >>> sub.model
+        {'d': 12}
+        >>> sub._cache['jacobian']['array']
+        array([[3, 4],
+               [7, 8]])
+        >>> sub._cache['hessian']['array'] is None
+        True
+        >>> sub._cache['predicted']['array'] is None
+        True
 
         """
         sub = copy.copy(self)
@@ -755,7 +772,7 @@ class Misfit(Objective, FitMixin):
         if self._cache['jacobian']['array'] is not None:
             sub._cache['jacobian']['array'] = \
                 self._cache['jacobian']['array'][indices]
-        sub.ndata = len(indices)
+        sub.ndata = sub.data.size
         return sub
 
     def set_weights(self, weights):
