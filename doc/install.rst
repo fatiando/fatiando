@@ -20,11 +20,12 @@ However, while it is possible (and not that difficult) to
 <http://docs.python.org/3.4/howto/pyporting.html>`__,
 it does take work.
 And work takes time.
-And my time is quite limited at the moment.
+Unfortunately, my time is quite limited at the moment and I can't work as much
+as I'd like on Fatiando.
 For the time being, I choose to spend my time improving the functionality of
-Fatiando.
-In the future, the need to support both versions might arise and I hope I have
-help to do that when the time comes.
+Fatiando first.
+In the future, the need to support both versions might arise and, hopefully,
+I'll have help to do that when the time comes.
 
 So, for the moment, **Fatiando is tested and works on Python 2.7**.
 
