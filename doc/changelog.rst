@@ -6,7 +6,7 @@ Changelog
 Version 0.2
 -----------
 
-**Release date**:
+**Release date**: 2014-01-15
 
 **Changes**:
 
