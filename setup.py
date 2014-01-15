@@ -11,7 +11,7 @@ import numpy
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Geophysical modeling and inversion"
-VERSION = '0.2'
+VERSION = '0.3'
 try:
     with open("README.rst") as f:
         LONG_DESCRIPTION = ''.join(f.readlines())
