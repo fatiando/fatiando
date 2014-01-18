@@ -73,7 +73,6 @@ if __name__ == '__main__':
           fullname=FULLNAME,
           description=DESCRIPTION,
           long_description=LONG_DESCRIPTION,
-          install_requires=['cython', 'scipy', 'numpy', 'matplotlib'],
           version=VERSION,
           author=AUTHOR,
           author_email=AUTHOR_EMAIL,
