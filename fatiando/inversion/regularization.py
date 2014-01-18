@@ -115,7 +115,7 @@ class Damping(Objective):
 
         """
         # This is cheap so there is no need to cache it
-        return 2*scipy.sparse.identity(self.nparams).tocsr()
+        return 2 * scipy.sparse.identity(self.nparams).tocsr()
 
     def gradient(self, p):
         """
@@ -135,7 +135,7 @@ class Damping(Objective):
         if p is 'null':
             grad = 0
         else:
-            grad = 2.*p
+            grad = 2. * p
         return grad
 
     def value(self, p):
@@ -153,7 +153,8 @@ class Damping(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(p)**2
+        return numpy.linalg.norm(p) ** 2
+
 
 class Smoothness(Objective):
     r"""
@@ -219,8 +220,8 @@ class Smoothness(Objective):
     def __init__(self, fdmat):
         super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
         self._cache = {}
-        self._cache['hessian'] = {'hash':'',
-                                  'array':2*safe_dot(fdmat.T, fdmat)}
+        self._cache['hessian'] = {'hash': '',
+                                  'array': 2 * safe_dot(fdmat.T, fdmat)}
 
     def hessian(self, p):
         """
@@ -276,7 +277,8 @@ class Smoothness(Objective):
 
         """
         # Need to divide by 2 because the hessian is 2*R.T*R
-        return numpy.sum(p*safe_dot(self.hessian(p), p))/2.
+        return numpy.sum(p * safe_dot(self.hessian(p), p)) / 2.
+
 
 class Smoothness1D(Smoothness):
     """
@@ -317,6 +319,7 @@ class Smoothness1D(Smoothness):
 
     def __init__(self, npoints):
         super(Smoothness1D, self).__init__(fd1d(npoints))
+
 
 class Smoothness2D(Smoothness):
     """
@@ -361,6 +364,7 @@ class Smoothness2D(Smoothness):
     """
     def __init__(self, shape):
         super(Smoothness2D, self).__init__(fd2d(shape))
+
 
 class TotalVariation(Objective):
     r"""
@@ -472,9 +476,9 @@ class TotalVariation(Objective):
 
         """
         derivs = safe_dot(self._fdmat, p)
-        q_matrix = scipy.sparse.diags(self.beta/((derivs**2 + self.beta)**1.5),
+        q_matrix = scipy.sparse.diags(self.beta / ((derivs ** 2 + self.beta) ** 1.5),
                                       0).tocsr()
-        return safe_dot(self._fdmat.T, q_matrix*self._fdmat)
+        return safe_dot(self._fdmat.T, q_matrix * self._fdmat)
 
     def gradient(self, p):
         """
@@ -492,11 +496,12 @@ class TotalVariation(Objective):
 
         """
         derivs = safe_dot(self._fdmat, p)
-        q = derivs/numpy.sqrt(derivs**2 + self.beta)
+        q = derivs / numpy.sqrt(derivs ** 2 + self.beta)
         grad = safe_dot(self._fdmat.T, q)
         if len(grad.shape) > 1:
             grad = numpy.array(grad.T).ravel()
         return grad
+
 
 class TotalVariation1D(TotalVariation):
     """
@@ -521,6 +526,7 @@ class TotalVariation1D(TotalVariation):
     def __init__(self, beta, npoints):
         super(TotalVariation1D, self).__init__(beta, fd1d(npoints))
 
+
 class TotalVariation2D(TotalVariation):
     """
     Total variation regularization for 2D problems.
@@ -543,6 +549,7 @@ class TotalVariation2D(TotalVariation):
     """
     def __init__(self, beta, shape):
         super(TotalVariation2D, self).__init__(beta, fd2d(shape))
+
 
 def fd1d(size):
     """
@@ -573,8 +580,9 @@ def fd1d(size):
     """
     i = range(size - 1) + range(size - 1)
     j = range(size - 1) + range(1, size)
-    v = [1]*(size - 1) + [-1]*(size - 1)
+    v = [1] * (size - 1) + [-1] * (size - 1)
     return scipy.sparse.coo_matrix((v, (i, j)), (size - 1, size)).tocsr()
+
 
 def fd2d(shape):
     """
@@ -609,7 +617,7 @@ def fd2d(shape):
 
     """
     ny, nx = shape
-    nderivs = (nx - 1)*ny + (ny - 1)*nx
+    nderivs = (nx - 1) * ny + (ny - 1) * nx
     I, J, V = [], [], []
     deriv = 0
     param = 0
@@ -629,4 +637,4 @@ def fd2d(shape):
             V.extend([1, -1])
             deriv += 1
             param += 1
-    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny)).tocsr()
+    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx * ny)).tocsr()

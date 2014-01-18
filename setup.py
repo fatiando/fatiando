@@ -52,34 +52,35 @@ libs = []
 if os.name == 'posix':
     libs.append('m')
 extensions = [
-        Extension('.'.join(e), [os.path.join(*e) + ext],
-            libraries=libs,
-            include_dirs=[numpy.get_include()])
-	for e in [
-		['fatiando', 'gravmag', '_prism'],
+    Extension('.'.join(e), [os.path.join(*e) + ext],
+              libraries=libs,
+              include_dirs=[numpy.get_include()])
+    for e in [
+        ['fatiando', 'gravmag', '_prism'],
         ['fatiando', 'gravmag', '_tesseroid'],
-		['fatiando', 'seismic', '_ttime2d'],
-		['fatiando', 'seismic', '_wavefd']
-		]
-	]
+        ['fatiando', 'seismic', '_ttime2d'],
+        ['fatiando', 'seismic', '_wavefd']
+    ]
+]
 if USE_CYTHON:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
+
     extensions = cythonize(extensions)
 
 if __name__ == '__main__':
-	setup(name=NAME,
-		  fullname=FULLNAME,
-		  description=DESCRIPTION,
-		  long_description=LONG_DESCRIPTION,
-		  version=VERSION,
-		  author=AUTHOR,
-		  author_email=AUTHOR_EMAIL,
-		  license=LICENSE,
-		  url=URL,
-		  platforms=PLATFORMS,
-		  scripts=SCRIPTS,
-		  packages=PACKAGES,
-		  ext_modules=extensions,
-		  classifiers=CLASSIFIERS)
-
+    setup(name=NAME,
+          fullname=FULLNAME,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          install_requires=['cython', 'scipy', 'numpy', 'matplotlib'],
+          version=VERSION,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          license=LICENSE,
+          url=URL,
+          platforms=PLATFORMS,
+          scripts=SCRIPTS,
+          packages=PACKAGES,
+          ext_modules=extensions,
+          classifiers=CLASSIFIERS)
