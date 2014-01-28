@@ -1,30 +1,37 @@
 """
-Euler deconvolution methods for potential fields.
+Estimation of the total magnetization vector of homogeneous bodies.
 
-**Implementations**
+This class estimates the Cartesian components of the magnetization
+vector of homogeneous dipolar bodies with known center. The estimated
+magnetization vector is converted to dipole moment, inclination
+(positive down) and declination (with respect to x, North).
 
-* :class:`~fatiando.gravmag.euler.Classic`: The classic 3D solution to Euler's
-  equation for potential fields (Reid et al., 1990). Runs on the whole dataset.
+**Algorithm**
 
-**Solution selection procedures**
-
-* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run a given Euler
-  deconvolution on an expanding window and keep the best estimate.
-* :class:`~fatiando.gravmag.euler.MovingWindow`: Run a given Euler
-  deconvolution on a moving window to produce a set of estimates.
+* :class:`~fatiando.gravmag.magdir.DipoleMagDir`: By using the well- 
+known first-order approximation of the total field anomaly (Blakely, 
+1996, p. 179) produced by a set of dipoles, the estimation of the 
+Cartesian components of the magnetization vectors is formulated as 
+linear inverse problem. After estimating the magnetization vectors, 
+they are converted to to dipole moment, inclination (positive down) 
+and declination (with respect to x, North).
 
 **References**
 
-Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
-(1990), Magnetic interpretation in three dimensions using Euler deconvolution,
-Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
+Blakely, R. (1996), Potential theory in gravity and magnetic applications: CUP
 
 
 ----
 
 """
 
+from __future__ import division
 
+import numpy
+from ..inversion.base import Misfit
+from .. import mesher
+from ..utils import ang2vec, safe_dot
+from . import sphere
 
 class DipoleMagDir(Misfit):
     """
@@ -84,8 +91,6 @@ class DipoleMagDir(Misfit):
     >>> solver.estimate_
     
     """
-
-	imports
 	
     def __init__(self, x, y, z, data, inc, dec, points):
         super(DipoleMagDir, self).__init__(
