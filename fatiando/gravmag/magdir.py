@@ -1,0 +1,156 @@
+"""
+Euler deconvolution methods for potential fields.
+
+**Implementations**
+
+* :class:`~fatiando.gravmag.euler.Classic`: The classic 3D solution to Euler's
+  equation for potential fields (Reid et al., 1990). Runs on the whole dataset.
+
+**Solution selection procedures**
+
+* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run a given Euler
+  deconvolution on an expanding window and keep the best estimate.
+* :class:`~fatiando.gravmag.euler.MovingWindow`: Run a given Euler
+  deconvolution on a moving window to produce a set of estimates.
+
+**References**
+
+Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
+(1990), Magnetic interpretation in three dimensions using Euler deconvolution,
+Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
+
+
+----
+
+"""
+
+
+
+class DipoleMagDir(Misfit):
+    """
+    Estimate the magnetization vector of a set of dipoles from magnetic
+    total field anomaly.
+
+    .. note:: Assumes x = North, y = East, z = Down.
+
+    Parameters:
+
+    * x, y, z : 1d-arrays
+        The x, y, z coordinates of each data point.
+    * data : 1d-array
+        The total field magnetic anomaly data at each point.
+    * inc, dec : floats
+        The inclination and declination of the inducing field
+    * points : list of points [x, y, z]
+        Each point [x, y, z] is the center of a dipole. Will invert for
+        the Cartesian components of the magnetization vector of each
+        dipole. Subsequently, the estimated magnetization vectors are converted 
+        to dipole moment, inclination and declination.
+        
+    .. note:: Inclination is positive down and declination is measured with respect
+        to x (North).
+
+    Examples:
+
+    Estimate the magnetization vector of dipolar synthetic bodies
+    with know centers.
+    
+    >>> import numpy as np
+    >>> from fatiando import gridder
+    >>> from fatiando.gravmag import sphere, prism
+    >>> from fatiando.mesher import Sphere, Prism
+    >>> # Produce some synthetic data
+    >>> area = (0, 10000, 0, 10000)
+    >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
+    >>> model = [Sphere(3000, 3000, 1000, 1000, 
+    ...              {'magnetization': utils.ang2vec(6.0, -20.0, -10.0)}),
+    ...          Sphere(7000, 7000, 1000, 1000,
+    ...              {'magnetization': utils.ang2vec(6.0, -43.0, -13.0)})]
+    >>> inc, dec = -9.5, -13
+    >>> tf = prism.tf(x, y, z, model, inc, dec)
+    >>> # Give the coordinates of the dipoles
+    >>> points = [[3000.0, 3000.0, 1000.0], [7000.0, 7000.0, 1000.0]]
+    >>> # Make a solver and fit it to the data
+    >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
+    >>> # Check the fit
+    >>> np.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
+    True
+    >>> # p_ is the estimated parameter vector (Cartesian components of the
+    >>> # estimated magnetization vectors)
+    >>> solver.p_
+    >>> # The parameter vector is not that useful so use estimate_ to get
+    >>> # the estimated magnetization vectors in dipole moment, inclination 
+    >>> # and declination.
+    >>> solver.estimate_
+    
+    """
+
+	imports
+	
+    def __init__(self, x, y, z, data, inc, dec, points):
+        super(DipoleMagDir, self).__init__(
+            data=data,
+            positional={'x':x, 'y':y, 'z':z},
+            model={'inc':inc, 'dec':dec, 'points':points},
+            nparams=3*len(points),
+            islinear=True)
+        #Constants
+        self.rad2degree = 180.0/numpy.pi
+        self.degree2rad = numpy.pi/180.0
+        self.ndipoles = len(points)
+        self.cte = 1.0/((4.0*numpy.pi/3.0)*G*SI2EOTVOS)
+        #Geomagnetic Field versor
+        self.F_versor = ang2vec(1.0, self.model['inc'], self.model['dec'])
+        
+    def _get_predicted(self, p):
+        return safe_dot(self.jacobian(p), p)
+
+    def _get_jacobian(self, p):
+        x = self.positional['x']
+        y = self.positional['y']
+        z = self.positional['z']
+        dipoles = []
+        for i in range(self.ndipoles):
+            dipoles.append(mesher.Sphere(self.model['points'][i][0], 
+                                         self.model['points'][i][1], 
+                                         self.model['points'][i][2], 
+                                         1.0))
+        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
+        for i, dipole in enumerate(dipoles):
+            k = 3*i
+            derivative_gxx = sphere.gxx(x, y, z, [dipole], dens=self.cte)
+            derivative_gxy = sphere.gxy(x, y, z, [dipole], dens=self.cte)
+            derivative_gxz = sphere.gxz(x, y, z, [dipole], dens=self.cte)
+            derivative_gyy = sphere.gyy(x, y, z, [dipole], dens=self.cte)
+            derivative_gyz = sphere.gyz(x, y, z, [dipole], dens=self.cte)
+            derivative_gzz = sphere.gzz(x, y, z, [dipole], dens=self.cte)
+            jac[:,k]   = T2NT*((self.F_versor[0]*derivative_gxx) + 
+                               (self.F_versor[1]*derivative_gxy) + 
+                               (self.F_versor[2]*derivative_gxz))
+            jac[:,k+1] = T2NT*((self.F_versor[0]*derivative_gxy) + 
+                               (self.F_versor[1]*derivative_gyy) + 
+                               (self.F_versor[2]*derivative_gyz))
+            jac[:,k+2] = T2NT*((self.F_versor[0]*derivative_gxz) + 
+                               (self.F_versor[1]*derivative_gyz) + 
+                               (self.F_versor[2]*derivative_gzz))
+        return jac
+    
+    def fit(self):
+        """
+        Solve for the magnetization direction of a set of dipoles.
+
+        After solving, use the ``estimate_`` attribute to get the
+        estimated magnetization vectors in dipole moment, inclination 
+        and declination.
+
+        The estimated magnetization vectors in Cartesian coordinates can
+        be accessed through the ``p_`` attribute.
+
+        See the the docstring of :class:`~fatiando.gravmag.DipoleMagDir`
+        for examples.
+
+        """
+        super(DipoleMagDir, self).fit()
+        self._estimate = [vec2ang(self.p_[3*i : 3*i + 3]) for i in range(len(self.model['points']))]
+        return self
+
