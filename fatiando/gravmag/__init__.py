@@ -29,6 +29,7 @@ The inversion modules use the forward modeling models and the
   planting anomalous densities
 * :mod:`~fatiando.gravmag.euler`: 3D Euler deconvolution methods to estimate source
   location
+* :mod:`~fatiando.gravmag.magdir`: Inversion to estimate the total magnetization vector
 
 **Processing**
 

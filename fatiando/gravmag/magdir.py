@@ -30,8 +30,9 @@ from __future__ import division
 import numpy
 from ..inversion.base import Misfit
 from .. import mesher
-from ..utils import ang2vec, safe_dot
+from ..utils import ang2vec, vec2ang, safe_dot
 from . import sphere
+from ..constants import G, CM, T2NT, SI2EOTVOS
 
 class DipoleMagDir(Misfit):
     """
@@ -62,9 +63,9 @@ class DipoleMagDir(Misfit):
     Estimate the magnetization vector of dipolar synthetic bodies
     with know centers.
     
-    >>> import numpy as np
-    >>> from fatiando import gridder
-    >>> from fatiando.gravmag import sphere, prism
+    >>> import numpy
+    >>> from fatiando import gridder, utils
+    >>> from fatiando.gravmag import sphere
     >>> from fatiando.mesher import Sphere, Prism
     >>> # Produce some synthetic data
     >>> area = (0, 10000, 0, 10000)
@@ -74,13 +75,13 @@ class DipoleMagDir(Misfit):
     ...          Sphere(7000, 7000, 1000, 1000,
     ...              {'magnetization': utils.ang2vec(6.0, -43.0, -13.0)})]
     >>> inc, dec = -9.5, -13
-    >>> tf = prism.tf(x, y, z, model, inc, dec)
+    >>> tf = sphere.tf(x, y, z, model, inc, dec)
     >>> # Give the coordinates of the dipoles
     >>> points = [[3000.0, 3000.0, 1000.0], [7000.0, 7000.0, 1000.0]]
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
-    >>> np.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
+    >>> numpy.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
     True
     >>> # p_ is the estimated parameter vector (Cartesian components of the
     >>> # estimated magnetization vectors)
