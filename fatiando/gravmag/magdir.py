@@ -151,7 +151,7 @@ class DipoleMagDir(Misfit):
         The estimated magnetization vectors in Cartesian coordinates can
         be accessed through the ``p_`` attribute.
 
-        See the the docstring of :class:`~fatiando.gravmag.DipoleMagDir`
+        See the the docstring of :class:`~fatiando.gravmag.magdir.DipoleMagDir`
         for examples.
 
         """
