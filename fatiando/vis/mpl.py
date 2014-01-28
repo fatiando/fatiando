@@ -1027,13 +1027,13 @@ def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
     * ranges : (x1, x2)  
         min and max horizontal values (default trace number)
     * scale : float
-        scale factor multiplied my the section values before plotting
+        scale factor multiplied by the section values before plotting
     * color : str
         Color for filling the wiggle.
-    * normalize : 
+    * normalize :
         normalizes all trace in the section if True (use global max)
-        Warning a copy will be made for that reason.
-    
+        (-0.5, 0.5) zero centered; warning might be slow
+
     """
     maxtraces = len(section)
     if maxtraces < 1 :
@@ -1042,9 +1042,21 @@ def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
     if npts < 1 :
         raise IndexError("Nothing to plot")
     t = section[0].times()
-    if normalize :
-        section = section.copy() # values will be modified     
-        section.normalize(global_max=True)
+    amp = 1.  # normalization factor
+    gmin = 0.  # global minimum
+    toffset = 0. # offset in time to make 0 centered
+    if normalize:
+        gmax = section[0].data.max()
+        gmin = gmax
+        for trace in section.traces:
+            local_max = trace.data.max()
+            local_min = trace.data.min()
+            if local_max > gmax:
+                gmax = local_max
+            if local_min < gmin:
+                gmin = local_min
+        amp = (gmax-gmin)
+        toffset = 0.5
     pyplot.ylim(max(t),0)
     if ranges == None:
         ranges = (0, maxtraces)
@@ -1053,7 +1065,7 @@ def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
     dx = float(x1-x0)/maxtraces
     pyplot.xlim(x0, x1)
     for i, trace in enumerate(section.traces):
-        tr = trace.data*scale*dx
+        tr = (((trace.data-gmin)/amp)-toffset)*scale*dx
         x = x0+i*dx # x positon for this trace
         pyplot.plot(x+tr, t, 'k')
         pyplot.fill_betweenx(t, x, x+tr, tr>=0, color=color);
