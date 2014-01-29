@@ -78,6 +78,9 @@ class DipoleMagDir(Misfit):
     >>> tf = sphere.tf(x, y, z, model, inc, dec)
     >>> # Give the coordinates of the dipoles
     >>> points = [[3000.0, 3000.0, 1000.0], [7000.0, 7000.0, 1000.0]]
+	>>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0), 
+	...						   ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 30.0, -40.0)))
+	>>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
@@ -87,8 +90,6 @@ class DipoleMagDir(Misfit):
     >>> # estimated magnetization vectors)
     >>> solver.p_
 	>>> # Check the estimated parameter vector
-	>>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0), 
-	...						   ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 30.0, -40.0)))
 	>>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
 	True
     >>> # The parameter vector is not that useful so use estimate_ to convert
@@ -96,7 +97,6 @@ class DipoleMagDir(Misfit):
     >>> # and declination.
     >>> solver.estimate_
 	>>> # Check the converted estimate
-	>>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
 	>>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, atol=0.001)
 	True
     
