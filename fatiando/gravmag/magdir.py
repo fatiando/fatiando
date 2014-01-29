@@ -128,12 +128,8 @@ class DipoleMagDir(Misfit):
         x = self.positional['x']
         y = self.positional['y']
         z = self.positional['z']
-        dipoles = []
-        for i in range(self.ndipoles):
-            dipoles.append(mesher.Sphere(self.model['points'][i][0], 
-                                         self.model['points'][i][1], 
-                                         self.model['points'][i][2], 
-                                         1.0))
+        dipoles = [mesher.Sphere(xp, yp, zp, 1.) for xp, yp, zp in 
+                   self.model['points']]
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         for i, dipole in enumerate(dipoles):
             k = 3*i
@@ -170,6 +166,7 @@ class DipoleMagDir(Misfit):
 
         """
         super(DipoleMagDir, self).fit()
-        self._estimate = [vec2ang(self.p_[3*i : 3*i + 3]) for i in range(len(self.model['points']))]
+        self._estimate = [vec2ang(self.p_[3*i : 3*i + 3]) for i in 
+                          range(len(self.model['points']))]
         return self
 
