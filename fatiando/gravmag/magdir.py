@@ -8,13 +8,11 @@ magnetization vector is converted to dipole moment, inclination
 
 **Algorithm**
 
-* :class:`~fatiando.gravmag.magdir.DipoleMagDir`: By using the well- 
-known first-order approximation of the total field anomaly (Blakely, 
-1996, p. 179) produced by a set of dipoles, the estimation of the 
-Cartesian components of the magnetization vectors is formulated as 
-linear inverse problem. After estimating the magnetization vectors, 
-they are converted to to dipole moment, inclination (positive down) 
-and declination (with respect to x, North).
+* :class:`~fatiando.gravmag.magdir.DipoleMagDir`: This class estimates 
+the Cartesian components of the magnetization vector of homogeneous 
+dipolar bodies with known center. The estimated magnetization vector 
+is converted to dipole moment, inclination (positive down) and declination
+(with respect to x, North).
 
 **References**
 
@@ -83,7 +81,7 @@ class DipoleMagDir(Misfit):
     ...                        ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 
     ...                                              30.0, -40.0)))
     >>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i
-    ...                                 in range(len(points))]
+    ...                                in range(len(points))]
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
@@ -91,12 +89,17 @@ class DipoleMagDir(Misfit):
     True
     >>> # solver.p_ returns the Cartesian components of the
     >>> # estimated magnetization vectors
+    >>> solver.p_
+    array([ 2325.82553937,  -410.10579501,  -859.59037572,  1667.34110869,
+    ...    -1399.06530934,  1256.63706144])
     >>> # Check the estimated parameter vector
     >>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
     True
     >>> # The parameter vector is not that useful so use solver.estimate_
     >>> # to convert the estimated magnetization vectors in dipole moment, 
     >>> # inclination and declination.
+    >>> solver.estimate_
+    [[2513.274122871834, -20.0, -10.0], [2513.274122871834, 30.0, -40.0]]
     >>> # Check the converted estimate
     >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, 
     ...                                                 atol=0.001)
