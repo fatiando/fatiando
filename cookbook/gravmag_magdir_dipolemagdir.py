@@ -29,8 +29,8 @@ solver = DipoleMagDir(x, y, z, tf, inc, dec, centers).fit()
 
 # Print the estimated dipole monents, inclinations and declinations
 print '[dipole moment, inclination, declination]'
-for i in range(len(centers)):
-    print solver.estimate_[i]
+for e in solver.estimate_:
+    print e
 
 # Plot the fit and the normalized histogram of the residuals
 mpl.close("all")
