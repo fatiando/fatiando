@@ -55,8 +55,8 @@ class DipoleMagDir(Misfit):
         dipole. Subsequently, the estimated magnetization vectors are converted 
         to dipole moment, inclination and declination.
         
-    .. note:: Inclination is positive down and declination is measured with respect
-        to x (North).
+    .. note:: Inclination is positive down and declination is measured with 
+        respect to x (North).
 
     Examples:
 
@@ -78,24 +78,25 @@ class DipoleMagDir(Misfit):
     >>> tf = sphere.tf(x, y, z, model, inc, dec)
     >>> # Give the coordinates of the dipoles
     >>> points = [[3000.0, 3000.0, 1000.0], [7000.0, 7000.0, 1000.0]]
-    >>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0), 
-    ...                        ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 30.0, -40.0)))
-    >>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
+    >>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3,
+    ...                                             -20.0, -10.0), 
+    ...                        ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 
+    ...                                              30.0, -40.0)))
+    >>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i
+    ...                                 in range(len(points))]
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
     >>> numpy.allclose(tf, solver.predicted(), rtol=0.001, atol=0.001)
     True
-    >>> # p_ is the estimated parameter vector (Cartesian components of the
-    >>> # estimated magnetization vectors)
-    >>> solver.p_
+    >>> # solver.p_ returns the Cartesian components of the
+    >>> # estimated magnetization vectors
     >>> # Check the estimated parameter vector
     >>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
     True
-    >>> # The parameter vector is not that useful so use estimate_ to convert
-    >>> # the estimated magnetization vectors in dipole moment, inclination 
-    >>> # and declination.
-    >>> solver.estimate_
+    >>> # The parameter vector is not that useful so use solver.estimate_
+    >>> # to convert the estimated magnetization vectors in dipole moment, 
+    >>> # inclination and declination.
     >>> # Check the converted estimate
     >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, atol=0.001)
     True
