@@ -67,6 +67,7 @@ class DipoleMagDir(Misfit):
     >>> from fatiando import gridder, utils
     >>> from fatiando.gravmag import sphere
     >>> from fatiando.mesher import Sphere, Prism
+	>>> from fatiando.utils import vec2ang
     >>> # Produce some synthetic data
     >>> area = (0, 10000, 0, 10000)
     >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
@@ -81,15 +82,24 @@ class DipoleMagDir(Misfit):
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
-    >>> numpy.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
+    >>> numpy.allclose(tf, solver.predicted(), rtol=0.001, atol=0.001)
     True
     >>> # p_ is the estimated parameter vector (Cartesian components of the
     >>> # estimated magnetization vectors)
     >>> solver.p_
+	>>> # Check the estimated parameter vector
+	>>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0), 
+	...						   ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 30.0, -40.0)))
+	>>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
+	True
     >>> # The parameter vector is not that useful so use estimate_ to get
     >>> # the estimated magnetization vectors in dipole moment, inclination 
     >>> # and declination.
     >>> solver.estimate_
+	>>> # Check the converted estimate
+	>>> estimate_true = [vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
+	>>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, atol=0.001)
+	True
     
     """
 	
