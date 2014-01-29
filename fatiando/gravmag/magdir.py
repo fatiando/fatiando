@@ -52,8 +52,8 @@ class DipoleMagDir(Misfit):
     * points : list of points [x, y, z]
         Each point [x, y, z] is the center of a dipole. Will invert for
         the Cartesian components of the magnetization vector of each
-        dipole. Subsequently, the estimated magnetization vectors are converted 
-        to dipole moment, inclination and declination.
+        dipole. Subsequently, the estimated magnetization vectors are 
+        converted to dipole moment, inclination and declination.
         
     .. note:: Inclination is positive down and declination is measured with 
         respect to x (North).
@@ -98,7 +98,8 @@ class DipoleMagDir(Misfit):
     >>> # to convert the estimated magnetization vectors in dipole moment, 
     >>> # inclination and declination.
     >>> # Check the converted estimate
-    >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, atol=0.001)
+    >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, 
+    ...                                                 atol=0.001)
     True
     
     """
