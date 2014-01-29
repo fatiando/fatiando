@@ -67,14 +67,13 @@ class DipoleMagDir(Misfit):
     >>> from fatiando import gridder, utils
     >>> from fatiando.gravmag import sphere
     >>> from fatiando.mesher import Sphere, Prism
-	>>> from fatiando.utils import vec2ang
     >>> # Produce some synthetic data
     >>> area = (0, 10000, 0, 10000)
     >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
     >>> model = [Sphere(3000, 3000, 1000, 1000, 
     ...              {'magnetization': utils.ang2vec(6.0, -20.0, -10.0)}),
     ...          Sphere(7000, 7000, 1000, 1000,
-    ...              {'magnetization': utils.ang2vec(6.0, -43.0, -13.0)})]
+    ...              {'magnetization': utils.ang2vec(6.0, 30.0, -40.0)})]
     >>> inc, dec = -9.5, -13
     >>> tf = sphere.tf(x, y, z, model, inc, dec)
     >>> # Give the coordinates of the dipoles
@@ -92,12 +91,12 @@ class DipoleMagDir(Misfit):
 	...						   ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, 30.0, -40.0)))
 	>>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
 	True
-    >>> # The parameter vector is not that useful so use estimate_ to get
+    >>> # The parameter vector is not that useful so use estimate_ to convert
     >>> # the estimated magnetization vectors in dipole moment, inclination 
     >>> # and declination.
     >>> solver.estimate_
 	>>> # Check the converted estimate
-	>>> estimate_true = [vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
+	>>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i in range(len(points))]
 	>>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, atol=0.001)
 	True
     
