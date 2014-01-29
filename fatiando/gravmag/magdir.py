@@ -100,9 +100,9 @@ class DipoleMagDir(Misfit):
     >>> # to convert the estimated magnetization vectors in dipole moment, 
     >>> # inclination and declination.
     >>> solver.estimate_[0]
-    [2513.2741228718340, -20.000000000000000, -10.000000000000000]
+    [2513.2741228718323, -20.000000000000046, -10.000000000000027]
     >>> solver.estimate_[1]
-    [2513.2741228718340, 30.000000000000000, -40.000000000000000]
+    [2513.2741228718337, 30.000000000000018, -39.999999999999979]
     >>> # Check the converted estimate
     >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, 
     ...                                                 atol=0.001)
