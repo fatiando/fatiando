@@ -6,10 +6,11 @@ of dipoles with known centers
 import numpy
 
 from fatiando import mesher, gridder
-from fatiando.utils import ang2vec, contaminate
+from fatiando.utils import ang2vec, vec2ang, contaminate
 from fatiando.gravmag import sphere
 from fatiando.vis import mpl
 from fatiando.gravmag.magdir import DipoleMagDir
+from fatiando.constants import CM
 
 # Make noise-corrupted synthetic data
 inc, dec = -10.0, -15.0 # inclination and declination of the Geomagnetic Field
@@ -24,12 +25,20 @@ tf = contaminate(sphere.tf(x, y, z, model, inc, dec), 5.0)
 # Give the centers of the dipoles
 centers = [[3000, 3000, 1000], [7000, 7000, 1000]]
 
+p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0), 
+                       ang2vec(CM*(4.*numpy.pi/3.)*10.0*1000**3, 3.0, -67.0)))
+estimate_true = [[CM*(4.*numpy.pi/3.)*6.0*1000**3, -20.0, -10.0],
+                 [CM*(4.*numpy.pi/3.)*10.0*1000**3, 3.0, -67.0]]
+
 # Estimate the magnetization vectors
 solver = DipoleMagDir(x, y, z, tf, inc, dec, centers).fit()
 
-# Print the estimated dipole monents, inclinations and declinations
-print '[dipole moment, inclination, declination]'
+# Print the estimated and true dipole monents, inclinations and declinations
+print 'Estimated'
 for e in solver.estimate_:
+    print e
+print 'True'
+for e in estimate_true:
     print e
 
 # Plot the fit and the normalized histogram of the residuals
