@@ -3,6 +3,16 @@
 Changelog
 =========
 
+Version 0.3
+-----------
+
+**Release date**: 2014-01-29
+
+**Changes**:
+
+* **New** module :ref:`fatiando.gravmag.magdir <fatiando_gravmag_magdir>` for
+  estimating the total magnetization vector of multiple sources.
+
 Version 0.2
 -----------
 
