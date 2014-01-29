@@ -23,3 +23,4 @@ Gravity and magnetics (``fatiando.gravmag``)
     gravmag.euler.rst
     gravmag.transform.rst
     gravmag.half_sph_shell.rst
+    gravmag.magdir.rst
