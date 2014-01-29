@@ -1,23 +1,16 @@
 """
 Estimation of the total magnetization vector of homogeneous bodies.
 
-This class estimates the Cartesian components of the magnetization
-vector of homogeneous dipolar bodies with known center. The estimated
-magnetization vector is converted to dipole moment, inclination
-(positive down) and declination (with respect to x, North).
+It estimates the Cartesian components of the magnetization
+vector of homogeneous bodies by solving an inverse problem.
 
 **Algorithm**
 
 * :class:`~fatiando.gravmag.magdir.DipoleMagDir`: This class estimates 
-the Cartesian components of the magnetization vector of homogeneous 
-dipolar bodies with known center. The estimated magnetization vector 
-is converted to dipole moment, inclination (positive down) and declination
-(with respect to x, North).
-
-**References**
-
-Blakely, R. (1996), Potential theory in gravity and magnetic applications: CUP
-
+  the Cartesian components of the magnetization vector of homogeneous 
+  dipolar bodies with known center. The estimated magnetization vector 
+  is converted to dipole moment, inclination (positive down) and declination
+  (with respect to x, North).
 
 ----
 
@@ -58,8 +51,16 @@ class DipoleMagDir(Misfit):
 
     Examples:
 
-    Estimate the magnetization vector of dipolar synthetic bodies
-    with know centers.
+    By using the well-known first-order approximation of the total field
+    anomaly (Blakely, 1996, p. 179) produced by a set of dipoles, the estimation
+    of the Cartesian components of the magnetization vectors is formulated as 
+    linear inverse problem. After estimating the magnetization vectors, they 
+    are converted to dipole moment, inclination (positive down) and declination 
+    (with respect to x, North).
+    
+    Reference
+    
+    Blakely, R. (1996), Potential theory in gravity and magnetic applications: CUP
     
     >>> import numpy
     >>> from fatiando import gridder, utils
@@ -115,8 +116,6 @@ class DipoleMagDir(Misfit):
             nparams=3*len(points),
             islinear=True)
         #Constants
-        self.rad2degree = 180.0/numpy.pi
-        self.degree2rad = numpy.pi/180.0
         self.ndipoles = len(points)
         self.cte = 1.0/((4.0*numpy.pi/3.0)*G*SI2EOTVOS)
         #Geomagnetic Field versor
