@@ -90,19 +90,23 @@ class DipoleMagDir(Misfit):
     True
     >>> # solver.p_ returns the Cartesian components of the
     >>> # estimated magnetization vectors
-    >>> solver.p_
-    array([ 2325.82553937,  -410.10579501,  -859.59037572,  1667.34110869,
-           -1399.06530934,  1256.63706144])
+    >>> for p in solver.p_: print "%.10f" % p
+    2325.8255393651
+    -410.1057950109
+    -859.5903757213
+    1667.3411086852
+    -1399.0653093445
+    1256.6370614359
     >>> # Check the estimated parameter vector
     >>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
     True
     >>> # The parameter vector is not that useful so use solver.estimate_
     >>> # to convert the estimated magnetization vectors in dipole moment, 
     >>> # inclination and declination.
-    >>> solver.estimate_[0]
-    [2513.2741228718323, -20.000000000000046, -10.000000000000027]
-    >>> solver.estimate_[1]
-    [2513.2741228718337, 30.000000000000018, -39.999999999999979]
+    >>> for e in solver.estimate_:
+    ...    print "%.10f %.10f %.10f" % (e[0], e[1], e[2])
+    2513.2741228718 -20.0000000000 -10.0000000000
+    2513.2741228718 30.0000000000 -40.0000000000
     >>> # Check the converted estimate
     >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001, 
     ...                                                 atol=0.001)
