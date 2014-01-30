@@ -12,6 +12,7 @@ Version 0.3
 
 * **New** module :ref:`fatiando.gravmag.magdir <fatiando_gravmag_magdir>` for
   estimating the total magnetization vector of multiple sources.
+  (`PR 87 <https://github.com/leouieda/fatiando/pull/87>`_)
 
 Version 0.2
 -----------
