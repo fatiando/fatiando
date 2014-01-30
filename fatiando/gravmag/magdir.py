@@ -1,10 +1,10 @@
 """
 Estimation of the total magnetization vector of homogeneous bodies.
 
-It estimates the Cartesian components of the magnetization
-vector of homogeneous bodies by solving an inverse problem.
+It estimates parameters related to the magnetization vector of homogeneous
+bodies.
 
-**Algorithm**
+**Algorithms**
 
 * :class:`~fatiando.gravmag.magdir.DipoleMagDir`: This class estimates 
   the Cartesian components of the magnetization vector of homogeneous 
@@ -29,6 +29,17 @@ class DipoleMagDir(Misfit):
     """
     Estimate the magnetization vector of a set of dipoles from magnetic
     total field anomaly.
+    
+    By using the well-known first-order approximation of the total field
+    anomaly (Blakely, 1996, p. 179) produced by a set of dipoles, the 
+    estimation of the Cartesian components of the magnetization vectors is
+    formulated as linear inverse problem. After estimating the magnetization
+    vectors, they are converted to dipole moment, inclination (positive down)
+    and declination (with respect to x, North).
+    
+    Reference
+    
+    Blakely, R. (1996), Potential theory in gravity and magnetic applications: CUP
 
     .. note:: Assumes x = North, y = East, z = Down.
 
@@ -51,16 +62,7 @@ class DipoleMagDir(Misfit):
 
     Examples:
 
-    By using the well-known first-order approximation of the total field
-    anomaly (Blakely, 1996, p. 179) produced by a set of dipoles, the estimation
-    of the Cartesian components of the magnetization vectors is formulated as 
-    linear inverse problem. After estimating the magnetization vectors, they 
-    are converted to dipole moment, inclination (positive down) and declination 
-    (with respect to x, North).
-    
-    Reference
-    
-    Blakely, R. (1996), Potential theory in gravity and magnetic applications: CUP
+    Estimation of the total magnetization vector of dipoles with known centers
     
     >>> import numpy
     >>> from fatiando import gridder, utils
