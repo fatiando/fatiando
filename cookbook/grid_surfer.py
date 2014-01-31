@@ -1,19 +1,16 @@
 """
-I/O: Load a Surfer ASCII grid file
+Gridding: Load a Surfer ASCII grid file
 """
-from fatiando import io
+from fatiando import datasets, gridder
 from fatiando.vis import mpl
 
-# Get the data from their website
+# Fetching Bouguer anomaly model data (Surfer ASCII grid file)"
 # Will download the archive and save it with the default name
-print "Fetching Bouguer anomaly model (Surfer ASCII grid file)"
-archive = io.fetch_bouguer_alps_egm()
+archive = datasets.fetch_bouguer_alps_egm()
 
 # Load the GRD file and convert in three numpy-arrays (y, x, bouguer)
-print "Loading the GRD file..."
-y, x, bouguer, shape = io.load_surfer(archive, fmt='ascii')
+y, x, bouguer, shape = gridder.load_surfer(archive, fmt='ascii')
 
-print "Plotting..."
 mpl.figure()
 mpl.axis('scaled')
 mpl.title("Data loaded from a Surfer ASCII grid file")

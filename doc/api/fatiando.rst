@@ -15,7 +15,7 @@ API Reference: The ``fatiando`` package
     mesher.rst
     gridder.rst
     vis.rst
-    io.rst
+    datasets.rst
     gui.rst
     utils.rst
     constants.rst

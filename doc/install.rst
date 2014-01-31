@@ -7,11 +7,30 @@ Installing Fatiando
     `mailing list`_ or to `Leonardo Uieda`_. This will help us make
     Fatiando better!
 
-.. _mailing list: https://groups.google.com/forum/#!forum/fatiando
-.. _Leonardo Uieda: http://fatiando.org/people/uieda/
+Which Python?
+-------------
 
-Install the dependencies
-------------------------
+There are many versions of the Python_ language in
+`use today <https://wiki.python.org/moin/Python2orPython3>`__.
+The main ones are Python 2.7 and Python 3.x.
+Most, if not all, of the scientific Python packages that Fatiando relies on
+support both versions of the language.
+However, while it is possible (and not that difficult) to
+`support both versions simultaneously
+<http://docs.python.org/3.4/howto/pyporting.html>`__,
+it does take work.
+And work takes time.
+Unfortunately, my time is quite limited at the moment and I can't work as much
+as I'd like on Fatiando.
+For the time being, I choose to spend my time improving the functionality of
+Fatiando first.
+In the future, the need to support both versions might arise and, hopefully,
+I'll have help to do that when the time comes.
+
+So, for the moment, **Fatiando is tested and works on Python 2.7**.
+
+Installing the dependencies
+---------------------------
 
 Fatiando requires the following packages:
 
@@ -20,83 +39,95 @@ Fatiando requires the following packages:
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
-* `Cython <http://cython.org/>`_: to compile faster modules in C. Needed only
-  when installing from source (or using ``pip``).
+* A C compiler (preferably GCC or MinGW_ on Windows)
 
-All of these can be found on most **GNU/Linux** distros.
-If you're on the latest (or close to) **Ubuntu**, you can run::
+The easiest and **preferred** way to get all dependencies in the latest
+version is using the Anaconda_ Python distribution by `Continuum Analytics`_.
+It does not require administrative rights to your computer and doesn't
+interfere with the Python installed in your system.
+For Windows users, it even comes with MinGW_ so you don't have to worry about
+the many, many, many issues of compiling under Windows.
 
-    sudo apt-get install python-dev python-numpy python-matplotlib python-scipy\
-    python-mpltoolkits.basemap python-imaging mayavi2 cython python-pip
+Once you have downloaded and installed Anaconda_,
+open a terminal (or ``cmd.exe`` on Windows) and run::
 
-You'll need ``python-dev`` to build the optimized Cython modules and
-``python-pip`` to install fatiando.
-All of these can also be found in the Software Center, Synaptic, etc.
+    conda install numpy scipy matplotlib basemap imaging mayavi pip
 
-.. note:: The '2' in ``mayavi2`` is not a typo. It really is called that.
+And you're done!
 
-On **Windows**, I recommend downloading PythonXY_.
-It comes with Python, all of our dependencies,
-plus a whole bunch of useful stuff!
-Trust me, it's better than installing things separately.
-**Warning**: If you already have Python installed,
-you should uninstall it before installing PythonXY.
-When installing PythonXY,
-make sure the following are selected
-(or go with a full install to be sure):
-
-* numpy
-* scipy
-* matplotlib
-* PIL
-* ETS (for mayavi)
-* VTK (for mayavi)
-
-.. _PythonXY: http://code.google.com/p/pythonxy/
-
-Installing on Linux
+Installing Fatiando
 -------------------
 
 After you've installed the dependencies you can proceed to install Fatiando
-using pip_::
+using pip_.
+Open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    sudo pip install fatiando
+    pip install fatiando
 
-That's it!
+and that's it!
+
 If you already have Fatiando installed and want to **upgrade** to a newer
 version, use::
 
-    sudo pip install fatiando --upgrade
+    pip install fatiando --upgrade
 
 To uninstall simply run::
 
-    sudo pip uninstall fatiando
+    pip uninstall fatiando
 
-If you don't have root access (no ``sudo`` for you),
-you can install Fatiando on a virtualenv_.
-If you don't know what that means,
-`read this`_.
 
-.. _pip: http://www.pip-installer.org
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
-.. _read this: http://jontourage.com/2011/02/09/virtualenv-pip-basics/
+.. note::
 
-Installing on Windows
----------------------
+    The Windows installer from older versions is no longer supported.
 
-After you've installed PythonXY (or similar)
-with all the dependencies,
-download the latest Windows installer from PyPI_.
-Just click through the installer and you should be done!
+Installing the latest development version
+-----------------------------------------
 
-.. _PyPI: http://pypi.python.org/pypi/fatiando
+If you want the very latest code and features,
+you can install Fatiando directly from Github_.
+We try to maintain the *master* branch stable and
+`passing all tests <https://travis-ci.org/leouieda/fatiando/branches>`__,
+so it should be safe to use.
+
+First, you'll need to `install git`_.
+Then, open a terminal and run::
+
+    git clone --depth=50 --branch=master https://github.com/leouieda/fatiando.git
+
+This will fetch the source code from Github_
+and place it in a folder called ``fatiando`` in the directory where you ran the
+command.
+Then, just ``cd`` into the directory and run ``pip``::
+
+    cd fatiando
+    pip install --upgrade .
+
 
 Testing the install
 -------------------
 
 Try running one of the recipes from the :ref:`Cookbook <cookbook>`.
-If you get an error message,
-please post to the `mailing list`_.
+If you get an error message or weird result,
+please write to the `mailing list`_.
+To make it easier for us to debug you problem, please include the following
+information:
+
+* Operating system
+* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
+* Python version (2.6, 2.7, 3.3, 3.4, etc)
+* The script you ran (and gave you an error/weird result)
+* The error message (the part that says ``Traceback: ...``) or result (figure,
+  numbers, etc)
 
 
-
+.. _install git: http://git-scm.com/
+.. _Github: https://github.com/leouieda/fatiando
+.. _Python: http://www.python.org/
+.. _pip: http://www.pip-installer.org
+.. _MinGW: http://www.mingw.org/
+.. _mailing list: https://groups.google.com/forum/#!forum/fatiando
+.. _Leonardo Uieda: http://fatiando.org/people/uieda/
+.. _Continuum Analytics: http://continuum.io/
+.. _Anaconda: http://continuum.io/downloads
+.. _PythonXY: http://code.google.com/p/pythonxy/
+.. _ETS/Canopy: http://code.enthought.com/projects/index.php

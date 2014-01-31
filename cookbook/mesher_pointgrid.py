@@ -1,7 +1,8 @@
 """
 Meshing: Making a grid of 3D point sources
 """
-from fatiando import mesher, utils, gravmag, gridder
+from fatiando import mesher, utils, gridder
+from fatiando.gravmag import sphere
 from fatiando.vis import mpl
 
 grid = mesher.PointGrid([0, 1000, 0, 2000], 500, (50, 50))
@@ -30,8 +31,8 @@ mpl.show()
 # Now do some calculations with the grid
 shape = (100, 100)
 x, y, z = gridder.regular(grid.area, shape, z=0)
-gz = gravmag.sphere.gz(x, y, z, grid)
-tf = gravmag.sphere.tf(x, y, z, grid, inc, dec)
+gz = sphere.gz(x, y, z, grid)
+tf = sphere.tf(x, y, z, grid, inc, dec)
 mpl.figure()
 mpl.subplot(2, 1, 1)
 mpl.axis('scaled')

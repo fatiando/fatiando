@@ -1,24 +1,25 @@
 """
 GravMag: Upward continuation of noisy gz data using the analytical formula
 """
-from fatiando import mesher, gridder, utils, gravmag
+from fatiando import mesher, gridder, utils
+from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 
-prisms = [mesher.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
-          mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
-          mesher.Prism(1000,3000,2000,3000,0,1000,{'density':500})]
+model = [mesher.Prism(-3000,-2000,-3000,-2000,500,2000,{'density':1000}),
+         mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':-800}),
+         mesher.Prism(1000,3000,2000,3000,0,1000,{'density':500})]
 area = (-5000, 5000, -5000, 5000)
 shape = (50, 50)
 z0 = -100
 xp, yp, zp = gridder.regular(area, shape, z=z0)
-gz = utils.contaminate(gravmag.prism.gz(xp, yp, zp, prisms), 0.5)
+gz = utils.contaminate(prism.gz(xp, yp, zp, model), 0.5)
 
 # Now do the upward continuation using the analytical formula
 height = 2000
 dims = gridder.spacing(area, shape)
-gzcont = gravmag.transform.upcontinue(gz, height, xp, yp, dims)
+gzcont = transform.upcontinue(gz, height, xp, yp, dims)
 
-gztrue = gravmag.prism.gz(xp, yp, zp - height, prisms)
+gztrue = prism.gz(xp, yp, zp - height, model)
 
 mpl.figure(figsize=(14,6))
 mpl.subplot(1, 2, 1)

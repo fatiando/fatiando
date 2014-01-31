@@ -2,30 +2,32 @@
 GravMag: Simple gravity inversion for the relief of a 2D triangular basin
 """
 import numpy
-from fatiando import utils, mesher, gravmag, inversion
+from fatiando import utils
+from fatiando.mesher import Polygon
+from fatiando.gravmag import talwani, basin2d
 from fatiando.vis import mpl
 
 verts = [(10000, 1.), (90000, 1.), (80000, 5000)]
-model = mesher.Polygon(verts, {'density':-100})
-xp = numpy.arange(0., 100000., 1000.)
-zp = numpy.zeros_like(xp)
-gz = utils.contaminate(gravmag.talwani.gz(xp, zp, [model]), 1)
+model = Polygon(verts, {'density':-100})
+x = numpy.arange(0., 100000., 1000.)
+z = numpy.zeros_like(x)
+gz = utils.contaminate(talwani.gz(x, z, [model]), 1)
 
-solver = inversion.gradient.levmarq(initial=(10000, 1000))
-estimate, residuals = gravmag.basin2d.triangular(xp, zp, gz, verts[0:2], -100,
-    solver)
+solver = basin2d.Triangular(x, z, gz, verts[0:2], density=-100).config(
+        'levmarq', initial=[10000, 1000]).fit()
+estimate = solver.estimate_
 
 mpl.figure()
 mpl.subplot(2, 1, 1)
 mpl.title("Gravity anomaly")
-mpl.plot(xp, gz, 'ok', label='Observed')
-mpl.plot(xp, gz - residuals, '-r', linewidth=2, label='Predicted')
+mpl.plot(x, gz, 'ok', label='Observed')
+mpl.plot(x, solver.predicted(), '-r', linewidth=2, label='Predicted')
 mpl.legend(loc='lower left')
 mpl.ylabel("mGal")
 mpl.xlim(0, 100000)
 mpl.subplot(2, 1, 2)
-mpl.polygon(estimate, 'o-r', linewidth=2, fill='r', alpha=0.3,
-                label='Estimated')
+mpl.polygon(estimate, 'o-r', linewidth=2, fill='r',
+    alpha=0.3, label='Estimated')
 mpl.polygon(model, '--k', linewidth=2, label='True')
 mpl.legend(loc='lower left', numpoints=1)
 mpl.xlabel("X")

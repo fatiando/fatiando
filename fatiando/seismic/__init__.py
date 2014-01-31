@@ -17,5 +17,3 @@ Various tools for seismic and seismology, like direct modeling, inversion
 ----
 
 """
-
-from fatiando.seismic import epic2d, ttime2d, srtomo, profile, wavefd

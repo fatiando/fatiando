@@ -3,7 +3,7 @@ GravMag: 3D gravity inversion by planting anomalous densities using
 ``harvester`` (simple example)
 """
 from fatiando import gridder, utils
-from fatiando import gravmag as gm
+from fatiando.gravmag import prism, harvester
 from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
@@ -15,7 +15,7 @@ bounds = [0, 1000, 0, 1000, 0, 1000]
 area = bounds[0:4]
 xp, yp, zp = gridder.regular(area, shape, z=-1)
 noise = 0.1 # 0.1 mGal noise
-gz = utils.contaminate(gm.prism.gz(xp, yp, zp, model), noise)
+gz = utils.contaminate(prism.gz(xp, yp, zp, model), noise)
 # plot the data
 mpl.figure()
 mpl.title("Synthetic gravity anomaly (mGal)")
@@ -31,11 +31,11 @@ mpl.show()
 # Create a mesh
 mesh = PrismMesh(bounds, (25, 25, 25))
 # Wrap the data so that harvester can use it
-data = [gm.harvester.Gz(xp, yp, zp, gz)]
+data = [harvester.Gz(xp, yp, zp, gz)]
 # Make the seed
-seeds = gm.harvester.sow([[500, 500, 450, {'density':1000}]], mesh)
+seeds = harvester.sow([[500, 500, 450, {'density':1000}]], mesh)
 # Run the inversioin
-estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
+estimate, predicted = harvester.harvest(data, seeds, mesh,
     compactness=0.5, threshold=0.0005)
 
 # Put the estimated density values in the mesh

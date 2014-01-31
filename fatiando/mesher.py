@@ -34,8 +34,8 @@ import numpy
 import scipy.special
 import matplotlib.mlab
 
-import fatiando.io
-import fatiando.gridder
+from . import gridder
+from . import utils
 
 
 class GeometricElement(object):
@@ -280,7 +280,7 @@ class SquareMesh(object):
             Name of the physical property
 
         """
-        self.props[prop] = fatiando.io.fromimage(fname, ranges=[vmin, vmax],
+        self.props[prop] = utils.fromimage(fname, ranges=[vmin, vmax],
                 shape=self.shape)[::-1,:].ravel()
 
     def get_xs(self):

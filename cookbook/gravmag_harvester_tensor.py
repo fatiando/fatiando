@@ -3,7 +3,7 @@ GravMag: 3D gravity gradient inversion by planting anomalous densities using
 ``harvester`` (with non-targeted sources)
 """
 from fatiando import gridder, utils
-from fatiando import gravmag as gm
+from fatiando.gravmag import prism, harvester
 from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
@@ -33,19 +33,19 @@ shape = (51, 51)
 area = bounds[0:4]
 noise = 2
 x, y, z = gridder.regular(area, shape, z=-150)
-gyy = utils.contaminate(gm.prism.gyy(x, y, z, model), noise)
-gyz = utils.contaminate(gm.prism.gyz(x, y, z, model), noise)
-gzz = utils.contaminate(gm.prism.gzz(x, y, z, model), noise)
+gyy = utils.contaminate(prism.gyy(x, y, z, model), noise)
+gyz = utils.contaminate(prism.gyz(x, y, z, model), noise)
+gzz = utils.contaminate(prism.gzz(x, y, z, model), noise)
 
 # Set up the inversion:
 # Create a prism mesh
 mesh = PrismMesh(bounds, (15, 50, 50))
 # Wrap the data so that harvester can use it
-data = [gm.harvester.Gyy(x, y, z, gyy),
-        gm.harvester.Gyz(x, y, z, gyz),
-        gm.harvester.Gzz(x, y, z, gzz)]
+data = [harvester.Gyy(x, y, z, gyy),
+        harvester.Gyz(x, y, z, gyz),
+        harvester.Gzz(x, y, z, gzz)]
 # and the seeds
-seeds = gm.harvester.sow(
+seeds = harvester.sow(
     [( 800, 3250, 600, {'density':1200}),
      (1200, 3250, 600, {'density':1200}),
      (1700, 3250, 600, {'density':1200}),
@@ -61,7 +61,7 @@ seeds = gm.harvester.sow(
      (4300, 2050, 600, {'density':1200})],
     mesh)
 # Run the inversion and collect the results
-estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
+estimate, predicted = harvester.harvest(data, seeds, mesh,
     compactness=1., threshold=0.0001)
 
 # Insert the estimated density values into the mesh

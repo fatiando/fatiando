@@ -7,6 +7,3 @@ Modules for graphical user interfaces (GUI)
 ----
 
 """
-
-from fatiando.gui import simple
-

@@ -1,13 +1,14 @@
 """
 GravMag: 3D forward modeling of total-field magnetic anomaly using spheres
 """
-from fatiando import mesher, gridder, gravmag, utils
+from fatiando import mesher, gridder, utils
+from fatiando.gravmag import sphere
 from fatiando.vis import mpl
 
 # Set the inclination and declination of the regional field
 inc, dec = -30, 45
 # Create a sphere model
-spheres = [
+model = [
     # One with induced magnetization
     mesher.Sphere(0, 2000, 600, 500, {'magnetization':5}),
     # and one with remanent
@@ -18,7 +19,7 @@ shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)
 xp, yp, zp = gridder.regular(area, shape, z=-100)
 # Calculate the anomaly for a given regional field
-tf = gravmag.sphere.tf(xp, yp, zp, spheres, inc, dec)
+tf = sphere.tf(xp, yp, zp, model, inc, dec)
 # Plot
 mpl.figure()
 mpl.title("Total-field anomaly (nT)")

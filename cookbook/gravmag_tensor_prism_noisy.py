@@ -1,16 +1,17 @@
 """
 GravMag: Generate noise-corrupted gravity gradient tensor data
 """
-from fatiando import mesher, gridder, gravmag, utils
+from fatiando import mesher, gridder, utils
+from fatiando.gravmag import prism
 from fatiando.vis import mpl
 
-prisms = [mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
+model = [mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':1000})]
 shape = (100,100)
 xp, yp, zp = gridder.regular((-5000, 5000, -5000, 5000), shape, z=-200)
-components = [gravmag.prism.gxx, gravmag.prism.gxy, gravmag.prism.gxz,
-              gravmag.prism.gyy, gravmag.prism.gyz, gravmag.prism.gzz]
+components = [prism.gxx, prism.gxy, prism.gxz,
+              prism.gyy, prism.gyz, prism.gzz]
 print "Calculate the tensor components and contaminate with 5 Eotvos noise"
-ftg = [utils.contaminate(comp(xp, yp, zp, prisms), 5.0) for comp in components]
+ftg = [utils.contaminate(comp(xp, yp, zp, model), 5.0) for comp in components]
 
 print "Plotting..."
 mpl.figure(figsize=(14,6))

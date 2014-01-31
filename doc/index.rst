@@ -11,54 +11,17 @@ For more information visit `the official site`_.
 
 The **source code** of Fatiando is hosted on `GitHub`_.
 
-.. _GitHub: https://github.com/leouieda/fatiando
-.. _the official site: http://www.fatiando.org
-.. _Python: http://www.python.org
-
 **License**: Fatiando is licensed under the **BSD license**.
 This means that it can be reused and remixed
 with few restrictions.
 See the :ref:`license text <license>` for more information.
 
 The best **place to start** learning
-about Fatiando is the :ref:`Cookbook <cookbook>`!
+about Fatiando is the :ref:`Cookbook <cookbook>`.
 There, you'll find many sample scripts
 with common tasks
 that can help you get started.
 
-As an **example**, this is how easy it is to create synthetic noise-corrupted
-gravity data on random points from a 3D prism model:
-
-.. doctest::
-
-    >>> from fatiando.mesher import Prism
-    >>> from fatiando.vis import mpl
-    >>> from fatiando import gridder, utils, gravmag
-    >>> # Create the prism model
-    >>> prisms = [
-    ...     Prism(-4000, -3000, -4000, -3000, 0, 2000, {'density':1000}),
-    ...     Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density':-1000}),
-    ...     Prism(2000, 4000, 3000, 4000, 0, 2000, {'density':1000})]
-    >>> # Generate 500 random observation points at 100m height
-    >>> xp, yp, zp = gridder.scatter((-5000, 5000, -5000, 5000), 500, z=-100)
-    >>> # Calculate their gravitational effect and contaminate it with 0.1 mGal
-    >>> # gaussian noise
-    >>> gz = utils.contaminate(gravmag.prism.gz(xp, yp, zp, prisms), 0.1)
-    >>> # Plot the result
-    >>> mpl.contourf(xp, yp, gz, (100, 100), 12, interp=True)
-    >>> cb = mpl.colorbar()
-    >>> cb.set_label('mGal')
-    >>> mpl.plot(xp, yp, '.k')
-    >>> mpl.show()
-
-which results in something like this:
-
-.. image:: _static/sample.png
-    :align: center
-    :width: 300px
-
-
-Interested? Well, *Fatiando* does much more!
 Watch `Leonardo Uieda`_ talk about the motivation behind  *Fatiando a Terra*
 and some of the main features at the `2013 Scipy conference`_:
 http://youtu.be/Ec38h1oB8cc
@@ -69,7 +32,12 @@ http://youtu.be/Ec38h1oB8cc
 
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _2013 Scipy conference: http://conference.scipy.org/scipy2013/index.php
+.. _GitHub: https://github.com/leouieda/fatiando
+.. _the official site: http://www.fatiando.org
+.. _Python: http://www.python.org
 
+
+----
 
 .. raw:: html
 

@@ -3,7 +3,8 @@ GravMag: Forward modeling of the gravitational potential and its derivatives
 using tesseroids
 """
 import time
-from fatiando import gravmag, gridder, utils
+from fatiando import gridder, utils
+from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid
 from fatiando.vis import mpl, myv
 
@@ -34,16 +35,16 @@ lons, lats, heights = gridder.regular(area, shape, z=250000)
 
 start = time.time()
 fields = [
-    gravmag.tesseroid.potential(lons, lats, heights, model),
-    gravmag.tesseroid.gx(lons, lats, heights, model),
-    gravmag.tesseroid.gy(lons, lats, heights, model),
-    gravmag.tesseroid.gz(lons, lats, heights, model),
-    gravmag.tesseroid.gxx(lons, lats, heights, model),
-    gravmag.tesseroid.gxy(lons, lats, heights, model),
-    gravmag.tesseroid.gxz(lons, lats, heights, model),
-    gravmag.tesseroid.gyy(lons, lats, heights, model),
-    gravmag.tesseroid.gyz(lons, lats, heights, model),
-    gravmag.tesseroid.gzz(lons, lats, heights, model)]
+    tesseroid.potential(lons, lats, heights, model),
+    tesseroid.gx(lons, lats, heights, model),
+    tesseroid.gy(lons, lats, heights, model),
+    tesseroid.gz(lons, lats, heights, model),
+    tesseroid.gxx(lons, lats, heights, model),
+    tesseroid.gxy(lons, lats, heights, model),
+    tesseroid.gxz(lons, lats, heights, model),
+    tesseroid.gyy(lons, lats, heights, model),
+    tesseroid.gyz(lons, lats, heights, model),
+    tesseroid.gzz(lons, lats, heights, model)]
 print "Time it took: %s" % (utils.sec2hms(time.time() - start))
 
 titles = ['potential', 'gx', 'gy', 'gz',

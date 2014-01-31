@@ -3,7 +3,7 @@ GravMag: 3D gravity gradient inversion by planting anomalous densities using
 ``harvester`` (3 sources sources)
 """
 from fatiando import gridder, utils
-import fatiando.gravmag as gm
+from fatiando.gravmag import prism, harvester
 from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
@@ -24,16 +24,16 @@ myv.show()
 shape = (25, 25)
 area = bounds[0:4]
 x, y, z = gridder.regular(area, shape, z=-650)
-gxy = utils.contaminate(gm.prism.gxy(x, y, z, model), 1)
-gzz = utils.contaminate(gm.prism.gzz(x, y, z, model), 1)
+gxy = utils.contaminate(prism.gxy(x, y, z, model), 1)
+gzz = utils.contaminate(prism.gzz(x, y, z, model), 1)
 
 # Wrap the data so that harvester can use it
-data = [gm.harvester.Gxy(x, y, z, gxy),
-        gm.harvester.Gzz(x, y, z, gzz)]
+data = [harvester.Gxy(x, y, z, gxy),
+        harvester.Gzz(x, y, z, gzz)]
 # Create a prism mesh
 mesh = PrismMesh(bounds, (20, 50, 50))
 # and the seeds
-seeds = gm.harvester.sow(
+seeds = harvester.sow(
     [(901, 701, 750, {'density':1500}),
      (901, 1201, 750, {'density':1500}),
      (901, 1701, 750, {'density':1500}),
@@ -49,7 +49,7 @@ seeds = gm.harvester.sow(
      (2951, 3951, 701, {'density':800})],
     mesh)
 # Run the inversion and collect the results
-estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
+estimate, predicted = harvester.harvest(data, seeds, mesh,
     compactness=1, threshold=0.0001)
 # Insert the estimated density values into the mesh
 mesh.addprop('density', estimate['density'])
