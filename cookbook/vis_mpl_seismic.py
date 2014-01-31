@@ -8,17 +8,22 @@ pinchout top and base.
 """
 
 import numpy as np
+import urllib
 from scipy import signal
-from fatiando import utils, io
+from fatiando import utils
 from fatiando.vis import mpl
-
+# Fetch the velocity model image from somewhere
+urllib.urlretrieve(
+    'https://lh4.googleusercontent.com/-LYHZJXCzeac/' +
+    'Uuwu_qiyG5I/AAAAAAAADvk/s4eWJgbdUBE/w560-h70-no/pinchout.gif',
+    'pinchout.bmp')
 dt = 0.004  # sample rate
 ds = 10.  # depth increment
 f = 30.  # approximated frequency ricker wavelet (scipy a=1/(2.f.dt))
 disc = 10  # space discretization
 shp = (70, 560)
 nz, nx = shp  # bellow load geologic model velociy model
-vmodel = io.fromimage('pinchout.bmp', ranges=[2500., 3500.], shape=shp)
+vmodel = utils.fromimage('pinchout.bmp', ranges=[2500., 3500.], shape=shp)
 twti = np.cumsum(ds/vmodel, axis=0)*2  # calculate irregular sampled twt times
 twt = np.arange(0, np.max(twti)+0.10, dt)  # new twt times re-sampled to 4 ms
 dnx = int(nx/disc)
