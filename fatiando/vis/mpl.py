@@ -1015,7 +1015,7 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
 #
     #return plot[0]
 
-def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
+def seismic_wiggle(section, ranges=None, scale=1, color='k', normalize=False):
     """
     Plot a seismic section (`obspy.Stream` class) as wiggles.
     Slow for more than 200 traces, in this case use `seismic_image`.  
@@ -1028,18 +1028,18 @@ def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
         min and max horizontal values (default trace number)
     * scale : float
         scale factor multiplied by the section values before plotting
-    * color : str
-        Color for filling the wiggle.
+    * color : tuple of strings
+        Color for filling the wiggle, positive  and negative lobes.
     * normalize :
         normalizes all trace in the section if True (use global max)
         (-0.5, 0.5) zero centered; warning might be slow
 
     """
-    maxtraces = len(section)
-    if maxtraces < 1 :
+    ntraces = len(section)
+    if ntraces < 1:
         raise IndexError("Nothing to plot")
     npts = len(section[0].data)
-    if npts < 1 :
+    if npts < 1:
         raise IndexError("Nothing to plot")
     t = section[0].times()
     amp = 1.  # normalization factor
@@ -1057,18 +1057,18 @@ def seismic_wiggle(section, ranges = None, scale=1, color='k', normalize=False):
                 gmin = local_min
         amp = (gmax-gmin)
         toffset = 0.5
-    pyplot.ylim(max(t),0)
-    if ranges == None:
-        ranges = (0, maxtraces)
+    pyplot.ylim(max(t), 0)
+    if ranges is None:
+        ranges = (0, ntraces)
     x0, x1 = ranges
     # horizontal increment
-    dx = float(x1-x0)/maxtraces
+    dx = float((x1-x0)/ntraces)
     pyplot.xlim(x0, x1)
-    for i, trace in enumerate(section.traces):
+    for i, trace in enumerate(section):
         tr = (((trace.data-gmin)/amp)-toffset)*scale*dx
-        x = x0+i*dx # x positon for this trace
+        x = x0+i*dx  # x positon for this trace
         pyplot.plot(x+tr, t, 'k')
-        pyplot.fill_betweenx(t, x, x+tr, tr>=0, color=color);
+        pyplot.fill_betweenx(t, x+tr, x, tr > 0, color=color)
 
 def seismic_image(section, ranges=None, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
     """

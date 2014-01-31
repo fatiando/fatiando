@@ -1,53 +1,78 @@
 """
-Seismic: Simple synthetic wedge model creation and display.
+Seismic: Synthetic pinchout tuning effect seismic display
 
-Convolve a sequence of spikes with a ricker wavelet
-showing the frequency tuning effect in a pinchout
+Convolve a reflection coeficients from a velocity model with a ricker wavelet
+showing the frequency tuning effect in a pinchout.
+Above the lambda/4 we expected to be able to distinguish
+pinchout top and base.
 """
 
-import urllib
 import numpy as np
-from scipy import signal, fftpack
+from scipy import signal
 from fatiando import utils, io
 from fatiando.vis import mpl
 
-dt = 0.002
-ds = 10.
+dt = 0.004  # sample rate
+ds = 10.  # depth increment
+f = 30.  # approximated frequency ricker wavelet (scipy a=1/(2.f.dt))
+disc = 10  # space discretization
 shp = (70, 560)
-nz, nx = shp
-vwedge = io.fromimage('pinchout.bmp', ranges=[2500., 3500.], shape=shp)  # m/s
-# calculate times, space increment is 1
-timesi = np.cumsum(ds/vwedge, axis=0)*2  # irregular sampled twt time
-times = np.arange(0, np.max(timesi)+.3, dt)  # twt re-sampled to 2 ms
-svwedge = np.zeros((len(times), nx))
-for i in xrange(nx):  # time re-sample velocity model
-    svwedge[:, i] = np.interp(times, timesi[:, i], vwedge[:, i])
-zimp = np.ones(svwedge.shape)*1000.*svwedge  # rho = kg/m3, convert to impedance z = rho*v
-# filter impedance? and downsample?
-# calculate reflection coefficients
-rc = (zimp[1:]-zimp[:-1])/(zimp[1:]+zimp[:-1])
-# filtering using a ricker
-mpl.figure(figsize=(11, 7))
-mpl.subplot(221)
-fir_wavelet = signal.ricker(255, 10.)
-mpl.plot(fir_wavelet)
-mpl.xlim(xmin=0, xmax=255)
-mpl.subplot(222)
-freqs = fftpack.fftfreq(255, dt)
-fir_waveletw = fftpack.fft(fir_wavelet)
-mpl.xlim(xmin=0, xmax=125)
-mpl.plot(freqs, np.abs(fir_waveletw))
-# same as convolving traces with a wavelet
-rc = signal.lfilter(fir_wavelet, 1, rc, axis=0)
-# create a synthetic wedge model 120 traces
-rc = rc[:, ::2]
-mpl.subplot(223)
-traces = utils.matrix2stream(rc.transpose(), header={'delta': dt})  # sample rate 2.5 us
-mpl.seismic_wiggle(traces, normalize=True)
-mpl.seismic_image(traces, cmap=mpl.pyplot.cm.jet)
-mpl.title("Wedge spike model", fontsize=11)
-mpl.subplot(224)
-mpl.imshow(vwedge, extent=[0, nx, 0, nz*ds], aspect=0.4)
-#mpl.seismic_wiggle(traces, scale=2.0)
-mpl.title("Wedge convolved model", fontsize=11)
+nz, nx = shp  # bellow load geologic model velociy model
+vmodel = io.fromimage('pinchout.bmp', ranges=[2500., 3500.], shape=shp)
+twti = np.cumsum(ds/vmodel, axis=0)*2  # calculate irregular sampled twt times
+twt = np.arange(0, np.max(twti)+0.10, dt)  # new twt times re-sampled to 4 ms
+dnx = int(nx/disc)
+twtvmodel = np.zeros((len(twt), dnx))  # velocity model in time and discretized
+for i in xrange(0, nx, disc):  # set the time re-sample velocity model
+    twtvmodel[:, int(i/disc)] = np.interp(twt, twti[:, i], vmodel[:, i])
+zimp = np.ones(twtvmodel.shape)*1000.*twtvmodel  # create impedance z = rho*v
+rc = (zimp[1:]-zimp[:-1])/(zimp[1:]+zimp[:-1]) # calculate reflection coefs
+fig = mpl.figure(figsize=(11, 7))  # plottings
+mpl.subplots_adjust(right=0.98, left=0.11, hspace=0.4, top=0.93, bottom=0.13)
+mpl.subplot2grid((3, 4), (0, 0), colspan=4)  # plot rc model
+mpl.title("Zero-offset section reflection coefficients",
+          fontsize=13, family='sans-serif', weight='bold')
+rcs = utils.matrix2stream(rc.transpose(), header={'delta': dt})
+mpl.seismic_wiggle(rcs, normalize=True, scale=1.5, ranges=[0, nx])  # rc model
+wavelet = signal.ricker(255, 1/(2*f*dt))  # create wavelet
+samples = signal.filtfilt(wavelet, np.ones(len(wavelet)),
+                          rc, axis=0, padlen=len(twt)-2)  # convolve rc*wavelet
+mpl.ylabel('twt (s)')
+mpl.subplot2grid((3, 4), (1, 0), colspan=4)  # plot zero-offset traces
+traces = utils.matrix2stream(samples.transpose(), header={'delta': dt}) 
+mpl.seismic_image(traces, cmap=mpl.pyplot.cm.jet, aspect='auto', ranges=[0, nx])
+mpl.seismic_wiggle(traces, ranges=[0, nx], normalize=True)
+mpl.ylabel('twt (s)')
+mpl.title("Zero-offset section amplitude",
+          fontsize=13, family='sans-serif', weight='bold')
+ax = mpl.subplot2grid((3, 4), (2, 0), colspan=4)  # plot vmodel
+mpl.imshow(vmodel, extent=[0, nx, nz*ds, 0],
+           cmap=mpl.pyplot.cm.bwr, aspect='auto', origin='upper')
+ax.autoscale(False)
+mpl.ylabel('depth (m)')
+stations = [[i, 0] for i in xrange(0, nx, disc)]
+mpl.points(stations, '^k', size=7)  # zero-offset station points
+mpl.text(250, 120, '2900 m/s')  # model velocities
+mpl.text(450, 315, '2500 m/s')
+mpl.text(250, 550, '3500 m/s')
+# thickness by lambda/4 2nd axis
+ax2 = ax.twiny()
+ax2.set_frame_on(True)
+ax2.patch.set_visible(False)
+ax2.xaxis.set_ticks_position('bottom')
+ax2.xaxis.set_label_position('bottom')
+ax2.spines['bottom'].set_position(('outward', 20))
+def thick_function_thicknessbyres(x):
+    l4 = 3000/(f*4)  # average velocity resolution lambda 4
+    # pinchout thickness expression
+    thick = 0
+    if x > 120:
+        thick = 10 + (x-120)*0.2247
+    return thick/l4
+ax2.set_xticks(np.arange(0., nx, 50.))
+ax2.set_xticklabels(
+    ["%.2f" % thick_function_thicknessbyres(x) for x in xrange(0, nx, 50)])
+mpl.title("Velocity model (stations black diamonds)",
+          fontsize=13, family='sans-serif', weight='bold')
+ax2.set_xlabel(r"Pinchout thickness divided by lambda/4")
 mpl.show()
