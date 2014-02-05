@@ -150,7 +150,7 @@ class Objective(object):
                 return func(p) + getattr(other, name)(p)
             wrapper.__doc__ = getattr(self, name).__doc__
             setattr(obj, name, types.MethodType(wrapper, obj))
-        # Make a shallow copy of self to return. If returned self, would
+            # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
         tmp._components = [other] + other._components
@@ -166,10 +166,10 @@ class Objective(object):
         def wrap(name, obj):
             func = getattr(self, name)
             def wrapper(self, p):
-                return other*func(p)
+                return other * func(p)
             wrapper.__doc__ = getattr(self, name).__doc__
             setattr(obj, name, types.MethodType(wrapper, obj))
-        # Make a shallow copy of self to return. If returned self, would
+            # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
         # Wrap the hessian, gradient and value to be the products
@@ -180,6 +180,7 @@ class Objective(object):
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
 
 class FitMixin(object):
     """
@@ -204,30 +205,30 @@ class FitMixin(object):
     """
 
     default_solver_args = {
-        'linear':{'precondition':True},
-        'newton':{'initial':None,
-                  'maxit':30,
-                  'tol':10**-5,
-                  'precondition':True},
-        'levmarq':{'initial':None,
-                   'maxit':30,
-                   'maxsteps':10,
-                   'lamb':1,
-                   'dlamb':2,
-                   'tol':10**-5,
-                   'precondition':True},
-        'steepest':{'initial':None,
-                    'stepsize':0.1,
-                    'maxsteps':30,
-                    'maxit':1000,
-                    'tol':10**-5},
-        'acor':{'bounds':None,
-                'nants':None,
-                'archive_size':None,
-                'maxit':1000,
-                'diverse':0.5,
-                'evap':0.85,
-                'seed':None}}
+        'linear': {'precondition': True},
+        'newton': {'initial': None,
+                   'maxit': 30,
+                   'tol': 10 ** -5,
+                   'precondition': True},
+        'levmarq': {'initial': None,
+                    'maxit': 30,
+                    'maxsteps': 10,
+                    'lamb': 1,
+                    'dlamb': 2,
+                    'tol': 10 ** -5,
+                    'precondition': True},
+        'steepest': {'initial': None,
+                     'stepsize': 0.1,
+                     'maxsteps': 30,
+                     'maxit': 1000,
+                     'tol': 10 ** -5},
+        'acor': {'bounds': None,
+                 'nants': None,
+                 'archive_size': None,
+                 'maxit': 1000,
+                 'diverse': 0.5,
+                 'evap': 0.85,
+                 'seed': None}}
 
     def config(self, method, **kwargs):
         """
@@ -317,7 +318,7 @@ class FitMixin(object):
         if 'iterate' in kwargs:
             raise AttributeError("Invalid argument 'iterate'")
         if (method in ['newton', 'levmarq', 'steepest'] and
-            'initial' not in kwargs):
+                    'initial' not in kwargs):
             raise AttributeError(
                 "Missing required *initial* argument for '%s'" % (method))
         if method == 'acor' and 'bounds' not in kwargs:
@@ -327,7 +328,7 @@ class FitMixin(object):
         for k in kwargs:
             if k not in args:
                 raise AttributeError("Invalid argument '%s' for '%s'" % (k,
-                    method))
+                                                                         method))
             args[k] = kwargs[k]
         self.fit_method = method
         self.fit_args = args
@@ -417,7 +418,7 @@ class FitMixin(object):
         return p
 
     def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
-                tol=10**-5, precondition=True, iterate=False):
+                tol=10 ** -5, precondition=True, iterate=False):
         """
         Solve using the Levemberg-Marquardt algorithm.
 
@@ -454,15 +455,15 @@ class FitMixin(object):
 
         """
         solver = levmarq(self.hessian, self.gradient, self.value, initial,
-                maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
-                tol=tol, precondition=precondition)
+                         maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
+                         tol=tol, precondition=precondition)
         if iterate:
             return solver
         for p in solver:
             continue
         return p
 
-    def newton(self, initial, maxit=30, tol=10**-5, precondition=True,
+    def newton(self, initial, maxit=30, tol=10 ** -5, precondition=True,
                iterate=False):
         """
         Minimize an objective function using Newton's method.
@@ -491,7 +492,7 @@ class FitMixin(object):
 
         """
         solver = newton(self.hessian, self.gradient, self.value, initial,
-                maxit=maxit, tol=tol, precondition=precondition)
+                        maxit=maxit, tol=tol, precondition=precondition)
         if iterate:
             return solver
         for p in solver:
@@ -499,7 +500,7 @@ class FitMixin(object):
         return p
 
     def steepest(self, initial, stepsize=0.1, maxsteps=30, maxit=1000,
-                 tol=10**-5, iterate=False):
+                 tol=10 ** -5, iterate=False):
         """
         Minimize an objective function using the Steepest Descent method.
 
@@ -530,7 +531,7 @@ class FitMixin(object):
 
         """
         solver = steepest(self.gradient, self.value, initial, maxit=maxit,
-                maxsteps=maxsteps, stepsize=stepsize, tol=tol)
+                          maxsteps=maxsteps, stepsize=stepsize, tol=tol)
         if iterate:
             return solver
         for p in solver:
@@ -580,13 +581,14 @@ class FitMixin(object):
 
         """
         solver = acor(self.value, bounds, self.nparams, nants=nants,
-                archive_size=archive_size, maxit=maxit, diverse=diverse,
-                evap=evap, seed=seed)
+                      archive_size=archive_size, maxit=maxit, diverse=diverse,
+                      evap=evap, seed=seed)
         if iterate:
             return solver
         for p in solver:
             continue
         return p
+
 
 class Misfit(Objective, FitMixin):
     r"""
@@ -658,9 +660,9 @@ class Misfit(Objective, FitMixin):
         # To cache the latest computations (or for linear problems)
         self.hasher = lambda x: hashlib.sha1(x).hexdigest()
         self._cache = {}
-        self._cache['predicted'] = {'hash':'', 'array':None}
-        self._cache['jacobian'] = {'hash':'', 'array':None}
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache['predicted'] = {'hash': '', 'array': None}
+        self._cache['jacobian'] = {'hash': '', 'array': None}
+        self._cache['hessian'] = {'hash': '', 'array': None}
         # Data weights
         self.weights = None
         if weights is not None:
@@ -670,9 +672,9 @@ class Misfit(Objective, FitMixin):
 
     def _clear_cache(self):
         "Reset the cached matrices"
-        self._cache['predicted'] = {'hash':'', 'array':None}
-        self._cache['jacobian'] = {'hash':'', 'array':None}
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache['predicted'] = {'hash': '', 'array': None}
+        self._cache['jacobian'] = {'hash': '', 'array': None}
+        self._cache['hessian'] = {'hash': '', 'array': None}
 
     def __repr__(self):
         return 'Misfit instance'
@@ -767,7 +769,7 @@ class Misfit(Objective, FitMixin):
         sub._cache = self._cache.copy()
         sub.data = sub.data[indices]
         sub.positional = dict((k, sub.positional[k][indices])
-                               for k in sub.positional)
+                              for k in sub.positional)
         sub._clear_cache()
         if self._cache['jacobian']['array'] is not None:
             sub._cache['jacobian']['array'] = \
@@ -789,7 +791,7 @@ class Misfit(Objective, FitMixin):
         """
         self.weights = scipy.sparse.diags(weights, 0)
         # Weights change the Hessian
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache['hessian'] = {'hash': '', 'array': None}
         return self
 
     def residuals(self, p=None):
@@ -862,7 +864,7 @@ class Misfit(Objective, FitMixin):
         else:
             hash = self.hasher(p)
         if (hash != self._cache['jacobian']['hash'] or
-                self._cache['jacobian']['array'] is None):
+                    self._cache['jacobian']['array'] is None):
             self._cache['jacobian']['array'] = self._get_jacobian(p)
             self._cache['jacobian']['hash'] = hash
         return self._cache['jacobian']['array']
@@ -895,11 +897,11 @@ class Misfit(Objective, FitMixin):
         if self.weights is None:
             return numpy.linalg.norm(
                 self.data - self.predicted(p)
-                )**2/self.ndata
+            ) ** 2 / self.ndata
         else:
-            return numpy.sum(self.weights*(
-                        (self.data - self.predicted(p))**2)
-                        )/self.ndata
+            return numpy.sum(self.weights * (
+                (self.data - self.predicted(p)) ** 2)
+            ) / self.ndata
 
     def hessian(self, p):
         r"""
@@ -932,10 +934,10 @@ class Misfit(Objective, FitMixin):
         else:
             jacobian = self.jacobian(p)
             if self.weights is None:
-                hessian = (2/self.ndata)*safe_dot(jacobian.T, jacobian)
+                hessian = (2 / self.ndata) * safe_dot(jacobian.T, jacobian)
             else:
-                hessian = (2/self.ndata)*safe_dot(
-                    jacobian.T, self.weights*jacobian)
+                hessian = (2 / self.ndata) * safe_dot(
+                    jacobian.T, self.weights * jacobian)
             if self.islinear:
                 self._cache['hessian']['array'] = hessian
         return hessian
@@ -964,12 +966,12 @@ class Misfit(Objective, FitMixin):
         """
         jacobian = self.jacobian(p)
         if self.weights is None:
-            grad = (-2/self.ndata)*safe_dot(
+            grad = (-2 / self.ndata) * safe_dot(
                 jacobian.T, self.data - self.predicted(p))
         else:
-            grad = (-2/self.ndata)*safe_dot(
-                jacobian.T, self.weights*(self.data - self.predicted(p)))
-        # Check if the gradient isn't a one column matrix
+            grad = (-2 / self.ndata) * safe_dot(
+                jacobian.T, self.weights * (self.data - self.predicted(p)))
+            # Check if the gradient isn't a one column matrix
         if len(grad.shape) > 1:
             # Need to convert it to a 1d array so that hell won't break loose
             grad = numpy.array(grad).ravel()

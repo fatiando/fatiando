@@ -15,7 +15,7 @@ inc, dec = -10, 25
 # Model with induced + remanent magnetization
 mag = utils.ang2vec(10, 20, -15)
 # Create a synthetic model
-model = [Prism(250, 750, 250, 750, 200, 700, {'magnetization':mag})]
+model = [Prism(250, 750, 250, 750, 200, 700, {'magnetization': mag})]
 # and generate synthetic data from it
 shape = (25, 25)
 bounds = [0, 1000, 0, 1000, 0, 1000]
@@ -40,10 +40,10 @@ mesh = PrismMesh(bounds, (25, 25, 25))
 # Wrap the data so that harvester can use it
 data = [gm.harvester.TotalField(xp, yp, zp, tf, inc, dec)]
 # Make the seed
-seeds = gm.harvester.sow([[500, 500, 450, {'magnetization':mag}]], mesh)
+seeds = gm.harvester.sow([[500, 500, 450, {'magnetization': mag}]], mesh)
 # Run the inversioin
 estimate, predicted = gm.harvester.harvest(data, seeds, mesh,
-            compactness=1, threshold=0.0001)
+                                           compactness=1, threshold=0.0001)
 #Put the estimated magnetization vector in the mesh
 mesh.addprop('magnetization', estimate['magnetization'])
 
@@ -68,8 +68,8 @@ mpl.show()
 myv.figure()
 myv.prisms(model, 'magnetization', style='wireframe')
 myv.prisms(vremove(0, 'magnetization', mesh), 'magnetization')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
-            nlabels=6)
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds], fmt='%.1f',
+         nlabels=6)
 myv.wall_bottom(bounds)
 myv.wall_north(bounds)
 myv.show()

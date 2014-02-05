@@ -108,16 +108,16 @@ class Homogeneous(Misfit):
 
     def _get_predicted(self, p):
         x, y = p
-        alpha = 1./self.model['vs'] - 1./self.model['vp']
-        return alpha*numpy.sqrt((self.positional['recs'][:,0] - x)**2 +
-                                (self.positional['recs'][:,1] - y)**2)
+        alpha = 1. / self.model['vs'] - 1. / self.model['vp']
+        return alpha * numpy.sqrt((self.positional['recs'][:, 0] - x) ** 2 +
+                                  (self.positional['recs'][:, 1] - y) ** 2)
 
     def _get_jacobian(self, p):
         x, y = p
-        alpha = 1./self.model['vs'] - 1./self.model['vp']
-        sqrt = numpy.sqrt((self.positional['recs'][:,0] - x)**2 +
-                          (self.positional['recs'][:,1] - y)**2)
+        alpha = 1. / self.model['vs'] - 1. / self.model['vp']
+        sqrt = numpy.sqrt((self.positional['recs'][:, 0] - x) ** 2 +
+                          (self.positional['recs'][:, 1] - y) ** 2)
         jac = numpy.transpose([
-                -alpha*(self.positional['recs'][:,0] - x)/sqrt,
-                -alpha*(self.positional['recs'][:,1] - y)/sqrt])
+            -alpha * (self.positional['recs'][:, 0] - x) / sqrt,
+            -alpha * (self.positional['recs'][:, 1] - y) / sqrt])
         return jac

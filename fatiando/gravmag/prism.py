@@ -94,10 +94,9 @@ doi: 10.1007/s001900000116.
 """
 try:
     from fatiando.gravmag._prism import *
-except:
+except ImportError:
     def not_implemented(*args, **kwargs):
-        raise NotImplementedError(
-        "Couldn't load C coded extension module.")
+        raise NotImplementedError("Couldn't load C coded extension module.")
     potential = not_implemented
     gx = not_implemented
     gy = not_implemented
