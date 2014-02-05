@@ -173,13 +173,15 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
-    if len(x) < 3:
-        raise ValueError, "Need at least 3 points to make a polygon"
-    if xy2ne:
-        verts = numpy.transpose([y, x])
-    else:
-        verts = numpy.transpose([x, y])
-    return verts
+    def get_vertices(x=x, y=y, xy2ne=xy2ne):
+        if len(x) < 3:
+            raise ValueError, "Need at least 3 points to make a polygon"
+        if xy2ne:
+            verts = numpy.transpose([y, x])
+        else:
+            verts = numpy.transpose([x, y])
+        return verts
+    return get_vertices
 
 def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     """
@@ -265,11 +267,13 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
     pyplot.show()
-    if xy2ne:
-        points = numpy.transpose([y, x])
-    else:
-        points = numpy.transpose([x, y])
-    return points
+    def getpoints(x=x, y=y, xy2ne=xy2ne):
+        if xy2ne:
+            points = numpy.transpose([y, x])
+        else:
+            points = numpy.transpose([x, y])
+        return points
+    return getpoints
 
 def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     """
@@ -382,8 +386,10 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
-    thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
-    return thickness, values
+    def get_thickness(values=values, depths=depths):
+        thick = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
+        return thick, values
+    return get_thickness
 
 def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
     """
