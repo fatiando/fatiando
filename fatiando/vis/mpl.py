@@ -801,6 +801,8 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
         ``'mixed'`` (solid lines for positive contours and dashed for negative)
     * linewidth : float
         Width of the contour lines
+    * vmin, vmax
+        If provided, will overwrite what is set by *levels*.
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
         (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
@@ -821,14 +823,14 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
+    kwargs = dict(colors=color, picker=True, vmin=vmin, vmax=vmax)
     if basemap is None:
-        ct_data = pyplot.contour(X, Y, V, levels, colors=color, picker=True)
+        ct_data = pyplot.contour(X, Y, V, levels, **kwargs)
         pyplot.xlim(X.min(), X.max())
         pyplot.ylim(Y.min(), Y.max())
     else:
         lon, lat = basemap(X, Y)
-        ct_data = basemap.contour(lon, lat, V, levels, colors=color,
-                                  picker=True)
+        ct_data = basemap.contour(lon, lat, V, levels, **kwargs)
     if clabel:
         ct_data.clabel(fmt='%g')
     if label is not None:
@@ -841,7 +843,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     return ct_data.levels
 
 def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
-    cmap=pyplot.cm.jet, basemap=None):
+    vmin=None, vmax=None, cmap=pyplot.cm.jet, basemap=None):
     """
     Make a filled contour plot of the data.
 
@@ -862,6 +864,9 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
         regular grid, set to True!
     * extrapolate : True or False
         Wether or not to extrapolate the data when interp=True
+    * vmin, vmax
+        Saturation values of the colorbar. If provided, will overwrite what is
+        set by *levels*.
     * cmap : colormap
         Color map to be used. (see pyplot.cm module)
     * basemap : mpl_toolkits.basemap.Basemap
@@ -882,13 +887,14 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
+    kwargs = dict(vmin=vmin, vmax=vmax, cmap=cmap, picker=True)
     if basemap is None:
-        ct_data = pyplot.contourf(X, Y, V, levels, cmap=cmap, picker=True)
+        ct_data = pyplot.contourf(X, Y, V, levels, **kwargs)
         pyplot.xlim(X.min(), X.max())
         pyplot.ylim(Y.min(), Y.max())
     else:
         lon, lat = basemap(X, Y)
-        ct_data = basemap.contourf(lon, lat, V, levels, cmap=cmap, picker=True)
+        ct_data = basemap.contourf(lon, lat, V, levels, **kwargs)
     return ct_data.levels
 
 def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
