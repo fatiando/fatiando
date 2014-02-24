@@ -714,8 +714,8 @@ class LCurve(object):
     methods of the data misfit class:
 
     >>> residuals = tomo.residuals()
-    >>> print '%.9f %.5f' % (residuals.mean(), residuals.std())
-    -0.000008199 0.00471
+    >>> print '%.4f %.4f' % (residuals.mean(), residuals.std())
+    -0.0000 0.0047
 
     `LCurve` also has a `config` method to configure the optimization process
     for non-linear problems, for example:
