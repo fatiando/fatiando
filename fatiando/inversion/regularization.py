@@ -32,6 +32,18 @@ See :class:`fatiando.gravmag.eqlayer.EQLGravity` for an example.
 * :class:`~fatiando.inversion.regularization.TotalVariation2D`: Total variation
   for 2D grid based problems. Similar to Smoothness2D
 
+**Regularization parameter estimation**
+
+Bellow are classes that estimate an optimal value for the regularization
+parameter. They work exactly like an Objective function, i.e., run the
+inversion by calling their `fit()` method and accessing
+the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
+
+* :class:`~fatiando.inversion.regularization.LCurve`: Use an L-curve criteon.
+  Runs the inversion using several regularization parameters. The best value
+  is the one that falls on the corner of the log-log plot of the data
+  misfit vs regulazing function. Only works for a single regularization.
+
 
 ----
 
@@ -42,6 +54,7 @@ import scipy.sparse
 
 from .base import Objective
 from ..utils import safe_dot
+from ..vis import mpl
 
 
 class Damping(Objective):
@@ -630,3 +643,177 @@ def fd2d(shape):
             deriv += 1
             param += 1
     return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny)).tocsr()
+
+class LCurve(object):
+    """
+    Examples:
+
+    We'll use the L-curve to estimate the best regularization parameter for a
+    smooth inversion using :mod:`fatiando.seismic.srtomo`.
+
+    First, we'll setup some synthetic data:
+
+    >>> import numpy
+    >>> from fatiando.mesher import SquareMesh
+    >>> from fatiando.seismic import ttime2d, srtomo
+    >>> from fatiando.inversion.regularization import Smoothness2D, LCurve
+    >>> from fatiando import utils
+    >>> area = (0, 2, 0, 2)
+    >>> shape = (10, 10)
+    >>> model = SquareMesh(area, shape)
+    >>> vp = 4*numpy.ones(shape)
+    >>> vp[3:7,3:7] = 10
+    >>> vp
+    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+    >>> model.addprop('vp', vp.ravel())
+    >>> src_loc = utils.random_points(area, 30, seed=0)
+    >>> rec_loc = utils.circular_points(area, 20, random=True, seed=0)
+    >>> srcs, recs = utils.connect_points(src_loc, rec_loc)
+    >>> tts = ttime2d.straight(model, 'vp', srcs, recs)
+    >>> tts = utils.contaminate(tts, 0.01, percent=True, seed=0)
+
+    Now we can setup a tomography by creating the necessary data misfit
+    (`SRTomo`) and regularization (`Smoothness2D`) objects:
+
+    >>> mesh = SquareMesh(area, shape)
+    >>> datamisfit = srtomo.SRTomo(tts, srcs, recs, mesh)
+    >>> regul = Smoothness2D(mesh.shape)
+
+    The tomography solver will be the `LCurve` solver. It works by calling
+    `fit()` and accessing `estimate_`, exactly like any other solver:
+
+    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
+    >>> e = tomo.fit().estimate_
+    >>> print numpy.array_repr(e.reshape(shape), precision=0)
+    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+
+    The estimated regularization parameter is stored in `regul_param_`:
+
+    >>> tomo.regul_param_
+    1e-05
+
+    The `LCurve` object also exposes the `residuals()` and `predicted()`
+    methods of the data misfit class:
+
+    >>> residuals = tomo.residuals()
+    >>> residuals.mean(), residuals.std()
+    (-8.1990488769279522e-06, 0.0047050417723287817)
+
+    `LCurve` also has a `config` method to configure the optimization process
+    for non-linear problems, for example:
+
+    >>> initial = 1./4.*numpy.ones(mesh.size)
+    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
+    >>> e = tomo.config('levmarq', initial=initial).fit().estimate_
+    >>> tomo.regul_param_
+    1e-05
+    >>> print numpy.array_repr(e.reshape(shape), precision=0)
+    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+
+    """
+
+    def __init__(self, datamisfit, regul, regul_params):
+        self.regul_params = regul_params
+        self.datamisfit = datamisfit
+        self.regul = regul
+        self.regul_param_ = None
+        self.objectives = None
+        self.corner_ = None
+        self.estimate_ = None
+        self.p_ = None
+        self.dnorm = numpy.empty(len(regul_params))
+        self.mnorm = numpy.empty(len(regul_params))
+        self.fit_method = None
+        self.fit_args = None
+
+    def fit(self):
+        self.objectives = []
+        for i, mu in enumerate(self.regul_params):
+            solver = self.datamisfit + mu*self.regul
+            if self.fit_method is not None:
+                solver.config(self.fit_method, **self.fit_args)
+            solver.fit()
+            p = solver.p_
+            self.dnorm[i] = self.datamisfit.value(p)
+            self.mnorm[i] = self.regul.value(p)
+            self.objectives.append(solver)
+        corner = self.select_corner(self.dnorm, self.mnorm)
+        self.corner_ = corner
+        self.regul_param_ = self.regul_params[corner]
+        self.p_ = self.objectives[corner].p_
+        self.estimate_ = self.objectives[corner].estimate_
+        return self
+
+    def select_corner(self, dnorm, mnorm):
+        # Uses http://www.sciencedirect.com/science/article/pii/S0168927401001799
+        x, y = numpy.log(dnorm), numpy.log(mnorm)
+        n = len(dnorm)
+        corner = n - 1
+        dist = lambda p1, p2: numpy.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+        cte = 7.*numpy.pi/8.
+        angmin = None
+        c = [x[-1], y[-1]]
+        for k in xrange(0, n - 2):
+            b = [x[k], y[k]]
+            for j in xrange(k + 1, n - 1):
+                a = [x[j], y[j]]
+                ab = dist(a, b)
+                ac = dist(a, c)
+                bc = dist(b, c)
+                cosa = (ab**2 + ac**2 - bc**2)/(2.*ab*ac)
+                ang = numpy.arccos(cosa)
+                area = 0.5*((b[0] - a[0])*(a[1] - c[1]) - (a[0] - c[0])*(b[1] - a[1]))
+                # area is > 0 because in the paper C is index 0
+                if area > 0 and (ang < cte and (angmin is None or ang < angmin)):
+                    corner = j
+                    angmin = ang
+        return corner
+
+    def config(self, method, **kwargs):
+        self.fit_method = method
+        self.fit_args = kwargs
+        return self
+
+    def predicted(self, p=None):
+        return self.objectives[self.corner_].predicted(p)
+
+    def residuals(self, p=None):
+        return self.objectives[self.corner_].residuals(p)
+
+    def plot_lcurve(self):
+        mpl.loglog(self.dnorm, self.mnorm, '.-k')
+        ax = mpl.gca()
+        vmin, vmax = ax.get_ybound()
+        mpl.vlines(self.dnorm[self.corner_], vmin, vmax)
+        vmin, vmax = ax.get_xbound()
+        mpl.hlines(self.mnorm[self.corner_], vmin, vmax)
+        mpl.plot(self.dnorm[self.corner_], self.mnorm[self.corner_], '^b', markersize=10)
+        mpl.xlabel('Data misfit')
+        mpl.ylabel('Regularization')
