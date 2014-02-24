@@ -9,6 +9,7 @@ from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
+from cython.parallel cimport prange
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
@@ -57,7 +58,7 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     """
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
-    cdef DTYPE_T intensity, pintensity, kernel, r, r_sqr
+    cdef DTYPE_T intensity, pintensity, kernel, r, r_sqr, tmp
     cdef DTYPE_T x1, x2, y1, y2, z1, z2
     cdef DTYPE_T fx, fy, fz, mx, my, mz, pmx, pmy, pmz
     if len(xp) != len(yp) != len(zp):
@@ -93,31 +94,25 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz
         # Calculate on all computation points
-        x1, x2 = prism.x1, prism.x2
-        y1, y2 = prism.y1, prism.y2
-        z1, z2 = prism.z1, prism.z2
-        for l in xrange(size):
-            # First thing to do is make the computation point P the origin of
-            # the coordinate system
-            x[0] = x2 - xp[l]
-            x[1] = x1 - xp[l]
-            y[0] = y2 - yp[l]
-            y[1] = y1 - yp[l]
-            z[0] = z2 - zp[l]
-            z[1] = z1 - zp[l]
-            for k in range(2):
-                intensity *= -1.
-                for j in range(2):
-                    for i in range(2):
-                        r_sqr = x[i]**2 + y[j]**2 + z[k]**2
-                        r = sqrt(r_sqr)
-                        res[l] += ((-1.)**(i + j))*intensity*(
-                              0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
-                            + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
-                            - (mx*fy + my*fx)*log(r + z[k])
-                            - mx*fx*atan2(x[i]*y[j], x[i]**2 + z[k]*r + z[k]**2)
-                            - my*fy*atan2(x[i]*y[j], r_sqr + z[k]*r - x[i]**2)
-                            + mz*fz*atan2(x[i]*y[j], z[k]*r))
+        x[:] = [prism.x2, prism.x1]
+        y[:] = [prism.y2, prism.y1]
+        z[:] = [prism.z2, prism.z1]
+        with nogil:
+            for l in prange(size):
+                tmp = intensity
+                for k in range(2):
+                    tmp *= -1.
+                    for j in range(2):
+                        for i in range(2):
+                            r_sqr = (x[i] - xp[l])**2 + (y[j] - yp[l])**2 + (z[k] - zp[l])**2
+                            r = sqrt(r_sqr)
+                            res[l] += ((-1.)**(i + j))*tmp*(
+                                  0.5*(my*fz + mz*fy)*log((r - (x[i] - xp[l]))/(r + (x[i] - xp[l])))
+                                + 0.5*(mx*fz + mz*fx)*log((r - (y[j] - yp[l]))/(r + (y[j] - yp[l])))
+                                - (mx*fy + my*fx)*log(r + (z[k] - zp[l]))
+                                - mx*fx*atan2((x[i] - xp[l])*(y[j] - yp[l]), (x[i] - xp[l])**2 + (z[k] - zp[l])*r + (z[k] - zp[l])**2)
+                                - my*fy*atan2((x[i] - xp[l])*(y[j] - yp[l]), r_sqr + (z[k] - zp[l])*r - (x[i] - xp[l])**2)
+                                + mz*fz*atan2((x[i] - xp[l])*(y[j] - yp[l]), (z[k] - zp[l])*r))
     res *= CM*T2NT
     return res
 
