@@ -9,7 +9,8 @@ from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
-from cython.parallel cimport prange
+from cython.parallel cimport prange, parallel
+cimport openmp
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
@@ -24,7 +25,7 @@ __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
 def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
        numpy.ndarray[DTYPE_T, ndim=1] yp not None,
        numpy.ndarray[DTYPE_T, ndim=1] zp not None, prisms,
-       double inc, double dec, pmag=None):
+       double inc, double dec, pmag=None, jobs=None):
     """
     Calculate the total-field anomaly of prisms.
 
@@ -57,6 +58,7 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
 
     """
     cdef unsigned int l, size, i, j, k
+    cdef int num_threads
     cdef numpy.ndarray[DTYPE_T, ndim=1] res, x, y, z
     cdef DTYPE_T intensity, pintensity, kernel, r, r_sqr, tmp
     cdef DTYPE_T x1, x2, y1, y2, z1, z2
@@ -78,6 +80,11 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.zeros(2, dtype=DTYPE)
     y = numpy.zeros(2, dtype=DTYPE)
     z = numpy.zeros(2, dtype=DTYPE)
+    # Set the number of threads to use
+    if jobs is None:
+        num_threads = openmp.omp_get_max_threads()
+    else:
+        num_threads = jobs
     for prism in prisms:
         if (prism is None or
             ('magnetization' not in prism.props and pmag is None)):
@@ -98,7 +105,7 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         y[:] = [prism.y2, prism.y1]
         z[:] = [prism.z2, prism.z1]
         with nogil:
-            for l in prange(size):
+            for l in prange(size, num_threads=num_threads):
                 tmp = intensity
                 for k in range(2):
                     tmp *= -1.
