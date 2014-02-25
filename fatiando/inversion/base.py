@@ -119,6 +119,7 @@ class Objective(object):
     >>> e.value(3)
     -12
 
+
     """
 
     def __init__(self, nparams, islinear):
@@ -975,10 +976,59 @@ class Misfit(Objective, FitMixin):
             grad = numpy.array(grad).ravel()
         return grad
 
-    # Overload the add function to make predicted and residuals return a list
-    # of all predicted and residual vectors from all the components.
+    # Addition needs some tweaks
     def __add__(self, other):
+        """
+
+        >>> import numpy as np
+        >>> a = Misfit([1, 2, 3], {}, {}, 2, islinear=True)
+        >>> a._get_predicted = lambda p: 2*p
+        >>> a._get_jacobian = lambda p: p*np.ones((a.ndata, a.nparams))
+        >>> b = Objective(2, True)
+        >>> c = a + b
+        >>> c._cache['jacobian']['array'] is None
+        True
+        >>> a._cache['jacobian']['array'] is None
+        True
+        >>> p = np.array([1, 2])
+        >>> a.jacobian(p)
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> a._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> c._cache['jacobian']['array'] is None
+        True
+        >>> c = a + b
+        >>> c._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> a._cache['jacobian']['array'] = 5*np.ones((a.ndata, a.nparams))
+        >>> a.jacobian(p)
+        array([[ 5.,  5.],
+               [ 5.,  5.],
+               [ 5.,  5.]])
+        >>> c._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+
+
+        """
+        #if hasattr(other, '_cache'):
+            #other = copy.copy(other)
+            #other._cache = copy.copy(other._cache)
         tmp = super(Misfit, self).__add__(other)
+        # Cache is not shared. This would cause a problem if I made 2 or more
+        # sums and then tried to alter the cache of both at the same time (in a
+        # parallel run, for example).
+        # A shallow copy is used so the cached Jacobian is not copied.
+        tmp._cache = dict([k, copy.copy(self._cache[k])] for k in self._cache)
+        # Make predicted and residuals return a list of all predicted and
+        # residual vectors from all the components.
         def wrap(name, obj):
             func = getattr(self, name)
             def wrapper(self, p=None):
