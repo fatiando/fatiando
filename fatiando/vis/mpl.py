@@ -801,8 +801,6 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
         ``'mixed'`` (solid lines for positive contours and dashed for negative)
     * linewidth : float
         Width of the contour lines
-    * vmin, vmax
-        If provided, will overwrite what is set by *levels*.
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
         (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
@@ -823,7 +821,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
-    kwargs = dict(colors=color, picker=True, vmin=vmin, vmax=vmax)
+    kwargs = dict(colors=color, picker=True)
     if basemap is None:
         ct_data = pyplot.contour(X, Y, V, levels, **kwargs)
         pyplot.xlim(X.min(), X.max())
