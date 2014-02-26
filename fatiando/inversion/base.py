@@ -1076,16 +1076,43 @@ class Misfit(Objective, FitMixin):
         """
         Examples:
 
+        Added Misfits should not share a cache. Bellow are some tests for this
+        behaviour:
+
         >>> import numpy as np
-        >>> a = Misfit([1, 2, 3], {}, {}, 2, islinear=True)
-        >>> a._get_predicted = lambda p: 2*p
-        >>> a._get_jacobian = lambda p: p*np.ones((a.ndata, a.nparams))
-        >>> b = Objective(2, True)
+        >>> class MyMisfit(Misfit):
+        ...     def __init__(self, data, factor):
+        ...         super(MyMisfit, self).__init__(data, {}, {}, 2,
+        ...                                        islinear=True)
+        ...         self._factor = factor
+        ...     def _get_predicted(self, p):
+        ...         return 2*p
+        ...     def _get_jacobian(self, p):
+        ...         shape = (self.ndata, a.nparams)
+        ...         return self._factor*np.ones(shape)
+        >>> a = MyMisfit([1, 2, 3], np.array([1, 2]))
+        >>> a._cache['jacobian']['array'] is None
+        True
+        >>> a._cache['hessian']['array'] is None
+        True
+        >>> b = MyMisfit([1, 2, 3], 1)
+        >>> b._cache['jacobian']['array'] is None
+        True
+        >>> b._cache['hessian']['array'] is None
+        True
         >>> c = a + b
         >>> c._cache['jacobian']['array'] is None
         True
-        >>> a._cache['jacobian']['array'] is None
+        >>> c._cache['hessian']['array'] is None
         True
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
+
+        Calling a.jacobian and a.hessian should fill the cache of a but not
+        of the parents of c:
+
         >>> p = np.array([1, 2])
         >>> a.jacobian(p)
         array([[ 1.,  2.],
@@ -1095,34 +1122,122 @@ class Misfit(Objective, FitMixin):
         array([[ 1.,  2.],
                [ 1.,  2.],
                [ 1.,  2.]])
-        >>> c._cache['jacobian']['array'] is None
-        True
-        >>> c = a + b
-        >>> c._cache['jacobian']['array']
-        array([[ 1.,  2.],
-               [ 1.,  2.],
-               [ 1.,  2.]])
-        >>> a._cache['jacobian']['array'] = 5*np.ones((a.ndata, a.nparams))
-        >>> a.jacobian(p)
-        array([[ 5.,  5.],
-               [ 5.,  5.],
-               [ 5.,  5.]])
-        >>> c._cache['jacobian']['array']
-        array([[ 1.,  2.],
-               [ 1.,  2.],
-               [ 1.,  2.]])
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> a.hessian(p)
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> a._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
 
+        The same goes for b:
+
+        >>> b.jacobian(p)
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> b._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> b.hessian(p)
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> b._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
+
+        Just as well, calling c.hessian should not fill the cache of a or b:
+
+        >>> a._clear_cache()
+        >>> b._clear_cache()
+        >>> c.hessian(p)
+        array([[  4.,   6.],
+               [  6.,  10.]])
+        >>> c._parents[0]._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c._parents[1]._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> a._cache['hessian']['array'] is None
+        True
+        >>> b._cache['hessian']['array'] is None
+        True
+
+        But creating c after filling the cache of a and b should result in c
+        whose parents have their cache filled:
+
+        >>> a.hessian(p)
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c = a + b
+        >>> c._parents[0]._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> c._parents[0]._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c._parents[1]._cache['jacobian']['array'] is None
+        True
+        >>> c._parents[1]._cache['hessian']['array'] is None
+        True
+        >>> b.hessian(p)
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> c = a + b
+        >>> c._parents[1]._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> c._parents[1]._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+
+        This should also work when adding something that is not a Misfit:
+
+        >>> from fatiando.inversion.regularization import Damping
+        >>> c = Damping(2)
+        >>> a._clear_cache()
+        >>> b._clear_cache()
+        >>> d = a + b + 3*c
+        >>> d.hessian(p)
+        matrix([[ 10.,   6.],
+                [  6.,  16.]])
+        >>> a._cache['jacobian']['array'] is None
+        True
+        >>> b._cache['jacobian']['array'] is None
+        True
+        >>> d._parents[0]._parents[0]._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> d._parents[0]._parents[1]._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
 
         """
-        #if hasattr(other, '_cache'):
-            #other = copy.copy(other)
-            #other._cache = copy.copy(other._cache)
         tmp = super(Misfit, self).__add__(other)
         # Cache is not shared. This would cause a problem if I made 2 or more
         # sums and then tried to alter the cache of both at the same time (in a
         # parallel run, for example).
-        # A shallow copy is used so the cached Jacobian is not copied.
-        tmp._cache = dict([k, copy.copy(self._cache[k])] for k in self._cache)
+        # A shallow copy is used so the cached matrices is not copied.
+        for o in tmp._parents:
+            if hasattr(o, '_cache'):
+                o._cache = dict([k, o._cache[k].copy()] for k in o._cache)
+            if isinstance(o, Misfit):
+                o.model = o.model.copy()
+                o.positional = o.positional.copy()
+        tmp._clear_cache()
         # Make predicted and residuals return a list of all predicted and
         # residual vectors from all the components.
         def wrap(name, obj):
