@@ -576,10 +576,10 @@ class Misfit(Objective):
         self.positional = positional
         self.model = model
         # To cache the latest computations (or for linear problems)
-        self._cache = {}
-        self._cache['predicted'] = {'hash':'', 'array':None}
-        self._cache['jacobian'] = {'hash':'', 'array':None}
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache = {
+            'predicted':{'hash':'', 'array':None},
+            'jacobian':{'hash':'', 'array':None},
+            'hessian':{'hash':'', 'array':None}}
         # Set default arguments for fit
         self.default_solver_args = {
             'linear':{'precondition':True},
@@ -619,9 +619,10 @@ class Misfit(Objective):
 
     def _clear_cache(self):
         "Reset the cached matrices"
-        self._cache['predicted'] = {'hash':'', 'array':None}
-        self._cache['jacobian'] = {'hash':'', 'array':None}
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache = {
+            'predicted':{'hash':'', 'array':None},
+            'jacobian':{'hash':'', 'array':None},
+            'hessian':{'hash':'', 'array':None}}
 
     def __repr__(self):
         return 'Misfit instance'
