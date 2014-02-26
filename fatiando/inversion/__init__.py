@@ -180,6 +180,31 @@ array([ True,  True,  True,  True], dtype=bool)
 >>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
 array([ 2.,  5.])
 
+This can also be expanded to 3 or more data types:
+
+>>> x3 = np.linspace(10, 11, 6)
+>>> y3 = 2*x3 + 5
+>>> y3
+array([ 25. ,  25.4,  25.8,  26.2,  26.6,  27. ])
+>>> solver = solver + Regression(x3, y3)
+>>> solver.fit().estimate_
+array([ 2.,  5.])
+>>> y1pred, y2pred, y3pred = solver.predicted()
+>>> y1pred
+array([  5.,   7.,   9.,  11.,  13.,  15.])
+>>> y2pred
+array([  205.,   805.,  1405.,  2005.])
+>>> y3pred
+array([ 25. ,  25.4,  25.8,  26.2,  26.6,  27. ])
+>>> res1, res2, res3 = solver.residuals()
+>>> np.abs(res1) < 10**-10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
+>>> np.abs(res2) < 10**-10
+array([ True,  True,  True,  True], dtype=bool)
+>>> np.abs(res3) < 10**-10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
+>>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
+array([ 2.,  5.])
 
 
 ----

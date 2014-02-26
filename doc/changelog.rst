@@ -10,6 +10,9 @@ Version 0.3
 
 **Changes**:
 
+* Added support for ``vmin`` and ``vmax`` arguments in
+  :ref:`fatiando.vis.mpl.contourf <fatiando_vis_mpl>`.
+  (`PR 89 <https://github.com/leouieda/fatiando/pull/89>`_)
 * **New** module :ref:`fatiando.gravmag.magdir <fatiando_gravmag_magdir>` for
   estimating the total magnetization vector of multiple sources.
   (`PR 87 <https://github.com/leouieda/fatiando/pull/87>`_)
