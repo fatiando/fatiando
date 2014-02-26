@@ -99,7 +99,7 @@ class Damping(Objective):
     def __init__(self, nparams):
         super(Damping, self).__init__(nparams, islinear=True)
 
-    def hessian(self, p):
+    def _get_hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -117,7 +117,7 @@ class Damping(Objective):
         # This is cheap so there is no need to cache it
         return 2*scipy.sparse.identity(self.nparams).tocsr()
 
-    def gradient(self, p):
+    def _get_gradient(self, p):
         """
         Calculate the gradient vector.
 
@@ -138,7 +138,7 @@ class Damping(Objective):
             grad = 2.*p
         return grad
 
-    def value(self, p):
+    def _get_value(self, p):
         """
         Calculate the value of this function.
 
@@ -222,7 +222,7 @@ class Smoothness(Objective):
         self._cache['hessian'] = {'hash':'',
                                   'array':2*safe_dot(fdmat.T, fdmat)}
 
-    def hessian(self, p):
+    def _get_hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -239,7 +239,7 @@ class Smoothness(Objective):
         """
         return self._cache['hessian']['array']
 
-    def gradient(self, p):
+    def _get_gradient(self, p):
         """
         Calculate the gradient vector.
 
@@ -260,7 +260,7 @@ class Smoothness(Objective):
             grad = safe_dot(self.hessian(p), p)
         return grad
 
-    def value(self, p):
+    def _get_value(self, p):
         """
         Calculate the value of this function.
 
@@ -439,7 +439,7 @@ class TotalVariation(Objective):
         self.beta = beta
         self._fdmat = fdmat
 
-    def value(self, p):
+    def _get_value(self, p):
         """
         Calculate the value of this function.
 
@@ -456,7 +456,7 @@ class TotalVariation(Objective):
         """
         return numpy.linalg.norm(safe_dot(self._fdmat, p), 1)
 
-    def hessian(self, p):
+    def _get_hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -476,7 +476,7 @@ class TotalVariation(Objective):
                                       0).tocsr()
         return safe_dot(self._fdmat.T, q_matrix*self._fdmat)
 
-    def gradient(self, p):
+    def _get_gradient(self, p):
         """
         Calculate the gradient vector.
 
