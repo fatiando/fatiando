@@ -37,7 +37,7 @@ class Objective(object):
     Hessian matrix for a given parameter vector *p*. The methods that implement
     these should have the following format::
 
-        def value(self, p):
+        def _get_value(self, p):
             '''
             Calculate the value of the objetive function.
 
@@ -53,7 +53,7 @@ class Objective(object):
             '''
             ...
 
-        def hessian(self, p):
+        def _get_hessian(self, p):
             '''
             Calculates the Hessian matrix.
 
@@ -69,7 +69,7 @@ class Objective(object):
             '''
             ...
 
-        def gradient(self, p):
+        def _get_gradient(self, p):
             '''
             The gradient vector.
 
@@ -88,6 +88,13 @@ class Objective(object):
     These methods are problem specific and need to be implemented when
     subclassing *Objective*.
 
+    *Objective* has methods that find the parameter vector that minimizes it:
+
+    * :meth:`~fatiando.inversion.base.Objective.newton`
+    * :meth:`~fatiando.inversion.base.Objective.levmarq`
+    * :meth:`~fatiando.inversion.base.Objective.steepest`
+    * :meth:`~fatiando.inversion.base.Objective.acor`
+
     Parameters:
 
     * nparams : int
@@ -101,12 +108,16 @@ class Objective(object):
     instances together and multiply them by scalars (i.e., regularization
     parameters):
 
-    >>> a = Objective(10, True)
-    >>> a.value = lambda p: 2*p
+    >>> class MyObjective(Objective):
+    ...     def __init__(self, scale):
+    ...         super(MyObjective, self).__init__(10, True)
+    ...         self._scalar = scale
+    ...     def _get_value(self, p):
+    ...         return self._scalar*p
+    >>> a = MyObjective(2)
     >>> a.value(3)
     6
-    >>> b = Objective(10, True)
-    >>> b.value = lambda p: -3*p
+    >>> b = MyObjective(-3)
     >>> b.value(3)
     -9
     >>> c = a + b
@@ -126,295 +137,203 @@ class Objective(object):
         self.nparams = nparams
         self.ndata = 0
         self._scale = None
-        self._components = []
+        self._parents = None
 
     def __repr__(self):
         return 'Objective instance'
 
     def value(self, p):
-        raise NotImplementedError()
+        """
+        The value (scalar) of this objective function at *p*
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * value : float
+            The value of this Objective function. If this is the sum of 1 or
+            more objective functions, value will be the sum of the values.
+
+        """
+        if self._parents is None:
+            return self._get_value(p)
+        else:
+            if self._scale is None:
+                obj1, obj2 = self._parents
+                return obj1.value(p) + obj2.value(p)
+            else:
+                assert len(self._parents) == 1, \
+                    'Result of multiplying Objective produces > one parent.'
+                return self._scale*self._parents[0].value(p)
 
     def gradient(self, p):
-        raise NotImplementedError()
+        """
+        The gradient vector of this objective function at *p*
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * gradient : 1d-array
+            The gradient of this Objective function. If this is the sum of 1 or
+            more objective functions, gradient will be the sum of the gradients
+
+        """
+        if self._parents is None:
+            return self._get_gradient(p)
+        else:
+            if self._scale is None:
+                obj1, obj2 = self._parents
+                return obj1.gradient(p) + obj2.gradient(p)
+            else:
+                assert len(self._parents) == 1, \
+                    'Result of multiplying Objective produces > one parent.'
+                return self._scale*self._parents[0].gradient(p)
 
     def hessian(self, p):
-        raise NotImplementedError()
+        """
+        The Hessian matrix of this objective function at *p*
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector
+
+        Returns:
+
+        * hessian : 2d-array
+            The Hessian of this Objective function. If this is the sum of 1 or
+            more objective functions, hessian will be the sum of the Hessians
+
+        """
+        if self._parents is None:
+            return self._get_hessian(p)
+        else:
+            if self._scale is None:
+                obj1, obj2 = self._parents
+                return obj1.hessian(p) + obj2.hessian(p)
+            else:
+                assert len(self._parents) == 1, \
+                    'Result of multiplying Objective produces > one parent.'
+                return self._scale*self._parents[0].hessian(p)
 
     def __add__(self, other):
+        """
+        Examples:
+
+        >>> class MyObjective(Objective):
+        ...     def __init__(self, n, scale):
+        ...         super(MyObjective, self).__init__(n, True)
+        ...         self._scalar = scale
+        ...     def _get_value(self, p):
+        ...         return self._scalar*p
+        >>> a = MyObjective(10, 2)
+        >>> b = MyObjective(10, -3)
+        >>> c = a + b
+        >>> c.value(3)
+        -3
+        >>> a.value(3) + b.value(3)
+        -3
+
+        Every Objective should be a copy:
+
+        >>> c is a
+        False
+        >>> c is b
+        False
+        >>> c._parents[0] is a
+        False
+        >>> c._parents[1] is b
+        False
+
+        Modifying the 2 Objectives should not alter the sum:
+
+        >>> a._scalar = 10
+        >>> b._scalar = 20
+        >>> a.value(3) + b.value(3)
+        90
+        >>> c.value(3)
+        -3
+
+        """
         if self.nparams != other.nparams:
             raise ValueError(
                 "Can only add functions with same number of parameters")
-        def wrap(name, obj):
-            func = getattr(self, name)
-            def wrapper(self, p):
-                return func(p) + getattr(other, name)(p)
-            wrapper.__doc__ = getattr(self, name).__doc__
-            setattr(obj, name, types.MethodType(wrapper, obj))
         # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
-        tmp._components = [other] + other._components
-        # Wrap the hessian, gradient and value to be the sums
-        wrap('hessian', tmp)
-        wrap('gradient', tmp)
-        wrap('value', tmp)
+        tmp._scale = None
+        tmp._parents = [copy.copy(self), copy.copy(other)]
         return tmp
 
     def __mul__(self, other):
+        """
+        Examples:
+
+        >>> class MyObjective(Objective):
+        ...     def __init__(self, n, scale):
+        ...         super(MyObjective, self).__init__(n, True)
+        ...         self._scalar = scale
+        ...     def _get_value(self, p):
+        ...         return self._scalar*p
+        >>> a = MyObjective(10, 2)
+        >>> b = MyObjective(10, -3)
+        >>> d = 0.5*a
+        >>> d.value(3)
+        3.0
+        >>> e = a + 2*b
+        >>> e.value(3)
+        -12
+        >>> f = 3*a + b
+        >>> f.value(3)
+        9
+
+        Every Objective should be a copy:
+
+        >>> d is a
+        False
+        >>> e is a
+        False
+        >>> e is b
+        False
+        >>> f is a
+        False
+        >>> f is b
+        False
+
+        Modifying the 2 Objectives should not alter the multiplication:
+
+        >>> a._scalar = 10
+        >>> b._scalar = 20
+        >>> 0.5*a.value(3)
+        15.0
+        >>> d.value(3)
+        3.0
+        >>> a.value(3) + 2*b.value(3)
+        150
+        >>> e.value(3)
+        -12
+        >>> f.value(3)
+        9
+
+        """
         if not isinstance(other, int) and not isinstance(other, float):
             raise TypeError('Can only multiply a Objective by a float or int')
-        def wrap(name, obj):
-            func = getattr(self, name)
-            def wrapper(self, p):
-                return other*func(p)
-            wrapper.__doc__ = getattr(self, name).__doc__
-            setattr(obj, name, types.MethodType(wrapper, obj))
         # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
-        # Wrap the hessian, gradient and value to be the products
-        wrap('hessian', tmp)
-        wrap('gradient', tmp)
-        wrap('value', tmp)
+        tmp._scale = other
+        tmp._parents = [copy.copy(self)]
         return tmp
 
     def __rmul__(self, other):
         return self.__mul__(other)
-
-class FitMixin(object):
-    """
-    A mixin class for the *fit* method that minimizes the Objective function.
-
-    The :meth:`~fatiando.inversion.base.FitMixin.fit` method uses the
-    optimization method defined in the *fit_method* attribute.
-    When calling the optimization, will pass keyword arguments
-    defined in the *fit_args* atttribute.
-    Use the :meth:`~fatiando.inversion.base.FitMixin.config` method to set
-    these parameters.
-
-    Also specifies methods for the individual solvers in
-    :mod:`fatiando.inversion.solvers`:
-
-    * :meth:`~fatiando.inversion.base.FitMixin.linear`
-    * :meth:`~fatiando.inversion.base.FitMixin.newton`
-    * :meth:`~fatiando.inversion.base.FitMixin.levmarq`
-    * :meth:`~fatiando.inversion.base.FitMixin.steepest`
-    * :meth:`~fatiando.inversion.base.FitMixin.acor`
-
-    """
-
-    default_solver_args = {
-        'linear':{'precondition':True},
-        'newton':{'initial':None,
-                  'maxit':30,
-                  'tol':10**-5,
-                  'precondition':True},
-        'levmarq':{'initial':None,
-                   'maxit':30,
-                   'maxsteps':10,
-                   'lamb':1,
-                   'dlamb':2,
-                   'tol':10**-5,
-                   'precondition':True},
-        'steepest':{'initial':None,
-                    'stepsize':0.1,
-                    'maxsteps':30,
-                    'maxit':1000,
-                    'tol':10**-5},
-        'acor':{'bounds':None,
-                'nants':None,
-                'archive_size':None,
-                'maxit':1000,
-                'diverse':0.5,
-                'evap':0.85,
-                'seed':None}}
-
-    def config(self, method, **kwargs):
-        """
-        Configure the optimization method and its parameters.
-
-        This sets the method used by
-        :meth:`~fatiando.inversion.base.FitMixin.fit` and the keyword arguments
-        that are passed to it.
-
-        Parameters:
-
-        * method : string
-            The optimization method. One of: ``'linear'``, ``'newton'``,
-            ``'levmarq'``, ``'steepest'``, ``'acor'``
-
-        Other keyword arguments that can be passed are the ones allowed by each
-        method.
-
-        Some methods have required arguments:
-
-        * *newton*, *levmarq* and *steepest* require the ``initial`` argument
-          (an initial estimate for the gradient descent)
-        * *acor* requires the ``bounds`` argument (min/max values for the
-          search space)
-
-        See the corresponding docstrings for more information:
-
-        * :meth:`~fatiando.inversion.base.FitMixin.linear`
-        * :meth:`~fatiando.inversion.base.FitMixin.newton`
-        * :meth:`~fatiando.inversion.base.FitMixin.levmarq`
-        * :meth:`~fatiando.inversion.base.FitMixin.steepest`
-        * :meth:`~fatiando.inversion.base.FitMixin.acor`
-
-        .. note::
-
-            The *iterate* keyword is not supported by *fit*.
-            Use the individual methods to step through iterations.
-
-
-        Examples:
-
-        >>> s = FitMixin().config(method='newton', precondition=False,
-        ...                       initial=[0, 0], maxit=10, tol=0.01)
-        >>> s.fit_method
-        'newton'
-        >>> for k, v in sorted(s.fit_args.items()):
-        ...     print k, ':', v
-        initial : [0, 0]
-        maxit : 10
-        precondition : False
-        tol : 0.01
-        >>> # Omitted arguments will fall back to the method defaults
-        >>> s = s.config(method='levmarq', initial=[1, 1])
-        >>> for k, v in sorted(s.fit_args.items()):
-        ...     print k, ':', v
-        dlamb : 2
-        initial : [1, 1]
-        lamb : 1
-        maxit : 30
-        maxsteps : 10
-        precondition : True
-        tol : 1e-05
-        >>> # For non-linear gradient solvers, *initial* is required
-        >>> s.config(method='newton')
-        Traceback (most recent call last):
-            ...
-        AttributeError: Missing required *initial* argument for 'newton'
-        >>> # For ACO-R, *bounds* is required
-        >>> s.config(method='acor')
-        Traceback (most recent call last):
-            ...
-        AttributeError: Missing required *bounds* argument for 'acor'
-        >>> # fit doesn't support the *iterate* argument
-        >>> s.config(method='steepest', iterate=True, initial=[1, 1])
-        Traceback (most recent call last):
-            ...
-        AttributeError: Invalid argument 'iterate'
-        >>> # You can only pass arguments for that specific solver
-        >>> s.config(method='newton', lamb=10, initial=[1, 1])
-        Traceback (most recent call last):
-            ...
-        AttributeError: Invalid argument 'lamb' for 'newton'
-
-        """
-        if method not in self.default_solver_args:
-            raise ValueError("Invalid method '%s'" % (method))
-        if 'iterate' in kwargs:
-            raise AttributeError("Invalid argument 'iterate'")
-        if (method in ['newton', 'levmarq', 'steepest'] and
-            'initial' not in kwargs):
-            raise AttributeError(
-                "Missing required *initial* argument for '%s'" % (method))
-        if method == 'acor' and 'bounds' not in kwargs:
-            raise AttributeError(
-                "Missing required *bounds* argument for '%s'" % (method))
-        args = self.default_solver_args[method].copy()
-        for k in kwargs:
-            if k not in args:
-                raise AttributeError("Invalid argument '%s' for '%s'" % (k,
-                    method))
-            args[k] = kwargs[k]
-        self.fit_method = method
-        self.fit_args = args
-        return self
-
-    @property
-    def p_(self):
-        """
-        The current estimated parameter vector.
-
-        Returns:
-
-        * p : 1d-array or None
-            The parameter vector. None, if
-            :meth:`~fatiando.inversion.base.FitMixin.fit` hasn't been called
-            yet.
-
-        """
-        if hasattr(self, '_p'):
-            return self._p
-        else:
-            return None
-
-    @property
-    def estimate_(self):
-        """
-        The current estimate.
-
-        .. note::
-
-            May be a formatted version of the parameter vector. It is
-            recommened that you use this when accessing the estimate and use
-            :meth:`~fatiando.inversion.base.FitMixin.p_` when you want the raw
-            parameter vector.
-
-        Returns:
-
-        * p : 1d-array or None
-            The parameter vector. None, if
-            :meth:`~fatiando.inversion.base.FitMixin.fit` hasn't been called
-            yet.
-
-        """
-        if hasattr(self, '_estimate'):
-            return self._estimate
-        else:
-            return None
-
-    def fit(self):
-        """
-        Solve for the parameter vector that minimizes this objective function.
-
-        Uses the optimization method and parameters defined using the
-        :meth:`~fatiando.inversion.base.FitMixin.config` method.
-
-        The estimated parameter vector can be accessed through the
-        :meth:`~fatiando.inversion.base.FitMixin.p_` property. A (possibly)
-        formatted version (converted to a more manageble type) of the estimate
-        can be accessed through
-        :meth:`~fatiando.inversion.base.FitMixin.estimate_`.
-
-        """
-        self._p = getattr(self, self.fit_method)(**self.fit_args)
-        self._estimate = self._p
-        return self
-
-    def linear(self, precondition=True):
-        """
-        Solve for the parameter vector assuming that the problem is linear.
-
-        See :func:`fatiando.inversion.solvers.linear` for more details.
-
-        Parameters:
-
-        * precondition : True or False
-            If True, will use Jacobi preconditioning.
-
-        Returns:
-
-        * estimate : 1d-array
-            The estimated parameter vector
-
-        """
-        hessian = self.hessian('null')
-        gradient = self.gradient('null')
-        p = linear(hessian, gradient, precondition=precondition)
-        return p
 
     def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
                 tol=10**-5, precondition=True, iterate=False):
@@ -588,7 +507,7 @@ class FitMixin(object):
             continue
         return p
 
-class Misfit(Objective, FitMixin):
+class Misfit(Objective):
     r"""
     An l2-norm data-misfit function.
 
@@ -648,6 +567,7 @@ class Misfit(Objective, FitMixin):
 
     """
 
+
     def __init__(self, data, positional, model, nparams, weights=None,
                  islinear=False):
         super(Misfit, self).__init__(nparams, islinear=islinear)
@@ -656,17 +576,46 @@ class Misfit(Objective, FitMixin):
         self.positional = positional
         self.model = model
         # To cache the latest computations (or for linear problems)
-        self.hasher = lambda x: hashlib.sha1(x).hexdigest()
         self._cache = {}
         self._cache['predicted'] = {'hash':'', 'array':None}
         self._cache['jacobian'] = {'hash':'', 'array':None}
         self._cache['hessian'] = {'hash':'', 'array':None}
+        # Set default arguments for fit
+        self.default_solver_args = {
+            'linear':{'precondition':True},
+            'newton':{'initial':None,
+                      'maxit':30,
+                      'tol':10**-5,
+                      'precondition':True},
+            'levmarq':{'initial':None,
+                       'maxit':30,
+                       'maxsteps':10,
+                       'lamb':1,
+                       'dlamb':2,
+                       'tol':10**-5,
+                       'precondition':True},
+            'steepest':{'initial':None,
+                        'stepsize':0.1,
+                        'maxsteps':30,
+                        'maxit':1000,
+                        'tol':10**-5},
+            'acor':{'bounds':None,
+                    'nants':None,
+                    'archive_size':None,
+                    'maxit':1000,
+                    'diverse':0.5,
+                    'evap':0.85,
+                    'seed':None}}
         # Data weights
         self.weights = None
         if weights is not None:
             self.set_weights(weights)
+        # So that don't need to use config on linear problems
         if islinear:
             self.config(method='linear')
+
+    def hasher(self, x):
+        return hashlib.sha1(x).hexdigest()
 
     def _clear_cache(self):
         "Reset the cached matrices"
@@ -804,11 +753,28 @@ class Misfit(Objective, FitMixin):
 
         Returns:
 
-        * residuals : 1d-array
-            The residual vector
+        * residuals : 1d-array or list of 1d-arrays
+            The residual vector. If this is the sum of 1 or more Misfit
+            instances, will return the residual vector from each of the summed
+            misfits in the order of the sum.
 
         """
-        return self.data - self.predicted(p)
+        if p is None:
+            p = self.p_
+        if self._parents is None:
+            res = self.data - self.predicted(p)
+        else:
+            res = []
+            for o in self._parents:
+                if hasattr(o, 'residuals'):
+                    aux = o.residuals(p)
+                    if isinstance(aux, list):
+                        res.extend(aux)
+                    else:
+                        res.append(aux)
+            if len(res) == 1:
+                res = res[0]
+        return res
 
     def predicted(self, p=None):
         """
@@ -822,8 +788,10 @@ class Misfit(Objective, FitMixin):
 
         Returns:
 
-        * predicted : 1d-array
-            The predicted data
+        * predicted : 1d-array or list of 1d-arrays
+            The predicted data. If this is the sum of 1 or more Misfit
+            instances, will return the predicted data from each of the summed
+            misfits in the order of the sum.
 
         """
         if p == 'null':
@@ -831,11 +799,23 @@ class Misfit(Objective, FitMixin):
         else:
             if p is None:
                 p = self.p_
-            hash = self.hasher(p)
-            if hash != self._cache['predicted']['hash']:
-                self._cache['predicted']['array'] = self._get_predicted(p)
-                self._cache['predicted']['hash'] = hash
-            pred = self._cache['predicted']['array']
+            if self._parents is None:
+                hash = self.hasher(p)
+                if hash != self._cache['predicted']['hash']:
+                    self._cache['predicted']['array'] = self._get_predicted(p)
+                    self._cache['predicted']['hash'] = hash
+                pred = self._cache['predicted']['array']
+            else:
+                pred = []
+                for o in self._parents:
+                    if hasattr(o, 'predicted'):
+                        aux = o.predicted(p)
+                        if isinstance(aux, list):
+                            pred.extend(aux)
+                        else:
+                            pred.append(aux)
+                if len(pred) == 1:
+                    pred = pred[0]
         return pred
 
     def jacobian(self, p):
@@ -867,7 +847,7 @@ class Misfit(Objective, FitMixin):
             self._cache['jacobian']['hash'] = hash
         return self._cache['jacobian']['array']
 
-    def value(self, p):
+    def _get_value(self, p):
         r"""
         Calculate the value of the misfit for a given parameter vector.
 
@@ -901,7 +881,7 @@ class Misfit(Objective, FitMixin):
                         (self.data - self.predicted(p))**2)
                         )/self.ndata
 
-    def hessian(self, p):
+    def _get_hessian(self, p):
         r"""
         The Hessian of the misfit function with respect to the parameters.
 
@@ -940,7 +920,7 @@ class Misfit(Objective, FitMixin):
                 self._cache['hessian']['array'] = hessian
         return hessian
 
-    def gradient(self, p):
+    def _get_gradient(self, p):
         r"""
         The gradient vector of the misfit function.
 
@@ -975,30 +955,359 @@ class Misfit(Objective, FitMixin):
             grad = numpy.array(grad).ravel()
         return grad
 
-    # Overload the add function to make predicted and residuals return a list
-    # of all predicted and residual vectors from all the components.
+    # Addition needs some tweaks
     def __add__(self, other):
+        """
+        Examples:
+
+        Added Misfits should not share a cache. Bellow are some tests for this
+        behaviour:
+
+        >>> import numpy as np
+        >>> class MyMisfit(Misfit):
+        ...     def __init__(self, data, factor):
+        ...         super(MyMisfit, self).__init__(data, {}, {}, 2,
+        ...                                        islinear=True)
+        ...         self._factor = factor
+        ...     def _get_predicted(self, p):
+        ...         return 2*p
+        ...     def _get_jacobian(self, p):
+        ...         shape = (self.ndata, a.nparams)
+        ...         return self._factor*np.ones(shape)
+        >>> a = MyMisfit([1, 2, 3], np.array([1, 2]))
+        >>> a._cache['jacobian']['array'] is None
+        True
+        >>> a._cache['hessian']['array'] is None
+        True
+        >>> b = MyMisfit([1, 2, 3], 1)
+        >>> b._cache['jacobian']['array'] is None
+        True
+        >>> b._cache['hessian']['array'] is None
+        True
+        >>> c = a + b
+        >>> c._cache['jacobian']['array'] is None
+        True
+        >>> c._cache['hessian']['array'] is None
+        True
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
+
+        Calling a.jacobian and a.hessian should fill the cache of a but not
+        of the parents of c:
+
+        >>> p = np.array([1, 2])
+        >>> a.jacobian(p)
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> a._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> a.hessian(p)
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> a._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
+
+        The same goes for b:
+
+        >>> b.jacobian(p)
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> b._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> [p._cache['jacobian']['array'] is None for p in c._parents]
+        [True, True]
+        >>> b.hessian(p)
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> b._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> [p._cache['hessian']['array'] is None for p in c._parents]
+        [True, True]
+
+        Just as well, calling c.hessian should not fill the cache of a or b:
+
+        >>> a._clear_cache()
+        >>> b._clear_cache()
+        >>> c.hessian(p)
+        array([[  4.,   6.],
+               [  6.,  10.]])
+        >>> c._parents[0]._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c._parents[1]._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> a._cache['hessian']['array'] is None
+        True
+        >>> b._cache['hessian']['array'] is None
+        True
+
+        But creating c after filling the cache of a and b should result in c
+        whose parents have their cache filled:
+
+        >>> a.hessian(p)
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c = a + b
+        >>> c._parents[0]._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> c._parents[0]._cache['hessian']['array']
+        array([[ 2.,  4.],
+               [ 4.,  8.]])
+        >>> c._parents[1]._cache['jacobian']['array'] is None
+        True
+        >>> c._parents[1]._cache['hessian']['array'] is None
+        True
+        >>> b.hessian(p)
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+        >>> c = a + b
+        >>> c._parents[1]._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+        >>> c._parents[1]._cache['hessian']['array']
+        array([[ 2.,  2.],
+               [ 2.,  2.]])
+
+        This should also work when adding something that is not a Misfit:
+
+        >>> from fatiando.inversion.regularization import Damping
+        >>> c = Damping(2)
+        >>> a._clear_cache()
+        >>> b._clear_cache()
+        >>> d = a + b + 3*c
+        >>> d.hessian(p)
+        matrix([[ 10.,   6.],
+                [  6.,  16.]])
+        >>> a._cache['jacobian']['array'] is None
+        True
+        >>> b._cache['jacobian']['array'] is None
+        True
+        >>> d._parents[0]._parents[0]._cache['jacobian']['array']
+        array([[ 1.,  2.],
+               [ 1.,  2.],
+               [ 1.,  2.]])
+        >>> d._parents[0]._parents[1]._cache['jacobian']['array']
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
+
+        """
         tmp = super(Misfit, self).__add__(other)
-        def wrap(name, obj):
-            func = getattr(self, name)
-            def wrapper(self, p=None):
-                if p is None:
-                    p = self.p_
-                res = [func(p)]
-                for o in obj._components:
-                    ofunc = getattr(o, name, None)
-                    if callable(ofunc):
-                        aux = ofunc(p)
-                        if isinstance(aux, list):
-                            res.extend(aux)
-                        else:
-                            res.append(aux)
-                if len(res) == 1:
-                    return res[0]
-                else:
-                    return res
-            wrapper.__doc__ = getattr(self, name).__doc__
-            setattr(obj, name, types.MethodType(wrapper, obj))
-        wrap('predicted', tmp)
-        wrap('residuals', tmp)
+        # Cache is not shared. This would cause a problem if I made 2 or more
+        # sums and then tried to alter the cache of both at the same time (in a
+        # parallel run, for example).
+        # A shallow copy is used so the cached matrices is not copied.
+        for o in tmp._parents:
+            if hasattr(o, '_cache'):
+                o._cache = dict([k, o._cache[k].copy()] for k in o._cache)
+            if isinstance(o, Misfit):
+                o.model = o.model.copy()
+                o.positional = o.positional.copy()
+        tmp._clear_cache()
         return tmp
+
+    def config(self, method, **kwargs):
+        """
+        Configure the optimization method and its parameters.
+
+        This sets the method used by
+        :meth:`~fatiando.inversion.base.Misfit.fit` and the keyword arguments
+        that are passed to it.
+
+        Parameters:
+
+        * method : string
+            The optimization method. One of: ``'linear'``, ``'newton'``,
+            ``'levmarq'``, ``'steepest'``, ``'acor'``
+
+        Other keyword arguments that can be passed are the ones allowed by each
+        method.
+
+        Some methods have required arguments:
+
+        * *newton*, *levmarq* and *steepest* require the ``initial`` argument
+          (an initial estimate for the gradient descent)
+        * *acor* requires the ``bounds`` argument (min/max values for the
+          search space)
+
+        See the corresponding docstrings for more information:
+
+        * :meth:`~fatiando.inversion.base.Misfit.linear`
+        * :meth:`~fatiando.inversion.base.Objective.newton`
+        * :meth:`~fatiando.inversion.base.Objective.levmarq`
+        * :meth:`~fatiando.inversion.base.Objective.steepest`
+        * :meth:`~fatiando.inversion.base.Objective.acor`
+
+        .. note::
+
+            The *iterate* keyword is not supported by *fit*.
+            Use the individual methods to step through iterations.
+
+
+        Examples:
+
+        >>> s = Misfit([1, 2], {}, {}, 2).config(
+        ...     method='newton', precondition=False,
+        ...     initial=[0, 0], maxit=10, tol=0.01)
+        >>> s.fit_method
+        'newton'
+        >>> for k, v in sorted(s.fit_args.items()):
+        ...     print k, ':', v
+        initial : [0, 0]
+        maxit : 10
+        precondition : False
+        tol : 0.01
+        >>> # Omitted arguments will fall back to the method defaults
+        >>> s = s.config(method='levmarq', initial=[1, 1])
+        >>> for k, v in sorted(s.fit_args.items()):
+        ...     print k, ':', v
+        dlamb : 2
+        initial : [1, 1]
+        lamb : 1
+        maxit : 30
+        maxsteps : 10
+        precondition : True
+        tol : 1e-05
+        >>> # For non-linear gradient solvers, *initial* is required
+        >>> s.config(method='newton')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Missing required *initial* argument for 'newton'
+        >>> # For ACO-R, *bounds* is required
+        >>> s.config(method='acor')
+        Traceback (most recent call last):
+            ...
+        AttributeError: Missing required *bounds* argument for 'acor'
+        >>> # fit doesn't support the *iterate* argument
+        >>> s.config(method='steepest', iterate=True, initial=[1, 1])
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid argument 'iterate'
+        >>> # You can only pass arguments for that specific solver
+        >>> s.config(method='newton', lamb=10, initial=[1, 1])
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid argument 'lamb' for 'newton'
+
+        """
+        if method not in self.default_solver_args:
+            raise ValueError("Invalid method '%s'" % (method))
+        if 'iterate' in kwargs:
+            raise AttributeError("Invalid argument 'iterate'")
+        if (method in ['newton', 'levmarq', 'steepest'] and
+            'initial' not in kwargs):
+            raise AttributeError(
+                "Missing required *initial* argument for '%s'" % (method))
+        if method == 'acor' and 'bounds' not in kwargs:
+            raise AttributeError(
+                "Missing required *bounds* argument for '%s'" % (method))
+        args = self.default_solver_args[method].copy()
+        for k in kwargs:
+            if k not in args:
+                raise AttributeError("Invalid argument '%s' for '%s'" % (k,
+                    method))
+            args[k] = kwargs[k]
+        self.fit_method = method
+        self.fit_args = args
+        return self
+
+    @property
+    def p_(self):
+        """
+        The current estimated parameter vector.
+
+        Returns:
+
+        * p : 1d-array or None
+            The parameter vector. None, if
+            :meth:`~fatiando.inversion.base.Misfit.fit` hasn't been called
+            yet.
+
+        """
+        if hasattr(self, '_p'):
+            return self._p
+        else:
+            return None
+
+    @property
+    def estimate_(self):
+        """
+        The current estimate.
+
+        .. note::
+
+            May be a formatted version of the parameter vector. It is
+            recommened that you use this when accessing the estimate and use
+            :meth:`~fatiando.inversion.base.Misfit.p_` when you want the raw
+            parameter vector.
+
+        Returns:
+
+        * p : 1d-array or None
+            The parameter vector. None, if
+            :meth:`~fatiando.inversion.base.Misfit.fit` hasn't been called
+            yet.
+
+        """
+        if hasattr(self, '_estimate'):
+            return self._estimate
+        else:
+            return None
+
+    def fit(self):
+        """
+        Solve for the parameter vector that minimizes this objective function.
+
+        Uses the optimization method and parameters defined using the
+        :meth:`~fatiando.inversion.base.Misfit.config` method.
+
+        The estimated parameter vector can be accessed through the
+        :meth:`~fatiando.inversion.base.Misfit.p_` property. A (possibly)
+        formatted version (converted to a more manageble type) of the estimate
+        can be accessed through
+        :meth:`~fatiando.inversion.base.Misfit.estimate_`.
+
+        """
+        self._p = getattr(self, self.fit_method)(**self.fit_args)
+        self._estimate = self._p
+        return self
+
+    def linear(self, precondition=True):
+        """
+        Solve for the parameter vector assuming that the problem is linear.
+
+        See :func:`fatiando.inversion.solvers.linear` for more details.
+
+        Parameters:
+
+        * precondition : True or False
+            If True, will use Jacobi preconditioning.
+
+        Returns:
+
+        * estimate : 1d-array
+            The estimated parameter vector
+
+        """
+        hessian = self.hessian('null')
+        gradient = self.gradient('null')
+        p = linear(hessian, gradient, precondition=precondition)
+        return p
