@@ -101,12 +101,16 @@ class Objective(object):
     instances together and multiply them by scalars (i.e., regularization
     parameters):
 
-    >>> a = Objective(10, True)
-    >>> a.value = lambda p: 2*p
+    >>> class MyObjective(Objective):
+    ...     def __init__(self, scale):
+    ...         super(MyObjective, self).__init__(10, True)
+    ...         self._scalar = scale
+    ...     def value(self, p):
+    ...         return self._scalar*p
+    >>> a = MyObjective(2)
     >>> a.value(3)
     6
-    >>> b = Objective(10, True)
-    >>> b.value = lambda p: -3*p
+    >>> b = MyObjective(-3)
     >>> b.value(3)
     -9
     >>> c = a + b
@@ -119,7 +123,6 @@ class Objective(object):
     >>> e.value(3)
     -12
 
-
     """
 
     def __init__(self, nparams, islinear):
@@ -127,7 +130,7 @@ class Objective(object):
         self.nparams = nparams
         self.ndata = 0
         self._scale = None
-        self._components = []
+        self._parents = None
 
     def __repr__(self):
         return 'Objective instance'
@@ -142,19 +145,58 @@ class Objective(object):
         raise NotImplementedError()
 
     def __add__(self, other):
+        """
+        Examples:
+
+        >>> class MyObjective(Objective):
+        ...     def __init__(self, n, scale):
+        ...         super(MyObjective, self).__init__(n, True)
+        ...         self._scalar = scale
+        ...     def value(self, p):
+        ...         return self._scalar*p
+        >>> a = MyObjective(10, 2)
+        >>> b = MyObjective(10, -3)
+        >>> c = a + b
+        >>> c.value(3)
+        -3
+        >>> a.value(3) + b.value(3)
+        -3
+
+        Every Objective should be a copy:
+
+        >>> c is a
+        False
+        >>> c is b
+        False
+        >>> c._parents[0] is a
+        False
+        >>> c._parents[1] is b
+        False
+
+        Modifing the 2 Objectives should not alter the sum:
+
+        >>> a._scalar = 10
+        >>> b._scalar = 20
+        >>> a.value(3) + b.value(3)
+        90
+        >>> c.value(3)
+        -3
+
+        """
         if self.nparams != other.nparams:
             raise ValueError(
                 "Can only add functions with same number of parameters")
         def wrap(name, obj):
-            func = getattr(self, name)
+            func = getattr(obj, name)
             def wrapper(self, p):
-                return func(p) + getattr(other, name)(p)
-            wrapper.__doc__ = getattr(self, name).__doc__
+                obj1, obj2 = self._parents
+                return getattr(obj1, name)(p) + getattr(obj2, name)(p)
+            wrapper.__doc__ = getattr(obj, name).__doc__
             setattr(obj, name, types.MethodType(wrapper, obj))
         # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
-        tmp._components = [other] + other._components
+        tmp._parents = [copy.copy(self), copy.copy(other)]
         # Wrap the hessian, gradient and value to be the sums
         wrap('hessian', tmp)
         wrap('gradient', tmp)
@@ -162,17 +204,70 @@ class Objective(object):
         return tmp
 
     def __mul__(self, other):
+        """
+        Examples:
+
+        >>> class MyObjective(Objective):
+        ...     def __init__(self, n, scale):
+        ...         super(MyObjective, self).__init__(n, True)
+        ...         self._scalar = scale
+        ...     def value(self, p):
+        ...         return self._scalar*p
+        >>> a = MyObjective(10, 2)
+        >>> b = MyObjective(10, -3)
+        >>> d = 0.5*a
+        >>> d.value(3)
+        3.0
+        >>> e = a + 2*b
+        >>> e.value(3)
+        -12
+        >>> f = 3*a + b
+        >>> f.value(3)
+        9
+
+        Every Objective should be a copy:
+
+        >>> d is a
+        False
+        >>> e is a
+        False
+        >>> e is b
+        False
+        >>> f is a
+        False
+        >>> f is b
+        False
+
+        Modifing the 2 Objectives should not alter the multiplication:
+
+        >>> a._scalar = 10
+        >>> b._scalar = 20
+        >>> 0.5*a.value(3)
+        15.0
+        >>> d.value(3)
+        3.0
+        >>> a.value(3) + 2*b.value(3)
+        150
+        >>> e.value(3)
+        -12
+        >>> f.value(3)
+        9
+
+        """
         if not isinstance(other, int) and not isinstance(other, float):
             raise TypeError('Can only multiply a Objective by a float or int')
         def wrap(name, obj):
-            func = getattr(self, name)
             def wrapper(self, p):
-                return other*func(p)
-            wrapper.__doc__ = getattr(self, name).__doc__
+                assert len(self._parents) == 1, \
+                    'Result of multplying Objetive produces > one parent.'
+                return self._scale*getattr(self._parents[0], name)(p)
+            wrapper.__doc__ = getattr(obj, name).__doc__
             setattr(obj, name, types.MethodType(wrapper, obj))
         # Make a shallow copy of self to return. If returned self, would
         # overwrite the original class and might get recurrence issues
         tmp = copy.copy(self)
+        tmp._scale = other
+        tmp._parents = [copy.copy(self)]
         # Wrap the hessian, gradient and value to be the products
         wrap('hessian', tmp)
         wrap('gradient', tmp)
@@ -979,6 +1074,7 @@ class Misfit(Objective, FitMixin):
     # Addition needs some tweaks
     def __add__(self, other):
         """
+        Examples:
 
         >>> import numpy as np
         >>> a = Misfit([1, 2, 3], {}, {}, 2, islinear=True)
@@ -1030,15 +1126,14 @@ class Misfit(Objective, FitMixin):
         # Make predicted and residuals return a list of all predicted and
         # residual vectors from all the components.
         def wrap(name, obj):
-            func = getattr(self, name)
             def wrapper(self, p=None):
                 if p is None:
                     p = self.p_
-                res = [func(p)]
-                for o in obj._components:
-                    ofunc = getattr(o, name, None)
-                    if callable(ofunc):
-                        aux = ofunc(p)
+                res = []
+                for o in self._parents:
+                    func = getattr(o, name, None)
+                    if callable(func):
+                        aux = func(p)
                         if isinstance(aux, list):
                             res.extend(aux)
                         else:
@@ -1047,7 +1142,7 @@ class Misfit(Objective, FitMixin):
                     return res[0]
                 else:
                     return res
-            wrapper.__doc__ = getattr(self, name).__doc__
+            wrapper.__doc__ = getattr(obj, name).__doc__
             setattr(obj, name, types.MethodType(wrapper, obj))
         wrap('predicted', tmp)
         wrap('residuals', tmp)
