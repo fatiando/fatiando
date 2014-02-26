@@ -31,7 +31,7 @@ misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
 regularization = TotalVariation2D(10**-10, mesh.shape)
 tomo = misfit + regularization
 tomo = LCurve(misfit, regularization,
-              [10**i for i in np.arange(-3, 3, 0.5)])
+              [10**i for i in np.arange(-3, 3, 0.5)], jobs=8)
 # Since Total Variation is a non-linear function, then the tomography becomes
 # non-linear. So we need to configure fit to use the Levemberg-Marquardt
 # algorithm, a gradient descent method, that requires an initial estimate

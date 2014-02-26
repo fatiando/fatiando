@@ -49,6 +49,8 @@ the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
 
 """
 from __future__ import division
+import multiprocessing
+
 import numpy
 import scipy.sparse
 
@@ -739,7 +741,7 @@ class LCurve(object):
 
     """
 
-    def __init__(self, datamisfit, regul, regul_params):
+    def __init__(self, datamisfit, regul, regul_params, jobs=None):
         self.regul_params = regul_params
         self.datamisfit = datamisfit
         self.regul = regul
@@ -748,22 +750,31 @@ class LCurve(object):
         self.corner_ = None
         self.estimate_ = None
         self.p_ = None
-        self.dnorm = numpy.empty(len(regul_params))
-        self.mnorm = numpy.empty(len(regul_params))
+        self.dnorm = None
+        self.mnorm = None
         self.fit_method = None
         self.fit_args = None
+        self.jobs = jobs
+
 
     def fit(self):
-        self.objectives = []
-        for i, mu in enumerate(self.regul_params):
-            solver = self.datamisfit + mu*self.regul
-            if self.fit_method is not None:
+        if self.datamisfit.islinear:
+            self.datamisfit.jacobian('null')
+        solvers = [self.datamisfit + mu*self.regul for mu in self.regul_params]
+        if self.fit_method is not None:
+            for solver in solvers:
                 solver.config(self.fit_method, **self.fit_args)
-            solver.fit()
-            p = solver.p_
-            self.dnorm[i] = self.datamisfit.value(p)
-            self.mnorm[i] = self.regul.value(p)
-            self.objectives.append(solver)
+        if self.jobs is None:
+            results = [_run_lcurve(s) for s in solvers]
+        else:
+            pool = multiprocessing.Pool(self.jobs)
+            results = pool.map(_run_lcurve, solvers)
+            pool.close()
+            pool.join()
+        self.objectives = results
+        self.dnorm = numpy.array(
+            [self.datamisfit.value(s.p_) for s in results])
+        self.mnorm = numpy.array([self.regul.value(s.p_) for s in results])
         corner = self.select_corner(self.dnorm, self.mnorm)
         self.corner_ = corner
         self.regul_param_ = self.regul_params[corner]
@@ -817,3 +828,6 @@ class LCurve(object):
         mpl.plot(self.dnorm[self.corner_], self.mnorm[self.corner_], '^b', markersize=10)
         mpl.xlabel('Data misfit')
         mpl.ylabel('Regularization')
+
+def _run_lcurve(solver):
+    return solver.fit()
