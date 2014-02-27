@@ -10,6 +10,10 @@ Version 0.3
 
 **Changes**:
 
+* **New** class ``LCurve`` in :ref:`fatiando.inversion.regularization
+  <fatiando_inversion_regularization>` for estimating the regularization
+  parameter using an L-curve criterion.
+  (`PR 90 <https://github.com/leouieda/fatiando/pull/90>`_)
 * Added support for ``vmin`` and ``vmax`` arguments in
   :ref:`fatiando.vis.mpl.contourf <fatiando_vis_mpl>`.
   (`PR 89 <https://github.com/leouieda/fatiando/pull/89>`_)
