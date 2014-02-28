@@ -741,7 +741,7 @@ class LCurve(object):
 
     """
 
-    def __init__(self, datamisfit, regul, regul_params, jobs=None):
+    def __init__(self, datamisfit, regul, regul_params, loglog=True, jobs=None):
         self.regul_params = regul_params
         self.datamisfit = datamisfit
         self.regul = regul
@@ -755,7 +755,7 @@ class LCurve(object):
         self.fit_method = None
         self.fit_args = None
         self.jobs = jobs
-
+        self.loglog = loglog
 
     def fit(self):
         if self.datamisfit.islinear:
@@ -775,19 +775,29 @@ class LCurve(object):
         self.dnorm = numpy.array(
             [self.datamisfit.value(s.p_) for s in results])
         self.mnorm = numpy.array([self.regul.value(s.p_) for s in results])
-        corner = self.select_corner(self.dnorm, self.mnorm)
-        self.corner_ = corner
-        self.regul_param_ = self.regul_params[corner]
-        self.p_ = self.objectives[corner].p_
-        self.estimate_ = self.objectives[corner].estimate_
+        self.select_corner()
         return self
 
-    def select_corner(self, dnorm, mnorm):
+    def _scale_curve(self):
+        if self.loglog:
+            x, y = numpy.log(self.dnorm), numpy.log(self.mnorm)
+        else:
+            x, y = self.dnorm, self.mnorm
+        def scale(a):
+            vmin, vmax = a.min(), a.max()
+            l, u = -10, 10
+            return ((u - l)/(vmax - vmin))*(a - (u*vmin - l*vmax)/(u - l))
+        return scale(x), scale(y)
+
+    def select_corner(self):
         # Uses http://www.sciencedirect.com/science/article/pii/S0168927401001799
-        x, y = numpy.log(dnorm), numpy.log(mnorm)
-        n = len(dnorm)
+        # Convert dnorm, mnorm to the area [-10, 10] x [-10, 10] to avoid
+        # scaling issues
+        x, y = self._scale_curve()
+        n = len(self.regul_params)
         corner = n - 1
-        dist = lambda p1, p2: numpy.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+        dist = lambda p1, p2: numpy.sqrt(
+            (p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
         cte = 7.*numpy.pi/8.
         angmin = None
         c = [x[-1], y[-1]]
@@ -800,12 +810,18 @@ class LCurve(object):
                 bc = dist(b, c)
                 cosa = (ab**2 + ac**2 - bc**2)/(2.*ab*ac)
                 ang = numpy.arccos(cosa)
-                area = 0.5*((b[0] - a[0])*(a[1] - c[1]) - (a[0] - c[0])*(b[1] - a[1]))
+                area = 0.5*((b[0] - a[0])*(a[1] - c[1]) -
+                            (a[0] - c[0])*(b[1] - a[1]))
                 # area is > 0 because in the paper C is index 0
-                if area > 0 and (ang < cte and (angmin is None or ang < angmin)):
+                if area > 0 and (ang < cte and
+                                 (angmin is None or ang < angmin)):
                     corner = j
                     angmin = ang
-        return corner
+        self.corner_ = corner
+        self.regul_param_ = self.regul_params[corner]
+        self.p_ = self.objectives[corner].p_
+        self.estimate_ = self.objectives[corner].estimate_
+        return self
 
     def config(self, method, **kwargs):
         self.fit_method = method
@@ -818,16 +834,27 @@ class LCurve(object):
     def residuals(self, p=None):
         return self.objectives[self.corner_].residuals(p)
 
-    def plot_lcurve(self):
-        mpl.loglog(self.dnorm, self.mnorm, '.-k')
-        ax = mpl.gca()
-        vmin, vmax = ax.get_ybound()
-        mpl.vlines(self.dnorm[self.corner_], vmin, vmax)
-        vmin, vmax = ax.get_xbound()
-        mpl.hlines(self.mnorm[self.corner_], vmin, vmax)
-        mpl.plot(self.dnorm[self.corner_], self.mnorm[self.corner_], '^b', markersize=10)
+    def plot_lcurve(self, loglog=None, scaled=False, guides=True):
+        if scaled:
+            x, y = self._scale_curve()
+        else:
+            x, y = self.dnorm, self.mnorm
+        if loglog is None:
+            loglog = self.loglog
+        if loglog and not scaled:
+            mpl.loglog(x, y, '.-k')
+        else:
+            mpl.plot(x, y, '.-k')
+        if guides:
+            ax = mpl.gca()
+            vmin, vmax = ax.get_ybound()
+            mpl.vlines(x[self.corner_], vmin, vmax)
+            vmin, vmax = ax.get_xbound()
+            mpl.hlines(y[self.corner_], vmin, vmax)
+        mpl.plot(x[self.corner_], y[self.corner_], '^b', markersize=10)
         mpl.xlabel('Data misfit')
         mpl.ylabel('Regularization')
 
 def _run_lcurve(solver):
-    return solver.fit()
+    result = solver.fit()
+    return result
