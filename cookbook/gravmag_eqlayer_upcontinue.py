@@ -3,7 +3,7 @@ GravMag: Use an equivalent layer to upward continue gravity data
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import EQLGravity
-from fatiando.inversion.regularization import Damping
+from fatiando.inversion.regularization import Damping, LCurve
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -12,20 +12,32 @@ props = {'density':1000}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
-gz = utils.contaminate(prism.gz(x, y, z, model), 0.1)
+gz = utils.contaminate(prism.gz(x, y, z, model), 0.1, seed=0)
 # Setup the layer
-layer = mesher.PointGrid([-6000, 6000, -6000, 6000], 500, (50, 50))
+layer = mesher.PointGrid([-6000, 6000, -6000, 6000], 1000, (50, 50))
 # Estimate the density
 # Need to apply enough damping so that won't try to fit the error as well
-solver = EQLGravity(x, y, z, gz, layer) + 10**-24*Damping(layer.size)
-solver.fit()
+misfit = EQLGravity(x, y, z, gz, layer)
+regul = Damping(layer.size)
+# Use an L-curve analysis to find the best regularization parameter
+solver = LCurve(misfit, regul, [10**i for i in range(-30, -20)]).fit()
 layer.addprop('density', solver.estimate_)
 residuals = solver.residuals()
 print "Residuals:"
 print "mean:", residuals.mean()
 print "stddev:", residuals.std()
 
-# Plot the layer and the fit
+# Now I can forward model the layer at a greater height and check against the
+# true solution of the prism
+gz_true = prism.gz(x, y, z - 500, model)
+gz_up = sphere.gz(x, y, z - 500, layer)
+
+mpl.figure()
+mpl.suptitle('L-curve')
+mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
+solver.plot_lcurve()
+mpl.grid()
+
 mpl.figure(figsize=(14, 4))
 mpl.subplot(1, 3, 1)
 mpl.axis('scaled')
@@ -42,12 +54,6 @@ mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (mGal)')
 mpl.hist(residuals, bins=10)
-mpl.show()
-
-# Now I can forward model the layer at a greater height and check against the
-# true solution of the prism
-gz_true = prism.gz(x, y, z - 500, model)
-gz_up = sphere.gz(x, y, z - 500, layer)
 
 mpl.figure()
 mpl.axis('scaled')

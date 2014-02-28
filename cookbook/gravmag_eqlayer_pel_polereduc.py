@@ -4,6 +4,7 @@ anomaly to the pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import PELTotalField, PELSmoothness
+from fatiando.inversion.regularization import LCurve
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -13,21 +14,34 @@ props = {'magnetization':10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (50, 50)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-150)
-tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 5)
+tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 5, seed=0)
 # Setup the layer
 layer = mesher.PointGrid([-5000, 5000, -5000, 5000], 200, (100, 100))
 # Estimate the density using the PEL (it is faster and more memory efficient
 # than the traditional equivalent layer).
 windows = (20, 20)
 degree = 1
-solver = (PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree) +
-          10**-21*PELSmoothness(layer, windows, degree)).fit()
+misfit = PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree)
+regul = PELSmoothness(layer, windows, degree)
+# Use an L-curve analysis to find the best regularization parameter
+solver = LCurve(misfit, regul, [10**i for i in range(-20, -10)]).fit()
 layer.addprop('magnetization', solver.estimate_)
 residuals = solver.residuals()
 print "Residuals:"
 print "mean:", residuals.mean()
 print "stddev:", residuals.std()
-# Plot the layer and the fit
+
+# Now I can forward model the layer at the south pole and 500 m above the
+# original data. Check against the true solution of the prism
+tfpole = prism.tf(x, y, z - 500, model, -90, 0)
+tfreduced = sphere.tf(x, y, z - 500, layer, -90, 0)
+
+mpl.figure()
+mpl.suptitle('L-curve')
+mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
+solver.plot_lcurve()
+mpl.grid()
+
 mpl.figure(figsize=(15, 4))
 mpl.subplot(1, 3, 1)
 mpl.axis('scaled')
@@ -44,11 +58,7 @@ mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (nT)')
 mpl.hist(residuals, bins=10)
-mpl.show()
-# Now I can forward model the layer at the south pole and 500 m above the
-# original data. Check against the true solution of the prism
-tfpole = prism.tf(x, y, z - 500, model, -90, 0)
-tfreduced = sphere.tf(x, y, z - 500, layer, -90, 0)
+
 mpl.figure(figsize=(10, 4))
 mpl.subplot(1, 2, 1)
 mpl.axis('scaled')
