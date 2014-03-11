@@ -545,7 +545,7 @@ def set_area(area):
     pyplot.xlim(x1, x2)
     pyplot.ylim(y1, y2)
 
-def points(pts, style='.k', size=10, label=None):
+def points(pts, style='.k', size=10, label=None, xy2ne=False):
     """
     Plot a list of points.
 
@@ -567,6 +567,8 @@ def points(pts, style='.k', size=10, label=None):
 
     """
     x, y = numpy.array(pts).T
+    if xy2ne:
+        x, y = y, x
     kwargs = {}
     if label is not None:
         kwargs['label'] = label
@@ -642,7 +644,8 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     return plot
 
-def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
+def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
+           xy2ne=False):
     """
     Plot a square.
 
@@ -670,6 +673,8 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     """
     x1, x2, y1, y2 = area
+    if xy2ne:
+        x1, x2, y1, y2 = y1, y2, x1, x2
     xs = [x1, x1, x2, x2, x1]
     ys = [y1, y2, y2, y1, y1]
     kwargs = {'linewidth':linewidth}
