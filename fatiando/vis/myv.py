@@ -8,6 +8,7 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.polyprisms`
 * :func:`~fatiando.vis.myv.points`
 * :func:`~fatiando.vis.myv.tesseroids`
+* :func:`~fatiando.vis.myv.tess_cutplane`
 
 **Misc objects**
 
@@ -32,18 +33,24 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.show`
 * :func:`~fatiando.vis.myv.savefig`
 
+**Converters**
+
+* :func:`~fatiando.vis.myv.tess2tvtk`
+
 ----
 
 """
 import numpy
 
-from fatiando import utils
-from fatiando.constants import MEAN_EARTH_RADIUS
+from .. import utils
+from ..constants import MEAN_EARTH_RADIUS
+from ..mesher import Tesseroid, TesseroidMesh
 
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
 mlab = None
+VTKDataSource = None
 tvtk = None
 BuiltinSurface = None
 
@@ -59,13 +66,14 @@ def _lazy_import_mlab():
     """
     Do the lazy import of mlab
     """
-    global mlab
+    global mlab, VTKDataSource
     # For campatibility with versions of Mayavi2 < 4
     if mlab is None:
         try:
             from mayavi import mlab
         except ImportError:
             from enthought.mayavi import mlab
+        from mayavi.sources.vtk_data_source import VTKDataSource
 
 def _lazy_import_tvtk():
     """
@@ -301,13 +309,9 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     surf.actor.actor.scale = scale
     return surf
 
-def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+def tess2tvtk(tesseroids, prop=None, scale=(1, 1, 1)):
     """
-    Plot a list of tesseroids using Mayavi2.
-
-    Will not plot a value None in *tesseroids*
+    Convert tesseroids to TVTK objects for plotting in Mayavi.
 
     Parameters:
 
@@ -318,27 +322,6 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         tesseroid doesn't have *prop*, or if it is None, then it will not be
         plotted. If prop is a vector (like magnetization), will use the
         intensity (norm).
-    * style : str
-        Either ``'surface'`` for solid tesseroids or ``'wireframe'`` for just
-        the contour
-    * opacity : float
-        Decimal percentage of opacity
-    * edges : True or False
-        Wether or not to display the edges of the tesseroids in black lines.
-        Will ignore this if ``style='wireframe'``
-    * vmin, vmax : float
-        Min and max values for the color scale. If *None* will default to
-        the min and max of *prop*.
-    * cmap : Mayavi colormap
-        Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
-        for valid color maps.
-    * color : None or tuple = (r, g, b)
-        If not None, then for all tesseroids to have this RGB color
-    * linewidth : float
-        The width of the lines (edges) of the tesseroids.
-    * edgecolor : tuple = (r, g, b)
-        RGB of the color of the edges. If style='wireframe', then will be
-        ignored. Use parameter *color* instead
     * scale : (slon, slat, sz)
         Scale factors used to exaggerate on a particular direction, e.g., if
         scale = (1, 1, 2), the vertical dimension will be 2x larger than the
@@ -346,17 +329,9 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
 
     Returns:
 
-    * surface
-        the last element on the pipeline
+    * tvtkmesh : tvtk.UntructuredGrid
 
     """
-    if style not in ['surface', 'wireframe']:
-        raise ValueError, "Invalid style '%s'" % (style)
-    if opacity > 1. or opacity < 0:
-        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
-        raise ValueError, msg
-    # mlab and tvtk are really slow to import
-    _lazy_import_mlab()
     _lazy_import_tvtk()
     if prop is None:
         label = 'scalar'
@@ -424,23 +399,122 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
     vtkmesh.cell_data.scalars = numpy.array(celldata)
     vtkmesh.cell_data.scalars.name = label
-    dataset = mlab.pipeline.threshold(mlab.pipeline.add_dataset(vtkmesh))
-    if vmin is None:
-        vmin = min(vtkmesh.cell_data.scalars)
-    if vmax is None:
-        vmax = max(vtkmesh.cell_data.scalars)
+    return vtkmesh
+
+def tess_cutplane(tesseroids, prop=None, scale=(1, 1, 1)):
+    """
+    Plot a cut-plane through a tesseroid model.
+
+    * tesseroids : list of :class:`fatiando.mesher.Tesseroid`
+        The tesseroids
+    * prop : str or None
+        The physical property of the tesseroids to use as the color scale. If a
+        tesseroid doesn't have *prop*, or if it is None, then it will not be
+        plotted. If prop is a vector (like magnetization), will use the
+        intensity (norm).
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
+
+    Returns:
+
+    * cutplane
+        the last element on the pipeline
+
+    """
+    _lazy_import_mlab()
+    if (isinstance(tesseroids, Tesseroid) or
+        isinstance(tesseroids, TesseroidMesh)):
+        vtkmesh = tess2tvtk(tesseroids, prop, scale)
+        dataset = mlab.pipeline.add_dataset(vtkmesh)
+    else:
+        dataset = tesseroids
+        for i in xrange(20):
+            if not isinstance(dataset, VTKDataSource):
+                dataset = dataset.parent
+        if not isinstance(dataset, VTKDataSource):
+            raise ValueError('tesseroids is not a Tesseroid or VTKDataSource')
+    cutplane = mlab.pipeline.scalar_cut_plane(
+        mlab.pipeline.cell_to_point_data(dataset))
+    return cutplane
+
+def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
+    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+    """
+    Plot a list of tesseroids using Mayavi2.
+
+    Will not plot a value None in *tesseroids*
+
+    Parameters:
+
+    * tesseroids : list of :class:`fatiando.mesher.Tesseroid`
+        The tesseroids
+    * prop : str or None
+        The physical property of the tesseroids to use as the color scale. If a
+        tesseroid doesn't have *prop*, or if it is None, then it will not be
+        plotted. If prop is a vector (like magnetization), will use the
+        intensity (norm).
+    * style : str
+        Either ``'surface'`` for solid tesseroids or ``'wireframe'`` for just
+        the contour
+    * opacity : float
+        Decimal percentage of opacity
+    * edges : True or False
+        Wether or not to display the edges of the tesseroids in black lines.
+        Will ignore this if ``style='wireframe'``
+    * vmin, vmax : float
+        Min and max values for the color scale. If *None* will default to
+        the min and max of *prop*.
+    * cmap : Mayavi colormap
+        Color map to use. See the 'Colors and Legends' menu on the Mayavi2 GUI
+        for valid color maps.
+    * color : None or tuple = (r, g, b)
+        If not None, then for all tesseroids to have this RGB color
+    * linewidth : float
+        The width of the lines (edges) of the tesseroids.
+    * edgecolor : tuple = (r, g, b)
+        RGB of the color of the edges. If style='wireframe', then will be
+        ignored. Use parameter *color* instead
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
+
+    Returns:
+
+    * surface
+        the last element on the pipeline
+
+    """
+    if style not in ['surface', 'wireframe']:
+        raise ValueError, "Invalid style '%s'" % (style)
+    if opacity > 1. or opacity < 0:
+        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
+        raise ValueError, msg
+    _lazy_import_mlab()
+    vtkmesh = tess2tvtk(tesseroids, prop, scale)
+    dataset = mlab.pipeline.add_dataset(vtkmesh)
+    thresh = mlab.pipeline.threshold(dataset)
+    if vmin is not None:
+        thresh.lower_threshold = vmin
+    if vmax is not None:
+        thresh.upper_threshold = vmax
+    smin = min(vtkmesh.cell_data.scalars)
+    smax = max(vtkmesh.cell_data.scalars)
     if style == 'wireframe':
-        surf = mlab.pipeline.surface(mlab.pipeline.extract_edges(dataset),
-            vmax=vmax, vmin=vmin, colormap=cmap)
+        surf = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
+            vmax=smax, vmin=smin, colormap=cmap)
         surf.actor.property.representation = 'wireframe'
         surf.actor.property.line_width = linewidth
     if style == 'surface':
-        surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin,
+        surf = mlab.pipeline.surface(thresh, vmax=smax, vmin=smin,
             colormap=cmap)
         surf.actor.property.representation = 'surface'
         if edges:
-            edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(dataset),
-                vmax=vmax, vmin=vmin)
+            edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
+                vmax=smax, vmin=smin)
             edge.actor.property.representation = 'wireframe'
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
