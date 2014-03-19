@@ -39,10 +39,10 @@ parameter. They work exactly like an Objective function, i.e., run the
 inversion by calling their `fit()` method and accessing
 the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
 
-* :class:`~fatiando.inversion.regularization.LCurve`: Use an L-curve criteon.
+* :class:`~fatiando.inversion.regularization.LCurve`: Use an L-curve criterion.
   Runs the inversion using several regularization parameters. The best value
   is the one that falls on the corner of the log-log plot of the data
-  misfit vs regulazing function. Only works for a single regularization.
+  misfit vs regularizing function. Only works for a single regularization.
 
 
 ----
@@ -648,6 +648,39 @@ def fd2d(shape):
 
 class LCurve(object):
     """
+    Use the L-curve criterion to estimate the regularization parameter.
+
+    Runs the inversion using several specified regularization parameters.
+    The best value is the one that falls on the corner of the log-log plot of
+    the data misfit vs regularizing function.
+    This point is automatically found using the triangle method of
+    Castellanos et al. (2002).
+
+    This class behaves as :class:`~fatiando.inversion.base.Misfit`.
+    To use it, simply call `fit` and optionally `config`.
+    The estimate will be stored in `estimate_` and `p_`.
+    The estimated regularization parameter will be stored in `regul_param_`.
+
+    Parameters:
+
+    * datamisfit : :class:`~fatiando.inversion.base.Misfit`
+        The data misfit instance for the inverse problem. Can be a sum of other
+        misfits.
+    * regul : A class from :mod:`fatiando.inversion.regularization`
+        The regularizing function.
+    * regul_params : list
+        The values of the regularization parameter that will be tested.
+    * loglog : True or False
+        If True, will use a log-log scale for the L-curve (recommended).
+    * jobs : None or int
+        If not None, will use *jobs* processes to calculate the L-curve.
+
+    References:
+
+    Castellanos, J. L., S. Gomez, and V. Guerra (2002), The triangle method for
+    finding the corner of the L-curve, Applied Numerical Mathematics, 43(4),
+    359-373, doi:10.1016/S0168-9274(01)00179-9.
+
     Examples:
 
     We'll use the L-curve to estimate the best regularization parameter for a
