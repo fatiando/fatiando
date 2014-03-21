@@ -657,9 +657,9 @@ class LCurve(object):
     Castellanos et al. (2002).
 
     This class behaves as :class:`~fatiando.inversion.base.Misfit`.
-    To use it, simply call `fit` and optionally `config`.
-    The estimate will be stored in `estimate_` and `p_`.
-    The estimated regularization parameter will be stored in `regul_param_`.
+    To use it, simply call ``fit`` and optionally ``config``.
+    The estimate will be stored in ``estimate_`` and ``p_``.
+    The estimated regularization parameter will be stored in ``regul_param_``.
 
     Parameters:
 
@@ -791,6 +791,24 @@ class LCurve(object):
         self.loglog = loglog
 
     def fit(self):
+        """
+        Solve for the parameter vector and optimum regularization parameter.
+
+        Combines the data-misfit and regularization solvers using the range of
+        regularization parameters provided and calls ``fit`` and ``config`` on
+        each.
+
+        The ``p_`` and ``estimate_`` attributes correspond to the combination
+        that falls in the corner of the L-curve.
+
+        The regularization parameter for this corner point if stored in the
+        ``regul_param_`` attribute.
+
+        Returns:
+
+        * self
+
+        """
         if self.datamisfit.islinear:
             self.datamisfit.jacobian('null')
         solvers = [self.datamisfit + mu*self.regul for mu in self.regul_params]
@@ -812,6 +830,10 @@ class LCurve(object):
         return self
 
     def _scale_curve(self):
+        """
+        Puts the data-misfit and regularizing function values in the range
+        [-10, 10].
+        """
         if self.loglog:
             x, y = numpy.log(self.dnorm), numpy.log(self.mnorm)
         else:
@@ -823,9 +845,18 @@ class LCurve(object):
         return scale(x), scale(y)
 
     def select_corner(self):
-        # Uses http://www.sciencedirect.com/science/article/pii/S0168927401001799
-        # Convert dnorm, mnorm to the area [-10, 10] x [-10, 10] to avoid
-        # scaling issues
+        """
+        Selects the corner value of the L-curve and sets the estimate to it.
+
+        Uses the Triangle method of Castellanos et al. (2002).
+
+        The index of the corner value is stored in the ``corner_`` attribute.
+
+        Returns:
+
+        * self
+
+        """
         x, y = self._scale_curve()
         n = len(self.regul_params)
         corner = n - 1
@@ -857,24 +888,91 @@ class LCurve(object):
         return self
 
     def config(self, method, **kwargs):
+        """
+        Configure the optimization method and its parameters.
+
+        This sets the method used by
+        :meth:`~fatiando.inversion.regularization.LCurve.fit` and the keyword
+        arguments that are passed to it.
+
+        Parameters:
+
+        * method : string
+            The optimization method. One of: ``'linear'``, ``'newton'``,
+            ``'levmarq'``, ``'steepest'``, ``'acor'``
+
+        Other keyword arguments that can be passed are the ones allowed by each
+        method.
+
+        See :meth:`fatiando.inversion.base.Misfit.config`.
+
+        Returns:
+
+        * self
+
+        """
         self.fit_method = method
         self.fit_args = kwargs
         return self
 
     def predicted(self, p=None):
+        """
+        Returns the predicted data for a given parameter vector.
+
+        Uses the solver that falls on the corner of the L-curve.
+
+        Parameters:
+
+        * p : 1d-array or None
+            The parameter vector used to calculate the predicted data. If None,
+            will use the current estimate stored in ``estimate_``.
+
+        Returns:
+
+        * predicted : 1d-array or list of 1d-arrays
+            The predicted data. If this is the sum of 1 or more Misfit
+            instances, will return the predicted data from each of the summed
+            misfits in the order of the sum.
+
+        """
         return self.objectives[self.corner_].predicted(p)
 
     def residuals(self, p=None):
+        """
+        Returns the residuals vector (observed - predicted data).
+
+        Uses the solver that falls on the corner of the L-curve.
+
+        Parameters:
+
+        * p : 1d-array or None
+            The parameter vector used to calculate the residuals. If None, will
+            use the current estimate stored in ``estimate_``.
+
+        Returns:
+
+        * residuals : 1d-array or list of 1d-arrays
+            The residual vector. If this is the sum of 1 or more Misfit
+            instances, will return the residual vector from each of the summed
+            misfits in the order of the sum.
+
+        """
         return self.objectives[self.corner_].residuals(p)
 
-    def plot_lcurve(self, loglog=None, scaled=False, guides=True):
-        if scaled:
-            x, y = self._scale_curve()
-        else:
-            x, y = self.dnorm, self.mnorm
-        if loglog is None:
-            loglog = self.loglog
-        if loglog and not scaled:
+    def plot_lcurve(self, guides=True):
+        """
+        Make a plot of the data-misfit x regularization values.
+
+        The estimated corner value is shown as a blue triangle.
+
+        Parameters:
+
+        * guides : True or False
+            Plot vertical and horizontal lines across the corner value.
+
+        """
+        x, y = self.dnorm, self.mnorm
+        if self.loglog:
             mpl.loglog(x, y, '.-k')
         else:
             mpl.plot(x, y, '.-k')
@@ -889,5 +987,8 @@ class LCurve(object):
         mpl.ylabel('Regularization')
 
 def _run_lcurve(solver):
+    """
+    Call ``fit`` on the solver. Needed for multiprocessing.
+    """
     result = solver.fit()
     return result
