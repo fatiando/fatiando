@@ -30,7 +30,7 @@ misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
 regularization = Damping(mesh.size)
 # Will use the l-curve criterion to find the best regularization parameter
 tomo = LCurve(misfit, regularization,
-              [10**i for i in np.arange(-10, 10, 1)], jobs=8).fit()
+              [8**i for i in np.arange(-8, 8, 1)], jobs=8).fit()
 mesh.addprop('vp', tomo.estimate_)
 
 # Plot the L-curve annd print the regularization parameter estimated
