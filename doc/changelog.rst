@@ -10,6 +10,9 @@ Version 0.3
 
 **Changes**:
 
+* Added ``xy2ne`` flag for ``square`` and ``points`` functions in
+  :ref:`fatiando.vis.mpl <fatiando_vis_mpl>`.
+  (`PR 94 <https://github.com/leouieda/fatiando/pull/94>`_)
 * **New** class ``LCurve`` in :ref:`fatiando.inversion.regularization
   <fatiando_inversion_regularization>` for estimating the regularization
   parameter using an L-curve criterion.

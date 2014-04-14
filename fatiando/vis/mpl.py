@@ -545,7 +545,7 @@ def set_area(area):
     pyplot.xlim(x1, x2)
     pyplot.ylim(y1, y2)
 
-def points(pts, style='.k', size=10, label=None):
+def points(pts, style='.k', size=10, label=None, xy2ne=False):
     """
     Plot a list of points.
 
@@ -559,6 +559,11 @@ def points(pts, style='.k', size=10, label=None):
         Size of the plotted points
     * label : str
         If not None, then the string that will show in the legend
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that the x coordinates of
+        the polygon are north. Use this when drawing on a map viewed from
+        above. If the y-axis of the plot is supposed to be z (depth), then use
+        ``xy2ne=False``.
 
     Returns:
 
@@ -567,6 +572,8 @@ def points(pts, style='.k', size=10, label=None):
 
     """
     x, y = numpy.array(pts).T
+    if xy2ne:
+        x, y = y, x
     kwargs = {}
     if label is not None:
         kwargs['label'] = label
@@ -642,7 +649,8 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     return plot
 
-def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
+def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
+           xy2ne=False):
     """
     Plot a square.
 
@@ -662,6 +670,11 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
         opaque
     * label : str
         label associated with the square.
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that the x coordinates of
+        the polygon are north. Use this when drawing on a map viewed from
+        above. If the y-axis of the plot is supposed to be z (depth), then use
+        ``xy2ne=False``.
 
     Returns:
 
@@ -670,6 +683,8 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None):
 
     """
     x1, x2, y1, y2 = area
+    if xy2ne:
+        x1, x2, y1, y2 = y1, y2, x1, x2
     xs = [x1, x1, x2, x2, x1]
     ys = [y1, y2, y2, y1, y1]
     kwargs = {'linewidth':linewidth}
