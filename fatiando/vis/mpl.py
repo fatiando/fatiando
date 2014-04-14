@@ -559,6 +559,11 @@ def points(pts, style='.k', size=10, label=None, xy2ne=False):
         Size of the plotted points
     * label : str
         If not None, then the string that will show in the legend
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that the x coordinates of
+        the polygon are north. Use this when drawing on a map viewed from
+        above. If the y-axis of the plot is supposed to be z (depth), then use
+        ``xy2ne=False``.
 
     Returns:
 
@@ -665,6 +670,11 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         opaque
     * label : str
         label associated with the square.
+    * xy2ne : True or False
+        If True, will exchange the x and y axis so that the x coordinates of
+        the polygon are north. Use this when drawing on a map viewed from
+        above. If the y-axis of the plot is supposed to be z (depth), then use
+        ``xy2ne=False``.
 
     Returns:
 
