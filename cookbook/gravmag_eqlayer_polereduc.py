@@ -4,7 +4,7 @@ pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import EQLTotalField
-from fatiando.inversion.regularization import Smoothness2D
+from fatiando.inversion.regularization import Damping, LCurve
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -14,20 +14,33 @@ props = {'magnetization':10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
-tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 5)
+tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 5, seed=0)
 # Setup the layer
-layer = mesher.PointGrid([-7000, 7000, -7000, 7000], 1000, (50, 50))
+layer = mesher.PointGrid([-7000, 7000, -7000, 7000], 700, (50, 50))
 # Estimate the magnetization intensity
 # Need to apply regularization so that won't try to fit the error as well
-solver = (EQLTotalField(x, y, z, tf, inc, dec, layer) +
-          10**-17*Smoothness2D(layer.shape)).fit()
+misfit = EQLTotalField(x, y, z, tf, inc, dec, layer)
+regul = Damping(layer.size)
+# Use an L-curve analysis to find the best regularization parameter
+solver = LCurve(misfit, regul, [10**i for i in range(-30, -15)]).fit()
 residuals = solver.residuals()
 layer.addprop('magnetization', solver.estimate_)
 print "Residuals:"
 print "mean:", residuals.mean()
 print "stddev:", residuals.std()
-# Plot the layer and the fit
-mpl.figure(figsize=(14,4))
+
+# Now I can forward model the layer at the south pole and check against the
+# true solution of the prism
+tfpole = prism.tf(x, y, z, model, -90, 0)
+tfreduced = sphere.tf(x, y, z, layer, -90, 0)
+
+mpl.figure()
+mpl.suptitle('L-curve')
+mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
+solver.plot_lcurve()
+mpl.grid()
+
+mpl.figure(figsize=(14, 4))
 mpl.subplot(1, 3, 1)
 mpl.axis('scaled')
 mpl.title('Layer (A/m)')
@@ -43,11 +56,7 @@ mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (nT)')
 mpl.hist(residuals, bins=10)
-mpl.show()
-# Now I can forward model the layer at the south pole and check against the
-# true solution of the prism
-tfpole = prism.tf(x, y, z, model, -90, 0)
-tfreduced = sphere.tf(x, y, z, layer, -90, 0)
+
 mpl.figure()
 mpl.axis('scaled')
 mpl.title('True (red) | Reduced (black)')
