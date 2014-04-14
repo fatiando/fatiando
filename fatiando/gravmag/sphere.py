@@ -189,7 +189,7 @@ def gz(xp, yp, zp, spheres, dens=None):
 
 def gxx(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_xx` gravity gradient component.
+    Calculates the :math:`g_{xx}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -236,7 +236,7 @@ def gxx(xp, yp, zp, spheres, dens=None):
 
 def gxy(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_xy` gravity gradient component.
+    Calculates the :math:`g_{xy}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -283,7 +283,7 @@ def gxy(xp, yp, zp, spheres, dens=None):
 
 def gxz(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_xz` gravity gradient component.
+    Calculates the :math:`g_{xz}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -330,7 +330,7 @@ def gxz(xp, yp, zp, spheres, dens=None):
 
 def gyy(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_yy` gravity gradient component.
+    Calculates the :math:`g_{yy}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -377,7 +377,7 @@ def gyy(xp, yp, zp, spheres, dens=None):
 
 def gyz(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_yz` gravity gradient component.
+    Calculates the :math:`g_{yz}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -424,7 +424,7 @@ def gyz(xp, yp, zp, spheres, dens=None):
 
 def gzz(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_zz` gravity gradient component.
+    Calculates the :math:`g_{zz}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
