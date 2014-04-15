@@ -474,18 +474,21 @@ def kernelxx(xp, yp, zp, spheres):
     Calculates the function
     
     .. math::
+
         \frac{\partial^2 \phi(x,y,z)}{\partial x^2},
     
     where
     
     .. math:: 
+
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
     
     and
     
     .. math::
-        r = \sqrt{(x - \xi )^2 + (y - \eta )^2 + (z - \zeta )^2}.
-        
+
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
 
