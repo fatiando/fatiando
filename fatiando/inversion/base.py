@@ -142,7 +142,7 @@ class Objective(object):
     def __repr__(self):
         return 'Objective instance'
 
-    def value(self, p):
+    def value(self, p, **kwargs):
         """
         The value (scalar) of this objective function at *p*
 
@@ -159,15 +159,15 @@ class Objective(object):
 
         """
         if self._parents is None:
-            return self._get_value(p)
+            return self._get_value(p, **kwargs)
         else:
             if self._scale is None:
                 obj1, obj2 = self._parents
-                return obj1.value(p) + obj2.value(p)
+                return obj1.value(p, **kwargs) + obj2.value(p, **kwargs)
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale*self._parents[0].value(p)
+                return self._scale*self._parents[0].value(p, **kwargs)
 
     def gradient(self, p):
         """
