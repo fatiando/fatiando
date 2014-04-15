@@ -468,3 +468,85 @@ def gzz(xp, yp, zp, spheres, dens=None):
         res += mass*(((3*dz**2) - r_2)/r_5)
     res *= G*SI2EOTVOS
     return res
+
+def kernelxx(xp, yp, zp, spheres):
+    """
+    Calculates the function
+    
+    .. math::
+        \frac{\partial^2 \phi(x,y,z)}{\partial x^2},
+    
+    where
+    
+    .. math:: 
+        \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
+    
+    and
+    
+    .. math::
+        r = \sqrt{(x - \xi )^2 + (y - \eta )^2 + (z - \zeta )^2}.
+        
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input and output values in SI!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the function will be 
+        calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+
+    Returns:
+
+    * res : array
+        The function calculated on xp, yp, zp
+    
+    
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> model = [
+    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
+    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the function
+    >>> kxx = kernelxx(xp, yp, zp, model)
+    >>> for k in kxx: print '%15.8e' % k
+     1.98341901e-04
+    -8.68466354e-04
+     1.26372420e-04
+     5.16707648e-05
+     1.00794299e-03
+    -4.31316366e-03
+     1.58316258e-05
+     1.75903755e-04
+     1.12440765e-04
+     6.40002709e-04
+    -3.34762799e-02
+     9.12106340e-04
+     3.97886736e-05
+     3.64532149e-05
+    -4.90391764e-04
+     8.75227483e-05
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        radius = sphere.radius
+        dx = sphere.x - xp
+        dy = sphere.y - yp
+        dz = sphere.z - zp
+        r_2 = (dx**2 + dy**2 + dz**2)
+        r_5 = r_2**(2.5)
+        volume = 4.*numpy.pi*(radius**3)/3.
+        res += volume*(((3*dx**2) - r_2)/r_5)
+    return res
