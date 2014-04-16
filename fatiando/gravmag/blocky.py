@@ -234,11 +234,13 @@ class Gravity(Misfit):
                     goal = best['goal']
                     misfit = best['misfit']
                     compact = best['compact']
-                    estimate = self._update_cache(best['neighbor'], estimate)
                     neighbors[s].pop(best['neighbor'].i)
                     newneighbors = self._get_neighbors(best['neighbor'],
                                         neighbors, estimate)
                     neighbors[s].update(newneighbors)
+                    tmp = best['neighbor'].props[self.prop]
+                    estimate[best['neighbor'].i] = tmp
+                    self._update_cache(best['neighbor'], estimate)
                     grew = True
                     accretions += 1
             if not grew:
@@ -335,17 +337,18 @@ class Gravity(Misfit):
         return best
 
     def _update_cache(self, neighbor, estimate):
-        # Update the predicted data in the cache
-        predicted = self.predicted(estimate)
-        prop = neighbor.props[self.prop]
-        predicted += prop*self._get_effect(neighbor.i)
-        estimate[neighbor.i] = prop
-        hash = self.hasher(estimate)
-        self._cache['predicted']['hash'] = hash
-        self._cache['predicted']['array'] = predicted
-        # Remove the effect from the store because it's no longer needed
-        self._effects.pop(neighbor.i)
-        return estimate
+        if self._parents is None:
+            # Update the predicted data in the cache
+            prop = neighbor.props[self.prop]
+            increment = prop*self._get_effect(neighbor.i)
+            hash = self.hasher(estimate)
+            self._cache['predicted']['hash'] = hash
+            self._cache['predicted']['array'] += increment
+            # Remove the effect from the store because it's no longer needed
+            self._effects.pop(neighbor.i)
+        else:
+            for o in self._parents:
+                o._update_cache(neighbor, estimate)
 
 class PrismSeed(Prism):
     """
