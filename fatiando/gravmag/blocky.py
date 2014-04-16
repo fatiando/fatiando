@@ -135,23 +135,28 @@ class Gravity(Misfit):
             jac[:, i] = self.kernel(x, y, z, [c], dens=1)
         return jac
 
-    def shape_of_anomaly(self, p, increment=None):
+    def shape_of_anomaly(self, p, **kwargs):
         if self._parents is None:
-            value = self._get_shape_of_anomaly(p, increment)
+            value = self._get_shape_of_anomaly(p, **kwargs)
         else:
             if self._scale is None:
                 obj1, obj2 = self._parents
-                value = (obj1.shape_of_anomaly(p, increment)
-                         + obj2.shape_of_anomaly(p, increment))
+                value = (obj1.shape_of_anomaly(p, **kwargs)
+                         + obj2.shape_of_anomaly(p, **kwargs))
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
                 obj = self._parents[0]
-                value = self._scale*obj.shape_of_anomaly(p, increment)
+                value = self._scale*obj.shape_of_anomaly(p, **kwargs)
         return value
 
-    def _get_shape_of_anomaly(self, p, increment=None):
-        predicted = self.predicted(p)
+    def _get_shape_of_anomaly(self, p, **kwargs):
+        fromcache = kwargs.get('fromcache', False)
+        if fromcache:
+            predicted = self._cache['predicted']['array']
+        else:
+            predicted = self.predicted(p)
+        increment = kwargs.get('increment')
         if increment is not None:
             prop = increment.props[self.prop]
             # Using += alters the cached array
@@ -160,7 +165,11 @@ class Gravity(Misfit):
         return numpy.linalg.norm(alpha*self.data - predicted)
 
     def _get_value(self, p, **kwargs):
-        predicted = self.predicted(p)
+        fromcache = kwargs.get('fromcache', False)
+        if fromcache:
+            predicted = self._cache['predicted']['array']
+        else:
+            predicted = self.predicted(p)
         increment = kwargs.get('increment')
         if increment is not None:
             prop = increment.props[self.prop]
@@ -220,7 +229,7 @@ class Gravity(Misfit):
             grew = False
             for s in xrange(nseeds):
                 best = self._grow(neighbors[s], misfit, goal, compact, mu,
-                                  threshold, estimate)
+                                  threshold)
                 if best is not None:
                     goal = best['goal']
                     misfit = best['misfit']
@@ -308,17 +317,18 @@ class Gravity(Misfit):
         # Filter out the ones that do not exist or are masked (topography)
         return [i for i in indexes if i is not None and mesh[i] is not None]
 
-    def _grow(self, neighbors, misfit, goal, compact, mu, threshold, estimate):
+    def _grow(self, neighbors, misfit, goal, compact, mu, threshold):
         best = None
         for n in neighbors:
             neighbor = neighbors[n]
-            newmisfit = self.value(estimate, increment=neighbor)
+            newmisfit = self.value(None, increment=neighbor, fromcache=True)
             if (newmisfit >= misfit
                 or abs(newmisfit - misfit)/misfit < threshold):
                 continue
             newcompact = compact + neighbor.distance
-            newgoal = (self.shape_of_anomaly(estimate, increment=neighbor)
-                       + mu*newcompact)
+            newshape = self.shape_of_anomaly(None, increment=neighbor,
+                                             fromcache=True)
+            newgoal = newshape + mu*newcompact
             if best is None or newgoal < best['goal']:
                 best = dict(neighbor=neighbor, goal=newgoal, misfit=newmisfit,
                             compact=newcompact)
