@@ -158,9 +158,9 @@ class Gravity(Misfit):
             predicted = self.predicted(p)
         increment = kwargs.get('increment')
         if increment is not None:
-            prop = increment.props[self.prop]
             # Using += alters the cached array
-            predicted = predicted + prop*self._get_effect(increment.i)
+            effect = self._get_effect(increment)
+            predicted = predicted + effect
         alpha = numpy.sum(self.data*predicted)/self.dnorm**2
         return numpy.linalg.norm(alpha*self.data - predicted)
 
@@ -172,23 +172,24 @@ class Gravity(Misfit):
             predicted = self.predicted(p)
         increment = kwargs.get('increment')
         if increment is not None:
-            prop = increment.props[self.prop]
             # Using += alters the cached array
-            predicted = predicted + prop*self._get_effect(increment.i)
+            effect = self._get_effect(increment)
+            predicted = predicted + effect
         if self.weights is None:
             value = numpy.linalg.norm(self.data - predicted)
         else:
             value = sqrt(numpy.sum(self.weights*((self.data - predicted)**2)))
         return value/self.dnorm
 
-    def _get_effect(self, index):
-        if index not in self._effects:
+    def _get_effect(self, neighbor):
+        if neighbor.i not in self._effects:
             x = self.positional['x']
             y = self.positional['y']
             z = self.positional['z']
             mesh = self.model['mesh']
-            self._effects[index] = self.kernel(x, y, z, [mesh[index]], dens=1)
-        return self._effects[index]
+            self._effects[neighbor.i] = self.kernel(x, y, z,
+                [mesh[neighbor.i]], dens=neighbor.props[self.prop])
+        return self._effects[neighbor.i]
 
     def config(self, method, **kwargs):
         if method == 'planting':
@@ -339,8 +340,7 @@ class Gravity(Misfit):
     def _update_cache(self, neighbor, estimate):
         if self._parents is None:
             # Update the predicted data in the cache
-            prop = neighbor.props[self.prop]
-            increment = prop*self._get_effect(neighbor.i)
+            increment = self._get_effect(neighbor)
             hash = self.hasher(estimate)
             self._cache['predicted']['hash'] = hash
             self._cache['predicted']['array'] += increment
