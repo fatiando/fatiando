@@ -103,10 +103,13 @@ class Gravity(Misfit):
             nparams=mesh.size,
             islinear=True)
         self.kernel = None
-        if mesh.celltype == 'prism':
+        if mesh.celltype is Prism:
             self.kernel = getattr(prism_engine, field)
-        elif mesh.celltype == 'tesseroid':
+        elif mesh.celltype is Tesseroid:
             self.kernel = getattr(tesseroid_engine, field)
+        else:
+            raise AttributeError(
+                "Invalid mesh celltype '%s'" % (mesh.celltype))
         self.dnorm = numpy.linalg.norm(data)
         self.prop = 'density'
         self._effects = {}
@@ -151,7 +154,8 @@ class Gravity(Misfit):
         predicted = self.predicted(p)
         if increment is not None:
             prop = increment.props[self.prop]
-            predicted += prop*self._get_effect(increment.i)
+            # Using += alters the cached array
+            predicted = predicted + prop*self._get_effect(increment.i)
         alpha = numpy.sum(self.data*predicted)/self.dnorm**2
         return numpy.linalg.norm(alpha*self.data - predicted)
 
@@ -160,7 +164,8 @@ class Gravity(Misfit):
         increment = kwargs.get('increment')
         if increment is not None:
             prop = increment.props[self.prop]
-            predicted += prop*self._get_effect(increment.i)
+            # Using += alters the cached array
+            predicted = predicted + prop*self._get_effect(increment.i)
         if self.weights is None:
             value = numpy.linalg.norm(self.data - predicted)
         else:
@@ -176,7 +181,26 @@ class Gravity(Misfit):
             self._effects[index] = self.kernel(x, y, z, [mesh[index]], dens=1)
         return self._effects[index]
 
-    def harvest(self, seeds, threshold, compactness):
+    def config(self, method, **kwargs):
+        if method == 'planting':
+            if 'seeds' not in kwargs:
+                raise AttributeError(
+                    "Missing 'seeds' keyword argument for 'planting'")
+            if 'compactness' not in kwargs:
+                raise AttributeError(
+                    "Missing 'compactness' keyword argument for 'planting'")
+            if 'threshold' not in kwargs:
+                raise AttributeError(
+                    "Missing 'threshold' keyword argument for 'planting'")
+            self.fit_method = 'planting'
+            self.fit_args = dict(seeds=kwargs['seeds'],
+                                 compactness=kwargs['compactness'],
+                                 threshold=kwargs['threshold'])
+            return self
+        else:
+            return super(Gravity, self).config(method, **kwargs)
+
+    def planting(self, seeds, threshold, compactness):
         mesh = self.model['mesh']
         seeds = [s for s in seeds if self.prop in s.props]
         nseeds = len(seeds)
@@ -203,15 +227,86 @@ class Gravity(Misfit):
                     compact = best['compact']
                     estimate = self._update_cache(best['neighbor'], estimate)
                     neighbors[s].pop(best['neighbor'].i)
-                    neighbors[s].update(self._get_neighbors(best['neighbor'],
-                                        neighbors, estimate))
+                    newneighbors = self._get_neighbors(best['neighbor'],
+                                        neighbors, estimate)
+                    neighbors[s].update(newneighbors)
                     grew = True
                     accretions += 1
             if not grew:
                 break
+        return estimate
 
-    def _get_neightbors(self, seed, neighbors, estimate):
-        pass
+    def _get_neighbors(self, cell, neighbors, estimate):
+        indexes = [n for n in self._neighbor_indexes(cell.i)
+                   if not self._is_neighbor(n, cell.props, neighbors)
+                   and estimate[n] == 0]
+        neighbors = dict(
+            (i, Neighbor(i, cell.props, cell.seed,
+                         self._distance(i, cell.seed)))
+            for i in indexes)
+        return neighbors
+
+    def _distance(self, n, m):
+        """
+        Calculate the distance (in number of cells) between cells n and m.
+        """
+        ni, nj, nk = self._index2ijk(n)
+        mi, mj, mk = self._index2ijk(m)
+        return sqrt((ni - mi)**2 + (nj - mj)**2 + (nk - mk)**2)
+
+    def _index2ijk(self, index):
+        """
+        Transform the index of a cell to a 3-dimensional (i,j,k) index.
+        """
+        nz, ny, nx = self.model['mesh'].shape
+        k = index//(nx*ny)
+        j = (index - k*(nx*ny))//nx
+        i = (index - k*(nx*ny) - j*nx)
+        return i, j, k
+
+    def _is_neighbor(self, index, props, neighborhood):
+        """
+        Check if index is already in the neighborhood with props
+        """
+        for neighbors in neighborhood:
+            for n in neighbors:
+                if index == neighbors[n].i:
+                    for p in props:
+                        if p in neighbors[n].props:
+                            return True
+        return False
+
+    def _neighbor_indexes(self, n):
+        """Find the indexes of the neighbors of n"""
+        mesh = self.model['mesh']
+        nz, ny, nx = mesh.shape
+        indexes = []
+        # The guy above
+        tmp = n - nx*ny
+        if tmp > 0:
+            indexes.append(tmp)
+        # The guy below
+        tmp = n + nx*ny
+        if tmp < mesh.size:
+            indexes.append(tmp)
+        # The guy in front
+        tmp = n + 1
+        if n%nx < nx - 1:
+            indexes.append(tmp)
+        # The guy in the back
+        tmp = n - 1
+        if n%nx != 0:
+            indexes.append(tmp)
+        # The guy to the left
+        tmp = n + nx
+        if n%(nx*ny) < nx*(ny - 1):
+            indexes.append(tmp)
+        # The guy to the right
+        tmp = n - nx
+        if n%(nx*ny) >= nx:
+            indexes.append(tmp)
+        # Filter out the ones that do not exist or are masked (topography)
+        return [i for i in indexes if i is not None and mesh[i] is not None]
 
     def _grow(self, neighbors, misfit, goal, compact, mu, threshold, estimate):
         best = None
@@ -221,9 +316,9 @@ class Gravity(Misfit):
             if (newmisfit >= misfit
                 or abs(newmisfit - misfit)/misfit < threshold):
                 continue
-            newcompact = compact + mu*neighbor.distance
+            newcompact = compact + neighbor.distance
             newgoal = (self.shape_of_anomaly(estimate, increment=neighbor)
-                       + newcompact)
+                       + mu*newcompact)
             if best is None or newgoal < best['goal']:
                 best = dict(neighbor=neighbor, goal=newgoal, misfit=newmisfit,
                             compact=newcompact)
@@ -231,7 +326,7 @@ class Gravity(Misfit):
 
     def _update_cache(self, neighbor, estimate):
         # Update the predicted data in the cache
-        predicted = self.predicted(None)
+        predicted = self.predicted(estimate)
         prop = neighbor.props[self.prop]
         predicted += prop*self._get_effect(neighbor.i)
         estimate[neighbor.i] = prop
