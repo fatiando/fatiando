@@ -544,6 +544,8 @@ def kernelxx(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue
         radius = sphere.radius
         dx = sphere.x - xp
         dy = sphere.y - yp
@@ -629,6 +631,8 @@ def kernelxy(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue
         radius = sphere.radius
         dx = sphere.x - xp
         dz = sphere.z - zp
@@ -714,6 +718,8 @@ def kernelxz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue	
         radius = sphere.radius
         dx = sphere.x - xp
         dy = sphere.y - yp
@@ -799,6 +805,8 @@ def kernelyy(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue	
         radius = sphere.radius
         dx = sphere.x - xp
         dy = sphere.y - yp
@@ -884,6 +892,8 @@ def kernelyz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue	
         radius = sphere.radius
         dx = sphere.x - xp
         dy = sphere.y - yp
@@ -969,6 +979,8 @@ def kernelzz(xp, yp, zp, spheres):
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for sphere in spheres:
+        if sphere is None:
+            continue	
         radius = sphere.radius
         dx = sphere.x - xp
         dy = sphere.y - yp
@@ -977,4 +989,44 @@ def kernelzz(xp, yp, zp, spheres):
         r_5 = r_2**(2.5)
         volume = 4.*numpy.pi*(radius**3)/3.
         res += volume*(((3*dz**2) - r_2)/r_5)
+    return res
+
+def gzzmod(xp, yp, zp, spheres, dens=None):
+    """
+    Calculates the :math:`g_{zz}` gravity gradient component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    .. note:: All input values in SI and output in Eotvos!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the field will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the property ``'density'``. Those
+        without will be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the spheres. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or ('density' not in sphere.props and dens is None):
+            continue
+        if dens is None:
+            density = sphere.props['density']
+        else:
+            density = dens
+        res += density*kernelzz(xp, yp, zp, [sphere])
+    res *= G*SI2EOTVOS
     return res
