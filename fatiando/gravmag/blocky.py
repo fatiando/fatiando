@@ -230,6 +230,7 @@ class Gravity(Misfit):
         return best
 
     def _update_cache(self, neighbor, estimate):
+        # Update the predicted data in the cache
         predicted = self.predicted(None)
         prop = neighbor.props[self.prop]
         predicted += prop*self._get_effect(neighbor.i)
@@ -237,6 +238,8 @@ class Gravity(Misfit):
         hash = self.hasher(estimate)
         self._cache['predicted']['hash'] = hash
         self._cache['predicted']['array'] = predicted
+        # Remove the effect from the store because it's no longer needed
+        self._effects.pop(neighbor.i)
         return estimate
 
 class PrismSeed(Prism):
