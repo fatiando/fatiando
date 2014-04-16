@@ -837,3 +837,139 @@ def kernelxx(xp, yp, zp, prisms):
             res += _integral_v1(x[k] - xp, x[(k + 1)%nverts] - xp,
                 y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
     return res
+
+def kernelxy(xp, yp, zp, prisms):
+    """
+    Calculates the function
+    
+    .. math::
+
+        \frac{\partial^2 \phi(x,y,z)}{\partial x \partial y},
+    
+    where
+    
+    .. math:: 
+
+        \phi(x,y,z) = \int \int \int \frac{1}{r} 
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
+    
+    and
+    
+    .. math::
+
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+
+    .. note:: The coordinate system of the input parameters is to be x -> North,
+        y -> East and z -> Down.
+
+    .. note:: All input and output values in SI!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
+        The model used to calculate the function.
+
+    Returns:
+
+    * res : array
+        The effect calculated on the computation points.
+
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-5000, 5000, -7000, 7000]
+    >>> shape = (8, 6)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[2301.2551, -2824.2678],
+    ...             [2981.1716, -1255.2301],
+    ...             [2824.2678, 993.72388],
+    ...             [1830.5439, 2981.1716],
+    ...             [261.50629, 3817.9917],
+    ...             [-523.01257, 5543.9331],
+    ...             [-2039.7489, 5334.728],
+    ...             [-2144.3516, 4027.1965],
+    ...             [-1621.3389, 2301.2551],
+    ...             [-523.01257, 366.1088],
+    ...             [-836.82007, -1150.6276],
+    ...             [-2144.3516, -1830.5439],
+    ...             [-3294.979, -2196.6528],
+    ...             [-3556.4854, -3765.6904],
+    ...             [-2510.4602, -5177.8242],
+    ...             [-209.20502, -5177.8242],
+    ...             [1673.6401, -5648.5356],
+    ...             [3922.5942, -5177.8242],
+    ...             [3451.8828, -3504.1841]]
+    >>> model = [mesher.PolygonalPrism(vertices, 60, 760, {'density':1})]
+    >>> # Calculate the kernelxy function
+    >>> kxy = kernelxy(xp, yp, zp, model)
+    >>> for k in kxy: print '%15.8e' % k
+     1.49019361e-01
+     2.45877862e-01
+     1.33468494e-01
+    -1.57310709e-03
+    -2.83508092e-01
+    -2.08962247e-01
+     2.45414928e-01
+     1.50630367e+00
+     1.23461261e-01
+    -4.24746990e-01
+    -3.81155401e-01
+    -2.75969774e-01
+    -2.66707931e-02
+     1.23131312e-01
+     2.52484947e-01
+    -8.43221769e-02
+     4.40991521e-01
+     4.79290336e-02
+    -1.33357704e-01
+    -3.99879396e-01
+     2.73711592e-01
+     1.37292981e-01
+    -1.53784938e-02
+     2.70864703e-02
+    -4.85074557e-02
+     3.90872844e-02
+     5.43707013e-01
+    -2.40256548e-01
+     7.35833704e-01
+     1.34012684e-01
+    -5.02345078e-02
+     7.65558854e-02
+    -6.71523571e-01
+    -7.47952700e-01
+     5.77865243e-01
+     1.62822217e-01
+    -1.03686415e-01
+    -4.61949050e-01
+    -1.83029249e-01
+     4.15436685e-01
+     2.27641746e-01
+     1.14812292e-01
+    -8.87756124e-02
+    -1.92709133e-01
+    -3.02879512e-02
+     1.37521312e-01
+     9.96247903e-02
+     6.78236857e-02
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    for prism in prisms:
+        if prism is None:
+            continue
+        nverts = prism.nverts
+        x, y = prism.x, prism.y
+        z1, z2 = prism.z1, prism.z2
+        Z1 = z1 - zp
+        Z2 = z2 - zp
+        for k in range(nverts):
+            res += _integral_v2(x[k] - xp, x[(k + 1)%nverts] - xp,
+                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+    return res
