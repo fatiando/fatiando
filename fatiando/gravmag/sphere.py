@@ -472,7 +472,7 @@ def gzz(xp, yp, zp, spheres, dens=None):
     res *= G*SI2EOTVOS
     return res
 
-def kernelxx(xp, yp, zp, spheres):
+def kernelxx(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -502,7 +502,7 @@ def kernelxx(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -515,51 +515,44 @@ def kernelxx(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kxx = kernelxx(xp, yp, zp, model)
+    >>> kxx = kernelxx(xp, yp, zp, sphere)
     >>> for k in kxx: print '%15.8e' % k
-     1.98341901e-04
-    -8.68466354e-04
-     1.26372420e-04
-     5.16707648e-05
-     1.00794299e-03
-    -4.31316366e-03
-     1.58316258e-05
-     1.75903755e-04
-     1.12440765e-04
-     6.40002709e-04
-    -3.34762799e-02
-     9.12106340e-04
-     3.97886736e-05
-     3.64532149e-05
-    -4.90391764e-04
-     8.75227483e-05
-
+     2.57596223e-05
+    -9.02852807e-05
+    -9.02852807e-05
+     2.57596223e-05
+     2.08590131e-04
+     4.13707675e-04
+     4.13707675e-04
+     2.08590131e-04
+     2.08590131e-04
+     4.13707675e-04
+     4.13707675e-04
+     2.08590131e-04
+     2.57596223e-05
+    -9.02852807e-05
+    -9.02852807e-05
+     2.57596223e-05
+ 
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*(((3*dx**2) - r_2)/r_5)
-    return res
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*(((3*dx**2) - r_2)/r_5)
     
-def kernelxy(xp, yp, zp, spheres):
+def kernelxy(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -589,7 +582,7 @@ def kernelxy(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -602,51 +595,44 @@ def kernelxy(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kxy = kernelxy(xp, yp, zp, model)
+    >>> kxy = kernelxy(xp, yp, zp, sphere)
     >>> for k in kxy: print '%15.8e' % k
-     4.85734213e-04
-    -4.17597114e-04
-    -2.47150351e-04
-    -9.41136155e-05
-    -4.11598058e-04
-     4.85498244e-03
-     1.70914015e-04
-    -2.40173571e-04
-    -1.91994939e-04
-     8.11118152e-05
-     1.47914349e-04
-     4.27990397e-05
-    -9.03888851e-05
-    -2.48417508e-04
-     3.80978795e-05
-     2.82555489e-04
+     7.94868344e-05
+     1.12078279e-04
+    -1.12078279e-04
+    -7.94868344e-05
+     1.12078279e-04
+     1.65483070e-03
+    -1.65483070e-03
+    -1.12078279e-04
+    -1.12078279e-04
+    -1.65483070e-03
+     1.65483070e-03
+     1.12078279e-04
+    -7.94868344e-05
+    -1.12078279e-04
+     1.12078279e-04
+     7.94868344e-05
  
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dz = sphere.z - zp
-        dy = sphere.y - yp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*((3*dx*dy)/r_5)
-    return res
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*((3*dx*dy)/r_5)
 
-def kernelxz(xp, yp, zp, spheres):
+def kernelxz(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -676,7 +662,7 @@ def kernelxz(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -689,51 +675,44 @@ def kernelxz(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kxz = kernelxz(xp, yp, zp, model)
+    >>> kxz = kernelxz(xp, yp, zp, sphere)
     >>> for k in kxz: print '%15.8e' % k
-     1.84932340e-04
-    -1.82020852e-04
-    -9.88601402e-05
-    -2.26634399e-05
-     5.72913703e-04
-    -5.45315568e-03
-    -2.05096817e-04
-    -8.46149629e-05
-     6.96893540e-05
-     3.18005004e-04
-    -3.54994437e-05
-    -3.47743609e-04
-     1.84078540e-05
-     6.31196073e-05
-    -5.07971726e-06
-    -6.76713381e-05
-
+     1.32478057e-05
+     1.86797132e-05
+    -1.86797132e-05
+    -1.32478057e-05
+     5.60391397e-05
+     8.27415349e-04
+    -8.27415349e-04
+    -5.60391397e-05
+     5.60391397e-05
+     8.27415349e-04
+    -8.27415349e-04
+    -5.60391397e-05
+     1.32478057e-05
+     1.86797132e-05
+    -1.86797132e-05
+    -1.32478057e-05
+ 
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue	
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*((3*dx*dz)/r_5)
-    return res
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*((3*dx*dz)/r_5)
 
-def kernelyy(xp, yp, zp, spheres):
+def kernelyy(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -763,7 +742,7 @@ def kernelyy(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -776,51 +755,44 @@ def kernelyy(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kyy = kernelyy(xp, yp, zp, model)
+    >>> kyy = kernelyy(xp, yp, zp, sphere)
     >>> for k in kyy: print '%15.8e' % k
-     8.49758255e-05
-     1.47922394e-03
-     9.74781089e-05
-     3.36001724e-05
-    -5.21360732e-04
-     5.91223500e-04
-     6.16669738e-04
-     3.21393798e-05
-     7.53451559e-05
-    -4.36862735e-05
-    -3.34515846e-02
-    -4.86512204e-04
-     3.95559393e-05
-     1.66402690e-04
-     9.14562674e-04
-     8.98363076e-05
-
+     2.57596223e-05
+     2.08590131e-04
+     2.08590131e-04
+     2.57596223e-05
+    -9.02852807e-05
+     4.13707675e-04
+     4.13707675e-04
+    -9.02852807e-05
+    -9.02852807e-05
+     4.13707675e-04
+     4.13707675e-04
+    -9.02852807e-05
+     2.57596223e-05
+     2.08590131e-04
+     2.08590131e-04
+     2.57596223e-05
+ 
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue	
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*(((3*dy**2) - r_2)/r_5)
-    return res
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*(((3*dy**2) - r_2)/r_5)
 
-def kernelyz(xp, yp, zp, spheres):
+def kernelyz(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -850,7 +822,7 @@ def kernelyz(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -863,51 +835,44 @@ def kernelyz(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kyz = kernelyz(xp, yp, zp, model)
+    >>> kyz = kernelyz(xp, yp, zp, sphere)
     >>> for k in kyz: print '%15.8e' % k
-     1.63676201e-04
-     9.57774279e-04
-     8.80845731e-05
-     1.91502745e-05
-    -1.57688143e-04
-    -9.13144605e-03
-     2.92885575e-04
-     6.19153248e-05
-    -6.77629197e-05
-    -1.62223630e-04
-    -3.85863518e-05
-    -5.97195903e-06
-    -1.94837189e-05
-    -8.16838179e-05
-    -3.47410417e-04
-    -6.78290807e-05
-
+     1.32478057e-05
+     5.60391397e-05
+     5.60391397e-05
+     1.32478057e-05
+     1.86797132e-05
+     8.27415349e-04
+     8.27415349e-04
+     1.86797132e-05
+    -1.86797132e-05
+    -8.27415349e-04
+    -8.27415349e-04
+    -1.86797132e-05
+    -1.32478057e-05
+    -5.60391397e-05
+    -5.60391397e-05
+    -1.32478057e-05
+ 
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue	
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*((3*dy*dz)/r_5)
-    return res
-
-def kernelzz(xp, yp, zp, spheres):
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*((3*dy*dz)/r_5)
+    
+def kernelzz(xp, yp, zp, sphere):
     """
     Calculates the function
     
@@ -937,7 +902,7 @@ def kernelzz(xp, yp, zp, spheres):
     * xp, yp, zp : arrays
         The x, y, and z coordinates where the function will be 
         calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
+    * sphere : object of :class:`fatiando.mesher.Sphere`
 
     Returns:
 
@@ -950,49 +915,42 @@ def kernelzz(xp, yp, zp, spheres):
     >>> from fatiando import mesher, gridder
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> model = [
-    ...         mesher.Sphere(10, 10, 5, 1, {'density':1.}),
-    ...         mesher.Sphere(-13, -15, 6, 1, {'density':1.})]
+    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
-    >>> kzz = kernelzz(xp, yp, zp, model)
+    >>> kzz = kernelzz(xp, yp, zp, sphere)
     >>> for k in kzz: print '%15.8e' % k
-    -2.83317727e-04
-    -6.10757583e-04
-    -2.23850528e-04
-    -8.52709372e-05
-    -4.86582256e-04
-     3.72194016e-03
-    -6.32501364e-04
-    -2.08043134e-04
-    -1.87785921e-04
-    -5.96316436e-04
-     6.69278645e-02
-    -4.25594136e-04
-    -7.93446130e-05
-    -2.02855904e-04
-    -4.24170910e-04
-    -1.77359056e-04
-
+    -5.15192445e-05
+    -1.18304851e-04
+    -1.18304851e-04
+    -5.15192445e-05
+    -1.18304851e-04
+    -8.27415349e-04
+    -8.27415349e-04
+    -1.18304851e-04
+    -1.18304851e-04
+    -8.27415349e-04
+    -8.27415349e-04
+    -1.18304851e-04
+    -5.15192445e-05
+    -1.18304851e-04
+    -1.18304851e-04
+    -5.15192445e-05
+ 
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None:
-            continue	
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        volume = 4.*numpy.pi*(radius**3)/3.
-        res += volume*(((3*dz**2) - r_2)/r_5)
-    return res
+    radius = sphere.radius
+    dx = sphere.x - xp
+    dy = sphere.y - yp
+    dz = sphere.z - zp
+    r_2 = (dx**2 + dy**2 + dz**2)
+    r_5 = r_2**(2.5)
+    volume = 4.*numpy.pi*(radius**3)/3.
+    return volume*(((3*dz**2) - r_2)/r_5)
 
 def gzzmod(xp, yp, zp, spheres, dens=None):
     """
@@ -1030,6 +988,6 @@ def gzzmod(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelzz(xp, yp, zp, [sphere])
+        res += density*kernelzz(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
