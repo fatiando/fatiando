@@ -96,6 +96,42 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     * tf : array
         The total-field anomaly
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Set the inclination and declination of the regional field
+    >>> inc, dec = -30, 45
+    >>> # Create a sphere model
+    >>> model = [
+    ...         # One with induced magnetization
+    ...         mesher.Sphere(1000, 1000, 600, 500, {'magnetization':5}),
+    ...         # and one with remanent
+    ...         mesher.Sphere(-1000, -1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Create a regular grid at 100m height
+    >>> shape = (4, 4)
+    >>> area = (-3000, 3000, -3000, 3000)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the anomaly for a given regional field
+    >>> for t in sphere.tf(xp, yp, zp, model, inc, dec): print '%15.8e' % t
+     2.72951375e+01
+     3.63637351e+01
+     5.35842876e+00
+     6.65189557e-02
+     6.01998831e+01
+    -1.71920499e+03
+     3.30025228e+00
+    -5.13176612e+00
+     1.47871812e+00
+    -3.96103758e+01
+    -1.85654021e+02
+     2.18002960e+01
+    -2.82713826e+00
+    -1.10341542e+01
+     1.93353982e+01
+     2.03174254e+01
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -133,11 +169,10 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         v4 = kernelyy(xp, yp, zp, sphere)
         v5 = kernelyz(xp, yp, zp, sphere)
         v6 = kernelzz(xp, yp, zp, sphere)
-        moment = intensity*(4.*numpy.pi*(radius**3)/3.)
         bx = (v1*mx + v2*my + v3*mz)
         by = (v2*mx + v4*my + v5*mz)
         bz = (v3*mx + v5*my + v6*mz)
-        tf += moment*(fx*bx + fy*by + fz*bz)
+        tf += intensity*(fx*bx + fy*by + fz*bz)
     tf *= CM*T2NT
     return tf
 
