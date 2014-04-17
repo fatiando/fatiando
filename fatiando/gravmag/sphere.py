@@ -59,6 +59,9 @@ Cambridge University Press.
 ----
 
 """
+
+from __future__ import division
+
 import numpy
 
 from fatiando.constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
