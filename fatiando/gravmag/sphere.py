@@ -214,6 +214,35 @@ def gxx(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
+    
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gxx component
+    >>> for g in gxx(xp, yp, zp, sphere): print '%15.8e' % g
+     1.71893959e-06
+    -6.02473678e-06
+    -6.02473678e-06
+     1.71893959e-06
+     1.39192195e-05
+     2.76067131e-05
+     2.76067131e-05
+     1.39192195e-05
+     1.39192195e-05
+     2.76067131e-05
+     2.76067131e-05
+     1.39192195e-05
+     1.71893959e-06
+    -6.02473678e-06
+    -6.02473678e-06
+     1.71893959e-06
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -226,14 +255,7 @@ def gxx(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dx**2) - r_2)/r_5)
+        res += density*kernelxx(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
@@ -261,6 +283,35 @@ def gxy(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
+    
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gxy component
+    >>> for g in gxy(xp, yp, zp, sphere): print '%15.8e' % g
+     5.30415646e-06
+     7.47898359e-06
+    -7.47898359e-06
+    -5.30415646e-06
+     7.47898359e-06
+     1.10426852e-04
+    -1.10426852e-04
+    -7.47898359e-06
+    -7.47898359e-06
+    -1.10426852e-04
+     1.10426852e-04
+     7.47898359e-06
+    -5.30415646e-06
+    -7.47898359e-06
+     7.47898359e-06
+     5.30415646e-06
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -273,14 +324,7 @@ def gxy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dx*dy)/r_5
+        res += density*kernelxy(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
@@ -308,6 +352,35 @@ def gxz(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
+        
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gxz component
+    >>> for g in gxz(xp, yp, zp, sphere): print '%15.8e' % g
+     8.84026077e-07
+     1.24649726e-06
+    -1.24649726e-06
+    -8.84026077e-07
+     3.73949179e-06
+     5.52134262e-05
+    -5.52134262e-05
+    -3.73949179e-06
+     3.73949179e-06
+     5.52134262e-05
+    -5.52134262e-05
+    -3.73949179e-06
+     8.84026077e-07
+     1.24649726e-06
+    -1.24649726e-06
+    -8.84026077e-07
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -320,14 +393,7 @@ def gxz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dx*dz)/r_5
+        res += density*kernelxz(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
@@ -356,6 +422,35 @@ def gyy(xp, yp, zp, spheres, dens=None):
     * res : array
         The field calculated on xp, yp, zp
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gyy component
+    >>> for g in gyy(xp, yp, zp, sphere): print '%15.8e' % g
+     1.71893959e-06
+     1.39192195e-05
+     1.39192195e-05
+     1.71893959e-06
+    -6.02473678e-06
+     2.76067131e-05
+     2.76067131e-05
+    -6.02473678e-06
+    -6.02473678e-06
+     2.76067131e-05
+     2.76067131e-05
+    -6.02473678e-06
+     1.71893959e-06
+     1.39192195e-05
+     1.39192195e-05
+     1.71893959e-06
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -367,14 +462,7 @@ def gyy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dy**2) - r_2)/r_5)
+        res += density*kernelyy(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
@@ -403,6 +491,35 @@ def gyz(xp, yp, zp, spheres, dens=None):
     * res : array
         The field calculated on xp, yp, zp
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gyz component
+    >>> for g in gyz(xp, yp, zp, sphere): print '%15.8e' % g
+     8.84026077e-07
+     3.73949179e-06
+     3.73949179e-06
+     8.84026077e-07
+     1.24649726e-06
+     5.52134262e-05
+     5.52134262e-05
+     1.24649726e-06
+    -1.24649726e-06
+    -5.52134262e-05
+    -5.52134262e-05
+    -1.24649726e-06
+    -8.84026077e-07
+    -3.73949179e-06
+    -3.73949179e-06
+    -8.84026077e-07
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -414,14 +531,7 @@ def gyz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dy*dz)/r_5
+        res += density*kernelyz(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
@@ -450,6 +560,35 @@ def gzz(xp, yp, zp, spheres, dens=None):
     * res : array
         The field calculated on xp, yp, zp
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a sphere model
+    >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
+    >>> # Create a regular grid at 0m height
+    >>> shape = (4, 4)
+    >>> area = (-30, 30, -30, 30)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Calculate the gzz component
+    >>> for g in gzz(xp, yp, zp, sphere): print '%15.8e' % g
+    -3.43787919e-06
+    -7.89448267e-06
+    -7.89448267e-06
+    -3.43787919e-06
+    -7.89448267e-06
+    -5.52134262e-05
+    -5.52134262e-05
+    -7.89448267e-06
+    -7.89448267e-06
+    -5.52134262e-05
+    -5.52134262e-05
+    -7.89448267e-06
+    -3.43787919e-06
+    -7.89448267e-06
+    -7.89448267e-06
+    -3.43787919e-06
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -461,19 +600,12 @@ def gzz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dz**2) - r_2)/r_5)
+        res += density*kernelzz(xp, yp, zp, sphere)
     res *= G*SI2EOTVOS
     return res
 
 def kernelxx(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -553,7 +685,7 @@ def kernelxx(xp, yp, zp, sphere):
     return volume*(((3*dx**2) - r_2)/r_5)
     
 def kernelxy(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -633,7 +765,7 @@ def kernelxy(xp, yp, zp, sphere):
     return volume*((3*dx*dy)/r_5)
 
 def kernelxz(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -713,7 +845,7 @@ def kernelxz(xp, yp, zp, sphere):
     return volume*((3*dx*dz)/r_5)
 
 def kernelyy(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -793,7 +925,7 @@ def kernelyy(xp, yp, zp, sphere):
     return volume*(((3*dy**2) - r_2)/r_5)
 
 def kernelyz(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -873,7 +1005,7 @@ def kernelyz(xp, yp, zp, sphere):
     return volume*((3*dy*dz)/r_5)
     
 def kernelzz(xp, yp, zp, sphere):
-    """
+    r"""
     Calculates the function
     
     .. math::
@@ -951,43 +1083,3 @@ def kernelzz(xp, yp, zp, sphere):
     r_5 = r_2**(2.5)
     volume = 4.*numpy.pi*(radius**3)/3.
     return volume*(((3*dz**2) - r_2)/r_5)
-
-def gzzmod(xp, yp, zp, spheres, dens=None):
-    """
-    Calculates the :math:`g_{zz}` gravity gradient component.
-
-    .. note:: The coordinate system of the input parameters is to be
-        x -> North, y -> East and z -> Down.
-
-    .. note:: All input values in SI and output in Eotvos!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        The x, y, and z coordinates where the field will be calculated
-    * spheres : list of :class:`fatiando.mesher.Sphere`
-        The spheres. Spheres must have the property ``'density'``. Those
-        without will be ignored.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the spheres. Use this, e.g., for sensitivity matrix building.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
-    for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
-            continue
-        if dens is None:
-            density = sphere.props['density']
-        else:
-            density = dens
-        res += density*kernelzz(xp, yp, zp, sphere)
-    res *= G*SI2EOTVOS
-    return res
