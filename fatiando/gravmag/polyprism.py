@@ -225,6 +225,40 @@ def gxx(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gxx component
+    >>> for g in gxx(xp, yp, zp, model): print '%12.5e' % g
+     7.20648e-04
+    -1.99459e-03
+    -1.61846e-03
+     6.70913e-04
+     4.36627e-03
+    -1.13914e-01
+    -9.18244e-02
+     4.42844e-03
+     2.71092e-03
+    -4.71978e-03
+     3.64223e-03
+     2.64087e-03
+     2.13059e-04
+    -1.03988e-03
+    -1.01310e-03
+     2.11109e-04
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -233,15 +267,7 @@ def gxx(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v1(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelxx(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
@@ -268,6 +294,40 @@ def gxy(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gxy component
+    >>> for g in gxy(xp, yp, zp, model): print '%12.5e' % g
+     1.49780e-03
+     2.65742e-03
+    -2.62714e-03
+    -1.44730e-03
+     1.22663e-03
+     1.27725e-02
+    -8.25573e-03
+    -1.38994e-03
+    -2.01592e-03
+    -2.46837e-02
+     2.36985e-02
+     2.06093e-03
+    -9.79015e-04
+    -1.10491e-03
+     1.12202e-03
+     9.67007e-04
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -276,15 +336,7 @@ def gxy(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v2(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelxy(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
@@ -311,6 +363,40 @@ def gxz(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gxz component
+    >>> for g in gxz(xp, yp, zp, model): print '%12.5e' % g
+     7.91936e-05
+     1.51253e-04
+    -1.50435e-04
+    -7.42349e-05
+     3.29126e-04
+     9.37617e-02
+    -5.93742e-02
+    -3.38122e-04
+     2.16512e-04
+     4.87912e-03
+    -4.96696e-03
+    -2.12568e-04
+     3.82278e-05
+     4.53969e-05
+    -4.63732e-05
+    -3.75449e-05
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -319,15 +405,7 @@ def gxz(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v3(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelxz(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
@@ -354,6 +432,40 @@ def gyy(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gyy component
+    >>> for g in gyy(xp, yp, zp, model): print '%12.5e' % g
+     3.28264e-04
+     5.34592e-03
+     4.73375e-03
+     3.46348e-04
+    -1.89187e-03
+    -2.96631e-02
+    -5.19217e-02
+    -1.92960e-03
+    -7.97694e-04
+     3.22180e-02
+     1.90333e-02
+    -7.37962e-04
+     4.69074e-04
+     2.53840e-03
+     2.49829e-03
+     4.64505e-04
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -362,15 +474,7 @@ def gyy(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v4(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelyy(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
@@ -397,6 +501,40 @@ def gyz(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gyz component
+    >>> for g in gyz(xp, yp, zp, model): print '%12.5e' % g
+     6.93660e-05
+     4.97643e-04
+     4.27799e-04
+     6.68377e-05
+     5.96159e-05
+     7.09041e-03
+     2.41931e-02
+     7.03409e-05
+    -9.75448e-05
+    -1.13555e-02
+    -6.68721e-03
+    -1.01390e-04
+    -4.36407e-05
+    -1.62058e-04
+    -1.59297e-04
+    -4.29196e-05
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -405,15 +543,7 @@ def gyz(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v5(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelyz(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
@@ -440,6 +570,40 @@ def gzz(xp, yp, zp, prisms):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(vertices, 100, 700, {'density':1})]
+    >>> # Calculate the gzz component
+    >>> for g in gzz(xp, yp, zp, model): print '%12.5e' % g
+    -1.04891e-03
+    -3.35133e-03
+    -3.11530e-03
+    -1.01726e-03
+    -2.47441e-03
+     1.43577e-01
+     1.43746e-01
+    -2.49884e-03
+    -1.91322e-03
+    -2.74982e-02
+    -2.26755e-02
+    -1.90291e-03
+    -6.82133e-04
+    -1.49852e-03
+    -1.48518e-03
+    -6.75614e-04
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -448,15 +612,7 @@ def gzz(xp, yp, zp, prisms):
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v6(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
+        res += density*kernelzz(xp, yp, zp, prism)
     res *= G*SI2EOTVOS
     return res
 
