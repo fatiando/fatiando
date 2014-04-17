@@ -69,6 +69,43 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     * res : array
         The field calculated on xp, yp, zp
 
+    Example:
+    
+    >>> from fatiando import mesher, gridder
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> inc, dec = -40, -13 # Geomagnetic Field direction
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(
+    ...             vertices, 100, 700, 
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Calculate the total field anomaly
+    >>> for t in tf(xp, yp, zp, model, inc, dec): print '%12.5e' % t
+     1.08730e+01
+     1.99497e+01
+     2.35799e+01
+     1.28679e+01
+     3.96559e+01
+    -1.08891e+03
+    -2.12606e+03
+     3.84393e+01
+     3.18080e+01
+     3.22914e+02
+     1.70247e+02
+     2.34122e+01
+     8.58015e+00
+     1.18120e+01
+     8.41901e+00
+     5.60295e+00
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -82,7 +119,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         else:
             pintensity = numpy.linalg.norm(pmag)
             pmx, pmy, pmz = numpy.array(pmag)/pintensity
-    res = numpy.zeros(len(xp), dtype='f')
+    tf = numpy.zeros(len(xp), dtype='f')
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props
                              and pmag is None):
@@ -98,29 +135,18 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         else:
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Now calculate the total field anomaly
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            X1 = x[k] - xp
-            Y1 = y[k] - yp
-            X2 = x[(k + 1)%nverts] - xp
-            Y2 = y[(k + 1)%nverts] - yp
-            v1 = _integral_v1(X1, X2, Y1, Y2, Z1, Z2)
-            v2 = _integral_v2(X1, X2, Y1, Y2, Z1, Z2)
-            v3 = _integral_v3(X1, X2, Y1, Y2, Z1, Z2)
-            v4 = _integral_v4(X1, X2, Y1, Y2, Z1, Z2)
-            v5 = _integral_v5(X1, X2, Y1, Y2, Z1, Z2)
-            v6 = _integral_v6(X1, X2, Y1, Y2, Z1, Z2)
-            res += intensity*(
-                      mx*(v1*fx + v2*fy + v3*fz)
-                    + my*(v2*fx + v4*fy + v5*fz)
-                    + mz*(v3*fx + v5*fy + v6*fz))
-    res *= CM*T2NT
-    return res
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        bx = (v1*mx + v2*my + v3*mz)
+        by = (v2*mx + v4*my + v5*mz)
+        bz = (v3*mx + v5*my + v6*mz)
+        tf += intensity*(fx*bx + fy*by + fz*bz)
+    tf *= CM*T2NT
+    return tf
 
 def gz(xp, yp, zp, prisms):
     """
