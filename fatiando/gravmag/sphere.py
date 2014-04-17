@@ -98,7 +98,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag, utils
     >>> from fatiando.gravmag import sphere
     >>> # Set the inclination and declination of the regional field
     >>> inc, dec = -30, 45
@@ -249,7 +249,7 @@ def gxx(xp, yp, zp, spheres, dens=None):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -318,7 +318,7 @@ def gxy(xp, yp, zp, spheres, dens=None):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -387,7 +387,7 @@ def gxz(xp, yp, zp, spheres, dens=None):
         
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -456,7 +456,7 @@ def gyy(xp, yp, zp, spheres, dens=None):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -525,7 +525,7 @@ def gyz(xp, yp, zp, spheres, dens=None):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -594,7 +594,7 @@ def gzz(xp, yp, zp, spheres, dens=None):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
@@ -676,10 +676,10 @@ def kernelxx(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
@@ -756,10 +756,10 @@ def kernelxy(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
@@ -836,10 +836,10 @@ def kernelxz(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
@@ -916,10 +916,10 @@ def kernelyy(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
@@ -996,10 +996,10 @@ def kernelyz(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
@@ -1076,10 +1076,10 @@ def kernelzz(xp, yp, zp, sphere):
     
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import sphere
     >>> # Create a sphere model
-    >>> sphere = mesher.Sphere(0, 0, 5, 1, {'density':1.})
+    >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)

@@ -71,7 +71,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -253,7 +253,7 @@ def gxx(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -322,7 +322,7 @@ def gxy(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -391,7 +391,7 @@ def gxz(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -460,7 +460,7 @@ def gyy(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -529,7 +529,7 @@ def gyz(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -598,7 +598,7 @@ def gzz(xp, yp, zp, prisms):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, utils, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -927,7 +927,7 @@ def kernelxx(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -939,7 +939,7 @@ def kernelxx(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelxx function
     >>> for k in kernelxx(xp, yp, zp, model): print '%12.5e' % k
      1.07995e-02
@@ -1013,7 +1013,7 @@ def kernelxy(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -1025,7 +1025,7 @@ def kernelxy(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelxy function
     >>> for k in kernelxy(xp, yp, zp, model): print '%12.5e' % k
      2.24457e-02
@@ -1099,7 +1099,7 @@ def kernelxz(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -1111,7 +1111,7 @@ def kernelxz(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelxz function
     >>> for k in kernelxz(xp, yp, zp, model): print '%12.5e' % k
      1.18678e-03
@@ -1185,7 +1185,7 @@ def kernelyy(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -1197,7 +1197,7 @@ def kernelyy(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelyy function
     >>> for k in kernelyy(xp, yp, zp, model): print '%12.5e' % k
      4.91928e-03
@@ -1271,7 +1271,7 @@ def kernelyz(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -1283,7 +1283,7 @@ def kernelyz(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelyz function
     >>> for k in kernelyz(xp, yp, zp, model): print '%12.5e' % k
      1.03950e-03
@@ -1357,7 +1357,7 @@ def kernelzz(xp, yp, zp, prism):
 
     Example:
     
-    >>> from fatiando import mesher, gridder
+    >>> from fatiando import mesher, gridder, gravmag
     >>> from fatiando.gravmag import polyprism
     >>> # Construct a regular grid
     >>> area = [-10000, 10000, -10000, 10000]
@@ -1369,7 +1369,7 @@ def kernelzz(xp, yp, zp, prism):
     ...            [1516.7365, 2771.9666],
     ...            [-3817.9917, 1935.1465],
     ...            [-3661.0879, -5230.1255]]
-    >>> model = mesher.PolygonalPrism(vertices, 100, 700, {'density':1})
+    >>> model = mesher.PolygonalPrism(vertices, 100, 700)
     >>> # Calculate the kernelzz function
     >>> for k in kernelzz(xp, yp, zp, model): print '%12.5e' % k
     -1.57187e-02
