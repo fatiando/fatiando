@@ -646,6 +646,85 @@ def fd2d(shape):
             param += 1
     return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny)).tocsr()
 
+def fd3d(shape):
+    """
+    Produce a 3D finite difference matrix.
+
+    Parameters:
+
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    Returns:
+
+    * fd : sparse CSR matrix
+        The finite difference matrix
+
+    Examples:
+
+    >>> fd3d((2, 3, 2)).todense()
+    matrix([[ 1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1, -1,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -1],
+            [ 1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1,  0, -1,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  1,  0, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1,  0, -1,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  1,  0, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0, -1],
+            [ 1,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0],
+            [ 0,  1,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0],
+            [ 0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+            [ 0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0],
+            [ 0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1]])
+
+
+    """
+    nz, ny, nx = shape
+    nderivs = ((nx - 1)*ny + (ny - 1)*nx)*nz + (nx*ny)*(nz - 1)
+    I, J, V = [], [], []
+    deriv = 0
+    # Derivatives in x
+    param = 0
+    for k in xrange(nz):
+        for j in xrange(ny):
+            for i in xrange(nx - 1):
+                I.extend([deriv, deriv])
+                J.extend([param, param + 1])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+            param += 1
+    # Derivatives in y
+    param = 0
+    for k in xrange(nz):
+        for j in xrange(ny - 1):
+            for i in xrange(nx):
+                I.extend([deriv, deriv])
+                J.extend([param, param + nx])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+        param += nx
+    # Derivatives in z
+    param = 0
+    for k in xrange(nz - 1):
+        for j in xrange(ny):
+            for i in xrange(nx):
+                I.extend([deriv, deriv])
+                J.extend([param, param + nx*ny])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny*nz)).tocsr()
+
 class LCurve(object):
     """
     Use the L-curve criterion to estimate the regularization parameter.
