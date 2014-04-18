@@ -598,6 +598,29 @@ class TotalVariation2D(TotalVariation):
     def __init__(self, beta, shape):
         super(TotalVariation2D, self).__init__(beta, fd2d(shape))
 
+class TotalVariation3D(TotalVariation):
+    """
+    Total variation regularization for 3D problems.
+
+    Extends the generic
+    :class:`~fatiando.inversion.regularization.TotalVariation`
+    class by automatically building the finite difference matrix.
+
+    Parameters:
+
+    * beta : float
+        The beta parameter for the differentiable approximation. The larger it
+        is, the closer total variation is to
+        :class:`~fatiando.inversion.regularization.Smoothness`. Should be a
+        small, positive value.
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    """
+    def __init__(self, beta, shape):
+        super(TotalVariation3D, self).__init__(beta, fd3d(shape))
+
 def fd1d(size):
     """
     Produce a 1D finite difference matrix.
