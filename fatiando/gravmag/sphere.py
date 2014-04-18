@@ -3,9 +3,13 @@ Calculate the potential fields of a homogeneous sphere.
 
 **Magnetic**
 
-Calculates the total field anomaly. Uses the formula in Blakely (1995).
+Calculates the magnetic effect produced by an sphere. The functions are
+based on Blakely (1995).
 
 * :func:`~fatiando.gravmag.sphere.tf`: calculates the total-field anomaly
+* :func:`~fatiando.gravmag.sphere.bx`: calculates the x component of the induction
+* :func:`~fatiando.gravmag.sphere.by`: calculates the y component of the induction
+* :func:`~fatiando.gravmag.sphere.bz`: calculates the z component of the induction
 
 Remember that:
 
@@ -203,6 +207,219 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         tf += intensity*(fx*bx + fy*by + fz*bz)
     tf *= CM*T2NT
     return tf
+
+def bx(xp, yp, zp, spheres):
+    """
+    Calculates the x component of the magnetic induction produced by spheres.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the physical property
+        ``'magnetization'``. Spheres without ``'magnetization'`` will be
+        ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bx: array
+        The x component of the magnetic induction
+
+    Example:
+    
+    >>> from fatiando import mesher, gridder, gravmag, utils
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a model formed by two spheres
+    >>> # The magnetization of each sphere is a vector
+    >>> model = [
+    ...         mesher.Sphere(1000, 1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...         mesher.Sphere(-1000, -1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Create a regular grid at 100m height
+    >>> shape = (4, 4)
+    >>> area = (-3000, 3000, -3000, 3000)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the bx component
+    >>> for b in sphere.bx(xp, yp, zp, model): print '%15.8e' % b
+     1.58002397e+01
+    -1.76820799e+01
+    -1.48049248e+01
+    -5.75238567e+00
+     9.17572697e+01
+    -4.94607307e+02
+    -7.92213872e+01
+    -4.37781621e+00
+     2.97032297e+01
+     7.36803996e+01
+    -1.73332620e+03
+     1.15884125e+02
+     4.55847152e+00
+    -1.31173236e+01
+    -6.42912671e+01
+     2.98847909e+01
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bx = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or ('magnetization' not in sphere.props):
+            continue
+        radius = sphere.radius
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        v1 = kernelxx(xp, yp, zp, sphere)
+        v2 = kernelxy(xp, yp, zp, sphere)
+        v3 = kernelxz(xp, yp, zp, sphere)
+        bx += (v1*mx + v2*my + v3*mz)
+    bx *= CM*T2NT
+    return bx
+
+def by(xp, yp, zp, spheres):
+    """
+    Calculates the y component of the magnetic induction produced by spheres.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the physical property
+        ``'magnetization'``. Spheres without ``'magnetization'`` will be
+        ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * by: array
+        The y component of the magnetic induction
+
+    Example:
+    
+    >>> from fatiando import mesher, gridder, gravmag, utils
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a model formed by two spheres
+    >>> # The magnetization of each sphere is a vector
+    >>> model = [
+    ...         mesher.Sphere(1000, 1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...         mesher.Sphere(-1000, -1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Create a regular grid at 100m height
+    >>> shape = (4, 4)
+    >>> area = (-3000, 3000, -3000, 3000)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the by component
+    >>> for b in sphere.by(xp, yp, zp, model): print '%15.8e' % b
+     2.51394441e+01
+     5.71383698e+01
+     7.46666729e+00
+    -4.53730551e+00
+     7.44792258e+00
+     8.22174414e+01
+     4.53451310e+01
+    -3.06885735e+01
+    -2.49929765e+01
+    -8.41961087e+01
+    -9.17412395e+02
+    -3.18422413e+01
+    -1.32728556e+01
+    -3.03825859e+01
+     6.67990083e+01
+     4.21366247e+01
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    by = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or ('magnetization' not in sphere.props):
+            continue
+        radius = sphere.radius
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        v2 = kernelxy(xp, yp, zp, sphere)
+        v4 = kernelyy(xp, yp, zp, sphere)
+        v5 = kernelyz(xp, yp, zp, sphere)
+        by += (v2*mx + v4*my + v5*mz)
+    by *= CM*T2NT
+    return by
+
+def bz(xp, yp, zp, spheres):
+    """
+    Calculates the z component of the magnetic induction produced by spheres.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * spheres : list of :class:`fatiando.mesher.Sphere`
+        The spheres. Spheres must have the physical property
+        ``'magnetization'``. Spheres without ``'magnetization'`` will be
+        ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bz: array
+        The z component of the magnetic induction
+
+    Example:
+    
+    >>> from fatiando import mesher, gridder, gravmag, utils
+    >>> from fatiando.gravmag import sphere
+    >>> # Create a model formed by two spheres
+    >>> # The magnetization of each sphere is a vector
+    >>> model = [
+    ...         mesher.Sphere(1000, 1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...         mesher.Sphere(-1000, -1000, 600, 500,
+    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Create a regular grid at 100m height
+    >>> shape = (4, 4)
+    >>> area = (-3000, 3000, -3000, 3000)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the bz component
+    >>> for b in sphere.bz(xp, yp, zp, model): print '%15.8e' % b
+    -1.13152279e+01
+    -3.24362266e+01
+    -1.63235805e+01
+    -4.48136597e+00
+    -1.27492012e+01
+     2.89101261e+03
+    -1.30263918e+01
+    -9.64182996e+00
+    -6.45566985e+00
+     3.32987598e+01
+    -7.08905624e+02
+    -5.55139945e+01
+    -1.35745203e+00
+     2.91949888e+00
+    -2.78345635e+01
+    -1.69425703e+01
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bz = numpy.zeros_like(xp)
+    for sphere in spheres:
+        if sphere is None or ('magnetization' not in sphere.props):
+            continue
+        radius = sphere.radius
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        v3 = kernelxz(xp, yp, zp, sphere)
+        v5 = kernelyz(xp, yp, zp, sphere)
+        v6 = kernelzz(xp, yp, zp, sphere)
+        bz += (v3*mx + v5*my + v6*mz)
+    bz *= CM*T2NT
+    return bz
 
 def gz(xp, yp, zp, spheres, dens=None):
     """
