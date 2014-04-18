@@ -20,6 +20,34 @@ The Total Field magnetic anomaly:
 
 * :func:`~fatiando.gravmag.polyprism.tf`
 
+**Auxiliary Functions**
+
+Calculates the second derivatives of the function
+
+.. math:: 
+
+    \phi(x,y,z) = \int \int \int \frac{1}{r} 
+                  \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
+
+with respect to the variables x, y, and z. In this equation,
+
+.. math::
+
+    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}
+    
+and :math:`\nu`, :math:`\eta`, :math:`\zeta` are the Cartesian
+coordinates of an element inside the volume of a 3D prism with 
+polygonal crossection. These second derivatives are used to calculate 
+the total field anomaly and the gravity gradient tensor
+components produced by a 3D prism with polygonal crossection.
+
+* :func:`fatiando.gravmag.polyprism.kernelxx`
+* :func:`fatiando.gravmag.polyprism.kernelxy`
+* :func:`fatiando.gravmag.polyprism.kernelxz`
+* :func:`fatiando.gravmag.polyprism.kernelyy`
+* :func:`fatiando.gravmag.polyprism.kernelyz`
+* :func:`fatiando.gravmag.polyprism.kernelzz`
+
 **References**
 
 Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and

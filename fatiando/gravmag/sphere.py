@@ -51,6 +51,32 @@ components.
 * :func:`fatiando.gravmag.sphere.gyz`
 * :func:`fatiando.gravmag.sphere.gzz`
 
+**Auxiliary Functions**
+
+Calculates the second derivatives of the function
+
+.. math::
+
+    \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
+
+with respect to the variables x, y, and z. In this equation,
+
+.. math::
+
+    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}},
+    
+and R is the radius of a sphere with centre at the Cartesian coordinates
+:math:`\nu`, :math:`\eta` and :math:`\zeta`. These second derivatives are
+used to calculate the total field anomaly and the gravity gradient tensor
+components produced by a sphere.
+
+* :func:`fatiando.gravmag.sphere.kernelxx`
+* :func:`fatiando.gravmag.sphere.kernelxy`
+* :func:`fatiando.gravmag.sphere.kernelxz`
+* :func:`fatiando.gravmag.sphere.kernelyy`
+* :func:`fatiando.gravmag.sphere.kernelyz`
+* :func:`fatiando.gravmag.sphere.kernelzz`
+
 **References**
 
 Blakely, R. J. (1995), Potential Theory in Gravity and Magnetic Applications,
