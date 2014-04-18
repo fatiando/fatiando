@@ -377,6 +377,45 @@ class Smoothness2D(Smoothness):
     def __init__(self, shape):
         super(Smoothness2D, self).__init__(fd2d(shape))
 
+class Smoothness3D(Smoothness):
+    """
+    Smoothness regularization for 3D problems.
+
+    Extends the generic :class:`~fatiando.inversion.regularization.Smoothness`
+    class by automatically building the finite difference matrix.
+
+    Parameters:
+
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    Examples:
+
+    >>> import numpy as np
+    >>> s = Smoothness3D((2, 2, 2))
+    >>> p = np.array([[[0, 0],
+    ...                [0, 0]],
+    ...               [[0, 0],
+    ...                [0, 0]]]).ravel()
+    >>> s.value(p)
+    0.0
+    >>> s.gradient(p)
+    array([0, 0, 0, 0, 0, 0, 0, 0])
+    >>> s.hessian(p).todense()
+    matrix([[ 6, -2, -2,  0, -2,  0,  0,  0],
+            [-2,  6,  0, -2,  0, -2,  0,  0],
+            [-2,  0,  6, -2,  0,  0, -2,  0],
+            [ 0, -2, -2,  6,  0,  0,  0, -2],
+            [-2,  0,  0,  0,  6, -2, -2,  0],
+            [ 0, -2,  0,  0, -2,  6,  0, -2],
+            [ 0,  0, -2,  0, -2,  0,  6, -2],
+            [ 0,  0,  0, -2,  0, -2, -2,  6]])
+
+    """
+    def __init__(self, shape):
+        super(Smoothness3D, self).__init__(fd3d(shape))
+
 class TotalVariation(Objective):
     r"""
     Total variation regularization.
@@ -663,6 +702,19 @@ def fd3d(shape):
 
     Examples:
 
+    >>> fd3d((2, 2, 2)).todense()
+    matrix([[ 1, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1, -1],
+            [ 1,  0, -1,  0,  0,  0,  0,  0],
+            [ 0,  1,  0, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  1,  0, -1],
+            [ 1,  0,  0,  0, -1,  0,  0,  0],
+            [ 0,  1,  0,  0,  0, -1,  0,  0],
+            [ 0,  0,  1,  0,  0,  0, -1,  0],
+            [ 0,  0,  0,  1,  0,  0,  0, -1]])
     >>> fd3d((2, 3, 2)).todense()
     matrix([[ 1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
             [ 0,  0,  1, -1,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -684,7 +736,6 @@ def fd3d(shape):
             [ 0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0],
             [ 0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0],
             [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1]])
-
 
     """
     nz, ny, nx = shape
