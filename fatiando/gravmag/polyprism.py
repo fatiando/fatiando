@@ -1,4 +1,4 @@
-"""
+r"""
 Calculate the potential fields of the 3D prism with polygonal crossection using
 the formula of Plouff (1976).
 
@@ -26,14 +26,15 @@ Calculates the second derivatives of the function
 
 .. math:: 
 
-    \phi(x,y,z) = \int \int \int \frac{1}{r} 
+    \phi(x,y,z) = \int \int \int \frac{1}{r}
                   \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-with respect to the variables x, y, and z. In this equation,
+with respect to the variables :math:`x`, :math:`y`, and :math:`z`. 
+In this equation,
 
 .. math::
 
-    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}
+    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}
     
 and :math:`\nu`, :math:`\eta`, :math:`\zeta` are the Cartesian
 coordinates of an element inside the volume of a 3D prism with 
@@ -41,12 +42,12 @@ polygonal crossection. These second derivatives are used to calculate
 the total field anomaly and the gravity gradient tensor
 components produced by a 3D prism with polygonal crossection.
 
-* :func:`fatiando.gravmag.polyprism.kernelxx`
-* :func:`fatiando.gravmag.polyprism.kernelxy`
-* :func:`fatiando.gravmag.polyprism.kernelxz`
-* :func:`fatiando.gravmag.polyprism.kernelyy`
-* :func:`fatiando.gravmag.polyprism.kernelyz`
-* :func:`fatiando.gravmag.polyprism.kernelzz`
+* :func:`~fatiando.gravmag.polyprism.kernelxx`
+* :func:`~fatiando.gravmag.polyprism.kernelxy`
+* :func:`~fatiando.gravmag.polyprism.kernelxz`
+* :func:`~fatiando.gravmag.polyprism.kernelyy`
+* :func:`~fatiando.gravmag.polyprism.kernelyz`
+* :func:`~fatiando.gravmag.polyprism.kernelzz`
 
 **References**
 
@@ -67,7 +68,7 @@ from fatiando.constants import SI2MGAL, SI2EOTVOS, G, CM, T2NT
 
 
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
-    """
+    r"""
     Calculate the total-field anomaly of polygonal prisms.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -177,7 +178,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     return tf
 
 def gz(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{z}` gravity acceleration component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -257,7 +258,7 @@ def gz(xp, yp, zp, prisms):
     return res
 
 def gxx(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{xx}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -326,7 +327,7 @@ def gxx(xp, yp, zp, prisms):
     return res
 
 def gxy(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{xy}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -395,7 +396,7 @@ def gxy(xp, yp, zp, prisms):
     return res
 
 def gxz(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{xz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -464,7 +465,7 @@ def gxz(xp, yp, zp, prisms):
     return res
 
 def gyy(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{yy}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -533,7 +534,7 @@ def gyy(xp, yp, zp, prisms):
     return res
 
 def gyz(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{yz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -602,7 +603,7 @@ def gyz(xp, yp, zp, prisms):
     return res
 
 def gzz(xp, yp, zp, prisms):
-    """
+    r"""
     Calculates the :math:`g_{zz}` gravity gradient tensor component.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
@@ -672,7 +673,7 @@ def gzz(xp, yp, zp, prisms):
 
 def _integral_v1(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the first element of the V matrix (gxx components)
+    Auxiliary function used in kernelxx
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -719,7 +720,7 @@ def _integral_v1(X1, X2, Y1, Y2, Z1, Z2):
 
 def _integral_v2(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the second element of the V matrix (gxy components)
+    Auxiliary function used in kernelxy
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -766,7 +767,7 @@ def _integral_v2(X1, X2, Y1, Y2, Z1, Z2):
 
 def _integral_v3(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the third element of the V matrix (gxz components)
+    Auxiliary function used in kernelxz
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -802,7 +803,7 @@ def _integral_v3(X1, X2, Y1, Y2, Z1, Z2):
 
 def _integral_v4(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the forth element of the V matrix (gyy components)
+    Auxiliary function used in kernelyy
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -849,7 +850,7 @@ def _integral_v4(X1, X2, Y1, Y2, Z1, Z2):
 
 def _integral_v5(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the fith element of the V matrix (gyz components)
+    Auxiliary function used in kernelyz
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -885,7 +886,7 @@ def _integral_v5(X1, X2, Y1, Y2, Z1, Z2):
 
 def _integral_v6(X1, X2, Y1, Y2, Z1, Z2):
     """
-    Calculates the sixth element of the V matrix (gzz components)
+    Auxiliary function used in kernelzz
     """
     dummy = 10.**(-10) # Used to avoid singularities
     aux0 = X2 - X1 + dummy
@@ -934,7 +935,7 @@ def kernelxx(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -1020,7 +1021,7 @@ def kernelxy(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -1106,7 +1107,7 @@ def kernelxz(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -1192,7 +1193,7 @@ def kernelyy(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -1278,7 +1279,7 @@ def kernelyz(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -1364,7 +1365,7 @@ def kernelzz(xp, yp, zp, prism):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.

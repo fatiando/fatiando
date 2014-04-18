@@ -43,13 +43,14 @@ Then the total-field anomaly caused by the sphere is
 Calculates the gravitational acceleration and gravity gradient tensor
 components.
 
-* :func:`fatiando.gravmag.sphere.gz`
-* :func:`fatiando.gravmag.sphere.gxx`
-* :func:`fatiando.gravmag.sphere.gxy`
-* :func:`fatiando.gravmag.sphere.gxz`
-* :func:`fatiando.gravmag.sphere.gyy`
-* :func:`fatiando.gravmag.sphere.gyz`
-* :func:`fatiando.gravmag.sphere.gzz`
+* :func:`~fatiando.gravmag.sphere.gz`
+* :func:`~fatiando.gravmag.sphere.gxx`
+* :func:`~fatiando.gravmag.sphere.gxy`
+* :func:`~fatiando.gravmag.sphere.gxz`
+* :func:`~fatiando.gravmag.sphere.gyy`
+* :func:`~fatiando.gravmag.sphere.gyz`
+* :func:`~fatiando.gravmag.sphere.gzz`
+
 
 **Auxiliary Functions**
 
@@ -59,23 +60,24 @@ Calculates the second derivatives of the function
 
     \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
 
-with respect to the variables x, y, and z. In this equation,
+with respect to the variables :math:`x`, :math:`y`, and :math:`z`. In 
+this equation,
 
 .. math::
 
-    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}},
+    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2},
     
-and R is the radius of a sphere with centre at the Cartesian coordinates
+and :math:`R` is the radius of a sphere with centre at the Cartesian coordinates
 :math:`\nu`, :math:`\eta` and :math:`\zeta`. These second derivatives are
 used to calculate the total field anomaly and the gravity gradient tensor
 components produced by a sphere.
 
-* :func:`fatiando.gravmag.sphere.kernelxx`
-* :func:`fatiando.gravmag.sphere.kernelxy`
-* :func:`fatiando.gravmag.sphere.kernelxz`
-* :func:`fatiando.gravmag.sphere.kernelyy`
-* :func:`fatiando.gravmag.sphere.kernelyz`
-* :func:`fatiando.gravmag.sphere.kernelzz`
+* :func:`~fatiando.gravmag.sphere.kernelxx`
+* :func:`~fatiando.gravmag.sphere.kernelxy`
+* :func:`~fatiando.gravmag.sphere.kernelxz`
+* :func:`~fatiando.gravmag.sphere.kernelyy`
+* :func:`~fatiando.gravmag.sphere.kernelyz`
+* :func:`~fatiando.gravmag.sphere.kernelzz`
 
 **References**
 
@@ -680,7 +682,7 @@ def kernelxx(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -760,7 +762,7 @@ def kernelxy(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -840,7 +842,7 @@ def kernelxz(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -920,7 +922,7 @@ def kernelyy(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -1000,7 +1002,7 @@ def kernelyz(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -1080,7 +1082,7 @@ def kernelzz(xp, yp, zp, sphere):
     
     .. math::
 
-        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}}.
+        r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
