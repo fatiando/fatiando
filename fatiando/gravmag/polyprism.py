@@ -16,9 +16,12 @@ First and second derivatives of the gravitational potential:
 
 **Magnetic**
 
-The Total Field magnetic anomaly:
+The magnetic effect produced by 3D prism with polygonal crossection:
 
-* :func:`~fatiando.gravmag.polyprism.tf`
+* :func:`~fatiando.gravmag.polyprism.tf`: calculates the total field anomaly
+* :func:`~fatiando.gravmag.polyprism.bx`: calculates the x component of the induction
+* :func:`~fatiando.gravmag.polyprism.by`: calculates the y component of the induction
+* :func:`~fatiando.gravmag.polyprism.bz`: calculates the z component of the induction
 
 **Auxiliary Functions**
 
@@ -176,6 +179,219 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         tf += intensity*(fx*bx + fy*by + fz*bz)
     tf *= CM*T2NT
     return tf
+
+def bx(xp, yp, zp, prisms):
+    """
+    Calculates the x component of the magnetic induction produced by 3D 
+    prisms with polygonal crosssection.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bx: array
+        The x component of the magnetic induction
+
+    >>> from fatiando import mesher, gridder, utils, gravmag
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(
+    ...             vertices, 100, 700, 
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Calculate the x component of the induction
+    >>> for b in bx(xp, yp, zp, model): print '%12.5e' % b
+     4.12570e+00
+    -9.24140e+00
+    -9.20859e+00
+     3.02678e+00
+     2.63807e+01
+     7.33013e+02
+    -1.30127e+03
+     1.84708e+01
+     1.77912e+01
+     5.56354e+01
+    -6.19342e+01
+     9.57005e+00
+     2.06353e+00
+    -4.17670e+00
+    -6.32708e+00
+     1.17225e-01
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bx = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        bx += (v1*mx + v2*my + v3*mz)
+    bx *= CM*T2NT
+    return bx
+
+def by(xp, yp, zp, prisms):
+    """
+    Calculates the y component of the magnetic induction produced by 3D 
+    prisms with polygonal crosssection.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * by: array
+        The y component of the magnetic induction
+
+    >>> from fatiando import mesher, gridder, utils, gravmag
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(
+    ...             vertices, 100, 700, 
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Calculate the y component of the induction
+    >>> for b in by(xp, yp, zp, model): print '%12.5e' % b
+     8.47784e+00
+     1.81883e+01
+    -9.50434e+00
+    -6.60330e+00
+     7.94770e+00
+     1.78313e+02
+     3.21729e+02
+    -5.24443e+00
+    -1.13104e+01
+    -3.00334e+02
+     1.83311e+01
+     9.42485e+00
+    -5.82287e+00
+    -9.05762e+00
+     2.36974e+00
+     4.12558e+00
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    by = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v2 = kernelxy(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        by += (v2*mx + v4*my + v5*mz)
+    by *= CM*T2NT
+    return by
+
+def bz(xp, yp, zp, prisms):
+    """
+    Calculates the z component of the magnetic induction produced by 3D 
+    prisms with polygonal crosssection.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bz: array
+        The z component of the magnetic induction
+
+    >>> from fatiando import mesher, gridder, utils, gravmag
+    >>> from fatiando.gravmag import polyprism
+    >>> # Construct a regular grid
+    >>> area = [-10000, 10000, -10000, 10000]
+    >>> shape = (4, 4)
+    >>> xp, yp, zp = gridder.regular(area, shape, z=0)
+    >>> # Construct a model
+    >>> vertices = [[3713.3892, -4288.7031],
+    ...            [4393.3057, -52.301254],
+    ...            [1516.7365, 2771.9666],
+    ...            [-3817.9917, 1935.1465],
+    ...            [-3661.0879, -5230.1255]]
+    >>> model = [mesher.PolygonalPrism(
+    ...             vertices, 100, 700, 
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
+    >>> # Calculate the z component of the induction
+    >>> for b in bz(xp, yp, zp, model): print '%12.5e' % b
+    -1.43974e+01
+    -4.66435e+01
+    -4.48289e+01
+    -1.47340e+01
+    -3.31907e+01
+     2.49742e+03
+     1.71027e+03
+    -3.69466e+01
+    -2.57930e+01
+    -3.57245e+02
+    -3.41691e+02
+    -2.78368e+01
+    -9.39112e+00
+    -2.07979e+01
+    -2.10800e+01
+    -9.68653e+00
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bz = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v3 = kernelxz(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        bz += (v3*mx + v5*my + v6*mz)
+    bz *= CM*T2NT
+    return bz
 
 def gz(xp, yp, zp, prisms):
     r"""
