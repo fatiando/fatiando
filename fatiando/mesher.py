@@ -486,6 +486,27 @@ class Tesseroid(GeometricElement):
         """
         return [self.w, self.e, self.s, self.n, self.top, self.bottom]
 
+    def center(self):
+        """
+        Return the coordinates of the center of the tesseroid.
+
+        Returns:
+
+        * coords : list = [lon, lat, height]
+            Coordinates of the center
+
+        Example:
+
+            >>> tess = Tesseroid(1, 2, 1, 3, 100, 0)
+            >>> print tess.center()
+            [  1.5   2.   50. ]
+
+        """
+        xc = 0.5*(self.w + self.e)
+        yc = 0.5*(self.s + self.n)
+        zc = 0.5*(self.top + self.bottom)
+        return numpy.array([xc, yc, zc])
+
     def half(self, lon=True, lat=True, r=True):
         """
         Divide the tesseroid in 2 halfs for each dimension (total 8)
