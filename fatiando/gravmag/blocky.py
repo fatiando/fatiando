@@ -88,12 +88,56 @@ import bisect
 from math import sqrt
 
 import numpy
+import scipy.sparse
 
 from . import prism as prism_engine
 from . import tesseroid as tesseroid_engine
 from ..utils import safe_dot
 from ..inversion.base import Misfit
+from ..inversion.regularization import Smoothness, Damping, fd3d
 from ..mesher import Prism, Tesseroid
+
+
+def depth_weights(mesh, power):
+    nz, ny, nx = mesh.shape
+    cte = -power/2
+    w = numpy.fromiter(
+        ((abs(numpy.mean(c.get_bounds()[-2:])) + 10**-15)**cte
+         for c in mesh),
+        dtype=float)
+    weights = scipy.sparse.diags([numpy.sqrt(w)], [0]).tocsr()
+    return weights
+
+class SmoothnessDW(Smoothness):
+    def __init__(self, mesh, power=3):
+        weights = depth_weights(mesh, power)
+        fdmat = safe_dot(fd3d(mesh.shape), weights)
+        super(SmoothnessDW, self).__init__(fdmat)
+        self.mesh = mesh
+        self.power = power
+
+class DampingDW(Damping):
+    def __init__(self, mesh, power=3):
+        super(DampingDW, self).__init__(mesh.size)
+        self.mesh = mesh
+        self.power = power
+        weights = depth_weights(mesh, power)
+        self._cache = {}
+        self._cache['hessian'] = {'hash':'',
+                                  'array':2*safe_dot(weights.T, weights)}
+
+    def _get_hessian(self, p):
+        return self._cache['hessian']['array']
+
+    def _get_gradient(self, p):
+        if p is 'null':
+            grad = 0
+        else:
+            grad = safe_dot(self._cache['hessian']['array'], p)
+        return grad
+
+    def _get_value(self, p):
+        return 0.5*safe_dot(p.T, safe_dot(self._cache['hessian']['array'], p))
 
 class Gravity(Misfit):
     def __init__(self, x, y, z, data, mesh, field='gz'):
