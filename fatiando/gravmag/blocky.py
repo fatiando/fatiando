@@ -96,6 +96,7 @@ from ..utils import safe_dot
 from ..inversion.base import Misfit
 from ..inversion.regularization import Smoothness, Damping, fd3d
 from ..mesher import Prism, Tesseroid
+from ..constants import MEAN_EARTH_RADIUS
 
 
 def depth_weights(mesh, power):
@@ -140,13 +141,14 @@ class DampingDW(Damping):
         return 0.5*safe_dot(p.T, safe_dot(self._cache['hessian']['array'], p))
 
 class Gravity(Misfit):
-    def __init__(self, x, y, z, data, mesh, field='gz'):
+    def __init__(self, x, y, z, data, mesh, field='gz', footprint=None):
         super(Gravity, self).__init__(data=data,
             positional=dict(x=x, y=y, z=z),
             model={'mesh': mesh},
             nparams=mesh.size,
             islinear=True)
         self.kernel = None
+        self.celltype = mesh.celltype
         if mesh.celltype is Prism:
             self.kernel = getattr(prism_engine, field)
         elif mesh.celltype is Tesseroid:
@@ -157,6 +159,7 @@ class Gravity(Misfit):
         self.dnorm = numpy.linalg.norm(data)
         self.prop = 'density'
         self._effects = {}
+        self.footprint = footprint
 
     def _get_predicted(self, p):
         if self._cache['jacobian']['array'] is None:
@@ -174,10 +177,40 @@ class Gravity(Misfit):
         y = self.positional['y']
         z = self.positional['z']
         mesh = self.model['mesh']
-        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
-        for i, c in enumerate(mesh):
-            jac[:, i] = self.kernel(x, y, z, [c], dens=1)
-        return jac
+        shape = (self.ndata, self.nparams)
+        if self.footprint is None:
+            jac = numpy.empty(shape, dtype=float)
+            for i, c in enumerate(mesh):
+                jac[:, i] = self.kernel(x, y, z, [c], dens=1)
+            return jac
+        else:
+            jac = scipy.sparse.lil_matrix(shape, dtype=float)
+            for i, c in enumerate(mesh):
+                zone = self._horizontal_distance(c) <= self.footprint
+                n = zone.sum()
+                if n == 0:
+                    raise ValueError('footprint too small')
+                jac[zone, i] = self.kernel(
+                    x[zone], y[zone], z[zone], [c], dens=1).reshape((n, 1))
+            return jac.tocsr()
+
+    def _horizontal_distance(self, cell):
+        x = self.positional['x']
+        y = self.positional['y']
+        z = self.positional['z']
+        xp, yp, zp = cell.center()
+        if self.celltype is Prism:
+            distance = numpy.sqrt((x - xp)**2 + (y - yp)**2)
+        elif self.celltype is Tesseroid:
+            d2r = numpy.pi/180
+            radius = z.mean() + MEAN_EARTH_RADIUS
+            tlon, tlat = d2r*xp, d2r*yp
+            lon, lat = d2r*x, d2r*y
+            angle = numpy.arccos(
+                numpy.sin(lat)*numpy.sin(tlat) +
+                numpy.cos(lat)*numpy.cos(tlat)*numpy.cos(lon - tlon))
+            distance = radius*angle
+        return distance
 
     def shape_of_anomaly(self, p, **kwargs):
         if self._parents is None:
