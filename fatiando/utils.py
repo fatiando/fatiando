@@ -149,13 +149,10 @@ def safe_solve(matrix, vector):
 
     """
     if scipy.sparse.issparse(matrix) or scipy.sparse.issparse(vector):
-        estimate, status = scipy.sparse.linalg.cgs(matrix, vector)
-        if status >= 0:
-            return estimate
-        else:
-            raise ValueError('CGS exited with input error')
+        estimate = scipy.sparse.linalg.spsolve(matrix, vector)
     else:
-        return numpy.linalg.solve(matrix, vector)
+        estimate = numpy.linalg.solve(matrix, vector)
+    return estimate
 
 def safe_dot(a, b):
     """
