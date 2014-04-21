@@ -185,7 +185,7 @@ def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
     >>> # Pretty-print the array
     >>> import numpy as np
     >>> np.array_repr(cm, suppress_small=True, precision=6)
-    'array([-100.,   -0.,  100.])'
+    'array([-100.,    0.,  100.])'
 
     """
     if wmin is None:
