@@ -528,7 +528,7 @@ def _find_index(point, mesh):
             k = bisect.bisect_left(zs, z) - 1
         else:
             # If z is not positive downward, zs will not be sorted
-            k = len(zs) - bisect.bisect_left(zs[::-1], z)
+            k = len(zs) - bisect.bisect_left(zs[::-1], z) - 1
         j = bisect.bisect_left(ys, y) - 1
         i = bisect.bisect_left(xs, x) - 1
         seed = i + j*nx + k*nx*ny
