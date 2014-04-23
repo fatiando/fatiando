@@ -28,7 +28,7 @@ mpl.show()
 
 # Inversion setup
 mesh = TesseroidMesh(bounds, (15, 40, 80))
-seeds = sow([[0, 47.5, -1500, {'density':300}]], mesh)
+seeds = sow([[0, 47.5, -1000, {'density':300}]], mesh)
 solver = Gravity(lon, lat, height, gz, mesh).config(
     'planting', seeds=seeds, compactness=0.1, threshold=0.0001).fit()
 mesh.addprop('density', solver.estimate_)
