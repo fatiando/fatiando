@@ -36,6 +36,10 @@ Components of the magnetic induction:
 * :func:`~fatiando.gravmag.prism.kernelyz`
 * :func:`~fatiando.gravmag.prism.kernelzz`
 
+.. note:: All input units are SI. Output is in conventional units: SI for the
+    gravitatonal potential, mGal for gravity, Eotvos for gravity gradients, nT
+    for magnetic data.
+
 **References**
 
 Forsberg, R., 1984, A study of terrain corrections, density anomalies, and 
@@ -724,21 +728,17 @@ def _integral_v6(X1, X2, Y1, Y2, Z1, Z2):
 
 def kernelxx(xp, yp, zp, prism):
     """
-    Calculates the :math:`g_{xx}` gravity gradient tensor component.
+    Calculates the :math:`V_1` integral.
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
-
-    .. note:: All input values in SI units and output in Eotvos!
 
     Parameters:
 
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`fatiando.mesher.PolygonalPrism`
+    * prisms : object of :class:`fatiando.mesher.Prism`
         The model used to calculate the field.
-        Prisms must have the physical property ``'density'`` will be
-        ignored.
 
     Returns:
 
@@ -749,18 +749,19 @@ def kernelxx(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    for prism in prisms:
-        if prism is None or 'density' not in prism.props:
-            continue
-        density = prism.props['density']
-        nverts = prism.nverts
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        # Calculate the effect of the prism
-        Z1 = z1 - zp
-        Z2 = z2 - zp
-        for k in range(nverts):
-            res += density*_integral_v1(x[k] - xp, x[(k + 1)%nverts] - xp,
-                y[k] - yp, y[(k + 1)%nverts] - yp, Z1, Z2)
-    res *= G*SI2EOTVOS
+    if prism is None:
+        continue
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    
+
+
     return res
