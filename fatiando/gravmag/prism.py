@@ -93,7 +93,7 @@ doi: 10.1007/s001900000116.
 
 """
 
-from __future__ import division
+#from __future__ import division
 
 import numpy
 
@@ -114,7 +114,7 @@ except:
     gyz = not_implemented
     gzz = not_implemented
     tf = not_implemented
-
+    
 def kernelxx(xp, yp, zp, prism):
     """
     Calculates the :math:`V_1` integral.
