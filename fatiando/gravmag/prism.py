@@ -138,8 +138,6 @@ def kernelxx(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -192,8 +190,6 @@ def kernelyy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -246,8 +242,6 @@ def kernelzz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -300,8 +294,6 @@ def kernelxy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -354,8 +346,6 @@ def kernelxz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -408,8 +398,6 @@ def kernelyz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype='f')
-    if prism is None:
-        continue
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
