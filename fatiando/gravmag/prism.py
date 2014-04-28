@@ -188,7 +188,7 @@ def by(xp, yp, zp, prisms):
         v2 = kernelxy(xp, yp, zp, prism)
         v4 = kernelyy(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
-        bx += (v2*mx + v4*my + v5*mz)
+        by += (v2*mx + v4*my + v5*mz)
     by *= CM*T2NT
     return by
 
@@ -225,7 +225,7 @@ def bz(xp, yp, zp, prisms):
         v3 = kernelxz(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
         v6 = kernelzz(xp, yp, zp, prism)
-        bx += (v3*mx + v5*my + v6*mz)
+        bz += (v3*mx + v5*my + v6*mz)
     bz *= CM*T2NT
     return bz
 
