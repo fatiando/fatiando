@@ -133,6 +133,34 @@ def kernelxx(xp, yp, zp, prism):
 
     * res : array
         The effect calculated on the computation points.
+    
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kxx = kernelxx(xp, yp, zp, model)
+    >>> for k in kxx: print '%10.5f' % k
+       0.01688
+      -0.06776
+      -0.06776
+       0.01688
+       0.14316
+      -0.03364
+      -0.03364
+       0.14316
+       0.01688
+      -0.06776
+      -0.06776
+       0.01688
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -186,6 +214,34 @@ def kernelyy(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kyy = kernelyy(xp, yp, zp, model)
+    >>> for k in kyy: print '%10.5f' % k
+       0.01283
+       0.11532
+       0.11532
+       0.01283
+      -0.09243
+      -0.53592
+      -0.53592
+      -0.09243
+       0.01283
+       0.11532
+       0.11532
+       0.01283
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -237,6 +293,34 @@ def kernelzz(xp, yp, zp, prism):
 
     * res : array
         The effect calculated on the computation points.
+
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kzz = kernelzz(xp, yp, zp, model)
+    >>> for k in kzz: print '%10.5f' % k
+      -0.02971
+      -0.04755
+      -0.04755
+      -0.02971
+      -0.05072
+       0.56956
+       0.56956
+      -0.05072
+      -0.02971
+      -0.04755
+      -0.04755
+      -0.02971
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -290,6 +374,34 @@ def kernelxy(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kxy = kernelxy(xp, yp, zp, model)
+    >>> for k in kxy: print '%10.5f' % k
+       0.05550
+       0.07324
+      -0.07324
+      -0.05550
+      -0.00000
+      -0.00000
+       0.00000
+       0.00000
+      -0.05550
+      -0.07324
+       0.07324
+       0.05550
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -304,6 +416,7 @@ def kernelxy(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -312,14 +425,14 @@ def kernelxy(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Z1 + R111))
-    res +=  numpy.log((Z2 + R112))
-    res +=  numpy.log((Z1 + R121))
-    res += -numpy.log((Z2 + R122))
-    res +=  numpy.log((Z1 + R211))
-    res += -numpy.log((Z2 + R212))
-    res += -numpy.log((Z1 + R221))
-    res +=  numpy.log((Z2 + R222))
+    res += -numpy.log((Z1 + R111) + dummy)
+    res +=  numpy.log((Z2 + R112) + dummy)
+    res +=  numpy.log((Z1 + R121) + dummy)
+    res += -numpy.log((Z2 + R122) + dummy)
+    res +=  numpy.log((Z1 + R211) + dummy)
+    res += -numpy.log((Z2 + R212) + dummy)
+    res += -numpy.log((Z1 + R221) + dummy)
+    res +=  numpy.log((Z2 + R222) + dummy)
 
     return -res
 
@@ -342,6 +455,34 @@ def kernelxz(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kxz = kernelxz(xp, yp, zp, model)
+    >>> for k in kxz: print '%10.5f' % k
+       0.02578
+       0.03466
+      -0.03466
+      -0.02578
+       0.10661
+       0.94406
+      -0.94406
+      -0.10661
+       0.02578
+       0.03466
+      -0.03466
+      -0.02578
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -356,6 +497,7 @@ def kernelxz(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -364,14 +506,14 @@ def kernelxz(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Y1 + R111))
-    res +=  numpy.log((Y1 + R112))
-    res +=  numpy.log((Y2 + R121))
-    res += -numpy.log((Y2 + R122))
-    res +=  numpy.log((Y1 + R211))
-    res += -numpy.log((Y1 + R212))
-    res += -numpy.log((Y2 + R221))
-    res +=  numpy.log((Y2 + R222))
+    res += -numpy.log((Y1 + R111) + dummy)
+    res +=  numpy.log((Y1 + R112) + dummy)
+    res +=  numpy.log((Y2 + R121) + dummy)
+    res += -numpy.log((Y2 + R122) + dummy)
+    res +=  numpy.log((Y1 + R211) + dummy)
+    res += -numpy.log((Y1 + R212) + dummy)
+    res += -numpy.log((Y2 + R221) + dummy)
+    res +=  numpy.log((Y2 + R222) + dummy)
 
     return -res
 
@@ -394,6 +536,34 @@ def kernelyz(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    Example:
+    
+    >>> from fatiando import gridder
+    >>> from fatiando.mesher import Prism
+    >>> from fatiando.gravmag import prism
+    >>> #Create a model
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    ...                                             {'density':1.})
+    >>> # Create a regular grid at 100m height
+    >>> shape = (3, 4)
+    >>> area = [-900, 900, -900, 900]
+    >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
+    >>> # Calculate the function
+    >>> kyz = kernelyz(xp, yp, zp, model)
+    >>> for k in kyz: print '%10.5f' % k
+       0.02463
+       0.09778
+       0.09778
+       0.02463
+      -0.00000
+       0.00000
+      -0.00000
+      -0.00000
+      -0.02463
+      -0.09778
+      -0.09778
+      -0.02463
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -408,6 +578,7 @@ def kernelyz(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -416,13 +587,13 @@ def kernelyz(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((X1 + R111))
-    res +=  numpy.log((X1 + R112))
-    res +=  numpy.log((X1 + R121))
-    res += -numpy.log((X1 + R122))
-    res +=  numpy.log((X2 + R211))
-    res += -numpy.log((X2 + R212))
-    res += -numpy.log((X2 + R221))
-    res +=  numpy.log((X2 + R222))
+    res += -numpy.log((X1 + R111) + dummy)
+    res +=  numpy.log((X1 + R112) + dummy)
+    res +=  numpy.log((X1 + R121) + dummy)
+    res += -numpy.log((X1 + R122) + dummy)
+    res +=  numpy.log((X2 + R211) + dummy)
+    res += -numpy.log((X2 + R212) + dummy)
+    res += -numpy.log((X2 + R221) + dummy)
+    res +=  numpy.log((X2 + R222) + dummy)
 
     return -res
