@@ -1400,6 +1400,64 @@ class TesseroidMesh(PrismMesh):
 
     Examples:
 
+        >>> from fatiando.mesher import TesseroidMesh
+        >>> mesh = TesseroidMesh((0, 1, 0, 2, 3, 0), (1, 2, 2))
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:0.5 | s:0 | n:1 | top:3 | bottom:0
+        w:0.5 | e:1 | s:0 | n:1 | top:3 | bottom:0
+        w:0 | e:0.5 | s:1 | n:2 | top:3 | bottom:0
+        w:0.5 | e:1 | s:1 | n:2 | top:3 | bottom:0
+        >>> print mesh[0]
+        w:0 | e:0.5 | s:0 | n:1 | top:3 | bottom:0
+        >>> print mesh[-1]
+        w:0.5 | e:1 | s:1 | n:2 | top:3 | bottom:0
+
+    One with physical properties::
+
+        >>> props = {'density':[2670.0, 1000.0]}
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2), props=props)
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:1 | s:0 | n:4 | top:3 | bottom:0 | density:2670
+        w:1 | e:2 | s:0 | n:4 | top:3 | bottom:0 | density:1000
+
+    or equivalently::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2))
+        >>> mesh.addprop('density', [200, -1000.0])
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:1 | s:0 | n:4 | top:3 | bottom:0 | density:200
+        w:1 | e:2 | s:0 | n:4 | top:3 | bottom:0 | density:-1000
+
+    You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
+    methods for y and z) to get the x coordinates of the tesseroidss in the
+    mesh::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2))
+        >>> print mesh.get_xs()
+        [ 0.  1.  2.]
+        >>> print mesh.get_ys()
+        [ 0.  4.]
+        >>> print mesh.get_zs()
+        [ 3.  0.]
+
+    You can iterate over the layers of the mesh::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 2, 2, 0), (2, 2, 2))
+        >>> for layer in mesh.layers():
+        ...     for p in layer:
+        ...         print p
+        w:0 | e:1 | s:0 | n:1 | top:2 | bottom:1
+        w:1 | e:2 | s:0 | n:1 | top:2 | bottom:1
+        w:0 | e:1 | s:1 | n:2 | top:2 | bottom:1
+        w:1 | e:2 | s:1 | n:2 | top:2 | bottom:1
+        w:0 | e:1 | s:0 | n:1 | top:1 | bottom:0
+        w:1 | e:2 | s:0 | n:1 | top:1 | bottom:0
+        w:0 | e:1 | s:1 | n:2 | top:1 | bottom:0
+        w:1 | e:2 | s:1 | n:2 | top:1 | bottom:0
+
     The ``shape`` of the mesh must be integer!
 
         >>> mesh = TesseroidMesh((0, 2, 0, 4, 0, 3), (1, 1, 2.5))
