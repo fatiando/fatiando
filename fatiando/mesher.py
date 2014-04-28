@@ -1053,6 +1053,13 @@ class PrismMesh(object):
         >>> print mesh.get_zs()
         [ 0.  3.]
 
+    The ``shape`` of the mesh must be integer!
+
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2.5))
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid mesh shape (1, 1, 2.5). shape must be integers
+
     """
 
     celltype = Prism
@@ -1060,6 +1067,11 @@ class PrismMesh(object):
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         nz, ny, nx = shape
+        if (not isinstance(nx, int) or not isinstance(ny, int)
+            or not isinstance(nz, int)):
+            raise AttributeError(
+                'Invalid mesh shape {}. shape must be integers'.format(
+                    str(shape)))
         size = int(nx*ny*nz)
         x1, x2, y1, y2, z1, z2 = bounds
         dx = float(x2 - x1)/nx
@@ -1385,6 +1397,15 @@ class TesseroidMesh(PrismMesh):
         Each key should be the name of a physical property. The corresponding
         value should be a list with the values of that particular property on
         each tesseroid of the mesh.
+
+    Examples:
+
+    The ``shape`` of the mesh must be integer!
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 0, 3), (1, 1, 2.5))
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid mesh shape (1, 1, 2.5). shape must be integers
 
     """
 
