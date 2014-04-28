@@ -10,7 +10,7 @@ Calculate the potential fields of the 3D right rectangular prism.
 
 **Gravity**
 
-The gravitational fields are calculated using the forumla of Nagy et al.
+The gravitational fields are calculated using the formula of Nagy et al.
 (2000). Available functions are:
 :func:`~fatiando.gravmag.prism.potential`,
 :func:`~fatiando.gravmag.prism.gx`,
@@ -97,6 +97,8 @@ doi: 10.1007/s001900000116.
 
 import numpy
 
+from fatiando.constants import G, SI2EOTVOS, CM, T2NT
+
 try:
     from fatiando.gravmag._prism import *
 except:
@@ -114,7 +116,119 @@ except:
     gyz = not_implemented
     gzz = not_implemented
     tf = not_implemented
-    
+
+
+def bx(xp, yp, zp, prisms):
+    """
+    Calculates the x component of the magnetic induction produced by
+    rectangular prisms.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.Prism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bx: array
+        The x component of the magnetic induction
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bx = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        bx += (v1*mx + v2*my + v3*mz)
+    bx *= CM*T2NT
+    return bx
+
+def by(xp, yp, zp, prisms):
+    """
+    Calculates the y component of the magnetic induction produced by
+    rectangular prisms.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.Prism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * by: array
+        The y component of the magnetic induction
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    by = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v2 = kernelxy(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        bx += (v2*mx + v4*my + v5*mz)
+    by *= CM*T2NT
+    return by
+
+def bz(xp, yp, zp, prisms):
+    """
+    Calculates the z component of the magnetic induction produced by
+    rectangular prisms.
+
+    .. note:: Input units are SI. Output is in nT
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        The x, y, and z coordinates where the anomaly will be calculated
+    * prisms : list of :class:`fatiando.mesher.Prism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. The ``'magnetization'`` must be a vector.
+
+    Returns:
+
+    * bz: array
+        The z component of the magnetic induction
+
+    """
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bz = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v3 = kernelxz(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        bx += (v3*mx + v5*my + v6*mz)
+    bz *= CM*T2NT
+    return bz
+
 def kernelxx(xp, yp, zp, prism):
     """
     Calculates the :math:`V_1` integral.
