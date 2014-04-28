@@ -1012,7 +1012,7 @@ class PrismMesh(object):
     Examples:
 
         >>> from fatiando.mesher import PrismMesh
-        >>> mesh = PrismMesh((0,1,0,2,0,3),(1,2,2))
+        >>> mesh = PrismMesh((0, 1, 0, 2, 0, 3), (1, 2, 2))
         >>> for p in mesh:
         ...     print p
         x1:0 | x2:0.5 | y1:0 | y2:1 | z1:0 | z2:3
@@ -1032,6 +1032,15 @@ class PrismMesh(object):
         ...     print p
         x1:0 | x2:1 | y1:0 | y2:4 | z1:0 | z2:3 | density:2670
         x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
+
+    or equivalently::
+
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
+        >>> mesh.addprop('density', [200, -1000.0])
+        >>> for p in mesh:
+        ...     print p
+        x1:0 | x2:1 | y1:0 | y2:4 | z1:0 | z2:3 | density:200
+        x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:-1000
 
     You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
     methods for y and z) to get the x coordinates of the prisms in the mesh::
@@ -1259,6 +1268,22 @@ class PrismMesh(object):
     def layers(self):
         """
         Returns an iterator over the layers of the mesh.
+
+        Examples::
+
+            >>> mesh = PrismMesh((0, 2, 0, 2, 0, 2), (2, 2, 2))
+            >>> for layer in mesh.layers():
+            ...     for p in layer:
+            ...         print p
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:0 | z2:1
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:1 | z2:2
+
         """
         nz, ny, nx = self.shape
         for i in xrange(nz):
