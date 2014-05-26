@@ -5,7 +5,7 @@ prisms.
 """
 import numpy
 
-from libc.math cimport log, atan2, sqrt
+from libc.math cimport log, atan2, sqrt, isnan
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
@@ -19,6 +19,12 @@ from fatiando import utils
 __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
+cdef double arctan2(double y, double x):
+    if y >= 0 and x < 0:
+        return atan2(y, x) - numpy.pi
+    if y < 0 and x < 0:
+        return atan2(y, x) + numpy.pi
+    return atan2(y, x)
 
 def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
        numpy.ndarray[DTYPE_T, ndim=1] yp not None,
@@ -115,9 +121,9 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                               0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
                             + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
                             - (mx*fy + my*fx)*log(r + z[k])
-                            - mx*fx*atan2(x[i]*y[j], x[i]**2 + z[k]*r + z[k]**2)
-                            - my*fy*atan2(x[i]*y[j], r_sqr + z[k]*r - x[i]**2)
-                            + mz*fz*atan2(x[i]*y[j], z[k]*r))
+                            - mx*fx*arctan2(x[i]*y[j], x[i]**2 + z[k]*r + z[k]**2)
+                            - my*fy*arctan2(x[i]*y[j], r_sqr + z[k]*r - x[i]**2)
+                            + mz*fz*arctan2(x[i]*y[j], z[k]*r))
     res *= CM*T2NT
     return res
 
@@ -188,13 +194,14 @@ def potential(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                 for j in range(2):
                     for i in range(2):
                         r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                        kernel = (x[i]*y[j]*log(z[k] + r)
-                                  + y[j]*z[k]*log(x[i] + r)
-                                  + x[i]*z[k]*log(y[j] + r)
-                                  - 0.5*x[i]**2*atan2(z[k]*y[j], x[i]*r)
-                                  - 0.5*y[j]**2*atan2(z[k]*x[i], y[j]*r)
-                                  - 0.5*z[k]**2*atan2(x[i]*y[j], z[k]*r))
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+                        tmp = [x[i]*y[j]*log(z[k] + r),
+                                  y[j]*z[k]*log(x[i] + r),
+                                  x[i]*z[k]*log(y[j] + r),
+                                  -0.5*x[i]**2*arctan2(z[k]*y[j], x[i]*r),
+                                  -0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r),
+                                  -0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r)]
+                        kernel = sum(v for v in tmp if not isnan(v))
+                        res[l] += ((-1.)**(i + j + k))*density*kernel
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
     return res
@@ -267,7 +274,7 @@ def gx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                         # gradient of the potential. Gravity is -grad(V)
                         kernel = -(y[j]*log(z[k] + r)
                                    + z[k]*log(y[j] + r)
-                                   - x[i]*atan2(z[k]*y[j], x[i]*r))
+                                   - x[i]*arctan2(z[k]*y[j], x[i]*r))
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -342,7 +349,7 @@ def gy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                         # gradient of the potential. Gravity is -grad(V)
                         kernel = -(z[k]*log(x[i] + r)
                                    + x[i]*log(z[k] + r)
-                                   - y[j]*atan2(x[i]*z[k], y[j]*r))
+                                   - y[j]*arctan2(x[i]*z[k], y[j]*r))
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -417,7 +424,7 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                         # gradient of the potential. Gravity is -grad(V)
                         kernel = -(x[i]*log(y[j] + r)
                                    + y[j]*log(x[i] + r)
-                                   - z[k]*atan2(x[i]*y[j], z[k]*r))
+                                   - z[k]*arctan2(x[i]*y[j], z[k]*r))
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -488,7 +495,7 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                 for j in range(2):
                     for i in range(2):
                         r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                        kernel = -atan2(z[k]*y[j], x[i]*r)
+                        kernel = -arctan2(z[k]*y[j], x[i]*r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -701,7 +708,7 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                 for j in range(2):
                     for i in range(2):
                         r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                        kernel = -atan2(z[k]*x[i], y[j]*r)
+                        kernel = -arctan2(z[k]*x[i], y[j]*r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -843,7 +850,7 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                 for j in range(2):
                     for i in range(2):
                         r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                        kernel = -atan2(x[i]*y[j], z[k]*r)
+                        kernel = -arctan2(x[i]*y[j], z[k]*r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units

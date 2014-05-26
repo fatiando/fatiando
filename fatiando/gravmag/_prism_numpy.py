@@ -3,7 +3,7 @@ This is a Python + Numpy implementation of the potential field effects of
 right rectangular prisms.
 """
 import numpy
-from numpy import sqrt, log, arctan2
+from numpy import sqrt, log, pi
 
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from fatiando import utils
@@ -11,6 +11,11 @@ from fatiando import utils
 __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
+def arctan2(y, x):
+    result = numpy.arctan2(y, x)
+    result[(x < 0) & (y >= 0)] -= pi
+    result[(x < 0) & (y < 0)] += pi
+    return result
 
 def potential(xp, yp, zp, prisms, dens=None):
     """
