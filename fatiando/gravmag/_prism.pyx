@@ -20,7 +20,9 @@ __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
 cdef double arctan2(double y, double x):
-    if y >= 0 and x < 0:
+    if y == 0:
+        return 0
+    if y > 0 and x < 0:
         return atan2(y, x) - numpy.pi
     if y < 0 and x < 0:
         return atan2(y, x) + numpy.pi

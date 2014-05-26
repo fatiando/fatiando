@@ -12,10 +12,11 @@ __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
 def arctan2(y, x):
-    result = numpy.arctan2(y, x)
-    result[(x < 0) & (y >= 0)] -= pi
-    result[(x < 0) & (y < 0)] += pi
-    return result
+    res = numpy.arctan2(y, x)
+    res[y == 0] = 0
+    res[(y > 0) & (x < 0)] -= numpy.pi
+    res[(y < 0) & (x < 0)] += numpy.pi
+    return res
 
 def potential(xp, yp, zp, prisms, dens=None):
     """
@@ -52,6 +53,8 @@ def potential(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
+    buff = numpy.empty_like(xp)
+    kernel = numpy.empty_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
             continue
@@ -69,12 +72,19 @@ def potential(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = (x[i]*y[j]*log(z[k] + r)
-                              + y[j]*z[k]*log(x[i] + r)
-                              + x[i]*z[k]*log(y[j] + r)
-                              - 0.5*x[i]**2*arctan2(z[k]*y[j], x[i]*r)
-                              - 0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r)
-                              - 0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r))
+                    kernel[:] = 0
+                    buff = z[k] + r
+                    where = buff != 0
+                    kernel[where] += x[i][where]*y[j][where]*log(buff[where])
+                    buff = x[i] + r
+                    where = buff != 0
+                    kernel[where] += y[j][where]*z[k][where]*log(buff[where])
+                    buff = y[j] + r
+                    where = buff != 0
+                    kernel[where] += x[i][where]*z[k][where]*log(buff[where])
+                    kernel += -0.5*x[i]**2*arctan2(z[k]*y[j], x[i]*r)
+                    kernel += -0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r)
+                    kernel += -0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
