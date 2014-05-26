@@ -3,7 +3,7 @@ This is a Python + Numpy implementation of the potential field effects of
 right rectangular prisms.
 """
 import numpy
-from numpy import sqrt, log, pi
+from numpy import sqrt, log, pi, arctan2
 
 from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from fatiando import utils
@@ -11,11 +11,24 @@ from fatiando import utils
 __all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
     'gzz', 'tf']
 
-def arctan2(y, x):
-    res = numpy.arctan2(y, x)
+def safe_arctan2(y, x):
+    """
+    Correct the value of the angle returned by arctan2 to match the sign of the
+    tangent. Also return 0 instead of 2Pi for 0 tangent.
+    """
+    res = arctan2(y, x)
     res[y == 0] = 0
-    res[(y > 0) & (x < 0)] -= numpy.pi
-    res[(y < 0) & (x < 0)] += numpy.pi
+    res[(y > 0) & (x < 0)] -= pi
+    res[(y < 0) & (x < 0)] += pi
+    return res
+
+def safe_log(x):
+    """
+    Return 0 for log(0) because the limits in the formula terms tend to 0
+    (see Nagy et al., 2000)
+    """
+    res = log(x)
+    res[x == 0] = 0
     return res
 
 def potential(xp, yp, zp, prisms, dens=None):
@@ -53,8 +66,6 @@ def potential(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
-    buff = numpy.empty_like(xp)
-    kernel = numpy.empty_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
             continue
@@ -72,19 +83,12 @@ def potential(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel[:] = 0
-                    buff = z[k] + r
-                    where = buff != 0
-                    kernel[where] += x[i][where]*y[j][where]*log(buff[where])
-                    buff = x[i] + r
-                    where = buff != 0
-                    kernel[where] += y[j][where]*z[k][where]*log(buff[where])
-                    buff = y[j] + r
-                    where = buff != 0
-                    kernel[where] += x[i][where]*z[k][where]*log(buff[where])
-                    kernel += -0.5*x[i]**2*arctan2(z[k]*y[j], x[i]*r)
-                    kernel += -0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r)
-                    kernel += -0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r)
+                    kernel = (x[i]*y[j]*safe_log(z[k] + r)
+                        + y[j]*z[k]*safe_log(x[i] + r)
+                        + x[i]*z[k]*safe_log(y[j] + r)
+                        - 0.5*x[i]**2*safe_arctan2(z[k]*y[j], x[i]*r)
+                        - 0.5*y[j]**2*safe_arctan2(z[k]*x[i], y[j]*r)
+                        - 0.5*z[k]**2*safe_arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
@@ -144,9 +148,9 @@ def gx(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(y[j]*log(z[k] + r)
-                               + z[k]*log(y[j] + r)
-                               - x[i]*arctan2(z[k]*y[j], x[i]*r))
+                    kernel = -(y[j]*safe_log(z[k] + r)
+                               + z[k]*safe_log(y[j] + r)
+                               - x[i]*safe_arctan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -207,9 +211,9 @@ def gy(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(z[k]*log(x[i] + r)
-                               + x[i]*log(z[k] + r)
-                               - y[j]*arctan2(x[i]*z[k], y[j]*r))
+                    kernel = -(z[k]*safe_log(x[i] + r)
+                               + x[i]*safe_log(z[k] + r)
+                               - y[j]*safe_arctan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -270,9 +274,9 @@ def gz(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(x[i]*log(y[j] + r)
-                               + y[j]*log(x[i] + r)
-                               - z[k]*arctan2(x[i]*y[j], z[k]*r))
+                    kernel = -(x[i]*safe_log(y[j] + r)
+                               + y[j]*safe_log(x[i] + r)
+                               - z[k]*safe_arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -331,7 +335,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(z[k]*y[j], x[i]*r)
+                    kernel = -safe_arctan2(z[k]*y[j], x[i]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -390,7 +394,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(z[k] + r)
+                    kernel = safe_log(z[k] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -449,7 +453,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(y[j] + r)
+                    kernel = safe_log(y[j] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -508,7 +512,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(z[k]*x[i], y[j]*r)
+                    kernel = -safe_arctan2(z[k]*x[i], y[j]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -567,7 +571,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(x[i] + r)
+                    kernel = safe_log(x[i] + r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -626,7 +630,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(x[i]*y[j], z[k]*r)
+                    kernel = -safe_arctan2(x[i]*y[j], z[k]*r)
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
@@ -710,13 +714,14 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
                     r_sqr = x_sqr + y_sqr + z_sqr
                     r = sqrt(r_sqr)
                     zr = z[k]*r
-                    res += ((-1.)**(i + j))*intensity*(
-                          0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
-                        + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
-                        - (mx*fy + my*fx)*log(r + z[k])
-                        - mx*fx*arctan2(xy, x_sqr + zr + z_sqr)
-                        - my*fy*arctan2(xy, r_sqr + zr - x_sqr)
-                        + mz*fz*arctan2(xy, zr))
+                    kernel = (
+                        0.5*(my*fz + mz*fy)*safe_log((r - x[i])/(r + x[i]))
+                        + 0.5*(mx*fz + mz*fx)*safe_log((r - y[j])/(r + y[j]))
+                        - (mx*fy + my*fx)*safe_log(r + z[k])
+                        - mx*fx*safe_arctan2(xy, x_sqr + zr + z_sqr)
+                        - my*fy*safe_arctan2(xy, r_sqr + zr - x_sqr)
+                        + mz*fz*safe_arctan2(xy, zr))
+                    res += ((-1.)**(i + j))*intensity*kernel
     res *= CM*T2NT
     return res
 
