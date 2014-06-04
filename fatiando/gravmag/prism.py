@@ -12,75 +12,23 @@ Calculate the potential fields of the 3D right rectangular prism.
 
 The gravitational fields are calculated using the formula of Nagy et al.
 (2000). Available functions are:
-:func:`~fatiando.gravmag.prism.potential`,
-:func:`~fatiando.gravmag.prism.gx`,
-:func:`~fatiando.gravmag.prism.gy`,
-:func:`~fatiando.gravmag.prism.gz`,
-:func:`~fatiando.gravmag.prism.gxx`,
-:func:`~fatiando.gravmag.prism.gxy`,
-:func:`~fatiando.gravmag.prism.gxz`,
-:func:`~fatiando.gravmag.prism.gyy`,
-:func:`~fatiando.gravmag.prism.gyz`,
-:func:`~fatiando.gravmag.prism.gzz`,
 
-All functions have the following call signature:
-
-*fatiando.gravmag.prism.potential(xp, yp, zp, prisms, dens=None)*
-
-Parameters:
-
-* xp, yp, zp : arrays
-    Arrays with the x, y, and z coordinates of the computation points.
-* prisms : list of :class:`~fatiando.mesher.Prism`
-    The density model used to calculate the gravitational effect.
-    Prisms must have the property ``'density'``. Prisms that don't have this
-    property will be ignored in the computations. Elements of *prisms* that
-    are None will also be ignored. *prisms* can also be a
-    :class:`fatiando.mesher.PrismMesh`.
-* dens : float or None
-    If not None, will use this value instead of the ``'density'`` property
-    of the prisms. Use this, e.g., for sensitivity matrix building.
-
-    .. warning:: Uses this value for **all** prisms! Not only the ones that
-        have ``'density'`` as a property.
-
-Returns:
-
-* res : array
-    The field calculated on xp, yp, zp
+* :func:`~fatiando.gravmag.prism.potential`
+* :func:`~fatiando.gravmag.prism.gx`
+* :func:`~fatiando.gravmag.prism.gy`
+* :func:`~fatiando.gravmag.prism.gz`
+* :func:`~fatiando.gravmag.prism.gxx`
+* :func:`~fatiando.gravmag.prism.gxy`
+* :func:`~fatiando.gravmag.prism.gxz`
+* :func:`~fatiando.gravmag.prism.gyy`
+* :func:`~fatiando.gravmag.prism.gyz`
+* :func:`~fatiando.gravmag.prism.gzz`
 
 
 **Magnetic**
 
 The Total Field anomaly is calculated using the formula of Bhattacharyya (1964)
 in function :func:`~fatiando.gravmag.prism.tf`.
-
-The call signature is:
-
-*fatiando.gravmag.prism.tf(xp, yp, zp, prisms, inc, dec, pmag=None)*
-
-Parameters:
-
-* xp, yp, zp : arrays
-    Arrays with the x, y, and z coordinates of the computation points.
-* prisms : list of :class:`~fatiando.mesher.Prism`
-    The model used to calculate the total field anomaly.
-    Prisms without the physical property ``'magnetization'`` will
-    be ignored. *prisms* can also be a :class:`fatiando.mesher.PrismMesh`.
-* inc : float
-    The inclination of the regional field (in degrees)
-* dec : float
-    The declination of the regional field (in degrees)
-* pmag : [mx, my, mz] or None
-    A magnetization vector. If not None, will use this value instead of the
-    ``'magnetization'`` property of the prisms. Use this, e.g., for
-    sensitivity matrix building.
-
-Returns:
-
-* res : array
-    The field calculated on xp, yp, zp
-
 
 **References**
 
@@ -92,8 +40,7 @@ derivatives for the prism: Journal of Geodesy, 74, 552--560,
 doi: 10.1007/s001900000116.
 
 """
-
-#from __future__ import division
+from __future__ import division
 
 import numpy
 
@@ -247,14 +194,14 @@ def kernelxx(xp, yp, zp, prism):
 
     * res : array
         The effect calculated on the computation points.
-    
+
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
@@ -329,12 +276,12 @@ def kernelyy(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
@@ -409,12 +356,12 @@ def kernelzz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
@@ -489,12 +436,12 @@ def kernelxy(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
@@ -570,12 +517,12 @@ def kernelxz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
@@ -651,12 +598,12 @@ def kernelyz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     Example:
-    
+
     >>> from fatiando import gridder
     >>> from fatiando.mesher import Prism
     >>> from fatiando.gravmag import prism
     >>> #Create a model
-    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0, 
+    >>> model = Prism(-200.0, 200.0, -300.0, 300.0, 100.0, 500.0,
     ...                                             {'density':1.})
     >>> # Create a regular grid at 100m height
     >>> shape = (3, 4)
