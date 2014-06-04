@@ -7,9 +7,12 @@ Calculates the magnetic effect produced by an sphere. The functions are
 based on Blakely (1995).
 
 * :func:`~fatiando.gravmag.sphere.tf`: calculates the total-field anomaly
-* :func:`~fatiando.gravmag.sphere.bx`: calculates the x component of the induction
-* :func:`~fatiando.gravmag.sphere.by`: calculates the y component of the induction
-* :func:`~fatiando.gravmag.sphere.bz`: calculates the z component of the induction
+* :func:`~fatiando.gravmag.sphere.bx`: calculates the x component of the
+  induction
+* :func:`~fatiando.gravmag.sphere.by`: calculates the y component of the
+  induction
+* :func:`~fatiando.gravmag.sphere.bz`: calculates the z component of the
+  induction
 
 Remember that:
 
@@ -64,17 +67,18 @@ Calculates the second derivatives of the function
 
     \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
 
-with respect to the variables :math:`x`, :math:`y`, and :math:`z`. In 
+with respect to the variables :math:`x`, :math:`y`, and :math:`z`. In
 this equation,
 
 .. math::
 
     r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2},
-    
-and :math:`R` is the radius of a sphere with centre at the Cartesian coordinates
-:math:`\nu`, :math:`\eta` and :math:`\zeta`. These second derivatives are
-used to calculate the total field anomaly and the gravity gradient tensor
-components produced by a sphere.
+
+and :math:`R` is the radius of a sphere with centre at the Cartesian
+coordinates :math:`\nu`, :math:`\eta` and :math:`\zeta`.
+
+These second derivatives are used to calculate the total field magnetic anomaly
+and the gravity gradient tensor components.
 
 * :func:`~fatiando.gravmag.sphere.kernelxx`
 * :func:`~fatiando.gravmag.sphere.kernelxy`
@@ -91,7 +95,6 @@ Cambridge University Press.
 ----
 
 """
-
 from __future__ import division
 
 import numpy
@@ -129,9 +132,8 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The total-field anomaly
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag, utils
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder, utils
     >>> # Set the inclination and declination of the regional field
     >>> inc, dec = -30, 45
     >>> # Create a sphere model
@@ -140,13 +142,14 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     ...         mesher.Sphere(1000, 1000, 600, 500, {'magnetization':5}),
     ...         # and one with remanent
     ...         mesher.Sphere(-1000, -1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
     >>> # Create a regular grid at 100m height
     >>> shape = (4, 4)
     >>> area = (-3000, 3000, -3000, 3000)
     >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
     >>> # Calculate the anomaly for a given regional field
-    >>> for t in sphere.tf(xp, yp, zp, model, inc, dec): print '%15.8e' % t
+    >>> for t in tf(xp, yp, zp, model, inc, dec):
+    ...     print '%15.8e' % t
      2.72951375e+01
      3.63637351e+01
      5.35842876e+00
@@ -229,22 +232,22 @@ def bx(xp, yp, zp, spheres):
         The x component of the magnetic induction
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag, utils
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder, utils
     >>> # Create a model formed by two spheres
     >>> # The magnetization of each sphere is a vector
     >>> model = [
     ...         mesher.Sphere(1000, 1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...             {'magnetization':utils.ang2vec(13, -10, 28)}),
     ...         mesher.Sphere(-1000, -1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
     >>> # Create a regular grid at 100m height
     >>> shape = (4, 4)
     >>> area = (-3000, 3000, -3000, 3000)
     >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
     >>> # Calculate the bx component
-    >>> for b in sphere.bx(xp, yp, zp, model): print '%15.8e' % b
+    >>> for b in bx(xp, yp, zp, model):
+    ...     print '%15.8e' % b
      1.58002397e+01
     -1.76820799e+01
     -1.48049248e+01
@@ -300,22 +303,22 @@ def by(xp, yp, zp, spheres):
         The y component of the magnetic induction
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag, utils
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder, utils
     >>> # Create a model formed by two spheres
     >>> # The magnetization of each sphere is a vector
     >>> model = [
     ...         mesher.Sphere(1000, 1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...             {'magnetization':utils.ang2vec(13, -10, 28)}),
     ...         mesher.Sphere(-1000, -1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
     >>> # Create a regular grid at 100m height
     >>> shape = (4, 4)
     >>> area = (-3000, 3000, -3000, 3000)
     >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
     >>> # Calculate the by component
-    >>> for b in sphere.by(xp, yp, zp, model): print '%15.8e' % b
+    >>> for b in by(xp, yp, zp, model):
+    ...     print '%15.8e' % b
      2.51394441e+01
      5.71383698e+01
      7.46666729e+00
@@ -371,22 +374,22 @@ def bz(xp, yp, zp, spheres):
         The z component of the magnetic induction
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag, utils
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder, utils
     >>> # Create a model formed by two spheres
     >>> # The magnetization of each sphere is a vector
     >>> model = [
     ...         mesher.Sphere(1000, 1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(13, -10, 28)}),
+    ...             {'magnetization':utils.ang2vec(13, -10, 28)}),
     ...         mesher.Sphere(-1000, -1000, 600, 500,
-    ...         {'magnetization':utils.ang2vec(10, 70, -5)})]
+    ...             {'magnetization':utils.ang2vec(10, 70, -5)})]
     >>> # Create a regular grid at 100m height
     >>> shape = (4, 4)
     >>> area = (-3000, 3000, -3000, 3000)
     >>> xp, yp, zp = gridder.regular(area, shape, z=-100)
     >>> # Calculate the bz component
-    >>> for b in sphere.bz(xp, yp, zp, model): print '%15.8e' % b
+    >>> for b in bz(xp, yp, zp, model):
+    ...     print '%15.8e' % b
     -1.13152279e+01
     -3.24362266e+01
     -1.63235805e+01
@@ -491,19 +494,18 @@ def gxx(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
-    
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
     >>> shape = (4, 4)
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
-    >>> # Calculate the gxx component
-    >>> for g in gxx(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gxx(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
      1.71893959e-06
     -6.02473678e-06
     -6.02473678e-06
@@ -560,11 +562,10 @@ def gxy(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
-    
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
@@ -572,7 +573,8 @@ def gxy(xp, yp, zp, spheres, dens=None):
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the gxy component
-    >>> for g in gxy(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gxy(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
      5.30415646e-06
      7.47898359e-06
     -7.47898359e-06
@@ -629,11 +631,10 @@ def gxz(xp, yp, zp, spheres, dens=None):
 
     * res : array
         The field calculated on xp, yp, zp
-        
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
@@ -641,7 +642,8 @@ def gxz(xp, yp, zp, spheres, dens=None):
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the gxz component
-    >>> for g in gxz(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gxz(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
      8.84026077e-07
      1.24649726e-06
     -1.24649726e-06
@@ -700,9 +702,8 @@ def gyy(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
@@ -710,7 +711,8 @@ def gyy(xp, yp, zp, spheres, dens=None):
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the gyy component
-    >>> for g in gyy(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gyy(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
      1.71893959e-06
      1.39192195e-05
      1.39192195e-05
@@ -769,9 +771,8 @@ def gyz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
@@ -779,7 +780,8 @@ def gyz(xp, yp, zp, spheres, dens=None):
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the gyz component
-    >>> for g in gyz(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gyz(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
      8.84026077e-07
      3.73949179e-06
      3.73949179e-06
@@ -838,9 +840,8 @@ def gzz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = [mesher.Sphere(0, 0, 5, 1, {'density':1.})]
     >>> # Create a regular grid at 0m height
@@ -848,7 +849,8 @@ def gzz(xp, yp, zp, spheres, dens=None):
     >>> area = (-30, 30, -30, 30)
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the gzz component
-    >>> for g in gzz(xp, yp, zp, sphere): print '%15.8e' % g
+    >>> for g in gzz(xp, yp, zp, sphere):
+    ...     print '%15.8e' % g
     -3.43787919e-06
     -7.89448267e-06
     -7.89448267e-06
@@ -884,19 +886,19 @@ def gzz(xp, yp, zp, spheres, dens=None):
 def kernelxx(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial x^2},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -909,7 +911,7 @@ def kernelxx(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -917,12 +919,11 @@ def kernelxx(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -931,7 +932,8 @@ def kernelxx(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kxx = kernelxx(xp, yp, zp, sphere)
-    >>> for k in kxx: print '%15.8e' % k
+    >>> for k in kxx:
+    ...     print '%15.8e' % k
      2.57596223e-05
     -9.02852807e-05
     -9.02852807e-05
@@ -948,7 +950,7 @@ def kernelxx(xp, yp, zp, sphere):
     -9.02852807e-05
     -9.02852807e-05
      2.57596223e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -960,23 +962,23 @@ def kernelxx(xp, yp, zp, sphere):
     r_5 = r_2**(2.5)
     volume = 4.*numpy.pi*(radius**3)/3.
     return volume*(((3*dx**2) - r_2)/r_5)
-    
+
 def kernelxy(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial x \partial y},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -989,7 +991,7 @@ def kernelxy(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -997,12 +999,11 @@ def kernelxy(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -1011,7 +1012,8 @@ def kernelxy(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kxy = kernelxy(xp, yp, zp, sphere)
-    >>> for k in kxy: print '%15.8e' % k
+    >>> for k in kxy:
+    ...     print '%15.8e' % k
      7.94868344e-05
      1.12078279e-04
     -1.12078279e-04
@@ -1028,7 +1030,7 @@ def kernelxy(xp, yp, zp, sphere):
     -1.12078279e-04
      1.12078279e-04
      7.94868344e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -1044,19 +1046,19 @@ def kernelxy(xp, yp, zp, sphere):
 def kernelxz(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial x \partial z},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -1069,7 +1071,7 @@ def kernelxz(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -1077,12 +1079,11 @@ def kernelxz(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -1091,7 +1092,8 @@ def kernelxz(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kxz = kernelxz(xp, yp, zp, sphere)
-    >>> for k in kxz: print '%15.8e' % k
+    >>> for k in kxz:
+    ...     print '%15.8e' % k
      1.32478057e-05
      1.86797132e-05
     -1.86797132e-05
@@ -1108,7 +1110,7 @@ def kernelxz(xp, yp, zp, sphere):
      1.86797132e-05
     -1.86797132e-05
     -1.32478057e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -1124,19 +1126,19 @@ def kernelxz(xp, yp, zp, sphere):
 def kernelyy(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial y^2},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -1149,7 +1151,7 @@ def kernelyy(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -1157,12 +1159,11 @@ def kernelyy(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -1171,7 +1172,8 @@ def kernelyy(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kyy = kernelyy(xp, yp, zp, sphere)
-    >>> for k in kyy: print '%15.8e' % k
+    >>> for k in kyy:
+    ...     print '%15.8e' % k
      2.57596223e-05
      2.08590131e-04
      2.08590131e-04
@@ -1188,7 +1190,7 @@ def kernelyy(xp, yp, zp, sphere):
      2.08590131e-04
      2.08590131e-04
      2.57596223e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -1204,19 +1206,19 @@ def kernelyy(xp, yp, zp, sphere):
 def kernelyz(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial y \partial z},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -1229,7 +1231,7 @@ def kernelyz(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -1237,12 +1239,11 @@ def kernelyz(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -1251,7 +1252,8 @@ def kernelyz(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kyz = kernelyz(xp, yp, zp, sphere)
-    >>> for k in kyz: print '%15.8e' % k
+    >>> for k in kyz:
+    ...     print '%15.8e' % k
      1.32478057e-05
      5.60391397e-05
      5.60391397e-05
@@ -1268,7 +1270,7 @@ def kernelyz(xp, yp, zp, sphere):
     -5.60391397e-05
     -5.60391397e-05
     -1.32478057e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -1280,23 +1282,23 @@ def kernelyz(xp, yp, zp, sphere):
     r_5 = r_2**(2.5)
     volume = 4.*numpy.pi*(radius**3)/3.
     return volume*((3*dy*dz)/r_5)
-    
+
 def kernelzz(xp, yp, zp, sphere):
     r"""
     Calculates the function
-    
+
     .. math::
 
         \frac{\partial^2 \phi(x,y,z)}{\partial z^2},
-    
+
     where
-    
-    .. math:: 
+
+    .. math::
 
         \phi(x,y,z) = \frac{4}{3} \pi R^3 \frac{1}{r}
-    
+
     and
-    
+
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
@@ -1309,7 +1311,7 @@ def kernelzz(xp, yp, zp, sphere):
     Parameters:
 
     * xp, yp, zp : arrays
-        The x, y, and z coordinates where the function will be 
+        The x, y, and z coordinates where the function will be
         calculated
     * sphere : object of :class:`fatiando.mesher.Sphere`
 
@@ -1317,12 +1319,11 @@ def kernelzz(xp, yp, zp, sphere):
 
     * res : array
         The function calculated on xp, yp, zp
-    
-    
+
+
     Example:
-    
-    >>> from fatiando import mesher, gridder, gravmag
-    >>> from fatiando.gravmag import sphere
+
+    >>> from fatiando import mesher, gridder
     >>> # Create a sphere model
     >>> sphere = mesher.Sphere(0, 0, 5, 1)
     >>> # Create a regular grid at 0m height
@@ -1331,7 +1332,8 @@ def kernelzz(xp, yp, zp, sphere):
     >>> xp, yp, zp = gridder.regular(area, shape, z=0)
     >>> # Calculate the function
     >>> kzz = kernelzz(xp, yp, zp, sphere)
-    >>> for k in kzz: print '%15.8e' % k
+    >>> for k in kzz:
+    ...     print '%15.8e' % k
     -5.15192445e-05
     -1.18304851e-04
     -1.18304851e-04
@@ -1348,7 +1350,7 @@ def kernelzz(xp, yp, zp, sphere):
     -1.18304851e-04
     -1.18304851e-04
     -5.15192445e-05
- 
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
