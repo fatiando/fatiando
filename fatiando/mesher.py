@@ -1012,7 +1012,7 @@ class PrismMesh(object):
     Examples:
 
         >>> from fatiando.mesher import PrismMesh
-        >>> mesh = PrismMesh((0,1,0,2,0,3),(1,2,2))
+        >>> mesh = PrismMesh((0, 1, 0, 2, 0, 3), (1, 2, 2))
         >>> for p in mesh:
         ...     print p
         x1:0 | x2:0.5 | y1:0 | y2:1 | z1:0 | z2:3
@@ -1033,6 +1033,15 @@ class PrismMesh(object):
         x1:0 | x2:1 | y1:0 | y2:4 | z1:0 | z2:3 | density:2670
         x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:1000
 
+    or equivalently::
+
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2))
+        >>> mesh.addprop('density', [200, -1000.0])
+        >>> for p in mesh:
+        ...     print p
+        x1:0 | x2:1 | y1:0 | y2:4 | z1:0 | z2:3 | density:200
+        x1:1 | x2:2 | y1:0 | y2:4 | z1:0 | z2:3 | density:-1000
+
     You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
     methods for y and z) to get the x coordinates of the prisms in the mesh::
 
@@ -1044,6 +1053,13 @@ class PrismMesh(object):
         >>> print mesh.get_zs()
         [ 0.  3.]
 
+    The ``shape`` of the mesh must be integer!
+
+        >>> mesh = PrismMesh((0, 2, 0, 4, 0, 3), (1, 1, 2.5))
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid mesh shape (1, 1, 2.5). shape must be integers
+
     """
 
     celltype = Prism
@@ -1051,6 +1067,11 @@ class PrismMesh(object):
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         nz, ny, nx = shape
+        if (not isinstance(nx, int) or not isinstance(ny, int)
+            or not isinstance(nz, int)):
+            raise AttributeError(
+                'Invalid mesh shape {}. shape must be integers'.format(
+                    str(shape)))
         size = int(nx*ny*nz)
         x1, x2, y1, y2, z1, z2 = bounds
         dx = float(x2 - x1)/nx
@@ -1259,6 +1280,22 @@ class PrismMesh(object):
     def layers(self):
         """
         Returns an iterator over the layers of the mesh.
+
+        Examples::
+
+            >>> mesh = PrismMesh((0, 2, 0, 2, 0, 2), (2, 2, 2))
+            >>> for layer in mesh.layers():
+            ...     for p in layer:
+            ...         print p
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:0 | z2:1
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:0 | z2:1
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:0 | z2:1
+            x1:0 | x2:1 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:0 | y2:1 | z1:1 | z2:2
+            x1:0 | x2:1 | y1:1 | y2:2 | z1:1 | z2:2
+            x1:1 | x2:2 | y1:1 | y2:2 | z1:1 | z2:2
+
         """
         nz, ny, nx = self.shape
         for i in xrange(nz):
@@ -1360,6 +1397,73 @@ class TesseroidMesh(PrismMesh):
         Each key should be the name of a physical property. The corresponding
         value should be a list with the values of that particular property on
         each tesseroid of the mesh.
+
+    Examples:
+
+        >>> from fatiando.mesher import TesseroidMesh
+        >>> mesh = TesseroidMesh((0, 1, 0, 2, 3, 0), (1, 2, 2))
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:0.5 | s:0 | n:1 | top:3 | bottom:0
+        w:0.5 | e:1 | s:0 | n:1 | top:3 | bottom:0
+        w:0 | e:0.5 | s:1 | n:2 | top:3 | bottom:0
+        w:0.5 | e:1 | s:1 | n:2 | top:3 | bottom:0
+        >>> print mesh[0]
+        w:0 | e:0.5 | s:0 | n:1 | top:3 | bottom:0
+        >>> print mesh[-1]
+        w:0.5 | e:1 | s:1 | n:2 | top:3 | bottom:0
+
+    One with physical properties::
+
+        >>> props = {'density':[2670.0, 1000.0]}
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2), props=props)
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:1 | s:0 | n:4 | top:3 | bottom:0 | density:2670
+        w:1 | e:2 | s:0 | n:4 | top:3 | bottom:0 | density:1000
+
+    or equivalently::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2))
+        >>> mesh.addprop('density', [200, -1000.0])
+        >>> for p in mesh:
+        ...     print p
+        w:0 | e:1 | s:0 | n:4 | top:3 | bottom:0 | density:200
+        w:1 | e:2 | s:0 | n:4 | top:3 | bottom:0 | density:-1000
+
+    You can use :meth:`~fatiando.mesher.PrismMesh.get_xs` (and similar
+    methods for y and z) to get the x coordinates of the tesseroidss in the
+    mesh::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 3, 0), (1, 1, 2))
+        >>> print mesh.get_xs()
+        [ 0.  1.  2.]
+        >>> print mesh.get_ys()
+        [ 0.  4.]
+        >>> print mesh.get_zs()
+        [ 3.  0.]
+
+    You can iterate over the layers of the mesh::
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 2, 2, 0), (2, 2, 2))
+        >>> for layer in mesh.layers():
+        ...     for p in layer:
+        ...         print p
+        w:0 | e:1 | s:0 | n:1 | top:2 | bottom:1
+        w:1 | e:2 | s:0 | n:1 | top:2 | bottom:1
+        w:0 | e:1 | s:1 | n:2 | top:2 | bottom:1
+        w:1 | e:2 | s:1 | n:2 | top:2 | bottom:1
+        w:0 | e:1 | s:0 | n:1 | top:1 | bottom:0
+        w:1 | e:2 | s:0 | n:1 | top:1 | bottom:0
+        w:0 | e:1 | s:1 | n:2 | top:1 | bottom:0
+        w:1 | e:2 | s:1 | n:2 | top:1 | bottom:0
+
+    The ``shape`` of the mesh must be integer!
+
+        >>> mesh = TesseroidMesh((0, 2, 0, 4, 0, 3), (1, 1, 2.5))
+        Traceback (most recent call last):
+            ...
+        AttributeError: Invalid mesh shape (1, 1, 2.5). shape must be integers
 
     """
 
