@@ -39,31 +39,545 @@ Nagy, D., G. Papp, and J. Benedek (2000), The gravitational potential and its
 derivatives for the prism: Journal of Geodesy, 74, 552--560,
 doi: 10.1007/s001900000116.
 
+----
 """
 from __future__ import division
 
 import numpy
 
-from fatiando.constants import G, SI2EOTVOS, CM, T2NT
-
+from .. import utils
+from ..constants import G, SI2EOTVOS, CM, T2NT, SI2MGAL
 try:
-    from fatiando.gravmag._prism import *
-except:
-    def not_implemented(*args, **kwargs):
-        raise NotImplementedError(
-        "Couldn't load C coded extension module.")
-    potential = not_implemented
-    gx = not_implemented
-    gy = not_implemented
-    gz = not_implemented
-    gxx = not_implemented
-    gxy = not_implemented
-    gxz = not_implemented
-    gyy = not_implemented
-    gyz = not_implemented
-    gzz = not_implemented
-    tf = not_implemented
+    from . import _prism
+except ImportError:
+    _prism = None
 
+
+def potential(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the gravitational potential.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input and output values in **SI** units(!)!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('potential', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G
+    return res
+
+def gx(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_x` gravity acceleration component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2MGAL
+    return res
+
+def gy(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_y` gravity acceleration component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2MGAL
+    return res
+
+def gz(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_z` gravity acceleration component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **mGal**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2MGAL
+    return res
+
+def gxx(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{xx}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gxx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def gxy(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{xy}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gxy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def gxz(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{xz}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gxz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def gyy(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{yy}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gyy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def gyz(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{yz}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gyz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def gzz(xp, yp, zp, prisms, dens=None):
+    """
+    Calculates the :math:`g_{zz}` gravity gradient tensor component.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect.
+        Prisms must have the property ``'density'``. Prisms that don't have
+        this property will be ignored in the computations. Elements of *prisms*
+        that are None will also be ignored. *prisms* can also be a
+        :class:`~fatiando.mesher.PrismMesh`.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prisms. Use this, e.g., for sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    for prism in prisms:
+        if prism is None or ('density' not in prism.props and dens is None):
+            continue
+        if dens is None:
+            density = prism.props['density']
+        else:
+            density = dens
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.gravity_kernels('gzz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                               density, res)
+    res *= G*SI2EOTVOS
+    return res
+
+def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
+    """
+    Calculate the total-field magnetic anomaly of prisms.
+
+    .. note:: Input units are SI. Output is in nT
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prisms : list of :class:`~fatiando.mesher.Prism`
+        The model used to calculate the total field anomaly.
+        Prisms without the physical property ``'magnetization'`` will
+        be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
+    * inc : float
+        The inclination of the regional field (in degrees)
+    * dec : float
+        The declination of the regional field (in degrees)
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    if len(xp) != len(yp) != len(zp):
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
+    # Calculate the 3 components of the unit vector in the direction of the
+    # regional field
+    fx, fy, fz = utils.dircos(inc, dec)
+    if pmag is not None:
+        if isinstance(pmag, float) or isinstance(pmag, int):
+            intensity = pmag
+            mx, my, mz = fx, fy, fz
+        else:
+            intensity = numpy.linalg.norm(pmag)
+            mx, my, mz = numpy.array(pmag)/pintensity
+    for prism in prisms:
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
+            continue
+        if pmag is None:
+            mag = prism.props['magnetization']
+            if isinstance(mag, float) or isinstance(mag, int):
+                intensity = mag
+                mx, my, mz = fx, fy, fz
+            else:
+                intensity = numpy.linalg.norm(mag)
+                mx, my, mz = numpy.array(mag)/intensity
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.magnetic_kernels('tf', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                                intensity, mx, my, mz, fx, fy, fz, res)
+    res *= CM*T2NT
+    return res
 
 def bx(xp, yp, zp, prisms):
     """

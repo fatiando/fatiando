@@ -97,4 +97,6 @@ def test_tf():
     py = _prism_numpy.tf(xp, yp, zp, model, inc, dec)
     cy = prism.tf(xp, yp, zp, model, inc, dec)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    # Lower precison because python calculates using Blakely and cython using
+    # the gravity kernels
+    assert np.all(diff <= 10**-9), 'max diff: %g' % (max(diff))
