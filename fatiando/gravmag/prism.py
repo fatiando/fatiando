@@ -24,11 +24,15 @@ The gravitational fields are calculated using the formula of Nagy et al.
 * :func:`~fatiando.gravmag.prism.gyz`
 * :func:`~fatiando.gravmag.prism.gzz`
 
-
 **Magnetic**
 
-The Total Field anomaly is calculated using the formula of Bhattacharyya (1964)
-in function :func:`~fatiando.gravmag.prism.tf`.
+Available fields are the total-field anomaly (using the formula of
+Bhattacharyya, 1964) and x, y, z components of the magnetic induction:
+
+* :func:`~fatiando.gravmag.prism.tf`.
+* :func:`~fatiando.gravmag.prism.bx`.
+* :func:`~fatiando.gravmag.prism.by`.
+* :func:`~fatiando.gravmag.prism.bz`.
 
 **References**
 
@@ -554,11 +558,9 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         if isinstance(pmag, float) or isinstance(pmag, int):
-            intensity = pmag
-            mx, my, mz = fx, fy, fz
+            mx, my, mz = pmag*fx, pmag*fy, pmag*fz
         else:
-            intensity = numpy.linalg.norm(pmag)
-            mx, my, mz = numpy.array(pmag)/pintensity
+            mx, my, mz = pmag
     for prism in prisms:
         if (prism is None or
                 ('magnetization' not in prism.props and pmag is None)):
@@ -566,20 +568,18 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         if pmag is None:
             mag = prism.props['magnetization']
             if isinstance(mag, float) or isinstance(mag, int):
-                intensity = mag
-                mx, my, mz = fx, fy, fz
+                mx, my, mz = mag*fx, mag*fy, mag*fz
             else:
-                intensity = numpy.linalg.norm(mag)
-                mx, my, mz = numpy.array(mag)/intensity
+                mx, my, mz = mag
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.magnetic_kernels('tf', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                                intensity, mx, my, mz, fx, fy, fz, res)
+                                mx, my, mz, fx, fy, fz, res)
     res *= CM*T2NT
     return res
 
-def bx(xp, yp, zp, prisms):
+def bx(xp, yp, zp, prisms, pmag=None):
     """
     Calculates the x component of the magnetic induction produced by
     rectangular prisms.
@@ -594,6 +594,10 @@ def bx(xp, yp, zp, prisms):
         The model used to calculate the total field anomaly.
         Prisms without the physical property ``'magnetization'`` will
         be ignored. The ``'magnetization'`` must be a vector.
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -603,20 +607,25 @@ def bx(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    bx = numpy.zeros_like(xp)
+    if pmag is not None:
+        mx, my, mz = pmag
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
-        v1 = kernelxx(xp, yp, zp, prism)
-        v2 = kernelxy(xp, yp, zp, prism)
-        v3 = kernelxz(xp, yp, zp, prism)
-        bx += (v1*mx + v2*my + v3*mz)
-    bx *= CM*T2NT
-    return bx
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.magnetic_kernels('bx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                                mx, my, mz, 0, 0, 0, res)
+    res *= CM*T2NT
+    return res
 
-def by(xp, yp, zp, prisms):
+def by(xp, yp, zp, prisms, pmag=None):
     """
     Calculates the y component of the magnetic induction produced by
     rectangular prisms.
@@ -631,6 +640,10 @@ def by(xp, yp, zp, prisms):
         The model used to calculate the total field anomaly.
         Prisms without the physical property ``'magnetization'`` will
         be ignored. The ``'magnetization'`` must be a vector.
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -640,20 +653,25 @@ def by(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    by = numpy.zeros_like(xp)
+    if pmag is not None:
+        mx, my, mz = pmag
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
-        v2 = kernelxy(xp, yp, zp, prism)
-        v4 = kernelyy(xp, yp, zp, prism)
-        v5 = kernelyz(xp, yp, zp, prism)
-        by += (v2*mx + v4*my + v5*mz)
-    by *= CM*T2NT
-    return by
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.magnetic_kernels('by', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                                mx, my, mz, 0, 0, 0, res)
+    res *= CM*T2NT
+    return res
 
-def bz(xp, yp, zp, prisms):
+def bz(xp, yp, zp, prisms, pmag=None):
     """
     Calculates the z component of the magnetic induction produced by
     rectangular prisms.
@@ -668,6 +686,10 @@ def bz(xp, yp, zp, prisms):
         The model used to calculate the total field anomaly.
         Prisms without the physical property ``'magnetization'`` will
         be ignored. The ``'magnetization'`` must be a vector.
+    * pmag : [mx, my, mz] or None
+        A magnetization vector. If not None, will use this value instead of the
+        ``'magnetization'`` property of the prisms. Use this, e.g., for
+        sensitivity matrix building.
 
     Returns:
 
@@ -677,18 +699,23 @@ def bz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    bz = numpy.zeros_like(xp)
+    if pmag is not None:
+        mx, my, mz = pmag
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
-        v3 = kernelxz(xp, yp, zp, prism)
-        v5 = kernelyz(xp, yp, zp, prism)
-        v6 = kernelzz(xp, yp, zp, prism)
-        bz += (v3*mx + v5*my + v6*mz)
-    bz *= CM*T2NT
-    return bz
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
+        x1, x2 = prism.x1, prism.x2
+        y1, y2 = prism.y1, prism.y2
+        z1, z2 = prism.z1, prism.z2
+        _prism.magnetic_kernels('bz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
+                                mx, my, mz, 0, 0, 0, res)
+    res *= CM*T2NT
+    return res
 
 def kernelxx(xp, yp, zp, prism):
     """
