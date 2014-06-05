@@ -5,45 +5,11 @@ right rectangular prisms.
 import numpy
 from numpy import sqrt, log, arctan2
 
-from fatiando.constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
-from fatiando import utils
-
-__all__ = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
-    'gzz', 'tf']
+from ...constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
+from .. import utils
 
 
 def potential(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the gravitational potential.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -76,37 +42,6 @@ def potential(xp, yp, zp, prisms, dens=None):
     return res
 
 def gx(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_x` gravity acceleration component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -139,37 +74,6 @@ def gx(xp, yp, zp, prisms, dens=None):
     return res
 
 def gy(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_y` gravity acceleration component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -202,37 +106,6 @@ def gy(xp, yp, zp, prisms, dens=None):
     return res
 
 def gz(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_z` gravity acceleration component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -265,37 +138,6 @@ def gz(xp, yp, zp, prisms, dens=None):
     return res
 
 def gxx(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{xx}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -324,37 +166,6 @@ def gxx(xp, yp, zp, prisms, dens=None):
     return res
 
 def gxy(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{xy}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -383,37 +194,6 @@ def gxy(xp, yp, zp, prisms, dens=None):
     return res
 
 def gxz(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{xz}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -442,37 +222,6 @@ def gxz(xp, yp, zp, prisms, dens=None):
     return res
 
 def gyy(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{yy}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -501,37 +250,6 @@ def gyy(xp, yp, zp, prisms, dens=None):
     return res
 
 def gyz(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{yz}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -560,37 +278,6 @@ def gyz(xp, yp, zp, prisms, dens=None):
     return res
 
 def gzz(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_{zz}` gravity gradient tensor component.
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have this
-        property will be ignored in the computations. Elements of *prisms* that
-        are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-        .. warning:: Uses this value for **all** prisms! Not only the ones that
-            have ``'density'`` as a property.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -619,37 +306,6 @@ def gzz(xp, yp, zp, prisms, dens=None):
     return res
 
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
-    """
-    Calculate the total-field anomaly of prisms.
-
-    .. note:: Input units are SI. Output is in nT
-
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The model used to calculate the total field anomaly.
-        Prisms without the physical property ``'magnetization'`` will
-        be ignored. *prisms* can also be a :class:`~fatiando.mesher.PrismMesh`.
-    * inc : float
-        The inclination of the regional field (in degrees)
-    * dec : float
-        The declination of the regional field (in degrees)
-    * pmag : [mx, my, mz] or None
-        A magnetization vector. If not None, will use this value instead of the
-        ``'magnetization'`` property of the prisms. Use this, e.g., for
-        sensitivity matrix building.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
@@ -705,3 +361,250 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     res *= CM*T2NT
     return res
 
+def bx(xp, yp, zp, prisms):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bx = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        bx += (v1*mx + v2*my + v3*mz)
+    bx *= CM*T2NT
+    return bx
+
+def by(xp, yp, zp, prisms):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    by = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v2 = kernelxy(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        by += (v2*mx + v4*my + v5*mz)
+    by *= CM*T2NT
+    return by
+
+def bz(xp, yp, zp, prisms):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    bz = numpy.zeros_like(xp)
+    for prism in prisms:
+        if prism is None or ('magnetization' not in prism.props):
+            continue
+        # Get the magnetization vector components
+        mx, my, mz = numpy.array(prism.props['magnetization'])
+        v3 = kernelxz(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        bz += (v3*mx + v5*my + v6*mz)
+    bz *= CM*T2NT
+    return bz
+
+def kernelxx(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.arctan2((Y1*Z1),(X1*R111))
+    res +=  numpy.arctan2((Y1*Z2),(X1*R112))
+    res +=  numpy.arctan2((Y2*Z1),(X1*R121))
+    res += -numpy.arctan2((Y2*Z2),(X1*R122))
+    res +=  numpy.arctan2((Y1*Z1),(X2*R211))
+    res += -numpy.arctan2((Y1*Z2),(X2*R212))
+    res += -numpy.arctan2((Y2*Z1),(X2*R221))
+    res +=  numpy.arctan2((Y2*Z2),(X2*R222))
+
+    return res
+
+def kernelyy(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.arctan2((X1*Z1),(Y1*R111))
+    res +=  numpy.arctan2((X1*Z2),(Y1*R112))
+    res +=  numpy.arctan2((X1*Z1),(Y2*R121))
+    res += -numpy.arctan2((X1*Z2),(Y2*R122))
+    res +=  numpy.arctan2((X2*Z1),(Y1*R211))
+    res += -numpy.arctan2((X2*Z2),(Y1*R212))
+    res += -numpy.arctan2((X2*Z1),(Y2*R221))
+    res +=  numpy.arctan2((X2*Z2),(Y2*R222))
+
+    return res
+
+def kernelzz(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.arctan2((X1*Y1),(Z1*R111))
+    res +=  numpy.arctan2((X1*Y1),(Z2*R112))
+    res +=  numpy.arctan2((X1*Y2),(Z1*R121))
+    res += -numpy.arctan2((X1*Y2),(Z2*R122))
+    res +=  numpy.arctan2((X2*Y1),(Z1*R211))
+    res += -numpy.arctan2((X2*Y1),(Z2*R212))
+    res += -numpy.arctan2((X2*Y2),(Z1*R221))
+    res +=  numpy.arctan2((X2*Y2),(Z2*R222))
+
+    return res
+
+def kernelxy(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.log((Z1 + R111) + dummy)
+    res +=  numpy.log((Z2 + R112) + dummy)
+    res +=  numpy.log((Z1 + R121) + dummy)
+    res += -numpy.log((Z2 + R122) + dummy)
+    res +=  numpy.log((Z1 + R211) + dummy)
+    res += -numpy.log((Z2 + R212) + dummy)
+    res += -numpy.log((Z1 + R221) + dummy)
+    res +=  numpy.log((Z2 + R222) + dummy)
+
+    return -res
+
+def kernelxz(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.log((Y1 + R111) + dummy)
+    res +=  numpy.log((Y1 + R112) + dummy)
+    res +=  numpy.log((Y2 + R121) + dummy)
+    res += -numpy.log((Y2 + R122) + dummy)
+    res +=  numpy.log((Y1 + R211) + dummy)
+    res += -numpy.log((Y1 + R212) + dummy)
+    res += -numpy.log((Y2 + R221) + dummy)
+    res +=  numpy.log((Y2 + R222) + dummy)
+
+    return -res
+
+def kernelyz(xp, yp, zp, prism):
+    if xp.shape != yp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+    res = numpy.zeros(len(xp), dtype='f')
+    x1, x2 = prism.x1, prism.x2
+    y1, y2 = prism.y1, prism.y2
+    z1, z2 = prism.z1, prism.z2
+    # Calculate the effect of the prism
+    X1 = xp - x1
+    X2 = xp - x2
+    Y1 = yp - y1
+    Y2 = yp - y2
+    Z1 = zp - z1
+    Z2 = zp - z2
+    dummy = 10.**(-10) # Used to avoid singularities
+    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
+    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
+    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
+    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
+    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
+    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
+    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
+    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
+    res += -numpy.log((X1 + R111) + dummy)
+    res +=  numpy.log((X1 + R112) + dummy)
+    res +=  numpy.log((X1 + R121) + dummy)
+    res += -numpy.log((X1 + R122) + dummy)
+    res +=  numpy.log((X2 + R211) + dummy)
+    res += -numpy.log((X2 + R212) + dummy)
+    res += -numpy.log((X2 + R221) + dummy)
+    res +=  numpy.log((X2 + R222) + dummy)
+    return -res
