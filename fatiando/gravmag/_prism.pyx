@@ -37,8 +37,7 @@ def magnetic_kernels(field,
     numpy.ndarray[DTYPE_T, ndim=1] yp not None,
     numpy.ndarray[DTYPE_T, ndim=1] zp not None,
     double x1, double x2, double y1, double y2, double z1, double z2,
-    double intensity, double mx, double my, double mz,
-    double fx, double fy, double fz,
+    double mx, double my, double mz, double fx, double fy, double fz,
     numpy.ndarray[DTYPE_T, ndim=1] res not None):
     """
     Calculate a given magnetic field 'kernel' for a single prism.
@@ -79,7 +78,22 @@ def magnetic_kernels(field,
                         by = (v2*mx + v4*my + v5*mz)
                         bz = (v3*mx + v5*my + v6*mz)
                         kernel = fx*bx + fy*by + fz*bz
-                    res[l] += ((-1.)**(i + j + k))*kernel*intensity
+                    elif field == 'bx':
+                        v1 = kernelxx(x[i], y[j], z[k], r)
+                        v2 = kernelxy(x[i], y[j], z[k], r)
+                        v3 = kernelxz(x[i], y[j], z[k], r)
+                        kernel = (v1*mx + v2*my + v3*mz)
+                    elif field == 'by':
+                        v2 = kernelxy(x[i], y[j], z[k], r)
+                        v4 = kernelyy(x[i], y[j], z[k], r)
+                        v5 = kernelyz(x[i], y[j], z[k], r)
+                        kernel = (v2*mx + v4*my + v5*mz)
+                    elif field == 'bz':
+                        v3 = kernelxz(x[i], y[j], z[k], r)
+                        v5 = kernelyz(x[i], y[j], z[k], r)
+                        v6 = kernelzz(x[i], y[j], z[k], r)
+                        kernel = (v3*mx + v5*my + v6*mz)
+                    res[l] += ((-1.)**(i + j + k))*kernel
 
 @cython.wraparound(False)
 @cython.boundscheck(False)

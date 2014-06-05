@@ -5,7 +5,7 @@ right rectangular prisms.
 import numpy
 from numpy import sqrt, log, arctan2
 
-from ...constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
+from ..constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from .. import utils
 
 
@@ -369,7 +369,7 @@ def bx(xp, yp, zp, prisms):
         if prism is None or ('magnetization' not in prism.props):
             continue
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
+        mx, my, mz = prism.props['magnetization']
         v1 = kernelxx(xp, yp, zp, prism)
         v2 = kernelxy(xp, yp, zp, prism)
         v3 = kernelxz(xp, yp, zp, prism)
@@ -385,7 +385,7 @@ def by(xp, yp, zp, prisms):
         if prism is None or ('magnetization' not in prism.props):
             continue
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
+        mx, my, mz = prism.props['magnetization']
         v2 = kernelxy(xp, yp, zp, prism)
         v4 = kernelyy(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
@@ -401,7 +401,7 @@ def bz(xp, yp, zp, prisms):
         if prism is None or ('magnetization' not in prism.props):
             continue
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(prism.props['magnetization'])
+        mx, my, mz = prism.props['magnetization']
         v3 = kernelxz(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
         v6 = kernelzz(xp, yp, zp, prism)
@@ -439,7 +439,6 @@ def kernelxx(xp, yp, zp, prism):
     res += -numpy.arctan2((Y1*Z2),(X2*R212))
     res += -numpy.arctan2((Y2*Z1),(X2*R221))
     res +=  numpy.arctan2((Y2*Z2),(X2*R222))
-
     return res
 
 def kernelyy(xp, yp, zp, prism):
@@ -472,7 +471,6 @@ def kernelyy(xp, yp, zp, prism):
     res += -numpy.arctan2((X2*Z2),(Y1*R212))
     res += -numpy.arctan2((X2*Z1),(Y2*R221))
     res +=  numpy.arctan2((X2*Z2),(Y2*R222))
-
     return res
 
 def kernelzz(xp, yp, zp, prism):
@@ -505,7 +503,6 @@ def kernelzz(xp, yp, zp, prism):
     res += -numpy.arctan2((X2*Y1),(Z2*R212))
     res += -numpy.arctan2((X2*Y2),(Z1*R221))
     res +=  numpy.arctan2((X2*Y2),(Z2*R222))
-
     return res
 
 def kernelxy(xp, yp, zp, prism):
@@ -539,7 +536,6 @@ def kernelxy(xp, yp, zp, prism):
     res += -numpy.log((Z2 + R212) + dummy)
     res += -numpy.log((Z1 + R221) + dummy)
     res +=  numpy.log((Z2 + R222) + dummy)
-
     return -res
 
 def kernelxz(xp, yp, zp, prism):
@@ -573,7 +569,6 @@ def kernelxz(xp, yp, zp, prism):
     res += -numpy.log((Y1 + R212) + dummy)
     res += -numpy.log((Y2 + R221) + dummy)
     res +=  numpy.log((Y2 + R222) + dummy)
-
     return -res
 
 def kernelyz(xp, yp, zp, prism):
