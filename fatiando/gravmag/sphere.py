@@ -194,15 +194,28 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
                 mx, my, mz = mag
         else:
             mx, my, mz = pmx, pmy, pmz
-        v1 = kernelxx(xp, yp, zp, sphere)
-        v2 = kernelxy(xp, yp, zp, sphere)
-        v3 = kernelxz(xp, yp, zp, sphere)
-        v4 = kernelyy(xp, yp, zp, sphere)
-        v5 = kernelyz(xp, yp, zp, sphere)
-        v6 = kernelzz(xp, yp, zp, sphere)
-        bx = (v1*mx + v2*my + v3*mz)
-        by = (v2*mx + v4*my + v5*mz)
-        bz = (v3*mx + v5*my + v6*mz)
+        # First thing to do is make the computation point P the origin of the
+        # coordinate system
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        # Calculate the 3 components of B
+        dotprod = mx*x + my*y + mz*z
+        r_sqr = x**2 + y**2 + z**2
+        r5 = r_sqr**(2.5)
+        moment = 4.*numpy.pi*(radius**3)/3.
+        bx = moment*(3*dotprod*x - r_sqr*mx)/r5
+        by = moment*(3*dotprod*y - r_sqr*my)/r5
+        bz = moment*(3*dotprod*z - r_sqr*mz)/r5
+        #v1 = kernelxx(xp, yp, zp, sphere)
+        #v2 = kernelxy(xp, yp, zp, sphere)
+        #v3 = kernelxz(xp, yp, zp, sphere)
+        #v4 = kernelyy(xp, yp, zp, sphere)
+        #v5 = kernelyz(xp, yp, zp, sphere)
+        #v6 = kernelzz(xp, yp, zp, sphere)
+        #bx = (v1*mx + v2*my + v3*mz)
+        #by = (v2*mx + v4*my + v5*mz)
+        #bz = (v3*mx + v5*my + v6*mz)
         res += fx*bx + fy*by + fz*bz
     res *= CM*T2NT
     return res
