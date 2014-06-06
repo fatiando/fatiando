@@ -102,6 +102,11 @@ import numpy
 from ..constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
 from .. import utils
 
+try:
+    from . import _sphere
+except ImportError:
+    _sphere = None
+
 
 def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     """
@@ -184,7 +189,6 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         if sphere is None or ('magnetization' not in sphere.props
                               and pmag is None):
             continue
-        radius = sphere.radius
         # Get the intensity and unit vector from the magnetization
         if pmag is None:
             mag = sphere.props['magnetization']
@@ -194,29 +198,9 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
                 mx, my, mz = mag
         else:
             mx, my, mz = pmx, pmy, pmz
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = sphere.x - xp
-        y = sphere.y - yp
-        z = sphere.z - zp
-        # Calculate the 3 components of B
-        dotprod = mx*x + my*y + mz*z
-        r_sqr = x**2 + y**2 + z**2
-        r5 = r_sqr**(2.5)
-        moment = 4.*numpy.pi*(radius**3)/3.
-        bx = moment*(3*dotprod*x - r_sqr*mx)/r5
-        by = moment*(3*dotprod*y - r_sqr*my)/r5
-        bz = moment*(3*dotprod*z - r_sqr*mz)/r5
-        #v1 = kernelxx(xp, yp, zp, sphere)
-        #v2 = kernelxy(xp, yp, zp, sphere)
-        #v3 = kernelxz(xp, yp, zp, sphere)
-        #v4 = kernelyy(xp, yp, zp, sphere)
-        #v5 = kernelyz(xp, yp, zp, sphere)
-        #v6 = kernelzz(xp, yp, zp, sphere)
-        #bx = (v1*mx + v2*my + v3*mz)
-        #by = (v2*mx + v4*my + v5*mz)
-        #bz = (v3*mx + v5*my + v6*mz)
-        res += fx*bx + fy*by + fz*bz
+        _sphere.magnetic_kernels('tf', xp, yp, zp, sphere.x, sphere.y,
+                                 sphere.z, sphere.radius, mx, my, mz, fx, fy,
+                                 fz, res)
     res *= CM*T2NT
     return res
 
@@ -282,13 +266,11 @@ def bx(xp, yp, zp, spheres):
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
-        radius = sphere.radius
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        v1 = kernelxx(xp, yp, zp, sphere)
-        v2 = kernelxy(xp, yp, zp, sphere)
-        v3 = kernelxz(xp, yp, zp, sphere)
-        res += (v1*mx + v2*my + v3*mz)
+        _sphere.magnetic_kernels('bx', xp, yp, zp, sphere.x, sphere.y,
+                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
+                                 res)
     res *= CM*T2NT
     return res
 
@@ -354,13 +336,11 @@ def by(xp, yp, zp, spheres):
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
-        radius = sphere.radius
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        v2 = kernelxy(xp, yp, zp, sphere)
-        v4 = kernelyy(xp, yp, zp, sphere)
-        v5 = kernelyz(xp, yp, zp, sphere)
-        res += (v2*mx + v4*my + v5*mz)
+        _sphere.magnetic_kernels('by', xp, yp, zp, sphere.x, sphere.y,
+                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
+                                 res)
     res *= CM*T2NT
     return res
 
@@ -426,13 +406,11 @@ def bz(xp, yp, zp, spheres):
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
-        radius = sphere.radius
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        v3 = kernelxz(xp, yp, zp, sphere)
-        v5 = kernelyz(xp, yp, zp, sphere)
-        v6 = kernelzz(xp, yp, zp, sphere)
-        res += (v3*mx + v5*my + v6*mz)
+        _sphere.magnetic_kernels('bz', xp, yp, zp, sphere.x, sphere.y,
+                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
+                                 res)
     res *= CM*T2NT
     return res
 
@@ -472,13 +450,8 @@ def gz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        radius = sphere.radius
-        dx = sphere.x - xp
-        dy = sphere.y - yp
-        dz = sphere.z - zp
-        r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*dz/r_cb
+        _sphere.gravity_kernels('gz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                                sphere.radius, density, res)
     res *= G*SI2MGAL
     return res
 
@@ -546,7 +519,8 @@ def gxx(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelxx(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gxx', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -615,7 +589,8 @@ def gxy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelxy(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gxy', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -684,7 +659,8 @@ def gxz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelxz(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gxz', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -753,7 +729,8 @@ def gyy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelyy(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gyy', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -822,7 +799,8 @@ def gyz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelyz(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gyz', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -891,7 +869,8 @@ def gzz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        res += density*kernelzz(xp, yp, zp, sphere)
+        _sphere.gravity_kernels('gzz', xp, yp, zp, sphere.x, sphere.y,
+                                sphere.z, sphere.radius, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -966,14 +945,10 @@ def kernelxx(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*(((3*dx**2) - r_2)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gxx', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res
 
 def kernelxy(xp, yp, zp, sphere):
     r"""
@@ -1046,14 +1021,10 @@ def kernelxy(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*((3*dx*dy)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gxy', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res
 
 def kernelxz(xp, yp, zp, sphere):
     r"""
@@ -1126,14 +1097,10 @@ def kernelxz(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*((3*dx*dz)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gxz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res
 
 def kernelyy(xp, yp, zp, sphere):
     r"""
@@ -1206,14 +1173,10 @@ def kernelyy(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*(((3*dy**2) - r_2)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gyy', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res
 
 def kernelyz(xp, yp, zp, sphere):
     r"""
@@ -1286,14 +1249,10 @@ def kernelyz(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*((3*dy*dz)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gyz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res
 
 def kernelzz(xp, yp, zp, sphere):
     r"""
@@ -1366,11 +1325,7 @@ def kernelzz(xp, yp, zp, sphere):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    radius = sphere.radius
-    dx = sphere.x - xp
-    dy = sphere.y - yp
-    dz = sphere.z - zp
-    r_2 = (dx**2 + dy**2 + dz**2)
-    r_5 = r_2**(2.5)
-    volume = 4.*numpy.pi*(radius**3)/3.
-    return volume*(((3*dz**2) - r_2)/r_5)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
+    _sphere.gravity_kernels('gzz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
+                            sphere.radius, 1, res)
+    return res

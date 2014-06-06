@@ -57,7 +57,8 @@ extensions = [
             include_dirs=[numpy.get_include()])
 	for e in [
 		['fatiando', 'gravmag', '_prism'],
-        ['fatiando', 'gravmag', '_tesseroid'],
+		['fatiando', 'gravmag', '_sphere'],
+                ['fatiando', 'gravmag', '_tesseroid'],
 		['fatiando', 'seismic', '_ttime2d'],
 		['fatiando', 'seismic', '_wavefd']
 		]
