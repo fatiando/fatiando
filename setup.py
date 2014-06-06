@@ -57,12 +57,22 @@ extensions = [
             include_dirs=[numpy.get_include()])
 	for e in [
 		['fatiando', 'gravmag', '_prism'],
-		['fatiando', 'gravmag', '_sphere'],
-                ['fatiando', 'gravmag', '_tesseroid'],
+        ['fatiando', 'gravmag', '_tesseroid'],
 		['fatiando', 'seismic', '_ttime2d'],
-		['fatiando', 'seismic', '_wavefd']
+		['fatiando', 'seismic', '_wavefd'],
 		]
 	]
+extensions.extend([
+    Extension('.'.join(e), [os.path.join(*e) + ext],
+        libraries=libs,
+        include_dirs=[numpy.get_include()],
+        extra_link_args=['-fopenmp'],
+        extra_compile_args=['-fopenmp'])
+	for e in [
+		['fatiando', 'gravmag', '_sphere'],
+		]
+	])
+
 if USE_CYTHON:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
