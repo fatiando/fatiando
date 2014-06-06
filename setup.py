@@ -56,8 +56,7 @@ extensions = [
             libraries=libs,
             include_dirs=[numpy.get_include()])
 	for e in [
-		['fatiando', 'gravmag', '_prism'],
-        ['fatiando', 'gravmag', '_tesseroid'],
+                ['fatiando', 'gravmag', '_tesseroid'],
 		['fatiando', 'seismic', '_ttime2d'],
 		['fatiando', 'seismic', '_wavefd'],
 		]
@@ -70,6 +69,7 @@ extensions.extend([
         extra_compile_args=['-fopenmp'])
 	for e in [
 		['fatiando', 'gravmag', '_sphere'],
+		['fatiando', 'gravmag', '_prism'],
 		]
 	])
 
