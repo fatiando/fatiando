@@ -170,7 +170,7 @@ def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
     >>> from fatiando.gravmag import sphere, tensor
     >>> # Generate synthetic data using a sphere model
     >>> # The center of the sphere is (-100, 0, 100)
-    >>> model = [Sphere(-100, 0, 100, 100, {'density':1000})]
+    >>> model = [Sphere(-100, 20, 100, 100, {'density':1000})]
     >>> x, y, z = gridder.regular((-500, 500, -500, 500), (20, 20), z=-100)
     >>> data = [sphere.gxx(x, y, z, model),
     ...         sphere.gxy(x, y, z, model),
@@ -182,10 +182,8 @@ def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
     >>> eigenvals, eigenvecs = tensor.eigen(data)
     >>> # Now estimate the center of mass
     >>> cm = tensor.center_of_mass(x, y, z, eigenvecs[0])
-    >>> # Pretty-print the array
-    >>> import numpy as np
-    >>> np.array_repr(cm, suppress_small=True, precision=6)
-    'array([-100.,    0.,  100.])'
+    >>> cm
+    array([-100.,   20.,  100.])
 
     """
     if wmin is None:
