@@ -12,9 +12,8 @@ precision = 10**(-6)
 def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
     inc, dec = -30, 50
-    mag = utils.dircos(25, -10)
-    props1 = {'density':2., 'magnetization':mag}
-    props2 = {'density':3., 'magnetization':1}
+    props1 = {'density':2., 'magnetization':utils.ang2vec(-20, 25, -10)}
+    props2 = {'density':-3., 'magnetization':utils.ang2vec(10, inc, dec)}
     model = [PolygonalPrism([
                  [100, -100],
                  [100, 100],
@@ -111,3 +110,79 @@ def test_tf():
     errormsg = 'max diff: %g | max polyprism: %g | max prism: %g' % (
         max(diff), max(polyprism), max(prism))
     assert np.all(diff <= max(prism)*precision), errormsg
+
+def test_bx():
+    "gravmag.polyprism.bx against gravmag.prism"
+    prism = gravmag.prism.bx(xp, yp, zp, prismmodel)
+    polyprism = gravmag.polyprism.bx(xp, yp, zp, model)
+    diff = np.abs(prism - polyprism)
+    assert np.all(diff <= max(prism)*precision), 'max diff: %g' % (max(diff))
+
+def test_by():
+    "gravmag.polyprism.by against gravmag.prism"
+    prism = gravmag.prism.by(xp, yp, zp, prismmodel)
+    polyprism = gravmag.polyprism.by(xp, yp, zp, model)
+    diff = np.abs(prism - polyprism)
+    assert np.all(diff <= max(prism)*precision), 'max diff: %g' % (max(diff))
+
+def test_bz():
+    "gravmag.polyprism.bz against gravmag.prism"
+    prism = gravmag.prism.bz(xp, yp, zp, prismmodel)
+    polyprism = gravmag.polyprism.bz(xp, yp, zp, model)
+    diff = np.abs(prism - polyprism)
+    assert np.all(diff <= max(prism)*precision), 'max diff: %g' % (max(diff))
+
+def test_kernelxx():
+    "gravmag.polyprism.kernelxx against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelxx(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelxx(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
+def test_kernelxy():
+    "gravmag.polyprism.kernelxy against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelxy(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelxy(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
+def test_kernelxz():
+    "gravmag.polyprism.kernelxz against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelxz(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelxz(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
+def test_kernelyy():
+    "gravmag.polyprism.kernelyy against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelyy(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelyy(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
+def test_kernelyz():
+    "gravmag.polyprism.kernelyz against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelyz(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelyz(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
+def test_kernelzz():
+    "gravmag.polyprism.kernelzz against gravmag.prism"
+    for pris, poly in zip(prismmodel, model):
+        prism = gravmag.prism.kernelzz(xp, yp, zp, pris)
+        polyprism = gravmag.polyprism.kernelzz(xp, yp, zp, poly)
+        diff = np.abs(prism - polyprism)
+        assert np.all(diff <= max(prism)*precision), \
+            'max diff: %g' % (max(diff))
+
