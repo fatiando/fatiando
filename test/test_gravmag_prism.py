@@ -8,6 +8,7 @@ model = None
 xp, yp, zp = None, None, None
 inc, dec = None, None
 precision = 10**(-15)
+lower_precision = 10**(-8)
 
 def setup():
     global model, xp, yp, zp, inc, dec
@@ -106,21 +107,27 @@ def test_bx():
     py = _prism_numpy.bx(xp, yp, zp, model)
     cy = prism.bx(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= lower_precision), \
+        'max diff: %g python: %g cython %g' % (max(diff),
+                py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_by():
     "gravmag.prism.by python vs cython implementation"
     py = _prism_numpy.by(xp, yp, zp, model)
     cy = prism.by(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= lower_precision), \
+        'max diff: %g python: %g cython %g' % (max(diff),
+                py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_bz():
     "gravmag.prism.bz python vs cython implementation"
     py = _prism_numpy.bz(xp, yp, zp, model)
     cy = prism.bz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= lower_precision), \
+        'max diff: %g python: %g cython %g' % (max(diff),
+                py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelxx():
     "gravmag.prism.kernelxx python vs cython implementation"
@@ -128,7 +135,9 @@ def test_kernelxx():
         py = _prism_numpy.kernelxx(xp, yp, zp, p)
         cy = prism.kernelxx(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelxy():
     "gravmag.prism.kernelxy python vs cython implementation"
@@ -136,7 +145,9 @@ def test_kernelxy():
         py = _prism_numpy.kernelxy(xp, yp, zp, p)
         cy = prism.kernelxy(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelxz():
     "gravmag.prism.kernelxz python vs cython implementation"
@@ -144,7 +155,9 @@ def test_kernelxz():
         py = _prism_numpy.kernelxz(xp, yp, zp, p)
         cy = prism.kernelxz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelyy():
     "gravmag.prism.kernelyy python vs cython implementation"
@@ -152,7 +165,9 @@ def test_kernelyy():
         py = _prism_numpy.kernelyy(xp, yp, zp, p)
         cy = prism.kernelyy(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelyz():
     "gravmag.prism.kernelyz python vs cython implementation"
@@ -160,7 +175,9 @@ def test_kernelyz():
         py = _prism_numpy.kernelyz(xp, yp, zp, p)
         cy = prism.kernelyz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
 def test_kernelzz():
     "gravmag.prism.kernelzz python vs cython implementation"
@@ -168,4 +185,6 @@ def test_kernelzz():
         py = _prism_numpy.kernelzz(xp, yp, zp, p)
         cy = prism.kernelzz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+        assert np.all(diff <= lower_precision), \
+            'max diff: %g python: %g cython %g' % (max(diff),
+                    py[diff == max(diff)][0], cy[diff == max(diff)][0])

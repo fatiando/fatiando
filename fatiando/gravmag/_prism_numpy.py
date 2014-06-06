@@ -412,7 +412,7 @@ def bz(xp, yp, zp, prisms):
 def kernelxx(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -444,7 +444,7 @@ def kernelxx(xp, yp, zp, prism):
 def kernelyy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -476,7 +476,7 @@ def kernelyy(xp, yp, zp, prism):
 def kernelzz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -508,7 +508,7 @@ def kernelzz(xp, yp, zp, prism):
 def kernelxy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -519,7 +519,6 @@ def kernelxy(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
-    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -528,20 +527,20 @@ def kernelxy(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Z1 + R111) + dummy)
-    res +=  numpy.log((Z2 + R112) + dummy)
-    res +=  numpy.log((Z1 + R121) + dummy)
-    res += -numpy.log((Z2 + R122) + dummy)
-    res +=  numpy.log((Z1 + R211) + dummy)
-    res += -numpy.log((Z2 + R212) + dummy)
-    res += -numpy.log((Z1 + R221) + dummy)
-    res +=  numpy.log((Z2 + R222) + dummy)
+    res += -numpy.log((Z1 + R111))
+    res +=  numpy.log((Z2 + R112))
+    res +=  numpy.log((Z1 + R121))
+    res += -numpy.log((Z2 + R122))
+    res +=  numpy.log((Z1 + R211))
+    res += -numpy.log((Z2 + R212))
+    res += -numpy.log((Z1 + R221))
+    res +=  numpy.log((Z2 + R222))
     return -res
 
 def kernelxz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -552,7 +551,6 @@ def kernelxz(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
-    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -561,20 +559,20 @@ def kernelxz(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Y1 + R111) + dummy)
-    res +=  numpy.log((Y1 + R112) + dummy)
-    res +=  numpy.log((Y2 + R121) + dummy)
-    res += -numpy.log((Y2 + R122) + dummy)
-    res +=  numpy.log((Y1 + R211) + dummy)
-    res += -numpy.log((Y1 + R212) + dummy)
-    res += -numpy.log((Y2 + R221) + dummy)
-    res +=  numpy.log((Y2 + R222) + dummy)
+    res += -numpy.log((Y1 + R111))
+    res +=  numpy.log((Y1 + R112))
+    res +=  numpy.log((Y2 + R121))
+    res += -numpy.log((Y2 + R122))
+    res +=  numpy.log((Y1 + R211))
+    res += -numpy.log((Y1 + R212))
+    res += -numpy.log((Y2 + R221))
+    res +=  numpy.log((Y2 + R222))
     return -res
 
 def kernelyz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype='f')
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
@@ -585,7 +583,6 @@ def kernelyz(xp, yp, zp, prism):
     Y2 = yp - y2
     Z1 = zp - z1
     Z2 = zp - z2
-    dummy = 10.**(-10) # Used to avoid singularities
     R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
     R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
     R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
@@ -594,12 +591,12 @@ def kernelyz(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((X1 + R111) + dummy)
-    res +=  numpy.log((X1 + R112) + dummy)
-    res +=  numpy.log((X1 + R121) + dummy)
-    res += -numpy.log((X1 + R122) + dummy)
-    res +=  numpy.log((X2 + R211) + dummy)
-    res += -numpy.log((X2 + R212) + dummy)
-    res += -numpy.log((X2 + R221) + dummy)
-    res +=  numpy.log((X2 + R222) + dummy)
+    res += -numpy.log((X1 + R111))
+    res +=  numpy.log((X1 + R112))
+    res +=  numpy.log((X1 + R121))
+    res += -numpy.log((X1 + R122))
+    res +=  numpy.log((X2 + R211))
+    res += -numpy.log((X2 + R212))
+    res += -numpy.log((X2 + R221))
+    res +=  numpy.log((X2 + R222))
     return -res
