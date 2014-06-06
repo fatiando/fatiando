@@ -99,8 +99,8 @@ from __future__ import division
 
 import numpy
 
-from fatiando.constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
-from fatiando import utils
+from ..constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
+from .. import utils
 
 
 def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
@@ -170,17 +170,16 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    tf = numpy.zeros_like(xp)
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         if isinstance(pmag, float) or isinstance(pmag, int):
-            pintensity = pmag
-            pmx, pmy, pmz = fx, fy, fz
+            pmx, pmy, pmz = pmag*fx, pmag*fy, pmag*fz
         else:
-            pintensity = numpy.linalg.norm(pmag)
-            pmx, pmy, pmz = numpy.array(pmag)/pintensity
+            pmx, pmy, pmz = pmag
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props
                               and pmag is None):
@@ -190,13 +189,10 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         if pmag is None:
             mag = sphere.props['magnetization']
             if isinstance(mag, float) or isinstance(mag, int):
-                intensity = mag
-                mx, my, mz = fx, fy, fz
+                mx, my, mz = mag*fx, mag*fy, mag*fz
             else:
-                intensity = numpy.linalg.norm(mag)
-                mx, my, mz = numpy.array(mag)/intensity
+                mx, my, mz = mag
         else:
-            intensity = pintensity
             mx, my, mz = pmx, pmy, pmz
         v1 = kernelxx(xp, yp, zp, sphere)
         v2 = kernelxy(xp, yp, zp, sphere)
@@ -207,9 +203,9 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         bx = (v1*mx + v2*my + v3*mz)
         by = (v2*mx + v4*my + v5*mz)
         bz = (v3*mx + v5*my + v6*mz)
-        tf += intensity*(fx*bx + fy*by + fz*bz)
-    tf *= CM*T2NT
-    return tf
+        res += fx*bx + fy*by + fz*bz
+    res *= CM*T2NT
+    return res
 
 def bx(xp, yp, zp, spheres):
     """
@@ -268,19 +264,20 @@ def bx(xp, yp, zp, spheres):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    bx = numpy.zeros_like(xp)
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
         radius = sphere.radius
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        mx, my, mz = sphere.props['magnetization']
         v1 = kernelxx(xp, yp, zp, sphere)
         v2 = kernelxy(xp, yp, zp, sphere)
         v3 = kernelxz(xp, yp, zp, sphere)
-        bx += (v1*mx + v2*my + v3*mz)
-    bx *= CM*T2NT
-    return bx
+        res += (v1*mx + v2*my + v3*mz)
+    res *= CM*T2NT
+    return res
 
 def by(xp, yp, zp, spheres):
     """
@@ -339,19 +336,20 @@ def by(xp, yp, zp, spheres):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    by = numpy.zeros_like(xp)
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
         radius = sphere.radius
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        mx, my, mz = sphere.props['magnetization']
         v2 = kernelxy(xp, yp, zp, sphere)
         v4 = kernelyy(xp, yp, zp, sphere)
         v5 = kernelyz(xp, yp, zp, sphere)
-        by += (v2*mx + v4*my + v5*mz)
-    by *= CM*T2NT
-    return by
+        res += (v2*mx + v4*my + v5*mz)
+    res *= CM*T2NT
+    return res
 
 def bz(xp, yp, zp, spheres):
     """
@@ -410,19 +408,20 @@ def bz(xp, yp, zp, spheres):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    bz = numpy.zeros_like(xp)
+    size = len(xp)
+    res = numpy.zeros(size, dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props):
             continue
         radius = sphere.radius
         # Get the magnetization vector components
-        mx, my, mz = numpy.array(sphere.props['magnetization'])
+        mx, my, mz = sphere.props['magnetization']
         v3 = kernelxz(xp, yp, zp, sphere)
         v5 = kernelyz(xp, yp, zp, sphere)
         v6 = kernelzz(xp, yp, zp, sphere)
-        bz += (v3*mx + v5*my + v6*mz)
-    bz *= CM*T2NT
-    return bz
+        res += (v3*mx + v5*my + v6*mz)
+    res *= CM*T2NT
+    return res
 
 def gz(xp, yp, zp, spheres, dens=None):
     """
@@ -452,7 +451,7 @@ def gz(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -526,7 +525,7 @@ def gxx(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -595,7 +594,7 @@ def gxy(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -664,7 +663,7 @@ def gxz(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -733,7 +732,7 @@ def gyy(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -802,7 +801,7 @@ def gyz(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
@@ -871,7 +870,7 @@ def gzz(xp, yp, zp, spheres, dens=None):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros_like(xp)
+    res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
         if sphere is None or ('density' not in sphere.props and dens is None):
             continue
