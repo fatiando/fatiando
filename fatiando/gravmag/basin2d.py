@@ -19,7 +19,6 @@ import numpy
 from ..inversion.base import Misfit
 from . import talwani
 from ..mesher import Polygon
-from .. import utils
 
 
 class Triangular(Misfit):
@@ -112,7 +111,7 @@ class Triangular(Misfit):
             raise ValueError("x, z, and data must be of same length")
         if len(verts) != 2:
             raise ValueError("Need exactly 2 vertices. %d given" %
-                    (len(verts)))
+                             (len(verts)))
         super(Triangular, self).__init__(
             data=gz,
             positional=dict(x=numpy.array(x, dtype=numpy.float),
@@ -122,23 +121,23 @@ class Triangular(Misfit):
 
     def _get_predicted(self, p):
         polygon = Polygon(self.model['verts'] + [p],
-                          {'density':self.model['density']})
+                          {'density': self.model['density']})
         x, z = self.positional['x'], self.positional['z']
         return talwani.gz(x, z, [polygon])
 
     def _get_jacobian(self, p):
         delta = 1.
-        props = {'density':self.model['density']}
+        props = {'density': self.model['density']}
         verts = self.model['verts']
         xp, zp = self.positional['x'], self.positional['z']
         x, z = p
         jac = numpy.transpose([
             (talwani.gz(xp, zp, [Polygon(verts + [[x + delta, z]], props)])
              - talwani.gz(xp, zp, [Polygon(verts + [[x - delta, z]], props)])
-            )/(2.*delta),
+            ) / (2. * delta),
             (talwani.gz(xp, zp, [Polygon(verts + [[x, z + delta]], props)])
              - talwani.gz(xp, zp, [Polygon(verts + [[x, z - delta]], props)])
-            )/(2.*delta)])
+            ) / (2. * delta)])
         return jac
 
     def fit(self):
@@ -157,10 +156,11 @@ class Triangular(Misfit):
         """
         super(Triangular, self).fit()
         left, right = self.model['verts']
-        props = {'density':self.model['density']}
+        props = {'density': self.model['density']}
         self._estimate = Polygon(numpy.array([left, right, self.p_]),
                                  props=props)
         return self
+
 
 class Trapezoidal(Misfit):
     """
@@ -266,29 +266,29 @@ class Trapezoidal(Misfit):
         z1, z2 = p
         x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
         x, z = self.positional['x'], self.positional['z']
-        props = {'density':self.model['density']}
+        props = {'density': self.model['density']}
         pred = talwani.gz(x, z,
-            [Polygon(self.model['verts'] + [[x1, z1], [x2, z2]], props)])
+                          [Polygon(self.model['verts'] + [[x1, z1], [x2, z2]], props)])
         return pred
 
     def _get_jacobian(self, p):
         z1, z2 = p
         x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
-        props = {'density':self.model['density']}
+        props = {'density': self.model['density']}
         x, z = self.positional['x'], self.positional['z']
         verts = self.model['verts']
         delta = 1.
         jac = numpy.transpose([
             (talwani.gz(x, z,
-                [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)])
+                        [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)])
              - talwani.gz(x, z,
-                [Polygon(verts + [[x1, z1 - delta], [x2, z2]], props)])
-            )/(2.*delta),
+                          [Polygon(verts + [[x1, z1 - delta], [x2, z2]], props)])
+            ) / (2. * delta),
             (talwani.gz(x, z,
-                [Polygon(verts + [[x1, z1], [x2, z2 + delta]], props)])
+                        [Polygon(verts + [[x1, z1], [x2, z2 + delta]], props)])
              - talwani.gz(x, z,
-                [Polygon(verts + [[x1, z1], [x2, z2 - delta]], props)])
-            )/(2.*delta)])
+                          [Polygon(verts + [[x1, z1], [x2, z2 - delta]], props)])
+            ) / (2. * delta)])
         return jac
 
     def fit(self):
@@ -308,7 +308,7 @@ class Trapezoidal(Misfit):
         super(Trapezoidal, self).fit()
         z1, z2 = self.p_
         x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
-        props = {'density':self.model['density']}
+        props = {'density': self.model['density']}
         left, right = self.model['verts']
         self._estimate = Polygon(
             numpy.array([left, right, [x1, z1], [x2, z2]]), props)

@@ -14,7 +14,7 @@ myv.axes(myv.outline(bounds))
 myv.wall_north(bounds)
 myv.wall_bottom(bounds)
 myv.title('No exaggeration')
-scale = (1, 1, 50) # Exaggerate 50x the z axis
+scale = (1, 1, 50)  # Exaggerate 50x the z axis
 myv.figure()
 myv.prisms([prism], scale=scale)
 myv.polyprisms([poly], scale=scale)

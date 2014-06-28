@@ -69,7 +69,6 @@ doi:10.1190/segam2012-0383.1 [`pdf
 import json
 import bisect
 from math import sqrt
-
 import numpy
 
 from fatiando.gravmag import prism as prism_engine
@@ -144,6 +143,7 @@ def loadseeds(fname):
         fname.close()
     return seeds
 
+
 def sow(locations, mesh):
     """
     Create the seeds given a list of (x,y,z) coordinates and physical
@@ -191,6 +191,7 @@ def sow(locations, mesh):
             seeds.append(seedtype(index, (x, y, z), mesh[index], props))
     return seeds
 
+
 def _find_index(point, mesh):
     """
     Find the index of the cell that has point inside it.
@@ -202,8 +203,8 @@ def _find_index(point, mesh):
     zs = mesh.get_zs()
     x, y, z = point
     if (x <= x2 and x >= x1 and y <= y2 and y >= y1 and
-        ((z <= z2 and z >= z1 and mesh.zdown) or
-         (z >= z2 and z <= z1 and not mesh.zdown))):
+            ((z <= z2 and z >= z1 and mesh.zdown) or
+                 (z >= z2 and z <= z1 and not mesh.zdown))):
         if mesh.zdown:
             # -1 because bisect gives the index z would have. I want to know
             # what index z comes after
@@ -213,11 +214,12 @@ def _find_index(point, mesh):
             k = len(zs) - bisect.bisect_left(zs[::-1], z)
         j = bisect.bisect_left(ys, y) - 1
         i = bisect.bisect_left(xs, x) - 1
-        seed = i + j*nx + k*nx*ny
+        seed = i + j * nx + k * nx * ny
         # Check if the cell is not masked (topography)
         if mesh[seed] is not None:
             return seed
     return None
+
 
 def harvest(data, seeds, mesh, compactness, threshold, report=False):
     """
@@ -309,16 +311,17 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
 
     """
     for accretions, update in enumerate(iharvest(data, seeds, mesh,
-        compactness, threshold)):
+                                                 compactness, threshold)):
         continue
     estimate, predicted = update[:2]
     output = [fmt_estimate(estimate, mesh.size), predicted]
     if report:
         goal, misfit, regul = update[4:]
-        soa = goal - compactness*1./(sum(mesh.shape)/3.)*regul
-        output.append({'goal':goal, 'misfit':misfit, 'regularizer':regul,
-            'accretions':accretions, 'shape-of-anomaly':soa})
+        soa = goal - compactness * 1. / (sum(mesh.shape) / 3.) * regul
+        output.append({'goal': goal, 'misfit': misfit, 'regularizer': regul,
+                       'accretions': accretions, 'shape-of-anomaly': soa})
     return output
+
 
 def iharvest(data, seeds, mesh, compactness, threshold):
     """
@@ -348,15 +351,16 @@ def iharvest(data, seeds, mesh, compactness, threshold):
     totalmisfit = _misfitfunc(data, predicted)
     regularizer = 0.
     # Weight the regularizing function by the mean extent of the mesh
-    mu = compactness*1./(sum(mesh.shape)/3.)
+    mu = compactness * 1. / (sum(mesh.shape) / 3.)
     yield [estimate, predicted, None, neighbors, totalgoal, totalmisfit,
            regularizer]
     accretions = 0
     for iteration in xrange(mesh.size - nseeds):
-        grew = False # To check if at least one seed grew (stopping criterion)
+        grew = False  # To check if at least one seed grew (stopping criterion)
         for s in xrange(nseeds):
             best, bestgoal, bestmisfit, bestregularizer = _grow(neighbors[s],
-                data, predicted, totalmisfit, mu, regularizer, threshold)
+                                                                data, predicted, totalmisfit, mu, regularizer,
+                                                                threshold)
             if best is not None:
                 if best.i not in estimate:
                     estimate[best.i] = {}
@@ -377,6 +381,7 @@ def iharvest(data, seeds, mesh, compactness, threshold):
         if not grew:
             break
 
+
 def _init_predicted(data, seeds, mesh):
     """
     Make a list with the initial predicted data vectors (effect of seeds)
@@ -388,6 +393,7 @@ def _init_predicted(data, seeds, mesh):
             p += d.effect(mesh[seed.i], seed.props)
         predicted.append(p)
     return predicted
+
 
 def fmt_estimate(estimate, size):
     """
@@ -402,6 +408,7 @@ def fmt_estimate(estimate, size):
             output[p][i] = props[p]
     return output
 
+
 def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
     """
     Find the neighbor with smallest goal function that also decreases the
@@ -415,15 +422,16 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
         pred = [p + e for p, e in zip(predicted, neighbors[n].effect)]
         misfit = _misfitfunc(data, pred)
         if (misfit < totalmisfit and
-            float(abs(misfit - totalmisfit))/totalmisfit >= threshold):
+                        float(abs(misfit - totalmisfit)) / totalmisfit >= threshold):
             reg = regularizer + neighbors[n].distance
-            goal = _shapefunc(data, pred) + mu*reg
+            goal = _shapefunc(data, pred) + mu * reg
             if bestgoal is None or goal < bestgoal:
                 bestgoal = goal
                 best = neighbors[n]
                 bestmisfit = misfit
                 bestregularizer = reg
     return best, bestgoal, bestmisfit, bestregularizer
+
 
 def _shapefunc(data, predicted):
     """
@@ -432,9 +440,10 @@ def _shapefunc(data, predicted):
     """
     result = 0.
     for d, p in zip(data, predicted):
-        alpha = numpy.sum(d.observed*p)/d.norm**2
-        result += numpy.linalg.norm(alpha*d.observed - p)
+        alpha = numpy.sum(d.observed * p) / d.norm ** 2
+        result += numpy.linalg.norm(alpha * d.observed - p)
     return result
+
 
 def _misfitfunc(data, predicted):
     """
@@ -444,8 +453,9 @@ def _misfitfunc(data, predicted):
     result = 0.
     for d, p, in zip(data, predicted):
         residuals = d.observed - p
-        result += sqrt(numpy.dot(d.weights*residuals, residuals))/d.norm
+        result += sqrt(numpy.dot(d.weights * residuals, residuals)) / d.norm
     return result
+
 
 def _get_neighbors(cell, neighborhood, estimate, mesh, data):
     """
@@ -455,13 +465,14 @@ def _get_neighbors(cell, neighborhood, estimate, mesh, data):
     """
     indexes = [n for n in _neighbor_indexes(cell.i, mesh)
                if not _is_neighbor(n, cell.props, neighborhood)
-                  and not _in_estimate(n, cell.props, estimate)]
+               and not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
         (i, Neighbor(
             i, cell.props, cell.seed, _distance(i, cell.seed, mesh),
             _calc_effect(i, cell.props, mesh, data)))
         for i in indexes)
     return neighbors
+
 
 def _calc_effect(index, props, mesh, data):
     """
@@ -471,23 +482,26 @@ def _calc_effect(index, props, mesh, data):
     cell = mesh[index]
     return [d.effect(cell, props) for d in data]
 
+
 def _distance(n, m, mesh):
     """
     Calculate the distance (in number of cells) between cells n and m in mesh.
     """
     ni, nj, nk = _index2ijk(n, mesh)
     mi, mj, mk = _index2ijk(m, mesh)
-    return sqrt((ni - mi)**2 + (nj - mj)**2 + (nk - mk)**2)
+    return sqrt((ni - mi) ** 2 + (nj - mj) ** 2 + (nk - mk) ** 2)
+
 
 def _index2ijk(index, mesh):
     """
     Transform the index of a cell in mesh to a 3-dimensional (i,j,k) index.
     """
     nz, ny, nx = mesh.shape
-    k = index/(nx*ny)
-    j = (index - k*(nx*ny))/nx
-    i = (index - k*(nx*ny) - j*nx)
+    k = index / (nx * ny)
+    j = (index - k * (nx * ny)) / nx
+    i = (index - k * (nx * ny) - j * nx)
     return i, j, k
+
 
 def _in_estimate(index, props, estimate):
     """
@@ -498,6 +512,7 @@ def _in_estimate(index, props, estimate):
             if p in estimate[index]:
                 return True
     return False
+
 
 def _is_neighbor(index, props, neighborhood):
     """
@@ -511,36 +526,38 @@ def _is_neighbor(index, props, neighborhood):
                         return True
     return False
 
+
 def _neighbor_indexes(n, mesh):
     """Find the indexes of the neighbors of n"""
     nz, ny, nx = mesh.shape
     indexes = []
     # The guy above
-    tmp = n - nx*ny
+    tmp = n - nx * ny
     if tmp > 0:
         indexes.append(tmp)
     # The guy below
-    tmp = n + nx*ny
+    tmp = n + nx * ny
     if tmp < mesh.size:
         indexes.append(tmp)
     # The guy in front
     tmp = n + 1
-    if n%nx < nx - 1:
+    if n % nx < nx - 1:
         indexes.append(tmp)
     # The guy in the back
     tmp = n - 1
-    if n%nx != 0:
+    if n % nx != 0:
         indexes.append(tmp)
     # The guy to the left
     tmp = n + nx
-    if n%(nx*ny) < nx*(ny - 1):
+    if n % (nx * ny) < nx * (ny - 1):
         indexes.append(tmp)
     # The guy to the right
     tmp = n - nx
-    if n%(nx*ny) >= nx:
+    if n % (nx * ny) >= nx:
         indexes.append(tmp)
     # Filter out the ones that do not exist or are masked (topography)
     return [i for i in indexes if i is not None and mesh[i] is not None]
+
 
 class PrismSeed(Prism):
     """
@@ -549,10 +566,11 @@ class PrismSeed(Prism):
 
     def __init__(self, i, location, prism, props):
         Prism.__init__(self, prism.x1, prism.x2, prism.y1, prism.y2, prism.z1,
-            prism.z2, props=props)
+                       prism.z2, props=props)
         self.i = i
         self.seed = i
         self.x, self.y, self.z = location
+
 
 class TesseroidSeed(Tesseroid):
     """
@@ -561,10 +579,11 @@ class TesseroidSeed(Tesseroid):
 
     def __init__(self, i, location, tess, props):
         Tesseroid.__init__(self, tess.w, tess.e, tess.s, tess.n, tess.top,
-            tess.bottom, props=props)
+                           tess.bottom, props=props)
         self.i = i
         self.seed = i
         self.x, self.y, self.z = location
+
 
 class Neighbor(object):
     """
@@ -577,6 +596,7 @@ class Neighbor(object):
         self.seed = seed
         self.distance = distance
         self.effect = effect
+
 
 def weights(x, y, seeds, influences, decay=2):
     """
@@ -604,11 +624,12 @@ def weights(x, y, seeds, influences, decay=2):
         The calculated weights
 
     """
-    distances = numpy.array([((x - s.x)**2 + (y - s.y)**2)/influence**2
-                            for s, influence in zip(seeds, influences)])
+    distances = numpy.array([((x - s.x) ** 2 + (y - s.y) ** 2) / influence ** 2
+                             for s, influence in zip(seeds, influences)])
     # min along axis=0 gets the smallest value from each column
-    weights = numpy.exp(-(distances.min(axis=0)**decay))
+    weights = numpy.exp(-(distances.min(axis=0) ** decay))
     return weights
+
 
 class Data(object):
     """
@@ -633,6 +654,7 @@ class Data(object):
         if self.meshtype == 'tesseroid':
             self.engine = tesseroid_engine
         self.weights = weights
+
 
 class Potential(Data):
     """
@@ -664,7 +686,8 @@ class Potential(Data):
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
         return self.effectfunc(self.x, self.y, self.z, [prism],
-            props[self.prop])
+                               props[self.prop])
+
 
 class Gz(Potential):
     """
@@ -690,6 +713,7 @@ class Gz(Potential):
     def __init__(self, x, y, z, data, weights=1., meshtype='prism'):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gz
+
 
 class Gxx(Potential):
     """
@@ -717,6 +741,7 @@ class Gxx(Potential):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gxx
 
+
 class Gxy(Potential):
     """
     A container for data of the xy (north-east) component of the gravity
@@ -742,6 +767,7 @@ class Gxy(Potential):
     def __init__(self, x, y, z, data, weights=1., meshtype='prism'):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gxy
+
 
 class Gxz(Potential):
     """
@@ -769,6 +795,7 @@ class Gxz(Potential):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gxz
 
+
 class Gyy(Potential):
     """
     A container for data of the yy (east-east) component of the gravity
@@ -794,6 +821,7 @@ class Gyy(Potential):
     def __init__(self, x, y, z, data, weights=1., meshtype='prism'):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gyy
+
 
 class Gyz(Potential):
     """
@@ -821,6 +849,7 @@ class Gyz(Potential):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gyz
 
+
 class Gzz(Potential):
     """
     A container for data of the zz (vertical-vertical) component of the gravity
@@ -846,6 +875,7 @@ class Gzz(Potential):
     def __init__(self, x, y, z, data, weights=1., meshtype='prism'):
         Potential.__init__(self, x, y, z, data, weights, meshtype)
         self.effectfunc = self.engine.gzz
+
 
 class TotalField(Potential):
     """
@@ -886,4 +916,4 @@ class TotalField(Potential):
         if self.prop not in props:
             return numpy.zeros(self.size, dtype='f')
         return self.effectfunc(self.x, self.y, self.z, [prism], self.inc,
-            self.dec, pmag=props[self.prop])
+                               self.dec, pmag=props[self.prop])

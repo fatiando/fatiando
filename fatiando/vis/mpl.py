@@ -46,14 +46,26 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 """
 
 import numpy
-from matplotlib import pyplot, widgets
+
+from matplotlib import pyplot
+
 # Quick hack so that the docs can build using the mocks for readthedocs
 # Ideal would be to log an error message saying that functions from pyplot
 # were not imported
 try:
     from matplotlib.pyplot import *
+except ImportError:
+    from .. import setup_logger
+
+    logger = setup_logger('fatiando.mpl')
+
+    logger.warn("Failed to import")
 except:
-    pass
+    from .. import setup_logger
+
+    logger = setup_logger('fatiando.mpl')
+
+    logger.exception()
 
 import fatiando.gridder
 
@@ -62,7 +74,7 @@ Basemap = None
 
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
-    alpha=0.5, xy2ne=False):
+                 alpha=0.5, xy2ne=False):
     """
     Draw a polygon by clicking with the mouse.
 
@@ -117,10 +129,10 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
         axes.set_xlim(area[0], area[1])
         axes.set_ylim(area[2], area[3])
     # start with an empty line
-    line, = axes.plot([],[], marker=marker, linestyle=style, color=color,
-                      linewidth=width)
-    tmpline, = axes.plot([],[], marker=marker, linestyle=style, color=color,
-                         linewidth=width)
+    line, = axes.plot([], [], marker=marker, linestyle=style, color=color,
+                        linewidth=width)
+    tmpline, = axes.plot([], [], marker=marker, linestyle=style, color=color,
+                           linewidth=width)
     draw = axes.figure.canvas.draw
     x = []
     y = []
@@ -129,15 +141,18 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     # Hack because Python 2 doesn't like nonlocal variables that change value.
     # Lists it doesn't mind.
     picking = [True]
+
     def draw_guide(px, py):
         if len(x) != 0:
             tmpline.set_data([x[-1], px], [y[-1], py])
+
     def move(event):
         if event.inaxes != axes:
             return 0
         if picking[0]:
             draw_guide(event.xdata, event.ydata)
             draw()
+
     def pick(event):
         if event.inaxes != axes:
             return 0
@@ -160,6 +175,7 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
                 axes.fill(plotx, ploty, color=color, alpha=alpha)
         line.set_data(plotx, ploty)
         draw()
+
     def erase(event):
         if event.key == 'e' and picking[0]:
             x.pop()
@@ -169,6 +185,7 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
             line.set_data(plotx, ploty)
             draw_guide(event.xdata, event.ydata)
             draw()
+
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
@@ -180,6 +197,7 @@ def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
     else:
         verts = numpy.transpose([x, y])
     return verts
+
 
 def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     """
@@ -229,7 +247,7 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
         axes.set_xlim(area[0], area[1])
         axes.set_ylim(area[2], area[3])
     # start with an empty set
-    line, = axes.plot([],[], marker=marker, color=color, markersize=size)
+    line, = axes.plot([], [], marker=marker, color=color, markersize=size)
     line.figure.canvas.draw()
     x = []
     y = []
@@ -238,6 +256,7 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     # Hack because Python 2 doesn't like nonlocal variables that change value.
     # Lists it doesn't mind.
     picking = [True]
+
     def pick(event):
         if event.inaxes != axes:
             return 0
@@ -254,6 +273,7 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
             line.set_linestyle('')
             line.set_data(plotx, ploty)
             line.figure.canvas.draw()
+
     def erase(event):
         if event.key == 'e' and picking[0]:
             x.pop()
@@ -262,6 +282,7 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
             ploty.pop()
             line.set_data(plotx, ploty)
             line.figure.canvas.draw()
+
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
     pyplot.show()
@@ -270,6 +291,7 @@ def pick_points(area, axes, marker='o', color='k', size=8, xy2ne=False):
     else:
         points = numpy.transpose([x, y])
     return points
+
 
 def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     """
@@ -323,8 +345,8 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     axes.set_ylim(zmax, zmin)
     # start with an empty line
     line, = axes.plot([], [], marker=marker, linestyle=style,
-                       color=color, linewidth=width)
-    midv = 0.5*(vmax + vmin)
+                        color=color, linewidth=width)
+    midv = 0.5 * (vmax + vmin)
     # this is the line that moves around with the mouse
     tmpline, = axes.plot([midv], [zmin], marker=marker, linestyle='--',
                          color=color, linewidth=width)
@@ -338,6 +360,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     # Hack because Python 2 doesn't like nonlocal variables that change value.
     # Lists it doesn't mind.
     picking = [True]
+
     def draw_guide(v, z):
         if len(values) == 0:
             tmpline.set_data([v, v], [tmpz[0], z])
@@ -346,6 +369,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
                 tmpline.set_data([values[-1], v, v], [tmpz[0], tmpz[0], z])
             else:
                 tmpline.set_data([values[-1], v], [tmpz[0], tmpz[0]])
+
     def move(event):
         if event.inaxes != axes:
             return 0
@@ -353,6 +377,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
         if picking[0]:
             draw_guide(v, z)
             draw()
+
     def pick(event):
         if event.inaxes != axes:
             return 0
@@ -366,6 +391,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
                 tmpz[0] = z
                 line.set_data(plotv, plotz)
                 draw()
+
     def erase(event):
         if picking[0] and len(values) > 0 and event.key == 'e':
             depths.pop()
@@ -378,12 +404,14 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
             line.set_data(plotv, plotz)
             draw_guide(event.xdata, event.ydata)
             draw()
+
     line.figure.canvas.mpl_connect('button_press_event', pick)
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
     thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
     return thickness, values
+
 
 def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
     """
@@ -405,9 +433,10 @@ def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
     """
     west, east, south, north = area
     meridians = basemap.drawmeridians(numpy.arange(west, east, dlon),
-        labels=[0,0,0,1], linewidth=linewidth)
+                                      labels=[0, 0, 0, 1], linewidth=linewidth)
     parallels = basemap.drawparallels(numpy.arange(south, north, dlat),
-        labels=[1,0,0,0], linewidth=linewidth)
+                                      labels=[1, 0, 0, 0], linewidth=linewidth)
+
 
 def draw_countries(basemap, linewidth=1, style='dashed'):
     """
@@ -426,6 +455,7 @@ def draw_countries(basemap, linewidth=1, style='dashed'):
     lines = basemap.drawcountries(linewidth=linewidth)
     lines.set_linestyles(style)
 
+
 def draw_coastlines(basemap, linewidth=1, style='solid'):
     """
     Draw the coastlines using the given basemap.
@@ -442,6 +472,7 @@ def draw_coastlines(basemap, linewidth=1, style='solid'):
     """
     lines = basemap.drawcoastlines(linewidth=linewidth)
     lines.set_linestyles(style)
+
 
 def basemap(area, projection, resolution='c'):
     """
@@ -477,7 +508,7 @@ def basemap(area, projection, resolution='c'):
 
     """
     if projection not in ['ortho', 'aeqd', 'geos', 'robin', 'cass', 'merc',
-        'poly', 'lcc', 'stere']:
+                          'poly', 'lcc', 'stere']:
         raise ValueError("Unsuported projection '%s'" % (projection))
     global Basemap
     if Basemap is None:
@@ -486,15 +517,15 @@ def basemap(area, projection, resolution='c'):
         except ImportError:
             raise
     west, east, south, north = area
-    lon_0 = 0.5*(east + west)
-    lat_0 = 0.5*(north + south)
+    lon_0 = 0.5 * (east + west)
+    lat_0 = 0.5 * (north + south)
     if projection == 'ortho':
         bm = Basemap(projection=projection, lon_0=lon_0, lat_0=lat_0,
                      resolution=resolution)
     elif projection == 'geos' or projection == 'robin':
-        bm = Basemap(projection=projection,lon_0=lon_0, resolution=resolution)
+        bm = Basemap(projection=projection, lon_0=lon_0, resolution=resolution)
     elif (projection == 'cass' or
-           projection == 'poly'):
+                  projection == 'poly'):
         bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
                      llcrnrlat=south, urcrnrlat=north, lat_0=lat_0, lon_0=lon_0,
                      resolution=resolution)
@@ -505,13 +536,14 @@ def basemap(area, projection, resolution='c'):
     elif projection == 'lcc':
         bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
                      llcrnrlat=south, urcrnrlat=north, lat_0=lat_0, lon_0=lon_0,
-                     rsphere=(6378137.00,6356752.3142), lat_1=lat_0,
+                     rsphere=(6378137.00, 6356752.3142), lat_1=lat_0,
                      resolution=resolution)
     elif projection == 'stere':
         bm = Basemap(projection=projection, llcrnrlon=west, urcrnrlon=east,
-                     llcrnrlat=south, urcrnrlat=north, lat_0=lat_0,lon_0=lon_0,
+                     llcrnrlat=south, urcrnrlat=north, lat_0=lat_0, lon_0=lon_0,
                      lat_ts=lat_0, resolution=resolution)
     return bm
+
 
 def m2km(axis=None):
     """
@@ -528,8 +560,9 @@ def m2km(axis=None):
     """
     if axis is None:
         axis = pyplot.gca()
-    axis.set_xticklabels(['%g' % (0.001*l) for l in axis.get_xticks()])
-    axis.set_yticklabels(['%g' % (0.001*l) for l in axis.get_yticks()])
+    axis.set_xticklabels(['%g' % (0.001 * l) for l in axis.get_xticks()])
+    axis.set_yticklabels(['%g' % (0.001 * l) for l in axis.get_yticks()])
+
 
 def set_area(area):
     """
@@ -544,6 +577,7 @@ def set_area(area):
     x1, x2, y1, y2 = area
     pyplot.xlim(x1, x2)
     pyplot.ylim(y1, y2)
+
 
 def points(pts, style='.k', size=10, label=None, xy2ne=False):
     """
@@ -579,6 +613,7 @@ def points(pts, style='.k', size=10, label=None, xy2ne=False):
         kwargs['label'] = label
     return pyplot.plot(x, y, style, markersize=size, **kwargs)
 
+
 def paths(pts1, pts2, style='-k', linewidth=1, label=None):
     """
     Plot paths between the two sets of points.
@@ -597,14 +632,15 @@ def paths(pts1, pts2, style='-k', linewidth=1, label=None):
         If not None, then the string that will show in the legend
 
     """
-    kwargs = {'linewidth':linewidth}
+    kwargs = {'linewidth': linewidth}
     if label is not None:
         kwargs['label'] = label
     for p1, p2 in zip(pts1, pts2):
         pyplot.plot([p1[0], p2[0]], [p1[1], p2[1]], style, **kwargs)
 
+
 def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
-    **kwargs):
+           **kwargs):
     """
     Plot a series of layers and values associated to each layer.
 
@@ -649,6 +685,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     return plot
 
+
 def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
            xy2ne=False):
     """
@@ -687,13 +724,14 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         x1, x2, y1, y2 = y1, y2, x1, x2
     xs = [x1, x1, x2, x2, x1]
     ys = [y1, y2, y2, y1, y1]
-    kwargs = {'linewidth':linewidth}
+    kwargs = {'linewidth': linewidth}
     if label is not None:
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, style, **kwargs)
     if fill is not None:
         pyplot.fill(xs, ys, color=fill, alpha=alpha)
     return plot
+
 
 def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     """
@@ -729,8 +767,9 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
     pyplot.ylim(ys.min(), ys.max())
     return plot
 
+
 def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
-    xy2ne=False, linealpha=1.):
+            xy2ne=False, linealpha=1.):
     """
     Plot a polygon.
 
@@ -775,7 +814,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         tmpx.append(polygon.x[0])
         tmpy = [y for y in polygon.y]
         tmpy.append(polygon.y[0])
-    kwargs = {'linewidth':linewidth, 'alpha':linealpha}
+    kwargs = {'linewidth': linewidth, 'alpha': linealpha}
     if label is not None:
         kwargs['label'] = label
     line, = pyplot.plot(tmpx, tmpy, style, **kwargs)
@@ -783,8 +822,9 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         pyplot.fill(tmpx, tmpy, color=fill, alpha=alpha)
     return line
 
+
 def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
-    label=None, clabel=True, style='solid', linewidth=1.0, basemap=None):
+            label=None, clabel=True, style='solid', linewidth=1.0, basemap=None):
     """
     Make a contour plot of the data.
 
@@ -855,8 +895,9 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
         c.set_linewidth(linewidth)
     return ct_data.levels
 
+
 def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
-    vmin=None, vmax=None, cmap=pyplot.cm.jet, basemap=None):
+             vmin=None, vmax=None, cmap=pyplot.cm.jet, basemap=None):
     """
     Make a filled contour plot of the data.
 
@@ -910,8 +951,9 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
         ct_data = basemap.contourf(lon, lat, V, levels, **kwargs)
     return ct_data.levels
 
+
 def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
-    vmin=None, vmax=None, basemap=None):
+           vmin=None, vmax=None, basemap=None):
     """
     Make a pseudo-color plot of the data.
 
@@ -952,7 +994,7 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
         vmax = v.max()
     if interp:
         x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                         extrapolate=extrapolate)
+                                          extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -967,64 +1009,64 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
                               picker=True)
     return plot
 
-#def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
-                      #fillcolor='r', fillkey='value', alpha=1, label=''):
-    #"""
-    #Plot a 2d prism interface mesh.
+# def plot_2d_interface(mesh, key='value', style='-k', linewidth=1, fill=None,
+# fillcolor='r', fillkey='value', alpha=1, label=''):
+# """
+#Plot a 2d prism interface mesh.
 #
-    #Parameters:
+#Parameters:
 #
-    #* mesh
-        #Model space discretization mesh (see :func:`fatiando.mesh.line_mesh`)
+#* mesh
+#Model space discretization mesh (see :func:`fatiando.mesh.line_mesh`)
 #
-    #* key
-        #Which key of *mesh* represents the bottom of the prisms
+#* key
+#Which key of *mesh* represents the bottom of the prisms
 #
-    #* style
-        #Line and marker style and color (see ``pyplot.plot``)
+#* style
+#Line and marker style and color (see ``pyplot.plot``)
 #
-    #* linewidth
-        #Width of the line plotted (see ``pyplot.plot``)
+#* linewidth
+#Width of the line plotted (see ``pyplot.plot``)
 #
-    #* fill
-        #If not ``None``, then another mesh to fill between it and *mesh*
+#* fill
+#If not ``None``, then another mesh to fill between it and *mesh*
 #
-    #* fillcolor
-        #The color of the fill region
+#* fillcolor
+#The color of the fill region
 #
-    #* fillkey
-        #Which key of *fill* represents the bottom of the prisms
+#* fillkey
+#Which key of *fill* represents the bottom of the prisms
 #
-    #* alpha
-        #Opacity of the fill region
+#* alpha
+#Opacity of the fill region
 #
-    #* label
-        #Label of the interface line
+#* label
+#Label of the interface line
 #
-    #"""
+#"""
 #
-    #xs = []
-    #zs = []
+#xs = []
+#zs = []
 #
-    #for cell in mesh:
+#for cell in mesh:
 #
-        #xs.append(cell['x1'])
-        #xs.append(cell['x2'])
-        #zs.append(cell[key])
-        #zs.append(cell[key])
+#xs.append(cell['x1'])
+#xs.append(cell['x2'])
+#zs.append(cell[key])
+#zs.append(cell[key])
 #
-    #if fill is not None:
+#if fill is not None:
 #
-        #fill_zs = []
+#fill_zs = []
 #
-        #for cell in fill:
+#for cell in fill:
 #
-            #fill_zs.append(cell[fillkey])
-            #fill_zs.append(cell[fillkey])
+#fill_zs.append(cell[fillkey])
+#fill_zs.append(cell[fillkey])
 #
-        #pyplot.fill_between(xs, fill_zs, zs, facecolor=fillcolor, alpha=alpha)
+#pyplot.fill_between(xs, fill_zs, zs, facecolor=fillcolor, alpha=alpha)
 #
-    #plot = pyplot.plot(xs, zs, style, linewidth=linewidth, label=label)
+#plot = pyplot.plot(xs, zs, style, linewidth=linewidth, label=label)
 #
-    #return plot[0]
+#return plot[0]
 

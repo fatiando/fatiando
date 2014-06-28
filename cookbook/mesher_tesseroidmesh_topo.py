@@ -10,8 +10,8 @@ bounds = (w, e, s, n, 500000, 0)
 
 x, y = gridder.regular((w, e, s, n), (50, 50))
 height = (250000 +
-          -100000*utils.gaussian2d(x, y, 1, 5, x0=-1, y0=-1, angle=-60) +
-          250000*utils.gaussian2d(x, y, 1, 1, x0=0.8, y0=1.7))
+          -100000 * utils.gaussian2d(x, y, 1, 5, x0=-1, y0=-1, angle=-60) +
+          250000 * utils.gaussian2d(x, y, 1, 1, x0=0.8, y0=1.7))
 
 mesh = mesher.TesseroidMesh(bounds, (20, 50, 50))
 mesh.carvetopo(x, y, height)

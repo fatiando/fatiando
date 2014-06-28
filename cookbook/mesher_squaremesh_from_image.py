@@ -2,8 +2,10 @@
 Meshing: Generate a SquareMesh and get the physical properties from an image
 """
 import urllib
+
 from fatiando import mesher
 from fatiando.vis import mpl
+
 
 # Make a square mesh
 mesh = mesher.SquareMesh((0, 5000, 0, 5000), (150, 150))

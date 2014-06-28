@@ -57,3 +57,33 @@ amazing machine-learning library.
 """
 
 version = '0.3'
+
+from logging import getLogger, FileHandler, StreamHandler, DEBUG, ERROR, Formatter
+
+
+def setup_logger(app_name):
+    """ Instantiate a logger object
+
+        Usage:
+            logger = setup_logger('foo')     # saved as foo.log
+            logger.info("Some info message")
+            logger.warn("Some warning message")
+            logger.error("Some error message")
+            ... [for more options see: http://docs.python.org/2/library/logging.html]
+    """
+    logger = getLogger(app_name)
+    logger.setLevel(DEBUG)
+    # create file handler which logs even debug messages
+    fh = FileHandler(app_name + '.log')
+    fh.setLevel(DEBUG)
+    # create console handler with a higher log level
+    ch = StreamHandler()
+    ch.setLevel(ERROR)
+    # create formatter and add it to the handlers
+    formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    return logger

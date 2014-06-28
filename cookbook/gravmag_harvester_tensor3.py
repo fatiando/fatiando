@@ -8,7 +8,7 @@ from fatiando.mesher import Prism, PrismMesh, vremove
 from fatiando.vis import mpl, myv
 
 # Create a synthetic model
-props = {'density':1000}
+props = {'density': 1000}
 model = [Prism(400, 600, 300, 500, 200, 400, props),
          Prism(400, 600, 400, 600, 400, 600, props),
          Prism(400, 600, 500, 700, 600, 800, props)]
@@ -51,11 +51,11 @@ data = [harvester.Gxx(xp, yp, zp, gxx),
         harvester.Gzz(xp, yp, zp, gzz)]
 # Make the seeds
 seeds = harvester.sow([
-    [500, 400, 210, {'density':1000}],
-    [500, 550, 510, {'density':1000}]], mesh)
+                          [500, 400, 210, {'density': 1000}],
+                          [500, 550, 510, {'density': 1000}]], mesh)
 # Run the inversioin
 estimate, predicted = harvester.harvest(data, seeds, mesh,
-    compactness=0.5, threshold=0.001)
+                                        compactness=0.5, threshold=0.001)
 # Put the estimated density values in the mesh
 mesh.addprop('density', estimate['density'])
 
@@ -85,15 +85,15 @@ mpl.show()
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
 myv.prisms(seeds, 'density')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
-    nlabels=6)
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds], fmt='%.1f',
+         nlabels=6)
 myv.wall_bottom(bounds)
 myv.wall_north(bounds)
 myv.figure()
 myv.prisms(model, 'density', style='wireframe')
 myv.prisms(vremove(0, 'density', mesh), 'density')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds], fmt='%.1f',
-    nlabels=6)
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds], fmt='%.1f',
+         nlabels=6)
 myv.wall_bottom(bounds)
 myv.wall_north(bounds)
 myv.show()

@@ -6,7 +6,7 @@
 data_file = 'data.txt'
 # The extension can be anything you like (.txt, .xyz, .bla)
 # The file should have the data in xyz format. That is:
-#   x1  y1  z1  height1  gz1  gxx1 ...
+# x1  y1  z1  height1  gz1  gxx1 ...
 #   x2  y2  z2  height2  gz2  gxx2 ...
 #   ...
 #   xN  yN  zN  heightN  gzN  gxxN ...
@@ -23,7 +23,7 @@ data_file = 'data.txt'
 
 # Used to specify which columns of the data file should be used
 #use_cols = None
-use_cols = [0, 1, 2, 3, 4, 6, -1] # -1 is the last. You can iterate backwards
+use_cols = [0, 1, 2, 3, 4, 6, -1]  # -1 is the last. You can iterate backwards
 # If it is None, will use all columns. If you want to leave out a column use
 # something like (0 is the first column):
 #   use_cols = [0, 1, 2, 3, 5]
@@ -48,7 +48,7 @@ mesh_bounds = None
 # data.
 
 # The z coordinates of the top and bottom of the mesh in meters.
-mesh_top = None # Will place the top on the topography
+mesh_top = None  # Will place the top on the topography
 mesh_bottom = 2000
 # If you provided the 'height' column in the data file, then you can set
 # mesh_top = None and harvester will place the top of the mesh on the topography

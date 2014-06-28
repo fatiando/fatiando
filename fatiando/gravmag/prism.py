@@ -97,7 +97,8 @@ try:
 except:
     def not_implemented(*args, **kwargs):
         raise NotImplementedError(
-        "Couldn't load C coded extension module.")
+            "Couldn't load C coded extension module.")
+
     potential = not_implemented
     gx = not_implemented
     gy = not_implemented

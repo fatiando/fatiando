@@ -2,7 +2,9 @@
 GravMag: Interactive 2D forward gravity modeling of a trapezoidal basin
 """
 import numpy
+
 from fatiando.gui.simple import BasinTrap
+
 
 area = (0, 100000, 0, 5000)
 xp = numpy.arange(0, 100000, 1000)

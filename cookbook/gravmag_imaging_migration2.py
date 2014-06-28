@@ -7,9 +7,9 @@ from fatiando.gravmag import prism, imaging
 from fatiando.vis import mpl, myv
 
 # Make some synthetic gravity data from a simple prism model
-model = [mesher.Prism(-4000,0,-4000,-2000,2000,5000,{'density':1200}),
-          mesher.Prism(-1000,1000,-1000,1000,1000,7000,{'density':-800}),
-          mesher.Prism(2000,4000,3000,4000,0,2000,{'density':600})]
+model = [mesher.Prism(-4000, 0, -4000, -2000, 2000, 5000, {'density': 1200}),
+         mesher.Prism(-1000, 1000, -1000, 1000, 1000, 7000, {'density': -800}),
+         mesher.Prism(2000, 4000, 3000, 4000, 0, 2000, {'density': 600})]
 # Calculate on a scatter of points to show that migration doesn't need gridded
 # data
 xp, yp, zp = gridder.scatter((-6000, 6000, -6000, 6000), 1000, z=-10)

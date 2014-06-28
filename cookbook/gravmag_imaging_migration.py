@@ -7,7 +7,7 @@ from fatiando.gravmag import prism, imaging
 from fatiando.vis import mpl, myv
 
 # Make some synthetic gravity data from a simple prism model
-model = [mesher.Prism(-1000,1000,-2000,2000,2000,4000,{'density':500})]
+model = [mesher.Prism(-1000, 1000, -2000, 2000, 2000, 4000, {'density': 500})]
 shape = (50, 50)
 xp, yp, zp = gridder.regular((-10000, 10000, -10000, 10000), shape, z=-10)
 gz = prism.gz(xp, yp, zp, model)

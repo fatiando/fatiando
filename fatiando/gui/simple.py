@@ -15,8 +15,8 @@ Simple GUIs using the interactive capabilities of :mod:`matplotlib`
 
 """
 import bisect
-
 import numpy
+
 from matplotlib import pyplot, widgets
 
 from .. import utils
@@ -72,7 +72,7 @@ class Moulder():
             raise ValueError, "xp and zp must have same size"
         # Get the data
         self.area = area
-        self.x1, self.x2, z1, z2 = 0.001*numpy.array(area)
+        self.x1, self.x2, z1, z2 = 0.001 * numpy.array(area)
         if gz is not None:
             if len(gz) != len(xp):
                 raise ValueError, "xp, zp and gz must have same size"
@@ -82,7 +82,7 @@ class Moulder():
         self.xp = numpy.array(xp, dtype='f')
         self.zp = numpy.array(zp, dtype='f')
         # Make the figure
-        self.fig = pyplot.figure(figsize=(12,8))
+        self.fig = pyplot.figure(figsize=(12, 8))
         self.fig.canvas.set_window_title(self.name)
         self.fig.suptitle(self.instructions)
         self.draw = self.fig.canvas.draw
@@ -102,18 +102,18 @@ class Moulder():
         # Make the sliders
         sliderax = self.fig.add_axes([0.20, 0.08, 0.60, 0.03])
         self.densslider = widgets.Slider(sliderax, 'Density',
-            -9, 9, valinit=0., valfmt='%1.2f (g/cm3)')
+                                         -9, 9, valinit=0., valfmt='%1.2f (g/cm3)')
         sliderax = self.fig.add_axes([0.20, 0.03, 0.60, 0.03])
         self.errslider = widgets.Slider(sliderax, 'Error',
-            0, 5, valinit=0., valfmt='%1.2f (mGal)')
+                                        0, 5, valinit=0., valfmt='%1.2f (mGal)')
         # Initialize the data
         self.leg = None
         self.predgz = None
         self.predplot, = self.dcanvas.plot([], [], '-r', linewidth=2)
         if self.gz is not None:
-            self.gzplot, = self.dcanvas.plot(xp*0.001, gz, 'ok')
+            self.gzplot, = self.dcanvas.plot(xp * 0.001, gz, 'ok')
         self.nextdens = 1000.
-        self.densslider.set_val(self.nextdens*0.001)
+        self.densslider.set_val(self.nextdens * 0.001)
         self.error = 0.
         self.densities = []
         self.polygons = []
@@ -148,12 +148,12 @@ class Moulder():
         if self.polygons:
             polys = []
             for p, d in zip(self.polygons, self.densities):
-                polys.append(Polygon(1000.*numpy.array(p), {'density':d}))
+                polys.append(Polygon(1000. * numpy.array(p), {'density': d}))
             self.predgz = utils.contaminate(talwani.gz(self.xp, self.zp, polys),
-                self.error)
+                                            self.error)
         else:
             self.predgz = numpy.zeros_like(self.xp)
-        self.predplot.set_data(self.xp*0.001, self.predgz)
+        self.predplot.set_data(self.xp * 0.001, self.predgz)
         if self.gz is not None:
             ymin = min(self.predgz.min(), self.gz.min())
             ymax = max(self.predgz.max(), self.gz.max())
@@ -165,7 +165,7 @@ class Moulder():
         self.draw()
 
     def set_density(self, value):
-        self.nextdens = 1000.*value
+        self.nextdens = 1000. * value
 
     def set_error(self, value):
         self.error = value
@@ -195,19 +195,19 @@ class Moulder():
                 self.ploty.append(self.nextpoly[0][1])
                 self.polyline.set_data(self.plotx, self.ploty)
                 fill, = self.mcanvas.fill(self.plotx, self.ploty,
-                    color=self.polyline.get_color(), alpha=0.5)
-                self.polyline.set_label('%1.2f' % (0.001*self.nextdens))
+                                          color=self.polyline.get_color(), alpha=0.5)
+                self.polyline.set_label('%1.2f' % (0.001 * self.nextdens))
                 self.legend()
                 self.draw()
                 self.polyplots.append([self.polyline, fill])
                 self.plotx, self.ploty = [], []
                 self.nextpoly = []
                 self.polyline, = self.mcanvas.plot([], [], marker='o',
-                    linewidth=2)
+                                                     linewidth=2)
 
     def legend(self):
         self.leg = self.mcanvas.legend(loc='lower right', numpoints=1,
-                                  prop={'size':9})
+                                       prop={'size': 9})
         self.leg.get_frame().set_alpha(0.5)
 
     def key_press(self, event):
@@ -232,6 +232,7 @@ class Moulder():
                 fill.remove()
                 self.update()
             self.draw()
+
 
 class BasinTrap(Moulder):
     """
@@ -280,11 +281,11 @@ class BasinTrap(Moulder):
 
     def __init__(self, area, nodes, xp, zp, gz=None):
         Moulder.__init__(self, area, xp, zp, gz)
-        left, right = numpy.array(nodes)*0.001
-        z1 = z2 = 0.001*0.5*(area[3] - area[2])
+        left, right = numpy.array(nodes) * 0.001
+        z1 = z2 = 0.001 * 0.5 * (area[3] - area[2])
         self.polygons = [[left, right, [right[0], z1], [left[0], z2]]]
         self.nextdens = -1000
-        self.densslider.set_val(self.nextdens*0.001)
+        self.densslider.set_val(self.nextdens * 0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
@@ -294,7 +295,7 @@ class BasinTrap(Moulder):
         self.polyline.set_color('k')
         self.isleft = True
         self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
-                 color='red', linewidth=2)
+                                          color='red', linewidth=2)
 
     def draw_guide(self, x, z):
         if self.isleft:
@@ -312,7 +313,7 @@ class BasinTrap(Moulder):
         self.draw()
 
     def set_density(self, value):
-        self.densities[0] = 1000.*value
+        self.densities[0] = 1000. * value
         self.update()
         self.draw()
 
@@ -338,6 +339,7 @@ class BasinTrap(Moulder):
 
     def key_press(self, event):
         pass
+
 
 class BasinTri(Moulder):
     """
@@ -384,12 +386,12 @@ class BasinTri(Moulder):
 
     def __init__(self, area, nodes, xp, zp, gz=None):
         Moulder.__init__(self, area, xp, zp, gz)
-        left, right = numpy.array(nodes)*0.001
-        z = 0.001*0.5*(area[3] - area[2])
-        x = 0.5*(right[0] + left[0])
+        left, right = numpy.array(nodes) * 0.001
+        z = 0.001 * 0.5 * (area[3] - area[2])
+        x = 0.5 * (right[0] + left[0])
         self.polygons = [[left, right, [x, z]]]
         self.nextdens = -1000
-        self.densslider.set_val(self.nextdens*0.001)
+        self.densslider.set_val(self.nextdens * 0.001)
         self.densities = [self.nextdens]
         self.plotx = [v[0] for v in self.polygons[0]]
         self.plotx.append(left[0])
@@ -398,7 +400,7 @@ class BasinTri(Moulder):
         self.polyline.set_data(self.plotx, self.ploty)
         self.polyline.set_color('k')
         self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
-                 color='red', linewidth=2)
+                                          color='red', linewidth=2)
 
     def draw_guide(self, x, z):
         x0, z0 = self.polygons[0][0]
@@ -412,7 +414,7 @@ class BasinTri(Moulder):
         self.draw()
 
     def set_density(self, value):
-        self.densities[0] = 1000.*value
+        self.densities[0] = 1000. * value
         self.update()
         self.draw()
 
@@ -431,6 +433,7 @@ class BasinTri(Moulder):
 
     def key_press(self, event):
         pass
+
 
 class Lasagne():
     """
@@ -485,7 +488,7 @@ class Lasagne():
         self.zp = zp
         self.thickness = thickness
         # Make the figure
-        self.fig = pyplot.figure(figsize=(14,8))
+        self.fig = pyplot.figure(figsize=(14, 8))
         self.fig.canvas.set_window_title(self.name)
         self.fig.suptitle(self.instructions)
         self.draw = self.fig.canvas.draw
@@ -507,12 +510,12 @@ class Lasagne():
         # Make the sliders
         sliderax = self.fig.add_axes([0.20, 0.03, 0.60, 0.03])
         self.errslider = widgets.Slider(sliderax, 'Error',
-            0, 10, valinit=0., valfmt='%2.1f (percent)')
+                                        0, 10, valinit=0., valfmt='%2.1f (percent)')
         # Initialize the data
         self.error = 0.
-        self.velocity = vmin*numpy.ones_like(thickness)
+        self.velocity = vmin * numpy.ones_like(thickness)
         self.predtts = profile.layered_straight_ray(thickness, self.velocity,
-                                                      zp)
+                                                    zp)
         self.layers = [sum(thickness[:i]) for i in xrange(len(thickness) + 1)]
         self.predplot, = self.dcanvas.plot(self.predtts, zp, '-r', linewidth=2)
         if self.tts is not None:
@@ -524,9 +527,9 @@ class Lasagne():
         self.ploty.append(self.layers[-1])
         self.plotx = numpy.zeros_like(self.ploty)
         self.layerplot, = self.mcanvas.plot(self.plotx, self.ploty, 'o-k',
-            linewidth=2)
+                                            linewidth=2)
         self.guide, = self.mcanvas.plot([], [], marker='o', linestyle='--',
-                 color='red', linewidth=2)
+                                          color='red', linewidth=2)
 
     def run(self):
         self.connect()
@@ -546,14 +549,14 @@ class Lasagne():
         self.fig.canvas.mpl_connect('motion_notify_event', self.move)
 
     def set_error(self, value):
-        self.error = 0.01*value
+        self.error = 0.01 * value
         self.update()
         self.draw()
 
     def update(self):
         self.predtts = utils.contaminate(
             profile.layered_straight_ray(self.thickness, self.velocity,
-                self.zp),
+                                         self.zp),
             self.error, percent=True)
         self.predplot.set_data(self.predtts, self.zp)
         if self.tts is not None:
@@ -586,8 +589,8 @@ class Lasagne():
         if (event.button == 1):
             i = bisect.bisect(self.layers, z) - 1
             self.velocity[i] = x
-            self.plotx[2*i] = x
-            self.plotx[2*i + 1] = x
+            self.plotx[2 * i] = x
+            self.plotx[2 * i + 1] = x
             self.layerplot.set_data(self.plotx, self.ploty)
             self.guide.set_data([], [])
             self.update()

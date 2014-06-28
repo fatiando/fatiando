@@ -6,7 +6,7 @@ from fatiando import mesher, gridder
 from fatiando.gravmag import sphere
 from fatiando.vis import mpl
 
-model = [mesher.Sphere(0, 0, 2000, 1000, {'density':1000})]
+model = [mesher.Sphere(0, 0, 2000, 1000, {'density': 1000})]
 area = (-5000, 5000, -5000, 5000)
 shape = (100, 100)
 x, y, z = gridder.regular(area, shape, z=-100)

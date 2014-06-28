@@ -5,7 +5,7 @@ from fatiando import mesher, gridder, utils
 from fatiando.gravmag import prism, fourier
 from fatiando.vis import mpl
 
-model = [mesher.Prism(-1000,1000,-1000,1000,0,2000,{'density':100})]
+model = [mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 100})]
 area = (-5000, 5000, -5000, 5000)
 shape = (51, 51)
 z0 = -500
@@ -28,7 +28,7 @@ mpl.contourf(xp, yp, gz, shape, 15)
 mpl.colorbar(shrink=0.7)
 mpl.m2km()
 
-mpl.figure(figsize=(14,10))
+mpl.figure(figsize=(14, 10))
 mpl.subplots_adjust(top=0.95, left=0.05, right=0.95)
 mpl.subplot(2, 3, 1)
 mpl.title("x deriv (contour) + true (color map)")

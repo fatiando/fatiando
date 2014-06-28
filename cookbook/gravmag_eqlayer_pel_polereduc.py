@@ -10,7 +10,7 @@ from fatiando.vis import mpl
 
 # Make synthetic data
 inc, dec = -60, 23
-props = {'magnetization':10}
+props = {'magnetization': 10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (50, 50)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-150)
@@ -24,7 +24,7 @@ degree = 1
 misfit = PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree)
 regul = PELSmoothness(layer, windows, degree)
 # Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10**i for i in range(-20, -10)]).fit()
+solver = LCurve(misfit, regul, [10 ** i for i in range(-20, -10)]).fit()
 layer.addprop('magnetization', solver.estimate_)
 residuals = solver.residuals()
 print "Residuals:"

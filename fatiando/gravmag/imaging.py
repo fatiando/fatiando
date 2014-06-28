@@ -101,19 +101,20 @@ def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
     nlayers, ny, nx = meshshape
     mesh = _makemesh(x, y, (ny, nx), zmin, zmax, nlayers)
     # This way, if z is not an array, it is now
-    z = z*numpy.ones_like(x)
+    z = z * numpy.ones_like(x)
     dx, dy, dz = mesh.dims
     # Synthetic tests show that its not good to offset the weights with the data
     # z coordinate. No idea why
-    depths = mesh.get_zs()[:-1] + 0.5*dz
-    weights = numpy.abs(depths)**power/(2*G*numpy.sqrt(numpy.pi))
+    depths = mesh.get_zs()[:-1] + 0.5 * dz
+    weights = numpy.abs(depths) ** power / (2 * G * numpy.sqrt(numpy.pi))
     density = []
     for l in xrange(nlayers):
         sensibility_T = numpy.array(
             [pot_prism.gz(x, y, z, [p], dens=1) for p in mesh.get_layer(l)])
-        density.extend(scale*weights[l]*numpy.dot(sensibility_T, gz))
+        density.extend(scale * weights[l] * numpy.dot(sensibility_T, gz))
     mesh.addprop('density', numpy.array(density))
     return mesh
+
 
 def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     """
@@ -157,28 +158,29 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     # This way, if z is not an array, it is now
-    z = z*numpy.ones_like(x)
+    z = z * numpy.ones_like(x)
     freq, dataft = _getdataft(x, y, data, shape)
     dx, dy, dz = mesh.dims
     # Remove the last z because I only want depths to the top of the layers
     depths = mesh.get_zs()[:-1]
-    weights = (numpy.abs(depths) + 0.5*dz)**(power)
+    weights = (numpy.abs(depths) + 0.5 * dz) ** (power)
     density = []
     # Offset by the data z because in the paper the data is at z=0
     for depth, weight in zip(depths - z[0], weights):
         density.extend(
             numpy.real(numpy.fft.ifft2(
-                weight*(numpy.exp(-freq*depth) - numpy.exp(-freq*(depth + dz)))
-                *freq*dataft /
-                (numpy.pi*G*
+                weight * (numpy.exp(-freq * depth) - numpy.exp(-freq * (depth + dz)))
+                * freq * dataft /
+                (numpy.pi * G *
                  reduce(numpy.add,
-                     [w*(numpy.exp(-freq*h) - numpy.exp(-freq*(h + dz)))**2
-                      + 10.**(-10) # To avoid zero division when freq[i]==0
-                      for h, w in zip(depths, weights)])
+                        [w * (numpy.exp(-freq * h) - numpy.exp(-freq * (h + dz))) ** 2
+                         + 10. ** (-10)  # To avoid zero division when freq[i]==0
+                         for h, w in zip(depths, weights)])
                 )
             ).ravel()))
     mesh.addprop('density', numpy.array(density))
     return mesh
+
 
 def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     """
@@ -222,30 +224,32 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
     """
     mesh = _makemesh(x, y, shape, zmin, zmax, nlayers)
     # This way, if z is not an array, it is now
-    z = z*numpy.ones_like(x)
+    z = z * numpy.ones_like(x)
     freq, dataft = _getdataft(x, y, data, shape)
     dx, dy, dz = mesh.dims
     # Remove the last z because I only want depths to the top of the layers
-    depths = mesh.get_zs()[:-1] + 0.5*dz - z[0] # Offset by the data height
+    depths = mesh.get_zs()[:-1] + 0.5 * dz - z[0]  # Offset by the data height
     density = []
     for depth in depths:
         density.extend(
             numpy.real(
                 numpy.fft.ifft2(
-                    numpy.exp(-freq*depth)*freq*dataft/(numpy.pi*G)
+                    numpy.exp(-freq * depth) * freq * dataft / (numpy.pi * G)
                 ).ravel()
             ))
     mesh.addprop('density', numpy.array(density))
     return mesh
+
 
 def _getdataft(x, y, data, shape):
     """
     Get the Fourier transform of the data and the norm of the wavenumber vector
     """
     Fx, Fy = fourier._getfreqs(x, y, data, shape)
-    freq = numpy.sqrt(Fx**2 + Fy**2)
-    dataft = (2.*numpy.pi)*numpy.fft.fft2(numpy.reshape(data, shape))
+    freq = numpy.sqrt(Fx ** 2 + Fy ** 2)
+    dataft = (2. * numpy.pi) * numpy.fft.fft2(numpy.reshape(data, shape))
     return freq, dataft
+
 
 def _makemesh(x, y, shape, zmin, zmax, nlayers):
     """

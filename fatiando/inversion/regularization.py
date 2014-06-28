@@ -50,8 +50,8 @@ the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
 """
 from __future__ import division
 import multiprocessing
-
 import numpy
+
 import scipy.sparse
 
 from .base import Objective
@@ -130,7 +130,7 @@ class Damping(Objective):
 
         """
         # This is cheap so there is no need to cache it
-        return 2*scipy.sparse.identity(self.nparams).tocsr()
+        return 2 * scipy.sparse.identity(self.nparams).tocsr()
 
     def _get_gradient(self, p):
         """
@@ -150,7 +150,7 @@ class Damping(Objective):
         if p is 'null':
             grad = 0
         else:
-            grad = 2.*p
+            grad = 2. * p
         return grad
 
     def _get_value(self, p):
@@ -168,7 +168,8 @@ class Damping(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(p)**2
+        return numpy.linalg.norm(p) ** 2
+
 
 class Smoothness(Objective):
     r"""
@@ -234,8 +235,8 @@ class Smoothness(Objective):
     def __init__(self, fdmat):
         super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
         self._cache = {}
-        self._cache['hessian'] = {'hash':'',
-                                  'array':2*safe_dot(fdmat.T, fdmat)}
+        self._cache['hessian'] = {'hash': '',
+                                  'array': 2 * safe_dot(fdmat.T, fdmat)}
 
     def _get_hessian(self, p):
         """
@@ -291,7 +292,8 @@ class Smoothness(Objective):
 
         """
         # Need to divide by 2 because the hessian is 2*R.T*R
-        return numpy.sum(p*safe_dot(self.hessian(p), p))/2.
+        return numpy.sum(p * safe_dot(self.hessian(p), p)) / 2.
+
 
 class Smoothness1D(Smoothness):
     """
@@ -332,6 +334,7 @@ class Smoothness1D(Smoothness):
 
     def __init__(self, npoints):
         super(Smoothness1D, self).__init__(fd1d(npoints))
+
 
 class Smoothness2D(Smoothness):
     """
@@ -374,8 +377,10 @@ class Smoothness2D(Smoothness):
             [ 0, -2, -2,  4]])
 
     """
+
     def __init__(self, shape):
         super(Smoothness2D, self).__init__(fd2d(shape))
+
 
 class TotalVariation(Objective):
     r"""
@@ -487,9 +492,9 @@ class TotalVariation(Objective):
 
         """
         derivs = safe_dot(self._fdmat, p)
-        q_matrix = scipy.sparse.diags(self.beta/((derivs**2 + self.beta)**1.5),
+        q_matrix = scipy.sparse.diags(self.beta / ((derivs ** 2 + self.beta) ** 1.5),
                                       0).tocsr()
-        return safe_dot(self._fdmat.T, q_matrix*self._fdmat)
+        return safe_dot(self._fdmat.T, q_matrix * self._fdmat)
 
     def _get_gradient(self, p):
         """
@@ -507,11 +512,12 @@ class TotalVariation(Objective):
 
         """
         derivs = safe_dot(self._fdmat, p)
-        q = derivs/numpy.sqrt(derivs**2 + self.beta)
+        q = derivs / numpy.sqrt(derivs ** 2 + self.beta)
         grad = safe_dot(self._fdmat.T, q)
         if len(grad.shape) > 1:
             grad = numpy.array(grad.T).ravel()
         return grad
+
 
 class TotalVariation1D(TotalVariation):
     """
@@ -536,6 +542,7 @@ class TotalVariation1D(TotalVariation):
     def __init__(self, beta, npoints):
         super(TotalVariation1D, self).__init__(beta, fd1d(npoints))
 
+
 class TotalVariation2D(TotalVariation):
     """
     Total variation regularization for 2D problems.
@@ -556,8 +563,10 @@ class TotalVariation2D(TotalVariation):
         (or z and x, time and offset, etc) dimensions.
 
     """
+
     def __init__(self, beta, shape):
         super(TotalVariation2D, self).__init__(beta, fd2d(shape))
+
 
 def fd1d(size):
     """
@@ -588,8 +597,9 @@ def fd1d(size):
     """
     i = range(size - 1) + range(size - 1)
     j = range(size - 1) + range(1, size)
-    v = [1]*(size - 1) + [-1]*(size - 1)
+    v = [1] * (size - 1) + [-1] * (size - 1)
     return scipy.sparse.coo_matrix((v, (i, j)), (size - 1, size)).tocsr()
+
 
 def fd2d(shape):
     """
@@ -624,7 +634,7 @@ def fd2d(shape):
 
     """
     ny, nx = shape
-    nderivs = (nx - 1)*ny + (ny - 1)*nx
+    nderivs = (nx - 1) * ny + (ny - 1) * nx
     I, J, V = [], [], []
     deriv = 0
     param = 0
@@ -644,7 +654,8 @@ def fd2d(shape):
             V.extend([1, -1])
             deriv += 1
             param += 1
-    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny)).tocsr()
+    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx * ny)).tocsr()
+
 
 class LCurve(object):
     """
@@ -811,7 +822,7 @@ class LCurve(object):
         """
         if self.datamisfit.islinear:
             self.datamisfit.jacobian('null')
-        solvers = [self.datamisfit + mu*self.regul for mu in self.regul_params]
+        solvers = [self.datamisfit + mu * self.regul for mu in self.regul_params]
         if self.fit_method is not None:
             for solver in solvers:
                 solver.config(self.fit_method, **self.fit_args)
@@ -838,10 +849,12 @@ class LCurve(object):
             x, y = numpy.log(self.dnorm), numpy.log(self.mnorm)
         else:
             x, y = self.dnorm, self.mnorm
+
         def scale(a):
             vmin, vmax = a.min(), a.max()
             l, u = -10, 10
-            return ((u - l)/(vmax - vmin))*(a - (u*vmin - l*vmax)/(u - l))
+            return ((u - l) / (vmax - vmin)) * (a - (u * vmin - l * vmax) / (u - l))
+
         return scale(x), scale(y)
 
     def select_corner(self):
@@ -861,8 +874,8 @@ class LCurve(object):
         n = len(self.regul_params)
         corner = n - 1
         dist = lambda p1, p2: numpy.sqrt(
-            (p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
-        cte = 7.*numpy.pi/8.
+            (p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+        cte = 7. * numpy.pi / 8.
         angmin = None
         c = [x[-1], y[-1]]
         for k in xrange(0, n - 2):
@@ -872,13 +885,13 @@ class LCurve(object):
                 ab = dist(a, b)
                 ac = dist(a, c)
                 bc = dist(b, c)
-                cosa = (ab**2 + ac**2 - bc**2)/(2.*ab*ac)
+                cosa = (ab ** 2 + ac ** 2 - bc ** 2) / (2. * ab * ac)
                 ang = numpy.arccos(cosa)
-                area = 0.5*((b[0] - a[0])*(a[1] - c[1]) -
-                            (a[0] - c[0])*(b[1] - a[1]))
+                area = 0.5 * ((b[0] - a[0]) * (a[1] - c[1]) -
+                              (a[0] - c[0]) * (b[1] - a[1]))
                 # area is > 0 because in the paper C is index 0
                 if area > 0 and (ang < cte and
-                                 (angmin is None or ang < angmin)):
+                                     (angmin is None or ang < angmin)):
                     corner = j
                     angmin = ang
         self.corner_ = corner
@@ -985,6 +998,7 @@ class LCurve(object):
         mpl.plot(x[self.corner_], y[self.corner_], '^b', markersize=10)
         mpl.xlabel('Data misfit')
         mpl.ylabel('Regularization')
+
 
 def _run_lcurve(solver):
     """

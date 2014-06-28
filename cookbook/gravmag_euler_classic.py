@@ -12,7 +12,7 @@ inc, dec = -45, 0
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization':2})]
+    Prism(-1500, -500, -500, 500, 1000, 2000, {'magnetization': 2})]
 # Generate some data from the model
 shape = (200, 200)
 area = bounds[0:4]

@@ -17,7 +17,7 @@ for i in range(1, len(depths)):
     model.append(
         mesher.PolygonalPrism(
             mpl.draw_polygon(area, axes, xy2ne=True),
-            depths[i - 1], depths[i], {'density':500}))
+            depths[i - 1], depths[i], {'density': 500}))
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = gridder.regular(area, shape, z=-1)
@@ -35,5 +35,5 @@ mpl.show()
 # Show the model
 myv.figure()
 myv.polyprisms(model, 'density')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds])
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds])
 myv.show()

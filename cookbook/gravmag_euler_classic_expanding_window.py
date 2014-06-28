@@ -3,19 +3,21 @@ GravMag: Classic 3D Euler deconvolution of magnetic data using an
 expanding window
 """
 import numpy as np
+
 from fatiando.mesher import Prism
 from fatiando import gridder, utils
 from fatiando.gravmag import prism, fourier
 from fatiando.gravmag.euler import Classic, ExpandingWindow
 from fatiando.vis import mpl, myv
 
+
 # The regional field
 inc, dec = -45, 0
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    Prism(-1500, -500, -1500, -500, 1000, 2000, {'magnetization':2}),
-    Prism(500, 1500, 1000, 2000, 1000, 2000, {'magnetization':2})]
+    Prism(-1500, -500, -1500, -500, 1000, 2000, {'magnetization': 2}),
+    Prism(500, 1500, 1000, 2000, 1000, 2000, {'magnetization': 2})]
 # Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
@@ -66,7 +68,7 @@ for i, res in enumerate(results):
 myv.figure()
 myv.points([r.estimate_ for r in results], size=100.)
 myv.prisms(model, opacity=0.5)
-axes = myv.axes(myv.outline(bounds), ranges=[b*0.001 for b in bounds])
+axes = myv.axes(myv.outline(bounds), ranges=[b * 0.001 for b in bounds])
 myv.wall_bottom(bounds)
 myv.wall_north(bounds)
 myv.show()

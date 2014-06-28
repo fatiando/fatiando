@@ -11,6 +11,8 @@ x, y = gridder.scatter(area, n=200, seed=0)
 def data(x, y):
     return (utils.gaussian2d(x, y, -0.6, -1)
             - utils.gaussian2d(x, y, 1.5, 1.5))
+
+
 z = data(x, y)
 
 shape = (100, 100)

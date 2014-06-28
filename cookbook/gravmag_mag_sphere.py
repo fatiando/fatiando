@@ -10,10 +10,10 @@ inc, dec = -30, 45
 # Create a sphere model
 model = [
     # One with induced magnetization
-    mesher.Sphere(0, 2000, 600, 500, {'magnetization':5}),
+    mesher.Sphere(0, 2000, 600, 500, {'magnetization': 5}),
     # and one with remanent
     mesher.Sphere(0, -2000, 600, 500,
-        {'magnetization':utils.ang2vec(10, 70, -50)})] # induced + remanet
+                  {'magnetization': utils.ang2vec(10, 70, -50)})]  # induced + remanet
 # Create a regular grid at 100m height
 shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)

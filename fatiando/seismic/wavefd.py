@@ -127,15 +127,18 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 from __future__ import division
 
 import numpy
+
 import scipy.sparse
 import scipy.sparse.linalg
+
 
 try:
     from fatiando.seismic._wavefd import *
 except:
     def not_implemented(*args, **kwargs):
         raise NotImplementedError(
-        "Couldn't load C coded extension module.")
+            "Couldn't load C coded extension module.")
+
     _apply_damping = not_implemented
     _step_elastic_sh = not_implemented
     _step_elastic_psv = not_implemented
@@ -144,6 +147,7 @@ except:
     _nonreflexive_psv_boundary_conditions = not_implemented
     _step_scalar = not_implemented
     _reflexive_scalar_boundary_conditions = not_implemented
+
 
 class MexHatSource(object):
     r"""
@@ -175,19 +179,19 @@ class MexHatSource(object):
 
     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
         nz, nx = shape
-        dz, dx = sum(area[2:])/(nz - 1), sum(area[:2])/(nx - 1)
-        self.i = int(round((z - area[2])/dz))
-        self.j = int(round((x - area[0])/dx))
+        dz, dx = sum(area[2:]) / (nz - 1), sum(area[:2]) / (nx - 1)
+        self.i = int(round((z - area[2]) / dz))
+        self.j = int(round((x - area[0]) / dx))
         self.x, self.z = x, z
         self.amp = amp
         self.frequency = frequency
-        self.f2 = frequency**2
+        self.f2 = frequency ** 2
         self.delay = delay
 
     def __call__(self, time):
-        t2 = (time - self.delay)**2
-        pi2 = numpy.pi**2
-        psi = self.amp*(1 - 2*pi2*self.f2*t2)*numpy.exp(-pi2*self.f2*t2)
+        t2 = (time - self.delay) ** 2
+        pi2 = numpy.pi ** 2
+        psi = self.amp * (1 - 2 * pi2 * self.f2 * t2) * numpy.exp(-pi2 * self.f2 * t2)
         return psi
 
     def coords(self):
@@ -213,6 +217,7 @@ class MexHatSource(object):
 
         """
         return (self.i, self.j)
+
 
 class SinSqrSource(MexHatSource):
     r"""
@@ -247,17 +252,18 @@ class SinSqrSource(MexHatSource):
     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
         super(SinSqrSource, self).__init__(x, z, area, shape, amp,
                                            frequency, delay)
-        self.wlength = 1./frequency
+        self.wlength = 1. / frequency
 
     def __call__(self, time):
         t = time - self.delay
         if t + self.delay > self.wlength:
             return 0
-        psi = self.amp*numpy.sin(2.*numpy.pi*t/float(self.wlength))**2
+        psi = self.amp * numpy.sin(2. * numpy.pi * t / float(self.wlength)) ** 2
         return psi
 
+
 def blast_source(x, z, area, shape, amp, frequency, delay=0,
-    sourcetype=MexHatSource):
+                 sourcetype=MexHatSource):
     """
     Uses several MexHatSources to create a blast source that pushes in all
     directions.
@@ -291,9 +297,9 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0,
     center = sourcetype(x, z, area, shape, amp, frequency, delay)
     i, j = center.indexes()
     tmp = numpy.sqrt(2)
-    locations = [[i-1,j-1,-amp,-amp], [i-1,j,0,-tmp*amp], [i-1,j+1,amp,-amp],
-                 [i,j-1,-tmp*amp,0], [i,j+1,tmp*amp,0],
-                 [i+1,j-1,-amp,amp], [i+1,j,0,tmp*amp], [i+1,j+1,amp,amp]]
+    locations = [[i - 1, j - 1, -amp, -amp], [i - 1, j, 0, -tmp * amp], [i - 1, j + 1, amp, -amp],
+                 [i, j - 1, -tmp * amp, 0], [i, j + 1, tmp * amp, 0],
+                 [i + 1, j - 1, -amp, amp], [i + 1, j, 0, tmp * amp], [i + 1, j + 1, amp, amp]]
     locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
                  if i >= 0 and i < nz and j >= 0 and j < nx]
     for i, j, xamp, zamp in locations:
@@ -304,6 +310,7 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0,
         xsources.append(xsrc)
         zsources.append(zsrc)
     return xsources, zsources
+
 
 class GaussSource(MexHatSource):
     r"""
@@ -334,16 +341,17 @@ class GaussSource(MexHatSource):
 
     def __init__(self, x, z, area, shape, amp, frequency, delay=None):
         super(GaussSource, self).__init__(x, z, area, shape, amp,
-                                           frequency, delay)
+                                          frequency, delay)
         if (delay == None):
-            self.delay = 3.0/frequency
+            self.delay = 3.0 / frequency
 
     def __call__(self, time):
         t = time - self.delay
-        psi = self.amp*((2*numpy.sqrt(numpy.e)*self.frequency)
-               *t*numpy.exp(-2*(t**2)*self.f2)
-            )
+        psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.frequency)
+                          * t * numpy.exp(-2 * (t ** 2) * self.f2)
+        )
         return psi
+
 
 def lame_lamb(pvel, svel, dens):
     r"""
@@ -380,8 +388,9 @@ def lame_lamb(pvel, svel, dens):
         [5400000000 9982000000]
 
     """
-    lamb = dens*pvel**2 - 2*dens*svel**2
+    lamb = dens * pvel ** 2 - 2 * dens * svel ** 2
     return lamb
+
 
 def lame_mu(svel, dens):
     r"""
@@ -415,8 +424,9 @@ def lame_mu(svel, dens):
         [2700000000 8959000000]
 
     """
-    mu = dens*svel**2
+    mu = dens * svel ** 2
     return mu
+
 
 def _add_pad(array, pad, shape):
     """
@@ -425,14 +435,15 @@ def _add_pad(array, pad, shape):
     array_pad = numpy.zeros(shape, dtype=numpy.float)
     array_pad[:-pad, pad:-pad] = array
     for k in xrange(pad):
-        array_pad[:-pad,k] = array[:,0]
-        array_pad[:-pad,-(k + 1)] = array[:,-1]
+        array_pad[:-pad, k] = array[:, 0]
+        array_pad[:-pad, -(k + 1)] = array[:, -1]
     for k in xrange(pad):
-        array_pad[-(pad - k),:] = array_pad[-(pad + 1),:]
+        array_pad[-(pad - k), :] = array_pad[-(pad + 1), :]
     return array_pad
 
+
 def scalar(vel, area, dt, iterations, sources, stations=None,
-    snapshot=None, padding=50, taper=0.005):
+           snapshot=None, padding=50, taper=0.005):
     """
 
     Simulate scalar waves using an explicit finite differences scheme 4th order
@@ -475,19 +486,19 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
 
     """
 
-    nz, nx = numpy.shape(vel) # get simulation dimensions
+    nz, nx = numpy.shape(vel)  # get simulation dimensions
     x1, x2, z1, z2 = area
-    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
 
     if dz != dx:
         raise ValueError('Space increment must be equal in x and z')
 
-    ds = dz # dz or dx doesn't matter
+    ds = dz  # dz or dx doesn't matter
 
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1)/ds)), int(round((x - x1)/ds))]
+        stations = [[int(round((z - z1) / ds)), int(round((x - x1) / ds))]
                     for x, z in stations]
         seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
     else:
@@ -495,7 +506,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
     # Add some padding to x and z. The padding region is where the wave is
     # absorbed
     pad = int(padding)
-    nx += 2*pad
+    nx += 2 * pad
     nz += pad
     # Pad the velocity as well
     vel_pad = _add_pad(vel, pad, (nz, nx))
@@ -507,7 +518,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
     # Compute and yield the initial solutions
     for src in sources:
         i, j = src.indexes()
-        u[1, i, j + pad] += -((vel[i,j]*dt)**2)*src(0)
+        u[1, i, j + pad] += -((vel[i, j] * dt) ** 2) * src(0)
     # Update seismograms
     for station, seismogram in zip(stations, seismograms):
         i, j = station
@@ -516,7 +527,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
         yield 0, u[1, :-pad, pad:-pad], seismograms
 
     for iteration in xrange(1, iterations):
-        t, tm1 = iteration%2, (iteration + 1)%2
+        t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
         _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
                      dt, ds, vel_pad)
@@ -529,17 +540,18 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
         _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
             i, j = src.indexes()
-            u[tp1, i, j + pad] += -((vel[i,j]*dt)**2)*src(iteration*dt)
+            u[tp1, i, j + pad] += -((vel[i, j] * dt) ** 2) * src(iteration * dt)
         # Update seismograms
         for station, seismogram in zip(stations, seismograms):
             i, j = station
             seismogram[iteration] = u[tp1, i, j + pad]
-        if snapshot is not None and iteration%snapshot == 0:
+        if snapshot is not None and iteration % snapshot == 0:
             yield iteration, u[tp1, :-pad, pad:-pad], seismograms
     yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
+
 def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
-    snapshot=None, padding=50, taper=0.005):
+               snapshot=None, padding=50, taper=0.005):
     """
     Simulate SH waves using the Equivalent Staggered Grid (ESG) finite
     differences scheme of Di Bartolo et al. (2012).
@@ -595,11 +607,11 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
         raise ValueError('Density and mu grids should have same shape')
     x1, x2, z1, z2 = area
     nz, nx = mu.shape
-    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1)/dz)), int(round((x - x1)/dx))]
+        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
                     for x, z in stations]
         seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
     else:
@@ -607,7 +619,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     # Add some padding to x and z. The padding region is where the wave is
     # absorbed
     pad = int(padding)
-    nx += 2*pad
+    nx += 2 * pad
     nz += pad
     mu_pad = _add_pad(mu, pad, (nz, nx))
     dens_pad = _add_pad(density, pad, (nz, nx))
@@ -619,7 +631,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     # Compute and yield the initial solutions
     for src in sources:
         i, j = src.indexes()
-        u[1, i, j + pad] += (dt**2/density[i, j])*src(0)
+        u[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
     # Update seismograms
     for station, seismogram in zip(stations, seismograms):
         i, j = station
@@ -627,27 +639,28 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     if snapshot is not None:
         yield 0, u[1, :-pad, pad:-pad], seismograms
     for iteration in xrange(1, iterations):
-        t, tm1 = iteration%2, (iteration + 1)%2
+        t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3, dt, dx,
-            dz, mu_pad, dens_pad)
+                         dz, mu_pad, dens_pad)
         _apply_damping(u[t], nx, nz, pad, taper)
         _nonreflexive_sh_boundary_conditions(u[tp1], u[t], nx, nz, dt, dx, dz,
-            mu_pad, dens_pad)
+                                             mu_pad, dens_pad)
         _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
             i, j = src.indexes()
-            u[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+            u[tp1, i, j + pad] += (dt ** 2 / density[i, j]) * src(iteration * dt)
         # Update seismograms
         for station, seismogram in zip(stations, seismograms):
             i, j = station
             seismogram[iteration] = u[tp1, i, j + pad]
-        if snapshot is not None and iteration%snapshot == 0:
+        if snapshot is not None and iteration % snapshot == 0:
             yield iteration, u[tp1, :-pad, pad:-pad], seismograms
     yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
+
 def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
-    stations=None, snapshot=None, padding=50, taper=0.002, xz2ps=False):
+                stations=None, snapshot=None, padding=50, taper=0.002, xz2ps=False):
     """
     Simulate P and SV waves using the Parsimonious Staggered Grid (PSG) finite
     differences scheme of Luo and Schuster (1990).
@@ -716,12 +729,12 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
         raise ValueError('Density lambda, and mu grids should have same shape')
     x1, x2, z1, z2 = area
     nz, nx = mu.shape
-    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
     xsources, zsources = sources
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1)/dz)), int(round((x - x1)/dx))]
+        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
                     for x, z in stations]
         xseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
         zseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
@@ -729,23 +742,23 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
         stations, xseismograms, zseismograms = [], [], []
     # Add padding to have an absorbing region to simulate an infinite medium
     pad = int(padding)
-    nx += 2*pad
+    nx += 2 * pad
     nz += pad
     mu_pad = _add_pad(mu, pad, (nz, nx))
     lamb_pad = _add_pad(lamb, pad, (nz, nx))
     dens_pad = _add_pad(density, pad, (nz, nx))
     # Pre-compute the matrices required for the free-surface boundary
-    dzdx = dz/dx
+    dzdx = dz / dx
     identity = scipy.sparse.identity(nx)
     B = scipy.sparse.eye(nx, nx, k=1) - scipy.sparse.eye(nx, nx, k=-1)
-    gamma = scipy.sparse.spdiags(lamb_pad[0]/(lamb_pad[0] + 2*mu_pad[0]), [0],
+    gamma = scipy.sparse.spdiags(lamb_pad[0] / (lamb_pad[0] + 2 * mu_pad[0]), [0],
                                  nx, nx)
-    Mx1 = identity - 0.0625*(dzdx**2)*B*gamma*B
-    Mx2 = identity + 0.0625*(dzdx**2)*B*gamma*B
-    Mx3 = 0.5*dzdx*B
-    Mz1 = identity - 0.0625*(dzdx**2)*gamma*B*B
-    Mz2 = identity + 0.0625*(dzdx**2)*gamma*B*B
-    Mz3 = 0.5*dzdx*gamma*B
+    Mx1 = identity - 0.0625 * (dzdx ** 2) * B * gamma * B
+    Mx2 = identity + 0.0625 * (dzdx ** 2) * B * gamma * B
+    Mx3 = 0.5 * dzdx * B
+    Mz1 = identity - 0.0625 * (dzdx ** 2) * gamma * B * B
+    Mz2 = identity + 0.0625 * (dzdx ** 2) * gamma * B * B
+    Mz3 = 0.5 * dzdx * gamma * B
     # Compute and yield the initial solutions
     ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
     uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
@@ -753,10 +766,10 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
         p, s = numpy.empty_like(mu), numpy.empty_like(mu)
     for src in xsources:
         i, j = src.indexes()
-        ux[1, i, j + pad] += (dt**2/density[i, j])*src(0)
+        ux[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
     for src in zsources:
         i, j = src.indexes()
-        uz[1, i, j + pad] += (dt**2/density[i, j])*src(0)
+        uz[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
     # Update seismograms
     for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
         i, j = station
@@ -771,32 +784,32 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
             yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
                    xseismograms, zseismograms]
     for iteration in xrange(1, iterations):
-        t, tm1 = iteration%2, (iteration + 1)%2
+        t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
-        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1, dt, dx,
-            dz, mu_pad, lamb_pad, dens_pad)
+        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1, 1, nz - 1, dt, dx,
+                          dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[t], nx, nz, pad, taper)
         _apply_damping(uz[t], nx, nz, pad, taper)
         # Free-surface boundary conditions
-        ux[tp1,0,:] = scipy.sparse.linalg.spsolve(Mx1,
-                      Mx2*ux[tp1,1,:] + Mx3*uz[tp1,1,:])
-        uz[tp1,0,:] = scipy.sparse.linalg.spsolve(Mz1,
-                      Mz2*uz[tp1,1,:] + Mz3*ux[tp1,1,:])
+        ux[tp1, 0, :] = scipy.sparse.linalg.spsolve(Mx1,
+                                                    Mx2 * ux[tp1, 1, :] + Mx3 * uz[tp1, 1, :])
+        uz[tp1, 0, :] = scipy.sparse.linalg.spsolve(Mz1,
+                                                    Mz2 * uz[tp1, 1, :] + Mz3 * ux[tp1, 1, :])
         _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,
-            dx, dz, mu_pad, lamb_pad, dens_pad)
+                                              dx, dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[tp1], nx, nz, pad, taper)
         _apply_damping(uz[tp1], nx, nz, pad, taper)
         for src in xsources:
             i, j = src.indexes()
-            ux[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+            ux[tp1, i, j + pad] += (dt ** 2 / density[i, j]) * src(iteration * dt)
         for src in zsources:
             i, j = src.indexes()
-            uz[tp1, i, j + pad] += (dt**2/density[i, j])*src(iteration*dt)
+            uz[tp1, i, j + pad] += (dt ** 2 / density[i, j]) * src(iteration * dt)
         for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
             i, j = station
             xseis[iteration] = ux[tp1, i, j + pad]
             zseis[iteration] = uz[tp1, i, j + pad]
-        if snapshot is not None and iteration%snapshot == 0:
+        if snapshot is not None and iteration % snapshot == 0:
             if xz2ps:
                 _xz2ps(ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad], p,
                        s, p.shape[1], p.shape[0], dx, dz)
@@ -811,6 +824,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     else:
         yield [iteration, ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad],
                xseismograms, zseismograms]
+
 
 def xz2ps(ux, uz, area):
     r"""
@@ -849,10 +863,11 @@ def xz2ps(ux, uz, area):
         raise ValueError('ux and uz grids should have same shape')
     x1, x2, z1, z2 = area
     nz, nx = ux.shape
-    dz, dx = (z2 - z1)/(nz - 1), (x2 - x1)/(nx - 1)
+    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
     p, s = numpy.empty_like(ux), numpy.empty_like(ux)
     _xz2ps(ux, uz, p, s, nx, nz, dx, dz)
     return p, s
+
 
 def maxdt(area, shape, maxvel):
     """
@@ -879,8 +894,8 @@ def maxdt(area, shape, maxvel):
     """
     x1, x2, z1, z2 = area
     nz, nx = shape
-    spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
-    return 0.606*spacing/maxvel
+    spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
+    return 0.606 * spacing / maxvel
 
 
 def scalar_maxdt(area, shape, maxvel):
@@ -925,8 +940,8 @@ def scalar_maxdt(area, shape, maxvel):
     """
     x1, x2, z1, z2 = area
     nz, nx = shape
-    spacing = min([(x2 - x1)/(nx - 1), (z2 - z1)/(nz - 1)])
-    factor = numpy.sqrt(3./8.)
-    factor -= factor/100. # 1% smaller to guarantee criteria
+    spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
+    factor = numpy.sqrt(3. / 8.)
+    factor -= factor / 100.  # 1% smaller to guarantee criteria
     # the closer to stability criteria the better the convergence
-    return factor*spacing/maxvel
+    return factor * spacing / maxvel

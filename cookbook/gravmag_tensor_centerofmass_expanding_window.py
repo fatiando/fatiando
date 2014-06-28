@@ -7,8 +7,8 @@ from fatiando.gravmag import tensor, prism
 from fatiando.vis import mpl, myv
 
 # Generate some synthetic data
-model = [mesher.Prism(-2500,-500,-1000,1000,500,2500,{'density':1000}),
-         mesher.Prism(500,2500,-1000,1000,500,2500,{'density':1000})]
+model = [mesher.Prism(-2500, -500, -1000, 1000, 500, 2500, {'density': 1000}),
+         mesher.Prism(500, 2500, -1000, 1000, 500, 2500, {'density': 1000})]
 shape = (100, 100)
 area = (-5000, 5000, -5000, 5000)
 xp, yp, zp = gridder.regular(area, shape, z=-150)

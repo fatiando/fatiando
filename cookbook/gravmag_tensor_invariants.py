@@ -2,9 +2,11 @@
 GravMag: Calculate the gravity gradient tensor invariants
 """
 import numpy
+
 from fatiando import mesher, gridder
 from fatiando.gravmag import polyprism, tensor
 from fatiando.vis import mpl
+
 
 print "Draw the polygons one by one"
 area = [-10000, 10000, -10000, 10000]
@@ -20,7 +22,7 @@ for depth in [5000, 5000]:
     model.append(
         mesher.PolygonalPrism(
             mpl.draw_polygon(area, fig.gca(), xy2ne=True),
-            0, depth, {'density':500}))
+            0, depth, {'density': 500}))
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = gridder.regular(dataarea, shape, z=-500)

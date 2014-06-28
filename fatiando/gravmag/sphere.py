@@ -106,7 +106,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
             pmx, pmy, pmz = fx, fy, fz
         else:
             pintensity = numpy.linalg.norm(pmag)
-            pmx, pmy, pmz = numpy.array(pmag)/pintensity
+            pmx, pmy, pmz = numpy.array(pmag) / pintensity
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props
                               and pmag is None):
@@ -120,7 +120,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
                 mx, my, mz = fx, fy, fz
             else:
                 intensity = numpy.linalg.norm(mag)
-                mx, my, mz = numpy.array(mag)/intensity
+                mx, my, mz = numpy.array(mag) / intensity
         else:
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz
@@ -130,16 +130,17 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         y = sphere.y - yp
         z = sphere.z - zp
         # Calculate the 3 components of B
-        dotprod = mx*x + my*y + mz*z
-        r_sqr = x**2 + y**2 + z**2
-        r5 = r_sqr**(2.5)
-        moment = intensity*(4.*numpy.pi*(radius**3)/3.)
-        bx = moment*(3*dotprod*x - r_sqr*mx)/r5
-        by = moment*(3*dotprod*y - r_sqr*my)/r5
-        bz = moment*(3*dotprod*z - r_sqr*mz)/r5
-        tf += (fx*bx + fy*by + fz*bz)
-    tf *= CM*T2NT
+        dotprod = mx * x + my * y + mz * z
+        r_sqr = x ** 2 + y ** 2 + z ** 2
+        r5 = r_sqr ** (2.5)
+        moment = intensity * (4. * numpy.pi * (radius ** 3) / 3.)
+        bx = moment * (3 * dotprod * x - r_sqr * mx) / r5
+        by = moment * (3 * dotprod * y - r_sqr * my) / r5
+        bz = moment * (3 * dotprod * z - r_sqr * mz) / r5
+        tf += (fx * bx + fy * by + fz * bz)
+    tf *= CM * T2NT
     return tf
+
 
 def gz(xp, yp, zp, spheres, dens=None):
     """
@@ -181,11 +182,12 @@ def gz(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_cb = (dx**2 + dy**2 + dz**2)**(1.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*dz/r_cb
-    res *= G*SI2MGAL
+        r_cb = (dx ** 2 + dy ** 2 + dz ** 2) ** (1.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * dz / r_cb
+    res *= G * SI2MGAL
     return res
+
 
 def gxx(xp, yp, zp, spheres, dens=None):
     """
@@ -227,12 +229,13 @@ def gxx(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dx**2) - r_2)/r_5)
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (((3 * dx ** 2) - r_2) / r_5)
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxy(xp, yp, zp, spheres, dens=None):
     """
@@ -274,12 +277,13 @@ def gxy(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dx*dy)/r_5
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (3 * dx * dy) / r_5
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxz(xp, yp, zp, spheres, dens=None):
     """
@@ -321,12 +325,13 @@ def gxz(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dx*dz)/r_5
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (3 * dx * dz) / r_5
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyy(xp, yp, zp, spheres, dens=None):
     """
@@ -368,12 +373,13 @@ def gyy(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dy**2) - r_2)/r_5)
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (((3 * dy ** 2) - r_2) / r_5)
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyz(xp, yp, zp, spheres, dens=None):
     """
@@ -415,12 +421,13 @@ def gyz(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(3*dy*dz)/r_5
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (3 * dy * dz) / r_5
+    res *= G * SI2EOTVOS
     return res
+
 
 def gzz(xp, yp, zp, spheres, dens=None):
     """
@@ -462,9 +469,9 @@ def gzz(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_2 = (dx**2 + dy**2 + dz**2)
-        r_5 = r_2**(2.5)
-        mass = density*4.*numpy.pi*(radius**3)/3.
-        res += mass*(((3*dz**2) - r_2)/r_5)
-    res *= G*SI2EOTVOS
+        r_2 = (dx ** 2 + dy ** 2 + dz ** 2)
+        r_5 = r_2 ** (2.5)
+        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
+        res += mass * (((3 * dz ** 2) - r_2) / r_5)
+    res *= G * SI2EOTVOS
     return res

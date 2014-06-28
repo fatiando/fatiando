@@ -19,11 +19,13 @@ bodies.
 from __future__ import division
 
 import numpy
+
 from ..inversion.base import Misfit
 from .. import mesher
 from ..utils import ang2vec, vec2ang, safe_dot
 from . import sphere
 from ..constants import G, CM, T2NT, SI2EOTVOS
+
 
 class DipoleMagDir(Misfit):
     """
@@ -115,20 +117,20 @@ class DipoleMagDir(Misfit):
     True
     
     """
-	
+
     def __init__(self, x, y, z, data, inc, dec, points):
         super(DipoleMagDir, self).__init__(
             data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'inc':inc, 'dec':dec, 'points':points},
-            nparams=3*len(points),
+            positional={'x': x, 'y': y, 'z': z},
+            model={'inc': inc, 'dec': dec, 'points': points},
+            nparams=3 * len(points),
             islinear=True)
-        #Constants
+        # Constants
         self.ndipoles = len(points)
-        self.cte = 1.0/((4.0*numpy.pi/3.0)*G*SI2EOTVOS)
+        self.cte = 1.0 / ((4.0 * numpy.pi / 3.0) * G * SI2EOTVOS)
         #Geomagnetic Field versor
         self.F_versor = ang2vec(1.0, self.model['inc'], self.model['dec'])
-        
+
     def _get_predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
@@ -136,28 +138,28 @@ class DipoleMagDir(Misfit):
         x = self.positional['x']
         y = self.positional['y']
         z = self.positional['z']
-        dipoles = [mesher.Sphere(xp, yp, zp, 1.) for xp, yp, zp in 
+        dipoles = [mesher.Sphere(xp, yp, zp, 1.) for xp, yp, zp in
                    self.model['points']]
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         for i, dipole in enumerate(dipoles):
-            k = 3*i
+            k = 3 * i
             derivative_gxx = sphere.gxx(x, y, z, [dipole], dens=self.cte)
             derivative_gxy = sphere.gxy(x, y, z, [dipole], dens=self.cte)
             derivative_gxz = sphere.gxz(x, y, z, [dipole], dens=self.cte)
             derivative_gyy = sphere.gyy(x, y, z, [dipole], dens=self.cte)
             derivative_gyz = sphere.gyz(x, y, z, [dipole], dens=self.cte)
             derivative_gzz = sphere.gzz(x, y, z, [dipole], dens=self.cte)
-            jac[:,k]   = T2NT*((self.F_versor[0]*derivative_gxx) + 
-                               (self.F_versor[1]*derivative_gxy) + 
-                               (self.F_versor[2]*derivative_gxz))
-            jac[:,k+1] = T2NT*((self.F_versor[0]*derivative_gxy) + 
-                               (self.F_versor[1]*derivative_gyy) + 
-                               (self.F_versor[2]*derivative_gyz))
-            jac[:,k+2] = T2NT*((self.F_versor[0]*derivative_gxz) + 
-                               (self.F_versor[1]*derivative_gyz) + 
-                               (self.F_versor[2]*derivative_gzz))
+            jac[:, k] = T2NT * ((self.F_versor[0] * derivative_gxx) +
+                                (self.F_versor[1] * derivative_gxy) +
+                                (self.F_versor[2] * derivative_gxz))
+            jac[:, k + 1] = T2NT * ((self.F_versor[0] * derivative_gxy) +
+                                    (self.F_versor[1] * derivative_gyy) +
+                                    (self.F_versor[2] * derivative_gyz))
+            jac[:, k + 2] = T2NT * ((self.F_versor[0] * derivative_gxz) +
+                                    (self.F_versor[1] * derivative_gyz) +
+                                    (self.F_versor[2] * derivative_gzz))
         return jac
-    
+
     def fit(self):
         """
         Solve for the magnetization direction of a set of dipoles.
@@ -174,7 +176,7 @@ class DipoleMagDir(Misfit):
 
         """
         super(DipoleMagDir, self).fit()
-        self._estimate = [vec2ang(self.p_[3*i : 3*i + 3]) for i in 
+        self._estimate = [vec2ang(self.p_[3 * i: 3 * i + 3]) for i in
                           range(len(self.model['points']))]
         return self
 

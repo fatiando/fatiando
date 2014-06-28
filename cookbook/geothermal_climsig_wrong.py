@@ -3,9 +3,11 @@ Geothermal: Climate signal: What happens when assuming a climate change is
 linear, when in fact it was abrupt?
 """
 import numpy
+
 from fatiando import utils
 from fatiando.geothermal.climsig import abrupt, SingleChange
 from fatiando.vis import mpl
+
 
 # Generating synthetic data using an ABRUPT model
 amp = 3
@@ -13,7 +15,7 @@ age = 54
 # along a well at these depths
 zp = numpy.arange(0, 100, 1)
 temp, error = utils.contaminate(abrupt(amp, age, zp), 0.02,
-    percent=True, return_stddev=True)
+                                percent=True, return_stddev=True)
 
 # Preparing for the inversion
 data = SingleChange(temp, zp, mode='linear').config('levmarq', initial=[1, 1])

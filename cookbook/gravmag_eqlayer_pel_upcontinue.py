@@ -8,7 +8,7 @@ from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
 # Make synthetic data
-props = {'density':1000}
+props = {'density': 1000}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (50, 50)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
@@ -22,7 +22,7 @@ degree = 1
 misfit = PELGravity(x, y, z, gz, layer, windows, degree)
 regul = PELSmoothness(layer, windows, degree)
 # Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10**i for i in range(-30, -18)]).fit()
+solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -18)]).fit()
 layer.addprop('density', solver.estimate_)
 residuals = solver.residuals()
 print "Residuals:"
