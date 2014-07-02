@@ -24,9 +24,9 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
        numpy.ndarray[DTYPE_T, ndim=1] res not None):
     cdef:
         unsigned int nverts, size, i, k
-        DTYPE_T kernel, Z1, Z2, Z1_sqr, Z2_sqr, Xk1, Yk1, p, p_sqr, Qk1, Qk2, \
-                Ak1, Ak2, R1k1, R1k2, R2k1, R2k2, Bk1, Bk2, E1k1, E1k2, E2k1, \
-                E2k2, Ck1, Ck2
+        DTYPE_T kernel, Z1, Z2, Z1_sqr, Z2_sqr, Xk1, Yk1, Xk2, Yk2, p, p_sqr, \
+                Qk1, Qk2, Ak1, Ak2, R1k1, R1k2, R2k1, R2k2, Bk1, Bk2, E1k1, \
+                E1k2, E2k1, E2k2, Ck1, Ck2
         DTYPE_T dummy = 1e-10 # Used to avoid singularities
     nverts = len(x)
     size = len(xp)
