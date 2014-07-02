@@ -58,7 +58,8 @@ extensions = [
 	for e in [
 		['fatiando', 'gravmag', '_prism'],
 		['fatiando', 'gravmag', '_sphere'],
-                ['fatiando', 'gravmag', '_tesseroid'],
+		['fatiando', 'gravmag', '_polyprism'],
+        ['fatiando', 'gravmag', '_tesseroid'],
 		['fatiando', 'seismic', '_ttime2d'],
 		['fatiando', 'seismic', '_wavefd']
 		]
