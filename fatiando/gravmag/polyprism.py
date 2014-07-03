@@ -30,7 +30,7 @@ Calculates the second derivatives of the function
 
 .. math::
 
-    \phi(x,y,z) = \int \int \int \frac{1}{r}
+    \phi(x,y,z) = \int\int\int \frac{1}{r}
                   \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
 with respect to the variables :math:`x`, :math:`y`, and :math:`z`.
