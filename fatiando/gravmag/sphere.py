@@ -198,9 +198,8 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
                 mx, my, mz = mag
         else:
             mx, my, mz = pmx, pmy, pmz
-        _sphere.magnetic_kernels('tf', xp, yp, zp, sphere.x, sphere.y,
-                                 sphere.z, sphere.radius, mx, my, mz, fx, fy,
-                                 fz, res)
+        _sphere.tf(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                   mx, my, mz, fx, fy, fz, res)
     res *= CM*T2NT
     return res
 
@@ -268,9 +267,8 @@ def bx(xp, yp, zp, spheres):
             continue
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        _sphere.magnetic_kernels('bx', xp, yp, zp, sphere.x, sphere.y,
-                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
-                                 res)
+        _sphere.bx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                   mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -338,9 +336,8 @@ def by(xp, yp, zp, spheres):
             continue
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        _sphere.magnetic_kernels('by', xp, yp, zp, sphere.x, sphere.y,
-                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
-                                 res)
+        _sphere.by(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                   mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -408,9 +405,8 @@ def bz(xp, yp, zp, spheres):
             continue
         # Get the magnetization vector components
         mx, my, mz = sphere.props['magnetization']
-        _sphere.magnetic_kernels('bz', xp, yp, zp, sphere.x, sphere.y,
-                                 sphere.z, sphere.radius, mx, my, mz, 0, 0, 0,
-                                 res)
+        _sphere.bz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                   mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -450,8 +446,8 @@ def gz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                                sphere.radius, density, res)
+        _sphere.gz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                   density, res)
     res *= G*SI2MGAL
     return res
 
@@ -519,8 +515,8 @@ def gxx(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gxx', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -589,8 +585,8 @@ def gxy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gxy', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -659,8 +655,8 @@ def gxz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gxz', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -729,8 +725,8 @@ def gyy(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gyy', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -799,8 +795,8 @@ def gyz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gyz', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -869,8 +865,8 @@ def gzz(xp, yp, zp, spheres, dens=None):
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gravity_kernels('gzz', xp, yp, zp, sphere.x, sphere.y,
-                                sphere.z, sphere.radius, density, res)
+        _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
+                    density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -946,8 +942,8 @@ def kernelxx(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gxx', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res
 
 def kernelxy(xp, yp, zp, sphere):
@@ -1022,8 +1018,8 @@ def kernelxy(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gxy', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res
 
 def kernelxz(xp, yp, zp, sphere):
@@ -1098,8 +1094,8 @@ def kernelxz(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gxz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res
 
 def kernelyy(xp, yp, zp, sphere):
@@ -1174,8 +1170,8 @@ def kernelyy(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gyy', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res
 
 def kernelyz(xp, yp, zp, sphere):
@@ -1250,8 +1246,8 @@ def kernelyz(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gyz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res
 
 def kernelzz(xp, yp, zp, sphere):
@@ -1326,6 +1322,6 @@ def kernelzz(xp, yp, zp, sphere):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gravity_kernels('gzz', xp, yp, zp, sphere.x, sphere.y, sphere.z,
-                            sphere.radius, 1, res)
+    _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
+                res)
     return res

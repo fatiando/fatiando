@@ -51,19 +51,21 @@ ext = '.pyx' if USE_CYTHON else '.c'
 libs = []
 if os.name == 'posix':
     libs.append('m')
-extensions = [
+omp_args = dict(extra_link_args=['-fopenmp'], extra_compile_args=['-fopenmp'])
+C_EXT = [[['fatiando', 'gravmag', '_tesseroid'], {}],
+         [['fatiando', 'seismic', '_ttime2d'], {}],
+         [['fatiando', 'seismic', '_wavefd'], {}],
+         [['fatiando', 'gravmag', '_polyprism'], omp_args],
+         [['fatiando', 'gravmag', '_sphere'], omp_args],
+         [['fatiando', 'gravmag', '_prism'], omp_args],
+        ]
+extensions = []
+for e, extra_args in C_EXT:
+    extensions.append(
         Extension('.'.join(e), [os.path.join(*e) + ext],
-            libraries=libs,
-            include_dirs=[numpy.get_include()])
-	for e in [
-		['fatiando', 'gravmag', '_prism'],
-		['fatiando', 'gravmag', '_sphere'],
-		['fatiando', 'gravmag', '_polyprism'],
-        ['fatiando', 'gravmag', '_tesseroid'],
-		['fatiando', 'seismic', '_ttime2d'],
-		['fatiando', 'seismic', '_wavefd']
-		]
-	]
+                  libraries=libs,
+                  include_dirs=[numpy.get_include()],
+                  **extra_args))
 if USE_CYTHON:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
