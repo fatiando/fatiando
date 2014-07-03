@@ -10,6 +10,13 @@ Version 0.3
 
 **Changes**:
 
+* Faster Cython implementations of
+  :ref:`fatiando.gravmag.sphere <fatiando_gravmag_sphere>` and
+  :ref:`fatiando.gravmag.polyprism <fatiando_gravmag_polyprism>`.
+  Also separated gravmag forward modeling functions into "kernels" for gravity
+  tensor components. This allows them to be reused in the magnetic field
+  computations.
+  (`PR 105 <https://github.com/leouieda/fatiando/pull/105>`_)
 * Added ``xy2ne`` flag for ``square`` and ``points`` functions in
   :ref:`fatiando.vis.mpl <fatiando_vis_mpl>`.
   (`PR 94 <https://github.com/leouieda/fatiando/pull/94>`_)
