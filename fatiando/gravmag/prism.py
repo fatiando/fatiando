@@ -127,8 +127,7 @@ def potential(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('potential', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.potential(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G
     return res
 
@@ -173,8 +172,7 @@ def gx(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gx(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2MGAL
     return res
 
@@ -219,8 +217,7 @@ def gy(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gy(xp, yp, zp, x1,x2, y1, y2, z1, z2, density, res)
     res *= G*SI2MGAL
     return res
 
@@ -265,8 +262,7 @@ def gz(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gz(xp, yp, zp, x1,x2, y1, y2, z1, z2, density, res)
     res *= G*SI2MGAL
     return res
 
@@ -311,8 +307,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gxx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gxx(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -357,8 +352,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gxy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gxy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -403,8 +397,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gxz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gxz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -449,8 +442,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gyy', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gyy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -495,8 +487,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gyz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gyz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -541,8 +532,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gravity_kernels('gzz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                               density, res)
+        _prism.gzz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
     res *= G*SI2EOTVOS
     return res
 
@@ -603,8 +593,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.magnetic_kernels('tf', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                                mx, my, mz, fx, fy, fz, res)
+        _prism.tf(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, fx, fy, fz,
+                  res)
     res *= CM*T2NT
     return res
 
@@ -649,8 +639,7 @@ def bx(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.magnetic_kernels('bx', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                                mx, my, mz, 0, 0, 0, res)
+        _prism.bx(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -695,8 +684,7 @@ def by(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.magnetic_kernels('by', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                                mx, my, mz, 0, 0, 0, res)
+        _prism.by(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -741,8 +729,7 @@ def bz(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.magnetic_kernels('bz', xp, yp, zp, x1,x2, y1, y2, z1, z2,
-                                mx, my, mz, 0, 0, 0, res)
+        _prism.bz(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
     res *= CM*T2NT
     return res
 
@@ -777,7 +764,7 @@ def kernelxx(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gxx', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gxx(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
 def kernelyy(xp, yp, zp, prism):
@@ -811,7 +798,7 @@ def kernelyy(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gyy', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gyy(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
 def kernelzz(xp, yp, zp, prism):
@@ -845,7 +832,7 @@ def kernelzz(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gzz', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gzz(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
 def kernelxy(xp, yp, zp, prism):
@@ -879,7 +866,7 @@ def kernelxy(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gxy', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gxy(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
 def kernelxz(xp, yp, zp, prism):
@@ -913,7 +900,7 @@ def kernelxz(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gxz', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gxz(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
 def kernelyz(xp, yp, zp, prism):
@@ -947,5 +934,5 @@ def kernelyz(xp, yp, zp, prism):
     x1, x2 = prism.x1, prism.x2
     y1, y2 = prism.y1, prism.y2
     z1, z2 = prism.z1, prism.z2
-    _prism.gravity_kernels('gyz', xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
+    _prism.gyz(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
