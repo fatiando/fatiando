@@ -11,8 +11,7 @@ help:
 	@echo "    docs          build the html documentation"
 	@echo "    docs-pdf      build the pdf documentation"
 	@echo "    view-docs     show the html docs on Firefox"
-	@echo "    test          run the test suite (including doctests)"
-	@echo "    test-par      run tests in parallel with all available cores"
+	@echo "    test          run tests in parallel with all available cores"
 	@echo "    coverage      calculate test coverage using Coverage"
 	@echo "    package       create source distributions"
 	@echo "    upload        upload source distribuitions to PyPI"
@@ -38,9 +37,6 @@ view-docs:
 
 .PHONY: test
 test: build
-	$(NOSE) --with-doctest -v fatiando/ test/
-
-test-par: build
 	$(NOSE) --with-doctest -v --processes=`nproc` fatiando/ test/
 
 coverage: build
