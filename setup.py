@@ -55,7 +55,7 @@ omp_args = dict(extra_link_args=['-fopenmp'], extra_compile_args=['-fopenmp'])
 C_EXT = [[['fatiando', 'gravmag', '_tesseroid'], {}],
          [['fatiando', 'seismic', '_ttime2d'], {}],
          [['fatiando', 'seismic', '_wavefd'], {}],
-         [['fatiando', 'gravmag', '_polyprism'], {}],
+         [['fatiando', 'gravmag', '_polyprism'], omp_args],
          [['fatiando', 'gravmag', '_sphere'], omp_args],
          [['fatiando', 'gravmag', '_prism'], omp_args],
         ]

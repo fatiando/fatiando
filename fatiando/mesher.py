@@ -688,9 +688,8 @@ class PolygonalPrism(GeometricElement):
     """
     def __init__(self, vertices, z1, z2, props=None):
         GeometricElement.__init__(self, props)
-        x, y = numpy.array(vertices, dtype=numpy.float).T
-        self.x = x
-        self.y = y
+        self.x = numpy.fromiter((v[0] for v in vertices), dtype=numpy.float)
+        self.y = numpy.fromiter((v[1] for v in vertices), dtype=numpy.float)
         self.z1 = float(z1)
         self.z2 = float(z2)
         self.nverts = len(vertices)
