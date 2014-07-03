@@ -1,4 +1,4 @@
-"""
+r"""
 Calculate the potential fields of the 3D right rectangular prism.
 
 .. note:: All input units are SI. Output is in conventional units: SI for the
@@ -33,6 +33,35 @@ Bhattacharyya, 1964) and x, y, z components of the magnetic induction:
 * :func:`~fatiando.gravmag.prism.bx`
 * :func:`~fatiando.gravmag.prism.by`
 * :func:`~fatiando.gravmag.prism.bz`
+
+**Auxiliary Functions**
+
+Calculates the second derivatives of the function
+
+.. math::
+
+    \phi(x,y,z) = \int\int\int \frac{1}{r}
+                  \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
+
+with respect to the variables :math:`x`, :math:`y`, and :math:`z`.
+In this equation,
+
+.. math::
+
+    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}
+
+and :math:`\nu`, :math:`\eta`, :math:`\zeta` are the Cartesian
+coordinates of an element inside the volume of a 3D prism.
+These second derivatives are used to calculate
+the total field anomaly and the gravity gradient tensor
+components.
+
+* :func:`~fatiando.gravmag.prism.kernelxx`
+* :func:`~fatiando.gravmag.prism.kernelxy`
+* :func:`~fatiando.gravmag.prism.kernelxz`
+* :func:`~fatiando.gravmag.prism.kernelyy`
+* :func:`~fatiando.gravmag.prism.kernelyz`
+* :func:`~fatiando.gravmag.prism.kernelzz`
 
 **References**
 
@@ -718,8 +747,13 @@ def bz(xp, yp, zp, prisms, pmag=None):
     return res
 
 def kernelxx(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_1` integral.
+    r"""
+    Calculates the xx derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -747,8 +781,13 @@ def kernelxx(xp, yp, zp, prism):
     return res
 
 def kernelyy(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_4` integral.
+    r"""
+    Calculates the yy derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -776,8 +815,13 @@ def kernelyy(xp, yp, zp, prism):
     return res
 
 def kernelzz(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_6` integral.
+    r"""
+    Calculates the zz derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -805,8 +849,13 @@ def kernelzz(xp, yp, zp, prism):
     return res
 
 def kernelxy(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_2` integral.
+    r"""
+    Calculates the xy derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -834,8 +883,13 @@ def kernelxy(xp, yp, zp, prism):
     return res
 
 def kernelxz(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_3` integral.
+    r"""
+    Calculates the xz derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
@@ -863,8 +917,13 @@ def kernelxz(xp, yp, zp, prism):
     return res
 
 def kernelyz(xp, yp, zp, prism):
-    """
-    Calculates the :math:`V_5` integral.
+    r"""
+    Calculates the yz derivative of the function
+
+    .. math::
+
+        \phi(x,y,z) = \int\int\int \frac{1}{r}
+                      \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
     .. note:: The coordinate system of the input parameters is to be x -> North,
         y -> East and z -> Down.
