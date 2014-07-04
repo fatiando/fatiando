@@ -51,7 +51,7 @@ def load_surfer(fname, fmt='ascii'):
     are cartesian, x will be the easting and y the norting coordinates.
 
     WARNING: This is opposite to the convention used for Fatiando.
-    See io_surfer.py in cookbook.
+    See grid_surfer.py in cookbook.
 
     Parameters:
 
