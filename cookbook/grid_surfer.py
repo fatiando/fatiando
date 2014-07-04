@@ -1,7 +1,8 @@
 """
 Gridding: Load a Surfer ASCII grid file
 """
-from fatiando import datasets, gridder, gravmag
+from fatiando import datasets, gridder
+from fatiando.gravmag import transform
 from fatiando.vis import mpl
 
 # Fetching Bouguer anomaly model data (Surfer ASCII grid file)"
@@ -26,7 +27,7 @@ mpl.show()
 height = 250000
 area = [min(x), max(x), min(y), max(y)]
 dims = gridder.spacing(area, shape)
-bouguercont = gravmag.transform.upcontinue(bouguer, height, x, y, dims)
+bouguercont = transform.upcontinue(bouguer, height, x, y, dims)
 
 # Plotthe upward continuation
 mpl.figure()
