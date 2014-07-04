@@ -98,7 +98,7 @@ class Triangular(Misfit):
         >>> poly.vertices
         array([[  1.00000000e+04,   1.00000000e+00],
                [  9.00000000e+04,   1.00000000e+00],
-               [  5.00000006e+04,   5.00000021e+03]])
+               [  5.00000000e+04,   5.00000000e+03]])
         >>> poly.props
         {'density': 500}
         >>> # Check is the residuals are all small
@@ -240,8 +240,8 @@ class Trapezoidal(Misfit):
         >>> poly.vertices
         array([[  1.00000000e+04,   1.00000000e+00],
                [  9.00000000e+04,   1.00000000e+00],
-               [  9.00000000e+04,   5.00000005e+03],
-               [  1.00000000e+04,   3.00000006e+03]])
+               [  9.00000000e+04,   5.00000000e+03],
+               [  1.00000000e+04,   3.00000000e+03]])
         >>> poly.props
         {'density': 500}
         >>> # Check is the residuals are all small

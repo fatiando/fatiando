@@ -2,6 +2,25 @@
 Fatiando a Terra
 ================
 
+.. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat
+    :target: https://crate.io/packages/fatiando/
+    :alt: Latest PyPI version
+
+.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat
+    :target: https://crate.io/packages/fatiando/
+    :alt: Number of PyPI downloads
+
+.. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat
+    :target: https://github.com/leouieda/fatiando/blob/master/LICENSE.txt
+    :alt: BSD 3 clause license.
+
+.. image:: http://img.shields.io/travis/leouieda/fatiando.svg?style=flat
+    :target: https://travis-ci.org/leouieda/fatiando
+    :alt: Travis CI build status
+
+.. image:: http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat
+    :target: https://coveralls.io/r/leouieda/fatiando?branch=master
+
 *Fatiando a Terra* is an **open-source** Python package for
 **modeling and inversion** in geophysics.
 
@@ -30,27 +49,12 @@ from `PyPI <https://pypi.python.org/pypi/fatiando>`_.
 You'll find more detailed explanations on the
 `install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`_.
 
-.. image:: https://pypip.in/v/fatiando/badge.png
-    :target: https://crate.io/packages/fatiando/
-    :alt: Latest PyPI version
-
-.. image:: https://pypip.in/d/fatiando/badge.png
-    :target: https://crate.io/packages/fatiando/
-    :alt: Number of PyPI downloads
-
 Source code
 -----------
 
 The source code of Fatiando is hosted on Github_.
 
 .. _Github: https://github.com/leouieda/fatiando
-
-.. image:: https://travis-ci.org/leouieda/fatiando.png?branch=master
-    :target: https://travis-ci.org/leouieda/fatiando
-    :alt: Travis CI build status
-
-.. image:: https://coveralls.io/repos/leouieda/fatiando/badge.png?branch=master
-    :target: https://coveralls.io/r/leouieda/fatiando?branch=master
 
 The authors
 -----------
