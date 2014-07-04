@@ -1,8 +1,8 @@
 """
-Gridding: Load a Surfer ASCII grid file
+Gridding: Load/write a Surfer ASCII grid file
 """
-from fatiando import datasets, gridder
-from fatiando.gravmag import transform
+from fatiando import datasets, gridder, utils
+from fatiando.gravmag import transform, fourier
 from fatiando.vis import mpl
 
 # Fetching Bouguer anomaly model data (Surfer ASCII grid file)"
@@ -23,25 +23,22 @@ mpl.ylabel('x points to North (km)')
 mpl.m2km()
 mpl.show()
 
-## Now do the upward continuation using the analytical formula
-height = 250000
-area = [min(x), max(x), min(y), max(y)]
-dims = gridder.spacing(area, shape)
-bouguercont = transform.upcontinue(bouguer, height, x, y, dims)
+# Calculate the vertical derivative of the gravity anomaly using FFT
+# Need to convert gz to SI units so that the result can be converted to Eotvos
+gzz = utils.si2eotvos(fourier.derivz(y, x, utils.mgal2si(bouguer), shape))
 
-# Plotthe upward continuation
 mpl.figure()
 mpl.axis('scaled')
-mpl.title("Continued to %d km height" % ((height/1000)))
-mpl.contourf(y, x, bouguercont, shape, 15)
+mpl.title("Vertical derivative of Bouguer anomaly")
+mpl.contourf(y, x, gzz, shape, 20, vmin=-200, vmax=200)
 cb = mpl.colorbar()
-cb.set_label('mGal')
+cb.set_label(r'$E\"otv\"os$')
 mpl.xlabel('y points to East (km)')
 mpl.ylabel('x points to North (km)')
 mpl.m2km()
 mpl.show()
 
 # Name of the output file
-fname = ('bouguer_alps_egm08_height_%d_km.grd' % ((height/1000)))
+fname = ('gzz_bouguer_alps_egm08.grd')
 # Saving the upward continued data in a Surfer ascii grid file
-gridder.dump_surfer(fname,bouguercont, shape, x, y, fmt='ascii')
+gridder.dump_surfer(fname,gzz, shape, x, y, fmt='ascii')
