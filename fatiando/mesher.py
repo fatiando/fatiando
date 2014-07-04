@@ -84,7 +84,7 @@ class Polygon(GeometricElement):
 
     def __init__(self, vertices, props=None):
         GeometricElement.__init__(self, props)
-        x, y = numpy.array(vertices, dtype='f').T
+        x, y = numpy.array(vertices, dtype=numpy.float).T
         self.vertices = vertices
         self.x = x
         self.y = y
@@ -688,9 +688,8 @@ class PolygonalPrism(GeometricElement):
     """
     def __init__(self, vertices, z1, z2, props=None):
         GeometricElement.__init__(self, props)
-        x, y = numpy.array(vertices, dtype='f').T
-        self.x = x
-        self.y = y
+        self.x = numpy.fromiter((v[0] for v in vertices), dtype=numpy.float)
+        self.y = numpy.fromiter((v[1] for v in vertices), dtype=numpy.float)
         self.z1 = float(z1)
         self.z2 = float(z2)
         self.nverts = len(vertices)
@@ -1357,7 +1356,7 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = numpy.fromiter(self.props[prop], dtype='f')
+        values = numpy.fromiter(self.props[prop], dtype=numpy.float)
         # Replace the masked cells with a dummy value
         values[self.mask] = -10000000
         reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
