@@ -19,7 +19,7 @@
 >>> mesh = PrismMesh(bounds, (5, 10, 10))
 >>> seeds = sow([[5000, 5000, 2000, {'density':500}]], mesh)
 >>> # Run the inversion
->>> solver = Gravity(x, y, z, gz, mesh).config(
+>>> solver = Gravity3D(x, y, z, gz, mesh).config(
 ...     'planting', seeds=seeds, compactness=1, threshold=0.001).fit()
 >>> # Lets print the solution
 >>> for top, layer in zip(mesh.get_zs(), solver.estimate_.reshape(mesh.shape)):
@@ -140,9 +140,9 @@ class DampingDW(Damping):
     def _get_value(self, p):
         return 0.5*safe_dot(p.T, safe_dot(self._cache['hessian']['array'], p))
 
-class Gravity(Misfit):
+class Gravity3D(Misfit):
     def __init__(self, x, y, z, data, mesh, field='gz', footprint=None):
-        super(Gravity, self).__init__(data=data,
+        super(Gravity3D, self).__init__(data=data,
             positional=dict(x=x, y=y, z=z),
             model={'mesh': mesh},
             nparams=mesh.size,
@@ -285,7 +285,7 @@ class Gravity(Misfit):
                                  threshold=kwargs['threshold'])
             return self
         else:
-            return super(Gravity, self).config(method, **kwargs)
+            return super(Gravity3D, self).config(method, **kwargs)
 
     def planting(self, seeds, threshold, compactness):
         mesh = self.model['mesh']
