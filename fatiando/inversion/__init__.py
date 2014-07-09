@@ -96,6 +96,11 @@ method:
 array([ 6. ,  3. ,  0.1])
 >>> np.abs(solver.residuals()) < 10**10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
+>>> # Configure solver to use Ant Colony Optimization
+>>> solver.config('acor', bounds=[0, 10, 0, 10, 0, 1], seed=0).fit().estimate_
+array([ 6.03600966,  2.95744428,  0.10781796])
+>>> np.abs(solver.residuals()) < 10**10
+array([ True,  True,  True,  True,  True,  True], dtype=bool)
 
 
 Non-linear Gaussian fit
