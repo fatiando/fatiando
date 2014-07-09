@@ -457,7 +457,7 @@ class Objective(object):
         return p
 
     def acor(self, bounds, nants=None, archive_size=None, maxit=1000,
-             diverse=0.5, evap=0.85, seed=None, iterate=True):
+             diverse=0.5, evap=0.85, seed=None, iterate=False):
         """
         Minimize the objective function using ACO-R.
 
