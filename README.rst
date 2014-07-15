@@ -2,29 +2,25 @@
 Fatiando a Terra
 ================
 
-.. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat
-    :target: https://crate.io/packages/fatiando/
-    :alt: Latest PyPI version
-
-.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat
-    :target: https://crate.io/packages/fatiando/
-    :alt: Number of PyPI downloads
-
-.. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat
-    :target: https://github.com/leouieda/fatiando/blob/master/LICENSE.txt
-    :alt: BSD 3 clause license.
-
-.. image:: http://img.shields.io/travis/leouieda/fatiando.svg?style=flat
-    :target: https://travis-ci.org/leouieda/fatiando
-    :alt: Travis CI build status
-
-.. image:: http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat
-    :target: https://coveralls.io/r/leouieda/fatiando?branch=master
-
 *Fatiando a Terra* is an **open-source** Python package for
 **modeling and inversion** in geophysics.
 
 For more **information** visit http://www.fatiando.org
+
+.. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat
+    :target: https://crate.io/packages/fatiando/
+    :alt: Latest PyPI version
+.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat
+    :target: https://crate.io/packages/fatiando/
+    :alt: Number of PyPI downloads
+.. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat
+    :target: https://github.com/leouieda/fatiando/blob/master/LICENSE.txt
+    :alt: BSD 3 clause license.
+.. image:: http://img.shields.io/travis/leouieda/fatiando.svg?style=flat
+    :target: https://travis-ci.org/leouieda/fatiando
+    :alt: Travis CI build status
+.. image:: http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat
+    :target: https://coveralls.io/r/leouieda/fatiando?branch=master
 
 Documentation
 -------------
