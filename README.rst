@@ -1,9 +1,7 @@
-================
 Fatiando a Terra
 ================
 
-*Fatiando a Terra* is an **open-source** Python package for
-**modeling and inversion** in geophysics.
+A Python package for **modeling and inversion** in geophysics.
 
 For more **information** visit http://www.fatiando.org
 
