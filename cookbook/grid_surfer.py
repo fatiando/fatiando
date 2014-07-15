@@ -1,7 +1,8 @@
 """
-Gridding: Load a Surfer ASCII grid file
+Gridding: Load/write a Surfer ASCII grid file
 """
-from fatiando import datasets, gridder
+from fatiando import datasets, gridder, utils
+from fatiando.gravmag import transform, fourier
 from fatiando.vis import mpl
 
 # Fetching Bouguer anomaly model data (Surfer ASCII grid file)"
@@ -21,3 +22,23 @@ mpl.xlabel('y points to East (km)')
 mpl.ylabel('x points to North (km)')
 mpl.m2km()
 mpl.show()
+
+# Calculate the vertical derivative of the gravity anomaly using FFT
+# Need to convert gz to SI units so that the result can be converted to Eotvos
+gzz = utils.si2eotvos(fourier.derivz(y, x, utils.mgal2si(bouguer), shape))
+
+mpl.figure()
+mpl.axis('scaled')
+mpl.title("Vertical derivative of Bouguer anomaly")
+mpl.contourf(y, x, gzz, shape, 20, vmin=-200, vmax=200)
+cb = mpl.colorbar()
+cb.set_label(r'$E\"otv\"os$')
+mpl.xlabel('y points to East (km)')
+mpl.ylabel('x points to North (km)')
+mpl.m2km()
+mpl.show()
+
+# Name of the output file
+fname = ('gzz_bouguer_alps_egm08.grd')
+# Saving the upward continued data in a Surfer ascii grid file
+gridder.dump_surfer(fname,gzz, shape, x, y, fmt='ascii')

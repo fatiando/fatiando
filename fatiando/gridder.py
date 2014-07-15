@@ -51,7 +51,7 @@ def load_surfer(fname, fmt='ascii'):
     are cartesian, x will be the easting and y the norting coordinates.
 
     WARNING: This is opposite to the convention used for Fatiando.
-    See io_surfer.py in cookbook.
+    See grid_surfer.py in cookbook.
 
     Parameters:
 
@@ -106,6 +106,70 @@ def load_surfer(fname, fmt='ascii'):
         raise NotImplementedError(
             "Binary file support is not implemented yet.")
     return x, y, grd, (ny,nx)
+
+def dump_surfer(fname,data, shape, x, y, fmt='ascii'):
+    """
+        Write a Surfer grid file.
+        
+        Surfer is a contouring, gridding and surface mapping software
+        from GoldenSoftware. The names and logos for Surfer and Golden
+        Software are registered trademarks of Golden Software, Inc.
+        
+        http://www.goldensoftware.com/products/surfer
+        
+        According to Surfer structure, x and y are horizontal and vertical
+        screen-based coordinates respectively. If the grid is in geographic
+        coordinates, x will be longitude and y latitude. If the coordinates
+        are cartesian, x will be the easting and y the norting coordinates.
+        
+        WARNING: This is opposite to the convention used for Fatiando.
+        See grid_surfer.py in cookbook.
+        
+        Parameters:
+        
+        * fname : str
+        Name of the Surfer grid file
+        * data : 1d-array
+        Values of the field in each grid point. Field can be for example
+        topography, gravity anomaly etc
+        * shape : tuple = (ny, nx)
+        The number of points in the vertical and horizontal grid dimensions,
+        respectively
+        * fmt : str
+        File type, can be 'ascii' or 'binary'
+        
+        Returns:
+        
+        * fname : Surfer grid file
+        The Surfer ASCII grid structure is:
+        DSAA            Surfer ASCII GRD ID
+        nCols nRows     number of columns and rows
+        xMin xMax       X min max
+        yMin yMax       Y min max
+        zMin zMax       Z min max
+        z11 z21 z31 ... List of Z values
+        
+        """
+    if fmt == 'ascii':
+        fname=str(fname)
+        nx, ny = shape
+        fixed = numpy.ma.fix_invalid(data)
+        fixed = fixed.data
+        grd = fixed.reshape((nx,ny))
+        with open(fname, 'w') as f:
+            # DSAA is a Surfer ASCII GRD ID
+            f.write("DSAA\n")
+            f.write("%d %d\n" % (ny, nx))
+            f.write("%f %f\n" % (min(y), max(y)))
+            f.write("%f %f\n" % (min(x), max(x)))
+            f.write("%f %f\n" % (min(data), max(data)))
+            for list in grd:
+                for ix in list:
+                    f.write("%f " % (ix))
+                f.write("\n\n")
+    if fmt == 'binary':
+        raise NotImplementedError("Binary file support is not implemented yet. \
+                                  Sorry")
 
 def regular(area, shape, z=None):
     """
