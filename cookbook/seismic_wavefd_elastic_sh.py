@@ -3,7 +3,6 @@ Seismic: 2D finite difference simulation of elastic SH wave propagation
 """
 import numpy as np
 from matplotlib import animation
-from fatiando import gridder
 from fatiando.seismic import wavefd
 from fatiando.vis import mpl
 
@@ -16,7 +15,7 @@ velocity = 3700
 mu = wavefd.lame_mu(velocity, density)
 
 # Make a wave source from a mexican hat wavelet
-sources = [wavefd.MexHatSource(30000, 15000, area, shape, 100, 1, delay=2)]
+sources = [wavefd.MexHatSource((30000, 15000), area, shape, 100, 1, delay=2)]
 
 # Get the iterator for the simulation
 dt = wavefd.maxdt(area, shape, velocity)

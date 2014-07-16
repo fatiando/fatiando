@@ -1614,4 +1614,3 @@ def vremove(value, prop, cells):
             return True
         return False
     return [c for c in cells if keep(c)]
-
