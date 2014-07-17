@@ -14,7 +14,7 @@ def test_cython_agains_numpy():
               {'density': -1., 'magnetization': utils.ang2vec(-2, inc, dec)}),
         Prism(-300, -100, -100, 100, 0, 200,
               {'density': 2., 'magnetization': utils.ang2vec(5, 25, -10)})]
-    tmp = np.linspace(-500, 500, 100)
+    tmp = np.linspace(-500, 500, 101)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
     zp = -1 * np.ones_like(xp)
     funcs = ['potential', 'gx', 'gy', 'gz',
