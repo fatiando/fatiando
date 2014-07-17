@@ -15,40 +15,59 @@ from cython.parallel cimport prange, parallel
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
 
+cdef inline double safe_atan2(double y, double x) nogil:
+    cdef double res
+    if y == 0:
+        res = 0
+    elif (y > 0) and (x < 0):
+        res = atan2(y, x) - 3.1415926535897931159979634685441851615906
+    elif (y < 0) and (x < 0):
+        res = atan2(y, x) + 3.1415926535897931159979634685441851615906
+    else:
+        res = atan2(y, x)
+    return res
+
+cdef inline double safe_log(double x) nogil:
+    cdef double res
+    if x == 0:
+        res = 0
+    else:
+        res = log(x)
+    return res
 
 cdef inline double kernelpot(double x, double y, double z, double r) nogil:
-    return (x*y*log(z + r) + y*z*log(x + r) + x*z*log(y + r)
-            - 0.5*x**2*atan2(z*y, x*r) - 0.5*y**2*atan2(z*x, y*r)
-            - 0.5*z**2*atan2(x*y, z*r))
+    return (x*y*safe_log(z + r) + y*z*safe_log(x + r) + x*z*safe_log(y + r)
+            - 0.5*x**2*safe_atan2(z*y, x*r) - 0.5*y**2*safe_atan2(z*x, y*r)
+            - 0.5*z**2*safe_atan2(x*y, z*r))
 
 # Minus in gravity because Nagy et al (2000) give the formula for the gradient
 # of the potential. Gravity is -grad(V).
 cdef inline double kernelx(double x, double y, double z, double r) nogil:
-    return -(y*log(z + r) + z*log(y + r) - x*atan2(z*y, x*r))
+    return -(y*safe_log(z + r) + z*safe_log(y + r) - x*safe_atan2(z*y, x*r))
 
 cdef inline double kernely(double x, double y, double z, double r) nogil:
-    return -(z*log(x + r) + x*log(z + r) - y*atan2(x*z, y*r))
+    return -(z*safe_log(x + r) + x*safe_log(z + r) - y*safe_atan2(x*z, y*r))
 
 cdef inline double kernelz(double x, double y, double z, double r) nogil:
-    return -(x*log(y + r) + y*log(x + r) - z*atan2(x*y, z*r))
+    return -(x*safe_log(y + r) + y*safe_log(x + r) - z*safe_atan2(x*y, z*r))
 
 cdef inline double kernelxx(double x, double y, double z, double r) nogil:
-    return -atan2(z*y, x*r)
+    return -safe_atan2(z*y, x*r)
 
 cdef inline double kernelxy(double x, double y, double z, double r) nogil:
-    return log(z + r)
+    return safe_log(z + r)
 
 cdef inline double kernelxz(double x, double y, double z, double r) nogil:
-    return log(y + r)
+    return safe_log(y + r)
 
 cdef inline double kernelyy(double x, double y, double z, double r) nogil:
-    return -atan2(z*x, y*r)
+    return -safe_atan2(z*x, y*r)
 
 cdef inline double kernelyz(double x, double y, double z, double r) nogil:
-    return log(x + r)
+    return safe_log(x + r)
 
 cdef inline double kernelzz(double x, double y, double z, double r) nogil:
-    return -atan2(x*y, z*r)
+    return -safe_atan2(x*y, z*r)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
