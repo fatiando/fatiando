@@ -40,6 +40,7 @@ MOCK_MODULES = [
     'numpy', 'numpy.linalg', 'numpy.linalg.linalg',
     'scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.misc',
     'scipy.special', 'scipy.interpolate',
+    'obspy',
     'matplotlib',
     'matplotlib.mlab', 'matplotlib.pyplot', 'matplotlib.widgets',
     'matplotlib.nxutils',

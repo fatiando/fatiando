@@ -30,6 +30,11 @@ Miscellaneous utility functions and classes.
 
 * :func:`~fatiando.utils.sph2cart`
 
+**Seismic trace's manipulation with Obspy package**
+
+* :func:`~fatiando.utils.matrix2stream`
+* :func:`~fatiando.utils.stream2matrix`
+
 **Others**
 
 * :func:`~fatiando.utils.fromimage`: Load a matrix from an image file
@@ -62,6 +67,13 @@ import PIL.Image
 
 from . import constants, gridder
 
+import obspy
+
+# to be able to use other features from Obspy like read
+try:
+    from obspy import *
+except:
+    pass
 
 def fromimage(fname, ranges=None, shape=None):
     """
@@ -901,3 +913,89 @@ def connect_points(pts1, pts2):
             append1(p1)
             append2(p2)
     return [connect1, connect2]
+
+def matrix2stream(matrix, header=None):
+    """
+    Fill a `obspy.Stream class` with traces given by *matrix* array.
+    The values in *matrix* will be converted to numpy.float32.
+    
+    Parameters:
+    
+    * matrix : 2D array
+        matrix of values to fill each trace in `obspy.Stream` 
+    * header : dict
+        any acceptable dictionary pair in `obspy.core.trace.Stats`
+    
+    ``obspy.core.trace.Stats`` default attributes:
+
+        `sampling_rate` : float, optional
+            Sampling rate in hertz (default value is 1.0).
+        `delta` : float, optional
+            Sample distance in seconds (default value is 1.0).
+        `calib` : float, optional
+            Calibration factor (default value is 1.0).
+        `npts` : int, optional
+            Number of sample points (default value is 0, which implies that no data
+            is present).
+        `network` : string, optional
+            Network code (default is an empty string).
+        `location` : string, optional
+            Location code (default is an empty string).
+        `station` : string, optional
+            Station code (default is an empty string).
+        `channel` : string, optional
+            Channel code (default is an empty string).
+        `starttime` : :class:`~obspy.core.utcdatetime.UTCDateTime`, optional
+            Date and time of the first data sample given in UTC (default value is
+            "1970-01-01T00:00:00.0Z").
+        `endtime` : :class:`~obspy.core.utcdatetime.UTCDateTime`, optional
+            Date and time of the last data sample given in UTC
+            (default value is "1970-01-01T00:00:00.0Z").
+    
+    Returns:
+    
+    * Stream: list of traces [ Trace0, Trace1 ... Tracen]
+        where tracen = [ matrix[n][0], matrix[n][1] ...  matrix[n][m]]
+    
+    """
+    # obspy requirement for Trace
+    if not isinstance(matrix, numpy.ndarray):
+        raise ValueError("matrix must be a NumPy array.")
+    stream = obspy.Stream()
+    for array in matrix:
+        trace = obspy.Trace(data=array, header=header)
+        stream.append(trace)
+    return stream
+
+
+def stream2matrix(stream):
+    """
+    Gives a 2D array from a seismic section (`obspy.Stream class`).
+    If there are any header associated with *stream* it will be a `AttribDict` 
+    class stored in the field `Stream.stats`. It will be returned if existent. 
+    Note that `obspy.Stream.traces` headers are ignored. 
+    
+    Returns:
+    
+    * matrix, stats :
+        A 2D array (samples, traces), dictionary of headers 
+        (or empty dictionary) in *stream*
+    
+    """
+    n = len(stream)
+    if n < 1 : 
+        raise IndexError("There must be at least one trace this Stream")
+    m = len(stream[0])
+    if m < 1 :
+        raise IndexError("There are no samples on this Stream")
+    traces = numpy.empty((m,n), dtype=stream[0].data.dtype)
+    for i, trace in enumerate(stream):
+        traces[:,i] = trace.data
+    stats = {}
+    if hasattr(stream, 'stats'):
+        stats = stream.stats
+    
+    return traces, stats
+
+def Read():
+    obspy.read()

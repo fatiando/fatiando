@@ -11,14 +11,15 @@ virtualenv:
 env:
   - OMP_NUM_THREADS=4
 before_install:
+  - sudo apt-get install gfortran
   - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/anaconda/bin:$PATH
   # Update conda itself
   - conda update --yes conda
-  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging
-  - pip install -q --use-mirrors coverage coveralls
+  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging lxml distribute
+  - pip install -q --use-mirrors coverage coveralls obspy
   # Test the docs build before installing because sphinx breaks on Cython modules
   - cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html; cd ..
 install:

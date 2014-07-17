@@ -143,7 +143,7 @@ except:
     _nonreflexive_sh_boundary_conditions = not_implemented
     _nonreflexive_psv_boundary_conditions = not_implemented
     _step_scalar = not_implemented
-    _reflexive_scalar_boundary_conditions = not_implemented
+    _nonreflexive_scalar_boundary_conditions = not_implemented
 
 class MexHatSource(object):
     r"""
@@ -432,11 +432,16 @@ def _add_pad(array, pad, shape):
     return array_pad
 
 def scalar(vel, area, dt, iterations, sources, stations=None,
-    snapshot=None, padding=50, taper=0.005):
+    snapshot=None, padding=50, taper=0.006):
     """
 
     Simulate scalar waves using an explicit finite differences scheme 4th order
     space. Space increment must be equal in x and z.
+
+    The top implements a free-surface boundary condition.
+    For the left, right and lower uses boundaries uses Transparent condition of Reynolds, A. C.
+    (Boundary conditions for numerical solution of wave propagation problems Geophysics p 1099-1110 - 1978)
+    and also absorbing boundary conditions (Gaussian taper)
 
     Parameters:
 
@@ -464,7 +469,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
         The intensity of the Gaussian taper function used for the absorbing
-        boundary conditions
+        boundary conditions. Adjust it for better absorption.
 
     Yields:
 
@@ -524,7 +529,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(u[t], nx, nz, pad, taper)
         # not PML yet or anything similar
-        _reflexive_scalar_boundary_conditions(u[tp1], nx, nz)
+        _nonreflexive_scalar_boundary_conditions(u[tp1], u[t], u[tm1], vel_pad, dt, ds, nx, nz)
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(u[tp1], nx, nz, pad, taper)
         for src in sources:
