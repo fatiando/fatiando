@@ -377,6 +377,45 @@ class Smoothness2D(Smoothness):
     def __init__(self, shape):
         super(Smoothness2D, self).__init__(fd2d(shape))
 
+class Smoothness3D(Smoothness):
+    """
+    Smoothness regularization for 3D problems.
+
+    Extends the generic :class:`~fatiando.inversion.regularization.Smoothness`
+    class by automatically building the finite difference matrix.
+
+    Parameters:
+
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    Examples:
+
+    >>> import numpy as np
+    >>> s = Smoothness3D((2, 2, 2))
+    >>> p = np.array([[[0, 0],
+    ...                [0, 0]],
+    ...               [[0, 0],
+    ...                [0, 0]]]).ravel()
+    >>> s.value(p)
+    0.0
+    >>> s.gradient(p)
+    array([0, 0, 0, 0, 0, 0, 0, 0])
+    >>> s.hessian(p).todense()
+    matrix([[ 6, -2, -2,  0, -2,  0,  0,  0],
+            [-2,  6,  0, -2,  0, -2,  0,  0],
+            [-2,  0,  6, -2,  0,  0, -2,  0],
+            [ 0, -2, -2,  6,  0,  0,  0, -2],
+            [-2,  0,  0,  0,  6, -2, -2,  0],
+            [ 0, -2,  0,  0, -2,  6,  0, -2],
+            [ 0,  0, -2,  0, -2,  0,  6, -2],
+            [ 0,  0,  0, -2,  0, -2, -2,  6]])
+
+    """
+    def __init__(self, shape):
+        super(Smoothness3D, self).__init__(fd3d(shape))
+
 class TotalVariation(Objective):
     r"""
     Total variation regularization.
@@ -559,6 +598,29 @@ class TotalVariation2D(TotalVariation):
     def __init__(self, beta, shape):
         super(TotalVariation2D, self).__init__(beta, fd2d(shape))
 
+class TotalVariation3D(TotalVariation):
+    """
+    Total variation regularization for 3D problems.
+
+    Extends the generic
+    :class:`~fatiando.inversion.regularization.TotalVariation`
+    class by automatically building the finite difference matrix.
+
+    Parameters:
+
+    * beta : float
+        The beta parameter for the differentiable approximation. The larger it
+        is, the closer total variation is to
+        :class:`~fatiando.inversion.regularization.Smoothness`. Should be a
+        small, positive value.
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    """
+    def __init__(self, beta, shape):
+        super(TotalVariation3D, self).__init__(beta, fd3d(shape))
+
 def fd1d(size):
     """
     Produce a 1D finite difference matrix.
@@ -645,6 +707,97 @@ def fd2d(shape):
             deriv += 1
             param += 1
     return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny)).tocsr()
+
+def fd3d(shape):
+    """
+    Produce a 3D finite difference matrix.
+
+    Parameters:
+
+    * shape : tuple = (nz, ny, nx)
+        The shape of the parameter mesh. Number of parameters in the z, y and x
+        dimensions.
+
+    Returns:
+
+    * fd : sparse CSR matrix
+        The finite difference matrix
+
+    Examples:
+
+    >>> fd3d((2, 2, 2)).todense()
+    matrix([[ 1, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1, -1],
+            [ 1,  0, -1,  0,  0,  0,  0,  0],
+            [ 0,  1,  0, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  1,  0, -1],
+            [ 1,  0,  0,  0, -1,  0,  0,  0],
+            [ 0,  1,  0,  0,  0, -1,  0,  0],
+            [ 0,  0,  1,  0,  0,  0, -1,  0],
+            [ 0,  0,  0,  1,  0,  0,  0, -1]])
+    >>> fd3d((2, 3, 2)).todense()
+    matrix([[ 1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1, -1,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  1, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1, -1,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -1],
+            [ 1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  1,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  1,  0, -1,  0,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  1,  0, -1,  0,  0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  1,  0, -1,  0,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  1,  0, -1,  0,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0, -1],
+            [ 1,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0,  0],
+            [ 0,  1,  0,  0,  0,  0,  0, -1,  0,  0,  0,  0],
+            [ 0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0,  0],
+            [ 0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0,  0],
+            [ 0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1,  0],
+            [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0, -1]])
+
+    """
+    nz, ny, nx = shape
+    nderivs = ((nx - 1)*ny + (ny - 1)*nx)*nz + (nx*ny)*(nz - 1)
+    I, J, V = [], [], []
+    deriv = 0
+    # Derivatives in x
+    param = 0
+    for k in xrange(nz):
+        for j in xrange(ny):
+            for i in xrange(nx - 1):
+                I.extend([deriv, deriv])
+                J.extend([param, param + 1])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+            param += 1
+    # Derivatives in y
+    param = 0
+    for k in xrange(nz):
+        for j in xrange(ny - 1):
+            for i in xrange(nx):
+                I.extend([deriv, deriv])
+                J.extend([param, param + nx])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+        param += nx
+    # Derivatives in z
+    param = 0
+    for k in xrange(nz - 1):
+        for j in xrange(ny):
+            for i in xrange(nx):
+                I.extend([deriv, deriv])
+                J.extend([param, param + nx*ny])
+                V.extend([1, -1])
+                deriv += 1
+                param += 1
+    return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx*ny*nz)).tocsr()
 
 class LCurve(object):
     """
