@@ -117,7 +117,7 @@ def test_around():
     # GXY
     top, bottom, north, south, east, west = [prism.gxy(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gxy, top and bottom')
+    assert_almost(top, bottom, 4, 'Failed gxy, top and bottom')
     assert_almost(north, -south, 10, 'Failed gxy, north and south')
     assert_almost(east, -west, 10, 'Failed gxy, east and west')
     assert_almost(north, -prism.gyz(xp, yp, zp, model), 10,
@@ -129,10 +129,10 @@ def test_around():
                                              for x, y, z in grids]
     assert_almost(top, -bottom, 10, 'Failed gxz, top and bottom')
     assert_almost(north, -south, 10, 'Failed gxz, north and south')
-    assert_almost(east, west, 10, 'Failed gxz, east and west')
+    assert_almost(east, west, 4, 'Failed gxz, east and west')
     assert_almost(bottom, north, 10, 'Failed gxz, bottom and north')
     assert_almost(top, south, 10, 'Failed gxz, top and south')
-    assert_almost(east, prism.gxy(xp, yp, zp, model), 10,
+    assert_almost(east, prism.gxy(xp, yp, zp, model), 4,
                   'Failed gxz, east and gxy')
     assert_almost(west, prism.gxy(xp, yp, zp, model), 10,
                   'Failed gxz, west and gxy')
@@ -151,11 +151,11 @@ def test_around():
     top, bottom, north, south, east, west = [prism.gyz(x, y, z, model)
                                              for x, y, z in grids]
     assert_almost(top, -bottom, 10, 'Failed gyz, top and bottom')
-    assert_almost(north, south, 10, 'Failed gyz, north and south')
+    assert_almost(north, south, 4, 'Failed gyz, north and south')
     assert_almost(east, -west, 10, 'Failed gyz, east and west')
     assert_almost(top, west, 10, 'Failed gyz, top and west')
     assert_almost(bottom, east, 10, 'Failed gyz, bottom and east')
-    assert_almost(north, prism.gxy(xp, yp, zp, model), 10,
+    assert_almost(north, prism.gxy(xp, yp, zp, model), 4,
                   'Failed gyz, north and gxy')
     assert_almost(south, prism.gxy(xp, yp, zp, model), 10,
                   'Failed gyz, south and gxy')

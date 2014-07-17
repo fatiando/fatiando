@@ -321,7 +321,7 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         numpy.ndarray[DTYPE_T, ndim=1] res not None):
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] x, y, z
-    cdef DTYPE_T kernel, r, dx, dy, dz
+    cdef DTYPE_T kernel, r, dx, dy, dz, tmp1, tmp2
     size = len(xp)
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
@@ -335,7 +335,12 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                     dy = y[j] - yp[l]
                     for i in range(2):
                         dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
+                        if dx == 0 and dy == 0 and dz < 0:
+                            tmp1 = 0.00001*(x2 - x1)
+                            tmp2 = 0.00001*(y2 - y1)
+                            r = sqrt(tmp1**2 + tmp2**2 + dz**2)
+                        else:
+                            r = sqrt(dx**2 + dy**2 + dz**2)
                         kernel = kernelxy(dx, dy, dz, r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
 
@@ -349,7 +354,7 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         numpy.ndarray[DTYPE_T, ndim=1] res not None):
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] x, y, z
-    cdef DTYPE_T kernel, r, dx, dy, dz
+    cdef DTYPE_T kernel, r, dx, dy, dz, tmp1, tmp2
     size = len(xp)
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
@@ -363,7 +368,12 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                     dy = y[j] - yp[l]
                     for i in range(2):
                         dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
+                        if dx == 0 and dz == 0 and dy < 0:
+                            tmp1 = 0.00001*(x2 - x1)
+                            tmp2 = 0.00001*(z2 - z1)
+                            r = sqrt(tmp1**2 + tmp2**2 + dy**2)
+                        else:
+                            r = sqrt(dx**2 + dy**2 + dz**2)
                         kernel = kernelxz(dx, dy, dz, r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
 
@@ -405,7 +415,7 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         numpy.ndarray[DTYPE_T, ndim=1] res not None):
     cdef unsigned int l, size, i, j, k
     cdef numpy.ndarray[DTYPE_T, ndim=1] x, y, z
-    cdef DTYPE_T kernel, r, dx, dy, dz
+    cdef DTYPE_T kernel, r, dx, dy, dz, tmp1, tmp2
     size = len(xp)
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
@@ -419,7 +429,12 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
                     dy = y[j] - yp[l]
                     for i in range(2):
                         dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
+                        if dy == 0 and dz == 0 and dx < 0:
+                            tmp1 = 0.00001*(y2 - y1)
+                            tmp2 = 0.00001*(z2 - z1)
+                            r = sqrt(tmp1**2 + tmp2**2 + dx**2)
+                        else:
+                            r = sqrt(dx**2 + dy**2 + dz**2)
                         kernel = kernelyz(dx, dy, dz, r)
                         res[l] += ((-1.)**(i + j + k))*kernel*density
 
