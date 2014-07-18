@@ -29,20 +29,12 @@ mesh = SquareMesh(area, shape)
 # and run the inversion
 misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
 regularization = TotalVariation2D(10 ** -10, mesh.shape)
-tomo = misfit + regularization
-tomo = LCurve(misfit, regularization,
-              [10 ** i for i in np.arange(-3, 3, 0.5)], jobs=8)
+tomo = misfit + 30*regularization
 # Since Total Variation is a non-linear function, then the tomography becomes
 # non-linear. So we need to configure fit to use the Levemberg-Marquardt
 # algorithm, a gradient descent method, that requires an initial estimate
 tomo.config('levmarq', initial=0.00001 * np.ones(mesh.size)).fit()
 mesh.addprop('vp', tomo.estimate_)
-
-# Plot the L-curve annd print the regularization parameter estimated
-mpl.figure()
-mpl.title('L-curve: triangle marks the best solution')
-tomo.plot_lcurve()
-print "Estimated regularization parameter: %g" % (tomo.regul_param_)
 
 # Calculate and print the standard deviation of the residuals
 # Should be close to the data error if the inversion was able to fit the data

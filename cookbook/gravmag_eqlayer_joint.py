@@ -26,8 +26,7 @@ misfit = (EQLGravity(x1, y1, z1, gz, layer)
           + scale * EQLGravity(x2, y2, z2, gzz, layer, field='gzz'))
 regul = Smoothness2D(layer.shape)
 # Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(
-    misfit, regul, [10 ** i for i in range(-30, -20)], jobs=8).fit()
+solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -20)]).fit()
 layer.addprop('density', solver.estimate_)
 
 # Now I can forward model gz using my layer to produce an integrated map in a
