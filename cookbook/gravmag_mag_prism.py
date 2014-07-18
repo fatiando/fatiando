@@ -10,13 +10,13 @@ from fatiando.vis import mpl, myv
 inc, dec = 30, -15
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    mesher.Prism(-4000,-3000,-4000,-3000,0,2000,
-        {'magnetization':2}), # a scalar magnetization means only induced
-    mesher.Prism(-1000,1000,-1000,1000,0,2000,
-        {'magnetization':1}),
+    mesher.Prism(-4000, -3000, -4000, -3000, 0, 2000,
+                 {'magnetization': utils.ang2vec(1, inc, dec)}),
+    mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000,
+                 {'magnetization': utils.ang2vec(1, inc, dec)}),
     # This prism will have magnetization in a different direction
-    mesher.Prism(2000,4000,3000,4000,0,2000,
-        {'magnetization':utils.ang2vec(3, -10, 45)})] # induced + remanent
+    mesher.Prism(2000, 4000, 3000, 4000, 0, 2000,
+                 {'magnetization': utils.ang2vec(3, -10, 45)})]
 # Create a regular grid at 100m height
 shape = (200, 200)
 area = bounds[:4]
@@ -36,7 +36,7 @@ mpl.show()
 # Show the prisms
 myv.figure()
 myv.prisms(model, 'magnetization')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds])
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds])
 myv.wall_north(bounds)
 myv.wall_bottom(bounds)
 myv.show()

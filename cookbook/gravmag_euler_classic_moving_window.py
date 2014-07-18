@@ -11,8 +11,8 @@ from fatiando.vis import mpl, myv
 # Make a model
 bounds = [-5000, 5000, -5000, 5000, 0, 5000]
 model = [
-    Prism(-1500, -500, -1500, -500, 500, 1500, {'density':1000}),
-    Prism(500, 1500, 1000, 2000, 500, 1500, {'density':1000})]
+    Prism(-1500, -500, -1500, -500, 500, 1500, {'density': 1000}),
+    Prism(500, 1500, 1000, 2000, 500, 1500, {'density': 1000})]
 # Generate some data from the model
 shape = (100, 100)
 area = bounds[0:4]
@@ -51,7 +51,7 @@ mpl.show()
 myv.figure()
 myv.points(solver.estimate_, size=100.)
 myv.prisms(model, opacity=0.5)
-axes = myv.axes(myv.outline(bounds), ranges=[b*0.001 for b in bounds])
+axes = myv.axes(myv.outline(bounds), ranges=[b * 0.001 for b in bounds])
 myv.wall_bottom(bounds)
 myv.wall_north(bounds)
 myv.title('Euler solutions')

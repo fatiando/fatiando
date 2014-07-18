@@ -11,8 +11,8 @@ magnetic field of various types of geometric objects:
 * :mod:`~fatiando.gravmag.polyprism`: 3D prisms with polygonal horizontal
   cross-sections
 * :mod:`~fatiando.gravmag.sphere`: Spheres in Cartesian coordinates
-* :mod:`~fatiando.gravmag.tesseroid`: Tesseroids (spherical prisms) for modeling
-  in spherical coordinates
+* :mod:`~fatiando.gravmag.tesseroid`: Tesseroids (spherical prisms) for
+  modeling in spherical coordinates
 * :mod:`~fatiando.gravmag.talwani`: 2D bodies with polygonal vertical
   cross-sections
 * :mod:`~fatiando.gravmag.half_sph_shell`: Gravity fields of half a spherical
@@ -27,9 +27,9 @@ The inversion modules use the forward modeling models and the
   basins and other outcropping bodies
 * :mod:`~fatiando.gravmag.harvester`: 3D inversion of compact bodies by
   planting anomalous densities
-* :mod:`~fatiando.gravmag.euler`: 3D Euler deconvolution methods to estimate source
-  location
-* :mod:`~fatiando.gravmag.magdir`: Inversion methods to estimate the total 
+* :mod:`~fatiando.gravmag.euler`: 3D Euler deconvolution methods to estimate
+  source location
+* :mod:`~fatiando.gravmag.magdir`: Inversion methods to estimate the total
   magnetization vector of multiple sources.
 
 **Processing**

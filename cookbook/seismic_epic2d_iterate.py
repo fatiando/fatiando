@@ -12,7 +12,7 @@ from fatiando.seismic import ttime2d, epic2d
 # Make a velocity model to calculate traveltimes
 area = (0, 10, 0, 10)
 vp, vs = 2, 1
-model = [Square(area, props={'vp':vp, 'vs':vs})]
+model = [Square(area, props={'vp': vp, 'vs': vs})]
 # Pick the locations of the receivers
 mpl.figure()
 mpl.axis('scaled')
@@ -47,9 +47,9 @@ if len(initial) > 1:
     sys.exit()
 # Fit using many different solvers
 levmarq = [e for e in solver.levmarq(initial=initial[0], iterate=True)]
-steepest = [e for e in  solver.steepest(initial=initial[0], iterate=True)]
-newton = [e for e in  solver.newton(initial=initial[0], iterate=True)]
-ACO_R = [e for e in  solver.acor(bounds=area, maxit=100, iterate=True)]
+steepest = [e for e in solver.steepest(initial=initial[0], iterate=True)]
+newton = [e for e in solver.newton(initial=initial[0], iterate=True)]
+ACO_R = [e for e in solver.acor(bounds=area, maxit=100, iterate=True)]
 # Make a map of the objective function
 shape = (100, 100)
 xs, ys = gridder.regular(area, shape)
@@ -66,7 +66,7 @@ mpl.points(steepest, '.-m', label="Steepest descent")
 mpl.points(ACO_R, '.-c', label="Ant Colony")
 mpl.points(src, '*y')
 mpl.set_area(area)
-mpl.legend(loc='lower right', shadow=True, numpoints=1, prop={'size':12})
+mpl.legend(loc='lower right', shadow=True, numpoints=1, prop={'size': 12})
 mpl.xlabel("X")
 mpl.ylabel("Y")
 mpl.show()

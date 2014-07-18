@@ -105,7 +105,8 @@ def load_surfer(fname, fmt='ascii'):
     if fmt == 'binary':
         raise NotImplementedError(
             "Binary file support is not implemented yet.")
-    return x, y, grd, (ny,nx)
+    return x, y, grd, (ny, nx)
+
 
 def regular(area, shape, z=None):
     """
@@ -135,21 +136,23 @@ def regular(area, shape, z=None):
     dy, dx = spacing(area, shape)
     x_range = numpy.arange(x1, x2, dx)
     y_range = numpy.arange(y1, y2, dy)
-    # Need to make sure that the number of points in the grid is correct because
-    # of rounding errors in arange. Sometimes x2 and y2 are included, sometimes
-    # not
+    # Need to make sure that the number of points in the grid is correct
+    # because of rounding errors in arange. Sometimes x2 and y2 are included,
+    # sometimes not
     if len(x_range) < nx:
         x_range = numpy.append(x_range, x2)
     if len(y_range) < ny:
         y_range = numpy.append(y_range, y2)
     assert len(x_range) == nx, "Failed! x_range doesn't have nx points"
     assert len(y_range) == ny, "Failed! y_range doesn't have ny points"
-    xcoords, ycoords = [mat.ravel() for mat in numpy.meshgrid(x_range, y_range)]
+    xcoords, ycoords = [mat.ravel()
+                        for mat in numpy.meshgrid(x_range, y_range)]
     if z is not None:
-        zcoords = z*numpy.ones_like(xcoords)
+        zcoords = z * numpy.ones_like(xcoords)
         return [xcoords, ycoords, zcoords]
     else:
         return [xcoords, ycoords]
+
 
 def scatter(area, n, z=None, seed=None):
     """
@@ -183,10 +186,11 @@ def scatter(area, n, z=None, seed=None):
     ycoords = numpy.random.uniform(y1, y2, n)
     numpy.random.seed()
     if z is not None:
-        zcoords = z*numpy.ones(n)
+        zcoords = z * numpy.ones(n)
         return [xcoords, ycoords, zcoords]
     else:
         return [xcoords, ycoords]
+
 
 def spacing(area, shape):
     """
@@ -207,9 +211,10 @@ def spacing(area, shape):
     """
     x1, x2, y1, y2 = area
     ny, nx = shape
-    dx = float(x2 - x1)/float(nx - 1)
-    dy = float(y2 - y1)/float(ny - 1)
+    dx = float(x2 - x1) / float(nx - 1)
+    dy = float(y2 - y1) / float(ny - 1)
     return [dy, dx]
+
 
 def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
     """
@@ -251,13 +256,15 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
     xp, yp = [i.ravel() for i in numpy.meshgrid(xs, ys)]
     if algorithm == 'nn':
         grid = matplotlib.mlab.griddata(x, y, v, numpy.reshape(xp, shape),
-                numpy.reshape(yp, shape), interp='nn').ravel()
+                                        numpy.reshape(yp, shape),
+                                        interp='nn').ravel()
         if extrapolate and numpy.ma.is_masked(grid):
             grid = extrapolate_nans(xp, yp, grid)
     else:
         grid = interp_at(x, y, v, xp, yp, algorithm=algorithm,
                          extrapolate=extrapolate)
     return [xp, yp, grid]
+
 
 def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=False):
     """
@@ -287,10 +294,11 @@ def interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=False):
     if algorithm not in ['cubic', 'linear', 'nearest']:
         raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
     grid = scipy.interpolate.griddata((x, y), v, (xp, yp),
-            method=algorithm).ravel()
+                                      method=algorithm).ravel()
     if extrapolate and algorithm != 'nearest' and numpy.any(numpy.isnan(grid)):
         grid = extrapolate_nans(xp, yp, grid)
     return grid
+
 
 def profile(x, y, v, point1, point2, size, extrapolate=False):
     """
@@ -324,13 +332,14 @@ def profile(x, y, v, point1, point2, size, extrapolate=False):
     """
     x1, y1 = point1
     x2, y2 = point2
-    maxdist = numpy.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    maxdist = numpy.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
     distances = numpy.linspace(0, maxdist, size)
     angle = numpy.arctan2(y2 - y1, x2 - x1)
-    xp = x1 + distances*numpy.cos(angle)
-    yp = y1 + distances*numpy.sin(angle)
+    xp = x1 + distances * numpy.cos(angle)
+    yp = y1 + distances * numpy.sin(angle)
     vp = interp_at(x, y, v, xp, yp, algorithm='cubic', extrapolate=extrapolate)
     return xp, yp, distances, vp
+
 
 def extrapolate_nans(x, y, v):
     """"
@@ -358,8 +367,10 @@ def extrapolate_nans(x, y, v):
         nans = numpy.isnan(v)
     notnans = numpy.logical_not(nans)
     v[nans] = scipy.interpolate.griddata((x[notnans], y[notnans]), v[notnans],
-        (x[nans], y[nans]), method='nearest').ravel()
+                                         (x[nans], y[nans]),
+                                         method='nearest').ravel()
     return v
+
 
 def cut(x, y, scalars, area):
     """
@@ -389,5 +400,6 @@ def cut(x, y, scalars, area):
     if len(x) != len(y):
         raise ValueError("x and y must have the same length")
     inside = [i for i in xrange(len(x))
-            if x[i] >= xmin and x[i] <= xmax and y[i] >= ymin and y[i] <= ymax]
+              if x[i] >= xmin and x[i] <= xmax
+              and y[i] >= ymin and y[i] <= ymax]
     return [x[inside], y[inside], [s[inside] for s in scalars]]

@@ -39,20 +39,23 @@ from ..inversion.regularization import Smoothness
 
 
 class EQLBase(Misfit):
+
     """
     Base class for the classic equivalent layer.
     """
 
     def __init__(self, x, y, z, data, grid):
         super(EQLBase, self).__init__(data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'grid':grid},
-            nparams=grid.size, islinear=True)
+                                      positional={'x': x, 'y': y, 'z': z},
+                                      model={'grid': grid},
+                                      nparams=grid.size, islinear=True)
 
     def _get_predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
+
 class EQLGravity(EQLBase):
+
     """
     Estimate an equivalent layer from gravity data.
 
@@ -153,7 +156,9 @@ class EQLGravity(EQLBase):
             jac[:, i] = func(x, y, z, [c], dens=1.)
         return jac
 
+
 class EQLTotalField(EQLBase):
+
     """
     Estimate an equivalent layer from total field magnetic anomaly data.
 
@@ -241,7 +246,9 @@ class EQLTotalField(EQLBase):
             jac[:, i] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
         return jac
 
+
 class PELBase(Misfit):
+
     """
     Base class for the Polynomial Equivalent Layer.
 
@@ -253,9 +260,10 @@ class PELBase(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree):
-        super(PELBase, self).__init__(data=data,
-            positional={'x':x, 'y':y, 'z':z},
-            model={'grid':grid, 'windows':windows, 'degree':degree},
+        super(PELBase, self).__init__(
+            data=data,
+            positional={'x': x, 'y': y, 'z': z},
+            model={'grid': grid, 'windows': windows, 'degree': degree},
             nparams=windows[0]*windows[1]*ncoeffs(degree),
             islinear=True)
 
@@ -291,15 +299,16 @@ class PELBase(Misfit):
                 xend = xstart + gnx
                 g = grids[k]
                 estimate[ystart:yend, xstart:xend] = safe_dot(
-                        _bkmatrix(g, self.model['degree']),
-                        coefs[k*pergrid:(k + 1)*pergrid]
-                        ).reshape(g.shape)
+                    _bkmatrix(g, self.model['degree']),
+                    coefs[k * pergrid:(k + 1) * pergrid]
+                ).reshape(g.shape)
                 xstart = xend
                 k += 1
             ystart = yend
         self.coeffs_ = self.p_
         self._estimate = estimate.ravel()
         return self
+
 
 def _bkmatrix(grid, degree):
     """
@@ -342,10 +351,11 @@ def _bkmatrix(grid, degree):
 
     """
     bmatrix = numpy.transpose(
-            [(grid.x**i)*(grid.y**j)
-            for l in xrange(1, degree + 2)
-                for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
+        [(grid.x ** i) * (grid.y ** j)
+         for l in xrange(1, degree + 2)
+         for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
     return bmatrix
+
 
 def ncoeffs(degree):
     """
@@ -375,7 +385,9 @@ def ncoeffs(degree):
     """
     return sum(xrange(1, degree + 2))
 
+
 class PELGravity(PELBase):
+
     """
     Estimate a polynomial equivalent layer from gravity data.
 
@@ -458,10 +470,12 @@ class PELGravity(PELBase):
             bk = _bkmatrix(grid, self.model['degree'])
             for k, c in enumerate(grid):
                 gk[:, k] = func(x, y, z, [c], dens=1.)
-            jac[:, i*pergrid:(i + 1)*pergrid] = safe_dot(gk, bk)
+            jac[:, i * pergrid:(i + 1) * pergrid] = safe_dot(gk, bk)
         return jac
 
+
 class PELTotalField(PELBase):
+
     """
     Estimate a polynomial equivalent layer from magnetic total field anomaly.
 
@@ -538,9 +552,9 @@ class PELTotalField(PELBase):
     """
 
     def __init__(self, x, y, z, data, inc, dec, grid, windows, degree,
-            sinc=None, sdec=None):
+                 sinc=None, sdec=None):
         super(PELTotalField, self).__init__(x, y, z, data, grid, windows,
-            degree)
+                                            degree)
         self.inc, self.dec = inc, dec
         self.model['inc'] = sinc if sinc is not None else inc
         self.model['dec'] = sdec if sdec is not None else dec
@@ -558,11 +572,13 @@ class PELTotalField(PELBase):
         for i, grid in enumerate(grids):
             bk = _bkmatrix(grid, self.model['degree'])
             for k, c in enumerate(grid):
-                gk[:,k] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
-            jac[:, i*pergrid:(i + 1)*pergrid] = safe_dot(gk, bk)
+                gk[:, k] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
+            jac[:, i * pergrid:(i + 1) * pergrid] = safe_dot(gk, bk)
         return jac
 
+
 class PELSmoothness(Smoothness):
+
     """
     Regularization to "join" neighboring windows in the PEL.
 
@@ -586,9 +602,11 @@ class PELSmoothness(Smoothness):
     example usage.
 
     """
+
     def __init__(self, grid, windows, degree):
         super(PELSmoothness, self).__init__(
             _pel_fdmatrix(windows, grid, degree))
+
 
 def _pel_fdmatrix(windows, grid, degree):
     """
@@ -598,37 +616,38 @@ def _pel_fdmatrix(windows, grid, degree):
     grids = grid.split(windows)
     gsize = grids[0].size
     gny, gnx = grids[0].shape
-    nderivs = (nx - 1)*grid.shape[0] + (ny - 1)*grid.shape[1]
+    nderivs = (nx - 1) * grid.shape[0] + (ny - 1) * grid.shape[1]
     rmatrix = scipy.sparse.lil_matrix((nderivs, grid.size))
     deriv = 0
     # derivatives in x
     for k in xrange(0, len(grids) - ny):
-        bottom = k*gsize + gny*(gnx - 1)
-        top = (k + ny)*gsize
+        bottom = k * gsize + gny * (gnx - 1)
+        top = (k + ny) * gsize
         for i in xrange(gny):
             rmatrix[deriv, bottom + i] = -1.
             rmatrix[deriv, top + 1] = 1.
             deriv += 1
     # derivatives in y
     for k in xrange(0, len(grids)):
-        if (k + 1)%ny == 0:
+        if (k + 1) % ny == 0:
             continue
-        right = k*gsize + gny - 1
-        left = (k + 1)*gsize
+        right = k * gsize + gny - 1
+        left = (k + 1) * gsize
         for i in xrange(gnx):
-            rmatrix[deriv, right + i*gny] = -1.
-            rmatrix[deriv, left + i*gny] = 1.
+            rmatrix[deriv, right + i * gny] = -1.
+            rmatrix[deriv, left + i * gny] = 1.
             deriv += 1
     rmatrix = rmatrix.tocsr()
     # Make the RB matrix because R is for the sources, B converts it to
     # coefficients.
     pergrid = ncoeffs(degree)
-    ncoefs = len(grids)*pergrid
+    ncoefs = len(grids) * pergrid
     fdmatrix = numpy.empty((nderivs, ncoefs), dtype=float)
     st = 0
     for i, g in enumerate(grids):
         bk = _bkmatrix(g, degree)
         en = st + g.size
-        fdmatrix[:,i*pergrid:(i + 1)*pergrid] = safe_dot(rmatrix[:, st:en], bk)
+        fdmatrix[
+            :, i * pergrid:(i + 1) * pergrid] = safe_dot(rmatrix[:, st:en], bk)
         st = en
     return fdmatrix

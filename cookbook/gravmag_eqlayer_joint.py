@@ -9,7 +9,7 @@ from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
 # Make synthetic data
-props = {'density':1000}
+props = {'density': 1000}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 area = [-5000, 5000, -5000, 5000]
 x1, y1, z1 = gridder.scatter(area, 80, z=0, seed=0)
@@ -21,12 +21,12 @@ layer = mesher.PointGrid([-6000, 6000, -6000, 6000], 500, (50, 50))
 # and the inversion
 # Apply a scaling factor to make both portions of the misfit the same order of
 # magnitude
-scale = np.linalg.norm(gz)**2/np.linalg.norm(gzz)**2
+scale = np.linalg.norm(gz) ** 2 / np.linalg.norm(gzz) ** 2
 misfit = (EQLGravity(x1, y1, z1, gz, layer)
-          + scale*EQLGravity(x2, y2, z2, gzz, layer, field='gzz'))
+          + scale * EQLGravity(x2, y2, z2, gzz, layer, field='gzz'))
 regul = Smoothness2D(layer.shape)
 # Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10**i for i in range(-30, -20)], jobs=8).fit()
+solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -20)]).fit()
 layer.addprop('density', solver.estimate_)
 
 # Now I can forward model gz using my layer to produce an integrated map in a

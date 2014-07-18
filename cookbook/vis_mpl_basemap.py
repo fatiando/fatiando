@@ -19,4 +19,3 @@ bm.bluemarble()
 mpl.contourf(lon, lat, data, shape, 12, basemap=bm)
 mpl.colorbar()
 mpl.show()
-

@@ -1,6 +1,6 @@
 """
-GravMag: Use an equivalent layer to reduce a magnetic total field anomaly to the
-pole
+GravMag: Use an equivalent layer to reduce a magnetic total field anomaly to
+the pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import EQLTotalField
@@ -10,7 +10,7 @@ from fatiando.vis import mpl
 
 # Make synthetic data
 inc, dec = -60, 23
-props = {'magnetization':10}
+props = {'magnetization': 10}
 model = [mesher.Prism(-500, 500, -1000, 1000, 500, 4000, props)]
 shape = (25, 25)
 x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=0)
@@ -22,7 +22,7 @@ layer = mesher.PointGrid([-7000, 7000, -7000, 7000], 700, (50, 50))
 misfit = EQLTotalField(x, y, z, tf, inc, dec, layer)
 regul = Damping(layer.size)
 # Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10**i for i in range(-30, -15)]).fit()
+solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -15)]).fit()
 residuals = solver.residuals()
 layer.addprop('magnetization', solver.estimate_)
 print "Residuals:"

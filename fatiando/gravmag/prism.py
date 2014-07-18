@@ -131,6 +131,7 @@ def potential(xp, yp, zp, prisms, dens=None):
     res *= G
     return res
 
+
 def gx(xp, yp, zp, prisms, dens=None):
     """
     Calculates the :math:`g_x` gravity acceleration component.
@@ -173,8 +174,9 @@ def gx(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gx(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2MGAL
+    res *= G * SI2MGAL
     return res
+
 
 def gy(xp, yp, zp, prisms, dens=None):
     """
@@ -217,9 +219,10 @@ def gy(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gy(xp, yp, zp, x1,x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2MGAL
+        _prism.gy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
+    res *= G * SI2MGAL
     return res
+
 
 def gz(xp, yp, zp, prisms, dens=None):
     """
@@ -262,9 +265,10 @@ def gz(xp, yp, zp, prisms, dens=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.gz(xp, yp, zp, x1,x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2MGAL
+        _prism.gz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
+    res *= G * SI2MGAL
     return res
+
 
 def gxx(xp, yp, zp, prisms, dens=None):
     """
@@ -308,8 +312,9 @@ def gxx(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gxx(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxy(xp, yp, zp, prisms, dens=None):
     """
@@ -353,8 +358,9 @@ def gxy(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gxy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxz(xp, yp, zp, prisms, dens=None):
     """
@@ -398,8 +404,9 @@ def gxz(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gxz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyy(xp, yp, zp, prisms, dens=None):
     """
@@ -443,8 +450,9 @@ def gyy(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gyy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyz(xp, yp, zp, prisms, dens=None):
     """
@@ -488,8 +496,9 @@ def gyz(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gyz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gzz(xp, yp, zp, prisms, dens=None):
     """
@@ -533,8 +542,9 @@ def gzz(xp, yp, zp, prisms, dens=None):
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
         _prism.gzz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     """
@@ -577,7 +587,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         if isinstance(pmag, float) or isinstance(pmag, int):
-            mx, my, mz = pmag*fx, pmag*fy, pmag*fz
+            mx, my, mz = pmag * fx, pmag * fy, pmag * fz
         else:
             mx, my, mz = pmag
     for prism in prisms:
@@ -587,16 +597,17 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         if pmag is None:
             mag = prism.props['magnetization']
             if isinstance(mag, float) or isinstance(mag, int):
-                mx, my, mz = mag*fx, mag*fy, mag*fz
+                mx, my, mz = mag * fx, mag * fy, mag * fz
             else:
                 mx, my, mz = mag
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.tf(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, fx, fy, fz,
+        _prism.tf(xp, yp, zp, x1, x2, y1, y2, z1, z2, mx, my, mz, fx, fy, fz,
                   res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def bx(xp, yp, zp, prisms, pmag=None):
     """
@@ -639,9 +650,10 @@ def bx(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.bx(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+        _prism.bx(xp, yp, zp, x1, x2, y1, y2, z1, z2, mx, my, mz, res)
+    res *= CM * T2NT
     return res
+
 
 def by(xp, yp, zp, prisms, pmag=None):
     """
@@ -684,9 +696,10 @@ def by(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.by(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+        _prism.by(xp, yp, zp, x1, x2, y1, y2, z1, z2, mx, my, mz, res)
+    res *= CM * T2NT
     return res
+
 
 def bz(xp, yp, zp, prisms, pmag=None):
     """
@@ -729,9 +742,10 @@ def bz(xp, yp, zp, prisms, pmag=None):
         x1, x2 = prism.x1, prism.x2
         y1, y2 = prism.y1, prism.y2
         z1, z2 = prism.z1, prism.z2
-        _prism.bz(xp, yp, zp, x1,x2, y1, y2, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+        _prism.bz(xp, yp, zp, x1, x2, y1, y2, z1, z2, mx, my, mz, res)
+    res *= CM * T2NT
     return res
+
 
 def kernelxx(xp, yp, zp, prism):
     r"""
@@ -742,8 +756,8 @@ def kernelxx(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 
@@ -767,6 +781,7 @@ def kernelxx(xp, yp, zp, prism):
     _prism.gxx(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
+
 def kernelyy(xp, yp, zp, prism):
     r"""
     Calculates the yy derivative of the function
@@ -776,8 +791,8 @@ def kernelyy(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 
@@ -801,6 +816,7 @@ def kernelyy(xp, yp, zp, prism):
     _prism.gyy(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
+
 def kernelzz(xp, yp, zp, prism):
     r"""
     Calculates the zz derivative of the function
@@ -810,8 +826,8 @@ def kernelzz(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 
@@ -835,6 +851,7 @@ def kernelzz(xp, yp, zp, prism):
     _prism.gzz(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
+
 def kernelxy(xp, yp, zp, prism):
     r"""
     Calculates the xy derivative of the function
@@ -844,8 +861,8 @@ def kernelxy(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 
@@ -869,6 +886,7 @@ def kernelxy(xp, yp, zp, prism):
     _prism.gxy(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
+
 def kernelxz(xp, yp, zp, prism):
     r"""
     Calculates the xz derivative of the function
@@ -878,8 +896,8 @@ def kernelxz(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 
@@ -903,6 +921,7 @@ def kernelxz(xp, yp, zp, prism):
     _prism.gxz(xp, yp, zp, x1, x2, y1, y2, z1, z2, 1, res)
     return res
 
+
 def kernelyz(xp, yp, zp, prism):
     r"""
     Calculates the yz derivative of the function
@@ -912,8 +931,8 @@ def kernelyz(xp, yp, zp, prism):
         \phi(x,y,z) = \int\int\int \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     Parameters:
 

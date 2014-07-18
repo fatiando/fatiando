@@ -33,13 +33,29 @@ and the API reference.
 
 The documentation reflects the *master* branch on Github_.
 
-Get fatiando
+Get Fatiando
 ------------
 
-You can download
-the stable version
-of Fatiando
-from `PyPI <https://pypi.python.org/pypi/fatiando>`_.
+To install and run Fatiando, you'll need the following
+packages:
+
+* numpy
+* scipy
+* matplotlib
+* mayavi
+* PIL
+* basemap
+* gcc
+
+Download and install the latest release of Fatiando from
+`PyPI <https://pypi.python.org/pypi/fatiando>`_:
+
+    pip install fatiando
+
+To install the latest development version:
+
+    pip install git+https://github.com/leouieda/fatiando#egg=fatiando
+
 You'll find more detailed explanations on the
 `install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`_.
 

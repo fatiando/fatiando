@@ -32,6 +32,7 @@ from ..utils import safe_inverse, safe_dot, safe_diagonal
 
 
 class Classic(Misfit):
+
     """
     Classic 3D Euler deconvolution of potential field data.
 
@@ -73,16 +74,17 @@ class Classic(Misfit):
     def __init__(self, x, y, z, field, xderiv, yderiv, zderiv,
                  structural_index):
         if (len(x) != len(y) != len(z) != len(field) != len(xderiv)
-            != len(yderiv) != len(zderiv)):
+                != len(yderiv) != len(zderiv)):
             raise ValueError("x, y, z, field, xderiv, yderiv, zderiv must " +
-                "have the same number of elements")
+                             "have the same number of elements")
         if structural_index < 0:
             raise ValueError("Invalid structural index '%g'. Should be >= 0"
-                % (structural_index))
+                             % (structural_index))
         super(Classic, self).__init__(
-            data=-x*xderiv - y*yderiv - z*zderiv - structural_index*field,
+            data=-x * xderiv - y * yderiv - z *
+            zderiv - structural_index * field,
             positional=dict(x=x, y=y, z=z, field=field, xderiv=xderiv,
-                yderiv=yderiv, zderiv=zderiv),
+                            yderiv=yderiv, zderiv=zderiv),
             model=dict(structural_index=structural_index),
             nparams=4, islinear=True)
 
@@ -90,7 +92,7 @@ class Classic(Misfit):
         jac = numpy.transpose(
             [-self.positional['xderiv'], -self.positional['yderiv'],
              -self.positional['zderiv'],
-             -self.model['structural_index']*numpy.ones(self.ndata)])
+             -self.model['structural_index'] * numpy.ones(self.ndata)])
         return jac
 
     def _get_predicted(self, p):
@@ -108,7 +110,9 @@ class Classic(Misfit):
         self.baselevel_ = self.p_[3]
         return self
 
+
 class ExpandingWindow(object):
+
     """
     Solve an Euler deconvolution problem using an expanding window scheme.
 
@@ -153,7 +157,7 @@ class ExpandingWindow(object):
         results = []
         errors = []
         for size in self.sizes:
-            ds = 0.5*size
+            ds = 0.5 * size
             xmin, xmax, ymin, ymax = xc - ds, xc + ds, yc - ds, yc + ds
             indices = (x >= xmin) & (x <= xmax) & (y >= ymin) & (y <= ymax)
             if not numpy.any(indices):
@@ -169,7 +173,9 @@ class ExpandingWindow(object):
         self.baselevel_ = self.p_[3]
         return self
 
+
 class MovingWindow(object):
+
     """
     Solve an Euler deconvolution problem using a moving window scheme.
 
@@ -225,15 +231,15 @@ class MovingWindow(object):
         # Thank you Saulinho for the solution!
         # Calculate the mid-points of the windows
         self.window_centers = []
-        xmidpoints = numpy.linspace(x1 + 0.5*dx, x2 -  0.5*dx, nx)
-        ymidpoints = numpy.linspace(y1 + 0.5*dy, y2 -  0.5*dy, ny)
+        xmidpoints = numpy.linspace(x1 + 0.5 * dx, x2 - 0.5 * dx, nx)
+        ymidpoints = numpy.linspace(y1 + 0.5 * dy, y2 - 0.5 * dy, ny)
         for yc in ymidpoints:
             for xc in xmidpoints:
                 self.window_centers.append([xc, yc])
                 # Separate the indices that fall inside the window with center
                 # (xc, yc)
-                indices = ((x >= xc - 0.5*dx) & (x <= xc + 0.5*dx) &
-                           (y >= yc - 0.5*dy) & (y <= yc + 0.5*dy))
+                indices = ((x >= xc - 0.5 * dx) & (x <= xc + 0.5 * dx) &
+                           (y >= yc - 0.5 * dy) & (y <= yc + 0.5 * dy))
                 if not numpy.any(indices):
                     continue
                 solver = euler.subset(indices).fit()
@@ -244,9 +250,8 @@ class MovingWindow(object):
                 paramvecs.append(solver.p_)
                 estimates.append(solver.estimate_)
                 baselevels.append(solver.baselevel_)
-        best = numpy.argsort(errors)[:int(self.keep*len(errors))]
+        best = numpy.argsort(errors)[:int(self.keep * len(errors))]
         self.p_ = numpy.array(paramvecs)[best]
         self.estimate_ = numpy.array(estimates)[best]
         self.baselevel_ = numpy.array(baselevels)[best]
         return self
-

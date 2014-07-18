@@ -15,44 +15,24 @@ precision_mag = 10e-5
 def setup():
     global model, xp, yp, zp, inc, dec, prismmodel
     inc, dec = -30, 50
-    props1 = {'density':2., 'magnetization':utils.ang2vec(-20, 25, -10)}
-    props2 = {'density':-3., 'magnetization':utils.ang2vec(10, inc, dec)}
+    props1 = {'density': 2., 'magnetization': utils.ang2vec(-20, 25, -10)}
+    props2 = {'density': -3., 'magnetization': utils.ang2vec(10, inc, dec)}
     model = [PolygonalPrism([
-                 [100, -100],
-                 [100, 100],
-                 [-100, 100],
-                 [-100, -100]], 100, 300, props1),
-             PolygonalPrism([
-                 [400, -100],
-                 [600, -100],
-                 [600, 100],
-                 [400, 100]], 100, 300, props2)]
+        [100, -100],
+        [100, 100],
+        [-100, 100],
+        [-100, -100]], 100, 300, props1),
+        PolygonalPrism([
+            [400, -100],
+            [600, -100],
+            [600, 100],
+            [400, 100]], 100, 300, props2)]
     prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props1),
                   Prism(400, 600, -100, 100, 100, 300, props2)]
     tmp = np.linspace(-500, 1000, 50)
     xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
-    zp = -1*np.ones_like(xp)
+    zp = -1 * np.ones_like(xp)
 
-#def test_potential():
-    #"polyprism.potential against prism"
-    #resprism = prism.potential(xp, yp, zp, prismmodel)
-    #respoly = polyprism.potential(xp, yp, zp, model)
-    #diff = np.abs(resprism - respoly)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-#def test_gx():
-    #"polyprism.gx against prism"
-    #resprism = prism.gx(xp, yp, zp, prismmodel)
-    #respoly = polyprism.gx(xp, yp, zp, model)
-    #diff = np.abs(resprism - respoly)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-#def test_gy():
-    #"polyprism.gy against prism"
-    #resprism = prism.gy(xp, yp, zp, prismmodel)
-    #respoly = polyprism.gy(xp, yp, zp, model)
-    #diff = np.abs(resprism - respoly)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gz():
     "polyprism.gz against prism"
@@ -63,12 +43,14 @@ def test_gz():
         max(diff), max(respoly), max(resprism))
     assert np.all(diff <= precision), errormsg
 
+
 def test_gxx():
     "polyprism.gxx against prism"
     resprism = prism.gxx(xp, yp, zp, prismmodel)
     respoly = polyprism.gxx(xp, yp, zp, model)
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gxy():
     "polyprism.gxy against prism"
@@ -77,12 +59,14 @@ def test_gxy():
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gxz():
     "polyprism.gxx against prism"
     resprism = prism.gxz(xp, yp, zp, prismmodel)
     respoly = polyprism.gxz(xp, yp, zp, model)
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gyy():
     "polyprism.gyy against prism"
@@ -91,6 +75,7 @@ def test_gyy():
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gyz():
     "polyprism.gyz against prism"
     resprism = prism.gyz(xp, yp, zp, prismmodel)
@@ -98,12 +83,14 @@ def test_gyz():
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gzz():
     "polyprism.gzz against prism"
     resprism = prism.gzz(xp, yp, zp, prismmodel)
     respoly = polyprism.gzz(xp, yp, zp, model)
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_tf():
     "polyprism.tf against prism"
@@ -114,12 +101,14 @@ def test_tf():
         max(diff), max(respoly), max(resprism))
     assert np.all(diff <= precision_mag), errormsg
 
+
 def test_bx():
     "polyprism.bx against prism"
     resprism = prism.bx(xp, yp, zp, prismmodel)
     respoly = polyprism.bx(xp, yp, zp, model)
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
+
 
 def test_by():
     "polyprism.by against prism"
@@ -128,12 +117,14 @@ def test_by():
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
 
+
 def test_bz():
     "polyprism.bz against prism"
     resprism = prism.bz(xp, yp, zp, prismmodel)
     respoly = polyprism.bz(xp, yp, zp, model)
     diff = np.abs(resprism - respoly)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
+
 
 def test_kernelxx():
     "polyprism.kernelxx against prism"
@@ -144,6 +135,7 @@ def test_kernelxx():
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
 
+
 def test_kernelxy():
     "polyprism.kernelxy against prism"
     for pris, poly in zip(prismmodel, model):
@@ -152,6 +144,7 @@ def test_kernelxy():
         diff = np.abs(resprism - respoly)
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
+
 
 def test_kernelxz():
     "polyprism.kernelxz against prism"
@@ -162,6 +155,7 @@ def test_kernelxz():
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
 
+
 def test_kernelyy():
     "polyprism.kernelyy against prism"
     for pris, poly in zip(prismmodel, model):
@@ -170,6 +164,7 @@ def test_kernelyy():
         diff = np.abs(resprism - respoly)
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
+
 
 def test_kernelyz():
     "polyprism.kernelyz against prism"
@@ -180,6 +175,7 @@ def test_kernelyz():
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
 
+
 def test_kernelzz():
     "polyprism.kernelzz against prism"
     for pris, poly in zip(prismmodel, model):
@@ -189,12 +185,14 @@ def test_kernelzz():
         assert np.all(diff <= precision), \
             'max diff: %g' % (max(diff))
 
+
 def test_gz_numpy():
     "polyprism.gz cython vs numpy implementation"
     cy = polyprism.gz(xp, yp, zp, model)
     py = _polyprism_numpy.gz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gxx_numpy():
     "polyprism.gxx cython vs numpy implementation"
@@ -203,12 +201,14 @@ def test_gxx_numpy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gxy_numpy():
     "polyprism.gxy cython vs numpy implementation"
     cy = polyprism.gxy(xp, yp, zp, model)
     py = _polyprism_numpy.gxy(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gxz_numpy():
     "polyprism.gxz cython vs numpy implementation"
@@ -217,12 +217,14 @@ def test_gxz_numpy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gyy_numpy():
     "polyprism.gyy cython vs numpy implementation"
     cy = polyprism.gyy(xp, yp, zp, model)
     py = _polyprism_numpy.gyy(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gyz_numpy():
     "polyprism.gyz cython vs numpy implementation"
@@ -231,12 +233,14 @@ def test_gyz_numpy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gzz_numpy():
     "polyprism.gzz cython vs numpy implementation"
     cy = polyprism.gzz(xp, yp, zp, model)
     py = _polyprism_numpy.gzz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_tf_numpy():
     "polyprism.tf cython vs numpy implementation"
@@ -245,12 +249,14 @@ def test_tf_numpy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
 
+
 def test_bx_numpy():
     "polyprism.bx cython vs numpy implementation"
     cy = polyprism.bx(xp, yp, zp, model)
     py = _polyprism_numpy.bx(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
+
 
 def test_by_numpy():
     "polyprism.by cython vs numpy implementation"
@@ -259,12 +265,14 @@ def test_by_numpy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
 
+
 def test_bz_numpy():
     "polyprism.bz cython vs numpy implementation"
     cy = polyprism.bz(xp, yp, zp, model)
     py = _polyprism_numpy.bz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision_mag), 'max diff: %g' % (max(diff))
+
 
 def test_kernelxx_numpy():
     "polyprism.kernelxx cython vs numpy implementation"
@@ -274,6 +282,7 @@ def test_kernelxx_numpy():
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_kernelxy_numpy():
     "polyprism.kernelxy cython vs numpy implementation"
     for p in model:
@@ -281,6 +290,7 @@ def test_kernelxy_numpy():
         py = _polyprism_numpy.kernelxy(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_kernelxz_numpy():
     "polyprism.kernelxz cython vs numpy implementation"
@@ -290,6 +300,7 @@ def test_kernelxz_numpy():
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_kernelyy_numpy():
     "polyprism.kernelyy cython vs numpy implementation"
     for p in model:
@@ -298,6 +309,7 @@ def test_kernelyy_numpy():
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_kernelyz_numpy():
     "polyprism.kernelyz cython vs numpy implementation"
     for p in model:
@@ -305,6 +317,7 @@ def test_kernelyz_numpy():
         py = _polyprism_numpy.kernelyz(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_kernelzz_numpy():
     "polyprism.kernelzz cython vs numpy implementation"

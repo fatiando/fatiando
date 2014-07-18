@@ -3,9 +3,9 @@
 Installing Fatiando
 ===================
 
-.. note:: If you have any trouble installing please write to the
-    `mailing list`_ or to `Leonardo Uieda`_. This will help us make
-    Fatiando better!
+.. note:: If you have any trouble installing please
+    `submit a bug report on Github`_
+    or write to the `mailing list`_.
 
 Which Python?
 -------------
@@ -130,7 +130,7 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
 
-
+.. _submit a bug report on Github: https://github.com/leouieda/fatiando/issues
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/leouieda/fatiando
 .. _Python: http://www.python.org/
