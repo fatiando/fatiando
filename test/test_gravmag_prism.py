@@ -11,7 +11,8 @@ def test_cython_agains_numpy():
     inc, dec = -30, 50
     model = [
         Prism(100, 300, -100, 100, 0, 400,
-              {'density': -1000, 'magnetization': utils.ang2vec(-2, inc, dec)}),
+              {'density': -1000,
+               'magnetization': utils.ang2vec(-2, inc, dec)}),
         Prism(-300, -100, -100, 100, 0, 200,
               {'density': 2000, 'magnetization': utils.ang2vec(5, 25, -10)})]
     tmp = np.linspace(-500, 500, 101)
@@ -43,6 +44,7 @@ def test_cython_agains_numpy():
                       'Field = %s, max field %.15g max diff %.15g'
                       % (f, np.abs(cy).max(), np.abs(py - cy).max()))
 
+
 def test_around():
     "gravmag.prism gravitational results are consistent around the prism"
     funcs = ['potential', 'gx', 'gy', 'gz',
@@ -57,8 +59,7 @@ def test_around():
              gridder.regular(area, shape, z=distance)[::-1],
              gridder.regular(area, shape, z=-distance)[::-1],
              np.array(gridder.regular(area, shape, z=distance))[[0, 2, 1]],
-             np.array(gridder.regular(area, shape, z=-distance))[[0, 2, 1]],
-            ]
+             np.array(gridder.regular(area, shape, z=-distance))[[0, 2, 1]]]
     xp, yp, zp = grids[0]
     # Test if each component is consistent
     # POTENTIAL

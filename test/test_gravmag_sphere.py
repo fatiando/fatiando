@@ -7,8 +7,9 @@ from fatiando import utils, gridder
 model = None
 xp, yp, zp = None, None, None
 inc, dec = None, None
-precision = 10**(-15)
-lower_precision = 10**(-12)
+precision = 10 ** (-15)
+lower_precision = 10 ** (-12)
+
 
 def setup():
     global model, xp, yp, zp, inc, dec
@@ -16,31 +17,11 @@ def setup():
     reg_field = np.array(utils.dircos(inc, dec))
     model = [
         Sphere(500, 0, 1000, 1000,
-            {'density':-1., 'magnetization':utils.ang2vec(-2, inc, dec)}),
+               {'density': -1., 'magnetization': utils.ang2vec(-2, inc, dec)}),
         Sphere(-1000, 0, 700, 700,
-            {'density':2., 'magnetization':utils.ang2vec(5, 25, -10)})]
+               {'density': 2., 'magnetization': utils.ang2vec(5, 25, -10)})]
     xp, yp, zp = gridder.regular([-2000, 2000, -2000, 2000], (50, 50), z=-1)
 
-#def test_potential():
-    #"gravmag.sphere.potential python vs cython implementation"
-    #py = _sphere_numpy.potential(xp, yp, zp, model)
-    #cy = sphere.potential(xp, yp, zp, model)
-    #diff = np.abs(py - cy)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-#def test_gx():
-    #"gravmag.sphere.gx python vs cython implementation"
-    #py = _sphere_numpy.gx(xp, yp, zp, model)
-    #cy = sphere.gx(xp, yp, zp, model)
-    #diff = np.abs(py - cy)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
-
-#def test_gy():
-    #"gravmag.sphere.gy python vs cython implementation"
-    #py = _sphere_numpy.gy(xp, yp, zp, model)
-    #cy = sphere.gy(xp, yp, zp, model)
-    #diff = np.abs(py - cy)
-    #assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
 def test_gz():
     "gravmag.sphere.gz python vs cython implementation"
@@ -49,12 +30,14 @@ def test_gz():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gxx():
     "gravmag.sphere.gxx python vs cython implementation"
     py = _sphere_numpy.gxx(xp, yp, zp, model)
     cy = sphere.gxx(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gxy():
     "gravmag.sphere.gxy python vs cython implementation"
@@ -63,12 +46,14 @@ def test_gxy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gxz():
     "gravmag.sphere.gxx python vs cython implementation"
     py = _sphere_numpy.gxz(xp, yp, zp, model)
     cy = sphere.gxz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gyy():
     "gravmag.sphere.gyy python vs cython implementation"
@@ -77,12 +62,14 @@ def test_gyy():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_gyz():
     "gravmag.sphere.gyz python vs cython implementation"
     py = _sphere_numpy.gyz(xp, yp, zp, model)
     cy = sphere.gyz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+
 
 def test_gzz():
     "gravmag.sphere.gzz python vs cython implementation"
@@ -91,6 +78,7 @@ def test_gzz():
     diff = np.abs(py - cy)
     assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
 
+
 def test_tf():
     "gravmag.sphere.tf python vs cython implementation"
     py = _sphere_numpy.tf(xp, yp, zp, model, inc, dec)
@@ -98,7 +86,8 @@ def test_tf():
     diff = np.abs(py - cy)
     # Lower precison because python calculates using Blakely and cython using
     # the gravity kernels
-    assert np.all(diff <= 10**-9), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 10 ** -9), 'max diff: %g' % (max(diff))
+
 
 def test_bx():
     "gravmag.sphere.bx python vs cython implementation"
@@ -106,8 +95,9 @@ def test_bx():
     cy = sphere.bx(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= lower_precision), \
-        'max diff: %g python: %g cython %g' % (max(diff),
-                py[diff == max(diff)][0], cy[diff == max(diff)][0])
+        'max diff: %g python: %g cython %g' \
+        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_by():
     "gravmag.sphere.by python vs cython implementation"
@@ -115,8 +105,9 @@ def test_by():
     cy = sphere.by(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= lower_precision), \
-        'max diff: %g python: %g cython %g' % (max(diff),
-                py[diff == max(diff)][0], cy[diff == max(diff)][0])
+        'max diff: %g python: %g cython %g' \
+        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_bz():
     "gravmag.sphere.bz python vs cython implementation"
@@ -124,8 +115,9 @@ def test_bz():
     cy = sphere.bz(xp, yp, zp, model)
     diff = np.abs(py - cy)
     assert np.all(diff <= lower_precision), \
-        'max diff: %g python: %g cython %g' % (max(diff),
-                py[diff == max(diff)][0], cy[diff == max(diff)][0])
+        'max diff: %g python: %g cython %g' \
+        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelxx():
     "gravmag.sphere.kernelxx python vs cython implementation"
@@ -134,8 +126,9 @@ def test_kernelxx():
         cy = sphere.kernelxx(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelxy():
     "gravmag.sphere.kernelxy python vs cython implementation"
@@ -144,8 +137,9 @@ def test_kernelxy():
         cy = sphere.kernelxy(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelxz():
     "gravmag.sphere.kernelxz python vs cython implementation"
@@ -154,8 +148,9 @@ def test_kernelxz():
         cy = sphere.kernelxz(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelyy():
     "gravmag.sphere.kernelyy python vs cython implementation"
@@ -164,8 +159,9 @@ def test_kernelyy():
         cy = sphere.kernelyy(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelyz():
     "gravmag.sphere.kernelyz python vs cython implementation"
@@ -174,8 +170,9 @@ def test_kernelyz():
         cy = sphere.kernelyz(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+
 
 def test_kernelzz():
     "gravmag.sphere.kernelzz python vs cython implementation"
@@ -184,5 +181,5 @@ def test_kernelzz():
         cy = sphere.kernelzz(xp, yp, zp, p)
         diff = np.abs(py - cy)
         assert np.all(diff <= precision), \
-            'max diff: %g python: %g cython %g' % (max(diff),
-                    py[diff == max(diff)][0], cy[diff == max(diff)][0])
+            'max diff: %g python: %g cython %g' \
+            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])

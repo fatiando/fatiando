@@ -62,17 +62,19 @@ def layered_straight_ray(thickness, velocity, zp):
 
     """
     if len(thickness) != len(velocity):
-        raise ValueError, "thickness and velocity must have same length"
+        raise ValueError("thickness and velocity must have same length")
     nlayers = len(thickness)
     zmax = sum(thickness)
     z = [sum(thickness[:i]) for i in xrange(nlayers + 1)]
-    layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp':velocity[i]})
+    layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': velocity[i]})
               for i in xrange(nlayers)]
-    srcs = [(0, 0)]*len(zp)
+    srcs = [(0, 0)] * len(zp)
     recs = [(0, z) for z in zp]
     return ttime2d.straight(layers, 'vp', srcs, recs)
 
+
 class LayeredStraight(Misfit):
+
     r"""
     Inversion of straight-ray travel-times for the velocity of a layered medium
 
@@ -169,13 +171,13 @@ class LayeredStraight(Misfit):
 
     def __init__(self, traveltimes, zp, thickness):
         super(LayeredStraight, self).__init__(data=traveltimes,
-            positional={'zp':zp},
-            model={'thickness':thickness},
-            nparams=len(thickness),
-            islinear=True)
+                                              positional={'zp': zp},
+                                              model={'thickness': thickness},
+                                              nparams=len(thickness),
+                                              islinear=True)
 
     def _get_predicted(self, p):
-        return layered_straight_ray(self.model['thickness'], 1./p,
+        return layered_straight_ray(self.model['thickness'], 1. / p,
                                     self.positional['zp'])
 
     def _get_jacobian(self, p):
@@ -183,9 +185,9 @@ class LayeredStraight(Misfit):
         nlayers = len(thicks)
         zmax = numpy.sum(thicks)
         z = [numpy.sum(thicks[:i]) for i in xrange(nlayers + 1)]
-        layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp':1.})
+        layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': 1.})
                   for i in xrange(nlayers)]
-        srcs = [(0, 0)]*self.ndata
+        srcs = [(0, 0)] * self.ndata
         recs = numpy.transpose(
             [numpy.zeros(self.ndata), self.positional['zp']])
         jac = numpy.transpose(
@@ -205,5 +207,5 @@ class LayeredStraight(Misfit):
 
         """
         super(LayeredStraight, self).fit()
-        self._estimate = 1./self.p_
+        self._estimate = 1. / self.p_
         return self

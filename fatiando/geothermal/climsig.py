@@ -77,10 +77,11 @@ def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         The residual temperatures measured along the well
 
     """
-    tmp = zp/numpy.sqrt(4.*diffus*age)
-    res = amp*((1. + 2*tmp**2)*scipy.special.erfc(tmp)
-               - 2./numpy.sqrt(numpy.pi)*tmp*numpy.exp(-tmp**2))
+    tmp = zp / numpy.sqrt(4. * diffus * age)
+    res = amp * ((1. + 2 * tmp ** 2) * scipy.special.erfc(tmp)
+                 - 2. / numpy.sqrt(numpy.pi) * tmp * numpy.exp(-tmp ** 2))
     return res
+
 
 def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
     """
@@ -107,9 +108,11 @@ def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         The residual temperatures measured along the well
 
     """
-    return amp*(1. - scipy.special.erf(zp/numpy.sqrt(4.*diffus*age)))
+    return amp * (1. - scipy.special.erf(zp / numpy.sqrt(4. * diffus * age)))
+
 
 class SingleChange(Misfit):
+
     r"""
     Invert the well temperature data for a single change in temperature.
 
@@ -203,7 +206,7 @@ class SingleChange(Misfit):
             raise ValueError("temp and zp must be of same length")
         if mode not in ['abrupt', 'linear']:
             raise ValueError("Invalid mode: %s. Must be 'abrupt' or 'linear'"
-                % (mode))
+                             % (mode))
         super(SingleChange, self).__init__(
             data=temp,
             positional=dict(zp=zp),
@@ -225,15 +228,16 @@ class SingleChange(Misfit):
         diffus = self.model['diffus']
         mode = self.model['mode']
         if mode == 'abrupt':
-            tmp = zp/numpy.sqrt(4.*diffus*age)
+            tmp = zp / numpy.sqrt(4. * diffus * age)
             jac = numpy.transpose([
                 abrupt(1., age, zp, diffus),
-                amp*tmp*numpy.exp(-(tmp**2))/(numpy.sqrt(numpy.pi)*age)])
+                (amp * tmp * numpy.exp(-(tmp ** 2)) /
+                 (numpy.sqrt(numpy.pi) * age))])
         if mode == 'linear':
             delta = 0.5
             at_p = linear(amp, age, zp, diffus)
             jac = numpy.transpose([
                 linear(1., age, zp, diffus),
                 (linear(amp, age + delta, zp, diffus) -
-                 linear(amp, age - delta, zp, diffus))/(2*delta)])
+                 linear(amp, age - delta, zp, diffus)) / (2 * delta)])
         return jac

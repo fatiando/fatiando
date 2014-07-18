@@ -182,7 +182,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         if isinstance(pmag, float) or isinstance(pmag, int):
-            pmx, pmy, pmz = pmag*fx, pmag*fy, pmag*fz
+            pmx, pmy, pmz = pmag * fx, pmag * fy, pmag * fz
         else:
             pmx, pmy, pmz = pmag
     for sphere in spheres:
@@ -193,15 +193,16 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         if pmag is None:
             mag = sphere.props['magnetization']
             if isinstance(mag, float) or isinstance(mag, int):
-                mx, my, mz = mag*fx, mag*fy, mag*fz
+                mx, my, mz = mag * fx, mag * fy, mag * fz
             else:
                 mx, my, mz = mag
         else:
             mx, my, mz = pmx, pmy, pmz
         _sphere.tf(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                    mx, my, mz, fx, fy, fz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def bx(xp, yp, zp, spheres):
     """
@@ -269,8 +270,9 @@ def bx(xp, yp, zp, spheres):
         mx, my, mz = sphere.props['magnetization']
         _sphere.bx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                    mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def by(xp, yp, zp, spheres):
     """
@@ -338,8 +340,9 @@ def by(xp, yp, zp, spheres):
         mx, my, mz = sphere.props['magnetization']
         _sphere.by(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                    mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def bz(xp, yp, zp, spheres):
     """
@@ -407,8 +410,9 @@ def bz(xp, yp, zp, spheres):
         mx, my, mz = sphere.props['magnetization']
         _sphere.bz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                    mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def gz(xp, yp, zp, spheres, dens=None):
     """
@@ -448,8 +452,9 @@ def gz(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                    density, res)
-    res *= G*SI2MGAL
+    res *= G * SI2MGAL
     return res
+
 
 def gxx(xp, yp, zp, spheres, dens=None):
     """
@@ -517,8 +522,9 @@ def gxx(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxy(xp, yp, zp, spheres, dens=None):
     """
@@ -587,8 +593,9 @@ def gxy(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxz(xp, yp, zp, spheres, dens=None):
     """
@@ -657,8 +664,9 @@ def gxz(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyy(xp, yp, zp, spheres, dens=None):
     """
@@ -727,8 +735,9 @@ def gyy(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyz(xp, yp, zp, spheres, dens=None):
     """
@@ -797,8 +806,9 @@ def gyz(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gzz(xp, yp, zp, spheres, dens=None):
     """
@@ -867,8 +877,9 @@ def gzz(xp, yp, zp, spheres, dens=None):
             density = dens
         _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
                     density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def kernelxx(xp, yp, zp, sphere):
     r"""
@@ -946,6 +957,7 @@ def kernelxx(xp, yp, zp, sphere):
                 res)
     return res
 
+
 def kernelxy(xp, yp, zp, sphere):
     r"""
     Calculates the function
@@ -1021,6 +1033,7 @@ def kernelxy(xp, yp, zp, sphere):
     _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
                 res)
     return res
+
 
 def kernelxz(xp, yp, zp, sphere):
     r"""
@@ -1098,6 +1111,7 @@ def kernelxz(xp, yp, zp, sphere):
                 res)
     return res
 
+
 def kernelyy(xp, yp, zp, sphere):
     r"""
     Calculates the function
@@ -1174,6 +1188,7 @@ def kernelyy(xp, yp, zp, sphere):
                 res)
     return res
 
+
 def kernelyz(xp, yp, zp, sphere):
     r"""
     Calculates the function
@@ -1249,6 +1264,7 @@ def kernelyz(xp, yp, zp, sphere):
     _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
                 res)
     return res
+
 
 def kernelzz(xp, yp, zp, sphere):
     r"""

@@ -6,10 +6,10 @@ Load datasets from the internet.
 Load and convert the `CRUST2.0 global crustal model
 <http://igppweb.ucsd.edu/~gabi/rem.html>`_ (Bassin et al., 2000).
 
-* :func:`~fatiando.datasets.fetch_crust2`: Download the .tar.gz archive with the model
-  from the website
-* :func:`~fatiando.datasets.crust2_to_tesseroids`: Convert the CRUST2.0 model to
-  tesseroids
+* :func:`~fatiando.datasets.fetch_crust2`: Download the .tar.gz archive with
+  the model from the website
+* :func:`~fatiando.datasets.crust2_to_tesseroids`: Convert the CRUST2.0 model
+  to tesseroids
 
 **Sample data**
 
@@ -51,8 +51,9 @@ def fetch_crust2(fname='crust2.tar.gz'):
 
     """
     urllib.urlretrieve('http://igpppublic.ucsd.edu/~gabi/ftp/crust2.tar.gz',
-        filename=fname)
+                       filename=fname)
     return fname
+
 
 def crust2_to_tesseroids(fname):
     """
@@ -90,7 +91,7 @@ def crust2_to_tesseroids(fname):
     # Convert to tesseroids
     size = 2
     lons = numpy.arange(-180, 180, size)
-    lats = numpy.arange(90, -90, -size) # This is how lats are in the file
+    lats = numpy.arange(90, -90, -size)  # This is how lats are in the file
     model = []
     for i in xrange(len(lats)):
         for j in xrange(len(lons)):
@@ -101,12 +102,13 @@ def crust2_to_tesseroids(fname):
                     continue
                 w, e, s, n = lons[j], lons[j] + size, lats[i] - size, lats[i]
                 bottom = top - codec[t]['thickness'][layer]
-                props = {'density':codec[t]['density'][layer],
-                         'vp':codec[t]['vp'][layer],
-                         'vs':codec[t]['vs'][layer]}
+                props = {'density': codec[t]['density'][layer],
+                         'vp': codec[t]['vp'][layer],
+                         'vs': codec[t]['vs'][layer]}
                 model.append(Tesseroid(w, e, s, n, top, bottom, props))
                 top = bottom
     return model
+
 
 def _crust2_get_topo(archive):
     """
@@ -116,6 +118,7 @@ def _crust2_get_topo(archive):
     topogrd = numpy.loadtxt(f, skiprows=1)[:, 1:]
     return topogrd
 
+
 def _crust2_get_types(archive):
     """
     Fetch a matrix with the type code for each 2x2 degree cell.
@@ -123,6 +126,7 @@ def _crust2_get_types(archive):
     f = archive.extractfile('./CNtype2.txt')
     typegrd = numpy.loadtxt(f, dtype=numpy.str, skiprows=1)[:, 1:]
     return typegrd
+
 
 def _crust2_get_codec(archive):
     """
@@ -134,17 +138,18 @@ def _crust2_get_codec(archive):
     lines = [l.strip() for l in f.readlines()[5:] if l.strip()]
     # Each type code is 5 lines: code, vp, vs, density, thickness
     codec = {}
-    for i in xrange(len(lines)/5):
-        code = lines[i*5][:2]
+    for i in xrange(len(lines) / 5):
+        code = lines[i * 5][:2]
         # Get the values and convert them to SI units
-        vp = [float(v)*1000 for v in lines[i*5 + 1].split()]
-        vs = [float(v)*1000 for v in lines[i*5 + 2].split()]
-        density = [float(v)*1000 for v in lines[i*5 + 3].split()]
+        vp = [float(v) * 1000 for v in lines[i * 5 + 1].split()]
+        vs = [float(v) * 1000 for v in lines[i * 5 + 2].split()]
+        density = [float(v) * 1000 for v in lines[i * 5 + 3].split()]
         # Skip the last thickness because it is an inf indicating the mantle
-        thickness = [float(v)*1000 for v in lines[i*5 + 4].split()[:7]]
-        codec[code] = {'vp':vp, 'vs':vs, 'density':density,
-                       'thickness':thickness}
+        thickness = [float(v) * 1000 for v in lines[i * 5 + 4].split()[:7]]
+        codec[code] = {'vp': vp, 'vs': vs, 'density': density,
+                       'thickness': thickness}
     return codec
+
 
 def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
     """
@@ -162,7 +167,7 @@ def fetch_bouguer_alps_egm(fname='bouguer_alps_egm08.grd'):
         The downloaded file name
 
     """
-    urllib.urlretrieve('https://gist.github.com/leouieda/6023922/raw/' \
-                       '948b0acbadb18e6ad49efe2092d9d9518b247780/' \
+    urllib.urlretrieve('https://gist.github.com/leouieda/6023922/raw/'
+                       '948b0acbadb18e6ad49efe2092d9d9518b247780/'
                        'bouguer_alps_egm08.grd', filename=fname)
     return fname

@@ -22,4 +22,3 @@ bm.drawcountries()
 bm.fillcontinents(color='coral')
 mpl.draw_geolines((-180, 180, -90, 90), 60, 30, bm)
 mpl.show()
-

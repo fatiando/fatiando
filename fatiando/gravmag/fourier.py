@@ -31,8 +31,8 @@ def ansig(x, y, data, shape):
 
         If the data is not in SI units, the derivatives will be in
         strange units and so will the analytic signal! I strongly recommend
-        converting the data to SI **before** calculating the derivative (use one
-        of the unit conversion functions of :mod:`fatiando.utils`).
+        converting the data to SI **before** calculating the derivative (use
+        one of the unit conversion functions of :mod:`fatiando.utils`).
 
     Parameters:
 
@@ -52,8 +52,9 @@ def ansig(x, y, data, shape):
     dx = derivx(x, y, data, shape)
     dy = derivy(x, y, data, shape)
     dz = derivz(x, y, data, shape)
-    res = numpy.sqrt(dx**2 + dy**2 + dz**2)
+    res = numpy.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
     return res
+
 
 def derivx(x, y, data, shape, order=1):
     """
@@ -62,10 +63,10 @@ def derivx(x, y, data, shape, order=1):
     .. warning::
 
         If the data is not in SI units, the derivative will be in
-        strange units! I strongly recommend converting the data to SI **before**
-        calculating the derivative (use one of the unit conversion functions of
-        :mod:`fatiando.utils`). This way the derivative will be in SI units
-        and can be easily converted to what unit you want.
+        strange units! I strongly recommend converting the data to SI
+        **before** calculating the derivative (use one of the unit conversion
+        functions of :mod:`fatiando.utils`). This way the derivative will be in
+        SI units and can be easily converted to what unit you want.
 
     Parameters:
 
@@ -87,7 +88,8 @@ def derivx(x, y, data, shape, order=1):
     Fx = _getfreqs(x, y, data, shape)[0].astype('complex')
     # Multiply by 1j because I don't multiply it in _deriv (this way _deriv can
     # be used for the z derivative as well)
-    return _deriv(Fx*1j, data, shape, order)
+    return _deriv(Fx * 1j, data, shape, order)
+
 
 def derivy(x, y, data, shape, order=1):
     """
@@ -96,10 +98,10 @@ def derivy(x, y, data, shape, order=1):
     .. warning::
 
         If the data is not in SI units, the derivative will be in
-        strange units! I strongly recommend converting the data to SI **before**
-        calculating the derivative (use one of the unit conversion functions of
-        :mod:`fatiando.utils`). This way the derivative will be in SI units
-        and can be easily converted to what unit you want.
+        strange units! I strongly recommend converting the data to SI
+        **before** calculating the derivative (use one of the unit conversion
+        functions of :mod:`fatiando.utils`). This way the derivative will be in
+        SI units and can be easily converted to what unit you want.
 
     Parameters:
 
@@ -118,10 +120,11 @@ def derivy(x, y, data, shape, order=1):
         The derivative
 
     """
-    Fy= _getfreqs(x, y, data, shape)[1].astype('complex')
+    Fy = _getfreqs(x, y, data, shape)[1].astype('complex')
     # Multiply by 1j because I don't multiply it in _deriv (this way _deriv can
     # be used for the z derivative as well)
-    return _deriv(Fy*1j, data, shape, order)
+    return _deriv(Fy * 1j, data, shape, order)
+
 
 def derivz(x, y, data, shape, order=1):
     """
@@ -130,10 +133,10 @@ def derivz(x, y, data, shape, order=1):
     .. warning::
 
         If the data is not in SI units, the derivative will be in
-        strange units! I strongly recommend converting the data to SI **before**
-        calculating the derivative (use one of the unit conversion functions of
-        :mod:`fatiando.utils`). This way the derivative will be in SI units
-        and can be easily converted to what unit you want.
+        strange units! I strongly recommend converting the data to SI
+        **before** calculating the derivative (use one of the unit conversion
+        functions of :mod:`fatiando.utils`). This way the derivative will be in
+        SI units and can be easily converted to what unit you want.
 
     Parameters:
 
@@ -153,24 +156,26 @@ def derivz(x, y, data, shape, order=1):
 
     """
     Fx, Fy = _getfreqs(x, y, data, shape)
-    freqs = numpy.sqrt(Fx**2 + Fy**2)
+    freqs = numpy.sqrt(Fx ** 2 + Fy ** 2)
     return _deriv(freqs, data, shape, order)
+
 
 def _getfreqs(x, y, data, shape):
     """
     Get two 2D-arrays with the wave numbers in the x and y directions.
     """
     ny, nx = shape
-    dx = float(x.max() - x.min())/float(nx - 1)
+    dx = float(x.max() - x.min()) / float(nx - 1)
     fx = numpy.fft.fftfreq(nx, dx)
-    dy = float(y.max() - y.min())/float(ny - 1)
+    dy = float(y.max() - y.min()) / float(ny - 1)
     fy = numpy.fft.fftfreq(ny, dy)
     return numpy.meshgrid(fx, fy)
+
 
 def _deriv(freqs, data, shape, order):
     """
     Calculate a generic derivative using the FFT.
     """
-    fgrid = (2.*numpy.pi)*numpy.fft.fft2(numpy.reshape(data, shape))
-    deriv = numpy.real(numpy.fft.ifft2((freqs**order)*fgrid).ravel())
+    fgrid = (2. * numpy.pi) * numpy.fft.fft2(numpy.reshape(data, shape))
+    deriv = numpy.real(numpy.fft.ifft2((freqs ** order) * fgrid).ravel())
     return deriv
