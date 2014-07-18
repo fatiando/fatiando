@@ -30,6 +30,7 @@ from ..utils import safe_dot
 
 
 class Objective(object):
+
     """
     An objective function for an inverse problem.
 
@@ -167,7 +168,7 @@ class Objective(object):
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale*self._parents[0].value(p)
+                return self._scale * self._parents[0].value(p)
 
     def gradient(self, p):
         """
@@ -194,7 +195,7 @@ class Objective(object):
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale*self._parents[0].gradient(p)
+                return self._scale * self._parents[0].gradient(p)
 
     def hessian(self, p):
         """
@@ -221,7 +222,7 @@ class Objective(object):
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale*self._parents[0].hessian(p)
+                return self._scale * self._parents[0].hessian(p)
 
     def __add__(self, other):
         """
@@ -336,7 +337,7 @@ class Objective(object):
         return self.__mul__(other)
 
     def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
-                tol=10**-5, precondition=True, iterate=False):
+                tol=10 ** -5, precondition=True, iterate=False):
         """
         Solve using the Levemberg-Marquardt algorithm.
 
@@ -373,15 +374,15 @@ class Objective(object):
 
         """
         solver = levmarq(self.hessian, self.gradient, self.value, initial,
-                maxit=maxit, maxsteps=maxsteps, lamb=lamb, dlamb=dlamb,
-                tol=tol, precondition=precondition)
+                         maxit=maxit, maxsteps=maxsteps, lamb=lamb,
+                         dlamb=dlamb, tol=tol, precondition=precondition)
         if iterate:
             return solver
         for p in solver:
             continue
         return p
 
-    def newton(self, initial, maxit=30, tol=10**-5, precondition=True,
+    def newton(self, initial, maxit=30, tol=10 ** -5, precondition=True,
                iterate=False):
         """
         Minimize an objective function using Newton's method.
@@ -410,7 +411,7 @@ class Objective(object):
 
         """
         solver = newton(self.hessian, self.gradient, self.value, initial,
-                maxit=maxit, tol=tol, precondition=precondition)
+                        maxit=maxit, tol=tol, precondition=precondition)
         if iterate:
             return solver
         for p in solver:
@@ -418,7 +419,7 @@ class Objective(object):
         return p
 
     def steepest(self, initial, stepsize=0.1, maxsteps=30, maxit=1000,
-                 tol=10**-5, iterate=False):
+                 tol=10 ** -5, iterate=False):
         """
         Minimize an objective function using the Steepest Descent method.
 
@@ -449,7 +450,7 @@ class Objective(object):
 
         """
         solver = steepest(self.gradient, self.value, initial, maxit=maxit,
-                maxsteps=maxsteps, stepsize=stepsize, tol=tol)
+                          maxsteps=maxsteps, stepsize=stepsize, tol=tol)
         if iterate:
             return solver
         for p in solver:
@@ -499,15 +500,17 @@ class Objective(object):
 
         """
         solver = acor(self.value, bounds, self.nparams, nants=nants,
-                archive_size=archive_size, maxit=maxit, diverse=diverse,
-                evap=evap, seed=seed)
+                      archive_size=archive_size, maxit=maxit, diverse=diverse,
+                      evap=evap, seed=seed)
         if iterate:
             return solver
         for p in solver:
             continue
         return p
 
+
 class Misfit(Objective):
+
     r"""
     An l2-norm data-misfit function.
 
@@ -567,7 +570,6 @@ class Misfit(Objective):
 
     """
 
-
     def __init__(self, data, positional, model, nparams, weights=None,
                  islinear=False):
         super(Misfit, self).__init__(nparams, islinear=islinear)
@@ -577,35 +579,35 @@ class Misfit(Objective):
         self.model = model
         # To cache the latest computations (or for linear problems)
         self._cache = {
-            'predicted':{'hash':'', 'array':None},
-            'jacobian':{'hash':'', 'array':None},
-            'hessian':{'hash':'', 'array':None}}
+            'predicted': {'hash': '', 'array': None},
+            'jacobian': {'hash': '', 'array': None},
+            'hessian': {'hash': '', 'array': None}}
         # Set default arguments for fit
         self.default_solver_args = {
-            'linear':{'precondition':True},
-            'newton':{'initial':None,
-                      'maxit':30,
-                      'tol':10**-5,
-                      'precondition':True},
-            'levmarq':{'initial':None,
-                       'maxit':30,
-                       'maxsteps':10,
-                       'lamb':1,
-                       'dlamb':2,
-                       'tol':10**-5,
-                       'precondition':True},
-            'steepest':{'initial':None,
-                        'stepsize':0.1,
-                        'maxsteps':30,
-                        'maxit':1000,
-                        'tol':10**-5},
-            'acor':{'bounds':None,
-                    'nants':None,
-                    'archive_size':None,
-                    'maxit':1000,
-                    'diverse':0.5,
-                    'evap':0.85,
-                    'seed':None}}
+            'linear': {'precondition': True},
+            'newton': {'initial': None,
+                       'maxit': 30,
+                       'tol': 10 ** -5,
+                       'precondition': True},
+            'levmarq': {'initial': None,
+                        'maxit': 30,
+                        'maxsteps': 10,
+                        'lamb': 1,
+                        'dlamb': 2,
+                        'tol': 10 ** -5,
+                        'precondition': True},
+            'steepest': {'initial': None,
+                         'stepsize': 0.1,
+                         'maxsteps': 30,
+                         'maxit': 1000,
+                         'tol': 10 ** -5},
+            'acor': {'bounds': None,
+                     'nants': None,
+                     'archive_size': None,
+                     'maxit': 1000,
+                     'diverse': 0.5,
+                     'evap': 0.85,
+                     'seed': None}}
         # Data weights
         self.weights = None
         if weights is not None:
@@ -620,9 +622,9 @@ class Misfit(Objective):
     def _clear_cache(self):
         "Reset the cached matrices"
         self._cache = {
-            'predicted':{'hash':'', 'array':None},
-            'jacobian':{'hash':'', 'array':None},
-            'hessian':{'hash':'', 'array':None}}
+            'predicted': {'hash': '', 'array': None},
+            'jacobian': {'hash': '', 'array': None},
+            'hessian': {'hash': '', 'array': None}}
 
     def __repr__(self):
         return 'Misfit instance'
@@ -717,7 +719,7 @@ class Misfit(Objective):
         sub._cache = self._cache.copy()
         sub.data = sub.data[indices]
         sub.positional = dict((k, sub.positional[k][indices])
-                               for k in sub.positional)
+                              for k in sub.positional)
         sub._clear_cache()
         if self._cache['jacobian']['array'] is not None:
             sub._cache['jacobian']['array'] = \
@@ -739,7 +741,7 @@ class Misfit(Objective):
         """
         self.weights = scipy.sparse.diags(weights, 0)
         # Weights change the Hessian
-        self._cache['hessian'] = {'hash':'', 'array':None}
+        self._cache['hessian'] = {'hash': '', 'array': None}
         return self
 
     def residuals(self, p=None):
@@ -876,11 +878,11 @@ class Misfit(Objective):
         if self.weights is None:
             return numpy.linalg.norm(
                 self.data - self.predicted(p)
-                )**2/self.ndata
+            ) ** 2 / self.ndata
         else:
-            return numpy.sum(self.weights*(
-                        (self.data - self.predicted(p))**2)
-                        )/self.ndata
+            return numpy.sum(self.weights * (
+                (self.data - self.predicted(p)) ** 2)
+            ) / self.ndata
 
     def _get_hessian(self, p):
         r"""
@@ -913,10 +915,10 @@ class Misfit(Objective):
         else:
             jacobian = self.jacobian(p)
             if self.weights is None:
-                hessian = (2/self.ndata)*safe_dot(jacobian.T, jacobian)
+                hessian = (2 / self.ndata) * safe_dot(jacobian.T, jacobian)
             else:
-                hessian = (2/self.ndata)*safe_dot(
-                    jacobian.T, self.weights*jacobian)
+                hessian = (2 / self.ndata) * safe_dot(
+                    jacobian.T, self.weights * jacobian)
             if self.islinear:
                 self._cache['hessian']['array'] = hessian
         return hessian
@@ -945,11 +947,11 @@ class Misfit(Objective):
         """
         jacobian = self.jacobian(p)
         if self.weights is None:
-            grad = (-2/self.ndata)*safe_dot(
+            grad = (-2 / self.ndata) * safe_dot(
                 jacobian.T, self.data - self.predicted(p))
         else:
-            grad = (-2/self.ndata)*safe_dot(
-                jacobian.T, self.weights*(self.data - self.predicted(p)))
+            grad = (-2 / self.ndata) * safe_dot(
+                jacobian.T, self.weights * (self.data - self.predicted(p)))
         # Check if the gradient isn't a one column matrix
         if len(grad.shape) > 1:
             # Need to convert it to a 1d array so that hell won't break loose
@@ -1214,7 +1216,7 @@ class Misfit(Objective):
         if 'iterate' in kwargs:
             raise AttributeError("Invalid argument 'iterate'")
         if (method in ['newton', 'levmarq', 'steepest'] and
-            'initial' not in kwargs):
+                'initial' not in kwargs):
             raise AttributeError(
                 "Missing required *initial* argument for '%s'" % (method))
         if method == 'acor' and 'bounds' not in kwargs:
@@ -1223,8 +1225,8 @@ class Misfit(Objective):
         args = self.default_solver_args[method].copy()
         for k in kwargs:
             if k not in args:
-                raise AttributeError("Invalid argument '%s' for '%s'" % (k,
-                    method))
+                raise AttributeError("Invalid argument '%s' for '%s'"
+                                     % (k, method))
             args[k] = kwargs[k]
         self.fit_method = method
         self.fit_args = args

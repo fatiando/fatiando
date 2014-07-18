@@ -78,8 +78,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     r"""
     Calculate the total-field anomaly of polygonal prisms.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: Input units are SI. Output is in nT
 
@@ -113,7 +113,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         if isinstance(pmag, float) or isinstance(pmag, int):
-            pmx, pmy, pmz = pmag*fx, pmag*fy, pmag*fz
+            pmx, pmy, pmz = pmag * fx, pmag * fy, pmag * fz
         else:
             pmx, pmy, pmz = pmag
     res = numpy.zeros(len(xp), dtype=numpy.float)
@@ -124,7 +124,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         if pmag is None:
             mag = prism.props['magnetization']
             if isinstance(mag, float) or isinstance(mag, int):
-                mx, my, mz = mag*fx, mag*fy, mag*fz
+                mx, my, mz = mag * fx, mag * fy, mag * fz
             else:
                 mx, my, mz = mag
         else:
@@ -132,8 +132,9 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
         _polyprism.tf(xp, yp, zp, x, y, z1, z2, mx, my, mz, fx, fy, fz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def bx(xp, yp, zp, prisms):
     """
@@ -168,8 +169,9 @@ def bx(xp, yp, zp, prisms):
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
         _polyprism.bx(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def by(xp, yp, zp, prisms):
     """
@@ -204,8 +206,9 @@ def by(xp, yp, zp, prisms):
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
         _polyprism.by(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def bz(xp, yp, zp, prisms):
     """
@@ -240,15 +243,16 @@ def bz(xp, yp, zp, prisms):
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
         _polyprism.bz(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
-    res *= CM*T2NT
+    res *= CM * T2NT
     return res
+
 
 def gz(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{z}` gravity acceleration component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in mGal!
 
@@ -269,7 +273,7 @@ def gz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10**(-10)
+    dummy = 10 ** (-10)
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -279,15 +283,16 @@ def gz(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gz(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2MGAL
+    res *= G * SI2MGAL
     return res
+
 
 def gxx(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{xx}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -317,15 +322,16 @@ def gxx(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gxx(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxy(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{xy}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -355,15 +361,16 @@ def gxy(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gxy(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gxz(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{xz}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -393,15 +400,16 @@ def gxz(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gxz(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyy(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{yy}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -431,15 +439,16 @@ def gyy(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gyy(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gyz(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{yz}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -469,15 +478,16 @@ def gyz(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gyz(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def gzz(xp, yp, zp, prisms):
     r"""
     Calculates the :math:`g_{zz}` gravity gradient tensor component.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input values in SI units and output in Eotvos!
 
@@ -507,8 +517,9 @@ def gzz(xp, yp, zp, prisms):
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
         _polyprism.gzz(xp, yp, zp, x, y, z1, z2, density, res)
-    res *= G*SI2EOTVOS
+    res *= G * SI2EOTVOS
     return res
+
 
 def kernelxx(xp, yp, zp, prism):
     r"""
@@ -531,8 +542,8 @@ def kernelxx(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 
@@ -557,6 +568,7 @@ def kernelxx(xp, yp, zp, prism):
     _polyprism.gxx(xp, yp, zp, x, y, z1, z2, 1, res)
     return res
 
+
 def kernelxy(xp, yp, zp, prism):
     r"""
     Calculates the function
@@ -578,8 +590,8 @@ def kernelxy(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 
@@ -604,6 +616,7 @@ def kernelxy(xp, yp, zp, prism):
     _polyprism.gxy(xp, yp, zp, x, y, z1, z2, 1, res)
     return res
 
+
 def kernelxz(xp, yp, zp, prism):
     r"""
     Calculates the function
@@ -625,8 +638,8 @@ def kernelxz(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 
@@ -651,6 +664,7 @@ def kernelxz(xp, yp, zp, prism):
     _polyprism.gxz(xp, yp, zp, x, y, z1, z2, 1, res)
     return res
 
+
 def kernelyy(xp, yp, zp, prism):
     r"""
     Calculates the function
@@ -672,8 +686,8 @@ def kernelyy(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 
@@ -698,6 +712,7 @@ def kernelyy(xp, yp, zp, prism):
     _polyprism.gyy(xp, yp, zp, x, y, z1, z2, 1, res)
     return res
 
+
 def kernelyz(xp, yp, zp, prism):
     r"""
     Calculates the function
@@ -719,8 +734,8 @@ def kernelyz(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 
@@ -745,6 +760,7 @@ def kernelyz(xp, yp, zp, prism):
     _polyprism.gyz(xp, yp, zp, x, y, z1, z2, 1, res)
     return res
 
+
 def kernelzz(xp, yp, zp, prism):
     r"""
     Calculates the function
@@ -766,8 +782,8 @@ def kernelzz(xp, yp, zp, prism):
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
 
-    .. note:: The coordinate system of the input parameters is to be x -> North,
-        y -> East and z -> Down.
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> Down.
 
     .. note:: All input and output values in SI!
 

@@ -39,6 +39,7 @@ from . import utils
 
 
 class GeometricElement(object):
+
     """
     Base class for all geometric elements.
     """
@@ -66,7 +67,9 @@ class GeometricElement(object):
         """
         self.props[prop] = value
 
+
 class Polygon(GeometricElement):
+
     """
     Create a polygon object.
 
@@ -90,7 +93,9 @@ class Polygon(GeometricElement):
         self.y = y
         self.nverts = len(vertices)
 
+
 class Square(Polygon):
+
     """
     Create a square object.
 
@@ -117,6 +122,7 @@ class Square(Polygon):
         [[0, 2], [1, 2], [1, 4], [0, 4]]
 
     """
+
     def __init__(self, bounds, props=None):
         self.bounds = bounds
         self.x1, self.x2, self.y1, self.y2 = bounds
@@ -131,7 +137,9 @@ class Square(Polygon):
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
 
+
 class SquareMesh(object):
+
     """
     Generate a 2D regular mesh of squares.
 
@@ -187,10 +195,10 @@ class SquareMesh(object):
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         ny, nx = shape
-        size = int(nx*ny)
+        size = int(nx * ny)
         x1, x2, y1, y2 = bounds
-        dx = float(x2 - x1)/nx
-        dy = float(y2 - y1)/ny
+        dx = float(x2 - x1) / nx
+        dy = float(y2 - y1) / ny
         self.bounds = bounds
         self.shape = tuple(int(i) for i in shape)
         self.size = size
@@ -218,11 +226,11 @@ class SquareMesh(object):
         if index in self.mask:
             return None
         ny, nx = self.shape
-        j = index/nx
-        i = index - j*nx
-        x1 = self.bounds[0] + self.dims[0]*i
+        j = index / nx
+        i = index - j * nx
+        x1 = self.bounds[0] + self.dims[0] * i
         x2 = x1 + self.dims[0]
-        y1 = self.bounds[2] + self.dims[1]*j
+        y1 = self.bounds[2] + self.dims[1] * j
         y2 = y1 + self.dims[1]
         props = dict([p, self.props[p][index]] for p in self.props)
         return Square((x1, x2, y1, y2), props=props)
@@ -266,22 +274,22 @@ class SquareMesh(object):
         ``[vmin, vmax]``.
 
         If the shape of image (number of pixels in y and x) is different from
-        the shape of the mesh, the image will be interpolated to match the shape
-        of the mesh.
+        the shape of the mesh, the image will be interpolated to match the
+        shape of the mesh.
 
         Parameters:
 
         * fname : str
             Name of the image file
         * vmax, vmin : float
-            Range of physical property values (used to convert the gray scale to
-            physical property values)
+            Range of physical property values (used to convert the gray scale
+            to physical property values)
         * prop : str
             Name of the physical property
 
         """
         self.props[prop] = utils.fromimage(fname, ranges=[vmin, vmax],
-                shape=self.shape)[::-1,:].ravel()
+                                           shape=self.shape)[::-1, :].ravel()
 
     def get_xs(self):
         """
@@ -323,7 +331,9 @@ class SquareMesh(object):
         else:
             return ys
 
+
 class Prism(GeometricElement):
+
     """
     Create a 3D right rectangular prism.
 
@@ -410,12 +420,14 @@ class Prism(GeometricElement):
             [ 1.5  2.   1. ]
 
         """
-        xc = 0.5*(self.x1 + self.x2)
-        yc = 0.5*(self.y1 + self.y2)
-        zc = 0.5*(self.z1 + self.z2)
+        xc = 0.5 * (self.x1 + self.x2)
+        yc = 0.5 * (self.y1 + self.y2)
+        zc = 0.5 * (self.z1 + self.z2)
         return numpy.array([xc, yc, zc])
 
+
 class Tesseroid(GeometricElement):
+
     """
     Create a tesseroid (spherical prism).
 
@@ -530,9 +542,9 @@ class Tesseroid(GeometricElement):
             w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
 
         """
-        dlon = 0.5*(self.e - self.w)
-        dlat = 0.5*(self.n - self.s)
-        dh = 0.5*(self.top - self.bottom)
+        dlon = 0.5 * (self.e - self.w)
+        dlat = 0.5 * (self.n - self.s)
+        dh = 0.5 * (self.top - self.bottom)
         wests = [self.w, self.w + dlon]
         souths = [self.s, self.s + dlat]
         bottoms = [self.bottom, self.bottom + dh]
@@ -602,7 +614,9 @@ class Tesseroid(GeometricElement):
             for i in wests[:-1] for j in souths[:-1] for k in bottoms[:-1]]
         return tesseroids
 
+
 class Sphere(GeometricElement):
+
     """
     Create a sphere.
 
@@ -651,7 +665,9 @@ class Sphere(GeometricElement):
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
 
+
 class PolygonalPrism(GeometricElement):
+
     """
     Create a 3D prism with polygonal crossection.
 
@@ -686,6 +702,7 @@ class PolygonalPrism(GeometricElement):
         2670
 
     """
+
     def __init__(self, vertices, z1, z2, props=None):
         GeometricElement.__init__(self, props)
         self.x = numpy.fromiter((v[0] for v in vertices), dtype=numpy.float)
@@ -717,7 +734,9 @@ class PolygonalPrism(GeometricElement):
         verts = numpy.transpose([self.x, self.y])
         return Polygon(verts, self.props)
 
+
 class PointGrid(object):
+
     """
     Create a grid of 3D point sources (spheres of unit volume).
 
@@ -750,8 +769,8 @@ class PointGrid(object):
         else:
             self.props = props
         ny, nx = shape
-        self.size = nx*ny
-        self.radius = scipy.special.cbrt(3./(4.*numpy.pi))
+        self.size = nx * ny
+        self.radius = scipy.special.cbrt(3. / (4. * numpy.pi))
         x1, x2, y1, y2 = area
         xs = numpy.linspace(x1, x2, nx)
         ys = numpy.linspace(y1, y2, ny)
@@ -846,21 +865,21 @@ class PointGrid(object):
         ny, nx = shape
         x1, x2, y1, y2 = self.area
         totaly, totalx = self.shape
-        if totalx%nx != 0 or totaly%ny != 0:
+        if totalx % nx != 0 or totaly % ny != 0:
             raise ValueError(
                 'Cannot split! nx and ny must be divible by grid shape')
         xs = numpy.linspace(x1, x2, totalx)
         ys = numpy.linspace(y1, y2, totaly)
-        dx = totalx/nx
-        dy = totaly/ny
+        dx = totalx / nx
+        dy = totaly / ny
         subs = []
         for i in xrange(ny):
-            ystart = i*dy
+            ystart = i * dy
             yend = ystart + dy - 1
             if yend >= totaly:
                 yend = totaly - 1
             for j in xrange(nx):
-                xstart = j*dx
+                xstart = j * dx
                 xend = xstart + dx - 1
                 if xend >= totalx:
                     xend = totalx - 1
@@ -869,11 +888,14 @@ class PointGrid(object):
                 props = {}
                 for p in self.props:
                     pmatrix = numpy.reshape(self.props[p], (totaly, totalx))
-                    props[p] = pmatrix[ystart:yend + 1, xstart:xend + 1].ravel()
+                    props[p] = pmatrix[
+                        ystart:yend + 1, xstart:xend + 1].ravel()
                 subs.append(PointGrid(area, self.z, shape, props))
         return subs
 
+
 class PrismRelief(object):
+
     """
     Generate a 3D model of a relief (topography) using prisms.
 
@@ -907,7 +929,8 @@ class PrismRelief(object):
         object.__init__(self)
         x, y, z = nodes
         if len(x) != len(y) != len(z):
-            raise ValueError, "nodes has x,y,z coordinates of different lengths"
+            raise ValueError(
+                "nodes has x, y, z coordinate arrays of different lengths")
         self.x, self.y, self.z = x, y, z
         self.size = len(x)
         self.ref = ref
@@ -929,10 +952,10 @@ class PrismRelief(object):
         if index < 0:
             index = self.size + index
         xc, yc, zc = self.x[index], self.y[index], self.z[index]
-        x1 = xc - 0.5*self.dx
-        x2 = xc + 0.5*self.dx
-        y1 = yc - 0.5*self.dy
-        y2 = yc + 0.5*self.dy
+        x1 = xc - 0.5 * self.dx
+        x2 = xc + 0.5 * self.dx
+        y1 = yc - 0.5 * self.dy
+        y2 = yc + 0.5 * self.dy
         if zc <= self.ref:
             z1 = zc
             z2 = self.ref
@@ -972,23 +995,24 @@ class PrismRelief(object):
             return v
         self.props[prop] = [correct(v, i) for i, v in enumerate(values)]
 
+
 class PrismMesh(object):
     """
     Generate a 3D regular mesh of right rectangular prisms.
 
-    Prisms are ordered as follows: first layers (z coordinate), then EW rows (y)
-    and finaly x coordinate (NS).
+    Prisms are ordered as follows: first layers (z coordinate),
+    then EW rows (y) and finaly x coordinate (NS).
 
     .. note:: Remember that the coordinate system is x->North, y->East and
         z->Down
 
-    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has z index
-    1 (second layer), y index 1 (second row), and x index 2 (third element in
-    the column).
+    Ex: in a mesh with shape ``(3,3,3)`` the 15th element (index 14) has z
+    index 1 (second layer), y index 1 (second row), and x index 2 (third
+    element in the column).
 
     :class:`~fatiando.mesher.PrismMesh` can used as list of prisms. It acts
-    as an iteratior (so you can loop over prisms). It also has a ``__getitem__``
-    method to access individual elements in the mesh.
+    as an iteratior (so you can loop over prisms). It also has a
+    ``__getitem__`` method to access individual elements in the mesh.
     In practice, :class:`~fatiando.mesher.PrismMesh` should be able to be
     passed to any function that asks for a list of prisms, like
     :func:`fatiando.gravmag.prism.gz`.
@@ -1067,15 +1091,15 @@ class PrismMesh(object):
         object.__init__(self)
         nz, ny, nx = shape
         if (not isinstance(nx, int) or not isinstance(ny, int)
-            or not isinstance(nz, int)):
+                or not isinstance(nz, int)):
             raise AttributeError(
                 'Invalid mesh shape {}. shape must be integers'.format(
                     str(shape)))
-        size = int(nx*ny*nz)
+        size = int(nx * ny * nz)
         x1, x2, y1, y2, z1, z2 = bounds
-        dx = float(x2 - x1)/nx
-        dy = float(y2 - y1)/ny
-        dz = float(z2 - z1)/nz
+        dx = float(x2 - x1) / nx
+        dy = float(y2 - y1) / ny
+        dz = float(z2 - z1) / nz
         self.shape = tuple(int(i) for i in shape)
         self.size = size
         self.dims = (dx, dy, dz)
@@ -1104,14 +1128,14 @@ class PrismMesh(object):
         if index in self.mask:
             return None
         nz, ny, nx = self.shape
-        k = index/(nx*ny)
-        j = (index - k*(nx*ny))/nx
-        i = (index - k*(nx*ny) - j*nx)
-        x1 = self.bounds[0] + self.dims[0]*i
+        k = index / (nx * ny)
+        j = (index - k * (nx * ny)) / nx
+        i = (index - k * (nx * ny) - j * nx)
+        x1 = self.bounds[0] + self.dims[0] * i
         x2 = x1 + self.dims[0]
-        y1 = self.bounds[2] + self.dims[1]*j
+        y1 = self.bounds[2] + self.dims[1] * j
         y2 = y1 + self.dims[1]
-        z1 = self.bounds[4] + self.dims[2]*k
+        z1 = self.bounds[4] + self.dims[2] * k
         z2 = z1 + self.dims[2]
         props = dict([p, self.props[p][index]] for p in self.props)
         return self.celltype(x1, x2, y1, y2, z1, z2, props=props)
@@ -1152,8 +1176,8 @@ class PrismMesh(object):
         Accessing the ith prism will return None if it was masked (above the
         topography).
         Also mask prisms outside of the topography grid provided.
-        The topography height information does not need to be on a regular grid,
-        it will be interpolated.
+        The topography height information does not need to be on a regular
+        grid, it will be interpolated.
 
         Parameters:
 
@@ -1167,21 +1191,21 @@ class PrismMesh(object):
         x1, x2, y1, y2, z1, z2 = self.bounds
         dx, dy, dz = self.dims
         # The coordinates of the centers of the cells
-        xc = numpy.arange(x1, x2, dx) + 0.5*dx
+        xc = numpy.arange(x1, x2, dx) + 0.5 * dx
         # Sometimes arange returns more due to rounding
         if len(xc) > nx:
             xc = xc[:-1]
-        yc = numpy.arange(y1, y2, dy) + 0.5*dy
+        yc = numpy.arange(y1, y2, dy) + 0.5 * dy
         if len(yc) > ny:
             yc = yc[:-1]
-        zc = numpy.arange(z1, z2, dz) + 0.5*dz
+        zc = numpy.arange(z1, z2, dz) + 0.5 * dz
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
         topo = matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
         if self.zdown:
             # -1 if to transform height into z coordinate
-            topo = -1*topo
+            topo = -1 * topo
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
         # below a masked topo point (ie, one with no height information)
@@ -1193,8 +1217,8 @@ class PrismMesh(object):
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
                 if (masked or
-                    (cellz < h and self.zdown) or
-                    (cellz > h and not self.zdown)):
+                        (cellz < h and self.zdown) or
+                        (cellz > h and not self.zdown)):
                     self.mask.append(c)
                 c += 1
 
@@ -1271,8 +1295,8 @@ class PrismMesh(object):
         nz, ny, nx = self.shape
         if i >= nz or i < 0:
             raise IndexError('Layer index %d is out of range.' % (i))
-        start = i*nx*ny
-        end = (i + 1)*nx*ny
+        start = i * nx * ny
+        end = (i + 1) * nx * ny
         layer = [self.__getitem__(p) for p in xrange(start, end)]
         return layer
 
@@ -1362,7 +1386,9 @@ class PrismMesh(object):
         reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
         numpy.savetxt(propfile, reordered, fmt='%.4f')
 
+
 class TesseroidMesh(PrismMesh):
+
     """
     Generate a 3D regular mesh of tesseroids.
 
@@ -1473,12 +1499,13 @@ class TesseroidMesh(PrismMesh):
         self.zdown = False
         self.dump = None
 
+
 def extract(prop, prisms):
     """
     Extract the values of a physical property from the cells in a list.
 
-    If a cell is `None` or doesn't have the physical property, a value of `None`
-    will be put in it's place.
+    If a cell is ``None`` or doesn't have the physical property, a value of
+    ``None`` will be put in it's place.
 
     Parameters:
 
@@ -1508,6 +1535,7 @@ def extract(prop, prisms):
             return None
         return p.props[prop]
     return [getprop(p) for p in prisms]
+
 
 def vfilter(vmin, vmax, prop, cells):
     """
@@ -1559,6 +1587,7 @@ def vfilter(vmin, vmax, prop, cells):
             return False
         return True
     return [c for c in cells if isin(c)]
+
 
 def vremove(value, prop, cells):
     """
@@ -1614,4 +1643,3 @@ def vremove(value, prop, cells):
             return True
         return False
     return [c for c in cells if keep(c)]
-

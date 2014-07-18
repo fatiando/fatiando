@@ -62,14 +62,15 @@ def linear(hessian, gradient, precondition=True):
     """
     if precondition:
         diag = numpy.abs(safe_diagonal(hessian))
-        diag[diag < 10**-10] = 10**-10
-        precond = scipy.sparse.diags(1./diag, 0).tocsr()
+        diag[diag < 10 ** -10] = 10 ** -10
+        precond = scipy.sparse.diags(1. / diag, 0).tocsr()
         hessian = safe_dot(precond, hessian)
         gradient = safe_dot(precond, gradient)
     p = safe_solve(hessian, -gradient)
     return p
 
-def newton(hessian, gradient, value, initial, maxit=30, tol=10**-5,
+
+def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
            precondition=True):
     r"""
     Minimize an objective function using Newton's method.
@@ -122,19 +123,20 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10**-5,
         grad = gradient(p)
         if precondition:
             diag = numpy.abs(safe_diagonal(hess))
-            diag[diag < 10**-10] = 10**-10
-            precond = scipy.sparse.diags(1./diag, 0).tocsr()
+            diag[diag < 10 ** -10] = 10 ** -10
+            precond = scipy.sparse.diags(1. / diag, 0).tocsr()
             hess = safe_dot(precond, hess)
             grad = safe_dot(precond, grad)
         p = p + safe_solve(hess, -grad)
         newmisfit = value(p)
-        if newmisfit > misfit or abs((newmisfit - misfit)/misfit) < tol:
+        if newmisfit > misfit or abs((newmisfit - misfit) / misfit) < tol:
             break
         misfit = newmisfit
         yield p
 
+
 def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
-            dlamb=2, tol=10**-5, precondition=True):
+            dlamb=2, tol=10 ** -5, precondition=True):
     r"""
     Minimize an objective function using the Levemberg-Marquardt algorithm.
 
@@ -180,35 +182,37 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
         minus_gradient = -gradient(p)
         if precondition:
             diag = numpy.abs(safe_diagonal(hess))
-            diag[diag < 10**-10] = 10**-10
-            precond = scipy.sparse.diags(1./diag, 0).tocsr()
+            diag[diag < 10 ** -10] = 10 ** -10
+            precond = scipy.sparse.diags(1. / diag, 0).tocsr()
             hess = safe_dot(precond, hess)
             minus_gradient = safe_dot(precond, minus_gradient)
         stagnation = True
         diag = scipy.sparse.diags(safe_diagonal(hess), 0).tocsr()
         for step in xrange(maxsteps):
-            newp = p + safe_solve(hess + lamb*diag, minus_gradient)
+            newp = p + safe_solve(hess + lamb * diag, minus_gradient)
             newmisfit = value(newp)
             if newmisfit >= misfit:
-                if lamb < 10**15:
+                if lamb < 10 ** 15:
                     lamb *= dlamb
             else:
-                if lamb > 10**-15:
+                if lamb > 10 ** -15:
                     lamb /= dlamb
                 stagnation = False
                 break
         if stagnation:
             stop = True
         else:
-            stop = newmisfit > misfit or abs((newmisfit - misfit)/misfit) < tol
+            stop = newmisfit > misfit or abs(
+                (newmisfit - misfit) / misfit) < tol
             p = newp
             misfit = newmisfit
             yield p
         if stop:
             break
 
+
 def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
-             tol=10**-5):
+             tol=10 ** -5):
     r"""
     Minimize an objective function using the Steepest Descent method.
 
@@ -275,32 +279,33 @@ def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
     misfit = value(p)
     yield p
     # This is a mystic parameter of the Armijo rule
-    alpha = 10**(-4)
+    alpha = 10 ** (-4)
     for iteration in xrange(maxit):
         grad = gradient(p)
         # Calculate now to avoid computing inside the loop
-        gradnorm = numpy.linalg.norm(grad)**2
+        gradnorm = numpy.linalg.norm(grad) ** 2
         stagnation = True
         # Determine the best step size
         for i in xrange(maxsteps):
-            factor = stepsize**i
-            newp = p - factor*grad
+            factor = stepsize ** i
+            newp = p - factor * grad
             newmisfit = value(newp)
-            if newmisfit - misfit < alpha*factor*gradnorm:
+            if newmisfit - misfit < alpha * factor * gradnorm:
                 stagnation = False
                 break
         if stagnation:
             stop = True
         else:
-            stop = abs((newmisfit - misfit)/misfit) < tol
+            stop = abs((newmisfit - misfit) / misfit) < tol
             p = newp
             misfit = newmisfit
             yield p
         if stop:
             break
 
+
 def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
-        diverse=0.5, evap=0.85, seed=None):
+         diverse=0.5, evap=0.85, seed=None):
     """
     Minimize the objective function using ACO-R.
 
@@ -347,7 +352,7 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     if nants is None:
         nants = nparams
     if archive_size is None:
-        archive_size = 10*nants
+        archive_size = 10 * nants
     # Check is giving bounds for each parameter or one for all
     bounds = numpy.array(bounds)
     if bounds.size == 2:
@@ -368,9 +373,9 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     # The first of the archive is the best solution found
     yield archive[0]
     # Compute the weights (probabilities) of the solutions in the archive
-    amp = 1./(diverse*archive_size*numpy.sqrt(2*numpy.pi))
-    variance = 2*diverse**2*archive_size**2
-    weights = amp*numpy.exp(-numpy.arange(archive_size)**2/variance)
+    amp = 1. / (diverse * archive_size * numpy.sqrt(2 * numpy.pi))
+    variance = 2 * diverse ** 2 * archive_size ** 2
+    weights = amp * numpy.exp(-numpy.arange(archive_size) ** 2 / variance)
     weights /= numpy.sum(weights)
     for iteration in xrange(maxit):
         for k in xrange(nants):
@@ -378,13 +383,13 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
             ant = numpy.empty(nparams, dtype=numpy.float)
             # 1. Choose a pdf from the archive
             pdf = numpy.searchsorted(
-                        numpy.cumsum(weights),
-                        numpy.random.uniform())
+                numpy.cumsum(weights),
+                numpy.random.uniform())
             for i in xrange(nparams):
                 # 2. Get the mean and stddev of the chosen pdf
                 mean = archive[pdf][i]
-                std = (evap/(archive_size - 1))*numpy.sum(
-                        abs(p[i] - archive[pdf][i]) for p in archive)
+                std = (evap / (archive_size - 1)) * numpy.sum(
+                    abs(p[i] - archive[pdf][i]) for p in archive)
                 # 3. Sample the pdf until the samples are in bounds
                 for atempt in xrange(100):
                     ant[i] = numpy.random.normal(mean, std)

@@ -28,7 +28,8 @@ def upcontinue(gz, height, xp, yp, dims):
 
     .. note:: Units are SI for all coordinates and mGal for :math:`g_z`
 
-    .. note:: be aware of coordinate systems! The *x*, *y*, *z* coordinates are:
+    .. note:: be aware of coordinate systems!
+        The *x*, *y*, *z* coordinates are:
         x -> North, y -> East and z -> **DOWN**.
 
     Parameters:
@@ -53,10 +54,11 @@ def upcontinue(gz, height, xp, yp, dims):
     if height < 0:
         raise ValueError("'height' should be positive")
     dy, dx = dims
-    area = dx*dy
-    deltaz_sqr = (height)**2
+    area = dx * dy
+    deltaz_sqr = (height) ** 2
     gzcont = numpy.zeros_like(gz)
     for x, y, g in zip(xp, yp, gz):
-        gzcont += g*area*((xp - x)**2 + (yp - y)**2 + deltaz_sqr)**(-1.5)
-    gzcont *= abs(height)/(2*numpy.pi)
+        gzcont += g * area * \
+            ((xp - x) ** 2 + (yp - y) ** 2 + deltaz_sqr) ** (-1.5)
+    gzcont *= abs(height) / (2 * numpy.pi)
     return gzcont

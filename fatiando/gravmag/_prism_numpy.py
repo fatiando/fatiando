@@ -33,13 +33,16 @@ def potential(xp, yp, zp, prisms, dens=None):
                     kernel = (x[i]*y[j]*log(z[k] + r)
                               + y[j]*z[k]*log(x[i] + r)
                               + x[i]*z[k]*log(y[j] + r)
-                              - 0.5*x[i]**2*arctan2(z[k]*y[j], x[i]*r)
-                              - 0.5*y[j]**2*arctan2(z[k]*x[i], y[j]*r)
+                              - 0.5*x[i]**2 *
+                              arctan2(z[k]*y[j], x[i]*r)
+                              - 0.5*y[j]**2 *
+                              arctan2(z[k]*x[i], y[j]*r)
                               - 0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
     return res
+
 
 def gx(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
@@ -73,6 +76,7 @@ def gx(xp, yp, zp, prisms, dens=None):
     res *= G*SI2MGAL
     return res
 
+
 def gy(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -104,6 +108,7 @@ def gy(xp, yp, zp, prisms, dens=None):
     # convert it to mGal units
     res *= G*SI2MGAL
     return res
+
 
 def gz(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
@@ -137,6 +142,7 @@ def gz(xp, yp, zp, prisms, dens=None):
     res *= G*SI2MGAL
     return res
 
+
 def gxx(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -164,6 +170,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
+
 
 def gxy(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
@@ -193,6 +200,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
     res *= G*SI2EOTVOS
     return res
 
+
 def gxz(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -220,6 +228,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
+
 
 def gyy(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
@@ -249,6 +258,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
     res *= G*SI2EOTVOS
     return res
 
+
 def gyz(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -276,6 +286,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
     return res
+
 
 def gzz(xp, yp, zp, prisms, dens=None):
     if xp.shape != yp.shape != zp.shape:
@@ -305,6 +316,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
     res *= G*SI2EOTVOS
     return res
 
+
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -318,10 +330,10 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pmx, pmy, pmz = fx, fy, fz
         else:
             pintensity = numpy.linalg.norm(pmag)
-            pmx, pmy, pmz = numpy.array(pmag)/pintensity
+            pmx, pmy, pmz = numpy.array(pmag) / pintensity
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props
-                              and pmag is None):
+                             and pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']
@@ -330,7 +342,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
                 mx, my, mz = fx, fy, fz
             else:
                 intensity = numpy.linalg.norm(mag)
-                mx, my, mz = numpy.array(mag)/intensity
+                mx, my, mz = numpy.array(mag) / intensity
         else:
             intensity = pintensity
             mx, my, mz = pmx, pmy, pmz
@@ -352,14 +364,17 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
                     r = sqrt(r_sqr)
                     zr = z[k]*r
                     res += ((-1.)**(i + j))*intensity*(
-                          0.5*(my*fz + mz*fy)*log((r - x[i])/(r + x[i]))
-                        + 0.5*(mx*fz + mz*fx)*log((r - y[j])/(r + y[j]))
+                        0.5*(my*fz + mz*fy) *
+                        log((r - x[i]) / (r + x[i]))
+                        + 0.5*(mx*fz + mz*fx) *
+                        log((r - y[j]) / (r + y[j]))
                         - (mx*fy + my*fx)*log(r + z[k])
                         - mx*fx*arctan2(xy, x_sqr + zr + z_sqr)
                         - my*fy*arctan2(xy, r_sqr + zr - x_sqr)
                         + mz*fz*arctan2(xy, zr))
     res *= CM*T2NT
     return res
+
 
 def bx(xp, yp, zp, prisms):
     if xp.shape != yp.shape != zp.shape:
@@ -377,6 +392,7 @@ def bx(xp, yp, zp, prisms):
     bx *= CM*T2NT
     return bx
 
+
 def by(xp, yp, zp, prisms):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -393,6 +409,7 @@ def by(xp, yp, zp, prisms):
     by *= CM*T2NT
     return by
 
+
 def bz(xp, yp, zp, prisms):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -408,6 +425,7 @@ def bz(xp, yp, zp, prisms):
         bz += (v3*mx + v5*my + v6*mz)
     bz *= CM*T2NT
     return bz
+
 
 def kernelxx(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -431,15 +449,16 @@ def kernelxx(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((Y1*Z1),(X1*R111))
-    res +=  numpy.arctan2((Y1*Z2),(X1*R112))
-    res +=  numpy.arctan2((Y2*Z1),(X1*R121))
-    res += -numpy.arctan2((Y2*Z2),(X1*R122))
-    res +=  numpy.arctan2((Y1*Z1),(X2*R211))
-    res += -numpy.arctan2((Y1*Z2),(X2*R212))
-    res += -numpy.arctan2((Y2*Z1),(X2*R221))
-    res +=  numpy.arctan2((Y2*Z2),(X2*R222))
+    res += -numpy.arctan2((Y1*Z1), (X1*R111))
+    res += numpy.arctan2((Y1*Z2), (X1*R112))
+    res += numpy.arctan2((Y2*Z1), (X1*R121))
+    res += -numpy.arctan2((Y2*Z2), (X1*R122))
+    res += numpy.arctan2((Y1*Z1), (X2*R211))
+    res += -numpy.arctan2((Y1*Z2), (X2*R212))
+    res += -numpy.arctan2((Y2*Z1), (X2*R221))
+    res += numpy.arctan2((Y2*Z2), (X2*R222))
     return res
+
 
 def kernelyy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -463,15 +482,16 @@ def kernelyy(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((X1*Z1),(Y1*R111))
-    res +=  numpy.arctan2((X1*Z2),(Y1*R112))
-    res +=  numpy.arctan2((X1*Z1),(Y2*R121))
-    res += -numpy.arctan2((X1*Z2),(Y2*R122))
-    res +=  numpy.arctan2((X2*Z1),(Y1*R211))
-    res += -numpy.arctan2((X2*Z2),(Y1*R212))
-    res += -numpy.arctan2((X2*Z1),(Y2*R221))
-    res +=  numpy.arctan2((X2*Z2),(Y2*R222))
+    res += -numpy.arctan2((X1*Z1), (Y1*R111))
+    res += numpy.arctan2((X1*Z2), (Y1*R112))
+    res += numpy.arctan2((X1*Z1), (Y2*R121))
+    res += -numpy.arctan2((X1*Z2), (Y2*R122))
+    res += numpy.arctan2((X2*Z1), (Y1*R211))
+    res += -numpy.arctan2((X2*Z2), (Y1*R212))
+    res += -numpy.arctan2((X2*Z1), (Y2*R221))
+    res += numpy.arctan2((X2*Z2), (Y2*R222))
     return res
+
 
 def kernelzz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -495,15 +515,16 @@ def kernelzz(xp, yp, zp, prism):
     R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((X1*Y1),(Z1*R111))
-    res +=  numpy.arctan2((X1*Y1),(Z2*R112))
-    res +=  numpy.arctan2((X1*Y2),(Z1*R121))
-    res += -numpy.arctan2((X1*Y2),(Z2*R122))
-    res +=  numpy.arctan2((X2*Y1),(Z1*R211))
-    res += -numpy.arctan2((X2*Y1),(Z2*R212))
-    res += -numpy.arctan2((X2*Y2),(Z1*R221))
-    res +=  numpy.arctan2((X2*Y2),(Z2*R222))
+    res += -numpy.arctan2((X1*Y1), (Z1*R111))
+    res += numpy.arctan2((X1*Y1), (Z2*R112))
+    res += numpy.arctan2((X1*Y2), (Z1*R121))
+    res += -numpy.arctan2((X1*Y2), (Z2*R122))
+    res += numpy.arctan2((X2*Y1), (Z1*R211))
+    res += -numpy.arctan2((X2*Y1), (Z2*R212))
+    res += -numpy.arctan2((X2*Y2), (Z1*R221))
+    res += numpy.arctan2((X2*Y2), (Z2*R222))
     return res
+
 
 def kernelxy(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -528,14 +549,15 @@ def kernelxy(xp, yp, zp, prism):
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
     res += -numpy.log((Z1 + R111))
-    res +=  numpy.log((Z2 + R112))
-    res +=  numpy.log((Z1 + R121))
+    res += numpy.log((Z2 + R112))
+    res += numpy.log((Z1 + R121))
     res += -numpy.log((Z2 + R122))
-    res +=  numpy.log((Z1 + R211))
+    res += numpy.log((Z1 + R211))
     res += -numpy.log((Z2 + R212))
     res += -numpy.log((Z1 + R221))
-    res +=  numpy.log((Z2 + R222))
+    res += numpy.log((Z2 + R222))
     return -res
+
 
 def kernelxz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -560,14 +582,15 @@ def kernelxz(xp, yp, zp, prism):
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
     res += -numpy.log((Y1 + R111))
-    res +=  numpy.log((Y1 + R112))
-    res +=  numpy.log((Y2 + R121))
+    res += numpy.log((Y1 + R112))
+    res += numpy.log((Y2 + R121))
     res += -numpy.log((Y2 + R122))
-    res +=  numpy.log((Y1 + R211))
+    res += numpy.log((Y1 + R211))
     res += -numpy.log((Y1 + R212))
     res += -numpy.log((Y2 + R221))
-    res +=  numpy.log((Y2 + R222))
+    res += numpy.log((Y2 + R222))
     return -res
+
 
 def kernelyz(xp, yp, zp, prism):
     if xp.shape != yp.shape != zp.shape:
@@ -592,11 +615,11 @@ def kernelyz(xp, yp, zp, prism):
     R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
     R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
     res += -numpy.log((X1 + R111))
-    res +=  numpy.log((X1 + R112))
-    res +=  numpy.log((X1 + R121))
+    res += numpy.log((X1 + R112))
+    res += numpy.log((X1 + R121))
     res += -numpy.log((X1 + R122))
-    res +=  numpy.log((X2 + R211))
+    res += numpy.log((X2 + R211))
     res += -numpy.log((X2 + R212))
     res += -numpy.log((X2 + R221))
-    res +=  numpy.log((X2 + R222))
+    res += numpy.log((X2 + R222))
     return -res

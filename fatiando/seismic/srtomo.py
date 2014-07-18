@@ -28,6 +28,7 @@ from . import ttime2d
 
 
 class SRTomo(Misfit):
+
     """
     2D travel-time straight-ray tomography.
 
@@ -109,7 +110,7 @@ class SRTomo(Misfit):
                                       velocity=1.)
             nonzero = numpy.flatnonzero(column)
             i.extend(nonzero)
-            j.extend(k*numpy.ones_like(nonzero))
+            j.extend(k * numpy.ones_like(nonzero))
             v.extend(column[nonzero])
         shape = (self.ndata, self.nparams)
         return scipy.sparse.coo_matrix((v, (i, j)), shape).tocsr()
@@ -133,10 +134,11 @@ class SRTomo(Misfit):
 
         """
         super(SRTomo, self).fit()
-        self._estimate = slowness2vel(self.p_, tol=10**-8)
+        self._estimate = slowness2vel(self.p_, tol=10 ** -8)
         return self
 
-def slowness2vel(slowness, tol=10**(-8)):
+
+def slowness2vel(slowness, tol=10 ** (-8)):
     """
     Safely convert slowness to velocity.
 
@@ -165,5 +167,5 @@ def slowness2vel(slowness, tol=10**(-8)):
     velocity = numpy.array(slowness)
     velocity[slowness < tol] = 0
     divide = slowness >= tol
-    velocity[divide] = 1./slowness[divide]
+    velocity[divide] = 1. / slowness[divide]
     return velocity
