@@ -17,7 +17,7 @@ model = [
     mesher.PolygonalPrism(
         mpl.draw_polygon(area, axis, xy2ne=True),
         # Use only induced magnetization
-        0, 2000, {'magnetization':2})]
+        0, 2000, {'magnetization': 2})]
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = gridder.regular(area, shape, z=-500)
@@ -36,7 +36,7 @@ mpl.show()
 # Show the prisms
 myv.figure()
 myv.polyprisms(model, 'magnetization')
-myv.axes(myv.outline(bounds), ranges=[i*0.001 for i in bounds])
+myv.axes(myv.outline(bounds), ranges=[i * 0.001 for i in bounds])
 myv.wall_north(bounds)
 myv.wall_bottom(bounds)
 myv.show()

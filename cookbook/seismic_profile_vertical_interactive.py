@@ -1,6 +1,6 @@
 """
-Seismic: Interactive forward modeling of 1D vertical seismic profile (VSP) data in
-layered media
+Seismic: Interactive forward modeling of 1D vertical seismic profile (VSP) data
+in layered media
 """
 import numpy
 from fatiando.gui.simple import Lasagne

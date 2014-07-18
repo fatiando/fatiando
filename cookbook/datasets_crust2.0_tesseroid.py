@@ -26,13 +26,17 @@ shape = (100, 100)
 lons, lats, heights = gridder.regular(area, shape, z=250000)
 
 # Divide the model into nproc slices and calculate them in parallel
+
+
 def calculate(chunk):
     return tesseroid.gz(lons, lats, heights, chunk)
+
+
 def split(model, nproc):
-    chunksize = len(model)/nproc
+    chunksize = len(model) / nproc
     for i in xrange(nproc - 1):
-        yield model[i*chunksize : (i + 1)*chunksize]
-    yield model[(nproc - 1)*chunksize : ]
+        yield model[i * chunksize: (i + 1) * chunksize]
+    yield model[(nproc - 1) * chunksize:]
 start = time.time()
 nproc = 8
 pool = Pool(processes=nproc)

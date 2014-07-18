@@ -7,6 +7,8 @@ from fatiando.vis import mpl
 # Generate random points
 x, y = gridder.scatter((-2, 2, -2, 2), n=300, seed=1)
 # And calculate 2D Gaussians on these points as sample data
+
+
 def data(x, y):
     return (utils.gaussian2d(x, y, -0.6, -1)
             - utils.gaussian2d(x, y, 1.5, 1.5))
@@ -21,7 +23,7 @@ mpl.figure()
 mpl.subplot(2, 1, 2)
 mpl.title("Irregular grid")
 mpl.plot(xp, yp, '-k', label='Profile', linewidth=2)
-mpl.contourf(x, y, d, (100, 100) , 50, interp=True)
+mpl.contourf(x, y, d, (100, 100), 50, interp=True)
 mpl.colorbar(orientation='horizontal')
 mpl.legend(loc='lower right')
 mpl.subplot(2, 1, 1)

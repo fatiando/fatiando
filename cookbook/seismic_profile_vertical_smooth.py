@@ -19,12 +19,12 @@ tts, error = utils.contaminate(
 # Assume that the thicknesses are unknown. In this case, use a mesh of many
 # thin layers and invert for each slowness
 thick = 10.
-mesh = [thick]*int(sum(thickness)/thick)
+mesh = [thick] * int(sum(thickness) / thick)
 solver = (LayeredStraight(tts, zp, mesh) +
-          5*Smoothness1D(len(mesh))).fit()
+          5 * Smoothness1D(len(mesh))).fit()
 velocity_ = solver.estimate_
 
-mpl.figure(figsize=(12,5))
+mpl.figure(figsize=(12, 5))
 mpl.subplot(1, 2, 1)
 mpl.grid()
 mpl.title("Vertical seismic profile")

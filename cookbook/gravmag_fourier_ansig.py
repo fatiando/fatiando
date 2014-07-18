@@ -5,7 +5,7 @@ from fatiando import mesher, gridder, utils
 from fatiando.gravmag import prism, fourier
 from fatiando.vis import mpl
 
-model = [mesher.Prism(-100,100,-100,100,0,2000,{'magnetization':10})]
+model = [mesher.Prism(-100, 100, -100, 100, 0, 2000, {'magnetization': 10})]
 area = (-5000, 5000, -5000, 5000)
 shape = (100, 100)
 z0 = -500
@@ -14,7 +14,7 @@ inc, dec = -30, 0
 tf = utils.contaminate(prism.tf(xp, yp, zp, model, inc, dec), 0.001,
                        percent=True)
 
-    # Need to convert gz to SI units so that the result is also in SI
+# Need to convert gz to SI units so that the result is also in SI
 ansig = fourier.ansig(xp, yp, utils.nt2si(tf), shape)
 
 mpl.figure()

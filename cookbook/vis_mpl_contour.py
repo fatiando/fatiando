@@ -39,4 +39,3 @@ mpl.contourf(lon, lat, data, shape, 50, vmin=0.5, vmax=0.8)
 mpl.colorbar()
 
 mpl.show()
-

@@ -4,9 +4,9 @@ Vis: Set the colors in figures, prisms, polygonal prisms and tesseroids.
 from fatiando.mesher import Prism, PolygonalPrism, Tesseroid
 from fatiando.vis import myv
 
-prism = Prism(1, 2, 1, 2, 0, 1, {'density':1})
-polyprism = PolygonalPrism([[3, 1], [4, 2], [5, 1]], -1, 2, {'density':2})
-tesseroid = Tesseroid(10, 20, 50, 60, 10**6, 0)
+prism = Prism(1, 2, 1, 2, 0, 1, {'density': 1})
+polyprism = PolygonalPrism([[3, 1], [4, 2], [5, 1]], -1, 2, {'density': 2})
+tesseroid = Tesseroid(10, 20, 50, 60, 10 ** 6, 0)
 
 red, green, blue = (1, 0, 0), (0, 1, 0), (0, 0, 1)
 white, black = (1, 1, 1), (0, 0, 0),

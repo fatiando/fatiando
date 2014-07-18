@@ -7,12 +7,13 @@ from fatiando.vis import mpl
 
 grid = mesher.PointGrid([0, 1000, 0, 2000], 500, (50, 50))
 # Add some density to the grid
-grid.addprop('density', 1000000000*utils.gaussian2d(grid.x, grid.y, 100, 500,
-    x0=500, y0=1000, angle=-60))
+density = 1000000000 * utils.gaussian2d(grid.x, grid.y, 100, 500,
+                                        x0=500, y0=1000, angle=-60)
+grid.addprop('density', density)
 # and some magnetization
 inc, dec = -45, 0
-grid.addprop('magnetization', [d/100.*utils.ang2vec(1, inc, dec)
-    for d in grid.props['density']])
+grid.addprop('magnetization', [d / 100. * utils.ang2vec(1, inc, dec)
+                               for d in grid.props['density']])
 # plot the layer
 mpl.figure()
 mpl.subplot(2, 1, 1)
@@ -24,7 +25,7 @@ mpl.subplot(2, 1, 2)
 mpl.axis('scaled')
 mpl.title('Magnetization intensity (dipole moment)')
 mpl.pcolor(grid.y, grid.x, utils.vecnorm(grid.props['magnetization']),
-    grid.shape)
+           grid.shape)
 mpl.colorbar()
 mpl.show()
 
@@ -45,4 +46,3 @@ mpl.title('Magnetic total field anomaly')
 mpl.contourf(y, x, tf, shape, 30)
 mpl.colorbar()
 mpl.show()
-

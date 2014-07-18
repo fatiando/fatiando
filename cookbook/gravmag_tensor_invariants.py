@@ -20,7 +20,7 @@ for depth in [5000, 5000]:
     model.append(
         mesher.PolygonalPrism(
             mpl.draw_polygon(area, fig.gca(), xy2ne=True),
-            0, depth, {'density':500}))
+            0, depth, {'density': 500}))
 # Calculate the effect
 shape = (100, 100)
 xp, yp, zp = gridder.regular(dataarea, shape, z=-500)
