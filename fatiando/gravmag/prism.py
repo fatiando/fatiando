@@ -24,6 +24,15 @@ The gravitational fields are calculated using the formula of Nagy et al.
 * :func:`~fatiando.gravmag.prism.gyz`
 * :func:`~fatiando.gravmag.prism.gzz`
 
+.. warning::
+
+    The gxy, gxz, and gyz components have singularities when the computation
+    point is aligned with the corners of the prism on the bottom, east, and
+    north sides, respectively. In these cases, the above functions will move
+    the computation point slightly to avoid these singularities. Unfortunately,
+    this means that the result will not be as accurate **on those points**.
+
+
 **Magnetic**
 
 Available fields are the total-field anomaly (using the formula of
@@ -325,6 +334,14 @@ def gxy(xp, yp, zp, prisms, dens=None):
 
     .. note:: All input values in **SI** units(!) and output in **Eotvos**!
 
+    .. warning::
+
+        This component has singularities when the computation
+        point is aligned with the corners of the prism on the bottom side.
+        In these cases, the computation point slightly to avoid these
+        singularities. Unfortunately, this means that the result will not be as
+        accurate **on those points**.
+
     Parameters:
 
     * xp, yp, zp : arrays
@@ -370,6 +387,14 @@ def gxz(xp, yp, zp, prisms, dens=None):
         x -> North, y -> East and z -> **DOWN**.
 
     .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    .. warning::
+
+        This component has singularities when the computation
+        point is aligned with the corners of the prism on the east side.
+        In these cases, the computation point slightly to avoid these
+        singularities. Unfortunately, this means that the result will not be as
+        accurate **on those points**.
 
     Parameters:
 
@@ -462,6 +487,14 @@ def gyz(xp, yp, zp, prisms, dens=None):
         x -> North, y -> East and z -> **DOWN**.
 
     .. note:: All input values in **SI** units(!) and output in **Eotvos**!
+
+    .. warning::
+
+        This component has singularities when the computation
+        point is aligned with the corners of the prism on the north side.
+        In these cases, the computation point slightly to avoid these
+        singularities. Unfortunately, this means that the result will not be as
+        accurate **on those points**.
 
     Parameters:
 
