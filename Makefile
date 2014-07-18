@@ -9,7 +9,6 @@ help:
 	@echo "    build         build the extension modules inplace"
 	@echo "    cython        generate C code from Cython files before building"
 	@echo "    docs          build the html documentation"
-	@echo "    docs-pdf      build the pdf documentation"
 	@echo "    view-docs     show the html docs on Firefox"
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    test-par      run tests in parallel with all available cores"
@@ -17,7 +16,7 @@ help:
 	@echo "    package       create source distributions"
 	@echo "    upload        upload source distribuitions to PyPI"
 	@echo "    clean         clean up build and generated files"
-	@echo "    clean-docs    clean up the docs dir"
+	@echo "    clean-docs    clean up the docs build"
 	@echo ""
 
 .PHONY: build
@@ -28,35 +27,35 @@ cython:
 	$(PY) setup.py build_ext --inplace --cython
 
 docs: clean
+	pip install --upgrade --quiet sphinx sphinx-rtd-theme || \
+		pip install --user --upgrade --quiet sphinx sphinx-rtd-theme
 	cd doc; make html
-
-docs-pdf: clean
-	cd doc; make latexpdf
 
 view-docs:
 	firefox doc/_build/html/index.html &
 
 .PHONY: test
 test: build
+	pip install --upgrade --quiet nose pep8 || \
+		pip install --user --upgrade --quiet nose pep8
 	$(NOSE) --with-doctest -v fatiando/ test/
 
 test-par: build
+	pip install --upgrade --quiet nose pep8 || \
+		pip install --user --upgrade --quiet nose pep8
 	$(NOSE) --with-doctest -v --processes=`nproc` fatiando/ test/
 
 coverage: build
-	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ test/
+	pip install --upgrade --quiet nose pep8 coverage || \
+		pip install --user --upgrade --quiet nose pep8 coverage
+	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ \
+		test/
 
 package: test-par
-	cp README.rst README.txt
-	cp CITATION.rst CITATION.txt
 	$(PY) setup.py sdist --formats=zip,gztar
-	rm CITATION.txt README.txt
 
 upload:
-	cp README.rst README.txt
-	cp CITATION.rst CITATION.txt
 	python setup.py register sdist --formats=zip,gztar upload
-	rm CITATION.txt README.txt
 
 clean:
 	find . -name "*.so" -exec rm -v {} \;
