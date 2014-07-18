@@ -12,6 +12,8 @@ help:
 	@echo "    view-docs     show the html docs on Firefox"
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    test-par      run tests in parallel with all available cores"
+	@echo "    pep8          check for PEP8 style compliance"
+	@echo "    pep8-stats    print a summary of the PEP8 check"
 	@echo "    coverage      calculate test coverage using Coverage"
 	@echo "    package       create source distributions"
 	@echo "    upload        upload source distribuitions to PyPI"
@@ -50,6 +52,12 @@ coverage: build
 		pip install --user --upgrade --quiet nose pep8 coverage
 	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ \
 		test/
+
+pep8:
+	pep8 fatiando test cookbook
+
+pep8-stats:
+	pep8 --statistics -qq fatiando test cookbook
 
 package: test-par
 	$(PY) setup.py sdist --formats=zip,gztar
