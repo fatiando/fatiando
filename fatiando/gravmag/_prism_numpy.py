@@ -311,13 +311,16 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     return res
 
 
-def bx(xp, yp, zp, prisms):
+def bx(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     bx = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v1 = kernelxx(xp, yp, zp, prism)
         v2 = kernelxy(xp, yp, zp, prism)
         v3 = kernelxz(xp, yp, zp, prism)
@@ -326,13 +329,16 @@ def bx(xp, yp, zp, prisms):
     return bx
 
 
-def by(xp, yp, zp, prisms):
+def by(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     by = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v2 = kernelxy(xp, yp, zp, prism)
         v4 = kernelyy(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
@@ -341,13 +347,16 @@ def by(xp, yp, zp, prisms):
     return by
 
 
-def bz(xp, yp, zp, prisms):
+def bz(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     bz = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v3 = kernelxz(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
         v6 = kernelzz(xp, yp, zp, prism)
