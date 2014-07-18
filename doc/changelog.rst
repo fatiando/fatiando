@@ -10,6 +10,9 @@ Version 0.3
 
 **Changes**:
 
+* `PEP8 <http://www.python.org/dev/peps/pep-0008/>`__ compliance (started by
+  @SamuelMarks).
+  (`PR 115 <https://github.com/leouieda/fatiando/pull/115>`_)
 * Multithreaded parallelism with OpenMP in
   :ref:`fatiando.gravmag.sphere <fatiando_gravmag_sphere>`,
   :ref:`fatiando.gravmag.polyprism <fatiando_gravmag_polyprism>` and
