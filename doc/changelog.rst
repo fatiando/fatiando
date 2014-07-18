@@ -3,8 +3,8 @@
 Changelog
 =========
 
-Version 0.3
------------
+Version (future)
+----------------
 
 **Release date**:
 

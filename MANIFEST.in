@@ -5,3 +5,5 @@ include MANIFEST.in
 recursive-include cookbook *
 recursive-include fatiando *.pyx
 recursive-include fatiando *.c
+include versioneer.py
+include fatiando/_version.py
