@@ -124,6 +124,8 @@ def potential(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -170,6 +172,8 @@ def gx(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -216,6 +220,8 @@ def gy(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -262,6 +268,8 @@ def gz(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -308,6 +316,8 @@ def gxx(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -362,6 +372,8 @@ def gxy(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -416,6 +428,8 @@ def gxz(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -462,6 +476,8 @@ def gyy(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -516,6 +532,8 @@ def gyz(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -562,6 +580,8 @@ def gzz(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
+    if xp.shape != yp.shape or xp.shape != zp.shape:
+        raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:
@@ -611,7 +631,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
         The field calculated on xp, yp, zp
 
     """
-    if len(xp) != len(yp) != len(zp):
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same length!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
@@ -668,7 +688,7 @@ def bx(xp, yp, zp, prisms, pmag=None):
         The x component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     if pmag is not None:
         mx, my, mz = pmag
@@ -714,7 +734,7 @@ def by(xp, yp, zp, prisms, pmag=None):
         The y component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     if pmag is not None:
         mx, my, mz = pmag
@@ -760,7 +780,7 @@ def bz(xp, yp, zp, prisms, pmag=None):
         The z component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     if pmag is not None:
         mx, my, mz = pmag
@@ -805,7 +825,7 @@ def kernelxx(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
@@ -840,7 +860,7 @@ def kernelyy(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
@@ -875,7 +895,7 @@ def kernelzz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
@@ -910,7 +930,7 @@ def kernelxy(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
@@ -945,7 +965,7 @@ def kernelxz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2
@@ -980,7 +1000,7 @@ def kernelyz(xp, yp, zp, prism):
         The effect calculated on the computation points.
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     x1, x2 = prism.x1, prism.x2

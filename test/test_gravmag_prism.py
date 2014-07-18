@@ -1,9 +1,70 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal as assert_almost
+from nose.tools import assert_raises
 
 from fatiando.mesher import Prism
 from fatiando.gravmag import _prism_numpy, prism
 from fatiando import utils, gridder
+
+
+def test_fails_if_shape_mismatch():
+    'gravmag.prism fails if given computation points with different shapes'
+    inc, dec = 10, 0
+    model = [Prism(-6000, -2000, 2000, 4000, 0, 3000,
+                   {'density': 1000,
+                    'magnetization': utils.ang2vec(10, inc, dec)})]
+    area = [-5000, 5000, -10000, 10000]
+    x, y, z = gridder.regular(area, (101, 51), z=-1)
+
+    assert_raises(ValueError, prism.potential, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.potential, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.potential, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.potential, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gx, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gx, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gx, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gx, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gy, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gy, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gy, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gy, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gz, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gz, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gz, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gz, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gxx, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gxx, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gxx, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gxx, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gxy, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gxy, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gxy, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gxy, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gxz, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gxz, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gxz, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gxz, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gyy, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gyy, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gyy, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gyy, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gyz, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gyz, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gyz, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gyz, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.gzz, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.gzz, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.gzz, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.gzz, x[:-5], y, z[:-2], model)
 
 
 def test_force_physical_property():
@@ -23,7 +84,7 @@ def test_force_physical_property():
         Prism(2000, 6000, 2000, 4000, 0, 1000,
               {'density': density, 'magnetization': mag})]
     area = [-10000, 10000, -5000, 5000]
-    x, y, z = gridder.regular(area, (101, 51), z=-1)
+    x, y, z = gridder.regular(area, (51, 101), z=-1)
     for mod in [prism, _prism_numpy]:
         # Test gravity functions
         funcs = ['potential', 'gx', 'gy', 'gz',
