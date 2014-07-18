@@ -54,10 +54,10 @@ coverage: build
 		test/
 
 pep8:
-	pep8 fatiando test cookbook
+	pep8 --exclude=_version.py fatiando test cookbook
 
 pep8-stats:
-	pep8 --statistics -qq fatiando test cookbook
+	pep8 --exclude=_version.py --statistics -qq fatiando test cookbook
 
 package: test-par
 	$(PY) setup.py sdist --formats=zip,gztar
