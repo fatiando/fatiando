@@ -10,6 +10,10 @@ Version 0.3
 
 **Changes**:
 
+* **BUG FIX**: :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
+  gravitational field functions give correct results in all sides of the prism.
+  There were singularities due to log(0) and weird results because of arctan2.
+  (`PR 113 <https://github.com/leouieda/fatiando/pull/113>`_)
 * `PEP8 <http://www.python.org/dev/peps/pep-0008/>`__ compliance (started by
   @SamuelMarks).
   (`PR 115 <https://github.com/leouieda/fatiando/pull/115>`_)

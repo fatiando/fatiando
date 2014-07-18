@@ -1,17 +1,38 @@
 """
 This is a Python + Numpy implementation of the potential field effects of
-right rectangular prisms.
+right rectangular prisms. This is used to test the more efficient Cython
+version in fatiando.gravmag._prism. Not meant for actual use.
 """
 import numpy
-from numpy import sqrt, log, arctan2
+from numpy import sqrt, log, arctan2, pi
 
 from ..constants import SI2EOTVOS, SI2MGAL, G, CM, T2NT
 from .. import utils
 
 
+def safe_atan2(y, x):
+    """
+    Correct the value of the angle returned by arctan2 to match the sign of the
+    tangent. Also return 0 instead of 2Pi for 0 tangent.
+    """
+    res = arctan2(y, x)
+    res[y == 0] = 0
+    res[(y > 0) & (x < 0)] -= pi
+    res[(y < 0) & (x < 0)] += pi
+    return res
+
+
+def safe_log(x):
+    """
+    Return 0 for log(0) because the limits in the formula terms tend to 0
+    (see Nagy et al., 2000)
+    """
+    res = log(x)
+    res[x == 0] = 0
+    return res
+
+
 def potential(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -30,14 +51,14 @@ def potential(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = (x[i]*y[j]*log(z[k] + r)
-                              + y[j]*z[k]*log(x[i] + r)
-                              + x[i]*z[k]*log(y[j] + r)
+                    kernel = (x[i]*y[j]*safe_log(z[k] + r)
+                              + y[j]*z[k]*safe_log(x[i] + r)
+                              + x[i]*z[k]*safe_log(y[j] + r)
                               - 0.5*x[i]**2 *
-                              arctan2(z[k]*y[j], x[i]*r)
+                              safe_atan2(z[k]*y[j], x[i]*r)
                               - 0.5*y[j]**2 *
-                              arctan2(z[k]*x[i], y[j]*r)
-                              - 0.5*z[k]**2*arctan2(x[i]*y[j], z[k]*r))
+                              safe_atan2(z[k]*x[i], y[j]*r)
+                              - 0.5*z[k]**2*safe_atan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
@@ -45,8 +66,6 @@ def potential(xp, yp, zp, prisms, dens=None):
 
 
 def gx(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -67,9 +86,9 @@ def gx(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(y[j]*log(z[k] + r)
-                               + z[k]*log(y[j] + r)
-                               - x[i]*arctan2(z[k]*y[j], x[i]*r))
+                    kernel = -(y[j]*safe_log(z[k] + r)
+                               + z[k]*safe_log(y[j] + r)
+                               - x[i]*safe_atan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -78,8 +97,6 @@ def gx(xp, yp, zp, prisms, dens=None):
 
 
 def gy(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -100,9 +117,9 @@ def gy(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(z[k]*log(x[i] + r)
-                               + x[i]*log(z[k] + r)
-                               - y[j]*arctan2(x[i]*z[k], y[j]*r))
+                    kernel = -(z[k]*safe_log(x[i] + r)
+                               + x[i]*safe_log(z[k] + r)
+                               - y[j]*safe_atan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -111,8 +128,6 @@ def gy(xp, yp, zp, prisms, dens=None):
 
 
 def gz(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -133,9 +148,9 @@ def gz(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(x[i]*log(y[j] + r)
-                               + y[j]*log(x[i] + r)
-                               - z[k]*arctan2(x[i]*y[j], z[k]*r))
+                    kernel = -(x[i]*safe_log(y[j] + r)
+                               + y[j]*safe_log(x[i] + r)
+                               - z[k]*safe_atan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -144,8 +159,6 @@ def gz(xp, yp, zp, prisms, dens=None):
 
 
 def gxx(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -154,18 +167,7 @@ def gxx(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(z[k]*y[j], x[i]*r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelxx(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -173,8 +175,6 @@ def gxx(xp, yp, zp, prisms, dens=None):
 
 
 def gxy(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -183,18 +183,7 @@ def gxy(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(z[k] + r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelxy(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -202,8 +191,6 @@ def gxy(xp, yp, zp, prisms, dens=None):
 
 
 def gxz(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -212,18 +199,7 @@ def gxz(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(y[j] + r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelxz(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -231,8 +207,6 @@ def gxz(xp, yp, zp, prisms, dens=None):
 
 
 def gyy(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -241,18 +215,7 @@ def gyy(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(z[k]*x[i], y[j]*r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelyy(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -260,8 +223,6 @@ def gyy(xp, yp, zp, prisms, dens=None):
 
 
 def gyz(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -270,18 +231,7 @@ def gyz(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = log(x[i] + r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelyz(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -289,8 +239,6 @@ def gyz(xp, yp, zp, prisms, dens=None):
 
 
 def gzz(xp, yp, zp, prisms, dens=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for prism in prisms:
         if prism is None or ('density' not in prism.props and dens is None):
@@ -299,18 +247,7 @@ def gzz(xp, yp, zp, prisms, dens=None):
             density = prism.props['density']
         else:
             density = dens
-        # First thing to do is make the computation point P the origin of the
-        # coordinate system
-        x = [prism.x2 - xp, prism.x1 - xp]
-        y = [prism.y2 - yp, prism.y1 - yp]
-        z = [prism.z2 - zp, prism.z1 - zp]
-        # Evaluate the integration limits
-        for k in range(2):
-            for j in range(2):
-                for i in range(2):
-                    r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = -arctan2(x[i]*y[j], z[k]*r)
-                    res += ((-1.)**(i + j + k))*kernel*density
+        res += density*kernelzz(xp, yp, zp, prism)
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to Eotvos units
     res *= G*SI2EOTVOS
@@ -318,8 +255,6 @@ def gzz(xp, yp, zp, prisms, dens=None):
 
 
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros_like(xp)
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
@@ -365,26 +300,27 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
                     zr = z[k]*r
                     res += ((-1.)**(i + j))*intensity*(
                         0.5*(my*fz + mz*fy) *
-                        log((r - x[i]) / (r + x[i]))
+                        safe_log((r - x[i]) / (r + x[i]))
                         + 0.5*(mx*fz + mz*fx) *
-                        log((r - y[j]) / (r + y[j]))
-                        - (mx*fy + my*fx)*log(r + z[k])
-                        - mx*fx*arctan2(xy, x_sqr + zr + z_sqr)
-                        - my*fy*arctan2(xy, r_sqr + zr - x_sqr)
-                        + mz*fz*arctan2(xy, zr))
+                        safe_log((r - y[j]) / (r + y[j]))
+                        - (mx*fy + my*fx)*safe_log(r + z[k])
+                        - mx*fx*safe_atan2(xy, x_sqr + zr + z_sqr)
+                        - my*fy*safe_atan2(xy, r_sqr + zr - x_sqr)
+                        + mz*fz*safe_atan2(xy, zr))
     res *= CM*T2NT
     return res
 
 
-def bx(xp, yp, zp, prisms):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+def bx(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     bx = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v1 = kernelxx(xp, yp, zp, prism)
         v2 = kernelxy(xp, yp, zp, prism)
         v3 = kernelxz(xp, yp, zp, prism)
@@ -393,15 +329,16 @@ def bx(xp, yp, zp, prisms):
     return bx
 
 
-def by(xp, yp, zp, prisms):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+def by(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     by = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v2 = kernelxy(xp, yp, zp, prism)
         v4 = kernelyy(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
@@ -410,15 +347,16 @@ def by(xp, yp, zp, prisms):
     return by
 
 
-def bz(xp, yp, zp, prisms):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
+def bz(xp, yp, zp, prisms, pmag=None):
+    if pmag is not None:
+        mx, my, mz = pmag
     bz = numpy.zeros_like(xp)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props):
+        if (prism is None or
+                ('magnetization' not in prism.props and pmag is None)):
             continue
-        # Get the magnetization vector components
-        mx, my, mz = prism.props['magnetization']
+        if pmag is None:
+            mx, my, mz = prism.props['magnetization']
         v3 = kernelxz(xp, yp, zp, prism)
         v5 = kernelyz(xp, yp, zp, prism)
         v6 = kernelzz(xp, yp, zp, prism)
@@ -428,198 +366,102 @@ def bz(xp, yp, zp, prisms):
 
 
 def kernelxx(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((Y1*Z1), (X1*R111))
-    res += numpy.arctan2((Y1*Z2), (X1*R112))
-    res += numpy.arctan2((Y2*Z1), (X1*R121))
-    res += -numpy.arctan2((Y2*Z2), (X1*R122))
-    res += numpy.arctan2((Y1*Z1), (X2*R211))
-    res += -numpy.arctan2((Y1*Z2), (X2*R212))
-    res += -numpy.arctan2((Y2*Z1), (X2*R221))
-    res += numpy.arctan2((Y2*Z2), (X2*R222))
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = -safe_atan2(z[k]*y[j], x[i]*r)
+                res += ((-1.)**(i + j + k))*kernel
     return res
 
 
 def kernelyy(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((X1*Z1), (Y1*R111))
-    res += numpy.arctan2((X1*Z2), (Y1*R112))
-    res += numpy.arctan2((X1*Z1), (Y2*R121))
-    res += -numpy.arctan2((X1*Z2), (Y2*R122))
-    res += numpy.arctan2((X2*Z1), (Y1*R211))
-    res += -numpy.arctan2((X2*Z2), (Y1*R212))
-    res += -numpy.arctan2((X2*Z1), (Y2*R221))
-    res += numpy.arctan2((X2*Z2), (Y2*R222))
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = -safe_atan2(z[k]*x[i], y[j]*r)
+                res += ((-1.)**(i + j + k))*kernel
     return res
 
 
 def kernelzz(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.arctan2((X1*Y1), (Z1*R111))
-    res += numpy.arctan2((X1*Y1), (Z2*R112))
-    res += numpy.arctan2((X1*Y2), (Z1*R121))
-    res += -numpy.arctan2((X1*Y2), (Z2*R122))
-    res += numpy.arctan2((X2*Y1), (Z1*R211))
-    res += -numpy.arctan2((X2*Y1), (Z2*R212))
-    res += -numpy.arctan2((X2*Y2), (Z1*R221))
-    res += numpy.arctan2((X2*Y2), (Z2*R222))
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = -safe_atan2(y[j]*x[i], z[k]*r)
+                res += ((-1.)**(i + j + k))*kernel
     return res
 
 
 def kernelxy(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Z1 + R111))
-    res += numpy.log((Z2 + R112))
-    res += numpy.log((Z1 + R121))
-    res += -numpy.log((Z2 + R122))
-    res += numpy.log((Z1 + R211))
-    res += -numpy.log((Z2 + R212))
-    res += -numpy.log((Z1 + R221))
-    res += numpy.log((Z2 + R222))
-    return -res
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = safe_log(z[k] + r)
+                res += ((-1.)**(i + j + k))*kernel
+    return res
 
 
 def kernelxz(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((Y1 + R111))
-    res += numpy.log((Y1 + R112))
-    res += numpy.log((Y2 + R121))
-    res += -numpy.log((Y2 + R122))
-    res += numpy.log((Y1 + R211))
-    res += -numpy.log((Y1 + R212))
-    res += -numpy.log((Y2 + R221))
-    res += numpy.log((Y2 + R222))
-    return -res
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = safe_log(y[j] + r)
+                res += ((-1.)**(i + j + k))*kernel
+    return res
 
 
 def kernelyz(xp, yp, zp, prism):
-    if xp.shape != yp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
-    x1, x2 = prism.x1, prism.x2
-    y1, y2 = prism.y1, prism.y2
-    z1, z2 = prism.z1, prism.z2
-    # Calculate the effect of the prism
-    X1 = xp - x1
-    X2 = xp - x2
-    Y1 = yp - y1
-    Y2 = yp - y2
-    Z1 = zp - z1
-    Z2 = zp - z2
-    R111 = numpy.sqrt(X1**2 + Y1**2 + Z1**2)
-    R112 = numpy.sqrt(X1**2 + Y1**2 + Z2**2)
-    R121 = numpy.sqrt(X1**2 + Y2**2 + Z1**2)
-    R122 = numpy.sqrt(X1**2 + Y2**2 + Z2**2)
-    R211 = numpy.sqrt(X2**2 + Y1**2 + Z1**2)
-    R212 = numpy.sqrt(X2**2 + Y1**2 + Z2**2)
-    R221 = numpy.sqrt(X2**2 + Y2**2 + Z1**2)
-    R222 = numpy.sqrt(X2**2 + Y2**2 + Z2**2)
-    res += -numpy.log((X1 + R111))
-    res += numpy.log((X1 + R112))
-    res += numpy.log((X1 + R121))
-    res += -numpy.log((X1 + R122))
-    res += numpy.log((X2 + R211))
-    res += -numpy.log((X2 + R212))
-    res += -numpy.log((X2 + R221))
-    res += numpy.log((X2 + R222))
-    return -res
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    x = [prism.x2 - xp, prism.x1 - xp]
+    y = [prism.y2 - yp, prism.y1 - yp]
+    z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
+                kernel = safe_log(x[i] + r)
+                res += ((-1.)**(i + j + k))*kernel
+    return res
