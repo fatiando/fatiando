@@ -58,7 +58,7 @@ C_EXT = [[['fatiando', 'gravmag', '_tesseroid'], {}],
          [['fatiando', 'gravmag', '_polyprism'], omp_args],
          [['fatiando', 'gravmag', '_sphere'], omp_args],
          [['fatiando', 'gravmag', '_prism'], omp_args],
-        ]
+         ]
 extensions = []
 for e, extra_args in C_EXT:
     extensions.append(
@@ -69,21 +69,21 @@ for e, extra_args in C_EXT:
 if USE_CYTHON:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
+
     extensions = cythonize(extensions)
 
 if __name__ == '__main__':
-	setup(name=NAME,
-		  fullname=FULLNAME,
-		  description=DESCRIPTION,
-		  long_description=LONG_DESCRIPTION,
-		  version=VERSION,
-		  author=AUTHOR,
-		  author_email=AUTHOR_EMAIL,
-		  license=LICENSE,
-		  url=URL,
-		  platforms=PLATFORMS,
-		  scripts=SCRIPTS,
-		  packages=PACKAGES,
-		  ext_modules=extensions,
-		  classifiers=CLASSIFIERS)
-
+    setup(name=NAME,
+          fullname=FULLNAME,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          version=VERSION,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          license=LICENSE,
+          url=URL,
+          platforms=PLATFORMS,
+          scripts=SCRIPTS,
+          packages=PACKAGES,
+          ext_modules=extensions,
+          classifiers=CLASSIFIERS)
