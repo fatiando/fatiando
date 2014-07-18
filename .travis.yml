@@ -18,7 +18,7 @@ before_install:
   # Update conda itself
   - conda update --yes conda
   - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging
-  - pip install -q --use-mirrors coverage coveralls
+  - pip install -q --use-mirrors coverage coveralls pep8
   # Test the docs build before installing because sphinx breaks on Cython modules
   - cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html; cd ..
 install:
