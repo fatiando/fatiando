@@ -1,122 +1,38 @@
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 
 from fatiando.gravmag import tesseroid, half_sph_shell
 from fatiando.mesher import Tesseroid
 
-shellmodel = None
-heights = None
-density = None
-props = None
-top = None
-bottom = None
 
-
-def setup():
-    "Make a spherical shell model with tesseroids"
-    global shellmodel, heights, density, props, top, bottom
-    tlons = np.linspace(-90, 90, 50, endpoint=False)
-    tlats = np.linspace(-90, 90, 50, endpoint=False)
+def test_tesseroid_vs_spherical_shell():
+    "gravmag.tesseroid equals analytical solution of spherical half-shell"
+    tlons = np.linspace(-90, 90, 45, endpoint=False)
+    tlats = np.linspace(-90, 90, 45, endpoint=False)
     wsize = tlons[1] - tlons[0]
     ssize = tlats[1] - tlats[0]
     density = 1000.
     props = {'density': density}
     top = 0
-    bottom = -50000
+    bottom = -100000
     shellmodel = [Tesseroid(w, w + wsize, s, s + ssize, top, bottom, props)
                   for w in tlons for s in tlats]
-    heights = np.linspace(250000, 1000000, 10)
-
-
-def test_potential():
-    "gravmag.tesseroid.potential with optimal discretize against half a shell"
-    shell = half_sph_shell.potential(heights, top, bottom, density)
+    heights = np.linspace(10000, 1000000, 10)
     lons = np.zeros_like(heights)
     lats = lons
-    tess = tesseroid.potential(lons, lats, heights, shellmodel)
-    diff = np.abs((shell - tess) / shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gz():
-    "gravmag.tesseroid.gz with optimal discretize against half a shell"
-    shell = half_sph_shell.gz(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gz(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gxx():
-    "gravmag.tesseroid.gxx with optimal discretize against half a shell"
-    shell = half_sph_shell.gxx(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxx(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gyy():
-    "gravmag.tesseroid.gyy with optimal discretize against half a shell"
-    shell = half_sph_shell.gyy(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gyy(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gzz():
-    "gravmag.tesseroid.gzz with optimal discretize against half a shell"
-    shell = half_sph_shell.gzz(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gzz(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gx():
-    "gravmag.tesseroid.gx with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gx(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gy():
-    "gravmag.tesseroid.gy with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gy(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gxy():
-    "gravmag.tesseroid.gxy with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxy(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gxz():
-    "gravmag.tesseroid.gxz with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxz(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gyz():
-    "gravmag.tesseroid.gyz with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gyz(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
+    funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
+             'gzz']
+    for f in funcs:
+        shell = getattr(half_sph_shell, f)(heights, top, bottom, density)
+        tess = getattr(tesseroid, f)(lons, lats, heights, shellmodel)
+        diff = np.abs(shell - tess)
+        factor = np.abs(shell).max()
+        if factor > 1e-10:
+            shell /= factor
+            tess /= factor
+            precision = 2  # 1% of the maximum
+        else:
+            precision = 10  # For the components that are zero
+        assert_array_almost_equal(shell, tess, precision,
+                                  'Failed %s: max diff %.15g'
+                                  % (f, diff.max()))
