@@ -3,13 +3,17 @@
 Changelog
 =========
 
-Version 0.3
------------
+Version (future)
+----------------
 
 **Release date**:
 
 **Changes**:
 
+* Using `versioneer <https://github.com/warner/python-versioneer>`__ to manage
+  version numbers. Access the version number + git commit hash from
+  ``fatiando.__version__``.
+  (`PR 117 <https://github.com/leouieda/fatiando/pull/117>`_)
 * **BUG FIX**: :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
   gravitational field functions give correct results in all sides of the prism.
   There were singularities due to log(0) and weird results because of arctan2.

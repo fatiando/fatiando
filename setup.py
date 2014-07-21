@@ -8,10 +8,18 @@ from distutils.core import setup
 from distutils.extension import Extension
 import numpy
 
+import versioneer
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'fatiando/_version.py'
+versioneer.versionfile_build = 'fatiando/_version.py'
+versioneer.tag_prefix = 'v'
+versioneer.parentdir_prefix = '.'
+
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Geophysical modeling and inversion"
-VERSION = '0.3'
+VERSION = versioneer.get_version()
+CMDCLASS = versioneer.get_cmdclass()
 try:
     with open("README.rst") as f:
         LONG_DESCRIPTION = ''.join(f.readlines())
@@ -86,4 +94,5 @@ if __name__ == '__main__':
           scripts=SCRIPTS,
           packages=PACKAGES,
           ext_modules=extensions,
-          classifiers=CLASSIFIERS)
+          classifiers=CLASSIFIERS,
+          cmdclass=CMDCLASS)

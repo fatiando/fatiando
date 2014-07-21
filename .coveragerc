@@ -9,6 +9,7 @@ omit =
     */site-packages/nose/*
     */unittest2/*
     fatiando/gui/*
+    fatiando/_version.py
 
 exclude_lines =
     pragma: no cover
@@ -26,3 +27,4 @@ omit =
     */site-packages/nose/*
     */unittest2/*
     fatiando/gui/*
+    fatiando/_version.py
