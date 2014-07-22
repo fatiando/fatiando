@@ -173,7 +173,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     Calculate the x (North) component of the gravitational attraction due to a
     tesseroid model.
     """
-    return SI2MGAL * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
                                          _gx, ratio, dens)
 
 
@@ -182,7 +182,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     Calculate the y (East) component of the gravitational attraction due to a
     tesseroid model.
     """
-    return SI2MGAL * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
                                          _gy, ratio, dens)
 
 
@@ -193,7 +193,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
-    return -1 * SI2MGAL * _optimal_discretize(tesseroids, lons, lats, heights,
+    return -1*SI2MGAL*_optimal_discretize(tesseroids, lons, lats, heights,
                                               _gz, ratio, dens)
 
 
@@ -202,7 +202,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the xx (North-North) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    return SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
                                            _gxx, ratio, dens)
 
 
@@ -211,7 +211,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the xy (North-East) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    return SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
                                            _gxy, ratio, dens)
 
 
@@ -220,7 +220,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the xz (North-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    return SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
                                            _gxz, ratio, dens)
 
 
@@ -229,7 +229,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the yy (East-East) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    return SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
                                            _gyy, ratio, dens)
 
 
@@ -238,7 +238,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the yz (East-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    return SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
+    return SI2EOTVOS*_optimal_discretize(tesseroids, lons, lats, heights,
                                            _gyz, ratio, dens)
 
 
@@ -247,9 +247,64 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     Calculate the zz (radial-radial) component of the gravity gradient tensor
     due to a tesseroid model.
     """
-    result = SI2EOTVOS * _optimal_discretize(tesseroids, lons, lats, heights,
-                                             _gzz, ratio, dens)
+    ndata = len(lons)
+    # Convert things to radians
+    d2r = numpy.pi / 180.
+    rlon = d2r*lons
+    sinlat = numpy.sin(d2r*lats)
+    coslat = numpy.cos(d2r*lats)
+    # Transform the heights into radii
+    radius = MEAN_EARTH_RADIUS + heights
+    # Start the computations
+    result = numpy.zeros(ndata, numpy.float)
+    for tesseroid in tesseroids:
+        if (tesseroid is None or
+                ('density' not in tesseroid.props and dens is None)):
+            continue
+        if dens is not None:
+            density = dens
+        else:
+            density = tesseroid.props['density']
+        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
+                               radius, _gzz, ratio, result)
+    result *= SI2EOTVOS*G
     return result
+
+
+def _with_optimal_division(tesseroids, density, lon, sinlat, coslat, radius,
+                           kernel, ratio, result):
+    """
+    Calculate the effect of a given kernel in the most precise way by
+    adaptively discretizing the tesseroids into smaller ones.
+    """
+    ndata = len(lon)
+    d2r = numpy.pi / 180.
+
+    # Create some buffers to reduce memory allocation
+    distances = numpy.zeros(ndata, numpy.float)
+    lonc = numpy.zeros(2, numpy.float)
+    sinlatc = numpy.zeros(2, numpy.float)
+    coslatc = numpy.zeros(2, numpy.float)
+    rc = numpy.zeros(2, numpy.float)
+    allpoints = numpy.arange(ndata)
+
+    queue = [(allpoints, tesseroid.get_bounds())]
+    while queue:
+        points, tess = queue.pop()
+        w, e, s, n, top, bottom = tess
+        size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
+                    MEAN_EARTH_RADIUS*d2r*(n - s),
+                    top - bottom])
+        _distance(tess, rlon, sinlat, coslat, radius, points, distances)
+        need_divide, dont_divide = _too_close(points, distances,
+                                              ratio*size)
+        if len(need_divide):
+            if len(queue) >= 1000:
+                raise ValueError('Tesseroid queue overflow')
+            queue.extend(_half(tess, need_divide))
+        if len(dont_divide):
+            kernel(tess, density, lon, sinlat, coslat, radius, lonc,
+                   sinlatc, coslatc, rc, result, dont_divide)
 
 
 def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
@@ -260,9 +315,9 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
-    rlons = d2r * lons
-    sinlats = numpy.sin(d2r * lats)
-    coslats = numpy.cos(d2r * lats)
+    rlons = d2r*lons
+    sinlats = numpy.sin(d2r*lats)
+    coslats = numpy.cos(d2r*lats)
     # Transform the heights into radii
     radii = MEAN_EARTH_RADIUS + heights
     # Create some buffers to reduce memory allocation
@@ -286,12 +341,12 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
         while queue:
             points, tess = queue.pop()
             w, e, s, n, top, bottom = tess
-            size = max([MEAN_EARTH_RADIUS * d2r * (e - w),
-                        MEAN_EARTH_RADIUS * d2r * (n - s),
+            size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
+                        MEAN_EARTH_RADIUS*d2r*(n - s),
                         top - bottom])
             _distance(tess, rlons, sinlats, coslats, radii, points, distances)
             need_divide, dont_divide = _too_close(points, distances,
-                                                  ratio * size)
+                                                  ratio*size)
             if len(need_divide):
                 if len(queue) >= 1000:
                     raise ValueError('Tesseroid queue overflow')
@@ -305,9 +360,9 @@ def _optimal_discretize(tesseroids, lons, lats, heights, kernel, ratio, dens):
 
 def _half(bounds, points):
     w, e, s, n, top, bottom = bounds
-    dlon = 0.5 * (e - w)
-    dlat = 0.5 * (n - s)
-    dh = 0.5 * (top - bottom)
+    dlon = 0.5*(e - w)
+    dlat = 0.5*(n - s)
+    dh = 0.5*(top - bottom)
     yield (points, (w, w + dlon, s, s + dlat, bottom + dh, bottom))
     yield (points, (w, w + dlon, s, s + dlat, top, bottom + dh))
     yield (points, (w, w + dlon, s + dlat, n, bottom + dh, bottom))

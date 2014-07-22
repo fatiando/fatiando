@@ -59,17 +59,19 @@ def _distance(tesseroid,
     """
     cdef:
         unsigned int i, l, size = len(points)
-        double tes_radius, tes_lat, tes_lon
+        double rt, latt, lont, sinlatt, coslatt
         double w, e, s, n, top, bottom
     w, e, s, n, top, bottom = tesseroid
-    tes_radius = top + MEAN_EARTH_RADIUS
-    tes_lat = d2r*0.5*(s + n)
-    tes_lon = d2r*0.5*(w + e)
+    rt = top + MEAN_EARTH_RADIUS
+    latt = d2r*0.5*(s + n)
+    sinlatt = sin(latt)
+    coslatt = cos(latt)
+    lont = d2r*0.5*(w + e)
     for l in range(size):
         i = points[l]
-        buff[l] = sqrt(radius[i]**2 + tes_radius**2 -
-            2.*radius[i]*tes_radius*(sinlat[i]*sin(tes_lat) +
-                coslat[i]*cos(tes_lat)*cos(lon[i] - tes_lon)))
+        buff[l] = sqrt(
+            radius[i]**2 + rt**2 - 2*radius[i]*rt*(
+                sinlat[i]*sinlatt + coslat[i]*coslatt*cos(lon[i] - lont)))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
