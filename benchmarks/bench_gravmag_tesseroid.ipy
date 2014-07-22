@@ -1,0 +1,60 @@
+# Benchmark the performance of tesseroid
+# Compare the fatiando implementation with Tesseroids
+# (http://leouieda.com/tesseroids/)
+import sys
+import numpy as np
+from fatiando import gridder
+from fatiando.gravmag import tesseroid
+from fatiando.mesher import Tesseroid, TesseroidMesh
+from fatiando.vis import mpl
+
+# Make a model with a lot of tesseroids.
+model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 10, 10))
+model.addprop('density', 2700*np.ones(model.size))
+area = [101, 109, -4, 4]
+shape = [50, 50]
+lon, lat, height = gridder.regular(area, shape, z=20000)
+
+if len(sys.argv) > 1 and sys.argv[1] == 'profile':
+    print "Profiling code:"
+    from line_profiler import LineProfiler
+    %prun tesseroid.gzz(lon, lat, height, model)
+    lp = LineProfiler(tesseroid._optimal_discretize)
+    lp.runcall(tesseroid.gzz, lon, lat, height, model)
+    lp.print_stats()
+else:
+    # Create a model file and a grid file for Tesseroids
+    modfile = 'model.tmp'
+    with open(modfile, 'w') as f:
+        for t in model:
+            f.write('%g %g %g %g %g %g %g\n'
+                    % (t.w, t.e, t.s, t.n, t.top, t.bottom, t.props['density']))
+    gridfile = 'grid.tmp'
+    np.savetxt(gridfile, np.transpose([lon, lat, height]), fmt='%g')
+
+    lines = ! wc -l model.tmp
+    print "lines", lines[0]
+    ! head model.tmp
+    lines = ! wc -l grid.tmp
+    print "lines", lines[0]
+    ! head grid.tmp
+
+    # Time the execution
+    print "Gzz"
+    print "============================="
+    print "Tesseroids:"
+    def timetess():
+        ! tessgzz model.tmp < grid.tmp > out.tmp
+    %timeit timetess()
+    print "fatiando.tesseroid:"
+    %timeit tesseroid.gzz(lon, lat, height, model)
+    print "Gz"
+    print "============================="
+    print "Tesseroids:"
+    def timetess():
+        ! tessgz model.tmp < grid.tmp > out.tmp
+    %timeit timetess()
+    print "fatiando.tesseroid:"
+    %timeit tesseroid.gz(lon, lat, height, model)
+
+    ! rm grid.tmp model.tmp out.tmp
