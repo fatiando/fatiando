@@ -40,14 +40,6 @@ else:
     ! head grid.tmp
 
     # Time the execution
-    print "Gzz"
-    print "============================="
-    print "Tesseroids:"
-    def timetess():
-        ! tessgzz model.tmp < grid.tmp > out.tmp
-    %timeit timetess()
-    print "fatiando.tesseroid:"
-    %timeit tesseroid.gzz(lon, lat, height, model)
     print "Gz"
     print "============================="
     print "Tesseroids:"
@@ -56,5 +48,13 @@ else:
     %timeit timetess()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gz(lon, lat, height, model)
+    print "Gzz"
+    print "============================="
+    print "Tesseroids:"
+    def timetess():
+        ! tessgzz model.tmp < grid.tmp > out.tmp
+    %timeit timetess()
+    print "fatiando.tesseroid:"
+    %timeit tesseroid.gzz(lon, lat, height, model)
 
     ! rm grid.tmp model.tmp out.tmp
