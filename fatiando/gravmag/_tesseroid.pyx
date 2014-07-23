@@ -77,10 +77,10 @@ def distance(
 @cython.wraparound(False)
 cdef inline double scale_nodes(
     tesseroid,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc):
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc):
     "Put GLQ nodes in the integration limits for a tesseroid"
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
@@ -112,10 +112,10 @@ def potential(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -153,10 +153,10 @@ def gx(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -196,10 +196,10 @@ def gy(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -239,10 +239,10 @@ def gz(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -282,10 +282,10 @@ def gxx(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -293,28 +293,42 @@ def gxx(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*(3.*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5))
+        result[l] += density*kernelxx(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelxx(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, l_sqr, cospsi, kphi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(3*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5)
+    return result*scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -325,10 +339,10 @@ def gxy(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -336,30 +350,43 @@ def gxy(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            sinlon = sin(lonc[i] - lons[l])
-            for j in range(2):
-                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*3.*(rc[k]**2)*kphi*coslatc[j]*sinlon/(
-                            l_sqr**2.5))
+        result[l] += density*kernelxy(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelxy(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, rc_sqr, coslon, sinlon, l_sqr, cospsi, kphi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        sinlon = sin(lonc[i] - lon)
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc_sqr*kphi*coslatc[j]*sinlon/(l_sqr**2.5)
+    return result*scale
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -370,10 +397,10 @@ def gxz(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -381,30 +408,43 @@ def gxz(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*3.*rc[k]*kphi*(rc[k]*cospsi - radii[l])/
-                        (l_sqr**2.5))
+        result[l] += density*kernelxz(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelxz(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, rc_sqr, coslon, l_5, cospsi, kphi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_5 = (r_sqr + rc_sqr - 2*radius*rc[k]*cospsi)**2.5
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc[k]*kphi*(rc[k]*cospsi - radius)/l_5
+    return result*scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -415,10 +455,10 @@ def gyy(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -426,29 +466,44 @@ def gyy(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            sinlon = sin(lonc[i] - lons[l])
-            for j in range(2):
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    deltay = rc[k]*coslatc[j]*sinlon
-                    result[l] += density*scale*(
-                        kappa*(3.*(deltay**2) - l_sqr)/(l_sqr**2.5))
+        result[l] += density*kernelyy(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelyy(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, rc_sqr, coslon, sinlon, l_sqr, cospsi, deltay
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        sinlon = sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                result += kappa*(3*(deltay**2) - l_sqr)/(l_sqr**2.5)
+    return result*scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -459,10 +514,10 @@ def gyz(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -470,31 +525,45 @@ def gyz(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            sinlon = sin(lonc[i] - lons[l])
-            for j in range(2):
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    deltay = rc[k]*coslatc[j]*sinlon
-                    deltaz = rc[k]*cospsi - radii[l]
-                    result[l] += density*scale*(
-                        kappa*3.*deltay*deltaz/(l_sqr**2.5))
+        result[l] += density*kernelyz(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelyz(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, rc_sqr, coslon, sinlon, l_sqr, cospsi, deltay
+        double deltaz, result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        sinlon = sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*3.*deltay*deltaz/(l_sqr**2.5)
+    return result*scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -505,10 +574,10 @@ def gzz(
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    numpy.ndarray[double, ndim=1] lonc,
-    numpy.ndarray[double, ndim=1] sinlatc,
-    numpy.ndarray[double, ndim=1] coslatc,
-    numpy.ndarray[double, ndim=1] rc,
+    double[::1] lonc,
+    double[::1] sinlatc,
+    double[::1] coslatc,
+    double[::1] rc,
     numpy.ndarray[double, ndim=1] result,
     numpy.ndarray[long, ndim=1] points):
     """
@@ -516,26 +585,39 @@ def gzz(
     by the indices in 'points').
     """
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        unsigned int l, p
+        double scale
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radii_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    deltaz = rc[k]*cospsi - radii[l]
-                    result[l] += density*scale*(
-                        kappa*(3.*deltaz**2 - l_sqr)/(l_sqr**2.5))
+        result[l] += density*kernelzz(
+            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
+            coslatc, rc)
+
+
+# Computes the kernel part of the gravity gradient component
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline double kernelzz(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, rc_sqr, l_sqr, cospsi, deltaz
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*(3*deltaz**2 - l_sqr)/(l_sqr**2.5)
+    return result*scale
