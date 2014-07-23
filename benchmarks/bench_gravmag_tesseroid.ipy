@@ -3,6 +3,7 @@
 # (http://leouieda.com/tesseroids/)
 import sys
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from fatiando import gridder
 from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid, TesseroidMesh
@@ -51,6 +52,13 @@ else:
     %timeit timetess()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gz(lon, lat, height, model)
+
+    ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
+    pytess = tesseroid.gz(lon, lat, height, model)
+    diff = np.abs(ctess - pytess)/np.abs(ctess).max()
+    assert_array_almost_equal(diff, np.zeros_like(lon), 2, 'Max diff: %.15g'
+                              % (np.abs(ctess - pytess).max()))
+
     print "Gzz"
     print "============================="
     print "Tesseroids:"
@@ -59,5 +67,11 @@ else:
     %timeit timetess()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gzz(lon, lat, height, model)
+
+    ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
+    pytess = tesseroid.gzz(lon, lat, height, model)
+    diff = np.abs(ctess - pytess)/np.abs(ctess).max()
+    assert_array_almost_equal(diff, np.zeros_like(lon), 2, 'Max diff: %.15g'
+                              % (np.abs(ctess - pytess).max()))
 
     ! rm grid.tmp model.tmp out.tmp
