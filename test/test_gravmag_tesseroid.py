@@ -7,6 +7,65 @@ from fatiando.mesher import Tesseroid
 from fatiando import gridder
 
 
+def test_fails_if_shape_mismatch():
+    'gravmag.tesseroid fails if given computation points with different shapes'
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=100000)
+
+    assert_raises(ValueError, tesseroid.potential, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.potential, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.potential, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.potential, lon[:-5], lat, h[:-2],
+                  model)
+
+    assert_raises(ValueError, tesseroid.gx, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gx, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gx, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gx, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gy, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gy, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gy, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gy, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gz, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gz, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gz, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gz, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gxx, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gxx, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gxx, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gxx, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gxy, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gxy, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gxy, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gxy, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gxz, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gxz, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gxz, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gxz, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gyy, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gyy, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gyy, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gyy, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gyz, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gyz, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gyz, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gyz, lon[:-5], lat, h[:-2], model)
+
+    assert_raises(ValueError, tesseroid.gzz, lon[:-2], lat, h, model)
+    assert_raises(ValueError, tesseroid.gzz, lon, lat[:-2], h, model)
+    assert_raises(ValueError, tesseroid.gzz, lon, lat, h[:-2], model)
+    assert_raises(ValueError, tesseroid.gzz, lon[:-5], lat, h[:-2], model)
+
+
 def test_queue_overflow():
     "gravmag.tesseroid raises exception on queue overflow"
     qsize = tesseroid.QUEUE_SIZE
@@ -56,6 +115,48 @@ def test_tesseroid_vs_spherical_shell():
         assert_array_almost_equal(shell, tess, precision,
                                   'Failed %s: max diff %.15g'
                                   % (f, diff.max()))
+
+
+def test_skip_none_and_missing_properties():
+    "gravmag.tesseroid ignores Nones and tesseroids without density prop"
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670}),
+             None,
+             Tesseroid(-1.5, -0.5, -1.5, -1, -1000, -20000),
+             Tesseroid(0.1, 0.6, -0.8, -0.3, 10000, -20000,
+                       {'magnetization': [1, 2, 3]}),
+             None,
+             None,
+             Tesseroid(-1.5, -0.5, -1.5, -1, 1000, -20000,
+                       {'density': 2000, 'magnetization': [1, 2, 3]}),
+             None]
+    puremodel = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670}),
+                 Tesseroid(-1.5, -0.5, -1.5, -1, 1000, -20000,
+                           {'density': 2000})]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=50000)
+    funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
+             'gzz']
+    for f in funcs:
+        pure = getattr(tesseroid, f)(lon, lat, h, puremodel)
+        dirty = getattr(tesseroid, f)(lon, lat, h, model)
+        assert_array_almost_equal(pure, dirty, 9, 'Failed %s' % (f))
+
+
+def test_overwrite_density():
+    "gravmag.tesseroid uses given density instead of tesseroid property"
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
+    density = -1000
+    other = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': density})]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=50000)
+    funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
+             'gzz']
+    for f in funcs:
+        correct = getattr(tesseroid, f)(lon, lat, h, other)
+        effect = getattr(tesseroid, f)(lon, lat, h, model, dens=density)
+        assert_array_almost_equal(correct, effect, 9, 'Failed %s' % (f))
 
 
 def test_laplace_equation():

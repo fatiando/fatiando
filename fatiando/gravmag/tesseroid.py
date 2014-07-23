@@ -175,6 +175,9 @@ def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
         The calculated field in SI units
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -227,6 +230,9 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
         The calculated field in mGal
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -279,6 +285,9 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
         The calculated field in mGal
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -336,6 +345,9 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
         The calculated field in mGal
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -390,6 +402,9 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -442,6 +457,9 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -494,6 +512,9 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -546,6 +567,9 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -598,6 +622,9 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
@@ -650,6 +677,9 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
         The calculated field in Eotvos
 
     """
+    if lons.shape != lats.shape or lons.shape != heights.shape:
+        raise ValueError(
+            "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
     d2r = numpy.pi / 180.
