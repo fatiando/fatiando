@@ -3,6 +3,7 @@ from numpy.testing import assert_array_almost_equal
 
 from fatiando.gravmag import tesseroid, half_sph_shell
 from fatiando.mesher import Tesseroid
+from fatiando import gridder
 
 
 def test_tesseroid_vs_spherical_shell():
@@ -36,3 +37,29 @@ def test_tesseroid_vs_spherical_shell():
         assert_array_almost_equal(shell, tess, precision,
                                   'Failed %s: max diff %.15g'
                                   % (f, diff.max()))
+
+
+def test_laplace_equation():
+    "gravmag.tesseroid obeys Laplace equation"
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670}),
+             Tesseroid(-1.5, 1.5, -1.5, -1, -1000, -20000, {'density': -1000}),
+             Tesseroid(0.1, 0.6, -0.8, -0.3, 10000, -20000, {'density': 2000}),
+             ]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=50000)
+    gxx = tesseroid.gxx(lon, lat, h, model)
+    gyy = tesseroid.gyy(lon, lat, h, model)
+    gzz = tesseroid.gzz(lon, lat, h, model)
+    trace = gxx + gyy + gzz
+    assert_array_almost_equal(trace, np.zeros_like(lon), 9,
+                              'Failed whole model. Max diff %.15g'
+                              % (np.abs(trace).max()))
+    for tess in model:
+        gxx = tesseroid.gxx(lon, lat, h, [tess])
+        gyy = tesseroid.gyy(lon, lat, h, [tess])
+        gzz = tesseroid.gzz(lon, lat, h, [tess])
+        trace = gxx + gyy + gzz
+        assert_array_almost_equal(trace, np.zeros_like(lon), 9,
+                                  'Failed tesseroid %s. Max diff %.15g'
+                                  % (str(tess), np.abs(trace).max()))
