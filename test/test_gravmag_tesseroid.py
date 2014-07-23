@@ -7,7 +7,7 @@ from fatiando import gridder
 
 
 def test_tesseroid_vs_spherical_shell():
-    "gravmag.tesseroid equals analytical solution of spherical half-shell"
+    "gravmag.tesseroid equal analytical solution of spherical half-shell to 1%"
     tlons = np.linspace(-90, 90, 45, endpoint=False)
     tlats = np.linspace(-90, 90, 45, endpoint=False)
     wsize = tlons[1] - tlons[0]
