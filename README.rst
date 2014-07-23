@@ -1,9 +1,9 @@
 Fatiando a Terra
 ================
 
-A Python package for **modeling and inversion** in geophysics.
+A Python package for modeling and inversion in geophysics.
 
-For more **information** visit http://www.fatiando.org
+For more information visit http://www.fatiando.org
 
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat
     :target: https://crate.io/packages/fatiando/
@@ -19,81 +19,80 @@ For more **information** visit http://www.fatiando.org
     :alt: Travis CI build status
 .. image:: http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat
     :target: https://coveralls.io/r/leouieda/fatiando?branch=master
+.. image:: http://img.shields.io/badge/DOI-10.6084/m9.figshare.1115194-blue.svg?style=flat
+    :target: https://github.com/leouieda/fatiando/blob/master/CITATION.rst
+    :alt: doi: 10.6084/m9.figshare.1115194
 
-Documentation
--------------
-
-The latest documentation is available at ReadTheDocs:
-
-http://fatiando.readthedocs.org
-
-There you'll find the install instructions,
-a cookbook with examples,
-and the API reference.
-
-The documentation reflects the *master* branch on Github_.
-
-Get Fatiando
+Dependencies
 ------------
 
-To install and run Fatiando, you'll need the following
-packages:
+For the moment, Fatiando runs and is tested in Python 2.7.
+To install and run Fatiando, you'll need the following packages:
 
-* numpy
-* scipy
-* matplotlib
-* mayavi
-* PIL
-* basemap
-* gcc
+* numpy >= 1.8
+* scipy >= 0.14
+* matplotlib >= 1.3
+* mayavi >= 4.3
+* PIL >= 1.1.7
+* basemap >= 1.0.7
+* gcc >= 4.8.2
+
+You can get all of these on Linux, Mac, and Windows through
+the [Anaconda distribution](http://continuum.io/downloads).
+See file `requirements.txt`.
+
+Installing
+----------
 
 Download and install the latest release of Fatiando from
 `PyPI <https://pypi.python.org/pypi/fatiando>`_:
 
     pip install fatiando
 
-To install the latest development version:
+or get the latest development version from Github:
 
-    pip install git+https://github.com/leouieda/fatiando#egg=fatiando
+    pip install --upgrade https://github.com/leouieda/fatiando/archive/master.zip
 
-You'll find more detailed explanations on the
-`install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`_.
+**Note**: `fatiando.__version__` has the current version number. If you install
+from PyPI, this will be something like `'0.2'`. If you installed from Github,
+this will be the latest commit hash. This way you can track exactly what
+version of Fatiando generated you results.
 
-Source code
------------
+Documentation
+-------------
 
-The source code of Fatiando is hosted on Github_.
+The latest documentation is available at ReadTheDocs. The docs reflects the
+*master* branch on Github.
 
-.. _Github: https://github.com/leouieda/fatiando
+http://fatiando.readthedocs.org
 
-The authors
------------
+There you'll find:
 
-Fatiando is developed by working geophysicists. Work done here is
-part of some Masters and PhD projects. See a list of `people involved`_.
+* a [cookbook](http://fatiando.readthedocs.org/en/latest/cookbook.html) with examples
+* [install instructions](http://fatiando.readthedocs.org/en/latest/install.html)
+* the [API reference](http://fatiando.readthedocs.org/en/latest/api/fatiando.html)
 
-.. _people involved: http://readthedocs.org/docs/fatiando/en/latest/contributors.html
+Citing
+------
+
+Fatiando is research software. If you use it in your research,
+please **cite it** in your publications as:
+
+> Uieda, L, Oliveira Jr, V C, Ferreira, A, Santos, H B; Caparica Jr, J F (2014),
+> Fatiando a Terra: a Python package for modeling and inversion in geophysics.
+> figshare. doi: 10.6084/m9.figshare.1115194
+
+Some of the methods implemented here are also **original research** by some of
+the developers. Please **also cite the method papers**.
+See the CITATION.rst file for more information.
+
+Read `this blog post by Robin Wilson
+<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
+if you haven't heard of CITATION files.
 
 License
 -------
 
 Fatiando a Terra is free software: you can redistribute it and/or modify it
 under the terms of the **BSD License**. A copy of this license is provided in
-LICENSE.txt and at http://readthedocs.org/docs/fatiando/en/latest/license.html
-
-Citing
-------
-
-Many of us are scientists too,
-so citations help justify the effort
-that goes into building Fatiando.
-If you use Fatiando in your research,
-please consider citing it in your publications.
-
-See our `CITATION file
-<https://github.com/leouieda/fatiando/blob/master/CITATION.rst>`__
-for more information.
-Read `this
-<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
-if you haven't heard of CITATION files yet.
-They're the latest trend!
+LICENSE.txt.
