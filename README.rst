@@ -78,9 +78,9 @@ Citing
 Fatiando is research software. If you use it in your research,
 please **cite it** in your publications as:
 
-> Uieda, L, Oliveira Jr, V C, Ferreira, A, Santos, H B; Caparica Jr, J F (2014),
-> Fatiando a Terra: a Python package for modeling and inversion in geophysics.
-> figshare. doi: 10.6084/m9.figshare.1115194
+    Uieda, L, Oliveira Jr, V C, Ferreira, A, Santos, H B; Caparica Jr, J F (2014),
+    Fatiando a Terra: a Python package for modeling and inversion in geophysics.
+    figshare. doi: 10.6084/m9.figshare.1115194
 
 Some of the methods implemented here are also **original research** by some of
 the developers. Please **also cite the method papers**.
