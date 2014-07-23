@@ -10,6 +10,9 @@ Version (future)
 
 **Changes**:
 
+* Refactor, better documentation, and faster code in
+  :ref:`fatiando.gravmag.tesseroid <fatiando_gravmag_tesseroid>`.
+  (`PR 118 <https://github.com/leouieda/fatiando/pull/118>`_)
 * Using `versioneer <https://github.com/warner/python-versioneer>`__ to manage
   version numbers. Access the version number + git commit hash from
   ``fatiando.__version__``.
