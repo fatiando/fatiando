@@ -12,66 +12,71 @@ from libc.math cimport sin, cos, sqrt
 cimport numpy
 cimport cython
 
+# To calculate sin and cos simultaneously
+cdef extern from "math.h":
+    void sincos(double x, double* sinx, double* cosx)
 
 cdef:
     double d2r = numpy.pi/180.
     double[::1] nodes
 nodes = numpy.array([-0.577350269, 0.577350269])
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def too_close(numpy.ndarray[long, ndim=1] points,
-              numpy.ndarray[double, ndim=1] distance, double value):
-    """
-    Separate 'points' into two lists, ones that are too close and ones that
-    aren't. How close is allowed depends on 'value'. 'points' is a list of the
-    indices corresponding to observation points.
-    """
-    cdef:
-        int i, j, l, size = len(points)
-        numpy.ndarray[long, ndim=1] buff
-    buff = numpy.empty(size, dtype=numpy.int)
-    i = 0
-    j = size - 1
-    for l in range(size):
-        if distance[l] > 0 and distance[l] < value:
-            buff[i] = points[l]
-            i += 1
-        else:
-            buff[j] = points[l]
-            j -= 1
-    return buff[:i], buff[j + 1:size]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def distance(
+def too_close(
     tesseroid,
     numpy.ndarray[double, ndim=1] lon,
     numpy.ndarray[double, ndim=1] sinlat,
     numpy.ndarray[double, ndim=1] coslat,
     numpy.ndarray[double, ndim=1] radius,
-    numpy.ndarray[long, ndim=1] points,
-    numpy.ndarray[double, ndim=1] buff):
+    double ratio,
+    numpy.ndarray[long, ndim=1] points):
     """
-    Calculate the distance between a tesseroid and some observation points.
-    Which points to calculate are specified by the indices in 'points'. Returns
-    the values in 'buff'.
+    Separate 'points' in two:
+      The first part doesn't need to be divided.
+      The second part is too close and needs to be divided.
+    Returns the index of the division point:
+        points[:i] -> don't divide
+        points[i:] -> divide
+    How close is measured by:
+        too close ->  distance < ratio*size
+    'points' is a list of the indices corresponding to observation points that
+    need to be checked.
     """
     cdef:
-        unsigned int i, l, size = len(points)
-        double rt, latt, lont, sinlatt, coslatt
-        double w, e, s, n, top, bottom
+        int i, j, p
+        double rt, rt_sqr, latt, lont, sinlatt, coslatt, distance, cospsi
+        double w, e, s, n, top, bottom, size
+        long tmp
     w, e, s, n, top, bottom = tesseroid
     rt = top + MEAN_EARTH_RADIUS
+    rt_sqr = rt**2
     latt = d2r*0.5*(s + n)
-    sinlatt = sin(latt)
-    coslatt = cos(latt)
+    sincos(latt, &sinlatt, &coslatt)
     lont = d2r*0.5*(w + e)
-    for l in range(size):
-        i = points[l]
-        buff[l] = sqrt(
-            radius[i]**2 + rt**2 - 2*radius[i]*rt*(
-                sinlat[i]*sinlatt + coslat[i]*coslatt*cos(lon[i] - lont)))
+    size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
+                MEAN_EARTH_RADIUS*d2r*(n - s),
+                top - bottom])
+    # Will compare with the distance**2 so I don't have to calculate sqrt
+    value = (size*ratio)**2
+    i = 0
+    j = len(points) - 1
+    while i <= j:
+        p = points[i]
+        cospsi = sinlat[p]*sinlatt + coslat[p]*coslatt*cos(lon[p] - lont)
+        distance = radius[p]**2 + rt_sqr - 2*radius[p]*rt*cospsi
+        if distance < 1e-20:
+            raise ValueError("Can't calculate directly on the tesseroid")
+        elif distance > value:
+            i += 1
+        else:
+            tmp = points[j]
+            points[j] = p
+            points[i] = tmp
+            j -= 1
+    return i
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -97,11 +102,11 @@ cdef inline double scale_nodes(
     for i in range(2):
         lonc[i] = d2r*(0.5*dlon*nodes[i] + mlon)
         latc = d2r*(0.5*dlat*nodes[i] + mlat)
-        sinlatc[i] = sin(latc)
-        coslatc[i] = cos(latc)
+        sincos(latc, &sinlatc[i], &coslatc[i])
         rc[i] = (0.5*dr*nodes[i] + mr)
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -124,8 +129,8 @@ def potential(
     """
     cdef:
         unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        double scale, kappa, sinlat, coslat, r_sqr, rc_sqr, coslon, l_sqr
+        double cospsi
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
@@ -133,16 +138,17 @@ def potential(
         l = points[p]
         sinlat = sinlats[l]
         coslat = coslats[l]
-        radii_sqr = radii[l]**2
+        r_sqr = radii[l]**2
         for i in range(2):
             coslon = cos(lons[l] - lonc[i])
             for j in range(2):
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
                 for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
+                    rc_sqr = rc[k]**2
+                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
+                    kappa = rc_sqr*coslatc[j]
                     result[l] += density*scale*(kappa/sqrt(l_sqr))
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -165,8 +171,8 @@ def gx(
     """
     cdef:
         unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        double scale, kappa, sinlat, coslat, rc_sqr, r_sqr, coslon, l_sqr
+        double cospsi
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
@@ -174,18 +180,18 @@ def gx(
         l = points[p]
         sinlat = sinlats[l]
         coslat = coslats[l]
-        radii_sqr = radii[l]**2
+        r_sqr = radii[l]**2
         for i in range(2):
             coslon = cos(lons[l] - lonc[i])
             for j in range(2):
                 kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
                 for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*rc[k]*kphi/(l_sqr**1.5))
+                    rc_sqr = rc[k]**2
+                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
+                    kappa = rc_sqr*coslatc[j]
+                    result[l] += density*scale*kappa*rc[k]*kphi/(l_sqr**1.5)
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -208,8 +214,8 @@ def gy(
     """
     cdef:
         unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
+        double cospsi, sinlon, rc_sqr
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
@@ -217,18 +223,18 @@ def gy(
         l = points[p]
         sinlat = sinlats[l]
         coslat = coslats[l]
-        radii_sqr = radii[l]**2
+        r_sqr = radii[l]**2
         for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            sinlon = sin(lonc[i] - lons[l])
+            sincos(lonc[i] - lons[l], &sinlon, &coslon)
             for j in range(2):
+                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
                 for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
+                    rc_sqr = rc[k]**2
+                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
+                    kappa = rc_sqr*coslatc[j]
                     result[l] += density*scale*(
                         kappa*rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -251,8 +257,8 @@ def gz(
     """
     cdef:
         unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, radii_sqr, coslon, l_sqr
-        double cospsi, deltaz
+        double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
+        double cospsi, rc_sqr
     # Put the nodes in the current range
     scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
@@ -260,18 +266,18 @@ def gz(
         l = points[p]
         sinlat = sinlats[l]
         coslat = coslats[l]
-        radii_sqr = radii[l]**2
+        r_sqr = radii[l]**2
         for i in range(2):
             coslon = cos(lons[l] - lonc[i])
             for j in range(2):
                 cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
                 for k in range(2):
-                    l_sqr = (radii_sqr + rc[k]**2 -
-                             2.*radii[l]*rc[k]*(
-                                sinlat*sinlatc[j] + coslat*coslatc[j]*coslon))
-                    kappa = (rc[k]**2)*coslatc[j]
+                    rc_sqr = rc[k]**2
+                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
+                    kappa = rc_sqr*coslatc[j]
                     result[l] += density*scale*(
                         kappa*(rc[k]*cospsi - radii[l])/(l_sqr**1.5))
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -376,8 +382,7 @@ cdef inline double kernelxy(
     r_sqr = radius**2
     result = 0
     for i in range(2):
-        coslon = cos(lon - lonc[i])
-        sinlon = sin(lonc[i] - lon)
+        sincos(lonc[i] - lon, &sinlon, &coslon)
         for j in range(2):
             kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
             cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
@@ -387,6 +392,7 @@ cdef inline double kernelxy(
                 kappa = rc_sqr*coslatc[j]
                 result += kappa*3*rc_sqr*kphi*coslatc[j]*sinlon/(l_sqr**2.5)
     return result*scale
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -492,8 +498,7 @@ cdef inline double kernelyy(
     r_sqr = radius**2
     result = 0
     for i in range(2):
-        coslon = cos(lon - lonc[i])
-        sinlon = sin(lonc[i] - lon)
+        sincos(lonc[i] - lon, &sinlon, &coslon)
         for j in range(2):
             cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
             for k in range(2):
@@ -551,8 +556,7 @@ cdef inline double kernelyz(
     r_sqr = radius**2
     result = 0
     for i in range(2):
-        coslon = cos(lon - lonc[i])
-        sinlon = sin(lonc[i] - lon)
+        sincos(lonc[i] - lon, &sinlon, &coslon)
         for j in range(2):
             cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
             for k in range(2):

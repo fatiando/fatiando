@@ -445,7 +445,6 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
     d2r = numpy.pi / 180.
 
     # Create some buffers to reduce memory allocation
-    distances = numpy.zeros(ndata, numpy.float)
     lonc = numpy.zeros(2, numpy.float)
     sinlatc = numpy.zeros(2, numpy.float)
     coslatc = numpy.zeros(2, numpy.float)
@@ -456,21 +455,15 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
                               maxlen=1000)
     while queue:
         points, tess = queue.pop()
-        w, e, s, n, top, bottom = tess
-        size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
-                    MEAN_EARTH_RADIUS*d2r*(n - s),
-                    top - bottom])
-        _tesseroid.distance(tess, lon, sinlat, coslat, radius, points,
-                            distances)
-        need_divide, dont_divide = _tesseroid.too_close(points, distances,
-                                                        ratio*size)
-        if len(need_divide):
+        middle = _tesseroid.too_close(tess, lon, sinlat, coslat, radius,
+                                      ratio, points)
+        if middle < len(points):
             if len(queue) + 8 >= queue.maxlen:
                 raise ValueError('Tesseroid queue overflow')
-            queue.extend(_half(tess, need_divide))
-        if len(dont_divide):
+            queue.extend(_half(tess, points[middle:]))
+        if middle:
             kernel(tess, props, lon, sinlat, coslat, radius, lonc,
-                   sinlatc, coslatc, rc, result, dont_divide)
+                   sinlatc, coslatc, rc, result, points[:middle])
 
 
 def _half(bounds, points):
