@@ -150,6 +150,30 @@ QUEUE_SIZE = 1000
 def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
     """
     Calculate the gravitational potential due to a tesseroid model.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in SI units
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -177,8 +201,31 @@ def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
 
 def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
-    Calculate the x (North) component of the gravitational attraction due to a
-    tesseroid model.
+    Calculate the North component of the gravitational attraction.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in mGal
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -206,8 +253,31 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
 
 def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
-    Calculate the y (East) component of the gravitational attraction due to a
-    tesseroid model.
+    Calculate the East component of the gravitational attraction.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in mGal
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -235,8 +305,36 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
 
 def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     """
-    Calculate the z (radial) component of the gravitational attraction due to a
-    tesseroid model.
+    Calculate the radial component of the gravitational attraction.
+
+    .. warning::
+        In order to conform with the regular convention of positive density
+        giving positive gz values, **this component only** is calculated
+        with **z axis -> Down**.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in mGal
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -266,8 +364,31 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
 
 def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the xx (North-North) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the xx component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -295,8 +416,31 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
 
 def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the xy (North-East) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the xy component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -324,8 +468,31 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
 
 def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the xz (North-radial) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the xz component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -353,8 +520,31 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
 
 def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the yy (East-East) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the yy component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -382,8 +572,31 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
 
 def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the yz (East-radial) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the yz component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -411,8 +624,31 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
 
 def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     """
-    Calculate the zz (radial-radial) component of the gravity gradient tensor
-    due to a tesseroid model.
+    Calculate the zz component of the gravity gradient tensor.
+
+    Parameters:
+
+    * lons, lats, heights : arrays
+        Arrays with the longitude, latitude and height coordinates of the
+        computation points.
+    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+        The density model used to calculate the gravitational effect.
+        Tesseroids must have the property ``'density'``. Those that don't have
+        this property will be ignored in the computations. Elements that are
+        None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the tesseroids. Use this, e.g., for sensitivity matrix building.
+    * radio : float
+        Will divide each tesseroid until the distance between it and the
+        computation points is < ratio*size of tesseroid. Used to guarantee the
+        accuracy of the numerical integration.
+
+    Returns:
+
+    * res : array
+        The calculated field in Eotvos
+
     """
     ndata = len(lons)
     # Convert things to radians
@@ -442,7 +678,7 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
                            kernel, ratio, result):
     """
     Calculate the effect of a given kernel in the most precise way by
-    adaptively discretizing the tesseroids into smaller ones.
+    adaptively discretizing the tesseroid into smaller ones.
     """
     ndata = len(lon)
     d2r = numpy.pi / 180.
