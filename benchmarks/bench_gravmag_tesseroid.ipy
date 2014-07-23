@@ -19,7 +19,10 @@ if len(sys.argv) > 1 and sys.argv[1] == 'profile':
     print "Profiling code:"
     from line_profiler import LineProfiler
     %prun tesseroid.gzz(lon, lat, height, model)
-    lp = LineProfiler(tesseroid._optimal_discretize)
+    lp = LineProfiler(tesseroid.gzz)
+    lp.runcall(tesseroid.gzz, lon, lat, height, model)
+    lp.print_stats()
+    lp = LineProfiler(tesseroid._with_optimal_division)
     lp.runcall(tesseroid.gzz, lon, lat, height, model)
     lp.print_stats()
 else:
