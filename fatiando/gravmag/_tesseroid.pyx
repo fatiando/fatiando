@@ -19,7 +19,8 @@ cdef extern from "math.h":
 cdef:
     double d2r = numpy.pi/180.
     double[::1] nodes
-nodes = numpy.array([-0.577350269, 0.577350269])
+nodes = numpy.array([-0.577350269189625731058868041146,
+                     0.577350269189625731058868041146])
 
 
 @cython.boundscheck(False)
