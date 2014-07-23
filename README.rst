@@ -38,23 +38,23 @@ To install and run Fatiando, you'll need the following packages:
 * gcc >= 4.8.2
 
 You can get all of these on Linux, Mac, and Windows through
-the [Anaconda distribution](http://continuum.io/downloads).
-See file `requirements.txt`.
+the `Anaconda distribution <http://continuum.io/downloads>`__.
+See file ``requirements.txt``.
 
 Installing
 ----------
 
 Download and install the latest release of Fatiando from
-`PyPI <https://pypi.python.org/pypi/fatiando>`_:
+`PyPI <https://pypi.python.org/pypi/fatiando>`_::
 
     pip install fatiando
 
-or get the latest development version from Github:
+or get the latest development version from Github::
 
     pip install --upgrade https://github.com/leouieda/fatiando/archive/master.zip
 
-**Note**: `fatiando.__version__` has the current version number. If you install
-from PyPI, this will be something like `'0.2'`. If you installed from Github,
+**Note**: ``fatiando.__version__`` has the current version number. If you install
+from PyPI, this will be something like ``'0.2'``. If you installed from Github,
 this will be the latest commit hash. This way you can track exactly what
 version of Fatiando generated you results.
 
@@ -68,9 +68,9 @@ http://fatiando.readthedocs.org
 
 There you'll find:
 
-* a [cookbook](http://fatiando.readthedocs.org/en/latest/cookbook.html) with examples
-* [install instructions](http://fatiando.readthedocs.org/en/latest/install.html)
-* the [API reference](http://fatiando.readthedocs.org/en/latest/api/fatiando.html)
+* a `cookbook <http://fatiando.readthedocs.org/en/latest/cookbook.html>`__ with examples
+* `install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`__
+* the `API reference <http://fatiando.readthedocs.org/en/latest/api/fatiando.html>`__
 
 Citing
 ------
