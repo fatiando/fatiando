@@ -1,9 +1,28 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+from nose.tools import assert_raises
 
 from fatiando.gravmag import tesseroid, half_sph_shell
 from fatiando.mesher import Tesseroid
 from fatiando import gridder
+
+
+def test_queue_overflow():
+    "gravmag.tesseroid raises exception on queue overflow"
+    qsize = tesseroid.QUEUE_SIZE
+    tesseroid.QUEUE_SIZE = 6
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=10000)
+    funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
+             'gzz']
+    try:
+        for f in funcs:
+            assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h,
+                          model)
+    finally:
+        tesseroid.QUEUE_SIZE = qsize
 
 
 def test_tesseroid_vs_spherical_shell():

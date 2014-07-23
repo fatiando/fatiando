@@ -144,6 +144,9 @@ from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 from . import _tesseroid
 
 
+QUEUE_SIZE = 1000
+
+
 def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
     """
     Calculate the gravitational potential due to a tesseroid model.
@@ -452,7 +455,7 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
     allpoints = numpy.arange(ndata)
 
     queue = collections.deque([[allpoints, tesseroid.get_bounds()]],
-                              maxlen=1000)
+                              maxlen=QUEUE_SIZE)
     while queue:
         points, tess = queue.pop()
         middle = _tesseroid.too_close(tess, lon, sinlat, coslat, radius,
