@@ -66,6 +66,56 @@ def test_fails_if_shape_mismatch():
     assert_raises(ValueError, prism.gzz, x, y, z[:-2], model)
     assert_raises(ValueError, prism.gzz, x[:-5], y, z[:-2], model)
 
+    assert_raises(ValueError, prism.bx, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.bx, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.bx, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.bx, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.by, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.by, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.by, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.by, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.bz, x[:-2], y, z, model)
+    assert_raises(ValueError, prism.bz, x, y[:-2], z, model)
+    assert_raises(ValueError, prism.bz, x, y, z[:-2], model)
+    assert_raises(ValueError, prism.bz, x[:-5], y, z[:-2], model)
+
+    assert_raises(ValueError, prism.tf, x[:-2], y, z, model, inc, dec)
+    assert_raises(ValueError, prism.tf, x, y[:-2], z, model, inc, dec)
+    assert_raises(ValueError, prism.tf, x, y, z[:-2], model, inc, dec)
+    assert_raises(ValueError, prism.tf, x[:-5], y, z[:-2], model, inc, dec)
+
+    assert_raises(ValueError, prism.kernelxx, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelxx, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelxx, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelxx, x[:-5], y, z[:-2], model[0])
+
+    assert_raises(ValueError, prism.kernelxy, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelxy, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelxy, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelxy, x[:-5], y, z[:-2], model[0])
+
+    assert_raises(ValueError, prism.kernelxz, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelxz, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelxz, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelxz, x[:-5], y, z[:-2], model[0])
+
+    assert_raises(ValueError, prism.kernelyy, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelyy, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelyy, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelyy, x[:-5], y, z[:-2], model[0])
+
+    assert_raises(ValueError, prism.kernelyz, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelyz, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelyz, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelyz, x[:-5], y, z[:-2], model[0])
+
+    assert_raises(ValueError, prism.kernelzz, x[:-2], y, z, model[0])
+    assert_raises(ValueError, prism.kernelzz, x, y[:-2], z, model[0])
+    assert_raises(ValueError, prism.kernelzz, x, y, z[:-2], model[0])
+    assert_raises(ValueError, prism.kernelzz, x[:-5], y, z[:-2], model[0])
+
 
 def test_force_physical_property():
     'gravmag.prism gives correct results when passed a property value as arg'
