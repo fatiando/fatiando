@@ -141,8 +141,10 @@ import collections
 import numpy
 
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
-from . import _tesseroid
-
+try:
+    from . import _tesseroid
+except ImportError:
+    pass
 
 QUEUE_SIZE = 1000
 
