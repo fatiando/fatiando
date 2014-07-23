@@ -137,6 +137,7 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 ----
 
 """
+import collections
 import numpy
 
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
@@ -451,7 +452,8 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
     rc = numpy.zeros(2, numpy.float)
     allpoints = numpy.arange(ndata)
 
-    queue = [(allpoints, tesseroid.get_bounds())]
+    queue = collections.deque([[allpoints, tesseroid.get_bounds()]],
+                              maxlen=1000)
     while queue:
         points, tess = queue.pop()
         w, e, s, n, top, bottom = tess
@@ -463,7 +465,7 @@ def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
         need_divide, dont_divide = _tesseroid.too_close(points, distances,
                                                         ratio*size)
         if len(need_divide):
-            if len(queue) >= 1000:
+            if len(queue) + 8 >= queue.maxlen:
                 raise ValueError('Tesseroid queue overflow')
             queue.extend(_half(tess, need_divide))
         if len(dont_divide):
@@ -476,11 +478,11 @@ def _half(bounds, points):
     dlon = 0.5*(e - w)
     dlat = 0.5*(n - s)
     dh = 0.5*(top - bottom)
-    yield (points, (w, w + dlon, s, s + dlat, bottom + dh, bottom))
-    yield (points, (w, w + dlon, s, s + dlat, top, bottom + dh))
-    yield (points, (w, w + dlon, s + dlat, n, bottom + dh, bottom))
-    yield (points, (w, w + dlon, s + dlat, n, top, bottom + dh))
-    yield (points, (w + dlon, e, s, s + dlat, bottom + dh, bottom))
-    yield (points, (w + dlon, e, s, s + dlat, top, bottom + dh))
-    yield (points, (w + dlon, e, s + dlat, n, bottom + dh, bottom))
-    yield (points, (w + dlon, e, s + dlat, n, top, bottom + dh))
+    yield [points, [w, w + dlon, s, s + dlat, bottom + dh, bottom]]
+    yield [points, [w, w + dlon, s, s + dlat, top, bottom + dh]]
+    yield [points, [w, w + dlon, s + dlat, n, bottom + dh, bottom]]
+    yield [points, [w, w + dlon, s + dlat, n, top, bottom + dh]]
+    yield [points, [w + dlon, e, s, s + dlat, bottom + dh, bottom]]
+    yield [points, [w + dlon, e, s, s + dlat, top, bottom + dh]]
+    yield [points, [w + dlon, e, s + dlat, n, bottom + dh, bottom]]
+    yield [points, [w + dlon, e, s + dlat, n, top, bottom + dh]]
