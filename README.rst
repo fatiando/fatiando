@@ -19,9 +19,9 @@ For more information visit http://www.fatiando.org
     :alt: Travis CI build status
 .. image:: http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat
     :target: https://coveralls.io/r/leouieda/fatiando?branch=master
-.. image:: http://img.shields.io/badge/DOI-10.6084/m9.figshare.1115194-blue.svg?style=flat
-    :target: https://github.com/leouieda/fatiando/blob/master/CITATION.rst
-    :alt: doi: 10.6084/m9.figshare.1115194
+.. image:: http://img.shields.io/badge/doi-10.6084/m9.figshare.1115194-blue.svg?style=flat
+    :target: http://dx.doi.org/10.6084/m9.figshare.1115194
+    :alt: doi:10.6084/m9.figshare.1115194
 
 Dependencies
 ------------
@@ -68,9 +68,13 @@ http://fatiando.readthedocs.org
 
 There you'll find:
 
-* a `cookbook <http://fatiando.readthedocs.org/en/latest/cookbook.html>`__ with examples
-* `install instructions <http://fatiando.readthedocs.org/en/latest/install.html>`__
-* the `API reference <http://fatiando.readthedocs.org/en/latest/api/fatiando.html>`__
+* a cookbook_ with examples
+* `install instructions`_
+* the `API reference`_
+
+.. _cookbook: http://fatiando.readthedocs.org/en/latest/cookbook.html
+.. _install instructions: http://fatiando.readthedocs.org/en/latest/install.html
+.. _API reference: http://fatiando.readthedocs.org/en/latest/api/fatiando.html
 
 Citing
 ------
@@ -84,11 +88,13 @@ please **cite it** in your publications as:
 
 Some of the methods implemented here are also **original research** by some of
 the developers. Please **also cite the method papers**.
-See the CITATION.rst file for more information.
+See the `CITATION.rst`_ file for more information.
 
-Read `this blog post by Robin Wilson
-<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
+Read `this blog post by Robin Wilson`_
 if you haven't heard of CITATION files.
+
+.. _CITATION.rst: https://github.com/leouieda/fatiando/blob/master/CITATION.rst
+.. _this blog post by Robin Wilson: http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files
 
 License
 -------
