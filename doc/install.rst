@@ -91,6 +91,7 @@ To uninstall simply run::
 
     The Windows installer from older versions is no longer supported.
 
+
 Installing the latest development version
 -----------------------------------------
 
@@ -100,18 +101,22 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/leouieda/fatiando/branches>`__,
 so it should be safe to use.
 
-First, you'll need to `install git`_.
-Then, open a terminal and run::
+To install the latest version from Github::
 
-    git clone --depth=50 --branch=master https://github.com/leouieda/fatiando.git
+    pip install --upgrade https://github.com/leouieda/fatiando/archive/master.zip
 
-This will fetch the source code from Github_
-and place it in a folder called ``fatiando`` in the directory where you ran the
-command.
-Then, just ``cd`` into the directory and run ``pip``::
+or if you have git installed and want to see the code::
 
+    git clone https://github.com/leouieda/fatiando.git
     cd fatiando
     pip install --upgrade .
+
+.. note::
+
+    ``fatiando.__version__`` has the current version number. If you install
+    from PyPI, this will be something like ``'0.2'``. If you installed from
+    Github, this will be the latest commit hash. This way you can track exactly
+    what version of Fatiando generated your results.
 
 
 Testing the install
@@ -124,6 +129,7 @@ To make it easier for us to debug you problem, please include the following
 information:
 
 * Operating system
+* Version of Fatiando you installed
 * Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
 * Python version (2.6, 2.7, 3.3, 3.4, etc)
 * The script you ran (and gave you an error/weird result)

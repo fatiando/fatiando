@@ -56,7 +56,7 @@ or get the latest development version from Github::
 **Note**: ``fatiando.__version__`` has the current version number. If you install
 from PyPI, this will be something like ``'0.2'``. If you installed from Github,
 this will be the latest commit hash. This way you can track exactly what
-version of Fatiando generated you results.
+version of Fatiando generated your results.
 
 Documentation
 -------------
