@@ -49,7 +49,6 @@ def too_close(
         int i, j, p
         double rt, rt_sqr, latt, lont, sinlatt, coslatt, distance, cospsi
         double w, e, s, n, top, bottom, size
-        long tmp
     w, e, s, n, top, bottom = tesseroid
     rt = top + MEAN_EARTH_RADIUS
     rt_sqr = rt**2
@@ -72,9 +71,8 @@ def too_close(
         elif distance > value:
             i += 1
         else:
-            tmp = points[j]
+            points[i] = points[j]
             points[j] = p
-            points[i] = tmp
             j -= 1
     return i
 
