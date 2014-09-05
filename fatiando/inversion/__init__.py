@@ -37,18 +37,38 @@ Linear Regression
 Here is an example of how to implement a simple linear regression using the
 :class:`~fatiando.inversion.base.Misfit` class.
 
+What we want to do is fit :math:`f(a, b, x) = y = ax + b` to find a and b.
+Putting a and b in a parameter vector `p = [a, b]` we get:
+
+.. math::
+
+    \mathbf{d} = \mathbf{A} \mathbf{p}
+
+where :math:`\mathbf{d}` is the data vector containing all the values of y
+and :math:`\mathbf{A}` is the Jacobian matrix with the values of x in the first
+column and 1 in the second column.
+
+All we have to do to implement a solver for this problem is write the
+`predicted` (to calculate y from values of a and b) and `jacobian` (to
+calculate the Jacobian matrix):
+
+
 >>> import numpy as np
 >>> from fatiando.inversion.base import Misfit
 >>> class Regression(Misfit):
 ...     "Perform a linear regression"
 ...     def __init__(self, x, y):
-...         super(Regression, self).__init__(data=y, positional={'x':x},
-...             model={}, nparams=2, islinear=True)
-...     def _get_predicted(self, p):
+...         super(Regression, self).__init__(
+...             data_dict=dict(x=x, y=y), # Tell Misfit which things are data
+...             data_vector='y', # and which of those is the data vector d
+...             nparams=2, islinear=True)
+...     def predicted(self, p):
 ...         a, b = p
-...         return a*self.positional['x'] + b
-...     def _get_jacobian(self, p):
-...         return np.transpose([self.positional['x'], np.ones(self.ndata)])
+...         return a*self.x + b
+...     def jacobian(self, p):
+...         jac = np.ones((self.ndata, self.nparams))
+...         jac[:, 0] = self.x
+...         return jac
 >>> x = np.linspace(0, 5, 6)
 >>> y = 2*x + 5
 >>> y
@@ -70,14 +90,16 @@ A more complicated example would be to implement a generic polynomial fit.
 ...     "Perform a polynomial regression"
 ...     def __init__(self, x, y, degree):
 ...         super(PolynomialRegression, self).__init__(
-...             data=y, positional={'x':x},
-...             model={'degree':degree}, nparams=degree + 1, islinear=True)
-...     def _get_predicted(self, p):
-...         return sum(p[i]*self.positional['x']**i
-...                    for i in xrange(self.model['degree'] + 1))
-...     def _get_jacobian(self, p):
-...         return np.transpose([self.positional['x']**i
-...                             for i in xrange(self.model['degree'] + 1)])
+...             data_dict=dict(x=x, y=y), data_vector='y',
+...             nparams=degree + 1, islinear=True)
+...         self.degree = degree
+...     def predicted(self, p):
+...         return sum(p[i]*self.x**i  for i in xrange(self.nparams))
+...     def jacobian(self, p):
+...         jac = np.ones((self.ndata, self.nparams))
+...         for i in xrange(self.nparams):
+...             jac[:, i] = self.x**i
+...         return jac
 >>> solver = PolynomialRegression(x, y, 1)
 >>> solver.fit().estimate_
 array([ 5.,  2.])
@@ -119,24 +141,21 @@ we can call ``fit()``.
 
 >>> class GaussianFit(Misfit):
 ...     def __init__(self, x, y):
-...         super(GaussianFit, self).__init__(data=y,
-...             positional={'x':x},
-...             model={},
+...         super(GaussianFit, self).__init__(
+...             data_dict=dict(x=x, y=y), data_vector='y',
 ...             nparams=3, islinear=False)
-...     def _get_predicted(self, p):
+...     def predicted(self, p):
 ...         a, b, c = p
-...         x = self.positional['x']
-...         return a*np.exp(-b*(x + c)**2)
-...     def _get_jacobian(self, p):
+...         return a*np.exp(-b*(self.x + c)**2)
+...     def jacobian(self, p):
 ...         a, b, c = p
-...         x = self.positional['x']
-...         jac = np.transpose([
-...             np.exp(-b*(x + c)**2),
+...         jac = np.ones((self.ndata, self.nparams))
+...         jac[:, 0] = np.exp(-b*(self.x + c)**2)
 ...             # Do a numerical derivative for these two because I'm lazy
-...             (a*np.exp(-(b + 0.005)*(x + c)**2) -
-...              a*np.exp(-(b - 0.005)*(x + c)**2))/0.01,
-...             (a*np.exp(-(b)*(x + c + 0.005)**2) -
-...              a*np.exp(-(b)*(x + c - 0.005)**2))/0.01])
+...         jac[:, 1] = (a*np.exp(-(b + 0.005)*(self.x + c)**2) -
+...                      a*np.exp(-(b - 0.005)*(self.x + c)**2))/0.01
+...         jac[:, 2] = (a*np.exp(-(b)*(self.x + c + 0.005)**2) -
+...                      a*np.exp(-(b)*(self.x + c - 0.005)**2))/0.01
 ...         return jac
 >>> x = np.linspace(0, 10, 1000)
 >>> a, b, c = 100, 0.1, -2
@@ -170,17 +189,14 @@ array([  205.,   805.,  1405.,  2005.])
 >>> solver = Regression(x1, y1) + Regression(x2, y2)
 >>> solver.fit().estimate_
 array([ 2.,  5.])
->>> # Returns each predicted data in the order of the sum
->>> y1pred, y2pred = solver.predicted()
->>> y1pred
+>>> # index the solver to get each Regression
+>>> solver[0].predicted()
 array([  5.,   7.,   9.,  11.,  13.,  15.])
->>> y2pred
+>>> solver[1].predicted()
 array([  205.,   805.,  1405.,  2005.])
->>> # The residuals are also returned in the order of the sum
->>> res1, res2 = solver.residuals()
->>> np.abs(res1) < 10**-10
+>>> np.abs(solver[0].residuals()) < 10**-10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
->>> np.abs(res2) < 10**-10
+>>> np.abs(solver[1].residuals()) < 10**-10
 array([ True,  True,  True,  True], dtype=bool)
 >>> # We can configure the joint solver just like any other
 >>> solver.config('levmarq', initial=[1, 1]).fit().estimate_
@@ -192,17 +208,17 @@ This can also be expanded to 3 or more data types:
 >>> y3 = 2*x3 + 5
 >>> y3
 array([ 25. ,  25.4,  25.8,  26.2,  26.6,  27. ])
->>> solver = solver + Regression(x3, y3)
+>>> solver = Regression(x1, y1) + Regression(x2, y2) + Regression(x3, y3)
 >>> solver.fit().estimate_
 array([ 2.,  5.])
->>> y1pred, y2pred, y3pred = solver.predicted()
+>>> y1pred, y2pred, y3pred = [s.predicted() for s in solver[:]]
 >>> y1pred
 array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> y2pred
 array([  205.,   805.,  1405.,  2005.])
 >>> y3pred
 array([ 25. ,  25.4,  25.8,  26.2,  26.6,  27. ])
->>> res1, res2, res3 = solver.residuals()
+>>> res1, res2, res3 = [s.residuals() for s in solver[:]]
 >>> np.abs(res1) < 10**-10
 array([ True,  True,  True,  True,  True,  True], dtype=bool)
 >>> np.abs(res2) < 10**-10
