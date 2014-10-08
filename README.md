@@ -1,9 +1,9 @@
 Fatiando a Terra
 ================
 
-[Website](http://www.fatiando.org)|
-[Docs](http://fatiando.readthedocs.org)|
-[Mailing list](https://groups.google.com/d/forum/fatiando)|
+[Website](http://www.fatiando.org) |
+[Docs](http://fatiando.readthedocs.org) |
+[Mailing list](https://groups.google.com/d/forum/fatiando) |
 [Google+](https://plus.google.com/+FatiandoOrg)
 
 A Python package for modeling and inversion in geophysics.
