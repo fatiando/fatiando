@@ -1,5 +1,4 @@
-Fatiando a Terra
-================
+# ![Fatiando a Terra](https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png)
 
 [Website](http://www.fatiando.org) |
 [Docs](http://fatiando.readthedocs.org) |
