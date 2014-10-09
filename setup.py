@@ -21,7 +21,7 @@ DESCRIPTION = "Geophysical modeling and inversion"
 VERSION = versioneer.get_version()
 CMDCLASS = versioneer.get_cmdclass()
 try:
-    with open("README.rst") as f:
+    with open("README.md") as f:
         LONG_DESCRIPTION = ''.join(f.readlines())
 except IOError:
     with open("README.txt") as f:
