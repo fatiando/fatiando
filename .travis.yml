@@ -22,8 +22,8 @@ install:
 script:
     - make pep8-stats
     - make test
-    - make clean; cd doc; make linkcheck && make html
     - make coverage
+    - make clean; cd doc; make linkcheck && make html && cd ..
 after_success:
     - coveralls
 notifications:
