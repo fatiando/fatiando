@@ -15,15 +15,15 @@ before_install:
     # Update conda itself
     - conda update --yes conda
     - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging
-    - pip install -q --use-mirrors coverage coveralls pep8 sphinx_rtd_theme
+    - pip install -q --use-mirrors coverage coveralls pep8 sphinx-rtd-theme
 install:
     - pip install .
     - make clean && make build
 script:
     - make pep8-stats
     - make test
-    - make coverage
     - make clean; cd doc; make linkcheck && make html
+    - make coverage
 after_success:
     - coveralls
 notifications:
