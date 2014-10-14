@@ -21,6 +21,8 @@ echo -e "Preparing to copy generated files to gh-pages"
     # Delete all the files and replace with our good set
     git rm -rf .
     cp -Rf $HOME/keep/. $HOME/gh-pages
+    echo "http://fatiando.github.io/docs/" > CNAME
+    echo "" > .nojekyll
     # add, commit and push files
     git add -f .
     git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to fatiando/docs gh-pages"
