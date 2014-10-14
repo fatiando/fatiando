@@ -35,10 +35,10 @@ http://youtu.be/Ec38h1oB8cc
 
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _2013 Scipy conference: http://conference.scipy.org/scipy2013/index.php
-.. _GitHub: https://github.com/leouieda/fatiando
+.. _GitHub: https://github.com/fatiando/fatiando
 .. _the official site: http://www.fatiando.org
 .. _Python: http://www.python.org
-.. _CITATION file: https://github.com/leouieda/fatiando/blob/master/CITATION.rst
+.. _CITATION file: https://github.com/fatiando/fatiando/blob/master/CITATION.rst
 
 ----
 
