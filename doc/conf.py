@@ -18,35 +18,6 @@ sys.path.append(os.path.pardir)
 # and the cookbook.py module to build the cookbook
 sys.path.append(os.path.split(os.path.abspath(__file__))[0])
 
-# Mock out the depencies with C modules so that ReadTheDocs can build the
-# documentation without having them installed.
-class Mock(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        return Mock()
-
-    @classmethod
-    def __getattr__(self, name):
-        if name in ('__file__', '__path__'):
-            return '/dev/null'
-        elif name[0] == name[0].upper():
-            return type(name, (), {})
-        else:
-            return Mock()
-
-MOCK_MODULES = [
-    'numpy', 'numpy.linalg', 'numpy.linalg.linalg',
-    'scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.misc',
-    'scipy.special', 'scipy.interpolate',
-    'matplotlib',
-    'matplotlib.mlab', 'matplotlib.pyplot', 'matplotlib.widgets',
-    'matplotlib.nxutils',
-    'PIL.Image']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
-
 # Build the cookbook recipes
 import cookbook
 cookbook.build(os.path.join(os.pardir, 'cookbook'))

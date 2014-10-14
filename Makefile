@@ -28,28 +28,14 @@ build:
 cython:
 	$(PY) setup.py build_ext --inplace --cython
 
-docs: clean
-	pip install --upgrade --quiet sphinx sphinx-rtd-theme || \
-		pip install --user --upgrade --quiet sphinx sphinx-rtd-theme
-	cd doc; make html
-
-view-docs:
-	firefox doc/_build/html/index.html &
-
 .PHONY: test
 test: build
-	pip install --upgrade --quiet nose pep8 || \
-		pip install --user --upgrade --quiet nose pep8
 	$(NOSE) --with-doctest -v fatiando/ test/
 
 test-par: build
-	pip install --upgrade --quiet nose pep8 || \
-		pip install --user --upgrade --quiet nose pep8
 	$(NOSE) --with-doctest -v --processes=`nproc` fatiando/ test/
 
 coverage: build
-	pip install --upgrade --quiet nose pep8 coverage || \
-		pip install --user --upgrade --quiet nose pep8 coverage
 	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ \
 		test/
 
