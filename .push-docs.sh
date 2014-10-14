@@ -3,7 +3,7 @@
 # http://sleepycoders.blogspot.com.au/2013/03/sharing-travis-ci-generated-files.html
 # and https://github.com/richfitz/wood
 echo -e "Preparing to copy generated files to gh-pages"
-#if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
     echo -e "Starting to update docs website\n"
     cp -R doc/_build/html/ $HOME/keep
     # Go to home and setup git
@@ -29,7 +29,7 @@ echo -e "Preparing to copy generated files to gh-pages"
     echo -e "Pushing to gh-pages"
     git push -fq origin gh-pages > /dev/null
     echo -e "Uploaded generated files\n"
-#else
-    #echo -e "This is a pull request, not copying files"
-#fi
+else
+    echo -e "This is a pull request, not copying files"
+fi
 echo -e "Done"
