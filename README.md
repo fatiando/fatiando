@@ -9,9 +9,9 @@ A Python package for modeling and inversion in geophysics.
 
 [![Latest PyPI version | ](http://img.shields.io/pypi/v/fatiando.svg?style=flat)](https://crate.io/packages/fatiando)
 [![Number of PyPI downloads | ](http://img.shields.io/pypi/dm/fatiando.svg?style=flat)](https://crate.io/packages/fatiando/)
-[![BSD 3 clause license | ](http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat)](https://github.com/leouieda/fatiando/blob/master/LICENSE.txt)
-[![Travis CI build status | ](http://img.shields.io/travis/leouieda/fatiando.svg?style=flat)](https://travis-ci.org/leouieda/fatiando)
-[![Test coverage status | ](http://img.shields.io/coveralls/leouieda/fatiando.svg?style=flat)](https://coveralls.io/r/leouieda/fatiando?branch=master)
+[![BSD 3 clause license | ](http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat)](https://github.com/fatiando/fatiando/blob/master/LICENSE.txt)
+[![Travis CI build status | ](http://img.shields.io/travis/fatiando/fatiando.svg?style=flat)](https://travis-ci.org/fatiando/fatiando)
+[![Test coverage status | ](http://img.shields.io/coveralls/fatiando/fatiando.svg?style=flat)](https://coveralls.io/r/fatiando/fatiando?branch=master)
 [![doi:10.6084/m9.figshare.1115194](http://img.shields.io/badge/doi-10.6084/m9.figshare.1115194-blue.svg?style=flat)](http://dx.doi.org/10.6084/m9.figshare.1115194)
 
 ## Dependencies
@@ -41,7 +41,7 @@ Download and install the latest release of Fatiando from
 
 or get the latest development version from Github:
 
-    pip install --upgrade https://github.com/leouieda/fatiando/archive/master.zip
+    pip install --upgrade https://github.com/fatiando/fatiando/archive/master.zip
 
 **Note**: `fatiando.__version__` has the current version number. If you install
 from PyPI, this will be something like `'0.2'`. If you installed from Github,
@@ -60,7 +60,7 @@ please **cite it** in your publications as:
 Some of the methods implemented here are also **original research** by some of
 the developers. Please **also cite the method papers**.
 See the
-[CITATION.rst](https://github.com/leouieda/fatiando/blob/master/CITATION.rst)
+[CITATION.rst](https://github.com/fatiando/fatiando/blob/master/CITATION.rst)
 file for more information.
 
 Read [this blog post by Robin Wilson](http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files)
