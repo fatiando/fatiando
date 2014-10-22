@@ -1,5 +1,5 @@
 """
-Gravmag: Calculate the gravity disturbance and Bouguer anomaly for Hawaii
+GravMag: Calculate the gravity disturbance and Bouguer anomaly for Hawaii
 """
 from fatiando.gravmag import normal_gravity
 from fatiando.vis import mpl
