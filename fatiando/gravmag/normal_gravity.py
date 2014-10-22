@@ -17,6 +17,8 @@ Available ellipsoids:
 * ``WGS84``::
 
     >>> from fatiando.gravmag.normal_gravity import WGS84
+    >>> print(WGS84.name)
+    World Geodetic System 1984
     >>> print('{:.0f}'.format(WGS84.a))
     6378137
     >>> print('{:.17f}'.format(WGS84.f))
@@ -42,7 +44,9 @@ Available ellipsoids:
 """
 from __future__ import division
 import math
+import numpy
 
+from .. import utils
 
 class ReferenceEllipsoid(object):
     """
@@ -67,11 +71,13 @@ class ReferenceEllipsoid(object):
 
     """
 
-    def __init__(self, a, f, GM, omega):
+    def __init__(self, name, a, f, GM, omega):
+        self.name = name
         self._a = a
         self._f = f
         self._GM = GM
         self._omega = omega
+
 
     @property
     def a(self):
@@ -122,5 +128,117 @@ class ReferenceEllipsoid(object):
         q0prime = 3*(1 + bE**2)*(1 - bE*atanEb) - 1
         return self.GM*(1 + self.m*self.e_prime*q0prime/(3*q0))/self.a**2
 
+
 WGS84 = ReferenceEllipsoid(a=6378137, f=1/298.257223563, GM=3986004.418e8,
-                           omega=7292115e-11)
+                           omega=7292115e-11,
+                           name="World Geodetic System 1984")
+
+
+def gamma_somigliana(latitude, ellipsoid=WGS84):
+    '''
+    Calculate the normal gravity by using Somigliana's formula.
+
+    This formula computes normal gravity **on** the ellipsoid (height = 0).
+
+    Parameters:
+
+    * latitude : float or numpy array
+        The latitude where the normal gravity will be computed (in degrees)
+    * ellipsoid : :class:`~fatiando.gravmag.normal_gravity.ReferenceEllipsoid`
+        The reference ellipsoid used.
+
+    Returns:
+
+    * gamma : float or numpy array
+        The computed normal gravity (in mGal).
+
+    '''
+    lat = numpy.deg2rad(latitude)
+    sin2 = numpy.sin(lat)**2
+    cos2 = numpy.cos(lat)**2
+    top = ((ellipsoid.a*ellipsoid.gamma_a)*cos2
+           + (ellipsoid.b*ellipsoid.gamma_b)*sin2)
+    bottom = numpy.sqrt(ellipsoid.a**2*cos2 + ellipsoid.b**2*sin2)
+    gamma = top/bottom
+    return utils.si2mgal(gamma)
+
+
+def gamma_somigliana_free_air(latitude, height, ellipsoid=WGS84):
+    r'''
+    Calculate the normal gravity at a height using Somigliana's formula and the
+    free-air correction.
+
+    Parameters:
+
+    * latitude : float or numpy array
+        The latitude where the normal gravity will be computed (in degrees)
+    * height : float or numpy array
+        The height of computation (in meters). Should be ellipsoidal
+        (geometric) heights for geophysical purposes.
+    * ellipsoid : :class:`~fatiando.gravmag.normal_gravity.ReferenceEllipsoid`
+        The reference ellipsoid used.
+
+    Returns:
+
+    * gamma : float or numpy array
+        The computed normal gravity (in mGal).
+
+    '''
+    fa = -0.3086*height
+    gamma = gamma_somigliana(latitude, ellipsoid=ellipsoid) + fa
+    return gamma
+
+
+def gamma_closed_form(latitude, height, ellipsoid=WGS84):
+    """
+    Calculate normal gravity at a height using the closed form expression of
+    Li and Gotze (2001).
+
+    Parameters:
+
+    * latitude : float or numpy array
+        The latitude where the normal gravity will be computed (in degrees)
+    * height : float or numpy array
+        The height of computation (in meters). Should be ellipsoidal
+        (geometric) heights for geophysical purposes.
+    * ellipsoid : :class:`~fatiando.gravmag.normal_gravity.ReferenceEllipsoid`
+        The reference ellipsoid used.
+
+    Returns:
+
+    * gamma : float or numpy array
+        The computed normal gravity (in mGal).
+
+    """
+    E2 = ellipsoid.E**2
+    bE = ellipsoid.b/ellipsoid.E
+    atanEb = math.atan2(ellipsoid.E, ellipsoid.b)
+    lat = numpy.deg2rad(latitude)
+    coslat = numpy.cos(lat)
+    sinlat = numpy.sin(lat)
+    tanlat = sinlat/coslat
+    beta = numpy.arctan2(ellipsoid.b*tanlat, ellipsoid.a)
+    sinbeta = numpy.sin(beta)
+    cosbeta = numpy.cos(beta)
+    zl2 = (ellipsoid.b*sinbeta + height*sinlat)**2
+    rl2 = (ellipsoid.a*cosbeta + height*coslat)**2
+    D = (rl2 - zl2)/E2
+    R = (rl2 + zl2)/E2
+    cosbetal = numpy.sqrt(0.5*(1 + R) - numpy.sqrt(0.25*(1 + R**2) - 0.5*D))
+    cosbetal2 = cosbetal**2
+    sinbetal2 = 1 - cosbetal2
+    bl = numpy.sqrt(rl2 + zl2 - E2*cosbetal2)
+    bl2 = bl**2
+    blE = bl/ellipsoid.E
+    atanEbl = numpy.arctan2(ellipsoid.E, bl)
+    q0 = 0.5*((1 + 3*bE**2)*atanEb - 3*bE)
+    q0l = 3*(1 + blE**2)*(1 - blE*atanEbl) - 1
+    W = numpy.sqrt((bl2 + E2*sinbetal2)/(bl2 + E2))
+    omega2 = ellipsoid.omega**2
+    a2 = ellipsoid.a**2
+    part1 = ellipsoid.GM/(bl2 + E2)
+    part2 = -cosbetal2*bl*ellipsoid.omega**2
+    part3 = 0.5*sinbetal2 - 1/6
+    part4 = a2*ellipsoid.E*q0l*omega2/((bl2 + E2)*q0)
+    gamma = utils.si2mgal((part1 + part2 + part3*part4)/W)
+    return gamma
