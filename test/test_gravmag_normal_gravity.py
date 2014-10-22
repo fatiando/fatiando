@@ -2,12 +2,34 @@ from __future__ import division
 from fatiando.gravmag.normal_gravity import (WGS84,
                                              gamma_somigliana,
                                              gamma_somigliana_free_air,
-                                             gamma_closed_form)
+                                             gamma_closed_form,
+                                             bouguer_plate)
 
 from fatiando import utils
 
 import numpy
 from numpy.testing import assert_almost_equal
+
+
+def test_bouguer():
+    "gravmag.normal_gravity.bouguer_plate returns correct results"
+    rock = 2000
+    water = 1000
+    bg_rock = bouguer_plate(10, density_rock=rock, density_water=water)
+    bg_water = bouguer_plate(-10, density_rock=rock, density_water=water)
+    assert_almost_equal(bg_water, -0.5*bg_rock, decimal=3,
+                        err_msg="water = -0.5*rock with scalar")
+    t = numpy.linspace(-1000, 1000, 51)
+    bg = bouguer_plate(t, density_rock=rock, density_water=water)
+    assert_almost_equal(bg[25], 0, decimal=5,
+                        err_msg="Should be 0 in transition: {:.20f}".format(
+                            bg[25]))
+    bg_water = bg[:25][::-1]
+    bg_rock = bg[26:]
+    assert len(bg_rock) == len(bg_water), "Diff size in rock and water"
+    for i in xrange(len(bg_water)):
+        assert_almost_equal(bg_water[i], -0.5*bg_rock[i], decimal=5,
+                            err_msg="water = -0.5*rock with array")
 
 
 def test_somigliana():

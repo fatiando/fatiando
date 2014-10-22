@@ -53,6 +53,14 @@ Available ellipsoids:
   gravity using the closed form expression from Li and Gotze (2001). Can
   compute anywhere (on, above, under the ellipsoid).
 
+**Bouguer**
+
+* :func:`~fatiando.gravmag.normal_gravity.bouguer_plate`: compute the
+  gravitational attraction of an infinite plate (Bouguer plate). Calculated
+  **on top** of the plate.
+
+You can use :mod:`fatiando.gravmag.prism` and :mod:`fatiando.gravmag.tesseroid`
+to calculate the terrain effect for a better correction.
 
 **References**
 
@@ -69,6 +77,7 @@ import math
 import numpy
 
 from .. import utils
+from ..constants import G
 
 
 class ReferenceEllipsoid(object):
@@ -274,3 +283,40 @@ def gamma_closed_form(latitude, height, ellipsoid=WGS84):
     part4 = a2*ellipsoid.E*q0l*omega2/((bl2 + E2)*q0)
     gamma = utils.si2mgal((part1 + part2 + part3*part4)/W)
     return gamma
+
+
+def bouguer_plate(topography, density_rock=2670, density_water=1040):
+    r"""
+    Calculate the gravitational effect of an infinite Bouguer plate.
+
+    .. note:: The effect is calculated **on top** of the plate.
+
+    Uses the famous :math:`g_{BG} = 2 \pi G \rho t` formula, where t is the
+    height of the topography. On water (i.e., t < 0), uses
+    :math:`g_{BG} = 2 \pi G (\rho_{water} - \rho_{rock})\times (-t)`.
+
+    Parameters:
+
+    * topography : float or numpy array
+        The height of topography (in meters).
+    * density_rock : float
+        The density of crustal rocks
+    * density_water : float
+        The density of ocean water
+
+    Returns:
+
+    * g_bouguer : float or array
+        The computed gravitational effect of the Bouguer plate
+
+    """
+    t = numpy.atleast_1d(topography)
+    g_bg = numpy.empty_like(t)
+    g_bg[t >= 0] =  2*numpy.pi*G*density_rock*t[t >= 0]
+    g_bg[t < 0] =  2*numpy.pi*G*(density_water - density_rock)*(-t[t < 0])
+    g_bg = utils.si2mgal(g_bg)
+    if g_bg.size == 1:
+        return g_bg[0]
+    else:
+        return g_bg
+
