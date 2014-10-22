@@ -312,11 +312,10 @@ def bouguer_plate(topography, density_rock=2670, density_water=1040):
     """
     t = numpy.atleast_1d(topography)
     g_bg = numpy.empty_like(t)
-    g_bg[t >= 0] =  2*numpy.pi*G*density_rock*t[t >= 0]
-    g_bg[t < 0] =  2*numpy.pi*G*(density_water - density_rock)*(-t[t < 0])
+    g_bg[t >= 0] = 2*numpy.pi*G*density_rock*t[t >= 0]
+    g_bg[t < 0] = 2*numpy.pi*G*(density_water - density_rock)*(-t[t < 0])
     g_bg = utils.si2mgal(g_bg)
     if g_bg.size == 1:
         return g_bg[0]
     else:
         return g_bg
-

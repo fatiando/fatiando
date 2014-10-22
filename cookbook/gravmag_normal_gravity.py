@@ -7,9 +7,10 @@ import numpy as np
 import urllib
 
 # Download the gravity and topography data
-urllib.urlretrieve('https://raw.githubusercontent.com/leouieda/geofisica1/master/data/eigen-6c3stat-havai.gdf',
+url = 'https://raw.githubusercontent.com/leouieda/geofisica1/master/data/'
+urllib.urlretrieve(url + 'eigen-6c3stat-havai.gdf',
                    filename='eigen-6c3stat-havai.gdf')
-urllib.urlretrieve('https://raw.githubusercontent.com/leouieda/geofisica1/master/data/etopo1-havai.gdf',
+urllib.urlretrieve(url + 'etopo1-havai.gdf',
                    filename='etopo1-havai.gdf')
 # Load them with numpy
 lon, lat, height, gravity = np.loadtxt('eigen-6c3stat-havai.gdf', skiprows=34,
@@ -46,5 +47,3 @@ mpl.title('Bouguer anomaly (mGal)')
 mpl.contourf(lon, lat, bouguer, shape, 60, cmap=mpl.cm.Reds, basemap=bm)
 mpl.colorbar(pad=0)
 mpl.show()
-
-
