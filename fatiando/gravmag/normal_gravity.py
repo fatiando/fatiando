@@ -14,7 +14,7 @@ eccentricities, etc, are computed by the class from these 4 parameters.
 
 Available ellipsoids:
 
-* ``WGS84``::
+* ``WGS84`` (values taken from Hofmann-Wellenhof and Moritz, 2005)::
 
     >>> from fatiando.gravmag.normal_gravity import WGS84
     >>> print(WGS84.name)
@@ -41,12 +41,35 @@ Available ellipsoids:
     0.00344978650684
 
 
+**Normal gravity**
+
+* :func:`~fatiando.gravmag.normal_gravity.gamma_somigliana`: compute the normal
+  gravity using the Somigliana formula (Hofmann-Wellenhof and Moritz, 2005).
+  Calculated **on** the ellipsoid.
+* :func:`~fatiando.gravmag.normal_gravity.gamma_somigliana_free_air`: compute
+  normal gravity at a height using the Somigliana formula plus the free-air
+  correction :math:`-0.3086H\ mGal/m`.
+* :func:`~fatiando.gravmag.normal_gravity.gamma_closed_form`: compute normal
+  gravity using the closed form expression from Li and Gotze (2001). Can
+  compute anywhere (on, above, under the ellipsoid).
+
+
+**References**
+
+Hofmann-Wellenhof, B. and H. Moritz, 2005, Physical Geodesy,
+Springer-Verlag Wien, ISBN-13: 978-3-211-23584-3
+
+Li, X. and H. J. Gotze, 2001, Tutorial: Ellipsoid, geoid, gravity, geodesy,
+and geophysics, Geophysics, 66(6), p. 1660-1668, doi: 10.1190/1.1487109
+
+----
 """
 from __future__ import division
 import math
 import numpy
 
 from .. import utils
+
 
 class ReferenceEllipsoid(object):
     """
@@ -78,41 +101,49 @@ class ReferenceEllipsoid(object):
         self._GM = GM
         self._omega = omega
 
-
     @property
     def a(self):
+        "Semimajor axis"
         return self._a
 
     @property
     def f(self):
+        "Flattening"
         return self._f
 
     @property
     def GM(self):
+        "Geocentric gravitational constant (including the atmosphere)"
         return self._GM
 
     @property
     def omega(self):
+        "Angular velocity"
         return self._omega
 
     @property
     def b(self):
+        "Semiminor axis"
         return self.a*(1 - self.f)
 
     @property
     def E(self):
+        "Linear eccentricity"
         return math.sqrt(self.a**2 - self.b**2)
 
     @property
     def e_prime(self):
+        "Second eccentricity"
         return self.E/self.b
 
     @property
     def m(self):
+        r":math:`\omega^2 a^2 b / (GM)`"
         return (self.omega**2)*(self.a**2)*self.b/self.GM
 
     @property
     def gamma_a(self):
+        "Normal gravity at the equator"
         bE = self.b/self.E
         atanEb = math.atan2(self.E, self.b)
         q0 = 0.5*((1 + 3*bE**2)*atanEb - 3*bE)
@@ -122,6 +153,7 @@ class ReferenceEllipsoid(object):
 
     @property
     def gamma_b(self):
+        "Normal gravity at the poles"
         bE = self.b/self.E
         atanEb = math.atan2(self.E, self.b)
         q0 = 0.5*((1 + 3*bE**2)*atanEb - 3*bE)
