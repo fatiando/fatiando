@@ -12,7 +12,11 @@ Version (future)
 
 * Refactor, better documentation, and faster code in
   :ref:`fatiando.gravmag.tesseroid <fatiando_gravmag_tesseroid>`.
-  (`PR 118 <https://github.com/leouieda/fatiando/pull/118>`_)
+  (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`_)
+* **New module** :ref:`fatiando.gravmag.normal_gravity
+  <fatiando_gravmag_normal_gravity>` to calculate normal gravity (the gravity
+  of reference ellipsoids).
+  (`PR 133 <https://github.com/fatiando/fatiando/pull/133>`_)
 * Using `versioneer <https://github.com/warner/python-versioneer>`__ to manage
   version numbers. Access the version number + git commit hash from
   ``fatiando.__version__``.

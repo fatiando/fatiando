@@ -76,6 +76,7 @@ clean:
 	rm -rvf logo.png cookbook/logo.png
 	rm -rvf crust2.tar.gz cookbook/crust2.tar.gz
 	rm -rvf bouguer_alps_egm08.grd cookbook/bouguer_alps_egm08.grd
+	rm -rvf *.gdf cookbook/*.gdf
 
 clean-docs:
 	cd doc; make clean
