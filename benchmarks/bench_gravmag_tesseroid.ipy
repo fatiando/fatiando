@@ -48,7 +48,7 @@ else:
     print "============================="
     print "Tesseroids:"
     def timetess():
-        ! tessgz model.tmp < grid.tmp > out.tmp
+        ! tessgz model.tmp -t$tesseroid.RATIO_G < grid.tmp > out.tmp
     %timeit timetess()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gz(lon, lat, height, model)
@@ -63,7 +63,7 @@ else:
     print "============================="
     print "Tesseroids:"
     def timetess():
-        ! tessgzz model.tmp < grid.tmp > out.tmp
+        ! tessgzz model.tmp -t$tesseroid.RATIO_GG < grid.tmp > out.tmp
     %timeit timetess()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gzz(lon, lat, height, model)
