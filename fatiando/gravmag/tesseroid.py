@@ -147,9 +147,13 @@ except ImportError:
     pass
 
 QUEUE_SIZE = 1000
+RATIO_POTENTIAL = 1
+RATIO_G = 1
+RATIO_GG = 6
 
 
-def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
+def potential(lons, lats, heights, tesseroids, dens=None,
+              ratio=RATIO_POTENTIAL):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -204,7 +208,7 @@ def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
     return result
 
 
-def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the North component of the gravitational attraction.
 
@@ -259,7 +263,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     return result
 
 
-def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the East component of the gravitational attraction.
 
@@ -314,7 +318,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     return result
 
 
-def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -376,7 +380,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
     return result
 
 
-def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xx component of the gravity gradient tensor.
 
@@ -431,7 +435,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     return result
 
 
-def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xy component of the gravity gradient tensor.
 
@@ -486,7 +490,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     return result
 
 
-def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xz component of the gravity gradient tensor.
 
@@ -541,7 +545,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     return result
 
 
-def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the yy component of the gravity gradient tensor.
 
@@ -596,7 +600,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     return result
 
 
-def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the yz component of the gravity gradient tensor.
 
@@ -651,7 +655,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     return result
 
 
-def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the zz component of the gravity gradient tensor.
 
@@ -690,6 +694,11 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
     coslat = numpy.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
+    # Create arrays outside of the loop to avoid malloc bottleneck
+    lonc = numpy.zeros(2, numpy.float)
+    sinlatc = numpy.zeros(2, numpy.float)
+    coslatc = numpy.zeros(2, numpy.float)
+    rc = numpy.zeros(2, numpy.float)
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
     for tesseroid in tesseroids:
@@ -700,8 +709,8 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gzz, ratio, result)
+        _tesseroid.gzz(tesseroid.get_bounds(), density, 2, rlon, sinlat, coslat,
+                       radius, lonc, sinlatc, coslatc, rc, result)
     result *= SI2EOTVOS*G
     return result
 
