@@ -5,6 +5,7 @@ Used to optimize some slow tasks and compute the actual gravitational fields.
 """
 from __future__ import division
 import numpy
+import collections
 
 from ..constants import MEAN_EARTH_RADIUS, G
 
@@ -592,7 +593,7 @@ def gzz(
         unsigned int l
     # Start the numerical integration
     for l in range(len(result)):
-        result[l] += density*kernelzz([tesseroid], ratio,
+        result[l] += density*kernelzz(tesseroid, ratio,
             lon[l], sinlat[l], coslat[l], radius[l], lonc, sinlatc,
             coslatc, rc)
 
@@ -600,21 +601,25 @@ def gzz(
 # Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef double kernelzz(
-    tesseroids, double ratio,
+    tesseroid, double ratio,
     double lon, double sinlat, double coslat, double radius,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
-    double[::1] rc):
+    double[::1] rc) except? -1:
     cdef:
         unsigned int i, j, k
-        double nlon, nlat, nr
+        int nlon, nlat, nr
+        double ti, tj, tk
         double w, e, s, n, top, bottom
         double rt, lont, latt, sinlatt, coslatt, distance
         double sinn, cosn, sins, coss, sindlon, cosdlon, dlon, dlat, dr
         double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz, scale
         double result
     result = 0
-    for tesseroid in tesseroids:
+    queue = collections.deque([tesseroid], maxlen=10000)
+    while queue:
+        tesseroid = queue.pop()
         w, e, s, n, top, bottom = tesseroid
         # Calculate the distance to the observation point
         rt = top + MEAN_EARTH_RADIUS
@@ -666,12 +671,16 @@ cdef double kernelzz(
                         deltaz = rc[k]*cospsi - radius
                         result += scale*kappa*(3*deltaz**2 - l_sqr)/l_5
         else:
+            if len(queue) + nlon + nlat + nr > queue.maxlen:
+                raise ValueError('Tesseroid queue overflow')
             dlon = (e - w)/nlon
             dlat = (n - s)/nlat
             dr = (top - bottom)/nr
-            split = [[w, w + dlon, s, s + dlat, bottom + dr, bottom]
-                    for w in [w, w + dlon] for s in [s, s + dlat]
-                    for bottom in [bottom, bottom + dr]]
-            result += kernelzz(split, ratio, lon, sinlat, coslat, radius, lonc,
-                    sinlatc, coslatc, rc)
+            split = [[w + i*dlon, w + (i + 1)*dlon,
+                      s + j*dlat, s + (j + 1)*dlat,
+                      bottom + (k + 1)*dr, bottom + k*dr]
+                     for i in xrange(nlon)
+                     for j in xrange(nlat)
+                     for k in xrange(nr)]
+            queue.extend(split)
     return result

@@ -709,8 +709,8 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid.get_bounds(), density, 2, rlon, sinlat, coslat,
-                       radius, lonc, sinlatc, coslatc, rc, result)
+        _tesseroid.gzz(tesseroid.get_bounds(), density, ratio, rlon, sinlat,
+                       coslat, radius, lonc, sinlatc, coslatc, rc, result)
     result *= SI2EOTVOS*G
     return result
 
