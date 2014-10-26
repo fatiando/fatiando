@@ -148,8 +148,8 @@ except ImportError:
 
 QUEUE_SIZE = 1000
 RATIO_POTENTIAL = 1
-RATIO_G = 1
-RATIO_GG = 6
+RATIO_G = 2
+RATIO_GG = 7.5
 
 
 def potential(lons, lats, heights, tesseroids, dens=None,
@@ -694,11 +694,6 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     coslat = numpy.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
-    # Create arrays outside of the loop to avoid malloc bottleneck
-    lonc = numpy.zeros(2, numpy.float)
-    sinlatc = numpy.zeros(2, numpy.float)
-    coslatc = numpy.zeros(2, numpy.float)
-    rc = numpy.zeros(2, numpy.float)
     # Start the computations
     result = numpy.zeros(ndata, numpy.float)
     for tesseroid in tesseroids:
@@ -709,8 +704,8 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid.get_bounds(), density, ratio, rlon, sinlat,
-                       coslat, radius, lonc, sinlatc, coslatc, rc, result)
+        _tesseroid.gzz(tesseroid, density, ratio, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 

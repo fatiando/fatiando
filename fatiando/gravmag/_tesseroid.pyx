@@ -580,10 +580,6 @@ def gzz(
     numpy.ndarray[double, ndim=1] sinlat,
     numpy.ndarray[double, ndim=1] coslat,
     numpy.ndarray[double, ndim=1] radius,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations (specified
@@ -591,9 +587,13 @@ def gzz(
     """
     cdef:
         unsigned int l
-    # Start the numerical integration
+        double[::1] lonc =  numpy.empty(2, numpy.float)
+        double[::1] sinlatc =  numpy.empty(2, numpy.float)
+        double[::1] coslatc =  numpy.empty(2, numpy.float)
+        double[::1] rc =  numpy.empty(2, numpy.float)
+    bounds = tesseroid.get_bounds()
     for l in range(len(result)):
-        result[l] += density*kernelzz(tesseroid, ratio,
+        result[l] += density*kernelzz(bounds, ratio,
             lon[l], sinlat[l], coslat[l], radius[l], lonc, sinlatc,
             coslatc, rc)
 
