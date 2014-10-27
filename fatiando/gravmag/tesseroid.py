@@ -704,11 +704,8 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        ok = _tesseroid.gzz(tesseroid, density, ratio, rlon, sinlat,
-                            coslat, radius, result)
-        if ok != 0:
-            raise ValueError('Tesseroid queue overflow')
-
+        _tesseroid.gzz(tesseroid, density, ratio, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
