@@ -605,67 +605,82 @@ def gzz(
     by the indices in 'points').
     """
     cdef:
-        unsigned int l
+        unsigned int l, size
         double[::1] lonc =  numpy.empty(2, numpy.float)
         double[::1] sinlatc =  numpy.empty(2, numpy.float)
         double[::1] coslatc =  numpy.empty(2, numpy.float)
         double[::1] rc =  numpy.empty(2, numpy.float)
+        double[::1] bounds
         double scale
         unsigned int i, j, k
-        int nlon, nlat, nr, queue_size, queue_max = 10000
+        int nlon, nlat, nr
+        int queue_size, queue_max = 10000, overflow = 0
+        double[:, ::1] queue =  numpy.empty((queue_max, 6), numpy.float)
         double w, e, s, n, top, bottom
         double lon, sinlat, coslat, radius
         double dlon, dlat, dr, distance
         double res
-    bounds = tesseroid.get_bounds()
-    for l in range(len(result)):
-        lon = lons[l]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        radius = radii[l]
-        res = 0
-        queue = collections.deque([bounds], maxlen=queue_max)
-        while queue:
-            tess = queue.pop()
-            w = tess[0]
-            e = tess[1]
-            s = tess[2]
-            n = tess[3]
-            top = tess[4]
-            bottom = tess[5]
-            distance = distance_n_size(w, e, s, n, top, bottom, lon, sinlat,
-                                       coslat, radius, &dlon, &dlat, &dr)
-            # Check which dimensions I have to divide
-            nlon = 1
-            nlat = 1
-            nr = 1
-            if distance < ratio*dlon:
-                nlon = 2
-            if distance < ratio*dlat:
-                nlat = 2
-            if distance < ratio*dr:
-                nr = 2
-            if nlon == 1 and nlat == 1 and nr == 1:
-                # Put the nodes in the current range
-                scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc,
-                                    coslatc, rc)
-                res += kernelzz(lon, sinlat, coslat, radius, scale, lonc,
-                                sinlatc, coslatc, rc)
-            else:
-                queue_size = len(queue)
-                if queue_size + nlon + nlat + nr > queue_max:
-                    raise ValueError('Tesseroid queue overflow')
-                dlon = (e - w)/nlon
-                dlat = (n - s)/nlat
-                dr = (top - bottom)/nr
-                split = [[w + i*dlon, w + (i + 1)*dlon,
-                          s + j*dlat, s + (j + 1)*dlat,
-                          bottom + (k + 1)*dr, bottom + k*dr]
-                         for i in xrange(nlon)
-                         for j in xrange(nlat)
-                         for k in xrange(nr)]
-                queue.extend(split)
-        result[l] += density*res
+    bounds = numpy.array(tesseroid.get_bounds())
+    size = len(result)
+    with nogil:
+        for l in range(size):
+            lon = lons[l]
+            sinlat = sinlats[l]
+            coslat = coslats[l]
+            radius = radii[l]
+            res = 0
+            for i in range(6):
+                queue[0, i] = bounds[i]
+            queue_size = 1
+            while queue_size:
+                queue_size -= 1
+                w = queue[queue_size, 0]
+                e = queue[queue_size, 1]
+                s = queue[queue_size, 2]
+                n = queue[queue_size, 3]
+                top = queue[queue_size, 4]
+                bottom = queue[queue_size, 5]
+                distance = distance_n_size(w, e, s, n, top, bottom, lon, sinlat,
+                                           coslat, radius, &dlon, &dlat, &dr)
+                # Check which dimensions I have to divide
+                nlon = 1
+                nlat = 1
+                nr = 1
+                if distance < ratio*dlon:
+                    nlon = 2
+                if distance < ratio*dlat:
+                    nlat = 2
+                if distance < ratio*dr:
+                    nr = 2
+                if nlon == 1 and nlat == 1 and nr == 1:
+                    # Put the nodes in the current range
+                    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc,
+                                        coslatc, rc)
+                    res += kernelzz(lon, sinlat, coslat, radius, scale, lonc,
+                                    sinlatc, coslatc, rc)
+                else:
+                    if queue_size + nlon + nlat + nr > queue_max:
+                        overflow = 1
+                        break
+                    dlon = (e - w)/nlon
+                    dlat = (n - s)/nlat
+                    dr = (top - bottom)/nr
+                    for i in xrange(nlon):
+                        for j in xrange(nlat):
+                            for k in xrange(nr):
+                                queue[queue_size, 0] = w + i*dlon
+                                queue[queue_size, 1] = w + (i + 1)*dlon
+                                queue[queue_size, 2] = s + j*dlat
+                                queue[queue_size, 3] = s + (j + 1)*dlat
+                                queue[queue_size, 4] = bottom + (k + 1)*dr
+                                queue[queue_size, 5] = bottom + k*dr
+                                queue_size += 1
+            if overflow:
+                break
+            result[l] += density*res
+    if overflow:
+        return -1
+    return 0
 
 # Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
