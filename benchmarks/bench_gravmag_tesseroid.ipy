@@ -9,24 +9,13 @@ from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando.vis import mpl
 
-# Make a model with a lot of tesseroids.
-model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 10, 10))
-model.addprop('density', 2700*np.ones(model.size))
-area = [101, 109, -4, 4]
-shape = [50, 50]
-lon, lat, height = gridder.regular(area, shape, z=20000)
+def timegz():
+    ! tessgz model.tmp -t$tesseroid.RATIO_G < grid.tmp > out.tmp
 
-if len(sys.argv) > 1 and sys.argv[1] == 'profile':
-    print "Profiling code:"
-    from line_profiler import LineProfiler
-    %prun tesseroid.gzz(lon, lat, height, model)
-    lp = LineProfiler(tesseroid.gzz)
-    lp.runcall(tesseroid.gzz, lon, lat, height, model)
-    lp.print_stats()
-    lp = LineProfiler(tesseroid._with_optimal_division)
-    lp.runcall(tesseroid.gzz, lon, lat, height, model)
-    lp.print_stats()
-else:
+def timegzz():
+    ! tessgzz model.tmp -t$tesseroid.RATIO_GG < grid.tmp > out.tmp
+
+def run_n_time(model, lon, lat, height):
     # Create a model file and a grid file for Tesseroids
     modfile = 'model.tmp'
     with open(modfile, 'w') as f:
@@ -44,27 +33,23 @@ else:
     ! head grid.tmp
 
     # Time the execution
-    print "Gz"
-    print "============================="
-    print "Tesseroids:"
-    def timetess():
-        ! tessgz model.tmp -t$tesseroid.RATIO_G < grid.tmp > out.tmp
-    %timeit timetess()
-    print "fatiando.tesseroid:"
-    %timeit tesseroid.gz(lon, lat, height, model)
+    #print "Gz"
+    #print "============================="
+    #print "Tesseroids:"
+    #%timeit timegz()
+    #print "fatiando.tesseroid:"
+    #%timeit tesseroid.gz(lon, lat, height, model)
 
-    ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
-    pytess = tesseroid.gz(lon, lat, height, model)
-    diff = np.abs(ctess - pytess)/np.abs(ctess).max()
-    assert_array_almost_equal(diff, np.zeros_like(lon), 2, 'Max diff: %.15g'
-                              % (np.abs(ctess - pytess).max()))
+    #ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
+    #pytess = tesseroid.gz(lon, lat, height, model)
+    #diff = np.abs(ctess - pytess)/np.abs(ctess).max()
+    #assert_array_almost_equal(diff, np.zeros_like(lon), 2, 'Max diff: %.15g'
+                              #% (np.abs(ctess - pytess).max()))
 
     print "Gzz"
     print "============================="
     print "Tesseroids:"
-    def timetess():
-        ! tessgzz model.tmp -t$tesseroid.RATIO_GG < grid.tmp > out.tmp
-    %timeit timetess()
+    %timeit timegzz()
     print "fatiando.tesseroid:"
     %timeit tesseroid.gzz(lon, lat, height, model)
 
@@ -75,3 +60,32 @@ else:
                               % (np.abs(ctess - pytess).max()))
 
     ! rm grid.tmp model.tmp out.tmp
+
+# Make a model with few tesseroids to run fast
+model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 5, 5))
+model.addprop('density', 2700*np.ones(model.size))
+area = [101, 109, -4, 4]
+shape = [25, 25]
+lon, lat, height = gridder.regular(area, shape, z=10000)
+
+if len(sys.argv) > 1 and sys.argv[1] == 'profile':
+    print "Profiling code:"
+    %prun tesseroid.gzz(lon, lat, height, model)
+    #from line_profiler import LineProfiler
+    #lp = LineProfiler(tesseroid.gzz)
+    #lp.runcall(tesseroid.gzz, lon, lat, height, model)
+    #lp.print_stats()
+    #lp = LineProfiler(tesseroid._with_optimal_division)
+    #lp.runcall(tesseroid.gzz, lon, lat, height, model)
+    #lp.print_stats()
+else:
+    run_n_time(model, lon, lat, height)
+
+    print "\nLARGER MODEL"
+    model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 10, 10))
+    model.addprop('density', 2700*np.ones(model.size))
+    area = [101, 109, -4, 4]
+    shape = [50, 50]
+    lon, lat, height = gridder.regular(area, shape, z=10000)
+    run_n_time(model, lon, lat, height)
+

@@ -149,7 +149,7 @@ except ImportError:
 QUEUE_SIZE = 1000
 RATIO_POTENTIAL = 1
 RATIO_G = 2
-RATIO_GG = 7.5
+RATIO_GG = 5
 
 
 def potential(lons, lats, heights, tesseroids, dens=None,

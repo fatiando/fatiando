@@ -7,7 +7,7 @@ from __future__ import division
 import numpy
 import collections
 
-from ..constants import MEAN_EARTH_RADIUS, G
+from .. import constants
 
 from libc.math cimport sin, cos, sqrt, atan2
 # Import Cython definitions for numpy
@@ -21,6 +21,8 @@ cdef extern from "math.h":
 cdef:
     double d2r = numpy.pi/180.
     double[::1] nodes
+    double MEAN_EARTH_RADIUS = constants.MEAN_EARTH_RADIUS
+    double G = constants.G
 nodes = numpy.array([-0.577350269189625731058868041146,
                      0.577350269189625731058868041146])
 
@@ -82,17 +84,15 @@ def too_close(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef inline double scale_nodes(
-    tesseroid,
+    double w, double e, double s, double n, double top, double bottom,
     double[::1] lonc,
     double[::1] sinlatc,
     double[::1] coslatc,
-    double[::1] rc):
+    double[::1] rc) nogil:
     "Put GLQ nodes in the integration limits for a tesseroid"
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
         unsigned int i
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
     dlon = e - w
     dlat = n - s
     dr = top - bottom
@@ -103,7 +103,8 @@ cdef inline double scale_nodes(
     for i in range(2):
         lonc[i] = d2r*(0.5*dlon*nodes[i] + mlon)
         latc = d2r*(0.5*dlat*nodes[i] + mlat)
-        sincos(latc, &sinlatc[i], &coslatc[i])
+        sinlatc[i] = sin(latc)
+        coslatc[i] = cos(latc)
         rc[i] = (0.5*dr*nodes[i] + mr)
     scale = d2r*dlon*d2r*dlat*dr*0.125
     return scale
@@ -132,8 +133,10 @@ def potential(
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, r_sqr, rc_sqr, coslon, l_sqr
         double cospsi
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -174,8 +177,10 @@ def gx(
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, rc_sqr, r_sqr, coslon, l_sqr
         double cospsi
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -217,8 +222,10 @@ def gy(
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
         double cospsi, sinlon, rc_sqr
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -260,8 +267,10 @@ def gz(
         unsigned int i, j, k, l, p
         double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
         double cospsi, rc_sqr
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -302,8 +311,10 @@ def gxx(
     cdef:
         unsigned int l, p
         double scale
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -359,8 +370,10 @@ def gxy(
     cdef:
         unsigned int l, p
         double scale
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -417,8 +430,10 @@ def gxz(
     cdef:
         unsigned int l, p
         double scale
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -475,8 +490,10 @@ def gyy(
     cdef:
         unsigned int l, p
         double scale
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -533,8 +550,10 @@ def gyz(
     cdef:
         unsigned int l, p
         double scale
+        double w, e, s, n, top, bottom
+    w, e, s, n, top, bottom = tesseroid
     # Put the nodes in the current range
-    scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
+    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
     # Start the numerical integration
     for p in range(len(points)):
         l = points[p]
@@ -576,10 +595,10 @@ def gzz(
     tesseroid,
     double density,
     double ratio,
-    numpy.ndarray[double, ndim=1] lon,
-    numpy.ndarray[double, ndim=1] sinlat,
-    numpy.ndarray[double, ndim=1] coslat,
-    numpy.ndarray[double, ndim=1] radius,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations (specified
@@ -591,96 +610,120 @@ def gzz(
         double[::1] sinlatc =  numpy.empty(2, numpy.float)
         double[::1] coslatc =  numpy.empty(2, numpy.float)
         double[::1] rc =  numpy.empty(2, numpy.float)
+        double scale
+        unsigned int i, j, k
+        int nlon, nlat, nr, queue_size, queue_max = 10000
+        double w, e, s, n, top, bottom
+        double lon, sinlat, coslat, radius
+        double dlon, dlat, dr, distance
+        double res
     bounds = tesseroid.get_bounds()
     for l in range(len(result)):
-        result[l] += density*kernelzz(bounds, ratio,
-            lon[l], sinlat[l], coslat[l], radius[l], lonc, sinlatc,
-            coslatc, rc)
-
+        lon = lons[l]
+        sinlat = sinlats[l]
+        coslat = coslats[l]
+        radius = radii[l]
+        res = 0
+        queue = collections.deque([bounds], maxlen=queue_max)
+        while queue:
+            tess = queue.pop()
+            w = tess[0]
+            e = tess[1]
+            s = tess[2]
+            n = tess[3]
+            top = tess[4]
+            bottom = tess[5]
+            distance = distance_n_size(w, e, s, n, top, bottom, lon, sinlat,
+                                       coslat, radius, &dlon, &dlat, &dr)
+            # Check which dimensions I have to divide
+            nlon = 1
+            nlat = 1
+            nr = 1
+            if distance < ratio*dlon:
+                nlon = 2
+            if distance < ratio*dlat:
+                nlat = 2
+            if distance < ratio*dr:
+                nr = 2
+            if nlon == 1 and nlat == 1 and nr == 1:
+                # Put the nodes in the current range
+                scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc,
+                                    coslatc, rc)
+                res += kernelzz(lon, sinlat, coslat, radius, scale, lonc,
+                                sinlatc, coslatc, rc)
+            else:
+                queue_size = len(queue)
+                if queue_size + nlon + nlat + nr > queue_max:
+                    raise ValueError('Tesseroid queue overflow')
+                dlon = (e - w)/nlon
+                dlat = (n - s)/nlat
+                dr = (top - bottom)/nr
+                split = [[w + i*dlon, w + (i + 1)*dlon,
+                          s + j*dlat, s + (j + 1)*dlat,
+                          bottom + (k + 1)*dr, bottom + k*dr]
+                         for i in xrange(nlon)
+                         for j in xrange(nlat)
+                         for k in xrange(nr)]
+                queue.extend(split)
+        result[l] += density*res
 
 # Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-cdef double kernelzz(
-    tesseroid, double ratio,
-    double lon, double sinlat, double coslat, double radius,
-    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
-    double[::1] rc) except? -1:
+cdef inline double kernelzz(double lon, double sinlat, double coslat,
+        double radius, double scale, double[::1] lonc, double[::1] sinlatc,
+        double[::1] coslatc, double[::1] rc) nogil:
     cdef:
         unsigned int i, j, k
-        int nlon, nlat, nr
-        double ti, tj, tk
-        double w, e, s, n, top, bottom
-        double rt, lont, latt, sinlatt, coslatt, distance
-        double sinn, cosn, sins, coss, sindlon, cosdlon, dlon, dlat, dr
-        double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz, scale
+        double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz
         double result
+    r_sqr = radius**2
     result = 0
-    queue = collections.deque([tesseroid], maxlen=10000)
-    while queue:
-        tesseroid = queue.pop()
-        w, e, s, n, top, bottom = tesseroid
-        # Calculate the distance to the observation point
-        rt = top + MEAN_EARTH_RADIUS
-        lont = d2r*0.5*(w + e)
-        latt = d2r*0.5*(s + n)
-        sinlatt = sin(latt)
-        coslatt = cos(latt)
-        cospsi = sinlat*sinlatt + coslat*coslatt*cos(lon - lont)
-        distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)
-        # Calculate the dimensions of the tesseroid
-        # Will use Vincenty's formula to calculate great-circle distance
-        # for more accuracy (just in case)
-        sinn = sin(d2r*n)
-        cosn = cos(d2r*n)
-        sins = sin(d2r*s)
-        coss = cos(d2r*s)
-        sindlon = sin(d2r*(e - w))
-        cosdlon = cos(d2r*(e - w))
-        dlon = MEAN_EARTH_RADIUS*atan2(
-            sqrt((coslatt*sindlon)**2
-                 + (coslatt*sinlatt - sinlatt*coslatt*cosdlon)**2),
-            sinlatt**2 + cosdlon*coslatt**2)
-        dlat = MEAN_EARTH_RADIUS*atan2(
-            coss*sinn - sins*cosn, sins*sinn + coss*cosn)
-        dr = top - bottom
-        # Check which dimensions I have to divide
-        nlon = 1
-        nlat = 1
-        nr = 1
-        if distance < ratio*dlon:
-            nlon = 2
-        if distance < ratio*dlat:
-            nlat = 2
-        if distance < ratio*dr:
-            nr = 2
-        if nlon == 1 and nlat == 1 and nr == 1:
-            # Put the nodes in the current range
-            scale = scale_nodes(tesseroid, lonc, sinlatc, coslatc, rc)
-            r_sqr = radius**2
-            for i in range(2):
-                coslon = cos(lon - lonc[i])
-                for j in range(2):
-                    cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                    for k in range(2):
-                        rc_sqr = rc[k]**2
-                        l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                        l_5 = l_sqr**2.5
-                        kappa = rc_sqr*coslatc[j]
-                        deltaz = rc[k]*cospsi - radius
-                        result += scale*kappa*(3*deltaz**2 - l_sqr)/l_5
-        else:
-            if len(queue) + nlon + nlat + nr > queue.maxlen:
-                raise ValueError('Tesseroid queue overflow')
-            dlon = (e - w)/nlon
-            dlat = (n - s)/nlat
-            dr = (top - bottom)/nr
-            split = [[w + i*dlon, w + (i + 1)*dlon,
-                      s + j*dlat, s + (j + 1)*dlat,
-                      bottom + (k + 1)*dr, bottom + k*dr]
-                     for i in xrange(nlon)
-                     for j in xrange(nlat)
-                     for k in xrange(nr)]
-            queue.extend(split)
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                l_5 = l_sqr**2.5
+                kappa = rc_sqr*coslatc[j]
+                deltaz = rc[k]*cospsi - radius
+                result += scale*kappa*(3*deltaz**2 - l_sqr)/l_5
     return result
+
+
+@cython.cdivision(True)
+cdef inline double distance_n_size(
+    double w, double e, double s, double n, double top, double bottom,
+    double lon, double sinlat, double coslat, double radius,
+    double* dlon, double* dlat, double* dr) nogil:
+    cdef:
+        double rt, lont, latt, sinlatt, coslatt, cospsi, distance
+        double sinn, cosn, sins, coss, sindlon, cosdlon
+    # Calculate the distance to the observation point
+    rt = top + MEAN_EARTH_RADIUS
+    lont = d2r*0.5*(w + e)
+    latt = d2r*0.5*(s + n)
+    sinlatt = sin(latt)
+    coslatt = cos(latt)
+    cospsi = sinlat*sinlatt + coslat*coslatt*cos(lon - lont)
+    distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)
+    # Calculate the dimensions of the tesseroid
+    # Will use Vincenty's formula to calculate great-circle distance
+    # for more accuracy (just in case)
+    sinn = sin(d2r*n)
+    cosn = cos(d2r*n)
+    sins = sin(d2r*s)
+    coss = cos(d2r*s)
+    sindlon = sin(d2r*(e - w))
+    cosdlon = cos(d2r*(e - w))
+    dlon[0] = MEAN_EARTH_RADIUS*atan2(
+        sqrt((coslatt*sindlon)**2
+             + (coslatt*sinlatt - sinlatt*coslatt*cosdlon)**2),
+        sinlatt**2 + cosdlon*coslatt**2)
+    dlat[0] = MEAN_EARTH_RADIUS*atan2(
+        coss*sinn - sins*cosn, sins*sinn + coss*cosn)
+    dr[0] = top - bottom
+    return distance
