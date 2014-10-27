@@ -5,7 +5,6 @@ Used to optimize some slow tasks and compute the actual gravitational fields.
 """
 from __future__ import division
 import numpy
-import collections
 
 from .. import constants
 
@@ -13,7 +12,6 @@ from libc.math cimport sin, cos, sqrt, atan2
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
-from cython.parallel cimport prange
 
 # To calculate sin and cos simultaneously
 cdef extern from "math.h":
@@ -24,6 +22,9 @@ cdef:
     double[::1] nodes
     double MEAN_EARTH_RADIUS = constants.MEAN_EARTH_RADIUS
     double G = constants.G
+    ctypedef double (*kernel_func)(double, double, double, double, double,
+                                   double[::1], double[::1], double[::1],
+                                   double[::1])
 nodes = numpy.array([-0.577350269189625731058868041146,
                      0.577350269189625731058868041146])
 
@@ -89,7 +90,7 @@ cdef inline double scale_nodes(
     double[::1] lonc,
     double[::1] sinlatc,
     double[::1] coslatc,
-    double[::1] rc) nogil:
+    double[::1] rc):
     "Put GLQ nodes in the integration limits for a tesseroid"
     cdef:
         double dlon, dlat, dr, mlon, mlat, mr, scale, latc
@@ -602,8 +603,27 @@ def gzz(
     numpy.ndarray[double, ndim=1] radii,
     numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
+    """
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelzz)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef with_rediscretization(
+    tesseroid,
+    double density,
+    double ratio,
+    numpy.ndarray[double, ndim=1] lons,
+    numpy.ndarray[double, ndim=1] sinlats,
+    numpy.ndarray[double, ndim=1] coslats,
+    numpy.ndarray[double, ndim=1] radii,
+    numpy.ndarray[double, ndim=1] result,
+    kernel_func kernel):
+    """
+    Calculate the given kernel function on the computation points by
+    rediscretizing the tesseroid when needed.
     """
     cdef:
         unsigned int l, size
@@ -656,8 +676,8 @@ def gzz(
                 # Put the nodes in the current range
                 scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc,
                                     coslatc, rc)
-                res += kernelzz(lon, sinlat, coslat, radius, scale, lonc,
-                                sinlatc, coslatc, rc)
+                res += kernel(lon, sinlat, coslat, radius, scale, lonc,
+                              sinlatc, coslatc, rc)
             else:
                 if queue_size + nlon + nlat + nr > queue_max:
                     raise ValueError('Tesseroid queue overflow')
@@ -683,7 +703,7 @@ def gzz(
 @cython.cdivision(True)
 cdef inline double kernelzz(double lon, double sinlat, double coslat,
         double radius, double scale, double[::1] lonc, double[::1] sinlatc,
-        double[::1] coslatc, double[::1] rc) nogil:
+        double[::1] coslatc, double[::1] rc):
     cdef:
         unsigned int i, j, k
         double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz
@@ -708,7 +728,7 @@ cdef inline double kernelzz(double lon, double sinlat, double coslat,
 cdef inline double distance_n_size(
     double w, double e, double s, double n, double top, double bottom,
     double lon, double sinlat, double coslat, double radius,
-    double* dlon, double* dlat, double* dr) nogil:
+    double* dlon, double* dlat, double* dr):
     cdef:
         double rt, lont, latt, sinlatt, coslatt, cospsi, distance
         double sinn, cosn, sins, coss, sindlon, cosdlon
