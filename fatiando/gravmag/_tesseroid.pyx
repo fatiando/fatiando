@@ -31,60 +31,6 @@ nodes = numpy.array([-0.577350269189625731058868041146,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def too_close(
-    tesseroid,
-    numpy.ndarray[double, ndim=1] lon,
-    numpy.ndarray[double, ndim=1] sinlat,
-    numpy.ndarray[double, ndim=1] coslat,
-    numpy.ndarray[double, ndim=1] radius,
-    double ratio,
-    numpy.ndarray[long, ndim=1] points):
-    """
-    Separate 'points' in two:
-      The first part doesn't need to be divided.
-      The second part is too close and needs to be divided.
-    Returns the index of the division point:
-        points[:i] -> don't divide
-        points[i:] -> divide
-    How close is measured by:
-        too close ->  distance < ratio*size
-    'points' is a list of the indices corresponding to observation points that
-    need to be checked.
-    """
-    cdef:
-        int i, j, p
-        double rt, rt_sqr, latt, lont, sinlatt, coslatt, distance, cospsi
-        double w, e, s, n, top, bottom, size
-    w, e, s, n, top, bottom = tesseroid
-    rt = top + MEAN_EARTH_RADIUS
-    rt_sqr = rt**2
-    latt = d2r*0.5*(s + n)
-    sincos(latt, &sinlatt, &coslatt)
-    lont = d2r*0.5*(w + e)
-    size = max([MEAN_EARTH_RADIUS*d2r*(e - w),
-                MEAN_EARTH_RADIUS*d2r*(n - s),
-                top - bottom])
-    # Will compare with the distance**2 so I don't have to calculate sqrt
-    value = (size*ratio)**2
-    i = 0
-    j = len(points) - 1
-    while i <= j:
-        p = points[i]
-        cospsi = sinlat[p]*sinlatt + coslat[p]*coslatt*cos(lon[p] - lont)
-        distance = radius[p]**2 + rt_sqr - 2*radius[p]*rt*cospsi
-        if distance < 1e-20:
-            raise ValueError("Can't calculate directly on the tesseroid")
-        elif distance > value:
-            i += 1
-        else:
-            points[i] = points[j]
-            points[j] = p
-            j -= 1
-    return i
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
 cdef inline double scale_nodes(
     double w, double e, double s, double n, double top, double bottom,
     double[::1] lonc,
@@ -117,43 +63,41 @@ cdef inline double scale_nodes(
 def potential(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelpot)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline double kernelpot(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, r_sqr, rc_sqr, coslon, l_sqr
-        double cospsi
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        r_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    rc_sqr = rc[k]**2
-                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
-                    kappa = rc_sqr*coslatc[j]
-                    result[l] += density*scale*(kappa/sqrt(l_sqr))
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, l_sqr, cospsi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa/sqrt(l_sqr)
+    return result*scale
 
 
 @cython.boundscheck(False)
@@ -161,44 +105,42 @@ def potential(
 def gx(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelx)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline double kernelx(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, rc_sqr, r_sqr, coslon, l_sqr
-        double cospsi
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        r_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    rc_sqr = rc[k]**2
-                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
-                    kappa = rc_sqr*coslatc[j]
-                    result[l] += density*scale*kappa*rc[k]*kphi/(l_sqr**1.5)
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, kphi, l_sqr, cospsi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*rc[k]*kphi/(l_sqr**1.5)
+    return result*scale
 
 
 @cython.boundscheck(False)
@@ -206,44 +148,42 @@ def gx(
 def gy(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernely)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline double kernely(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
-        double cospsi, sinlon, rc_sqr
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        r_sqr = radii[l]**2
-        for i in range(2):
-            sincos(lonc[i] - lons[l], &sinlon, &coslon)
-            for j in range(2):
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    rc_sqr = rc[k]**2
-                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
-                    kappa = rc_sqr*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, sinlon, l_sqr, cospsi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        sinlon = sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+    return result*scale
 
 
 @cython.boundscheck(False)
@@ -251,44 +191,41 @@ def gy(
 def gz(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelz)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline double kernelz(
+    double lon, double sinlat, double coslat, double radius, double scale,
+    double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
+    double[::1] rc):
     cdef:
-        unsigned int i, j, k, l, p
-        double scale, kappa, sinlat, coslat, r_sqr, coslon, l_sqr
-        double cospsi, rc_sqr
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        sinlat = sinlats[l]
-        coslat = coslats[l]
-        r_sqr = radii[l]**2
-        for i in range(2):
-            coslon = cos(lons[l] - lonc[i])
-            for j in range(2):
-                cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-                for k in range(2):
-                    rc_sqr = rc[k]**2
-                    l_sqr = r_sqr + rc_sqr - 2*radii[l]*rc[k]*cospsi
-                    kappa = rc_sqr*coslatc[j]
-                    result[l] += density*scale*(
-                        kappa*(rc[k]*cospsi - radii[l])/(l_sqr**1.5))
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, l_sqr, cospsi
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(rc[k]*cospsi - radius)/(l_sqr**1.5)
+    return result*scale
 
 
 @cython.boundscheck(False)
@@ -296,38 +233,22 @@ def gz(
 def gxx(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
-    cdef:
-        unsigned int l, p
-        double scale
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        result[l] += density*kernelxx(
-            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
-            coslatc, rc)
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelxx)
 
 
-# Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef inline double kernelxx(
     double lon, double sinlat, double coslat, double radius, double scale,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
@@ -355,38 +276,22 @@ cdef inline double kernelxx(
 def gxy(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
-    cdef:
-        unsigned int l, p
-        double scale
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        result[l] += density*kernelxy(
-            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
-            coslatc, rc)
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelxy)
 
 
-# Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef inline double kernelxy(
     double lon, double sinlat, double coslat, double radius, double scale,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
@@ -415,38 +320,22 @@ cdef inline double kernelxy(
 def gxz(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
-    cdef:
-        unsigned int l, p
-        double scale
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        result[l] += density*kernelxz(
-            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
-            coslatc, rc)
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelxz)
 
 
-# Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef inline double kernelxz(
     double lon, double sinlat, double coslat, double radius, double scale,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
@@ -475,38 +364,22 @@ cdef inline double kernelxz(
 def gyy(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
-    cdef:
-        unsigned int l, p
-        double scale
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        result[l] += density*kernelyy(
-            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
-            coslatc, rc)
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelyy)
 
 
-# Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef inline double kernelyy(
     double lon, double sinlat, double coslat, double radius, double scale,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
@@ -535,38 +408,22 @@ cdef inline double kernelyy(
 def gyz(
     tesseroid,
     double density,
+    double ratio,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
-    double[::1] lonc,
-    double[::1] sinlatc,
-    double[::1] coslatc,
-    double[::1] rc,
-    numpy.ndarray[double, ndim=1] result,
-    numpy.ndarray[long, ndim=1] points):
+    numpy.ndarray[double, ndim=1] result):
     """
-    Calculate this gravity field of a tesseroid at given locations (specified
-    by the indices in 'points').
+    Calculate this gravity field of a tesseroid at given locations.
     """
-    cdef:
-        unsigned int l, p
-        double scale
-        double w, e, s, n, top, bottom
-    w, e, s, n, top, bottom = tesseroid
-    # Put the nodes in the current range
-    scale = scale_nodes(w, e, s, n, top, bottom, lonc, sinlatc, coslatc, rc)
-    # Start the numerical integration
-    for p in range(len(points)):
-        l = points[p]
-        result[l] += density*kernelyz(
-            lons[l], sinlats[l], coslats[l], radii[l], scale, lonc, sinlatc,
-            coslatc, rc)
+    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
+                          radii, result, kernelyz)
 
 
-# Computes the kernel part of the gravity gradient component
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef inline double kernelyz(
     double lon, double sinlat, double coslat, double radius, double scale,
     double[::1] lonc, double[::1] sinlatc, double[::1] coslatc,
@@ -607,6 +464,32 @@ def gzz(
     """
     with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
                           radii, result, kernelzz)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef inline double kernelzz(double lon, double sinlat, double coslat,
+        double radius, double scale, double[::1] lonc, double[::1] sinlatc,
+        double[::1] coslatc, double[::1] rc):
+    cdef:
+        unsigned int i, j, k
+        double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz
+        double result
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                l_5 = l_sqr**2.5
+                kappa = rc_sqr*coslatc[j]
+                deltaz = rc[k]*cospsi - radius
+                result += scale*kappa*(3*deltaz**2 - l_sqr)/l_5
+    return result
 
 
 @cython.boundscheck(False)
@@ -696,32 +579,6 @@ cdef with_rediscretization(
                             queue_size = queue_size + 1
         result[l] += density*res
     return 0
-
-# Computes the kernel part of the gravity gradient component
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.cdivision(True)
-cdef inline double kernelzz(double lon, double sinlat, double coslat,
-        double radius, double scale, double[::1] lonc, double[::1] sinlatc,
-        double[::1] coslatc, double[::1] rc):
-    cdef:
-        unsigned int i, j, k
-        double kappa, r_sqr, coslon, rc_sqr, l_sqr, l_5, cospsi, deltaz
-        double result
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = cos(lon - lonc[i])
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                l_5 = l_sqr**2.5
-                kappa = rc_sqr*coslatc[j]
-                deltaz = rc[k]*cospsi - radius
-                result += scale*kappa*(3*deltaz**2 - l_sqr)/l_5
-    return result
 
 
 @cython.cdivision(True)
