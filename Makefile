@@ -55,7 +55,7 @@ pep8:
 pep8-stats:
 	pep8 --exclude=_version.py --statistics -qq fatiando test cookbook
 
-package: test
+package:
 	$(PY) setup.py sdist --formats=zip,gztar
 
 upload: package
