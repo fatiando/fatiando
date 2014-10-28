@@ -3,10 +3,10 @@
 Changelog
 =========
 
-Version (future)
-----------------
+Version 0.3
+-----------
 
-**Release date**:
+**Release date**: 2014-10-28
 
 **Changes**:
 
