@@ -84,6 +84,8 @@ have one and ask to be added as a maintainer.
 9. Upload the built package (zip and tar files) to PyPI. Uses `twine
    <https://github.com/pypa/twine>`__ for the upload.::
 
+       make clean
+       make package
        make upload
 
 10. Test the upload::
