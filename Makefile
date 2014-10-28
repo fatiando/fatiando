@@ -17,7 +17,6 @@ help:
 	@echo "    pep8-stats    print a summary of the PEP8 check"
 	@echo "    coverage      calculate test coverage using Coverage"
 	@echo "    package       create source distributions"
-	@echo "    upload        upload source distribuitions to PyPI"
 	@echo "    clean         clean up build and generated files"
 	@echo "    clean-docs    clean up the docs build"
 	@echo ""
@@ -57,10 +56,6 @@ pep8-stats:
 
 package:
 	$(PY) setup.py sdist --formats=zip,gztar
-
-upload: package
-	pip install --upgrade --quiet twine
-	twine upload dist/*
 
 clean:
 	find . -name "*.so" -exec rm -v {} \;

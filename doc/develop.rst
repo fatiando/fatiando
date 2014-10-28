@@ -82,11 +82,12 @@ have one and ask to be added as a maintainer.
        git push --tags
 
 9. Upload the built package (zip and tar files) to PyPI. Uses `twine
-   <https://github.com/pypa/twine>`__ for the upload.::
+   <https://github.com/pypa/twine>`__ for the upload. Install it using
+   ``pip install twine``.::
 
        make clean
        make package
-       make upload
+       twine upload dist/* -p YOUR_PYPI_PASSWORD
 
 10. Test the upload::
 
