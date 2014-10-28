@@ -149,6 +149,7 @@ except ImportError:
 RATIO_POTENTIAL = 1
 RATIO_G = 2
 RATIO_GG = 5
+QUEUE_SIZE = 100
 
 
 def potential(lons, lats, heights, tesseroids, dens=None,
@@ -201,8 +202,8 @@ def potential(lons, lats, heights, tesseroids, dens=None,
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.potential(tesseroid, density, ratio, rlon, sinlat,
-                             coslat, radius, result)
+        _tesseroid.potential(tesseroid, density, ratio, QUEUE_SIZE, rlon,
+                             sinlat, coslat, radius, result)
     result *= G
     return result
 
@@ -256,7 +257,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gx(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                       coslat, radius, result)
     result *= SI2MGAL*G
     return result
@@ -311,7 +312,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gy(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                       coslat, radius, result)
     result *= SI2MGAL*G
     return result
@@ -371,7 +372,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gz(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                       coslat, radius, result)
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
@@ -428,7 +429,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxx(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gxx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
@@ -483,7 +484,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxy(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gxy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
@@ -538,7 +539,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxz(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gxz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
@@ -593,7 +594,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gyy(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gyy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
@@ -648,7 +649,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gyz(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gyz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
@@ -703,7 +704,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid, density, ratio, rlon, sinlat,
+        _tesseroid.gzz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result

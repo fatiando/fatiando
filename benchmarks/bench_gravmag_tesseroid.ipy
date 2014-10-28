@@ -10,7 +10,6 @@ from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando.vis import mpl
 
 
-
 def run_tesseroids(field):
     if field == 'potential':
         ratio = tesseroid.RATIO_POTENTIAL
@@ -21,6 +20,7 @@ def run_tesseroids(field):
         ratio = tesseroid.RATIO_GG
     prog = 'tess{}'.format(field)
     ! $prog model.tmp -t$ratio < grid.tmp > out.tmp
+
 
 def run_n_time(field, model, lon, lat, height):
     # Create a model file and a grid file for Tesseroids
@@ -53,6 +53,7 @@ def run_n_time(field, model, lon, lat, height):
 
     ! rm grid.tmp model.tmp out.tmp
 
+
 # Make a model with few tesseroids to run fast
 model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 5, 5))
 model.addprop('density', 2700*np.ones(model.size))
@@ -78,7 +79,8 @@ if profile:
     %prun getattr(tesseroid, field)(lon, lat, height, model)
 else:
     run_n_time(field, model, lon, lat, height)
-    print "\nLARGER MODEL"
+
+    print "\nLarge model, many points:\n"
     model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 10, 10))
     model.addprop('density', 2700*np.ones(model.size))
     area = [101, 109, -4, 4]

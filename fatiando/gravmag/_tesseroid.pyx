@@ -64,6 +64,7 @@ def potential(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -72,8 +73,8 @@ def potential(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelpot)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelpot)
 
 
 @cython.boundscheck(False)
@@ -106,6 +107,7 @@ def gx(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -114,8 +116,8 @@ def gx(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelx)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelx)
 
 
 @cython.boundscheck(False)
@@ -149,6 +151,7 @@ def gy(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -157,8 +160,8 @@ def gy(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernely)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernely)
 
 
 @cython.boundscheck(False)
@@ -192,6 +195,7 @@ def gz(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -200,8 +204,8 @@ def gz(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelz)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelz)
 
 
 @cython.boundscheck(False)
@@ -234,6 +238,7 @@ def gxx(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -242,8 +247,8 @@ def gxx(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelxx)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelxx)
 
 
 @cython.boundscheck(False)
@@ -277,6 +282,7 @@ def gxy(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -285,8 +291,8 @@ def gxy(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelxy)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelxy)
 
 
 @cython.boundscheck(False)
@@ -321,6 +327,7 @@ def gxz(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -329,8 +336,8 @@ def gxz(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelxz)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelxz)
 
 
 @cython.boundscheck(False)
@@ -365,6 +372,7 @@ def gyy(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -373,8 +381,8 @@ def gyy(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelyy)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelyy)
 
 
 @cython.boundscheck(False)
@@ -409,6 +417,7 @@ def gyz(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -417,8 +426,8 @@ def gyz(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelyz)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelyz)
 
 
 @cython.boundscheck(False)
@@ -454,6 +463,7 @@ def gzz(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -462,8 +472,8 @@ def gzz(
     """
     Calculate this gravity field of a tesseroid at given locations.
     """
-    with_rediscretization(tesseroid, density, ratio, lons, sinlats, coslats,
-                          radii, result, kernelzz)
+    with_rediscretization(tesseroid, density, ratio, queue_max, lons, sinlats,
+                          coslats, radii, result, kernelzz)
 
 
 @cython.boundscheck(False)
@@ -498,6 +508,7 @@ cdef with_rediscretization(
     tesseroid,
     double density,
     double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
@@ -518,7 +529,7 @@ cdef with_rediscretization(
         double scale
         unsigned int i, j, k
         int nlon, nlat, nr
-        int queue_size, queue_max = 10000, overflow = 0
+        int queue_size
         double[:, ::1] queue =  numpy.empty((queue_max, 6), numpy.float)
         double w, e, s, n, top, bottom
         double lon, sinlat, coslat, radius
@@ -578,7 +589,6 @@ cdef with_rediscretization(
                             queue[queue_size, 5] = bottom + k*dr
                             queue_size = queue_size + 1
         result[l] += density*res
-    return 0
 
 
 @cython.cdivision(True)
