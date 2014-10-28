@@ -7,6 +7,25 @@ from fatiando.mesher import Tesseroid
 from fatiando import gridder
 
 
+def test_queue_overflow():
+    "gravmag.tesseroid raises exceptions on queue overflow"
+    model = [Tesseroid(0, 1, 0, 1, 0, -20e4, {'density': 2600})]
+    area = [0, 1, 0, 1]
+    shape = [20, 20]
+    lon, lat, h = gridder.regular(area, shape, z=1000)
+    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
+    backup = tesseroid.QUEUE_SIZE
+    tesseroid.QUEUE_SIZE = 5
+    for f in fields:
+        assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
+    tesseroid.QUEUE_SIZE = backup
+    # Check if overflows on normal queue size when trying to calculated on top
+    # of the tesseroid
+    lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([1])
+    for f in fields:
+        assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
+
+
 def test_fails_if_shape_mismatch():
     'gravmag.tesseroid fails if given computation points with different shapes'
     model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
@@ -64,24 +83,6 @@ def test_fails_if_shape_mismatch():
     assert_raises(ValueError, tesseroid.gzz, lon, lat[:-2], h, model)
     assert_raises(ValueError, tesseroid.gzz, lon, lat, h[:-2], model)
     assert_raises(ValueError, tesseroid.gzz, lon[:-5], lat, h[:-2], model)
-
-
-def test_queue_overflow():
-    "gravmag.tesseroid raises exception on queue overflow"
-    qsize = tesseroid.QUEUE_SIZE
-    tesseroid.QUEUE_SIZE = 6
-    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
-    area = [-2, 2, -2, 2]
-    shape = (51, 51)
-    lon, lat, h = gridder.regular(area, shape, z=10000)
-    funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
-             'gzz']
-    try:
-        for f in funcs:
-            assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h,
-                          model)
-    finally:
-        tesseroid.QUEUE_SIZE = qsize
 
 
 def test_tesseroid_vs_spherical_shell():

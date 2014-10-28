@@ -137,7 +137,7 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 ----
 
 """
-import collections
+from __future__ import division
 import numpy
 
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
@@ -146,10 +146,14 @@ try:
 except ImportError:
     pass
 
-QUEUE_SIZE = 1000
+RATIO_POTENTIAL = 1
+RATIO_G = 2
+RATIO_GG = 5
+QUEUE_SIZE = 100
 
 
-def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
+def potential(lons, lats, heights, tesseroids, dens=None,
+              ratio=RATIO_POTENTIAL):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -198,13 +202,13 @@ def potential(lons, lats, heights, tesseroids, dens=None, ratio=0.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.potential, ratio, result)
+        _tesseroid.potential(tesseroid, density, ratio, QUEUE_SIZE, rlon,
+                             sinlat, coslat, radius, result)
     result *= G
     return result
 
 
-def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the North component of the gravitational attraction.
 
@@ -253,13 +257,13 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=1.):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gx, ratio, result)
+        _tesseroid.gx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                      coslat, radius, result)
     result *= SI2MGAL*G
     return result
 
 
-def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the East component of the gravitational attraction.
 
@@ -308,13 +312,13 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=1.):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gy, ratio, result)
+        _tesseroid.gy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                      coslat, radius, result)
     result *= SI2MGAL*G
     return result
 
 
-def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
+def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -368,15 +372,15 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=1.):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gz, ratio, result)
+        _tesseroid.gz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                      coslat, radius, result)
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
     result *= -SI2MGAL*G
     return result
 
 
-def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xx component of the gravity gradient tensor.
 
@@ -425,13 +429,13 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gxx, ratio, result)
+        _tesseroid.gxx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xy component of the gravity gradient tensor.
 
@@ -480,13 +484,13 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gxy, ratio, result)
+        _tesseroid.gxy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the xz component of the gravity gradient tensor.
 
@@ -535,13 +539,13 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gxz, ratio, result)
+        _tesseroid.gxz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the yy component of the gravity gradient tensor.
 
@@ -590,13 +594,13 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gyy, ratio, result)
+        _tesseroid.gyy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the yz component of the gravity gradient tensor.
 
@@ -645,13 +649,13 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gyz, ratio, result)
+        _tesseroid.gyz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
+def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     """
     Calculate the zz component of the gravity gradient tensor.
 
@@ -700,53 +704,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=2.5):
             density = dens
         else:
             density = tesseroid.props['density']
-        _with_optimal_division(tesseroid, density, rlon, sinlat, coslat,
-                               radius, _tesseroid.gzz, ratio, result)
+        _tesseroid.gzz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+                       coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
-
-
-def _with_optimal_division(tesseroid, props, lon, sinlat, coslat, radius,
-                           kernel, ratio, result):
-    """
-    Calculate the effect of a given kernel in the most precise way by
-    adaptively discretizing the tesseroid into smaller ones.
-    """
-    ndata = len(lon)
-    d2r = numpy.pi / 180.
-
-    # Create some buffers to reduce memory allocation
-    lonc = numpy.zeros(2, numpy.float)
-    sinlatc = numpy.zeros(2, numpy.float)
-    coslatc = numpy.zeros(2, numpy.float)
-    rc = numpy.zeros(2, numpy.float)
-    allpoints = numpy.arange(ndata)
-
-    queue = collections.deque([[allpoints, tesseroid.get_bounds()]],
-                              maxlen=QUEUE_SIZE)
-    while queue:
-        points, tess = queue.pop()
-        middle = _tesseroid.too_close(tess, lon, sinlat, coslat, radius,
-                                      ratio, points)
-        if middle < len(points):
-            if len(queue) + 8 >= queue.maxlen:
-                raise ValueError('Tesseroid queue overflow')
-            queue.extend(_half(tess, points[middle:]))
-        if middle:
-            kernel(tess, props, lon, sinlat, coslat, radius, lonc,
-                   sinlatc, coslatc, rc, result, points[:middle])
-
-
-def _half(bounds, points):
-    w, e, s, n, top, bottom = bounds
-    dlon = 0.5*(e - w)
-    dlat = 0.5*(n - s)
-    dh = 0.5*(top - bottom)
-    yield [points, [w, w + dlon, s, s + dlat, bottom + dh, bottom]]
-    yield [points, [w, w + dlon, s, s + dlat, top, bottom + dh]]
-    yield [points, [w, w + dlon, s + dlat, n, bottom + dh, bottom]]
-    yield [points, [w, w + dlon, s + dlat, n, top, bottom + dh]]
-    yield [points, [w + dlon, e, s, s + dlat, bottom + dh, bottom]]
-    yield [points, [w + dlon, e, s, s + dlat, top, bottom + dh]]
-    yield [points, [w + dlon, e, s + dlat, n, bottom + dh, bottom]]
-    yield [points, [w + dlon, e, s + dlat, n, top, bottom + dh]]
