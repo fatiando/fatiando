@@ -55,5 +55,6 @@ http://youtu.be/Ec38h1oB8cc
     install.rst
     api/fatiando.rst
     cookbook.rst
+    develop.rst
 
 

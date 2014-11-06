@@ -3,8 +3,8 @@
 Changelog
 =========
 
-Version (future)
-----------------
+Version (development)
+---------------------
 
 **Release date**:
 
@@ -13,6 +13,15 @@ Version (future)
 * Refactor, better documentation, and faster code in
   :ref:`fatiando.gravmag.tesseroid <fatiando_gravmag_tesseroid>`.
   (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`_)
+
+
+Version 0.3
+-----------
+
+**Release date**: 2014-10-28
+
+**Changes**:
+
 * **New module** :ref:`fatiando.gravmag.normal_gravity
   <fatiando_gravmag_normal_gravity>` to calculate normal gravity (the gravity
   of reference ellipsoids).
