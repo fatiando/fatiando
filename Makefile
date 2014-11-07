@@ -6,13 +6,13 @@ NOSE := nosetests
 help:
 	@echo "Commands:"
 	@echo ""
+	@echo "    develop       build and force pip install a development version (calls Cython)"
 	@echo "    build         build the extension modules inplace"
 	@echo "    cython        generate C code from Cython files before building"
 	@echo "    docs          build the html documentation"
 	@echo "    view-docs     serve the docs html on http://127.0.0.1:8008"
 	@echo "    linkcheck     check the docs for broken links"
 	@echo "    test          run the test suite (including doctests)"
-	@echo "    test-par      run tests in parallel with all available cores"
 	@echo "    pep8          check for PEP8 style compliance"
 	@echo "    pep8-stats    print a summary of the PEP8 check"
 	@echo "    coverage      calculate test coverage using Coverage"
@@ -28,6 +28,10 @@ build:
 cython:
 	$(PY) setup.py build_ext --inplace --cython
 
+develop:
+	$(PY) setup.py build --cython
+	pip install --no-deps --ignore-installed .
+
 docs: clean
 	cd doc; make html
 
@@ -39,10 +43,7 @@ view-docs:
 
 .PHONY: test
 test: build
-	$(NOSE) --with-doctest -v fatiando/ test/
-
-test-par: build
-	$(NOSE) --with-doctest -v --processes=`nproc` fatiando/ test/
+	$(NOSE) --with-doctest -v fatiando test/
 
 coverage: build
 	$(NOSE) --with-doctest --with-coverage --cover-package=fatiando fatiando/ \
