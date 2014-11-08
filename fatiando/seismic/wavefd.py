@@ -125,13 +125,27 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 
 """
 from __future__ import division
+from tempfile import NamedTemporaryFile
+import time
+import sys
+import os
+import cPickle as pickle
+from abc import ABCMeta, abstractmethod
+import six
 
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
+from IPython.display import Image, HTML, display, display_png
+from IPython.html import widgets
+from IPython.core.pylabtools import print_figure
+from matplotlib import animation
+from matplotlib import pyplot as plt
+import h5py
+
 
 try:
-    from fatiando.seismic._wavefd import *
+    from ._wavefd import *
 except:
     def not_implemented(*args, **kwargs):
         raise NotImplementedError(
@@ -145,6 +159,774 @@ except:
     _step_scalar = not_implemented
     _reflexive_scalar_boundary_conditions = not_implemented
 
+
+class Source(six.with_metaclass(ABCMeta)):
+    """
+    Base class for describing seismic sources.
+
+    Call an instance as a function with a given time to get back the source
+    function at that time.
+
+    Implements a _repr_png_ method that plots the source function around the
+    delay time.
+
+    Overloads multiplication by a scalar to multiply the amplitude of the
+    source and return a new source.
+    """
+
+    def __init__(self, amp, cf, delay):
+        self.amp = amp
+        self.cf = cf
+        self.delay = delay
+
+    def __mul__(self, scalar):
+        return self.__class__(self.amp*scalar, self.cf, self.delay)
+
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)
+
+    def _repr_png_(self):
+        t = self.delay + numpy.linspace(-2/self.cf, 2/self.cf, 200)
+        fig = plt.figure(figsize=(6, 4), facecolor='white')
+        fig.set_figheight(0.5*fig.get_figwidth())
+        plt.title('{} wavelet'.format(self.__class__.__name__))
+        plt.plot(t, self(t), '-k')
+        plt.xlabel('Time')
+        plt.ylabel('Amplitude')
+        plt.xlim(t.min(), t.max())
+        plt.grid(True)
+        plt.tight_layout()
+        data = print_figure(fig, dpi=70)
+        plt.close(fig)
+        return data
+
+    def __call__(self, time):
+        return self.value(time)
+
+    @abstractmethod
+    def value(self, time):
+        """
+        Return the source functions value at a given time
+        """
+        pass
+
+
+class Ricker(Source):
+    """
+    A Ricker wavelet source function.
+    """
+
+    def __init__(self, amp, cf, delay=0):
+        super(Ricker, self).__init__(amp, cf, delay)
+
+    def value(self, time):
+        t = (time - self.delay)
+        aux = self.amp*(1 - 2*(numpy.pi*self.cf*t)**2)
+        return aux*numpy.exp(-(numpy.pi*self.cf*t)**2)
+
+class WaveFD2D(six.with_metaclass(ABCMeta)):
+    """
+    Base class for 2D simulations.
+
+    Implements the ``run`` method and delegates actual timestepping to the
+    abstract ``timestep`` method.
+
+    Handles creating an HDF5 cache file, plotting snapshots of the simulation,
+    printing a progress bar to stderr, and creating an IPython widget to
+    explore the snapshots.
+
+    Overloads __getitem__. Indexing the simulation object is like indexing the
+    HDF5 cache file. This way you can treat the simulation object as a numpy
+    array.
+
+    """
+
+    def __init__(self, cachefile, spacing, dt, shape, verbose=True):
+        self.spacing = spacing
+        self.shape = shape
+        self.set_verbose(verbose)
+        self.sources = []
+        self.it = -1
+        self.size = 0
+        if cachefile is None:
+            cachefile = self.create_tmp_cache()
+        self.cachefile = cachefile
+        self.dt = dt
+
+    def create_tmp_cache(self):
+        tmpfile = NamedTemporaryFile(
+            suffix='.h5',
+            prefix='{}-'.format(self.__class__.__name__),
+            dir=os.path.curdir,
+            delete=False)
+        fname = tmpfile.name
+        tmpfile.close()
+        return fname
+
+    def set_verbose(self, verbose):
+        self.verbose = verbose
+        # Need an option to get rid of the sys.stderr reference because it
+        # can't be pickled.
+        if verbose:
+            self.stream = sys.stderr
+        else:
+            self.stream = None
+
+    def get_cache(self, mode='r'):
+        return h5py.File(self.cachefile, mode)
+
+    def __getitem__(self, args):
+        with self.get_cache() as f:
+            data = f['panels'][args]
+        return data
+
+    @abstractmethod
+    def plot_snapshot(self, frame, **kwargs):
+        pass
+
+    def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
+        if ax is None:
+            fig = plt.figure(facecolor='white')
+            ax = plt.subplot(111)
+        if frame < 0:
+            title = self.size + frame
+        else:
+            title = frame
+        plt.sca(ax)
+        fig = ax.get_figure()
+        plt.title('Time frame {:d}'.format(title))
+        self.plot_snapshot(frame, **kwargs)
+        nz, nx = self.shape
+        dx, dz = nx*self.spacing, nz*self.spacing
+        ax.set_xlim(0, dx)
+        ax.set_ylim(0, dz)
+        ax.set_xlabel('x')
+        ax.set_ylabel('z')
+        ax.invert_yaxis()
+        # Check the aspect ratio of the plot and adjust figure size to match
+        aspect = min(self.shape)/max(self.shape)
+        try:
+            aspect /= ax.get_aspect()
+        except TypeError:
+            pass
+        if nx > nz:
+            width = 10
+            height = width*aspect*0.8
+        else:
+            height = 8
+            width = height*aspect*1.5
+        fig.set_size_inches(width, height)
+        plt.tight_layout()
+        if raw or embed:
+            png = print_figure(fig, dpi=70)
+            plt.close(fig)
+        if raw:
+            return png
+        elif embed:
+            return Image(png)
+
+    def _repr_png_(self):
+        return self.snapshot(-1, raw=True)
+
+    def explore(self, **kwargs):
+        plotargs = kwargs
+        def plot(Frame):
+            image = Image(self.snapshot(Frame, raw=True, **plotargs))
+            display(image)
+            return image
+        slider = widgets.IntSliderWidget(min=0, max=self.it, step=1,
+                                         value=self.it, description="Frame")
+        widget = widgets.interact(plot, Frame=slider)
+        return widget
+
+    @abstractmethod
+    def init_cache(self, iterations):
+        pass
+
+    @abstractmethod
+    def expand_cache(self, iterations):
+        pass
+
+    @abstractmethod
+    def init_panels(self):
+        pass
+
+    @abstractmethod
+    def timestep(self, panels, tm1, t, tp1):
+        pass
+
+    @abstractmethod
+    def cache_panels(self, u, tp1, iteration, simul_size):
+        pass
+
+    def run(self, iterations):
+        nz, nx = self.shape
+        dz, dx = self.spacing, self.spacing
+        # Initialize the cache on the first run
+        if self.size == 0:
+            self.init_cache(iterations)
+        else:
+            self.expand_cache(iterations)
+        u = self.init_panels()
+        if self.verbose:
+            # The size of the progress status bar
+            places = 50
+            self.stream.write(''.join(['|', '-'*places, '|', '  0%']))
+            self.stream.flush()
+            nprinted = 0
+            start_time = time.clock()
+        for iteration in xrange(iterations):
+            t, tm1 = iteration%2, (iteration + 1)%2
+            tp1 = tm1
+            self.it += 1
+            self.timestep(u, tm1, t, tp1, self.it)
+            self.size += 1
+            self.cache_panels(u, tp1, self.it, self.size)
+            # Update the status bar
+            if self.verbose:
+                percent = int(round(100*(iteration + 1)/iterations))
+                n = int(round(0.01*percent*places))
+                if n > nprinted:
+                    self.stream.write(''.join(['\r|', '#'*n, '-'*(places - n),
+                                               '|', '%3d%s' % (percent, '%')]))
+                    self.stream.flush()
+                    nprinted = n
+        # Make sure the progress bar ends in 100 percent
+        if self.verbose:
+            self.stream.write(''.join(
+                ['\r|', '#'*places, '|', '100%',
+                 ' Ran {:d} iterations in {:g} seconds.'.format(
+                     iterations, time.clock() - start_time)]))
+            self.stream.flush()
+
+
+class ElasticSH(WaveFD2D):
+    """
+    Simulate the elastic wave equation for horizontal S waves.
+    """
+
+    def __init__(self, velocity, density, spacing, cachefile=None, dt=None,
+                 padding=50, taper=0.007, verbose=True):
+        super(ElasticSH, self).__init__(cachefile, spacing, dt, velocity.shape,
+                                        verbose)
+        self.density = density
+        self.velocity = velocity
+        self.mu = lame_mu(velocity, density)
+        self.padding = padding
+        self.taper = taper
+        if self.dt is None:
+            self.dt = self.maxdt()
+
+    def maxdt(self):
+        nz, nx = self.shape
+        ds = self.spacing
+        return 0.6*maxdt([0, nx*ds, 0, nz*ds], self.shape, self.velocity.max())
+
+    def plot_snapshot(self, frame, **kwargs):
+        with h5py.File(self.cachefile) as f:
+            data = f['panels'][frame]
+        scale = numpy.abs(data).max()
+        nz, nx = self.shape
+        dx, dz = nx*self.spacing, nz*self.spacing
+        extent = [0, dx, dz, 0]
+        if 'cmap' not in kwargs:
+            kwargs['cmap'] = plt.cm.seismic
+        plt.imshow(data, extent=extent, vmin=-scale, vmax=scale, **kwargs)
+        plt.colorbar(pad=0, aspect=30).set_label('Displacement')
+
+    def add_point_source(self, position, wavelet):
+        self.sources.append([position, wavelet])
+
+    @staticmethod
+    def from_cache(fname, verbose=True):
+        with h5py.File(fname, 'r') as f:
+            vel = f['velocity']
+            dens = f['density']
+            panels = f['panels']
+            spacing = panels.attrs['spacing']
+            dt = panels.attrs['dt']
+            padding = panels.attrs['padding']
+            taper = panels.attrs['taper']
+            sim = ElasticSH(vel[:], dens[:], spacing, dt=dt, padding=padding,
+                            taper=taper, cachefile=fname)
+            sim.size = panels.attrs['size']
+            sim.it = panels.attrs['iterations']
+            sim.sources = pickle.loads(f['sources'].value.tostring())
+        sim.set_verbose(verbose)
+        return sim
+
+    def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+        nz, nx = self.shape
+        if chunks is None:
+            chunks = (1, nz//10, nx//10)
+        with self.get_cache(mode='w') as f:
+            nz, nx = self.shape
+            dset = f.create_dataset('panels', (panels, nz, nx),
+                                     maxshape=(None, nz, nx),
+                                     chunks=chunks,
+                                     compression=compression,
+                                     shuffle=shuffle,
+                                     dtype=numpy.float)
+            dset.attrs['shape'] = self.shape
+            dset.attrs['size'] = self.size
+            dset.attrs['iterations'] = self.it
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['dt'] = self.dt
+            dset.attrs['padding'] = self.padding
+            dset.attrs['taper'] = self.taper
+            dset = f.create_dataset('velocity', data=self.velocity)
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['shape'] = self.shape
+            dset = f.create_dataset('density', data=self.density)
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['shape'] = self.shape
+            dset = f.create_dataset(
+                'sources', data=numpy.void(pickle.dumps(self.sources)))
+            dset.attrs['len'] = len(self.sources)
+
+    def expand_cache(self, iterations):
+        with self.get_cache(mode='a') as f:
+            cache = f['panels']
+            cache.resize(self.size + iterations, axis=0)
+
+    def cache_panels(self, u, tp1, iteration, simul_size):
+        # Save the panel to disk
+        with self.get_cache(mode='a') as f:
+            cache = f['panels']
+            cache[simul_size - 1] = u[tp1]
+            cache.attrs['size'] = simul_size
+            cache.attrs['iterations'] = iteration
+
+    def init_panels(self):
+        # If this is the first run, start with zeros, else, get the last two
+        # panels from the cache so that the simulation can be resumed
+        if self.size == 0:
+            nz, nx = self.shape
+            u = numpy.zeros((2, nz, nx), dtype=numpy.float)
+        else:
+            with self.get_cache() as f:
+                cache = f['panels']
+                u = cache[self.size - 2 : self.size][::-1]
+        return u
+
+    def timestep(self, u, tm1, t, tp1, iteration):
+        nz, nx = self.shape
+        ds = self.spacing
+        _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3,
+                         self.dt, ds, ds, self.mu, self.density)
+        _apply_damping(u[t], nx, nz, self.padding, self.taper)
+        _nonreflexive_sh_boundary_conditions(
+            u[tp1], u[t], nx, nz, self.dt, ds, ds, self.mu, self.density)
+        _apply_damping(u[tp1], nx, nz, self.padding, self.taper)
+        for pos, src in self.sources:
+            i, j = pos
+            u[tp1, i, j] += src(iteration*self.dt)
+
+    def animate(self, every=1, cutoff=None, ax=None, cmap=plt.cm.seismic,
+                embed=False, fps=10, dpi=70, writer='avconv', **kwargs):
+        if ax is None:
+            plt.figure(facecolor='white')
+            ax = plt.subplot(111)
+            ax.set_xlabel('x')
+            ax.set_ylabel('z')
+        fig = ax.get_figure()
+        nz, nx = self.shape
+        # Check the aspect ratio of the plot and adjust figure size to match
+        aspect = min(self.shape)/max(self.shape)
+        try:
+            aspect /= ax.get_aspect()
+        except TypeError:
+            pass
+        if nx > nz:
+            width = 10
+            height = width*aspect*0.8
+        else:
+            height = 10
+            width = height*aspect*1.5
+        fig.set_size_inches(width, height)
+        # Separate the arguments for imshow
+        imshow_args = dict(cmap=cmap)
+        if cutoff is not None:
+            imshow_args['vmin'] = -cutoff
+            imshow_args['vmax'] = cutoff
+        wavefield = ax.imshow(numpy.zeros(self.shape), **imshow_args)
+        fig.colorbar(wavefield, pad=0, aspect=30).set_label('Displacement')
+        ax.set_title('iteration: 0')
+        frames = self.size//every
+        def plot(i):
+            ax.set_title('iteration: {:d}'.format(i*every))
+            u = self[i*every]
+            wavefield.set_array(u)
+            return wavefield
+        anim = animation.FuncAnimation(fig, plot, frames=frames, **kwargs)
+        if embed:
+            return anim_to_html(anim, fps=fps, dpi=dpi, writer=writer)
+        else:
+            plt.show()
+            return anim
+
+
+def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
+    """
+    Convert a matplotlib animation object to a video embedded in an HTML
+    <video> tag.
+
+    Uses avconv (default) or ffmpeg.
+
+    Returns an IPython.display.HTML object for embedding in the notebook.
+
+    Adapted from `the yt project docs
+    <http://yt-project.org/doc/cookbook/embedded_webm_animation.html>`__.
+    """
+    VIDEO_TAG = """
+    <video controls>
+    <source src="data:video/webm;base64,{0}" type="video/webm">
+    Your browser does not support the video tag.
+    </video>"""
+    plt.close(anim._fig)
+    if not hasattr(anim, '_encoded_video'):
+        with NamedTemporaryFile(suffix='.webm') as f:
+            anim.save(f.name, fps=fps, dpi=dpi, writer=writer,
+                      extra_args=['-vcodec', 'libvpx'])
+            video = open(f.name, "rb").read()
+        anim._encoded_video = video.encode("base64")
+    return HTML(VIDEO_TAG.format(anim._encoded_video))
+
+
+class ElasticPSV(WaveFD2D):
+    """
+    Simulation class for elastic P and SV waves.
+    """
+
+    def __init__(self, pvel, svel, density, spacing, cachefile=None, dt=None,
+                 padding=50, taper=0.007, verbose=True):
+        super(ElasticPSV, self).__init__(cachefile, spacing, dt, pvel.shape,
+                                         verbose)
+        self.pvel = pvel
+        self.svel = svel
+        self.density = density
+        self.mu = lame_mu(svel, density)
+        self.lamb = lame_lamb(pvel, svel, density)
+        self.padding = padding
+        self.taper = taper
+        self.make_free_surface_matrices()
+        if self.dt is None:
+            self.dt = self.maxdt()
+
+    def maxdt(self):
+        nz, nx = self.shape
+        ds = self.spacing
+        return 0.6*maxdt([0, nx*ds, 0, nz*ds], self.shape, self.pvel.max())
+
+    def __getitem__(self, args):
+        with self.get_cache() as f:
+            ux = f['xpanels'][args]
+            uz = f['zpanels'][args]
+        return [ux, uz]
+
+    def add_blast_source(self, position, wavelet):
+        nz, nx = self.shape
+        i, j = position
+        amp = 1/(2**0.5)
+        locations = [
+            [i - 1, j    ,    0,   -1],
+            [i + 1, j    ,    0,    1],
+            [i    , j - 1,   -1,    0],
+            [i    , j + 1,    1,    0],
+            [i - 1, j - 1, -amp, -amp],
+            [i + 1, j - 1, -amp,  amp],
+            [i - 1, j + 1,  amp, -amp],
+            [i + 1, j + 1,  amp,  amp],
+            ]
+        for k, l, xamp, zamp in locations:
+            if k >= 0 and k < nz and l >= 0 and l < nx:
+                xwav = xamp*wavelet
+                zwav = zamp*wavelet
+                self.sources.append([[k, l], xwav, zwav])
+
+    def add_point_source(self, position, dip, wavelet):
+        d2r = numpy.pi/180
+        xamp = numpy.cos(d2r*dip)
+        zamp = numpy.sin(d2r*dip)
+        self.sources.append([position, xamp*wavelet, zamp*wavelet])
+
+    def plot_snapshot(self, frame, **kwargs):
+        with h5py.File(self.cachefile) as f:
+            ux = f['xpanels'][frame]
+            uz = f['zpanels'][frame]
+        plottype = kwargs.get('plottype', ['wavefield'])
+        nz, nx = self.shape
+        dx, dz = nx*self.spacing, nz*self.spacing
+        if 'wavefield' in plottype:
+            extent = [0, dx, dz, 0]
+            cmap = kwargs.get('cmap', plt.cm.seismic)
+            p = numpy.empty(self.shape, dtype=numpy.float)
+            s = numpy.empty(self.shape, dtype=numpy.float)
+            _xz2ps(ux, uz, p, s, nx, nz, self.spacing, self.spacing)
+            data = p + s
+            scale = numpy.abs(data).max()
+            vmin = kwargs.get('vmin', -scale)
+            vmax = kwargs.get('vmax', scale)
+            plt.imshow(data, cmap=cmap, extent=extent, vmin=vmin, vmax=vmax)
+            plt.colorbar(pad=0, aspect=30).set_label('Divergence + Curl')
+        if 'particles' in plottype:
+            every_particle = kwargs.get('every_particle', 5)
+            markersize = kwargs.get('markersize', 1)
+            scale = kwargs.get('scale', 1)
+            xs = numpy.linspace(0, dx, nx)[::every_particle]
+            zs = numpy.linspace(0, dz, nz)[::every_particle]
+            x, z = numpy.meshgrid(xs, zs)
+            x += scale*ux[::every_particle, ::every_particle]
+            z += scale*uz[::every_particle, ::every_particle]
+            plt.plot(x, z, '.k', markersize=markersize)
+        if 'vectors' in plottype:
+            every_particle = kwargs.get('every_particle', 5)
+            scale = kwargs.get('scale', 1)
+            linewidth = kwargs.get('linewidth', 0.1)
+            xs = numpy.linspace(0, dx, nx)[::every_particle]
+            zs = numpy.linspace(0, dz, nz)[::every_particle]
+            x, z = numpy.meshgrid(xs, zs)
+            plt.quiver(x, z,
+                       ux[::every_particle, ::every_particle],
+                       uz[::every_particle, ::every_particle],
+                       scale=1/scale, linewidth=linewidth,
+                       pivot='tail', angles='xy', scale_units='xy')
+
+    def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+        nz, nx = self.shape
+        if chunks is None:
+            chunks = (1, nz//10, nx//10)
+        with self.get_cache(mode='w') as f:
+            nz, nx = self.shape
+            dset = f.create_dataset('xpanels', (panels, nz, nx),
+                                     maxshape=(None, nz, nx),
+                                     chunks=chunks,
+                                     compression=compression,
+                                     shuffle=shuffle,
+                                     dtype=numpy.float)
+            dset.attrs['shape'] = self.shape
+            dset.attrs['size'] = self.size
+            dset.attrs['iterations'] = self.it
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['dt'] = self.dt
+            dset.attrs['padding'] = self.padding
+            dset.attrs['taper'] = self.taper
+            dset = f.create_dataset('zpanels', (panels, nz, nx),
+                                     maxshape=(None, nz, nx),
+                                     chunks=chunks,
+                                     compression=compression,
+                                     shuffle=shuffle,
+                                     dtype=numpy.float)
+            dset.attrs['shape'] = self.shape
+            dset.attrs['size'] = self.size
+            dset.attrs['iterations'] = self.it
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['dt'] = self.dt
+            dset.attrs['padding'] = self.padding
+            dset.attrs['taper'] = self.taper
+            dset = f.create_dataset('pvel', data=self.pvel,
+                             chunks=chunks[1:],
+                             compression=compression,
+                             shuffle=shuffle)
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['shape'] = self.shape
+            dset = f.create_dataset('svel', data=self.svel,
+                             chunks=chunks[1:],
+                             compression=compression,
+                             shuffle=shuffle)
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['shape'] = self.shape
+            dset = f.create_dataset('density', data=self.density,
+                             chunks=chunks[1:],
+                             compression=compression,
+                             shuffle=shuffle)
+            dset.attrs['spacing'] = self.spacing
+            dset.attrs['shape'] = self.shape
+            dset = f.create_dataset(
+                'sources', data=numpy.void(pickle.dumps(self.sources)))
+            dset.attrs['len'] = len(self.sources)
+
+    @staticmethod
+    def from_cache(fname):
+        with h5py.File(fname, 'r') as f:
+            pvel = f['pvel']
+            svel = f['svel']
+            dens = f['density']
+            panels = f['xpanels']
+            spacing = panels.attrs['spacing']
+            dt = panels.attrs['dt']
+            padding = panels.attrs['padding']
+            taper = panels.attrs['taper']
+            sim = ElasticPSV(pvel[:], svel[:], dens[:], spacing, dt=dt,
+                             padding=padding, taper=taper, cachefile=fname)
+            sim.size = panels.attrs['size']
+            sim.it = panels.attrs['iterations']
+            sim.sources = pickle.loads(f['sources'].value.tostring())
+        return sim
+
+    def cache_panels(self, u, tp1, iteration, simul_size):
+        # Save the panel to disk
+        with self.get_cache(mode='a') as f:
+            ux, uz = u
+            xpanels = f['xpanels']
+            zpanels = f['zpanels']
+            xpanels[simul_size - 1] = ux[tp1]
+            zpanels[simul_size - 1] = uz[tp1]
+            xpanels.attrs['size'] = simul_size
+            xpanels.attrs['iterations'] = iteration
+            zpanels.attrs['size'] = simul_size
+            zpanels.attrs['iterations'] = iteration
+
+    def expand_cache(self, iterations):
+        with self.get_cache(mode='a') as f:
+            f['xpanels'].resize(self.size + iterations, axis=0)
+            f['zpanels'].resize(self.size + iterations, axis=0)
+
+    def init_panels(self):
+        if self.size == 0:
+            nz, nx = self.shape
+            ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
+            uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
+        else:
+            # Get the last two panels from the cache
+            with self.get_cache() as f:
+                # Reverse the array because the later time comes first in
+                # ux, uz
+                # Need to copy them and reorder because the timestep function
+                # takes the whole ux array and complains that it isn't C
+                # contiguous
+                # Could change the timestep to pass ux[tp1], etc, like in
+                # ElasticSH. That would probably be much better.
+                ux = numpy.copy(f['xpanels'][self.size - 2 : self.size][::-1],
+                                order='C')
+                uz = numpy.copy(f['zpanels'][self.size - 2 : self.size][::-1],
+                                order='C')
+        return [ux, uz]
+
+    def make_free_surface_matrices(self):
+        # Pre-compute the matrices required for the free-surface BC
+        nz, nx = self.shape
+        dzdx = 1
+        identity = scipy.sparse.identity(nx)
+        B = scipy.sparse.eye(nx, nx, k=1) - scipy.sparse.eye(nx, nx, k=-1)
+        gamma = scipy.sparse.spdiags(
+            self.lamb[0]/(self.lamb[0] + 2*self.mu[0]), [0], nx, nx)
+        Mx1 = identity - 0.0625*(dzdx**2)*B*gamma*B
+        Mx2 = identity + 0.0625*(dzdx**2)*B*gamma*B
+        Mx3 = 0.5*dzdx*B
+        Mz1 = identity - 0.0625*(dzdx**2)*gamma*B*B
+        Mz2 = identity + 0.0625*(dzdx**2)*gamma*B*B
+        Mz3 = 0.5*dzdx*gamma*B
+        self.Mx = [Mx1, Mx2, Mx3]
+        self.Mz = [Mz1, Mz2, Mz3]
+
+    def timestep(self, u, tm1, t, tp1, iteration):
+        nz, nx = self.shape
+        ds = self.spacing
+        ux, uz = u
+        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1,
+                          self.dt, ds, ds,
+                          self.mu, self.lamb, self.density)
+        _apply_damping(ux[t], nx, nz, self.padding, self.taper)
+        _apply_damping(uz[t], nx, nz, self.padding, self.taper)
+        # Free-surface boundary conditions
+        Mx1, Mx2, Mx3 = self.Mx
+        Mz1, Mz2, Mz3 = self.Mz
+        ux[tp1,0,:] = scipy.sparse.linalg.spsolve(
+            Mx1, Mx2*ux[tp1,1,:] + Mx3*uz[tp1,1,:])
+        uz[tp1,0,:] = scipy.sparse.linalg.spsolve(
+            Mz1, Mz2*uz[tp1,1,:] + Mz3*ux[tp1,1,:])
+        _nonreflexive_psv_boundary_conditions(
+            ux, uz, tp1, t, tm1, nx, nz, self.dt, ds, ds,
+            self.mu, self.lamb, self.density)
+        _apply_damping(ux[tp1], nx, nz, self.padding, self.taper)
+        _apply_damping(uz[tp1], nx, nz, self.padding, self.taper)
+        for pos, xsrc, zsrc in self.sources:
+            i, j = pos
+            ux[tp1, i, j] += xsrc(iteration*self.dt)
+            uz[tp1, i, j] += zsrc(iteration*self.dt)
+
+    def animate(self, every=1, plottype=['wavefield'], cutoff=None,
+                cmap=plt.cm.seismic, scale=1, every_particle=5,
+                ax=None,  interval=100, embed=False, blit=False,
+                fps=10, dpi=70, writer='avconv', **kwargs):
+        nz, nx = self.shape
+        dx, dz = nx*self.spacing, nz*self.spacing
+        if ax is None:
+            plt.figure(facecolor='white')
+            ax = plt.subplot(111)
+            ax.set_xlabel('x')
+            ax.set_ylabel('z')
+            ax.set_xlim(0, dx)
+            ax.set_ylim(0, dz)
+            ax.invert_yaxis()
+        fig = ax.get_figure()
+        wavefield = None
+        particles = None
+        vectors = None
+        if 'wavefield' in plottype:
+            extent = [0, dx, dz, 0]
+            p = numpy.empty(self.shape, dtype=numpy.float)
+            s = numpy.empty(self.shape, dtype=numpy.float)
+            imshow_args = dict(cmap=cmap, extent=extent)
+            if cutoff is not None:
+                imshow_args['vmin'] = -cutoff
+                imshow_args['vmax'] = cutoff
+            wavefield = ax.imshow(numpy.zeros(self.shape), **imshow_args)
+            fig.colorbar(wavefield, pad=0, aspect=30).set_label(
+                'Divergence + Curl')
+        if 'particles' in plottype or 'vectors' in plottype:
+            xs = numpy.linspace(0, dx, nx)[::every_particle]
+            zs = numpy.linspace(0, dz, nz)[::every_particle]
+            x, z = numpy.meshgrid(xs, zs)
+        if 'particles' in plottype:
+            markersize = kwargs.get('markersize', 1)
+            stype = kwargs.get('style', '.k')
+            particles, = plt.plot(x.ravel(), z.ravel(), style,
+                                  markersize=markersize)
+        if 'vectors' in plottype:
+            linewidth = kwargs.get('linewidth', 0.1)
+            vectors = plt.quiver(x, z, numpy.zeros_like(x),
+                                 numpy.zeros_like(z),
+                                 scale=1/scale, linewidth=linewidth,
+                                 pivot='tail', angles='xy',
+                                 scale_units='xy')
+        # Check the aspect ratio of the plot and adjust figure size to match
+        aspect = min(self.shape)/max(self.shape)
+        try:
+            aspect /= ax.get_aspect()
+        except TypeError:
+            pass
+        if nx > nz:
+            width = 10
+            height = width*aspect*0.8
+        else:
+            height = 8
+            width = height*aspect*1.5
+        fig.set_size_inches(width, height)
+        def plot(i):
+            ax.set_title('iteration: {:d}'.format(i*every))
+            ux, uz = self[i*every]
+            if wavefield is not None:
+                _xz2ps(ux, uz, p, s, nx, nz, self.spacing, self.spacing)
+                wavefield.set_array(p + s)
+            if particles is not None or vectors is not None:
+                ux = ux[::every_particle, ::every_particle]
+                uz = uz[::every_particle, ::every_particle]
+            if particles is not None:
+                particles.set_data(x.ravel() + scale*ux.ravel(),
+                                   z.ravel() + scale*uz.ravel())
+            if vectors is not None:
+                vectors.set_UVC(ux, uz)
+            return wavefield, particles, vectors
+        frames = self.size//every
+        anim = animation.FuncAnimation(fig, plot, frames=frames, blit=blit,
+                                       interval=interval)
+        if embed:
+            return anim_to_html(anim, fps=fps, dpi=dpi, writer=writer)
+        else:
+            plt.show()
+            return anim
 
 class MexHatSource(object):
 
