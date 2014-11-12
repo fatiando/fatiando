@@ -14,10 +14,15 @@ Simple GUIs using the interactive capabilities of :mod:`matplotlib`
 ----
 
 """
+from __future__ import division
 import bisect
+import cPickle as pickle
 
 import numpy
-from matplotlib import pyplot, widgets
+from matplotlib import pyplot, widgets, patches
+from matplotlib.lines import Line2D
+from IPython.core.pylabtools import print_figure
+from IPython.display import Image
 
 from .. import utils
 from ..gravmag import talwani
@@ -25,219 +30,376 @@ from ..mesher import Polygon
 from ..seismic import profile
 
 
-class Moulder():
+class Moulder(object):
 
-    """
-    Interactive potential field direct modeling in 2D using polygons.
+    epsilon = 5
+    instructions = 'n: New polygon | d: delete | click: select/move | esc: cancel'
 
-    Uses module :mod:`~fatiando.gravmag.talwani` for computations.
-
-    For the moment only works for the gravity anomaly.
-
-    To run this in a script, use::
-
-        # Define the area of modeling
-        area = (0, 1000, 0, 1000)
-        # Where the gravity effect is calculated
-        xp = range(0, 1000, 10)
-        zp = [0]*len(xp)
-        # Create the application
-        app = Moulder(area, xp, zp)
-        # Run it (close the window to finish)
-        app.run()
-        # and save the calculated gravity anomaly profile
-        app.savedata("mydata.txt")
-
-    Parameters:
-
-    * area : list = [xmin, xmax, zmin, zmax]
-        Are of the subsuface to use for modeling. Remember, z is positive
-        downward
-    * xp, zp : array
-        Arrays with the x and z coordinates of the computation points
-    * gz : array
-        The observed gravity values at the computation points.
-        Will be plotted as black points together with the modeled (predicted)
-        data. If None, will ignore this.
-
-    "The truth is out there"
-
-    """
-
-    instructions = '-'.join(["Click to start drawing",
-                             "Choose density using the slider",
-                             "Right click to close polygon",
-                             "'e' to delete"])
-    name = "Moulder - Direct gravimetric modeling"
-
-    def __init__(self, area, xp, zp, gz=None):
-        if len(zp) != len(xp):
-            raise ValueError("xp and zp must have same size")
-        # Get the data
+    def __init__(self, area, x, z, data=None, density_range=[-2000, 2000], **kwargs):
         self.area = area
-        self.x1, self.x2, z1, z2 = 0.001 * numpy.array(area)
-        if gz is not None:
-            if len(gz) != len(xp):
-                raise ValueError("xp, zp and gz must have same size")
-            self.gz = numpy.array(gz)
+        self.x, self.z = numpy.asarray(x), numpy.asarray(z)
+        self.predicted = numpy.zeros_like(x)
+        self.density_range = density_range
+        self.data = data
+        if data is None:
+            self.dmin, self.dmax = 0, 0
         else:
-            self.gz = gz
-        self.xp = numpy.array(xp, dtype='f')
-        self.zp = numpy.array(zp, dtype='f')
-        # Make the figure
-        self.fig = pyplot.figure(figsize=(12, 8))
-        self.fig.canvas.set_window_title(self.name)
-        self.fig.suptitle(self.instructions)
-        self.draw = self.fig.canvas.draw
-        # Make the data and model canvas
-        self.dcanvas = self.fig.add_subplot(2, 1, 1)
-        self.dcanvas.set_ylabel("mGal")
-        self.dcanvas.set_xlim(self.x1, self.x2)
-        self.dcanvas.grid()
-        self.mcanvas = self.fig.add_subplot(2, 1, 2)
-        self.mcanvas.set_ylabel("Depth (km)")
-        self.mcanvas.set_xlabel("x (km)")
-        self.mcanvas.set_xlim(self.x1, self.x2)
-        self.mcanvas.set_ylim(z2, z1)
-        self.mcanvas.grid()
-        self.fig.subplots_adjust(top=0.95, left=0.1, right=0.95, bottom=0.18,
-                                 hspace=0.1)
-        # Make the sliders
-        sliderax = self.fig.add_axes([0.20, 0.08, 0.60, 0.03])
-        self.densslider = widgets.Slider(sliderax, 'Density',
-                                         -9, 9, valinit=0.,
-                                         valfmt='%1.2f (g/cm3)')
-        sliderax = self.fig.add_axes([0.20, 0.03, 0.60, 0.03])
-        self.errslider = widgets.Slider(sliderax, 'Error',
-                                        0, 5, valinit=0.,
-                                        valfmt='%1.2f (mGal)')
-        # Initialize the data
-        self.leg = None
-        self.predgz = None
-        self.predplot, = self.dcanvas.plot([], [], '-r', linewidth=2)
-        if self.gz is not None:
-            self.gzplot, = self.dcanvas.plot(xp * 0.001, gz, 'ok')
-        self.nextdens = 1000.
-        self.densslider.set_val(self.nextdens * 0.001)
-        self.error = 0.
-        self.densities = []
-        self.polygons = []
-        self.nextpoly = []
-        self.plotx = []
-        self.ploty = []
-        self.polyplots = []
-        self.polyline, = self.mcanvas.plot([], [], marker='o', linewidth=2)
+            self.dmin, self.dmax = data.min(), data.max()
+        self.polygons = kwargs.get('polygons', [])
+        self.lines = kwargs.get('lines', [])
+        self.densities = kwargs.get('densities', [])
+        self.error = kwargs.get('error', 0)
+        self.cmap = kwargs.get('cmap', pyplot.cm.RdBu_r)
+        self.line_args = dict(
+            linewidth=2, linestyle='-', color='k', marker='o',
+            markerfacecolor='k', markersize=5, animated=False, alpha=0.6)
+
+    def save_predicted(self, fname):
+        numpy.savetxt(fname, numpy.transpose([self.x, self.z, self.predicted]))
+
+    def save(self, fname):
+        """
+        Save the application state into a pickle file.
+        """
+        with open(fname, 'w') as f:
+            state = dict(area=self.area, x=self.x,
+                         z=self.z, data=self.data,
+                         density_range=self.density_range,
+                         cmap=self.cmap,
+                         polygons=self.polygons,
+                         lines=self.lines,
+                         densities=self.densities,
+                         error=self.error)
+            pickle.dump(state, f)
+
+    @classmethod
+    def load(cls, fname):
+        with open(fname) as f:
+            state = pickle.load(f)
+        app = cls(**state)
+        return app
+
+    @property
+    def model(self):
+        m = [Polygon(p.xy, {'density': d})
+             for p, d in zip(self.polygons, self.densities)]
+        return m
 
     def run(self):
-        # Connect the event handlers
-        self.picking = False
+        fig = self.figure_setup()
+        # Sliders to control the density and the error in the data
+        self.density_slider = widgets.Slider(
+            fig.add_axes([0.10, 0.01, 0.30, 0.02]), 'Density',
+            self.density_range[0], self.density_range[1], valinit=0.,
+            valfmt='%6.0f kg/m3')
+        self.error_slider = widgets.Slider(
+            fig.add_axes([0.60, 0.01, 0.30, 0.02]), 'Error',
+            0, 5, valinit=self.error, valfmt='%1.2f mGal')
+        # Put instructions on figure title
+        self.dataax.set_title(self.instructions)
+        self.canvas.draw()
+        # Markers for mouse click events
+        self._ivert = None
+        self._ipoly = None
+        self._lastevent = None
+        self._drawing = False
+        self._xy = []
+        self._drawing_plot = None
+        # Used to blit the model plot and make
+        # rendering faster
+        self.background = None
+        # Connect event callbacks
         self.connect()
-        self.update()
+        self.update_data()
         pyplot.show()
 
-    def get_data(self):
-        return self.predgz
-
-    def savedata(self, fname):
-        data = numpy.array([self.xp, self.zp, self.predgz]).T
-        numpy.savetxt(fname, data, fmt='%.5f')
-
     def connect(self):
-        self.densslider.on_changed(self.set_density)
-        self.errslider.on_changed(self.set_error)
-        self.fig.canvas.mpl_connect('button_press_event', self.pick)
-        self.fig.canvas.mpl_connect('key_press_event', self.key_press)
-        self.fig.canvas.mpl_connect('motion_notify_event', self.move)
+        # Make the proper callback connections
+        self.canvas.mpl_connect('button_press_event', self.button_press_callback)
+        self.canvas.mpl_connect('key_press_event', self.key_press_callback)
+        self.canvas.mpl_connect('button_release_event', self.button_release_callback)
+        self.canvas.mpl_connect('motion_notify_event', self.mouse_move_callback)
+        self.density_slider.on_changed(self.set_density_callback)
+        self.error_slider.on_changed(self.set_error_callback)
 
-    def update(self):
-        if self.polygons:
-            polys = []
-            for p, d in zip(self.polygons, self.densities):
-                polys.append(Polygon(1000. * numpy.array(p), {'density': d}))
-            self.predgz = utils.contaminate(
-                talwani.gz(self.xp, self.zp, polys), self.error)
-        else:
-            self.predgz = numpy.zeros_like(self.xp)
-        self.predplot.set_data(self.xp * 0.001, self.predgz)
-        if self.gz is not None:
-            ymin = min(self.predgz.min(), self.gz.min())
-            ymax = max(self.predgz.max(), self.gz.max())
-        else:
-            ymin = self.predgz.min()
-            ymax = self.predgz.max()
-        if ymin != ymax:
-            self.dcanvas.set_ylim(ymin, ymax)
-        self.draw()
+    def plot(self, figsize=(10, 8), dpi=70):
+        """
+        Return an IPython compatible figure of the app.
 
-    def set_density(self, value):
-        self.nextdens = 1000. * value
+        Use for embedding in notebooks.
+        """
+        fig = self.figure_setup(figsize=figsize, facecolor='white')
+        fig.canvas.draw()
+        self.update_data_plot()
+        pyplot.close(fig)
+        data = print_figure(fig, dpi=dpi)
+        return Image(data=data)
 
-    def set_error(self, value):
+    def figure_setup(self, **kwargs):
+        fig, axes = pyplot.subplots(2, 1, **kwargs)
+        ax1, ax2 = axes
+        self.predicted_line, = ax1.plot(self.x, self.predicted, '-r')
+        if self.data is not None:
+            self.data_line, = ax1.plot(self.x, self.data, '.k')
+        ax1.set_ylabel('Gravity anomaly (mGal)')
+        ax1.set_xlabel('x (m)', labelpad=-10)
+        ax1.set_xlim(self.area[:2])
+        ax1.set_ylim((-200, 200))
+        ax1.grid()
+        tmp = ax2.pcolor(numpy.array([self.density_range]), cmap=self.cmap)
+        tmp.set_visible(False)
+        pyplot.colorbar(tmp, orientation='horizontal',
+                     pad=0.08, aspect=80).set_label(r'Density (kg/cm3)')
+        for poly, line in zip(self.polygons, self.lines):
+            line.set_color([0, 0, 0, 0])
+            poly.set_animated(False)
+            line.set_animated(False)
+            ax2.add_patch(poly)
+            ax2.add_line(line)
+        ax2.set_xlim(self.area[:2])
+        ax2.set_ylim(self.area[2:])
+        ax2.grid()
+        ax2.invert_yaxis()
+        #ax2.xaxis.tick_top()
+        #ax2.xaxis.set_ticklabels([])
+        ax2.set_ylabel('z (m)')
+        fig.subplots_adjust(top=0.95, left=0.1, right=0.95, bottom=0.06,
+                            hspace=0.1)
+        self.canvas = fig.canvas
+        self.dataax = axes[0]
+        self.modelax = axes[1]
+        return fig
+
+    def density2color(self, density):
+        dmin, dmax = self.density_range
+        return self.cmap((density - dmin)/(dmax - dmin))
+
+    def make_polygon(self, vertices, density):
+        poly = patches.Polygon(vertices, animated=False, alpha=0.9,
+                               color=self.density2color(density))
+        x, y = zip(*poly.xy)
+        line = Line2D(x, y, **self.line_args)
+        return poly, line
+
+    def update_data(self):
+        self.predicted = talwani.gz(self.x, self.z, self.model)
+        if self.error > 0:
+            self.predicted = utils.contaminate(self.predicted, self.error)
+        self.update_data_plot()
+
+    def update_data_plot(self):
+        self.predicted_line.set_ydata(self.predicted)
+        vmin = 1.2*min(self.predicted.min(), self.dmin)
+        vmax = 1.2*max(self.predicted.max(), self.dmax)
+        self.dataax.set_ylim(vmin, vmax)
+        self.canvas.draw()
+
+    def set_error_callback(self, value):
         self.error = value
-        self.update()
+        self.update_data()
 
-    def move(self, event):
-        pass
+    def set_density_callback(self, value):
+        if self._ipoly is not None:
+            self.densities[self._ipoly] = value
+            self.polygons[self._ipoly].set_color(self.density2color(value))
+            self.update_data()
+            self.canvas.draw()
 
-    def pick(self, event):
-        if event.inaxes != self.mcanvas:
-            return 0
+    def get_polygon_vertice_id(self, event):
+        """
+        Find out which vertice of which polygon the event
+        happened in.
+
+        If the distance from the event to nearest vertice is
+        larger than Moulder.epsilon, returns None.
+        """
+        distances = []
+        indices = []
+        for poly in self.polygons:
+            x, y = poly.get_transform().transform(poly.xy).T
+            d = numpy.sqrt((x - event.x)**2 + (y - event.y)**2)
+            distances.append(d.min())
+            indices.append(numpy.argmin(d))
+        p = numpy.argmin(distances)
+        if distances[p] >= self.epsilon:
+            # Check if the event was inside a polygon
+            x, y = event.x, event.y
+            p, v = None, None
+            for i, poly in enumerate(self.polygons):
+                if poly.contains_point([x, y]):
+                    p = i
+                    break
+        else:
+            v = indices[p]
+            last = len(self.polygons[p].xy) - 1
+            if v == 0 or v == last:
+                v = [0, last]
+        return p, v
+
+    def button_press_callback(self, event):
+        """
+        What actions to perform when a mouse button is clicked
+        """
+        if event.inaxes != self.modelax:
+            return
+        if event.button == 1 and not self._drawing and self.polygons:
+            self._lastevent = event
+            for line, poly in zip(self.lines, self.polygons):
+                poly.set_animated(False)
+                line.set_animated(False)
+                line.set_color([0, 0, 0, 0])
+            self.canvas.draw()
+            # Find out if a click happened on a vertice
+            # and which vertice of which polygon
+            self._ipoly, self._ivert = self.get_polygon_vertice_id(event)
+            if self._ipoly is not None:
+                self.density_slider.set_val(self.densities[self._ipoly])
+                self.polygons[self._ipoly].set_animated(True)
+                self.lines[self._ipoly].set_animated(True)
+                self.lines[self._ipoly].set_color([0, 1, 0, 0])
+                self.canvas.draw()
+                self.background = self.canvas.copy_from_bbox(self.modelax.bbox)
+                self.modelax.draw_artist(self.polygons[self._ipoly])
+                self.modelax.draw_artist(self.lines[self._ipoly])
+                self.canvas.blit(self.modelax.bbox)
+        elif self._drawing:
+            if event.button == 1:
+                self._xy.append([event.xdata, event.ydata])
+                self._drawing_plot.set_data(zip(*self._xy))
+                self.canvas.restore_region(self.background)
+                self.modelax.draw_artist(self._drawing_plot)
+                self.canvas.blit(self.modelax.bbox)
+            elif event.button == 3:
+                if len(self._xy) >= 3:
+                    density = self.density_slider.val
+                    poly, line = self.make_polygon(self._xy, density)
+                    self.polygons.append(poly)
+                    self.lines.append(line)
+                    self.densities.append(density)
+                    self.modelax.add_patch(poly)
+                    self.modelax.add_line(line)
+                    self._drawing_plot.remove()
+                    self._drawing_plot = None
+                    self._xy = None
+                    self._drawing = False
+                    self._ipoly = len(self.polygons) - 1
+                    self.lines[self._ipoly].set_color([0, 1, 0, 0])
+                    self.dataax.set_title(self.instructions)
+                    self.canvas.draw()
+                    self.update_data()
+
+    def button_release_callback(self, event):
+        """
+        Reset place markers on mouse button release
+        """
+        if event.inaxes != self.modelax:
+            return
+        if event.button != 1:
+            return
+        if self._ivert is None and self._ipoly is None:
+            return
+        self.background = None
+        for line, poly in zip(self.lines, self.polygons):
+            poly.set_animated(False)
+            line.set_animated(False)
+        self.canvas.draw()
+        self._ivert = None
+        # self._ipoly is only released when clicking outside
+        # the polygons
+        self._lastevent = None
+        self.update_data()
+
+    def key_press_callback(self, event):
+        'whenever a key is pressed'
+        if event.inaxes is None:
+            return
+        if event.key == 'd':
+            if self._drawing and self._xy:
+                self._xy.pop()
+                if self._xy:
+                    self._drawing_plot.set_data(zip(*self._xy))
+                else:
+                    self._drawing_plot.set_data([], [])
+                self.canvas.restore_region(self.background)
+                self.modelax.draw_artist(self._drawing_plot)
+                self.canvas.blit(self.modelax.bbox)
+            elif self._ivert is not None:
+                poly = self.polygons[self._ipoly]
+                line = self.lines[self._ipoly]
+                if len(poly.xy) > 4:
+                    verts = numpy.atleast_1d(self._ivert)
+                    poly.xy = numpy.array([xy for i, xy in enumerate(poly.xy)
+                                        if i not in verts])
+                    line.set_data(zip(*poly.xy))
+                    self.update_data()
+                    self.canvas.restore_region(self.background)
+                    self.modelax.draw_artist(poly)
+                    self.modelax.draw_artist(line)
+                    self.canvas.blit(self.modelax.bbox)
+                    self._ivert = None
+            elif self._ipoly is not None:
+                self.polygons[self._ipoly].remove()
+                self.lines[self._ipoly].remove()
+                self.polygons.pop(self._ipoly)
+                self.lines.pop(self._ipoly)
+                self.densities.pop(self._ipoly)
+                self._ipoly = None
+                self.canvas.draw()
+                self.update_data()
+        elif event.key == 'n':
+            self._ivert = None
+            self._ipoly = None
+            for line, poly in zip(self.lines, self.polygons):
+                poly.set_animated(False)
+                line.set_animated(False)
+                line.set_color([0, 0, 0, 0])
+            self.canvas.draw()
+            self.background = self.canvas.copy_from_bbox(self.modelax.bbox)
+            self._drawing = True
+            self._xy = []
+            self._drawing_plot = Line2D([], [], **self.line_args)
+            self._drawing_plot.set_animated(True)
+            self.modelax.add_line(self._drawing_plot)
+            self.dataax.set_title('left click: set vertice | right click: finish | esc: cancel')
+            self.canvas.draw()
+        elif event.key == 'escape':
+            self._drawing = False
+            self._xy = []
+            if self._drawing_plot is not None:
+                self._drawing_plot.remove()
+                self._drawing_plot = None
+            for line, poly in zip(self.lines, self.polygons):
+                poly.set_animated(False)
+                line.set_animated(False)
+                line.set_color([0, 0, 0, 0])
+            self.canvas.draw()
+
+    def mouse_move_callback(self, event):
+        """
+        Handle things when the mouse move.
+        """
+        if event.inaxes != self.modelax:
+            return
+        if event.button != 1:
+            return
+        if self._ivert is None and self._ipoly is None:
+            return
         x, y = event.xdata, event.ydata
-        if (event.button == 1):
-            self.picking = True
-            self.nextpoly.append([x, y])
-            self.plotx.append(x)
-            self.ploty.append(y)
-            self.polyline.set_data(self.plotx, self.ploty)
-            self.draw()
-        if event.button == 3 or event.button == 2:
-            if len(self.nextpoly) >= 3:
-                self.polygons.append(self.nextpoly)
-                self.densities.append(float(self.nextdens))
-                self.update()
-                self.picking = False
-                self.plotx.append(self.nextpoly[0][0])
-                self.ploty.append(self.nextpoly[0][1])
-                self.polyline.set_data(self.plotx, self.ploty)
-                fill, = self.mcanvas.fill(self.plotx, self.ploty,
-                                          color=self.polyline.get_color(),
-                                          alpha=0.5)
-                self.polyline.set_label('%1.2f' % (0.001 * self.nextdens))
-                self.legend()
-                self.draw()
-                self.polyplots.append([self.polyline, fill])
-                self.plotx, self.ploty = [], []
-                self.nextpoly = []
-                self.polyline, = self.mcanvas.plot([], [], marker='o',
-                                                   linewidth=2)
-
-    def legend(self):
-        self.leg = self.mcanvas.legend(loc='lower right', numpoints=1,
-                                       prop={'size': 9})
-        self.leg.get_frame().set_alpha(0.5)
-
-    def key_press(self, event):
-        if event.key == 'e':
-            if self.picking:
-                if len(self.nextpoly) == 0:
-                    self.picking = False
-                    self.legend()
-                    self.draw()
-                    return 0
-                self.nextpoly.pop()
-                self.plotx.pop()
-                self.ploty.pop()
-                self.polyline.set_data(self.plotx, self.ploty)
-            else:
-                if len(self.polygons) == 0:
-                    return 0
-                self.polygons.pop()
-                self.densities.pop()
-                line, fill = self.polyplots.pop()
-                line.remove()
-                fill.remove()
-                self.update()
-            self.draw()
+        p = self._ipoly
+        v = self._ivert
+        if self._ivert is not None:
+            self.polygons[p].xy[v] = x, y
+        else:
+            dx = x - self._lastevent.xdata
+            dy = y - self._lastevent.ydata
+            self.polygons[p].xy[:, 0] += dx
+            self.polygons[p].xy[:, 1] += dy
+        self.lines[p].set_data(zip(*self.polygons[p].xy))
+        self._lastevent = event
+        self.canvas.restore_region(self.background)
+        self.modelax.draw_artist(self.polygons[p])
+        self.modelax.draw_artist(self.lines[p])
+        self.canvas.blit(self.modelax.bbox)
 
 
 class BasinTrap(Moulder):
