@@ -38,13 +38,13 @@ class Moulder(object):
     def __init__(self, area, x, z, data=None, density_range=[-2000, 2000], **kwargs):
         self.area = area
         self.x, self.z = numpy.asarray(x), numpy.asarray(z)
-        self.predicted = numpy.zeros_like(x)
         self.density_range = density_range
         self.data = data
         if data is None:
             self.dmin, self.dmax = 0, 0
         else:
             self.dmin, self.dmax = data.min(), data.max()
+        self.predicted = kwargs.get('predicted', numpy.zeros_like(x))
         self.polygons = kwargs.get('polygons', [])
         self.lines = kwargs.get('lines', [])
         self.densities = kwargs.get('densities', [])
@@ -66,6 +66,7 @@ class Moulder(object):
                          z=self.z, data=self.data,
                          density_range=self.density_range,
                          cmap=self.cmap,
+                         predicted=self.predicted,
                          polygons=self.polygons,
                          lines=self.lines,
                          densities=self.densities,
@@ -97,7 +98,6 @@ class Moulder(object):
             0, 5, valinit=self.error, valfmt='%1.2f mGal')
         # Put instructions on figure title
         self.dataax.set_title(self.instructions)
-        self.canvas.draw()
         # Markers for mouse click events
         self._ivert = None
         self._ipoly = None
@@ -111,7 +111,13 @@ class Moulder(object):
         # Connect event callbacks
         self.connect()
         self.update_data()
+        self.update_data_plot()
+        self.canvas.draw()
         pyplot.show()
+        for line, poly in zip(self.lines, self.polygons):
+            poly.set_animated(False)
+            line.set_animated(False)
+            line.set_color([0, 0, 0, 0])
 
     def connect(self):
         # Make the proper callback connections
@@ -160,8 +166,6 @@ class Moulder(object):
         ax2.set_ylim(self.area[2:])
         ax2.grid()
         ax2.invert_yaxis()
-        #ax2.xaxis.tick_top()
-        #ax2.xaxis.set_ticklabels([])
         ax2.set_ylabel('z (m)')
         fig.subplots_adjust(top=0.95, left=0.1, right=0.95, bottom=0.06,
                             hspace=0.1)
@@ -185,7 +189,6 @@ class Moulder(object):
         self.predicted = talwani.gz(self.x, self.z, self.model)
         if self.error > 0:
             self.predicted = utils.contaminate(self.predicted, self.error)
-        self.update_data_plot()
 
     def update_data_plot(self):
         self.predicted_line.set_ydata(self.predicted)
@@ -197,12 +200,14 @@ class Moulder(object):
     def set_error_callback(self, value):
         self.error = value
         self.update_data()
+        self.update_data_plot()
 
     def set_density_callback(self, value):
         if self._ipoly is not None:
             self.densities[self._ipoly] = value
             self.polygons[self._ipoly].set_color(self.density2color(value))
             self.update_data()
+            self.update_data_plot()
             self.canvas.draw()
 
     def get_polygon_vertice_id(self, event):
@@ -287,6 +292,7 @@ class Moulder(object):
                     self.dataax.set_title(self.instructions)
                     self.canvas.draw()
                     self.update_data()
+                    self.update_data_plot()
 
     def button_release_callback(self, event):
         """
@@ -308,6 +314,7 @@ class Moulder(object):
         # the polygons
         self._lastevent = None
         self.update_data()
+        self.update_data_plot()
 
     def key_press_callback(self, event):
         'whenever a key is pressed'
@@ -332,6 +339,7 @@ class Moulder(object):
                                         if i not in verts])
                     line.set_data(zip(*poly.xy))
                     self.update_data()
+                    self.update_data_plot()
                     self.canvas.restore_region(self.background)
                     self.modelax.draw_artist(poly)
                     self.modelax.draw_artist(line)
@@ -346,6 +354,7 @@ class Moulder(object):
                 self._ipoly = None
                 self.canvas.draw()
                 self.update_data()
+                self.update_data_plot()
         elif event.key == 'n':
             self._ivert = None
             self._ipoly = None
