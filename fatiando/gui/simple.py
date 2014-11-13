@@ -45,14 +45,19 @@ class Moulder(object):
         else:
             self.dmin, self.dmax = data.min(), data.max()
         self.predicted = kwargs.get('predicted', numpy.zeros_like(x))
-        self.polygons = kwargs.get('polygons', [])
-        self.lines = kwargs.get('lines', [])
-        self.densities = kwargs.get('densities', [])
         self.error = kwargs.get('error', 0)
         self.cmap = kwargs.get('cmap', pyplot.cm.RdBu_r)
         self.line_args = dict(
             linewidth=2, linestyle='-', color='k', marker='o',
             markerfacecolor='k', markersize=5, animated=False, alpha=0.6)
+        self.polygons = []
+        self.lines = []
+        self.densities = kwargs.get('densities', [])
+        vertices = kwargs.get('vertices', [])
+        for xy, dens in zip(vertices, self.densities):
+            poly, line = self.make_polygon(xy, dens)
+            self.polygons.append(poly)
+            self.lines.append(line)
 
     def save_predicted(self, fname):
         numpy.savetxt(fname, numpy.transpose([self.x, self.z, self.predicted]))
@@ -62,13 +67,13 @@ class Moulder(object):
         Save the application state into a pickle file.
         """
         with open(fname, 'w') as f:
+            vertices = [numpy.asarray(p.xy) for p in self.polygons]
             state = dict(area=self.area, x=self.x,
                          z=self.z, data=self.data,
                          density_range=self.density_range,
                          cmap=self.cmap,
                          predicted=self.predicted,
-                         polygons=self.polygons,
-                         lines=self.lines,
+                         vertices=vertices,
                          densities=self.densities,
                          error=self.error)
             pickle.dump(state, f)
