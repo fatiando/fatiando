@@ -7158,16 +7158,16 @@ static PyObject *__pyx_f_8fatiando_7gravmag_10_tesseroid_with_rediscretization(P
         /* "fatiando/gravmag/_tesseroid.pyx":576
  *                               sinlatc, coslatc, rc)
  *             else:
- *                 if queue_size + nlon + nlat + nr > queue_max:             # <<<<<<<<<<<<<<
+ *                 if queue_size + nlon*nlat*nr > queue_max:             # <<<<<<<<<<<<<<
  *                     raise ValueError('Tesseroid queue overflow')
  *                 dlon = (e - w)/nlon
  */
-        __pyx_t_23 = (((((__pyx_v_queue_size + __pyx_v_nlon) + __pyx_v_nlat) + __pyx_v_nr) > __pyx_v_queue_max) != 0);
+        __pyx_t_23 = (((__pyx_v_queue_size + ((__pyx_v_nlon * __pyx_v_nlat) * __pyx_v_nr)) > __pyx_v_queue_max) != 0);
         if (__pyx_t_23) {
 
           /* "fatiando/gravmag/_tesseroid.pyx":577
  *             else:
- *                 if queue_size + nlon + nlat + nr > queue_max:
+ *                 if queue_size + nlon*nlat*nr > queue_max:
  *                     raise ValueError('Tesseroid queue overflow')             # <<<<<<<<<<<<<<
  *                 dlon = (e - w)/nlon
  *                 dlat = (n - s)/nlat
@@ -7180,7 +7180,7 @@ static PyObject *__pyx_f_8fatiando_7gravmag_10_tesseroid_with_rediscretization(P
         }
 
         /* "fatiando/gravmag/_tesseroid.pyx":578
- *                 if queue_size + nlon + nlat + nr > queue_max:
+ *                 if queue_size + nlon*nlat*nr > queue_max:
  *                     raise ValueError('Tesseroid queue overflow')
  *                 dlon = (e - w)/nlon             # <<<<<<<<<<<<<<
  *                 dlat = (n - s)/nlat
@@ -21086,7 +21086,7 @@ static int __Pyx_InitCachedConstants(void) {
 
   /* "fatiando/gravmag/_tesseroid.pyx":577
  *             else:
- *                 if queue_size + nlon + nlat + nr > queue_max:
+ *                 if queue_size + nlon*nlat*nr > queue_max:
  *                     raise ValueError('Tesseroid queue overflow')             # <<<<<<<<<<<<<<
  *                 dlon = (e - w)/nlon
  *                 dlat = (n - s)/nlat

@@ -573,7 +573,7 @@ cdef with_rediscretization(
                 res += kernel(lon, sinlat, coslat, radius, scale, lonc,
                               sinlatc, coslatc, rc)
             else:
-                if queue_size + nlon + nlat + nr > queue_max:
+                if queue_size + nlon*nlat*nr > queue_max:
                     raise ValueError('Tesseroid queue overflow')
                 dlon = (e - w)/nlon
                 dlat = (n - s)/nlat
