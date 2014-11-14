@@ -48,7 +48,7 @@ def run_n_time(field, model, lon, lat, height):
     ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
     pytess = getattr(tesseroid, field)(lon, lat, height, model)
     diff = np.abs(ctess - pytess)/np.abs(ctess).max()
-    assert_array_almost_equal(diff, np.zeros_like(lon), 2, 'Max diff: %.15g'
+    assert_array_almost_equal(diff, np.zeros_like(lon), 3, 'Max diff: %.15g'
                               % (np.abs(ctess - pytess).max()))
 
     ! rm grid.tmp model.tmp out.tmp
