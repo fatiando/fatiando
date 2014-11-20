@@ -3,12 +3,338 @@
 Developer guide
 ===============
 
+Getting started
+---------------
+
+The first thing you'll need is a `Github <http://github.com/>`__ account.
+You can sign up for free.
+If you are an academic or student,
+`request a free pro-account <https://education.github.com/>`__ to get access to
+private repositories.
+
+.. note::
+
+    If you are new to **version control** (or don't know what that means),
+    start with the `Software Carpentry lessons on version control
+    <http://software-carpentry.org/v5/novice/git/index.html>`__.
+    After you've gone through those, the
+    `Github help page <https://help.github.com/>`__ is a great resource for
+    finding your way around the quirks of git and Github.
+
+All of the "official" code for Fatiando lives in the
+`fatiando/fatiando repository <https://github.com/fatiando/fatiando>`__
+(the first ``fatiando`` refers to the
+`fatiando Github account <https://github.com/fatiando>`__).
+The *master* branch of the repository contains the latest code that is
+**stable** (should have tested and working code).
+Code that is in `other branches
+<https://github.com/fatiando/fatiando/branches>`__
+are things that are under development by the
+`main developers <https://github.com/orgs/fatiando/teams/developers>`__.
+
+To contribute some code/fix/documentation, start by
+`forking fatiando/fatiando <https://github.com/fatiando/fatiando/fork>`__
+(click the "Fork" button).
+This will grab a complete copy of the code repository and add it to your
+account.
+This "fork" is isolated from the main repository, so you don't have to worry
+about "breaking" anything.
+Go nuts!
+If you break your fork beyond repair you can always delete it and make a new
+fork.
+Beware that you will lose **everything** in your fork if you delete it.
+
+**All new code** should be committed to a **new branch**.
+Don't edit the *master* branch directly!
+Before working on the code for a new feature/fix/documentation you want to
+make, run::
+
+    git checkout master
+    git checkout -b NAME_OF_NEW_BRANCH
+
+Replace ``NAME_OF_NEW_BRANCH`` to something relevant to the changes you are
+proposing.
+For example, ``doc-devel-start-guide``, ``refactor-gravmag-prism``,
+``seismic-tomo-module``, etc.
+
+.. important::
+
+    **Don't make multiple large changes in a single branch.**
+    For example,
+    refactoring a module to make it faster and adding a new function to a
+    different module.
+    If you do this, we will only be able to merge your code once **all** new
+    features are tested, discussed, and documented.
+    Make separate branches for different things you are working on
+    (and start all of them from *master*).
+    This way we can merge new changes as they are finished instead of having to
+    wait a long time to merge everything.
+    It will be even worse if one of the changes is controversial or needs a lot
+    of discussion and planning.
+
+
+Setting up
+----------
+
+Once you have your fork and local clone, you should add it to your
+``PYTHONPATH`` environment variable so that you can ``import fatiando``
+directly from the source (without installing it).
+
+First, make sure you have uninstalled Fatiando::
+
+    pip uninstall fatiando
+
+In GNU/Linux (or MacOS), add the following lines to your ``~/.bashrc`` file::
+
+    export PYTHONPATH=path/to/fatiando/repository:$PYTHONPATH
+
+In Windows,
+create a ``PYTHONPATH`` variable and set it to the path to the ``fatiando``
+repository (e.g., ``C:\Documents\User\repos\fatiando``).
+Follow
+`this guide <http://www.computerhope.com/issues/ch000549.htm>`__
+for instructions on setting environment variables.
+
+You will need some extra dependencies installed for development.
+If you are using Anaconda (and you should) run::
+
+    conda install cython sphinx nose
+
+and::
+
+    pip install coverage pep8 sphinx-rtd-theme
+
+You will also need `make <http://www.gnu.org/software/make/>`__, which usually
+comes with GNU/Linux by default. On windows, you can get it through
+`msysGit <http://msysgit.github.io/>`__.
+**Don't use the first "Download" button**.
+That will get you "Git for Windows".
+What you want is "msysGit" (download link at the bottom of the page).
+That will give you a
+`bash shell <http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29>`__,
+git, and make.
+
+
+Building
+--------
+
+The `Makefile <https://github.com/fatiando/fatiando/blob/master/Makefile>`__
+contains all the commands for building the C extensions, testing, checking code
+style, building the documentation, etc.
+
+.. note::
+
+    If you don't know what ``make`` is or need a quick start, read the
+    `Software Carpentry lessons on Make
+    <http://software-carpentry.org/v4/make/index.html>`__.
+
+
+To build the C-extensions (all of the ``.c`` files in the ``fatiando``
+folder)::
+
+    make build
+
+If the repository is in your ``PYTHONPATH`` you will now be able to ``import
+fatiando`` and use it directly from the repository.
+This is important for running and testing the new code you are making
+(that is why you can't use the installed version of Fatiando).
+
+The ``.c`` files were automatically generated using
+`Cython <http://cython.org/>`__ from the ``.pyx`` files.
+If you don't change the ``.pyx``  files, you have nothing to worry about.
+If you make changes to the Cython code, then you'll need to re-generate the
+corresponding ``.c`` files.
+To do that, run::
+
+    make cython
+
+This will also compile the newly generated C code.
+Once you are done editing the ``.pyx`` files, make sure to commit the generated
+``.c`` file as well.
+
+Testing
+-------
+
+Fatiando uses automated tests to check that the code works and
+produces the expected results.
+There are two types of tests currently being used:
+unit tests and doc tests.
+
+.. note::
+
+    If you are new to automated tests, see the (you guessed it)
+    `Software Carpentry lessons on testing
+    <http://software-carpentry.org/v4/test/index.html>`__.
+
+Unit tests are implemented in the ``test/test_*.py`` files of the repository.
+Doctests are part of the docstrings of functions and modules.
+You'll recognize them by the ``>>>`` in each line of code.
+
+Both tests are found and run automatically by
+`nose <https://nose.readthedocs.org/en/latest/>`__.
+To run all tests::
+
+    make test
+
+This will also build the extensions if they are not built. Failures will
+indicate which test failed and print some useful information.
+
+.. important::
+
+    **All new code contributed must be tested**.
+    This means that it must have unit
+    tests and/or doctests that make sure it gives the expected results.
+    Tests should also make sure that the proper errors happen when the code is
+    given bad input.
+    A good balance would be to have both
+    doctests that run a simple example (they are documentation, after all)
+    and unit tests that are more elaborate and complete
+    (using more data, testing corner/special cases, etc).
+
+**Our goal** is to reach at least 90% test coverage
+`by version 1.0 <https://github.com/fatiando/fatiando/issues/102>`__.
+
+Code Style
+----------
+
+Fatiando follows the `PEP8 <http://legacy.python.org/dev/peps/pep-0008/>`__
+conventions for code style.
+
+Conformance to PEP8 is checked automatically using the
+`pep8 <https://pypi.python.org/pypi/pep8>`__ package.
+The check is part of the unit tests and will report a test failure when new
+code is incorrectly formatted.
+The test failure message will be something like this::
+
+    ======================================================================
+    FAIL: all packages, tests, and cookbook conform to PEP8
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/home/leo/src/fatiando/test/test_pep8.py", line 13, in test_pep8_conformance
+        "Found code style errors (and warnings).")
+    AssertionError: Found code style errors (and warnings).
+
+    ----------------------------------------------------------------------
+
+To see which files/lines caused the error, run::
+
+    $ make pep8
+    pep8 --exclude=_version.py fatiando test cookbook
+    fatiando/gravmag/prism.py:977:1: E302 expected 2 blank lines, found 1
+    make: *** [pep8] Error 1
+
+This command will tell you exactly which file and line broke PEP8 compliance
+and what was wrong with it.
+In this case, line 977 of ``fatiando/gravmag/prism.py`` needs to have an extra
+blank line.
+
+**Docstrings** are formatted in a style particular to Fatiando.
+`PEP257 <http://legacy.python.org/dev/peps/pep-0257/>`__
+has some good general guidelines for docstrings.
+Have a look at the other docstrings in Fatiando and format your own to follow
+that style.
+
+Some brief guidelines:
+
+* Module docstrings should include a list of module classes and functions
+  followed by brief descriptions of each.
+* Function docstrings::
+
+        def foo(x, y=4):
+            r"""
+            Brief description, like 'calculates so and so using bla bla bla'
+
+            A more detailed description follows after a blank line. Can have
+            multiple paragraphs, citations (Bla et al.,  2014), and equations.
+
+            .. math::
+
+                g(y) = \int_V y x dx
+
+            After this, give a full description of ALL parameters the
+            function takes.
+
+            Parameters:
+
+            * x : float or numpy array
+                The variable that goes on the horizontal axis. In Meh units.
+            * y : float or numpy array
+                The variable that goes on the vertical axis. In Meh units.
+                Default: 4.
+
+            Returns:
+
+            * g : float or numpy array
+                The value of g(y) as calculated by the equation above.
+
+            Examples:
+
+            You can include examples as doctests. These are automatically found
+            by the test suite and executed. Lines starting with >>> are code.
+            Lines below them that don't have >>> are the result of that code.
+            The tests compare the given result with what you put as the
+            expected result.
+
+            >>> foo(3)
+            25
+            >>> import numpy as np
+            >>> foo(np.array([1, 2])
+            array([ 45.  34. ])
+
+            References:
+
+            Include a list of references cited.
+
+            Bla B., and Meh M. (2014). Some relevant article describing the
+            methods. Journal. doi:82e1hd1puhd7
+            """
+* Class docstrings will contain a description of the class and the parameters
+  that `__init__` takes. It should also include examples (as doctests when
+  possible) and references. Pretty much like function docstrings.
+
+
+Documentation
+-------------
+
+The documentation for Fatiando is built using
+`sphinx <http://sphinx-doc.org/>`__.
+The source files for the documentation are in the ``doc`` folder of the
+repository.
+The :ref:`API <fatiando>` section of the docs is built from the docstrings of
+packages, modules, functions, and classes.
+The other sections are built from the ``doc/*.rst`` files.
+
+.. note::
+
+    Source files are written in reStructuredText (rst) and converted by sphinx
+    to HTML. This `quick guide to rst <http://sphinx-doc.org/rest.html>`__
+    is a nice reference.
+
+To compile the documentation, run::
+
+    make docs
+
+To view the compiled HTML files, run::
+
+    make view-docs
+
+This will start a server in the ``doc/_build/html`` folder.
+Point your browser to `http://127.0.0.1:8008 <http://127.0.0.1:8008/>`__
+to view the site.
+Use ``Ctrl+C`` to stop the server.
+
 
 Pull Requests
 -------------
 
 Pull requests (PRs) are how we submit new code and fixes to Fatiando.
-They also serve as a platform for reviewing the code.
+After you have your set of changes in a new branch of your ``fatiando`` fork,
+make a Pull Request to `fatiando/fatiando
+<https://github.com/fatiando/fatiando>`__.
+Use the main text of the PR to describe in detail what you have done and why.
+See `PR 137 <https://github.com/fatiando/fatiando/pull/137>`__ for an example.
+
+PRs serve as a platform for reviewing the code.
 Ideally, someone else will go through your code to make sure there aren't any
 obvious mistakes.
 The reviewer can also suggest improvements, help with unfixed problems, etc.
