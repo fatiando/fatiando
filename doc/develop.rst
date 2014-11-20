@@ -68,6 +68,7 @@ copy this checklist to the PR description
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
     - [ ] Changelog entry
+    - [ ] Include new dependencies in docs, requirements.txt, README
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged
