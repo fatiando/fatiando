@@ -8,7 +8,7 @@ import numpy
 
 from .. import constants
 
-from libc.math cimport sin, cos, sqrt, atan2
+from libc.math cimport sin, cos, sqrt, atan2, acos
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
@@ -598,7 +598,6 @@ cdef inline double distance_n_size(
     double* dlon, double* dlat, double* dr):
     cdef:
         double rt, lont, latt, sinlatt, coslatt, cospsi, distance
-        double sinn, cosn, sins, coss, sindlon, cosdlon
     # Calculate the distance to the observation point
     rt = top + MEAN_EARTH_RADIUS
     lont = d2r*0.5*(w + e)
@@ -607,20 +606,8 @@ cdef inline double distance_n_size(
     coslatt = cos(latt)
     cospsi = sinlat*sinlatt + coslat*coslatt*cos(lon - lont)
     distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)
-    # Calculate the dimensions of the tesseroid
-    # Will use Vincenty's formula to calculate great-circle distance
-    # for more accuracy (just in case)
-    sinn = sin(d2r*n)
-    cosn = cos(d2r*n)
-    sins = sin(d2r*s)
-    coss = cos(d2r*s)
-    sindlon = sin(d2r*(e - w))
-    cosdlon = cos(d2r*(e - w))
-    dlon[0] = MEAN_EARTH_RADIUS*atan2(
-        sqrt((coslatt*sindlon)**2
-             + (coslatt*sinlatt - sinlatt*coslatt*cosdlon)**2),
-        sinlatt**2 + cosdlon*coslatt**2)
-    dlat[0] = MEAN_EARTH_RADIUS*atan2(
-        coss*sinn - sins*cosn, sins*sinn + coss*cosn)
+    # Calculate the dimensions of the tesseroid in meters
+    dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+    dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
     dr[0] = top - bottom
     return distance
