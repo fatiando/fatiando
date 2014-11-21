@@ -12,6 +12,14 @@ If you are an academic or student,
 `request a free pro-account <https://education.github.com/>`__ to get access to
 private repositories.
 
+.. tip::
+
+    The easiest way to contribute is to
+    `submit issues and bug reports
+    <https://github.com/fatiando/fatiando/issues>`__.
+    Feature requests, typo fixes, suggestions for the documentation, it's all
+    welcome!
+
 .. note::
 
     If you are new to **version control** (or don't know what that means),
@@ -32,7 +40,7 @@ The *master* branch of the repository contains the latest code that is
 Code that is in `other branches
 <https://github.com/fatiando/fatiando/branches>`__
 are things that are under development by the
-`main developers <https://github.com/orgs/fatiando/teams/developers>`__.
+`main developers <https://github.com/fatiando/fatiando/graphs/contributors>`__.
 
 To contribute some code/fix/documentation, start by
 `forking fatiando/fatiando <https://github.com/fatiando/fatiando/fork>`__
@@ -46,34 +54,25 @@ If you break your fork beyond repair you can always delete it and make a new
 fork.
 Beware that you will lose **everything** in your fork if you delete it.
 
-**All new code** should be committed to a **new branch**.
-Don't edit the *master* branch directly!
-Before working on the code for a new feature/fix/documentation you want to
-make, run::
+Once you have your fork, clone a copy to your computer::
 
-    git checkout master
-    git checkout -b NAME_OF_NEW_BRANCH
+    git clone https://github.com/USERNAME/fatiando.git
 
-Replace ``NAME_OF_NEW_BRANCH`` to something relevant to the changes you are
-proposing.
-For example, ``doc-devel-start-guide``, ``refactor-gravmag-prism``,
-``seismic-tomo-module``, etc.
+.. note::
 
-.. important::
-
-    **Don't make multiple large changes in a single branch.**
-    For example,
-    refactoring a module to make it faster and adding a new function to a
-    different module.
-    If you do this, we will only be able to merge your code once **all** new
-    features are tested, discussed, and documented.
-    Make separate branches for different things you are working on
-    (and start all of them from *master*).
-    This way we can merge new changes as they are finished instead of having to
-    wait a long time to merge everything.
-    It will be even worse if one of the changes is controversial or needs a lot
-    of discussion and planning.
-
+    Not sure what to work on? Have a look at the
+    `open issues <https://github.com/fatiando/fatiando/issues>`__
+    and pick one that you find interesting.
+    **Please leave a comment on the issue if you are going to work on it**.
+    This helps us keep track of who is doing what and avoid duplicated work.
+    We are trying to curate a
+    `list of "low-hanging fruit"
+    <https://github.com/fatiando/fatiando/issues?q=is%3Aopen+is%3Aissue+label%3A%22low-hanging+fruit%22>`__
+    that are suitable for new-comers.
+    Note that "low-hanging" does not necessarily mean trivial,
+    but that it doesn't require extensive knowledge of the project.
+    **Helping by writing/reviewing/improving the documentation is VERY
+    appreciated**. We welcome even the simplest typo fix!
 
 Setting up
 ----------
@@ -171,10 +170,10 @@ unit tests and doc tests.
 Unit tests are implemented in the ``test/test_*.py`` files of the repository.
 Doctests are part of the docstrings of functions and modules.
 You'll recognize them by the ``>>>`` in each line of code.
-
 Both tests are found and run automatically by
 `nose <https://nose.readthedocs.org/en/latest/>`__.
-To run all tests::
+
+To run all tests and check that your build was successful::
 
     make test
 
@@ -195,6 +194,64 @@ indicate which test failed and print some useful information.
 
 **Our goal** is to reach at least 90% test coverage
 `by version 1.0 <https://github.com/fatiando/fatiando/issues/102>`__.
+
+
+Adding new code/fixes/docs
+--------------------------
+
+**All new code** should be committed to a **new branch**.
+Fatiando uses the
+`"Github Flow" <http://scottchacon.com/2011/08/31/github-flow.html>`__
+for managing branches in the repository.
+The tutorial `"Understanding the Github flow"
+<https://guides.github.com/introduction/flow/index.html>`__
+offers a quick visual introduction to how that works.
+See the :ref:`Pull Requests <develop_pr>` section below.
+
+.. important::
+
+    Don't edit the *master* branch directly!
+
+Before working on the code for a new feature/fix/documentation,
+you'll need to create a *branch* to store your commits.
+Make sure you always start your new branch from *master*::
+
+    git checkout master
+    git checkout -b NAME_OF_NEW_BRANCH
+
+Replace ``NAME_OF_NEW_BRANCH`` to something relevant to the changes you are
+proposing.
+For example, ``doc-devel-start-guide``, ``refactor-gravmag-prism``,
+``seismic-tomo-module``, etc.
+
+.. important::
+
+    **Don't make multiple large changes in a single branch.**
+    For example,
+    refactoring a module to make it faster and adding a new function to a
+    different module.
+    If you do this, we will only be able to merge your code once **all** new
+    features are tested, discussed, and documented.
+    Make separate branches for different things you are working on
+    (and start all of them from *master*).
+    This way we can merge new changes as they are finished instead of having to
+    wait a long time to merge everything.
+    It will be even worse if one of the changes is controversial or needs a lot
+    of discussion and planning.
+
+
+Once you have your new branch, you're all set to start coding/writing.
+Remember to run ``make test`` and check if your changes didn't break anything.
+**Write tests sooner rather than later**.
+They will not only help you check if your new code is working properly,
+but also provide you with a "deadline" of sorts.
+When your code passes your tests, then it is probably "good enough".
+
+You should consider :ref:`openning a Pull Request <develop_pr>`
+as soon as have any code that you might want to share.
+The sooner you open the PR, the sooner we can start reviewing it and helping
+you make your contribution.
+
 
 Code Style
 ----------
@@ -326,10 +383,22 @@ to view the site.
 Use ``Ctrl+C`` to stop the server.
 
 
+.. _develop_pr:
+
 Pull Requests
 -------------
 
 Pull requests (PRs) are how we submit new code and fixes to Fatiando.
+The PRs are were your contribution will be revised by other developers.
+This works a lot like peer-review does in Science, but we hope you'll find it a
+much nicer experience!
+
+.. note::
+
+    To get the general idea of the Pull Request cycle, see
+    `"Understanding the Github flow"
+    <https://guides.github.com/introduction/flow/index.html>`__.
+
 After you have your set of changes in a new branch of your ``fatiando`` fork,
 make a Pull Request to `fatiando/fatiando
 <https://github.com/fatiando/fatiando>`__.
@@ -343,8 +412,13 @@ The reviewer can also suggest improvements, help with unfixed problems, etc.
 This is the same as the peer-review processes in scientific publication
 (or at least what it should be).
 
-.. warning:: Reviewers should **always be polite** in their **constructive**
-    criticism. Rudeness and prejudice will not be tolerated.
+.. warning::
+
+    Reviewers should **always be polite** in their **constructive** criticism.
+    Rudeness and prejudice will not be tolerated.
+    **Beware of wit, humor, and sarcasm**.
+    It might not always be understood in writting
+    and not always translates accross native languages.
 
 See the
 `list of completed pull requests <https://github.com/fatiando/fatiando/pulls?q=is%3Apr+is%3Amerged>`__
@@ -477,7 +551,7 @@ have one and ask to be added as a maintainer.
 
        git tag v0.3
 
-7. Check is versioneer is setting the correct version number (should print
+7. Check if versioneer is setting the correct version number (should print
    something like ``v0.3``::
 
        python -c "import fatiando; print fatiando.__version__"
