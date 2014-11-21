@@ -18,8 +18,10 @@ private repositories.
     start with the `Software Carpentry lessons on version control
     <http://software-carpentry.org/v5/novice/git/index.html>`__.
     After you've gone through those, the
-    `Github help page <https://help.github.com/>`__ is a great resource for
-    finding your way around the quirks of git and Github.
+    Github `help page <https://help.github.com/>`__
+    and `guides <https://guides.github.com/>`__
+    are great resources for finding your way around the quirks of git and
+    Github.
 
 All of the "official" code for Fatiando lives in the
 `fatiando/fatiando repository <https://github.com/fatiando/fatiando>`__
