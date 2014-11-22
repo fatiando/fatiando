@@ -153,6 +153,8 @@ This will also compile the newly generated C code.
 Once you are done editing the ``.pyx`` files, make sure to commit the generated
 ``.c`` file as well.
 
+.. _develop_test:
+
 Testing
 -------
 
@@ -287,9 +289,31 @@ and what was wrong with it.
 In this case, line 977 of ``fatiando/gravmag/prism.py`` needs to have an extra
 blank line.
 
+
+.. _develop_docs:
+
+Documentation
+-------------
+
+The documentation for Fatiando is built using
+`sphinx <http://sphinx-doc.org/>`__.
+The source files for the documentation are in the ``doc`` folder of the
+repository.
+The most sections of the docs are built from the ``doc/*.rst`` files.
+The :ref:`API <fatiando>` section is automatically built from the
+`docstrings <http://legacy.python.org/dev/peps/pep-0257/>`__ of
+packages, modules, functions, and classes.
+
+.. note::
+
+    Source files and docstrings are written in reStructuredText (rst)
+    and converted by sphinx to HTML.
+    This `quick guide to rst <http://sphinx-doc.org/rest.html>`__
+    is a good reference to get started with rst.
+
 **Docstrings** are formatted in a style particular to Fatiando.
 `PEP257 <http://legacy.python.org/dev/peps/pep-0257/>`__
-has some good general guidelines for docstrings.
+has some good general guidelines.
 Have a look at the other docstrings in Fatiando and format your own to follow
 that style.
 
@@ -351,24 +375,6 @@ Some brief guidelines:
   that `__init__` takes. It should also include examples (as doctests when
   possible) and references. Pretty much like function docstrings.
 
-
-Documentation
--------------
-
-The documentation for Fatiando is built using
-`sphinx <http://sphinx-doc.org/>`__.
-The source files for the documentation are in the ``doc`` folder of the
-repository.
-The :ref:`API <fatiando>` section of the docs is built from the docstrings of
-packages, modules, functions, and classes.
-The other sections are built from the ``doc/*.rst`` files.
-
-.. note::
-
-    Source files are written in reStructuredText (rst) and converted by sphinx
-    to HTML. This `quick guide to rst <http://sphinx-doc.org/rest.html>`__
-    is a nice reference.
-
 To compile the documentation, run::
 
     make docs
@@ -400,9 +406,12 @@ much nicer experience!
     <https://guides.github.com/introduction/flow/index.html>`__.
 
 After you have your set of changes in a new branch of your ``fatiando`` fork,
-make a Pull Request to `fatiando/fatiando
-<https://github.com/fatiando/fatiando>`__.
+make a Pull Request to the *master* branch of
+`fatiando/fatiando <https://github.com/fatiando/fatiando>`__.
 Use the main text of the PR to describe in detail what you have done and why.
+Explain the purpose of the PR.
+What changes are you proposing and why they are
+good/awesome/necessary/desirable?
 See `PR 137 <https://github.com/fatiando/fatiando/pull/137>`__ for an example.
 
 PRs serve as a platform for reviewing the code.
@@ -411,6 +420,10 @@ obvious mistakes.
 The reviewer can also suggest improvements, help with unfixed problems, etc.
 This is the same as the peer-review processes in scientific publication
 (or at least what it should be).
+See the
+`list of completed pull requests
+<https://github.com/fatiando/fatiando/pulls?q=is%3Apr+is%3Amerged>`__
+for examples of how the process works.
 
 .. warning::
 
@@ -420,27 +433,18 @@ This is the same as the peer-review processes in scientific publication
     It might not always be understood in writting
     and not always translates accross native languages.
 
-See the
-`list of completed pull requests <https://github.com/fatiando/fatiando/pulls?q=is%3Apr+is%3Amerged>`__
-for examples of how the process works.
-
 PRs will only be merged if they meet certain criteria:
 
-* New code must be have automated tests
+* New code must be have :ref:`automated tests <develop_test>`
 * All tests must pass (this will be evaluated automatically by
-  `TravisCI <https://travis-ci.org/fatiando/fatiando/>`__
-* All new code and changes must be documented with
-  `docstrings <http://legacy.python.org/dev/peps/pep-0257/>`__
-* New code must not cause merge conflicts (someone will help you resolve this
-  in case it happens and you don't know what to do)
+  `TravisCI <https://travis-ci.org/fatiando/fatiando/>`__)
 * All code must follow the
   `PEP8 <http://legacy.python.org/dev/peps/pep-0008/>`__ style conventions.
-  This will also be check automatically by the tests (and TravisCI)
-
-If you don't know what these things are, I recommend that you read through
-the `Software Carpentry <http://software-carpentry.org/>`__ lessons.
-Particularly the lessons "Testing", "Version control with git", and
-"Program design" (all of the lessons are great though).
+  This will also be check automatically by the tests and TravisCI
+* All new code and changes must be documented with
+  :ref:`docstrings <develop_docs>`
+* New code must not cause merge conflicts (someone will help you resolve this
+  in case it happens and you don't know what to do)
 
 Even if all of these requirements are met,
 features that fall outside of the scope of the project might not be
@@ -451,12 +455,6 @@ you mean to do first so that we can discuss it.
 Check if there isn't an issue open for this already.
 This way we can keep track of who is working on what and avoid duplicated work.
 
-PRs should be made to the ``master`` branch of the
-main repository:
-`fatiando/fatiando <https://github.com/fatiando/fatiando>`__
-
-When submitting a PR, explain in the description what the purpose of the PR is.
-What changes are you proposing and why?
 To help keep track of what you need to do,
 copy this checklist to the PR description
 (adapted from the
