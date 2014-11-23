@@ -10,6 +10,9 @@ Version (development)
 
 **Changes**:
 
+* Significant progress on the :ref:`Developer Guide <develop>`. From getting
+  started to making a release on PyPI.
+  (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
 * **Removed** package ``fatiando.gui``. This was an experimental and temporary
   package to explore interactivity. Given new developments, like the
   `IPython HTML widgets
