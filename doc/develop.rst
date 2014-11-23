@@ -61,12 +61,14 @@ copy this checklist to the PR description
 `khmer docs
 <http://khmer.readthedocs.org/en/v1.1/development.html#checklist>`__)::
 
-    Checklist:
+    ## Checklist:
+
     - [ ] Make tests for new code
     - [ ] Create/update docstrings
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
     - [ ] Changelog entry
+    - [ ] Include new dependencies in docs, requirements.txt, README
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged

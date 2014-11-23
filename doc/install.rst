@@ -143,7 +143,7 @@ information:
 .. _Python: http://www.python.org/
 .. _pip: http://www.pip-installer.org
 .. _MinGW: http://www.mingw.org/
-.. _mailing list: https://groups.google.com/forum/#!forum/fatiando
+.. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _Continuum Analytics: http://continuum.io/
 .. _Anaconda: http://continuum.io/downloads
