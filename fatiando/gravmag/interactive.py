@@ -244,10 +244,6 @@ class Moulder(object):
         self._update_data_plot()
         self.canvas.draw()
         pyplot.show()
-        for line, poly in zip(self.lines, self.polygons):
-            poly.set_animated(False)
-            line.set_animated(False)
-            line.set_color([0, 0, 0, 0])
 
     def _connect(self):
         """
@@ -290,7 +286,8 @@ class Moulder(object):
         """
         Setup the plot figure with labels, titles, ticks, etc.
 
-        Sets the *canvas*, *dataax* and *modelax* attributes.
+        Sets the *canvas*, *dataax*, *modelax*, *polygons* and *lines*
+        attributes.
 
         Parameters:
 
@@ -317,12 +314,18 @@ class Moulder(object):
         tmp.set_visible(False)
         pyplot.colorbar(tmp, orientation='horizontal',
                         pad=0.08, aspect=80).set_label(r'Density (kg/cm3)')
-        for poly, line in zip(self.polygons, self.lines):
-            line.set_color([0, 0, 0, 0])
-            poly.set_animated(False)
-            line.set_animated(False)
+        # Remake the polygons and lines to make sure they belong to the right
+        # axis coordinates
+        vertices = [p.xy for p in self.polygons]
+        newpolygons, newlines = [], []
+        for xy, dens in zip(vertices, self.densities):
+            poly, line = self._make_polygon(xy, dens)
+            newpolygons.append(poly)
+            newlines.append(line)
             ax2.add_patch(poly)
             ax2.add_line(line)
+        self.polygons = newpolygons
+        self.lines = newlines
         ax2.set_xlim(self.area[:2])
         ax2.set_ylim(self.area[2:])
         ax2.grid()
@@ -574,7 +577,7 @@ class Moulder(object):
                 self._ipoly = None
                 self.canvas.draw()
                 self._update_data()
-                self.update_data_plot()
+                self._update_data_plot()
         elif event.key == 'n':
             self._ivert = None
             self._ipoly = None
