@@ -37,6 +37,7 @@ Fatiando requires the following packages:
 * `numpy <http://numpy.scipy.org/>`_
 * `scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
+* `IPython <http://ipython.org/>`__
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
@@ -51,7 +52,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib basemap imaging mayavi pip
+    conda install numpy scipy matplotlib ipython basemap imaging mayavi pip
 
 Extra dependencies for Windows users
 ++++++++++++++++++++++++++++++++++++
