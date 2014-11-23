@@ -75,9 +75,17 @@ class Moulder(object):
         z = np.zeros_like(x)
         app = Moulder(area, x, z)
         app.run()
-        # This will pop-up a window with the application. Start drawing
-        # (follow the instruction in the figure title). When satisfied, close
-        # the window to resume execution.
+        # This will pop-up a window with the application (like the screenshot
+        # below). Start drawing (follow the instruction in the figure title).
+        # When satisfied, close the window to resume execution.
+
+    .. image:: ../_static/Moulder-screenshot.png
+        :alt: Screenshot of the Moulder GUI
+
+
+    After closing the plot window, you can access the model and data from the
+    *Moulder* object::
+
         app.model  # The drawn model as fatiando.mesher.Polygon
         app.predicted  # 1d-array with the data predicted by the model
         # You can save the predicted data to use later
