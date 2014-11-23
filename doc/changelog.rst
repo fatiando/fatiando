@@ -10,6 +10,9 @@ Version (development)
 
 **Changes**:
 
+* Significant progress on the :ref:`Developer Guide <develop>`. From getting
+  started to making a release on PyPI.
+  (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
 
 
 Version 0.3
