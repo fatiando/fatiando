@@ -3,9 +3,9 @@
 Installing Fatiando
 ===================
 
-.. note:: If you have any trouble installing please write to the
-    `mailing list`_ or to `Leonardo Uieda`_. This will help us make
-    Fatiando better!
+.. note:: If you have any trouble installing please
+    `submit a bug report on Github`_
+    or write to the `mailing list`_.
 
 Which Python?
 -------------
@@ -37,6 +37,7 @@ Fatiando requires the following packages:
 * `numpy <http://numpy.scipy.org/>`_
 * `scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
+* `IPython <http://ipython.org/>`__
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
@@ -51,7 +52,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib basemap imaging mayavi pip
+    conda install numpy scipy matplotlib ipython basemap imaging mayavi pip
 
 Extra dependencies for Windows users
 ++++++++++++++++++++++++++++++++++++
@@ -91,27 +92,32 @@ To uninstall simply run::
 
     The Windows installer from older versions is no longer supported.
 
+
 Installing the latest development version
 -----------------------------------------
 
 If you want the very latest code and features,
 you can install Fatiando directly from Github_.
 We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/leouieda/fatiando/branches>`__,
+`passing all tests <https://travis-ci.org/fatiando/fatiando/branches>`__,
 so it should be safe to use.
 
-First, you'll need to `install git`_.
-Then, open a terminal and run::
+To install the latest version from Github::
 
-    git clone --depth=50 --branch=master https://github.com/leouieda/fatiando.git
+    pip install --upgrade https://github.com/fatiando/fatiando/archive/master.zip
 
-This will fetch the source code from Github_
-and place it in a folder called ``fatiando`` in the directory where you ran the
-command.
-Then, just ``cd`` into the directory and run ``pip``::
+or if you have git installed and want to see the code::
 
+    git clone https://github.com/fatiando/fatiando.git
     cd fatiando
     pip install --upgrade .
+
+.. note::
+
+    ``fatiando.__version__`` has the current version number. If you install
+    from PyPI, this will be something like ``'0.2'``. If you installed from
+    Github, this will be the latest commit hash. This way you can track exactly
+    what version of Fatiando generated your results.
 
 
 Testing the install
@@ -124,19 +130,20 @@ To make it easier for us to debug you problem, please include the following
 information:
 
 * Operating system
+* Version of Fatiando you installed
 * Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
 * Python version (2.6, 2.7, 3.3, 3.4, etc)
 * The script you ran (and gave you an error/weird result)
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
 
-
+.. _submit a bug report on Github: https://github.com/fatiando/fatiando/issues
 .. _install git: http://git-scm.com/
-.. _Github: https://github.com/leouieda/fatiando
+.. _Github: https://github.com/fatiando/fatiando
 .. _Python: http://www.python.org/
 .. _pip: http://www.pip-installer.org
 .. _MinGW: http://www.mingw.org/
-.. _mailing list: https://groups.google.com/forum/#!forum/fatiando
+.. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _Continuum Analytics: http://continuum.io/
 .. _Anaconda: http://continuum.io/downloads

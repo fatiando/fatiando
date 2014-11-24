@@ -54,6 +54,7 @@ VTKDataSource = None
 tvtk = None
 BuiltinSurface = None
 
+
 def _lazy_import_BuiltinSurface():
     """
     Do the lazy import of BuiltinSurface
@@ -61,6 +62,7 @@ def _lazy_import_BuiltinSurface():
     global BuiltinSurface
     if BuiltinSurface is None:
         from mayavi.sources.builtin_surface import BuiltinSurface
+
 
 def _lazy_import_mlab():
     """
@@ -75,6 +77,7 @@ def _lazy_import_mlab():
             from enthought.mayavi import mlab
         from mayavi.sources.vtk_data_source import VTKDataSource
 
+
 def _lazy_import_tvtk():
     """
     Do the lazy import of tvtk
@@ -86,6 +89,7 @@ def _lazy_import_tvtk():
             from tvtk.api import tvtk
         except ImportError:
             from enthought.tvtk.api import tvtk
+
 
 def title(text, color=(0, 0, 0),  size=0.3, height=1):
     """
@@ -109,6 +113,7 @@ def title(text, color=(0, 0, 0),  size=0.3, height=1):
     _lazy_import_mlab()
     mlab.title(text, color=color, size=size, height=height)
 
+
 def savefig(fname, magnification=None):
     """
     Save a snapshot the current Mayavi figure to a file.
@@ -128,6 +133,7 @@ def savefig(fname, magnification=None):
     else:
         mlab.savefig(fname, magnification=magnification)
 
+
 def show():
     """
     Show the 3D plot of Mayavi2.
@@ -136,6 +142,7 @@ def show():
     """
     _lazy_import_mlab()
     mlab.show()
+
 
 def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
     """
@@ -175,9 +182,10 @@ def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
     glyph.glyph.glyph_source.glyph_source.radius = size
     return glyph
 
+
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+               vmin=None, vmax=None, cmap='blue-red', color=None,
+               linewidth=0.1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
 
@@ -189,8 +197,9 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
-        prism doesn't have *prop*, or if it is None, then it will not be plotted
-        If prop is a vector (like magnetization), will use the intensity (norm).
+        prism doesn't have *prop*, or if it is None, then it will not be
+        plotted If prop is a vector (like magnetization), will use the
+        intensity (norm).
     * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
@@ -224,10 +233,10 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     """
     if style not in ['surface', 'wireframe']:
-        raise ValueError, "Invalid style '%s'" % (style)
+        raise ValueError("Invalid style '%s'" % (style))
     if opacity > 1. or opacity < 0:
-        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
-        raise ValueError, msg
+        raise ValueError("Invalid opacity %g. Must be in range [1,0]"
+                         % (opacity))
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
@@ -268,7 +277,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         # The sides
         for i in xrange(nverts):
             x1, y1 = x[i], y[i]
-            x2, y2 = x[(i + 1)%nverts], y[(i + 1)%nverts]
+            x2, y2 = x[(i + 1) % nverts], y[(i + 1) % nverts]
             points.extend([[x1, y1, prism.z1], [x2, y2, prism.z1],
                            [x2, y2, prism.z2], [x1, y1, prism.z2]])
             polygons.append(range(offset, offset + 4))
@@ -287,9 +296,10 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         surf.actor.property.representation = 'wireframe'
         surf.actor.property.line_width = linewidth
     if style == 'surface':
-        # The triangle filter is needed because VTK doesnt seem to handle convex
-        # polygons too well
-        dataset = mlab.pipeline.triangle_filter(mlab.pipeline.add_dataset(mesh))
+        # The triangle filter is needed because VTK doesnt seem to handle
+        # convex polygons too well
+        dataset = mlab.pipeline.triangle_filter(
+            mlab.pipeline.add_dataset(mesh))
         surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin,
                                      colormap=cmap)
         surf.actor.property.representation = 'surface'
@@ -308,6 +318,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         surf.actor.property.color = color
     surf.actor.actor.scale = scale
     return surf
+
 
 def tess2tvtk(tesseroids, prop=None, scale=(1, 1, 1)):
     """
@@ -401,6 +412,7 @@ def tess2tvtk(tesseroids, prop=None, scale=(1, 1, 1)):
     vtkmesh.cell_data.scalars.name = label
     return vtkmesh
 
+
 def tess_cutplane(tesseroids, prop=None, scale=(1, 1, 1)):
     """
     Plot a cut-plane through a tesseroid model.
@@ -425,7 +437,7 @@ def tess_cutplane(tesseroids, prop=None, scale=(1, 1, 1)):
     """
     _lazy_import_mlab()
     if (isinstance(tesseroids, Tesseroid) or
-        isinstance(tesseroids, TesseroidMesh)):
+            isinstance(tesseroids, TesseroidMesh)):
         vtkmesh = tess2tvtk(tesseroids, prop, scale)
         dataset = mlab.pipeline.add_dataset(vtkmesh)
     else:
@@ -439,9 +451,10 @@ def tess_cutplane(tesseroids, prop=None, scale=(1, 1, 1)):
         mlab.pipeline.cell_to_point_data(dataset))
     return cutplane
 
+
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+               vmin=None, vmax=None, cmap='blue-red', color=None,
+               linewidth=0.1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -489,10 +502,10 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
 
     """
     if style not in ['surface', 'wireframe']:
-        raise ValueError, "Invalid style '%s'" % (style)
+        raise ValueError("Invalid style '%s'" % (style))
     if opacity > 1. or opacity < 0:
         msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
-        raise ValueError, msg
+        raise ValueError(msg)
     _lazy_import_mlab()
     vtkmesh = tess2tvtk(tesseroids, prop, scale)
     dataset = mlab.pipeline.add_dataset(vtkmesh)
@@ -505,16 +518,16 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     smax = max(vtkmesh.cell_data.scalars)
     if style == 'wireframe':
         surf = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
-            vmax=smax, vmin=smin, colormap=cmap)
+                                     vmax=smax, vmin=smin, colormap=cmap)
         surf.actor.property.representation = 'wireframe'
         surf.actor.property.line_width = linewidth
     if style == 'surface':
         surf = mlab.pipeline.surface(thresh, vmax=smax, vmin=smin,
-            colormap=cmap)
+                                     colormap=cmap)
         surf.actor.property.representation = 'surface'
         if edges:
             edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
-                vmax=smax, vmin=smin)
+                                         vmax=smax, vmin=smin)
             edge.actor.property.representation = 'wireframe'
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
@@ -527,9 +540,10 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
         surf.actor.property.color = color
     return surf
 
+
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-    vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
-    edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+           vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+           edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
 
@@ -541,8 +555,9 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         The prisms
     * prop : str or None
         The physical property of the prisms to use as the color scale. If a
-        prism doesn't have *prop*, or if it is None, then it will not be plotted
-        If prop is a vector (like magnetization), will use the intensity (norm).
+        prism doesn't have *prop*, or if it is None, then it will not be
+        plotted If prop is a vector (like magnetization), will use the
+        intensity (norm).
     * style : str
         Either ``'surface'`` for solid prisms or ``'wireframe'`` for just the
         contour
@@ -576,10 +591,10 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
     """
     if style not in ['surface', 'wireframe']:
-        raise ValueError, "Invalid style '%s'" % (style)
+        raise ValueError("Invalid style '%s'" % (style))
     if opacity > 1. or opacity < 0:
-        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
-        raise ValueError, msg
+        raise ValueError("Invalid opacity %g. Must be in range [1,0]"
+                         % (opacity))
     # mlab and tvtk are really slow to import
     _lazy_import_mlab()
     _lazy_import_tvtk()
@@ -646,6 +661,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
     surf.actor.actor.scale = scale
     return surf
 
+
 def figure(size=None, zdown=True, color=(1, 1, 1)):
     """
     Create a default figure in Mayavi with white background
@@ -675,6 +691,7 @@ def figure(size=None, zdown=True, color=(1, 1, 1)):
         fig.scene.camera.elevation(60.)
         fig.scene.camera.azimuth(180.)
     return fig
+
 
 def outline(extent=None, color=(0, 0, 0), width=2, scale=(1, 1, 1)):
     """
@@ -706,8 +723,9 @@ def outline(extent=None, color=(0, 0, 0), width=2, scale=(1, 1, 1)):
     outline.actor.actor.scale = scale
     return outline
 
-def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
-             width=2, fmt="%-#.2f"):
+
+def axes(plot, nlabels=5, extent=None, ranges=None, color=(0, 0, 0),
+         width=2, fmt="%-#.2f"):
     """
     Add an Axes module to a Mayavi2 plot or dataset.
 
@@ -749,7 +767,8 @@ def axes(plot, nlabels=5, extent=None, ranges=None, color=(0,0,0),
     a.axes.x_label, a.axes.y_label, a.axes.z_label = "N", "E", "Z"
     return a
 
-def wall_north(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_north(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the North side.
 
@@ -772,7 +791,8 @@ def wall_north(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([n, n, w, e, b, t], color, opacity, scale)
 
-def wall_south(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_south(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the South side.
 
@@ -795,7 +815,8 @@ def wall_south(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([s, s, w, e, b, t], color, opacity, scale)
 
-def wall_east(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_east(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the East side.
 
@@ -818,7 +839,8 @@ def wall_east(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([s, n, e, e, b, t], color, opacity, scale)
 
-def wall_west(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_west(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the West side.
 
@@ -841,7 +863,8 @@ def wall_west(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([s, n, w, w, b, t], color, opacity, scale)
 
-def wall_top(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_top(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Top side.
 
@@ -864,7 +887,8 @@ def wall_top(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([s, n, w, e, t, t], color, opacity, scale)
 
-def wall_bottom(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
+
+def wall_bottom(bounds, color=(0, 0, 0), opacity=0.1, scale=(1, 1, 1)):
     """
     Draw a 3D wall in Mayavi2 on the Bottom side.
 
@@ -887,6 +911,7 @@ def wall_bottom(bounds, color=(0,0,0), opacity=0.1, scale=(1, 1, 1)):
     s, n, w, e, t, b = bounds
     _wall([s, n, w, e, b, b], color, opacity, scale)
 
+
 def _wall(bounds, color, opacity, scale):
     """Generate a 3D wall in Mayavi"""
     _lazy_import_mlab()
@@ -899,8 +924,9 @@ def _wall(bounds, color, opacity, scale):
     su.actor.property.opacity = opacity
     su.actor.actor.scale = scale
 
+
 def continents(color=(0, 0, 0), linewidth=1, resolution=2, opacity=1,
-    radius=MEAN_EARTH_RADIUS):
+               radius=MEAN_EARTH_RADIUS):
     """
     Plot the outline of the continents.
 
@@ -935,6 +961,7 @@ def continents(color=(0, 0, 0), linewidth=1, resolution=2, opacity=1,
     surf.actor.property.opacity = opacity
     return surf
 
+
 def earth(color=(0.4, 0.5, 1.0), opacity=1):
     """
     Draw a sphere representing the Earth.
@@ -954,12 +981,13 @@ def earth(color=(0.4, 0.5, 1.0), opacity=1):
     """
     _lazy_import_mlab()
     sphere = mlab.points3d(0, 0, 0, scale_mode='none',
-        scale_factor=2*MEAN_EARTH_RADIUS, color=color, resolution=50,
-        opacity=opacity, name='Earth')
+                           scale_factor=2 * MEAN_EARTH_RADIUS, color=color,
+                           resolution=50, opacity=opacity, name='Earth')
     sphere.actor.property.specular = 0.45
     sphere.actor.property.specular_power = 5
     sphere.actor.property.backface_culling = True
     return sphere
+
 
 def core(inner=False, color=(1, 0, 0), opacity=1):
     """
@@ -988,12 +1016,13 @@ def core(inner=False, color=(1, 0, 0), opacity=1):
         radius = 3486000.
         name = 'Core'
     sphere = mlab.points3d(0, 0, 0, scale_mode='none',
-        scale_factor=2.*radius, color=color, resolution=50,
-        opacity=opacity, name=name)
+                           scale_factor=2. * radius, color=color,
+                           resolution=50, opacity=opacity, name=name)
     sphere.actor.property.specular = 0.45
     sphere.actor.property.specular_power = 5
     sphere.actor.property.backface_culling = True
     return sphere
+
 
 def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     """
@@ -1025,9 +1054,10 @@ def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
         z.extend(coords[2].tolist())
     x, y, z = numpy.array(x), numpy.array(y), numpy.array(z)
     lines = mlab.plot3d(x, y, z, color=color, opacity=opacity,
-        tube_radius=None)
+                        tube_radius=None)
     lines.actor.property.line_width = linewidth
     return lines
+
 
 def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     """
@@ -1055,7 +1085,7 @@ def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     for lat in latitudes:
         x, y, z = utils.sph2cart(lons, numpy.ones_like(lons)*lat, 0)
         lines = mlab.plot3d(x, y, z, color=color, opacity=opacity,
-            tube_radius=None)
+                            tube_radius=None)
         lines.actor.property.line_width = linewidth
         parallels.append(lines)
     return parallels

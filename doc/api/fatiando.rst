@@ -16,7 +16,6 @@ API Reference: The ``fatiando`` package
     gridder.rst
     vis.rst
     datasets.rst
-    gui.rst
     utils.rst
     constants.rst
     inversion.rst

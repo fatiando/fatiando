@@ -7,8 +7,10 @@ from fatiando.vis import myv
 shape = (10, 20, 10)
 nz, ny, nx = shape
 mesh = mesher.PrismMesh((0, 100, 0, 200, 0, 50), shape)
+
+
 def fill(i):
-    k = i/(nx*ny)
+    k = i / (nx * ny)
     return k
 mesh.addprop('density', [fill(i) for i in xrange(mesh.size)])
 

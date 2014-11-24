@@ -16,6 +16,9 @@ This means that it can be reused and remixed
 with few restrictions.
 See the :ref:`license text <license>` for more information.
 
+**Citing**: Fatiando is research software. See our `CITATION file`_ to
+learn how to cite us in your publications.
+
 The best **place to start** learning
 about Fatiando is the :ref:`Cookbook <cookbook>`.
 There, you'll find many sample scripts
@@ -32,10 +35,10 @@ http://youtu.be/Ec38h1oB8cc
 
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _2013 Scipy conference: http://conference.scipy.org/scipy2013/index.php
-.. _GitHub: https://github.com/leouieda/fatiando
+.. _GitHub: https://github.com/fatiando/fatiando
 .. _the official site: http://www.fatiando.org
 .. _Python: http://www.python.org
-
+.. _CITATION file: https://github.com/fatiando/fatiando/blob/master/CITATION.rst
 
 ----
 
@@ -52,5 +55,6 @@ http://youtu.be/Ec38h1oB8cc
     install.rst
     api/fatiando.rst
     cookbook.rst
+    develop.rst
 
 

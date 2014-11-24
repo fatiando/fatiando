@@ -14,7 +14,7 @@ data = utils.gaussian2d(lon, lat, 10, 20, 10, 60, angle=45)
 bm = mpl.basemap(area, 'merc')
 
 # And now plot everything passing the basemap to the plotting functions
-mpl.figure(figsize=(5,8))
+mpl.figure(figsize=(5, 8))
 mpl.pcolor(lon, lat, data, shape, basemap=bm)
 mpl.colorbar()
 bm.drawcoastlines()
@@ -22,4 +22,3 @@ bm.drawmapboundary()
 bm.drawcountries()
 mpl.draw_geolines(area, 10, 10, bm)
 mpl.show()
-

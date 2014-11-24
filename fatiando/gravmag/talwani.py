@@ -26,7 +26,7 @@ from numpy import arctan2, pi, sin, cos, log, tan
 from fatiando.constants import G, SI2MGAL
 
 
-def gz(xp, zp, polygons):
+def gz(xp, zp, polygons, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -43,6 +43,9 @@ def gz(xp, zp, polygons):
         Polygons must have the property ``'density'``. Polygons that don't have
         this property will be ignored in the computations. Elements of
         *polygons* that are None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the polygons. Use this, e.g., for sensitivity matrix building.
 
         .. note:: The y coordinate of the polygons is used as z!
 
@@ -56,9 +59,13 @@ def gz(xp, zp, polygons):
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for polygon in polygons:
-        if polygon is None or 'density' not in polygon.props:
+        if polygon is None or ('density' not in polygon.props
+                               and dens is None):
             continue
-        density = polygon.props['density']
+        if dens is None:
+            density = polygon.props['density']
+        else:
+            density = dens
         x = polygon.x
         z = polygon.y
         nverts = polygon.nverts
@@ -71,7 +78,7 @@ def gz(xp, zp, polygons):
                 xvp1 = x[0] - xp
                 zvp1 = z[0] - zp
             else:
-                xvp1 = x[v + 1]- xp
+                xvp1 = x[v + 1] - xp
                 zvp1 = z[v + 1] - zp
             # Temporary fix. The analytical conditions for these limits don't
             # work. So if the conditions are breached, sum 0.01 meters to the
@@ -84,16 +91,16 @@ def gz(xp, zp, polygons):
             xvp1[xvp1 == 0.] += 0.01
             # End of fix
             phi_v = arctan2(zvp1 - zv, xvp1 - xv)
-            ai = xvp1 + zvp1*(xvp1 - xv)/(zv - zvp1)
+            ai = xvp1 + zvp1 * (xvp1 - xv) / (zv - zvp1)
             theta_v = arctan2(zv, xv)
             theta_vp1 = arctan2(zvp1, xvp1)
             theta_v[theta_v < 0] += pi
             theta_vp1[theta_vp1 < 0] += pi
-            tmp = ai*sin(phi_v)*cos(phi_v)*(
-                    theta_v - theta_vp1 + tan(phi_v)*log(
-                        (cos(theta_v)*(tan(theta_v) - tan(phi_v)))/
-                        (cos(theta_vp1)*(tan(theta_vp1) - tan(phi_v)))))
+            tmp = ai * sin(phi_v) * cos(phi_v) * (
+                theta_v - theta_vp1 + tan(phi_v) * log(
+                    (cos(theta_v) * (tan(theta_v) - tan(phi_v))) /
+                    (cos(theta_vp1) * (tan(theta_vp1) - tan(phi_v)))))
             tmp[theta_v == theta_vp1] = 0.
-            res = res + tmp*density
-    res = res*SI2MGAL*2.0*G
+            res = res + tmp * density
+    res = res * SI2MGAL * 2.0 * G
     return res

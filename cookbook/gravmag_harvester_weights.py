@@ -7,8 +7,8 @@ from fatiando.vis import mpl, myv
 
 # Generate some synthetic total field anomaly data
 bounds = [0, 10000, 0, 10000, 0, 5000]
-props = {'density':500}
-props2 = {'density':1000}
+props = {'density': 500}
+props2 = {'density': 1000}
 model = [mesher.Prism(4000, 6000, 4000, 6000, 500, 2500, props),
          mesher.Prism(2000, 2500, 2000, 2500, 500, 1000, props2),
          mesher.Prism(7500, 8000, 5500, 6500, 500, 1000, props2),
@@ -23,7 +23,7 @@ seeds = harvester.sow([[5000, 5000, 1000, props]], mesh)
 # Run the inversion without using weights
 data = [harvester.Gz(x, y, z, gz)]
 estimate, predicted = harvester.harvest(data, seeds, mesh,
-    compactness=1.5, threshold=0.001)
+                                        compactness=1.5, threshold=0.001)
 mesh.addprop('density', estimate['density'])
 bodies = mesher.vremove(0, 'density', mesh)
 mpl.figure()
@@ -48,7 +48,7 @@ myv.title('No weights')
 weights = harvester.weights(x, y, seeds, [2000], decay=6)
 data = [harvester.Gz(x, y, z, gz, weights=weights)]
 estimate, predicted = harvester.harvest(data, seeds, mesh,
-    compactness=1.5, threshold=0.001)
+                                        compactness=1.5, threshold=0.001)
 mesh.addprop('density', estimate['density'])
 bodies = mesher.vremove(0, 'density', mesh)
 mpl.figure()

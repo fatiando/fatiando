@@ -1,6 +1,5 @@
 """
-Build extention modules, package and install Fatiando.
-Uses the numpy's extension of distutils to build the f2py extension modules
+Build extension modules, package and install Fatiando.
 """
 import sys
 import os
@@ -8,16 +7,20 @@ from distutils.core import setup
 from distutils.extension import Extension
 import numpy
 
+import versioneer
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'fatiando/_version.py'
+versioneer.versionfile_build = 'fatiando/_version.py'
+versioneer.tag_prefix = 'v'
+versioneer.parentdir_prefix = '.'
+
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
-DESCRIPTION = "Geophysical modeling and inversion"
-VERSION = '0.3'
-try:
-    with open("README.rst") as f:
-        LONG_DESCRIPTION = ''.join(f.readlines())
-except IOError:
-    with open("README.txt") as f:
-        LONG_DESCRIPTION = ''.join(f.readlines())
+DESCRIPTION = "Modeling and inversion for geophysics"
+VERSION = versioneer.get_version()
+CMDCLASS = versioneer.get_cmdclass()
+with open("README.rst") as f:
+    LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.gravmag',
             'fatiando.seismic',
@@ -43,8 +46,9 @@ CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
                "License :: OSI Approved :: BSD License",
                "Development Status :: 3 - Alpha",
                "Natural Language :: English"]
+KEYWORDS = 'geophysics modeling inversion gravimetry seismic magnetometry'
 
-# The runing setup.py with --cython, then set things up to generate the Cython
+# The running setup.py with --cython, then set things up to generate the Cython
 # .c files. If not, then compile the pre-converted C files.
 USE_CYTHON = True if '--cython' in sys.argv else False
 ext = '.pyx' if USE_CYTHON else '.c'
@@ -58,7 +62,7 @@ C_EXT = [[['fatiando', 'gravmag', '_tesseroid'], {}],
          [['fatiando', 'gravmag', '_polyprism'], omp_args],
          [['fatiando', 'gravmag', '_sphere'], omp_args],
          [['fatiando', 'gravmag', '_prism'], omp_args],
-        ]
+         ]
 extensions = []
 for e, extra_args in C_EXT:
     extensions.append(
@@ -69,21 +73,23 @@ for e, extra_args in C_EXT:
 if USE_CYTHON:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
+
     extensions = cythonize(extensions)
 
 if __name__ == '__main__':
-	setup(name=NAME,
-		  fullname=FULLNAME,
-		  description=DESCRIPTION,
-		  long_description=LONG_DESCRIPTION,
-		  version=VERSION,
-		  author=AUTHOR,
-		  author_email=AUTHOR_EMAIL,
-		  license=LICENSE,
-		  url=URL,
-		  platforms=PLATFORMS,
-		  scripts=SCRIPTS,
-		  packages=PACKAGES,
-		  ext_modules=extensions,
-		  classifiers=CLASSIFIERS)
-
+    setup(name=NAME,
+          fullname=FULLNAME,
+          description=DESCRIPTION,
+          long_description=LONG_DESCRIPTION,
+          version=VERSION,
+          author=AUTHOR,
+          author_email=AUTHOR_EMAIL,
+          license=LICENSE,
+          url=URL,
+          platforms=PLATFORMS,
+          scripts=SCRIPTS,
+          packages=PACKAGES,
+          ext_modules=extensions,
+          classifiers=CLASSIFIERS,
+          keywords=KEYWORDS,
+          cmdclass=CMDCLASS)

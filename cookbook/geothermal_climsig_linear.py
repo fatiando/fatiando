@@ -13,7 +13,7 @@ age = 78.2
 # along a well at these depths
 zp = numpy.arange(0, 100, 1)
 temp, error = utils.contaminate(linear(amp, age, zp), 0.02,
-    percent=True, return_stddev=True)
+                                percent=True, return_stddev=True)
 
 # Preparing for the inversion
 data = SingleChange(temp, zp, mode='linear').config('levmarq', initial=[1, 1])

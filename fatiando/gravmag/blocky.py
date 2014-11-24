@@ -109,7 +109,9 @@ def depth_weights(mesh, power):
     weights = scipy.sparse.diags([numpy.sqrt(w)], [0]).tocsr()
     return weights
 
+
 class SmoothnessDW(Smoothness):
+
     def __init__(self, mesh, power=3):
         weights = depth_weights(mesh, power)
         fdmat = safe_dot(fd3d(mesh.shape), weights)
@@ -117,15 +119,17 @@ class SmoothnessDW(Smoothness):
         self.mesh = mesh
         self.power = power
 
+
 class DampingDW(Damping):
+
     def __init__(self, mesh, power=3):
         super(DampingDW, self).__init__(mesh.size)
         self.mesh = mesh
         self.power = power
         weights = depth_weights(mesh, power)
         self._cache = {}
-        self._cache['hessian'] = {'hash':'',
-                                  'array':2*safe_dot(weights.T, weights)}
+        self._cache['hessian'] = {'hash': '',
+                                  'array': 2*safe_dot(weights.T, weights)}
 
     def _get_hessian(self, p):
         return self._cache['hessian']['array']
@@ -140,9 +144,12 @@ class DampingDW(Damping):
     def _get_value(self, p):
         return 0.5*safe_dot(p.T, safe_dot(self._cache['hessian']['array'], p))
 
+
 class Gravity3D(Misfit):
+
     def __init__(self, x, y, z, data, mesh, field='gz', footprint=None):
-        super(Gravity3D, self).__init__(data=data,
+        super(Gravity3D, self).__init__(
+            data=data,
             positional=dict(x=x, y=y, z=z),
             model={'mesh': mesh},
             nparams=mesh.size,
@@ -264,8 +271,8 @@ class Gravity3D(Misfit):
             y = self.positional['y']
             z = self.positional['z']
             mesh = self.model['mesh']
-            self._effects[neighbor.i] = self.kernel(x, y, z,
-                [mesh[neighbor.i]], dens=neighbor.props[self.prop])
+            self._effects[neighbor.i] = self.kernel(
+                x, y, z, [mesh[neighbor.i]], dens=neighbor.props[self.prop])
         return self._effects[neighbor.i]
 
     def config(self, method, **kwargs):
@@ -313,8 +320,8 @@ class Gravity3D(Misfit):
                     misfit = best['misfit']
                     compact = best['compact']
                     neighbors[s].pop(best['neighbor'].i)
-                    newneighbors = self._get_neighbors(best['neighbor'],
-                                        neighbors, estimate)
+                    newneighbors = self._get_neighbors(
+                        best['neighbor'], neighbors, estimate)
                     neighbors[s].update(newneighbors)
                     tmp = best['neighbor'].props[self.prop]
                     estimate[best['neighbor'].i] = tmp
@@ -380,19 +387,19 @@ class Gravity3D(Misfit):
             indexes.append(tmp)
         # The guy in front
         tmp = n + 1
-        if n%nx < nx - 1:
+        if n % nx < nx - 1:
             indexes.append(tmp)
         # The guy in the back
         tmp = n - 1
-        if n%nx != 0:
+        if n % nx != 0:
             indexes.append(tmp)
         # The guy to the left
         tmp = n + nx
-        if n%(nx*ny) < nx*(ny - 1):
+        if n % (nx*ny) < nx*(ny - 1):
             indexes.append(tmp)
         # The guy to the right
         tmp = n - nx
-        if n%(nx*ny) >= nx:
+        if n % (nx*ny) >= nx:
             indexes.append(tmp)
         # Filter out the ones that do not exist or are masked (topography)
         return [i for i in indexes if i is not None and mesh[i] is not None]
@@ -403,7 +410,7 @@ class Gravity3D(Misfit):
             neighbor = neighbors[n]
             newmisfit = self.value(None, increment=neighbor, fromcache=True)
             if (newmisfit >= misfit
-                or abs(newmisfit - misfit)/misfit < threshold):
+                    or abs(newmisfit - misfit)/misfit < threshold):
                 continue
             newcompact = compact + neighbor.distance
             newshape = self.shape_of_anomaly(None, increment=neighbor,
@@ -427,6 +434,7 @@ class Gravity3D(Misfit):
             for o in self._parents:
                 o._update_cache(neighbor, estimate)
 
+
 class PrismSeed(Prism):
     """
     A seed that is a right rectangular prism.
@@ -434,10 +442,11 @@ class PrismSeed(Prism):
 
     def __init__(self, i, location, prism, props):
         Prism.__init__(self, prism.x1, prism.x2, prism.y1, prism.y2, prism.z1,
-            prism.z2, props=props)
+                       prism.z2, props=props)
         self.i = i
         self.seed = i
         self.x, self.y, self.z = location
+
 
 class TesseroidSeed(Tesseroid):
     """
@@ -446,10 +455,11 @@ class TesseroidSeed(Tesseroid):
 
     def __init__(self, i, location, tess, props):
         Tesseroid.__init__(self, tess.w, tess.e, tess.s, tess.n, tess.top,
-            tess.bottom, props=props)
+                           tess.bottom, props=props)
         self.i = i
         self.seed = i
         self.x, self.y, self.z = location
+
 
 class Neighbor(object):
     """
@@ -461,6 +471,7 @@ class Neighbor(object):
         self.props = props
         self.seed = seed
         self.distance = distance
+
 
 def sow(locations, mesh):
     """
@@ -508,6 +519,7 @@ def sow(locations, mesh):
         if index not in (s.i for s in seeds):
             seeds.append(seedtype(index, (x, y, z), mesh[index], props))
     return seeds
+
 
 def _find_index(point, mesh):
     """

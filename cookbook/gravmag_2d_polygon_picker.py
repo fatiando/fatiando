@@ -14,19 +14,19 @@ mpl.xlabel("X")
 mpl.ylabel("Z")
 mpl.axis('scaled')
 polygons = [mesher.Polygon(mpl.draw_polygon(area, axes),
-                              {'density':500})]
+                           {'density': 500})]
 xp = numpy.arange(-4500, 4500, 100)
 zp = numpy.zeros_like(xp)
 gz = talwani.gz(xp, zp, polygons)
 
 mpl.figure()
 mpl.axis('scaled')
-mpl.subplot(2,1,1)
+mpl.subplot(2, 1, 1)
 mpl.title(r"Gravity anomaly produced by the model")
 mpl.plot(xp, gz, '-k', linewidth=2)
 mpl.ylabel("mGal")
 mpl.xlim(-5000, 5000)
-mpl.subplot(2,1,2)
+mpl.subplot(2, 1, 2)
 mpl.polygon(polygons[0], 'o-k', linewidth=2, fill='k', alpha=0.5)
 mpl.xlabel("X")
 mpl.ylabel("Z")

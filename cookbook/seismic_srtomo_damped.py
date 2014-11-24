@@ -11,12 +11,12 @@ from fatiando import utils
 area = (0, 500000, 0, 500000)
 shape = (30, 30)
 model = SquareMesh(area, shape)
-vel =  4000*np.ones(shape)
+vel = 4000 * np.ones(shape)
 vel[5:25, 5:25] = 10000
 model.addprop('vp', vel.ravel())
 
 # Make some travel time data and add noise
-seed = 0 # Set the random seed so that points are the same every time
+seed = 0  # Set the random seed so that points are the same every time
 src_loc = utils.random_points(area, 80, seed=seed)
 rec_loc = utils.circular_points(area, 30, random=True, seed=seed)
 srcs, recs = utils.connect_points(src_loc, rec_loc)
@@ -30,7 +30,7 @@ misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
 regularization = Damping(mesh.size)
 # Will use the l-curve criterion to find the best regularization parameter
 tomo = LCurve(misfit, regularization,
-              [8**i for i in np.arange(-8, 8, 1)], jobs=8).fit()
+              [8 ** i for i in np.arange(-8, 8, 1)], jobs=8).fit()
 mesh.addprop('vp', tomo.estimate_)
 
 # Plot the L-curve annd print the regularization parameter estimated
@@ -54,13 +54,13 @@ cb = mpl.colorbar()
 cb.set_label('Velocity')
 mpl.points(src_loc, '*y', label="Sources")
 mpl.points(rec_loc, '^r', label="Receivers")
-mpl.legend(loc='lower left', shadow=True, numpoints=1, prop={'size':10})
+mpl.legend(loc='lower left', shadow=True, numpoints=1, prop={'size': 10})
 mpl.m2km()
 mpl.subplot(1, 2, 2)
 mpl.axis('scaled')
 mpl.title('Tomography result')
 mpl.squaremesh(mesh, prop='vp', vmin=4000, vmax=10000,
-    cmap=mpl.cm.seismic)
+               cmap=mpl.cm.seismic)
 cb = mpl.colorbar()
 cb.set_label('Velocity')
 mpl.m2km()

@@ -88,7 +88,7 @@ def fromimage(fname, ranges=None, shape=None):
     """
     image = scipy.misc.fromimage(PIL.Image.open(fname), flatten=True)
     # Invert the color scale and normalize
-    values = (image.max() - image)/numpy.abs(image).max()
+    values = (image.max() - image) / numpy.abs(image).max()
     if ranges is not None:
         vmin, vmax = ranges
         values *= vmax - vmin
@@ -97,8 +97,9 @@ def fromimage(fname, ranges=None, shape=None):
         ny, nx = values.shape
         X, Y = numpy.meshgrid(range(nx), range(ny))
         values = gridder.interp(X.ravel(), Y.ravel(), values.ravel(),
-            shape)[2].reshape(shape)
+                                shape)[2].reshape(shape)
     return values
+
 
 def safe_inverse(matrix):
     """
@@ -123,6 +124,7 @@ def safe_inverse(matrix):
         return scipy.sparse.linalg.inv(matrix)
     else:
         return numpy.linalg.inv(matrix)
+
 
 def safe_solve(matrix, vector):
     """
@@ -154,6 +156,7 @@ def safe_solve(matrix, vector):
         estimate = numpy.linalg.solve(matrix, vector)
     return estimate
 
+
 def safe_dot(a, b):
     """
     Make the dot product using the appropriate method.
@@ -173,9 +176,10 @@ def safe_dot(a, b):
 
     """
     if scipy.sparse.issparse(a) or scipy.sparse.issparse(b):
-        return a*b
+        return a * b
     else:
         return numpy.dot(a, b)
+
 
 def safe_diagonal(matrix):
     """
@@ -196,6 +200,7 @@ def safe_diagonal(matrix):
         return numpy.array(matrix.diagonal())
     else:
         return numpy.diagonal(matrix).copy()
+
 
 def vecnorm(vectors):
     """
@@ -221,8 +226,9 @@ def vecnorm(vectors):
         [ 1.73205081  3.46410162  5.19615242]
 
     """
-    norm = numpy.sqrt(sum(i**2 for i in numpy.transpose(vectors)))
+    norm = numpy.sqrt(sum(i ** 2 for i in numpy.transpose(vectors)))
     return norm
+
 
 def sph2cart(lon, lat, height):
     """
@@ -240,12 +246,13 @@ def sph2cart(lon, lat, height):
         Converted Cartesian coordinates
 
     """
-    d2r = numpy.pi/180.0
+    d2r = numpy.pi / 180.0
     radius = constants.MEAN_EARTH_RADIUS + height
-    x = numpy.cos(d2r*lat)*numpy.cos(d2r*lon)*radius
-    y = numpy.cos(d2r*lat)*numpy.sin(d2r*lon)*radius
-    z = numpy.sin(d2r*lat)*radius
+    x = numpy.cos(d2r * lat) * numpy.cos(d2r * lon) * radius
+    y = numpy.cos(d2r * lat) * numpy.sin(d2r * lon) * radius
+    z = numpy.sin(d2r * lat) * radius
     return x, y, z
+
 
 def si2nt(value):
     """
@@ -262,7 +269,8 @@ def si2nt(value):
         The value in nanoTesla
 
     """
-    return value*constants.T2NT
+    return value * constants.T2NT
+
 
 def nt2si(value):
     """
@@ -279,7 +287,8 @@ def nt2si(value):
         The value in SI
 
     """
-    return value/constants.T2NT
+    return value / constants.T2NT
+
 
 def si2eotvos(value):
     """
@@ -296,7 +305,8 @@ def si2eotvos(value):
         The value in Eotvos
 
     """
-    return value*constants.SI2EOTVOS
+    return value * constants.SI2EOTVOS
+
 
 def eotvos2si(value):
     """
@@ -313,7 +323,8 @@ def eotvos2si(value):
         The value in SI
 
     """
-    return value/constants.SI2EOTVOS
+    return value / constants.SI2EOTVOS
+
 
 def si2mgal(value):
     """
@@ -330,7 +341,8 @@ def si2mgal(value):
         The value in mGal
 
     """
-    return value*constants.SI2MGAL
+    return value * constants.SI2MGAL
+
 
 def mgal2si(value):
     """
@@ -347,7 +359,8 @@ def mgal2si(value):
         The value in SI
 
     """
-    return value/constants.SI2MGAL
+    return value / constants.SI2MGAL
+
 
 def vec2ang(vector):
     """
@@ -375,11 +388,12 @@ def vec2ang(vector):
 
     """
     intensity = numpy.linalg.norm(vector)
-    r2d = 180./numpy.pi
+    r2d = 180. / numpy.pi
     x, y, z = vector
-    declination = r2d*numpy.arctan2(y, x)
-    inclination = r2d*numpy.arcsin(z/intensity)
+    declination = r2d * numpy.arctan2(y, x)
+    inclination = r2d * numpy.arcsin(z / intensity)
     return [intensity, inclination, declination]
+
 
 def ang2vec(intensity, inc, dec):
     """
@@ -415,7 +429,8 @@ def ang2vec(intensity, inc, dec):
          [ 1.5         1.5         2.12132034]]
 
     """
-    return numpy.transpose([intensity*i for i in dircos(inc, dec)])
+    return numpy.transpose([intensity * i for i in dircos(inc, dec)])
+
 
 def dircos(inc, dec):
     """
@@ -439,11 +454,12 @@ def dircos(inc, dec):
         The unit vector
 
     """
-    d2r = numpy.pi/180.
-    vect = [numpy.cos(d2r*inc)*numpy.cos(d2r*dec),
-            numpy.cos(d2r*inc)*numpy.sin(d2r*dec),
-            numpy.sin(d2r*inc)]
+    d2r = numpy.pi / 180.
+    vect = [numpy.cos(d2r * inc) * numpy.cos(d2r * dec),
+            numpy.cos(d2r * inc) * numpy.sin(d2r * dec),
+            numpy.sin(d2r * inc)]
     return vect
+
 
 def vecmean(arrays):
     """
@@ -467,6 +483,7 @@ def vecmean(arrays):
     """
     return numpy.mean(arrays, axis=0)
 
+
 def vecstd(arrays):
     """
     Take the standard deviation array out of a list of arrays.
@@ -489,7 +506,9 @@ def vecstd(arrays):
     """
     return numpy.std(arrays, axis=0)
 
+
 class SparseList(object):
+
     """
     Store only non-zero elements on an immutable list.
 
@@ -559,6 +578,7 @@ class SparseList(object):
         self.i += 1
         return res
 
+
 def sec2hms(seconds):
     """
     Convert seconds into a string with hours, minutes and seconds.
@@ -581,10 +601,11 @@ def sec2hms(seconds):
         1h 4m 22.12346s
 
     """
-    h = int(seconds/3600)
-    m = int((seconds - h*3600)/60)
-    s = seconds - h*3600 - m*60
+    h = int(seconds / 3600)
+    m = int((seconds - h * 3600) / 60)
+    s = seconds - h * 3600 - m * 60
     return '%dh %dm %2.5fs' % (h, m, s)
+
 
 def sec2year(seconds):
     """
@@ -608,7 +629,8 @@ def sec2year(seconds):
         1.0
 
     """
-    return float(seconds)/31557600.0
+    return float(seconds) / 31557600.0
+
 
 def year2sec(years):
     """
@@ -632,7 +654,8 @@ def year2sec(years):
         31557600.0
 
     """
-    return 31557600.0*float(years)
+    return 31557600.0 * float(years)
+
 
 def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
     r"""
@@ -651,8 +674,8 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         standard deviation of the Gaussian noise will be this percentage of
         the maximum absolute value of *data*
     * return_stddev : True or False
-        If ``True``, will return also the standard deviation used to contaminate
-        *data*
+        If ``True``, will return also the standard deviation used to
+        contaminate *data*
     * seed : None or int
         Seed used to generate the pseudo-random numbers. If `None`, will use a
         different seed every time. Use the same seed to generate the same
@@ -703,7 +726,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
             contam.append(data[i])
             continue
         if percent:
-            stddev[i] = stddev[i]*max(abs(data[i]))
+            stddev[i] = stddev[i] * max(abs(data[i]))
         noise = numpy.random.normal(scale=stddev[i], size=len(data[i]))
         # Subtract the mean so that the noise doesn't introduce a systematic
         # shift in the data
@@ -717,6 +740,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         return [contam, stddev]
     else:
         return contam
+
 
 def normal(x, mean, std):
     """
@@ -742,7 +766,9 @@ def normal(x, mean, std):
         Normal distribution evaluated at *x*
 
     """
-    return numpy.exp(-1*((mean - x)/std)**2)/(std*numpy.sqrt(2*numpy.pi))
+    factor = (std * numpy.sqrt(2 * numpy.pi))
+    return numpy.exp(-1 * ((mean - x) / std) ** 2) / factor
+
 
 def gaussian(x, mean, std):
     """
@@ -768,7 +794,8 @@ def gaussian(x, mean, std):
         Gaussian function evaluated at *x*
 
     """
-    return numpy.exp(-1*((mean - x)/std)**2)
+    return numpy.exp(-1 * ((mean - x) / std) ** 2)
+
 
 def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
     """
@@ -792,17 +819,18 @@ def gaussian2d(x, y, sigma_x, sigma_y, x0=0, y0=0, angle=0.0):
         Gaussian function evaluated at *x*, *y*
 
     """
-    theta = -1*angle*numpy.pi/180.
-    tmpx = 1./sigma_x**2
-    tmpy = 1./sigma_y**2
+    theta = -1 * angle * numpy.pi / 180.
+    tmpx = 1. / sigma_x ** 2
+    tmpy = 1. / sigma_y ** 2
     sintheta = numpy.sin(theta)
     costheta = numpy.cos(theta)
-    a = tmpx*costheta + tmpy*sintheta**2
-    b = (tmpy - tmpx)*costheta*sintheta
-    c = tmpx*sintheta**2 + tmpy*costheta**2
+    a = tmpx * costheta + tmpy * sintheta ** 2
+    b = (tmpy - tmpx) * costheta * sintheta
+    c = tmpx * sintheta ** 2 + tmpy * costheta ** 2
     xhat = x - x0
     yhat = y - y0
-    return numpy.exp(-(a*xhat**2 + 2.*b*xhat*yhat + c*yhat**2))
+    return numpy.exp(-(a * xhat ** 2 + 2. * b * xhat * yhat + c * yhat ** 2))
+
 
 def random_points(area, n, seed=None):
     """
@@ -832,6 +860,7 @@ def random_points(area, n, seed=None):
     numpy.random.seed()
     return numpy.array([xs, ys]).T
 
+
 def circular_points(area, n, random=False, seed=None):
     """
     Generate a set of n points positioned in a circular array.
@@ -858,17 +887,18 @@ def circular_points(area, n, random=False, seed=None):
 
     """
     x1, x2, y1, y2 = area
-    radius = 0.5*min(x2 - x1, y2 - y1)
+    radius = 0.5 * min(x2 - x1, y2 - y1)
     if random:
         numpy.random.seed(seed)
-        angles = numpy.random.uniform(0, 2*math.pi, n)
+        angles = numpy.random.uniform(0, 2 * math.pi, n)
         numpy.random.seed()
     else:
-        da = 2.*math.pi/float(n)
-        angles = numpy.arange(0., 2.*math.pi, da)
-    xs = 0.5*(x1 + x2) + radius*numpy.cos(angles)
-    ys = 0.5*(y1 + y2) + radius*numpy.sin(angles)
+        da = 2. * math.pi / float(n)
+        angles = numpy.arange(0., 2. * math.pi, da)
+    xs = 0.5 * (x1 + x2) + radius * numpy.cos(angles)
+    ys = 0.5 * (y1 + y2) + radius * numpy.sin(angles)
     return numpy.array([xs, ys]).T
+
 
 def connect_points(pts1, pts2):
     """
