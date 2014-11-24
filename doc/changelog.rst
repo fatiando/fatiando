@@ -13,7 +13,20 @@ Version (development)
 * Significant progress on the :ref:`Developer Guide <develop>`. From getting
   started to making a release on PyPI.
   (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
-
+* **Removed** package ``fatiando.gui``. This was an experimental and temporary
+  package to explore interactivity. Given new developments, like the
+  `IPython HTML widgets
+  <http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Interactive%20Widgets/Index.ipynb>`__,
+  it is no longer relevant. The package will be replaced by package specific
+  ``interactive`` modules.
+  From the original classes implemented in this package, only ``Moulder`` has
+  been saved.
+  (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
+* Moved ``Moulder`` to the **new module** ``fatiando.gravmag.interactive``.
+  Completely rewrote the application. It now allows editing, moving, and
+  deleting polygons, persisting the application to a pickle file and reloading,
+  etc.
+  (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
 
 Version 0.3
 -----------

@@ -39,6 +39,7 @@ To install and run Fatiando, you'll need the following packages:
 * numpy >= 1.8
 * scipy >= 0.14
 * matplotlib >= 1.3
+* IPython >= 2.0.0
 * mayavi >= 4.3
 * PIL >= 1.1.7
 * basemap >= 1.0.7

@@ -21,8 +21,6 @@ Modules for gridding, meshing, visualization, user interface, input/output etc:
   Plotting utilities for 2D (using matplotlib) and 3D (using mayavi)
 * :mod:`datasets <fatiando.datasets>`:
   Fetch and load datasets and models from web repositories
-* :mod:`gui <fatiando.gui>`:
-  Graphical user interfaces (still very primitive)
 * :mod:`utils <fatiando.utils>`:
   Miscelaneous utilities, like mathematical functions, unit conversion, etc
 * :mod:`~fatiando.constants`:

@@ -4,3 +4,4 @@ matplotlib
 basemap
 mayavi
 PIL
+IPython

@@ -8,7 +8,7 @@ omit =
     */site-packages/ordereddict.py
     */site-packages/nose/*
     */unittest2/*
-    fatiando/gui/*
+    fatiando/gravmag/interactive.py
     fatiando/_version.py
 
 exclude_lines =
@@ -26,5 +26,5 @@ omit =
     */site-packages/ordereddict.py
     */site-packages/nose/*
     */unittest2/*
-    fatiando/gui/*
+    fatiando/gravmag/interactive.py
     fatiando/_version.py
