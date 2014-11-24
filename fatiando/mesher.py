@@ -32,7 +32,7 @@ Generate and operate on various kinds of meshes and geometric elements
 """
 import numpy
 import scipy.special
-import matplotlib.mlab
+import scipy.interpolate
 
 from . import gridder
 from . import utils
@@ -1202,7 +1202,7 @@ class PrismMesh(object):
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
-        topo = matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        topo = scipy.interpolate.griddata((x, y), height, (XC, YC), method='cubic').ravel()
         if self.zdown:
             # -1 if to transform height into z coordinate
             topo = -1 * topo
