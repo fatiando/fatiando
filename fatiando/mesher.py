@@ -20,7 +20,7 @@ Generate and operate on various kinds of meshes and geometric elements
 
 **Utility functions**
 
-* :func:`~fatiando.mesher.extract`: Extract the values of a physicalr
+* :func:`~fatiando.mesher.extract`: Extract the values of a physical
   property from the cells in a list
 * :func:`~fatiando.mesher.vfilter`: Remove cells whose physical property
   value falls outside a given range
