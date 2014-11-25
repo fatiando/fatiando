@@ -1202,7 +1202,8 @@ class PrismMesh(object):
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
-        topo = scipy.interpolate.griddata((x, y), height, (XC, YC), method='cubic').ravel()
+        topo = scipy.interpolate.griddata((x, y), height, (XC, YC),
+                                          method='cubic').ravel()
         if self.zdown:
             # -1 if to transform height into z coordinate
             topo = -1 * topo
