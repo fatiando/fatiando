@@ -40,7 +40,7 @@ mpl.colorbar()
 mpl.legend(loc='lower right', numpoints=1)
 
 # Use the nearest neighbors interpolation
-grdx, grdy, grdz = gridder.interp(x, y, z, shape, algorithm='nn')
+grdx, grdy, grdz = gridder.interp(x, y, z, shape, algorithm='nearest')
 mpl.subplot(2, 2, 3)
 mpl.axis('scaled')
 mpl.title("Interpolated using nearest neighbors")
