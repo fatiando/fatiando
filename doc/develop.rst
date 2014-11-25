@@ -467,11 +467,11 @@ copy this checklist to the PR description
     - [ ] Create/update docstrings
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
-    - [ ] Changelog entry
     - [ ] Include new dependencies in docs, requirements.txt, README
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged
+    - [ ] Changelog entry
 
 This will create check boxes that you can mark as you complete each of the
 requirements.
