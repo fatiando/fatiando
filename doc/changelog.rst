@@ -10,11 +10,11 @@ Version (development)
 
 **Changes**:
 
-* **BUG FIX**: Replace `matplotlib.mlab.griddata` by
-  `scipy.interpolate.griddata` in :ref:`fatiando.gridder.interp
-  <fatiando_gridder>` to avoid incompatibilities when using `matplotlib > 1.3`
-  (at least in MacOS). Nearest neighbor interpolation method flagged as `nn`
-  was removed. Now it becomes only `nearest`.
+* **BUG FIX**: Replace ``matplotlib.mlab.griddata`` by
+  ``scipy.interpolate.griddata`` in :ref:`fatiando.gridder.interp
+  <fatiando_gridder>` to avoid incompatibilities when using ``matplotlib > 1.3``
+  (at least in MacOS). Nearest neighbor interpolation method flagged as ``nn``
+  was removed. Now it becomes only ``nearest``.
   (`PR 148 <https://github.com/fatiando/fatiando/pull/148>`_)
 
 
