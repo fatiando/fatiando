@@ -73,8 +73,15 @@ class PolygonalBasinGravity(Misfit):
     * top : float
         The value of the z-coordinate where the top of the basin will be fixed.
         In meters. Default: 0.
+    * xlim : None or list = [xmin, xmax]
+        The horizontal limits of the model. If not given, will use the limits
+        of the data (i.e., ``[x.min(), x.max()]``).
 
-    Examples::
+    Examples:
+
+    Lets run an inversion on synthetic data from a simple model of a trapezoid
+    basin (a polygon with 4 vertices). We'll assume that the horizontal limits
+    of the basin are the same as the limits of the data::
 
         >>> from fatiando.mesher import Polygon
         >>> from fatiando.gravmag import talwani
@@ -102,14 +109,38 @@ class PolygonalBasinGravity(Misfit):
                [ 1000.,   500.],
                [    0.,     0.]])
 
+    If the x range of the data points is larger than the basin, you can specify
+    a horizontal range for the basin model. When this is not specified, it is
+    deduced from the data::
+
+        >>> x = np.linspace(-500, 3500, 80)
+        >>> z = -np.ones_like(x)
+        >>> data = talwani.gz(x, z, model)
+        >>> # Specify that the model used for inversion should be within
+        >>> # x => [0, 3000]
+        >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0,
+        ...                                xlim=[0, 3000])
+        >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
+        Misfit instance
+        >>> misfit.p_
+        array([ 800.,  500.])
+        >>> misfit.estimate_.vertices
+        array([[ 3000.,     0.],
+               [ 2000.,   800.],
+               [ 1000.,   500.],
+               [    0.,     0.]])
+
 
     """
-    def __init__(self, x, z, data, npoints, props, top=0):
+    def __init__(self, x, z, data, npoints, props, top=0, xlim=None):
         super(PolygonalBasinGravity, self).__init__(
             data=data, nparams=npoints, islinear=False,
             positional=dict(x=x, z=z),
             model=dict(top=top,
                        props=props))
+        if xlim is None:
+            xlim = [x.min(), x.max()]
+        self._modelx = numpy.linspace(xlim[0], xlim[1], npoints + 2)[::-1]
 
     def p2vertices(self, p):
         """
@@ -141,10 +172,9 @@ class PolygonalBasinGravity(Misfit):
                    [-100., -100.]])
 
         """
-        x, h = self.positional['x'], self.model['top']
-        n = self.nparams + 2
-        verts = numpy.empty((n, 2))
-        verts[:, 0] = numpy.linspace(x.min(), x.max(), n)[::-1]
+        h = self.model['top']
+        verts = numpy.empty((self.nparams + 2, 2))
+        verts[:, 0] = self._modelx
         verts[:, 1] = numpy.concatenate([[h], p, [h]])
         return verts
 
@@ -164,7 +194,7 @@ class PolygonalBasinGravity(Misfit):
         x, z = self.positional['x'], self.positional['z']
         props = self.model['props']
         verts = self.p2vertices(p)
-        delta = numpy.array([0, 10])
+        delta = numpy.array([0, 1])
         jac = numpy.empty((self.ndata, self.nparams))
         for i in xrange(self.nparams):
             diff = Polygon([verts[i + 2], verts[i + 1] - delta,
