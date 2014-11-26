@@ -26,7 +26,6 @@ PACKAGES = ['fatiando',
             'fatiando.seismic',
             'fatiando.geothermal',
             'fatiando.vis',
-            'fatiando.gui',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'
