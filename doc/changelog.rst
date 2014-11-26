@@ -10,6 +10,9 @@ Version (development)
 
 **Changes**:
 
+* **New class** ``fatiando.gravmag.basin2d.PolygonalBasinGravity`` for 2D
+  gravity inversion for the relief of a basin.
+  (`PR 149 <https://github.com/fatiando/fatiando/pull/149>`__)
 * Significant progress on the :ref:`Developer Guide <develop>`. From getting
   started to making a release on PyPI.
   (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
