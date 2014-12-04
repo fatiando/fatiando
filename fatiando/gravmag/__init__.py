@@ -49,6 +49,12 @@ after modeling.
 * :mod:`~fatiando.gravmag.tensor`: Utilities for operating on the gradient
   tensor
 
+**Interactivity**
+
+Module :mod:`~fatiando.gravmag.interactive` implements matplotlib GUIs and
+IPython HTML widgets for interacting with the modeling and processing
+functions.
+
 ----
 
 """

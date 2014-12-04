@@ -42,8 +42,13 @@ MOCK_MODULES = [
     'scipy.special', 'scipy.interpolate',
     'matplotlib',
     'matplotlib.mlab', 'matplotlib.pyplot', 'matplotlib.widgets',
-    'matplotlib.nxutils',
-    'PIL.Image']
+    'matplotlib.nxutils', 'matplotlib.lines',
+    'PIL.Image',
+    'IPython',
+    'IPython.core',
+    'IPython.core.pylabtools',
+    'IPython.display',
+    ]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 

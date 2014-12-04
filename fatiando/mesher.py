@@ -83,15 +83,36 @@ class Polygon(GeometricElement):
         Physical properties assigned to the polygon.
         Ex: ``props={'density':10, 'susceptibility':10000}``
 
+    Examples::
+
+        >>> poly = Polygon([[0, 0], [1, 4], [2, 5]], {'density': 500})
+        >>> poly.props
+        {'density': 500}
+        >>> poly.nverts
+        3
+        >>> poly.vertices
+        array([[0, 0],
+               [1, 4],
+               [2, 5]])
+        >>> poly.x
+        array([0, 1, 2])
+        >>> poly.y
+        array([0, 4, 5])
+
     """
 
     def __init__(self, vertices, props=None):
         GeometricElement.__init__(self, props)
-        x, y = numpy.array(vertices, dtype=numpy.float).T
-        self.vertices = vertices
-        self.x = x
-        self.y = y
+        self.vertices = numpy.asarray(vertices)
         self.nverts = len(vertices)
+
+    @property
+    def x(self):
+        return self.vertices[:, 0]
+
+    @property
+    def y(self):
+        return self.vertices[:, 1]
 
 
 class Square(Polygon):
@@ -118,8 +139,11 @@ class Square(Polygon):
 
     A square can be used as a :class:`~fatiando.mesher.Polygon`::
 
-        >>> print sq.vertices
-        [[0, 2], [1, 2], [1, 4], [0, 4]]
+        >>> sq.vertices
+        array([[0, 2],
+               [1, 2],
+               [1, 4],
+               [0, 4]])
 
     """
 

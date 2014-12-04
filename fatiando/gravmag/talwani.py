@@ -26,7 +26,7 @@ from numpy import arctan2, pi, sin, cos, log, tan
 from fatiando.constants import G, SI2MGAL
 
 
-def gz(xp, zp, polygons):
+def gz(xp, zp, polygons, dens=None):
     """
     Calculates the :math:`g_z` gravity acceleration component.
 
@@ -43,6 +43,9 @@ def gz(xp, zp, polygons):
         Polygons must have the property ``'density'``. Polygons that don't have
         this property will be ignored in the computations. Elements of
         *polygons* that are None will also be ignored.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the polygons. Use this, e.g., for sensitivity matrix building.
 
         .. note:: The y coordinate of the polygons is used as z!
 
@@ -56,9 +59,13 @@ def gz(xp, zp, polygons):
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for polygon in polygons:
-        if polygon is None or 'density' not in polygon.props:
+        if polygon is None or ('density' not in polygon.props
+                               and dens is None):
             continue
-        density = polygon.props['density']
+        if dens is None:
+            density = polygon.props['density']
+        else:
+            density = dens
         x = polygon.x
         z = polygon.y
         nverts = polygon.nverts
