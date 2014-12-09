@@ -20,7 +20,7 @@ Generate and operate on various kinds of meshes and geometric elements
 
 **Utility functions**
 
-* :func:`~fatiando.mesher.extract`: Extract the values of a physicalr
+* :func:`~fatiando.mesher.extract`: Extract the values of a physical
   property from the cells in a list
 * :func:`~fatiando.mesher.vfilter`: Remove cells whose physical property
   value falls outside a given range
@@ -32,7 +32,7 @@ Generate and operate on various kinds of meshes and geometric elements
 """
 import numpy
 import scipy.special
-import matplotlib.mlab
+import scipy.interpolate
 
 from . import gridder
 from . import utils
@@ -1226,7 +1226,8 @@ class PrismMesh(object):
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
-        topo = matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        topo = scipy.interpolate.griddata((x, y), height, (XC, YC),
+                                          method='cubic').ravel()
         if self.zdown:
             # -1 if to transform height into z coordinate
             topo = -1 * topo

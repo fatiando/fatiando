@@ -10,6 +10,13 @@ Version (development)
 
 **Changes**:
 
+* **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
+  ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
+  incompatibilities when using ``matplotlib > 1.3``
+  (at least in MacOS). Nearest neighbor interpolation method flagged as ``nn``
+  was removed. Now it becomes only ``nearest``. Also replace ``matplotlib``
+  with ``scipy`` in ``fatiando.mesher.PrismMesh.carvetopo``
+  (`PR 148 <https://github.com/fatiando/fatiando/pull/148>`_)
 * **New class** ``fatiando.gravmag.basin2d.PolygonalBasinGravity`` for 2D
   gravity inversion for the relief of a basin.
   (`PR 149 <https://github.com/fatiando/fatiando/pull/149>`__)
