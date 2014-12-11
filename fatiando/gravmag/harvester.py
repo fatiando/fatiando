@@ -16,9 +16,6 @@ classes :class:`~fatiando.gravmag.harvester.Seed` and
 :class:`~fatiando.gravmag.harvester.Gz`,
 :class:`~fatiando.gravmag.harvester.Gxx`, etc.
 
-See the :ref:`Cookbook <cookbook>` for some example applications to synthetic
-data.
-
 **Functions**
 
 * :func:`~fatiando.gravmag.harvester.harvest`: Performs the inversion
@@ -49,6 +46,93 @@ data.
   gravity gradient tensor
 * :class:`~fatiando.gravmag.harvester.Gzz`: vertical-vertical component of the
   gravity gradient tensor
+
+**Examples**
+
+The following example runs the inversion on noisy synthetic gravity data:
+
+>>> import numpy as np
+>>> from fatiando import gridder, utils
+>>> from fatiando.gravmag import prism
+>>> from fatiando.mesher import Prism, PrismMesh
+>>> # Create a model
+>>> model = [Prism(4000, 6000, 4000, 6000, 1000, 4000, {'density':500})]
+>>> # and generate noisy synthetic data
+>>> shape = (25, 25)
+>>> bounds = [0, 10000, 0, 10000, 0, 5000]
+>>> area = bounds[0:4]
+>>> x, y, z = gridder.regular(area, shape, z=-1)
+>>> gz = utils.contaminate(prism.gz(x, y, z, model), 0.1, seed=0)
+>>> # Setup the inversion by creating a mesh and seeds
+>>> mesh = PrismMesh(bounds, (5, 10, 10))
+>>> seeds = sow([[5000, 5000, 2000, {'density':500}]], mesh)
+>>> data = [Gz(x, y, z, gz)]
+>>> # Run the inversion
+>>> estimate, predicted = harvest(data, seeds, mesh, 1, 0.001)
+>>> # Lets print the solution
+>>> a = np.array([i for i in estimate['density']])
+>>> for top, layer in zip(mesh.get_zs(), a.reshape(mesh.shape)):
+...     print("top: {} m".format(top))
+...     print(layer)
+top: 0.0 m
+[[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]]
+top: 1000.0 m
+[[   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]]
+top: 2000.0 m
+[[   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]]
+top: 3000.0 m
+[[   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.  500.  500.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]
+ [   0.    0.    0.    0.    0.    0.    0.    0.    0.    0.]]
+top: 4000.0 m
+[[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]]
+
+See the :ref:`Cookbook <cookbook>` for some more example applications to
+synthetic data.
+
 
 **References**
 

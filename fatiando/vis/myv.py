@@ -8,6 +8,7 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.polyprisms`
 * :func:`~fatiando.vis.myv.points`
 * :func:`~fatiando.vis.myv.tesseroids`
+* :func:`~fatiando.vis.myv.tess_cutplane`
 
 **Misc objects**
 
@@ -32,18 +33,24 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 * :func:`~fatiando.vis.myv.show`
 * :func:`~fatiando.vis.myv.savefig`
 
+**Converters**
+
+* :func:`~fatiando.vis.myv.tess2tvtk`
+
 ----
 
 """
 import numpy
 
-from fatiando import utils
-from fatiando.constants import MEAN_EARTH_RADIUS
+from .. import utils
+from ..constants import MEAN_EARTH_RADIUS
+from ..mesher import Tesseroid, TesseroidMesh
 
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
 mlab = None
+VTKDataSource = None
 tvtk = None
 BuiltinSurface = None
 
@@ -61,13 +68,14 @@ def _lazy_import_mlab():
     """
     Do the lazy import of mlab
     """
-    global mlab
+    global mlab, VTKDataSource
     # For campatibility with versions of Mayavi2 < 4
     if mlab is None:
         try:
             from mayavi import mlab
         except ImportError:
             from enthought.mayavi import mlab
+        from mayavi.sources.vtk_data_source import VTKDataSource
 
 
 def _lazy_import_tvtk():
@@ -256,15 +264,15 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
                 scalar = numpy.linalg.norm(p)
         # The top surface
         points.extend(
-            reversed(numpy.transpose([x, y, prism.z1 * numpy.ones_like(x)])))
+            reversed(numpy.transpose([x, y, prism.z1*numpy.ones_like(x)])))
         polygons.append(range(offset, offset + nverts))
-        scalars.extend(scalar * numpy.ones(nverts))
+        scalars.extend(scalar*numpy.ones(nverts))
         offset += nverts
         # The bottom surface
         points.extend(
-            reversed(numpy.transpose([x, y, prism.z2 * numpy.ones_like(x)])))
+            reversed(numpy.transpose([x, y, prism.z2*numpy.ones_like(x)])))
         polygons.append(range(offset, offset + nverts))
-        scalars.extend(scalar * numpy.ones(nverts))
+        scalars.extend(scalar*numpy.ones(nverts))
         offset += nverts
         # The sides
         for i in xrange(nverts):
@@ -273,7 +281,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
             points.extend([[x1, y1, prism.z1], [x2, y2, prism.z1],
                            [x2, y2, prism.z2], [x1, y1, prism.z2]])
             polygons.append(range(offset, offset + 4))
-            scalars.extend(scalar * numpy.ones(4))
+            scalars.extend(scalar*numpy.ones(4))
             offset += 4
     mesh = tvtk.PolyData(points=points, polys=polygons)
     mesh.point_data.scalars = numpy.array(scalars)
@@ -310,6 +318,138 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         surf.actor.property.color = color
     surf.actor.actor.scale = scale
     return surf
+
+
+def tess2tvtk(tesseroids, prop=None, scale=(1, 1, 1)):
+    """
+    Convert tesseroids to TVTK objects for plotting in Mayavi.
+
+    Parameters:
+
+    * tesseroids : list of :class:`fatiando.mesher.Tesseroid`
+        The tesseroids
+    * prop : str or None
+        The physical property of the tesseroids to use as the color scale. If a
+        tesseroid doesn't have *prop*, or if it is None, then it will not be
+        plotted. If prop is a vector (like magnetization), will use the
+        intensity (norm).
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
+
+    Returns:
+
+    * tvtkmesh : tvtk.UntructuredGrid
+
+    """
+    _lazy_import_tvtk()
+    if prop is None:
+        label = 'scalar'
+    else:
+        label = prop
+    # VTK parameters
+    points = []
+    cells = []
+    offsets = []
+    offset = 0
+    mesh_size = 0
+    celldata = []
+    # To mark what index in the points the cell starts
+    start = 0
+    for tess in tesseroids:
+        if tess is None or (prop is not None and prop not in tess.props):
+            continue
+        w, e, s, n, top, bottom = tess.get_bounds()
+        w *= scale[0]
+        e *= scale[0]
+        s *= scale[1]
+        n *= scale[1]
+        top *= scale[2]
+        bottom *= scale[2]
+        if prop is None:
+            scalar = 0.
+        else:
+            p = tess.props[prop]
+            if isinstance(p, int) or isinstance(p, float):
+                scalar = p
+            else:
+                scalar = numpy.linalg.norm(p)
+        points.extend([
+            utils.sph2cart(w, s, bottom),
+            utils.sph2cart(e, s, bottom),
+            utils.sph2cart(e, n, bottom),
+            utils.sph2cart(w, n, bottom),
+            utils.sph2cart(w, s, top),
+            utils.sph2cart(e, s, top),
+            utils.sph2cart(e, n, top),
+            utils.sph2cart(w, n, top),
+            utils.sph2cart(0.5*(w + e), s, bottom),
+            utils.sph2cart(e, 0.5*(s + n), bottom),
+            utils.sph2cart(0.5*(w + e), n, bottom),
+            utils.sph2cart(w, 0.5*(s + n), bottom),
+            utils.sph2cart(0.5*(w + e), s, top),
+            utils.sph2cart(e, 0.5*(s + n), top),
+            utils.sph2cart(0.5*(w + e), n, top),
+            utils.sph2cart(w, 0.5*(s + n), top),
+            utils.sph2cart(w, s, 0.5*(top + bottom)),
+            utils.sph2cart(e, s, 0.5*(top + bottom)),
+            utils.sph2cart(e, n, 0.5*(top + bottom)),
+            utils.sph2cart(w, n, 0.5*(top + bottom))])
+        cells.append(20)
+        cells.extend(range(start, start + 20))
+        start += 20
+        offsets.append(offset)
+        offset += 21
+        celldata.append(scalar)
+        mesh_size += 1
+    cell_array = tvtk.CellArray()
+    cell_array.set_cells(mesh_size, numpy.array(cells))
+    cell_types = numpy.array([25]*mesh_size, 'i')
+    vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
+    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
+    vtkmesh.cell_data.scalars = numpy.array(celldata)
+    vtkmesh.cell_data.scalars.name = label
+    return vtkmesh
+
+
+def tess_cutplane(tesseroids, prop=None, scale=(1, 1, 1)):
+    """
+    Plot a cut-plane through a tesseroid model.
+
+    * tesseroids : list of :class:`fatiando.mesher.Tesseroid`
+        The tesseroids
+    * prop : str or None
+        The physical property of the tesseroids to use as the color scale. If a
+        tesseroid doesn't have *prop*, or if it is None, then it will not be
+        plotted. If prop is a vector (like magnetization), will use the
+        intensity (norm).
+    * scale : (slon, slat, sz)
+        Scale factors used to exaggerate on a particular direction, e.g., if
+        scale = (1, 1, 2), the vertical dimension will be 2x larger than the
+        others
+
+    Returns:
+
+    * cutplane
+        the last element on the pipeline
+
+    """
+    _lazy_import_mlab()
+    if (isinstance(tesseroids, Tesseroid) or
+            isinstance(tesseroids, TesseroidMesh)):
+        vtkmesh = tess2tvtk(tesseroids, prop, scale)
+        dataset = mlab.pipeline.add_dataset(vtkmesh)
+    else:
+        dataset = tesseroids
+        for i in xrange(20):
+            if not isinstance(dataset, VTKDataSource):
+                dataset = dataset.parent
+        if not isinstance(dataset, VTKDataSource):
+            raise ValueError('tesseroids is not a Tesseroid or VTKDataSource')
+    cutplane = mlab.pipeline.scalar_cut_plane(
+        mlab.pipeline.cell_to_point_data(dataset))
+    return cutplane
 
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
@@ -364,94 +504,30 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
     if style not in ['surface', 'wireframe']:
         raise ValueError("Invalid style '%s'" % (style))
     if opacity > 1. or opacity < 0:
-        raise ValueError("Invalid opacity %g. Must be in range [1,0]"
-                         % (opacity))
-    # mlab and tvtk are really slow to import
+        msg = "Invalid opacity %g. Must be in range [1,0]" % (opacity)
+        raise ValueError(msg)
     _lazy_import_mlab()
-    _lazy_import_tvtk()
-    if prop is None:
-        label = 'scalar'
-    else:
-        label = prop
-    # VTK parameters
-    points = []
-    cells = []
-    offsets = []
-    offset = 0
-    mesh_size = 0
-    celldata = []
-    # To mark what index in the points the cell starts
-    start = 0
-    for tess in tesseroids:
-        if tess is None or (prop is not None and prop not in tess.props):
-            continue
-        w, e, s, n, top, bottom = tess.get_bounds()
-        w *= scale[0]
-        e *= scale[0]
-        s *= scale[1]
-        n *= scale[1]
-        top *= scale[2]
-        bottom *= scale[2]
-        if prop is None:
-            scalar = 0.
-        else:
-            p = tess.props[prop]
-            if isinstance(p, int) or isinstance(p, float):
-                scalar = p
-            else:
-                scalar = numpy.linalg.norm(p)
-        points.extend([
-            utils.sph2cart(w, s, bottom),
-            utils.sph2cart(e, s, bottom),
-            utils.sph2cart(e, n, bottom),
-            utils.sph2cart(w, n, bottom),
-            utils.sph2cart(w, s, top),
-            utils.sph2cart(e, s, top),
-            utils.sph2cart(e, n, top),
-            utils.sph2cart(w, n, top),
-            utils.sph2cart(0.5 * (w + e), s, bottom),
-            utils.sph2cart(e, 0.5 * (s + n), bottom),
-            utils.sph2cart(0.5 * (w + e), n, bottom),
-            utils.sph2cart(w, 0.5 * (s + n), bottom),
-            utils.sph2cart(0.5 * (w + e), s, top),
-            utils.sph2cart(e, 0.5 * (s + n), top),
-            utils.sph2cart(0.5 * (w + e), n, top),
-            utils.sph2cart(w, 0.5 * (s + n), top),
-            utils.sph2cart(w, s, 0.5 * (top + bottom)),
-            utils.sph2cart(e, s, 0.5 * (top + bottom)),
-            utils.sph2cart(e, n, 0.5 * (top + bottom)),
-            utils.sph2cart(w, n, 0.5 * (top + bottom))])
-        cells.append(20)
-        cells.extend(range(start, start + 20))
-        start += 20
-        offsets.append(offset)
-        offset += 21
-        celldata.append(scalar)
-        mesh_size += 1
-    cell_array = tvtk.CellArray()
-    cell_array.set_cells(mesh_size, numpy.array(cells))
-    cell_types = numpy.array([25] * mesh_size, 'i')
-    vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
-    vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
-    vtkmesh.cell_data.scalars = numpy.array(celldata)
-    vtkmesh.cell_data.scalars.name = label
-    dataset = mlab.pipeline.threshold(mlab.pipeline.add_dataset(vtkmesh))
-    if vmin is None:
-        vmin = min(vtkmesh.cell_data.scalars)
-    if vmax is None:
-        vmax = max(vtkmesh.cell_data.scalars)
+    vtkmesh = tess2tvtk(tesseroids, prop, scale)
+    dataset = mlab.pipeline.add_dataset(vtkmesh)
+    thresh = mlab.pipeline.threshold(dataset)
+    if vmin is not None:
+        thresh.lower_threshold = vmin
+    if vmax is not None:
+        thresh.upper_threshold = vmax
+    smin = min(vtkmesh.cell_data.scalars)
+    smax = max(vtkmesh.cell_data.scalars)
     if style == 'wireframe':
-        surf = mlab.pipeline.surface(mlab.pipeline.extract_edges(dataset),
-                                     vmax=vmax, vmin=vmin, colormap=cmap)
+        surf = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
+                                     vmax=smax, vmin=smin, colormap=cmap)
         surf.actor.property.representation = 'wireframe'
         surf.actor.property.line_width = linewidth
     if style == 'surface':
-        surf = mlab.pipeline.surface(dataset, vmax=vmax, vmin=vmin,
+        surf = mlab.pipeline.surface(thresh, vmax=smax, vmin=smin,
                                      colormap=cmap)
         surf.actor.property.representation = 'surface'
         if edges:
-            edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(dataset),
-                                         vmax=vmax, vmin=vmin)
+            edge = mlab.pipeline.surface(mlab.pipeline.extract_edges(thresh),
+                                         vmax=smax, vmin=smin)
             edge.actor.property.representation = 'wireframe'
             edge.actor.mapper.scalar_visibility = 0
             edge.actor.property.line_width = linewidth
@@ -558,7 +634,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         mesh_size += 1
     cell_array = tvtk.CellArray()
     cell_array.set_cells(mesh_size, numpy.array(cells))
-    cell_types = numpy.array([12] * mesh_size, 'i')
+    cell_types = numpy.array([12]*mesh_size, 'i')
     vtkmesh = tvtk.UnstructuredGrid(points=numpy.array(points, 'f'))
     vtkmesh.set_cells(cell_types, numpy.array(offsets, 'i'), cell_array)
     vtkmesh.cell_data.scalars = numpy.array(celldata)
@@ -972,7 +1048,7 @@ def meridians(longitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     lats = numpy.linspace(-90, 270., 100)
     x, y, z = [], [], []
     for lon in longitudes:
-        coords = utils.sph2cart(numpy.ones_like(lats) * lon, lats, 0)
+        coords = utils.sph2cart(numpy.ones_like(lats)*lon, lats, 0)
         x.extend(coords[0].tolist())
         y.extend(coords[1].tolist())
         z.extend(coords[2].tolist())
@@ -1007,7 +1083,7 @@ def parallels(latitudes, color=(0, 0, 0), linewidth=1, opacity=1):
     lons = numpy.linspace(0, 360., 100)
     parallels = []
     for lat in latitudes:
-        x, y, z = utils.sph2cart(lons, numpy.ones_like(lons) * lat, 0)
+        x, y, z = utils.sph2cart(lons, numpy.ones_like(lons)*lat, 0)
         lines = mlab.plot3d(x, y, z, color=color, opacity=opacity,
                             tube_radius=None)
         lines.actor.property.line_width = linewidth

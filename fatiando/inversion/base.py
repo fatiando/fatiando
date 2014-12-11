@@ -30,7 +30,6 @@ from ..utils import safe_dot
 
 
 class Objective(object):
-
     """
     An objective function for an inverse problem.
 
@@ -143,7 +142,7 @@ class Objective(object):
     def __repr__(self):
         return 'Objective instance'
 
-    def value(self, p):
+    def value(self, p, **kwargs):
         """
         The value (scalar) of this objective function at *p*
 
@@ -160,15 +159,15 @@ class Objective(object):
 
         """
         if self._parents is None:
-            return self._get_value(p)
+            return self._get_value(p, **kwargs)
         else:
             if self._scale is None:
                 obj1, obj2 = self._parents
-                return obj1.value(p) + obj2.value(p)
+                return obj1.value(p, **kwargs) + obj2.value(p, **kwargs)
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale * self._parents[0].value(p)
+                return self._scale*self._parents[0].value(p, **kwargs)
 
     def gradient(self, p):
         """
@@ -195,7 +194,7 @@ class Objective(object):
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale * self._parents[0].gradient(p)
+                return self._scale*self._parents[0].gradient(p)
 
     def hessian(self, p):
         """
@@ -222,7 +221,7 @@ class Objective(object):
             else:
                 assert len(self._parents) == 1, \
                     'Result of multiplying Objective produces > one parent.'
-                return self._scale * self._parents[0].hessian(p)
+                return self._scale*self._parents[0].hessian(p)
 
     def __add__(self, other):
         """
@@ -337,7 +336,7 @@ class Objective(object):
         return self.__mul__(other)
 
     def levmarq(self, initial, maxit=30, maxsteps=10, lamb=1, dlamb=2,
-                tol=10 ** -5, precondition=True, iterate=False):
+                tol=10**-5, precondition=True, iterate=False):
         """
         Solve using the Levemberg-Marquardt algorithm.
 
@@ -382,7 +381,7 @@ class Objective(object):
             continue
         return p
 
-    def newton(self, initial, maxit=30, tol=10 ** -5, precondition=True,
+    def newton(self, initial, maxit=30, tol=10**-5, precondition=True,
                iterate=False):
         """
         Minimize an objective function using Newton's method.
@@ -419,7 +418,7 @@ class Objective(object):
         return p
 
     def steepest(self, initial, stepsize=0.1, maxsteps=30, maxit=1000,
-                 tol=10 ** -5, iterate=False):
+                 tol=10**-5, iterate=False):
         """
         Minimize an objective function using the Steepest Descent method.
 
@@ -510,7 +509,6 @@ class Objective(object):
 
 
 class Misfit(Objective):
-
     r"""
     An l2-norm data-misfit function.
 
@@ -587,20 +585,20 @@ class Misfit(Objective):
             'linear': {'precondition': True},
             'newton': {'initial': None,
                        'maxit': 30,
-                       'tol': 10 ** -5,
+                       'tol': 10**-5,
                        'precondition': True},
             'levmarq': {'initial': None,
                         'maxit': 30,
                         'maxsteps': 10,
                         'lamb': 1,
                         'dlamb': 2,
-                        'tol': 10 ** -5,
+                        'tol': 10**-5,
                         'precondition': True},
             'steepest': {'initial': None,
                          'stepsize': 0.1,
                          'maxsteps': 30,
                          'maxit': 1000,
-                         'tol': 10 ** -5},
+                         'tol': 10**-5},
             'acor': {'bounds': None,
                      'nants': None,
                      'archive_size': None,
@@ -878,11 +876,11 @@ class Misfit(Objective):
         if self.weights is None:
             return numpy.linalg.norm(
                 self.data - self.predicted(p)
-            ) ** 2 / self.ndata
+            )**2/self.ndata
         else:
-            return numpy.sum(self.weights * (
-                (self.data - self.predicted(p)) ** 2)
-            ) / self.ndata
+            return numpy.sum(self.weights*(
+                (self.data - self.predicted(p))**2)
+            )/self.ndata
 
     def _get_hessian(self, p):
         r"""
@@ -915,10 +913,10 @@ class Misfit(Objective):
         else:
             jacobian = self.jacobian(p)
             if self.weights is None:
-                hessian = (2 / self.ndata) * safe_dot(jacobian.T, jacobian)
+                hessian = (2/self.ndata)*safe_dot(jacobian.T, jacobian)
             else:
-                hessian = (2 / self.ndata) * safe_dot(
-                    jacobian.T, self.weights * jacobian)
+                hessian = (2/self.ndata)*safe_dot(
+                    jacobian.T, self.weights*jacobian)
             if self.islinear:
                 self._cache['hessian']['array'] = hessian
         return hessian
@@ -947,11 +945,11 @@ class Misfit(Objective):
         """
         jacobian = self.jacobian(p)
         if self.weights is None:
-            grad = (-2 / self.ndata) * safe_dot(
+            grad = (-2/self.ndata)*safe_dot(
                 jacobian.T, self.data - self.predicted(p))
         else:
-            grad = (-2 / self.ndata) * safe_dot(
-                jacobian.T, self.weights * (self.data - self.predicted(p)))
+            grad = (-2/self.ndata)*safe_dot(
+                jacobian.T, self.weights*(self.data - self.predicted(p)))
         # Check if the gradient isn't a one column matrix
         if len(grad.shape) > 1:
             # Need to convert it to a 1d array so that hell won't break loose
