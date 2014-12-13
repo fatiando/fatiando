@@ -1,7 +1,9 @@
+IPython
 numpy
 scipy
 matplotlib
 basemap
 mayavi
 PIL
-IPython
+h5py
+six
