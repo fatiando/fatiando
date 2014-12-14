@@ -143,6 +143,69 @@ from matplotlib import animation
 from matplotlib import pyplot as plt
 import h5py
 
+from functools import wraps
+
+class DocInherit(object):
+    """
+    Docstring inheriting method descriptor
+
+    The class itself is also used as a decorator
+
+
+    Usage:
+
+    class Foo(object):
+        def foo(self):
+            "Frobber"
+            pass
+
+    class Bar(Foo):
+        @doc_inherit
+        def foo(self):
+            pass
+
+    Now, Bar.foo.__doc__ == Bar().foo.__doc__ == Foo.foo.__doc__ == "Frobber"
+    """
+
+    def __init__(self, mthd):
+        self.mthd = mthd
+        self.name = mthd.__name__
+
+    def __get__(self, obj, cls):
+        if obj:
+            return self.get_with_inst(obj, cls)
+        else:
+            return self.get_no_inst(cls)
+
+    def get_with_inst(self, obj, cls):
+
+        overridden = getattr(super(cls, obj), self.name, None)
+
+        @wraps(self.mthd, assigned=('__name__','__module__'))
+        def f(*args, **kwargs):
+            return self.mthd(obj, *args, **kwargs)
+
+        return self.use_parent_doc(f, overridden)
+
+    def get_no_inst(self, cls):
+
+        for parent in cls.__mro__[1:]:
+            overridden = getattr(parent, self.name, None)
+            if overridden: break
+
+        @wraps(self.mthd, assigned=('__name__','__module__'))
+        def f(*args, **kwargs):
+            return self.mthd(*args, **kwargs)
+
+        return self.use_parent_doc(f, overridden)
+
+    def use_parent_doc(self, func, source):
+        if source is None:
+            raise NameError, ("Can't find '%s' in parents"%self.name)
+        func.__doc__ = source.__doc__
+        return func
+
+doc_inherit = DocInherit
 
 try:
     from ._wavefd import *
@@ -160,6 +223,7 @@ except:
     _reflexive_scalar_boundary_conditions = not_implemented
 
 
+
 class Source(six.with_metaclass(ABCMeta)):
     """
     Base class for describing seismic sources.
@@ -172,6 +236,8 @@ class Source(six.with_metaclass(ABCMeta)):
 
     Overloads multiplication by a scalar to multiply the amplitude of the
     source and return a new source.
+
+    .. note:: During simulation the source forces the ground to zero for later times.
     """
 
     def __init__(self, amp, cf, delay):
@@ -253,6 +319,32 @@ class Ricker(Source):
         t = (t - self.delay)
         aux = self.amp*(1 - 2*(numpy.pi*self.cf*t)**2)
         return aux*numpy.exp(-(numpy.pi*self.cf*t)**2)
+
+class Gauss(Source):
+
+    r"""
+    A wave source that vibrates as a Gaussian derivative wavelet.
+
+    .. math::
+
+        \psi(t) = A 2 \sqrt{e}\ f\ t\ e^\left(-2t^2f^2\right)
+
+        .. note:: If you want the source to start with amplitude close to 0,
+            use ``delay = 3.0/frequency``.
+    """
+    @doc_inherit
+    def __init__(self, amp, cf, delay=0):
+        super(Gauss, self).__init__(amp, cf, delay)
+        self.f2 = self.cf**2
+
+    @doc_inherit
+    def value(self, t):
+        t = (t - self.delay)
+        psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.cf)
+                          * t * numpy.exp(-2 * (t ** 2) * self.f2)
+                          )
+        return psi
+
 
 class WaveFD2D(six.with_metaclass(ABCMeta)):
     """
@@ -375,7 +467,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def __getitem__(self, args):
         """
-        Get an iteration panel this means its time 2D array
+        Get an iteration panel its time 2D array
         from the hdf5 cache file
         """
         with self.get_cache() as f:
@@ -500,6 +592,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             self.it += 1
             self.timestep(u, tm1, t, tp1, self.it)
             self.size += 1
+            #  won't this make it slower than it should? I/O
             self.cache_panels(u, tp1, self.it, self.size)
             # Update the status bar
             if self.verbose:
@@ -543,6 +636,9 @@ class ElasticSH(WaveFD2D):
 
     @staticmethod
     def from_cache(fname, verbose=True):
+        """
+        Creates a simulation object from a pre-existing HDF5 file
+        """
         with h5py.File(fname, 'r') as f:
             vel = f['velocity']
             dens = f['density']
@@ -1895,66 +1991,3 @@ def scalar_maxdt(area, shape, maxvel):
     return factor * spacing / maxvel
 
 
-from functools import wraps
-
-class DocInherit(object):
-    """
-    Docstring inheriting method descriptor
-
-    The class itself is also used as a decorator
-
-
-    Usage:
-
-    class Foo(object):
-        def foo(self):
-            "Frobber"
-            pass
-
-    class Bar(Foo):
-        @doc_inherit
-        def foo(self):
-            pass
-
-    Now, Bar.foo.__doc__ == Bar().foo.__doc__ == Foo.foo.__doc__ == "Frobber"
-    """
-
-    def __init__(self, mthd):
-        self.mthd = mthd
-        self.name = mthd.__name__
-
-    def __get__(self, obj, cls):
-        if obj:
-            return self.get_with_inst(obj, cls)
-        else:
-            return self.get_no_inst(cls)
-
-    def get_with_inst(self, obj, cls):
-
-        overridden = getattr(super(cls, obj), self.name, None)
-
-        @wraps(self.mthd, assigned=('__name__','__module__'))
-        def f(*args, **kwargs):
-            return self.mthd(obj, *args, **kwargs)
-
-        return self.use_parent_doc(f, overridden)
-
-    def get_no_inst(self, cls):
-
-        for parent in cls.__mro__[1:]:
-            overridden = getattr(parent, self.name, None)
-            if overridden: break
-
-        @wraps(self.mthd, assigned=('__name__','__module__'))
-        def f(*args, **kwargs):
-            return self.mthd(*args, **kwargs)
-
-        return self.use_parent_doc(f, overridden)
-
-    def use_parent_doc(self, func, source):
-        if source is None:
-            raise NameError, ("Can't find '%s' in parents"%self.name)
-        func.__doc__ = source.__doc__
-        return func
-
-doc_inherit = DocInherit
