@@ -88,7 +88,7 @@ def derivx(x, y, data, shape, order=1):
     Fx = _getfreqs(x, y, data, shape)[0].astype('complex')
     # Multiply by 1j because I don't multiply it in _deriv (this way _deriv can
     # be used for the z derivative as well)
-    return _deriv(Fx * 1j, data, shape, order)
+    return _deriv(Fx*1j, data, shape, order)
 
 
 def derivy(x, y, data, shape, order=1):
@@ -123,7 +123,7 @@ def derivy(x, y, data, shape, order=1):
     Fy = _getfreqs(x, y, data, shape)[1].astype('complex')
     # Multiply by 1j because I don't multiply it in _deriv (this way _deriv can
     # be used for the z derivative as well)
-    return _deriv(Fy * 1j, data, shape, order)
+    return _deriv(Fy*1j, data, shape, order)
 
 
 def derivz(x, y, data, shape, order=1):
@@ -156,26 +156,33 @@ def derivz(x, y, data, shape, order=1):
 
     """
     Fx, Fy = _getfreqs(x, y, data, shape)
-    freqs = numpy.sqrt(Fx ** 2 + Fy ** 2)
+    freqs = numpy.sqrt(Fx**2 + Fy**2)
     return _deriv(freqs, data, shape, order)
 
 
 def _getfreqs(x, y, data, shape):
     """
-    Get two 2D-arrays with the wave numbers in the x and y directions.
+    Get two 2D-arrays with the wave numbers in the x and y directions. Wave
+    numbers are like angular frequencies (with the 2*Pi factor).
     """
     ny, nx = shape
     dx = float(x.max() - x.min()) / float(nx - 1)
-    fx = numpy.fft.fftfreq(nx, dx)
+    fx = 2*numpy.pi*numpy.fft.fftfreq(nx, dx)
     dy = float(y.max() - y.min()) / float(ny - 1)
-    fy = numpy.fft.fftfreq(ny, dy)
+    fy = 2*numpy.pi*numpy.fft.fftfreq(ny, dy)
     return numpy.meshgrid(fx, fy)
 
 
 def _deriv(freqs, data, shape, order):
     """
     Calculate a generic derivative using the FFT.
+
+    *freqs* are the frequencies (not angular frequencies). In the case of x-,
+    and y-derivatives, the should be multiplied by 1j (the imaginary number).
     """
-    fgrid = (2. * numpy.pi) * numpy.fft.fft2(numpy.reshape(data, shape))
-    deriv = numpy.real(numpy.fft.ifft2((freqs ** order) * fgrid).ravel())
+    ft = numpy.fft.fft2(numpy.reshape(data, shape))
+    ft_deriv = (freqs**order)*ft
+    deriv = numpy.real(numpy.fft.ifft2(ft_deriv)).ravel()
     return deriv
+
+
