@@ -16,6 +16,8 @@ Potential field processing using the Fast Fourier Transform
 
 * :func:`~fatiando.gravmag.fourier.ansig`: Calculate the amplitude of the
   analytic signal
+* :func:`~fatiando.gravmag.fourier.upcontinue`: Upward continuation of
+  potential field data.
 
 ----
 """
@@ -186,3 +188,20 @@ def _deriv(freqs, data, shape, order):
     return deriv
 
 
+def upcontinue(x, y, data, shape, height):
+    r"""
+    Upward continuation of potential field data.
+
+    The Fourier transform of the upward continued field is:
+
+    .. math::
+
+        F\{h_{up}\} = F\{h\} e^{-\Delta z |k|}
+
+    """
+    kx, ky = _getfreqs(x, y, data, shape)
+    k_modulus = numpy.sqrt(kx**2 + ky**2)
+    ft = numpy.fft.fft2(numpy.reshape(data, shape))
+    ft_up = numpy.exp(-height*k_modulus)*ft
+    data_up = numpy.real(numpy.fft.ifft2(ft_up)).ravel()
+    return data_up
