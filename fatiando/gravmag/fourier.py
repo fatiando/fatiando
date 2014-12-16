@@ -21,9 +21,10 @@ Potential field processing using the Fast Fourier Transform
 
 ----
 """
-
+from __future__ import division
 import numpy
 
+from .. import utils
 
 def ansig(x, y, data, shape):
     """
@@ -200,8 +201,48 @@ def upcontinue(x, y, data, shape, height):
 
     """
     kx, ky = _getfreqs(x, y, data, shape)
-    k_modulus = numpy.sqrt(kx**2 + ky**2)
+    kz = numpy.sqrt(kx**2 + ky**2)
     ft = numpy.fft.fft2(numpy.reshape(data, shape))
-    ft_up = numpy.exp(-height*k_modulus)*ft
+    ft_up = numpy.exp(-height*kz)*ft
     data_up = numpy.real(numpy.fft.ifft2(ft_up)).ravel()
     return data_up
+
+
+def reduce_to_pole(x, y, data, shape, inc, dec, sinc=None, sdec=None):
+    """
+    Parameters:
+
+    * x, y : 1d-arrays
+        The x, y, z coordinates of each data point.
+    * data : 1d-array
+        The total field anomaly data at each point.
+    * inc, dec : floats
+        The inclination and declination of the inducing field
+    * sinc, sdec : None or floats
+        The inclination and declination of the equivalent layer. Use these if
+        there is remanent magnetization and the total magnetization of the
+        layer if different from the induced magnetization.
+        If there is only induced magnetization, use None
+    """
+    fx, fy, fz = utils.ang2vec(1, inc, dec)
+    if sinc is None or sdec is None:
+        mx, my, mz = fx, fy, fz
+    else:
+        mx, my, mz = utils.ang2vec(1, sinc, sdec)
+    kx, ky = [k for k in _getfreqs(x, y, data, shape)]
+    kz_sqr = kx**2 + ky**2
+    a1 = mz*fz - mx*fx
+    a2 = mz*fz - my*fy
+    a3 = -my*fx - mx*fy
+    b1 = mx*fz + mz*fx
+    b2 = my*fz + mz*fy
+    # The division gives a RuntimeWarning because of the zero frequency term.
+    # This suppresses the warning.
+    with numpy.errstate(divide='ignore', invalid='ignore'):
+        rtp = (kz_sqr)/(a1*kx**2 + a2*ky**2 + a3*kx*ky +
+                        1j*numpy.sqrt(kz_sqr)*(b1*kx + b2*ky))
+    rtp[0, 0] = 0
+    ft = numpy.fft.fft2(numpy.reshape(data, shape))
+    ft_pole = ft*rtp
+    data_pole = numpy.real(numpy.fft.ifft2(ft_pole)).ravel()
+    return data_pole
