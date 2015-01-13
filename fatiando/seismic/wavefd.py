@@ -1,6 +1,35 @@
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
+Solutions are implemented as simulation classes to take advantage of Object Orientation.
+They have Rich Display features of IPython Notebook and use the HDF5 file format
+to store and persist the simulation objects.
+
+.. note:: Some features restrict to IPython Notebook can't be run outside it
+
+
+**Base Classes**
+
+* :class: `~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
+* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing seismic sources.
+
+
+**Sources**
+
+* :class:`~fatiando.seismic.wavefd.Ricker`: Mexican hat (Ricker) wavelet source.
+* :class:`~fatiando.seismic.wavefd.Gauss`: Gauss derivative wavelet source
+* :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared wavelet source
+
+**Simulation Classes**
+
+* :func:`~fatiando.seismic.wavefd.ElasticSH`: Simulates SH elastic waves using
+  the Equivalent Staggered Grid method of Di Bartolo et al. (2012)
+
+
+
+
+TODO: remove old code and documentation
+
 * :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
   elastic waves using the Parsimonious Staggered Grid method of Luo and
   Schuster (1990)
@@ -11,9 +40,7 @@ Finite difference solution of the 2D wave equation for isotropic media.
 
 **Sources**
 
-* :class:`~fatiando.seismic.wavefd.MexHatSource`: Mexican hat wavelet source
-* :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared source
-* :class:`~fatiando.seismic.wavefd.GaussSource`: Gauss derivative source
+
 * :func:`~fatiando.seismic.wavefd.blast_source`: A source blasting in all
   directions
 
@@ -143,70 +170,6 @@ from matplotlib import animation
 from matplotlib import pyplot as plt
 import h5py
 
-from functools import wraps
-
-class DocInherit(object):
-    """
-    Docstring inheriting method descriptor
-
-    The class itself is also used as a decorator
-
-
-    Usage:
-
-    class Foo(object):
-        def foo(self):
-            "Frobber"
-            pass
-
-    class Bar(Foo):
-        @doc_inherit
-        def foo(self):
-            pass
-
-    Now, Bar.foo.__doc__ == Bar().foo.__doc__ == Foo.foo.__doc__ == "Frobber"
-    """
-
-    def __init__(self, mthd):
-        self.mthd = mthd
-        self.name = mthd.__name__
-
-    def __get__(self, obj, cls):
-        if obj:
-            return self.get_with_inst(obj, cls)
-        else:
-            return self.get_no_inst(cls)
-
-    def get_with_inst(self, obj, cls):
-
-        overridden = getattr(super(cls, obj), self.name, None)
-
-        @wraps(self.mthd, assigned=('__name__','__module__'))
-        def f(*args, **kwargs):
-            return self.mthd(obj, *args, **kwargs)
-
-        return self.use_parent_doc(f, overridden)
-
-    def get_no_inst(self, cls):
-
-        for parent in cls.__mro__[1:]:
-            overridden = getattr(parent, self.name, None)
-            if overridden: break
-
-        @wraps(self.mthd, assigned=('__name__','__module__'))
-        def f(*args, **kwargs):
-            return self.mthd(*args, **kwargs)
-
-        return self.use_parent_doc(f, overridden)
-
-    def use_parent_doc(self, func, source):
-        if source is None:
-            raise NameError, ("Can't find '%s' in parents"%self.name)
-        func.__doc__ = source.__doc__
-        return func
-
-doc_inherit = DocInherit
-
 try:
     from ._wavefd import *
 except:
@@ -264,7 +227,7 @@ class Source(six.with_metaclass(ABCMeta)):
 
     def _repr_png_(self):
         """
-         Rich visualization of this source
+         Display this source
 
         .. note:: works only on IPython Notebook
         """
@@ -286,13 +249,13 @@ class Source(six.with_metaclass(ABCMeta)):
         return self.value(time)
 
     @abstractmethod
-    def value(self, time):
+    def value(self, t):
         """
         Return the source function value at a given time
 
         Parameters:
 
-        * time: float
+        * t: float
             time value where evaluate the source function
 
         """
@@ -310,18 +273,36 @@ class Ricker(Source):
             .. note:: If you want the source to start with amplitude close to 0,
                 use ``delay = 3.5/frequency``
     """
-    @doc_inherit
+
     def __init__(self, amp, cf, delay=0):
+        """
+        Parameters:
+
+        * amp : float
+            The amplitude of the source (:math:`A`)
+        * cf : float
+            The peak frequency of the wavelet
+        * delay : float
+            The delay before the source starts
+
+        """
         super(Ricker, self).__init__(amp, cf, delay)
 
-    @doc_inherit
     def value(self, t):
+        """
+        Return the source function value at a given time
+
+        Parameters:
+
+        * t: float
+            time value where evaluate the source function
+
+        """
         t = (t - self.delay)
         aux = self.amp*(1 - 2*(numpy.pi*self.cf*t)**2)
         return aux*numpy.exp(-(numpy.pi*self.cf*t)**2)
 
 class Gauss(Source):
-
     r"""
     A wave source that vibrates as a Gaussian derivative wavelet.
 
@@ -332,17 +313,87 @@ class Gauss(Source):
         .. note:: If you want the source to start with amplitude close to 0,
             use ``delay = 3.0/frequency``.
     """
-    @doc_inherit
+
     def __init__(self, amp, cf, delay=0):
+        """
+        Parameters:
+
+        * amp : float
+            The amplitude of the source (:math:`A`)
+        * cf : float
+            The peak frequency of the wavelet
+        * delay : float
+            The delay before the source starts
+
+        """
         super(Gauss, self).__init__(amp, cf, delay)
         self.f2 = self.cf**2
 
-    @doc_inherit
+
     def value(self, t):
+        """
+        Return the source function value at a given time
+
+        Parameters:
+
+        * t: float
+            time value where evaluate the source function
+
+        """
         t = (t - self.delay)
         psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.cf)
                           * t * numpy.exp(-2 * (t ** 2) * self.f2)
                           )
+        return psi
+
+
+class SinSqrSource(Source):
+    r"""
+    A wave source that vibrates as a sine squared function.
+
+    This source vibrates for a time equal to one period (T).
+
+    .. math::
+
+        \psi(t) = A\sin\left(t\frac{2\pi}{T}\right)^2
+
+        .. note:: If you want the source to start with amplitude close to 0,
+            use ``delay = 3.5/frequency``.
+
+    """
+
+    def __init__(self, amp, cf, delay=0):
+        """
+        Parameters:
+
+        * amp : float
+            The amplitude of the source (:math:`A`)
+        * cf : float
+            The peak frequency of the wavelet
+        * delay : float
+            The delay before the source starts
+
+        """
+        super(SinSqrSource, self).__init__(amp, cf, delay)
+        self.f2 = self.cf**2
+        self.wlength = 1. / cf
+
+
+    def value(self, t):
+        """
+        Return the source function value at a given time
+
+        Parameters:
+
+        * t: float
+            time value where evaluate the source function
+
+        """
+        t = t - self.delay
+        if t + self.delay > self.wlength:
+            return 0
+        psi = self.amp * \
+            numpy.sin(2. * numpy.pi * t / float(self.wlength)) ** 2
         return psi
 
 
@@ -429,12 +480,19 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     @abstractmethod
     def init_panels(self):
         """
-        Start the simulation panels used for finite difference solution
-        They are stored as variable `u`with
-        shape (n, nz, nx) where n is the stencil size depending on
-        time solution discretization
+        Start the simulation panels used for finite difference solution.
+        Keep consistency of simulations loaded from file.
         """
         pass
+
+    @abstractmethod
+    def from_cache(fname, verbose=True):
+        """
+        Creates a simulation object from a pre-existing HDF5 file
+
+        * fname: str
+            HDF5 file path containing a previous simulation stored
+        """
 
     def create_tmp_cache(self):
         """
@@ -453,10 +511,22 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def get_cache(self, mode='r'):
         """
         Returns the cache file as h5py file object
+
+        * mode: str
+            'r' or 'w'
+            for reading or writing
         """
         return h5py.File(self.cachefile, mode)
 
+
+
     def set_verbose(self, verbose):
+        """
+        Whether to show or not progress bar
+
+        * verbose : bool
+            True shows progress bar
+        """
         self.verbose = verbose
         # Need an option to get rid of the sys.stderr reference because it
         # can't be pickled.
@@ -467,7 +537,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def __getitem__(self, args):
         """
-        Get an iteration panel its time 2D array
+        Get an iteration panel 2D array
         from the hdf5 cache file
         """
         with self.get_cache() as f:
@@ -480,7 +550,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
         """
-        Plots or returns a snapshot of the i'th simulation frame
+        Plots or returns a snapshot of the i'th simulation frame.
+
+        Calls `plot_snapshot`
 
         Parameters:
 
@@ -489,15 +561,15 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         * embed : bool
             works only on IPython Notebook
             True to plot it inline
-        * raw:
+        * raw: bool
             works only on IPython Notebook
-            raw byte image
+            True for raw byte image
 
         Returns:
 
         * image:
             raw byte image if raw=True
-            jpeg picture if
+            jpeg picture if embed=True
 
         """
         if ax is None:
@@ -542,7 +614,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def _repr_png_(self):
         """
-        Rich visualization of this simulation
+        Display one time frame of this simulation
 
         .. note:: works only on IPython Notebook
         """
@@ -568,9 +640,33 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     @abstractmethod
     def timestep(self, panels, tm1, t, tp1, iteration):
+        """
+        Perform one forward on time step calculation
+
+        * panels: depends upon implementation
+            simulation grid variables
+        * tm1: int
+            t minus one integer index for panels
+        * t: int
+            t integer index for panels
+        * tp1: int
+            t plus one integer index for panels
+        * iteration: int
+            which iteration are we in
+        """
+
         pass
 
     def run(self, iterations):
+        """
+        Run this simulation given the number of iterations.
+
+        Calls `init_cache`, `expand_cache`, `init_panels`
+        `cache_panels` and  `time_step`
+
+        * iterations: int
+            number of iterations to run
+        """
         nz, nx = self.shape
         dz, dx = self.dz, self.dx
         # Initialize the cache on the first run
@@ -619,11 +715,33 @@ class ElasticSH(WaveFD2D):
 
     Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
     right boundaries. The top implements a free-surface boundary condition.
-
     """
 
     def __init__(self, velocity, density, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
+        """
+        Initiate the SH waves 2D simulation
+
+        Parameters:
+
+        * velocity: 2D-array (defines shape simulation)
+            The wave velocity at all the grid nodes
+        * density: 2D-array
+            The medium density
+        * spacing: (dx, dz)
+            space increment for x and z direction
+        * cachefile: str
+            The hdf5 cachefile file path to store the simulation
+        * dt: float
+            time increment for simulation
+        * padding : int
+            Number of grid nodes to use for the absorbing boundary region
+        * taper : float
+            The intensity of the Gaussian taper function used for the absorbing
+            boundary conditions
+        * verbose: bool
+            True to show simulation progress bar
+        """
         super(ElasticSH, self).__init__(cachefile, spacing, dt, velocity.shape,
                                         verbose)
         self.density = density
@@ -638,6 +756,12 @@ class ElasticSH(WaveFD2D):
     def from_cache(fname, verbose=True):
         """
         Creates a simulation object from a pre-existing HDF5 file
+
+        * fname: str
+            HDF5 file path containing a previous simulation stored
+
+        * verbose: bool
+            Progress status shown or not
         """
         with h5py.File(fname, 'r') as f:
             vel = f['velocity']
@@ -656,12 +780,17 @@ class ElasticSH(WaveFD2D):
         sim.set_verbose(verbose)
         return sim
 
-    @doc_inherit
     def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+        """
+        Init the hdf5 cache file with this simulation parameters
+        and size for storing every iteration
+
+        """
+        panels = self.
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
-        with self.get_cache(mode='w') as f:
+        with self.get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
             dset = f.create_dataset('panels', (panels, nz, nx),
                                      maxshape=(None, nz, nx),
@@ -682,14 +811,18 @@ class ElasticSH(WaveFD2D):
             f.create_dataset(
                 'sources', data=numpy.void(pickle.dumps(self.sources)))
 
-
-    @doc_inherit
     def expand_cache(self, iterations):
+        """
+        Extend the capacity of the HDF5 file
+        due certain additional number of iterations.
+
+        * iterations: int
+            number of iterations to append to the HDF5 file
+        """
         with self.get_cache(mode='a') as f:
             cache = f['panels']
             cache.resize(self.size + iterations, axis=0)
 
-    @doc_inherit
     def cache_panels(self, u, tp1, iteration, simul_size):
         # Save the panel to disk
         with self.get_cache(mode='a') as f:
@@ -698,8 +831,11 @@ class ElasticSH(WaveFD2D):
             cache.attrs['size'] = simul_size
             cache.attrs['iterations'] = iteration
 
-    @doc_inherit
     def init_panels(self):
+        """
+        Start the simulation panels used for finite difference solution.
+        Keep consistency of simulations loaded from file.
+        """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
         if self.size == 0:
@@ -1248,51 +1384,6 @@ class MexHatSource(object):
 
         """
         return (self.i, self.j)
-
-
-class SinSqrSource(MexHatSource):
-
-    r"""
-    A wave source that vibrates as a sine squared function.
-
-    This source vibrates for a time equal to one period (T).
-
-    .. math::
-
-        \psi(t) = A\sin\left(t\frac{2\pi}{T}\right)^2
-
-    Parameters:
-
-    * x, z : float
-        The x, z coordinates of the source
-    * area : [xmin, xmax, zmin, zmax]
-        The area bounding the finite difference simulation
-    * shape : (nz, nx)
-        The number of nodes in the finite difference grid
-    * amp : float
-        The amplitude of the source (:math:`A`)
-    * frequency : float
-        The frequency of the source
-    * delay : float
-        The delay before the source starts
-
-        .. note:: If you want the source to start with amplitude close to 0,
-            use ``delay = 3.5/frequency``.
-
-    """
-
-    def __init__(self, x, z, area, shape, amp, frequency, delay=0):
-        super(SinSqrSource, self).__init__(x, z, area, shape, amp,
-                                           frequency, delay)
-        self.wlength = 1. / frequency
-
-    def __call__(self, time):
-        t = time - self.delay
-        if t + self.delay > self.wlength:
-            return 0
-        psi = self.amp * \
-            numpy.sin(2. * numpy.pi * t / float(self.wlength)) ** 2
-        return psi
 
 
 def blast_source(x, z, area, shape, amp, frequency, delay=0,

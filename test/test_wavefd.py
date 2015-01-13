@@ -22,7 +22,6 @@ def test_wavefd_elasticsh_run():
     shape = (50, 50)
     velocity = 1500*np.ones(shape)
     density = 2200*np.ones(shape)
-    sim = ElasticSH(velocity, density, (5, 5), cachefile='elastic_test.h5')
+    sim = ElasticSH(velocity, density, (5, 5))
     sim.add_point_source((0, shape[1]//2), Ricker(5, 7., 1./7.))
     sim.run(100)
-    os.system("rm elastic_test.h5")
