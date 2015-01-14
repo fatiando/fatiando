@@ -1,7 +1,8 @@
+# TODO remove old code and documentation and fix cookboook
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
-Solutions are implemented as simulation classes to take advantage of Object Orientation.
+Solutions are implemented as simulation classes taking advantage of Object Orientation.
 They have Rich Display features of IPython Notebook and use the HDF5 file format
 to store and persist the simulation objects.
 
@@ -22,13 +23,14 @@ to store and persist the simulation objects.
 
 **Simulation Classes**
 
-* :func:`~fatiando.seismic.wavefd.ElasticSH`: Simulates SH elastic waves using
+* :class:`~fatiando.seismic.wavefd.ElasticSH`: Simulates SH elastic waves using
   the Equivalent Staggered Grid method of Di Bartolo et al. (2012)
+* :class:`~fatiando.seismic.wavefd.ElasticPSV`: Simulates the coupled P and SV
+  elastic waves using the Parsimonious Staggered Grid method of Luo and
+  Schuster (1990)
+* :class:`~fatiando.seismic.wavefd.Scalar`: Simulates scalar waves using simple
+  explicit finite differences scheme
 
-
-
-
-TODO: remove old code and documentation
 
 * :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
   elastic waves using the Parsimonious Staggered Grid method of Luo and
@@ -39,7 +41,6 @@ TODO: remove old code and documentation
   explicit finite differences scheme
 
 **Sources**
-
 
 * :func:`~fatiando.seismic.wavefd.blast_source`: A source blasting in all
   directions
@@ -435,7 +436,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         self.shape = shape
         self.set_verbose(verbose)
         self.sources = []
-        self.it = -1
+        self.it = -1  # iteration index where we are
         self.size = 0
         if cachefile is None:
             cachefile = self.create_tmp_cache()
@@ -443,33 +444,45 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         self.dt = dt
 
     @abstractmethod
-    def init_cache(self, iterations):
+    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
-        and size for storing iterations
+
+        * npanels: int
+            number of 2D panels needed for this simulation run
+        *  chunks : HDF5 data set option
+
+        * compression: HDF5 data set option
+
+        * shuffle: HDF5 data set option
+
         """
         pass
 
     @abstractmethod
-    def expand_cache(self, iterations):
+    def expand_cache(self, npanels):
         """
         Expand the hdf5 cache file of this simulation parameters
         for more iterations
+
+        *  npanels: int
+            number of 2D panels needed for this simulation
         """
+
         pass
 
     @abstractmethod
-    def cache_panels(self, u, tp1, iteration, simul_size):
+    def cache_panels(self, npanels, tp1, iteration, simul_size):
         """
-        Save the last simulated panel and information about it
+        Save the last calculated panels and information about it
         in the hdf5 cache file
 
         Parameters:
 
-        * u :
-            Simulation panel
+        * npanels : tuple or variable
+            tuple or variable containing all 2D panels needed for this simulation
         * tp1 : int
-            panel index
+            panel time index
         * iteration:
             iteration number
         * simul_size:
@@ -481,7 +494,10 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def init_panels(self):
         """
         Start the simulation panels used for finite difference solution.
-        Keep consistency of simulations loaded from file.
+        Keep consistency of simulations if loaded from file.
+
+        * return:
+            panels object
         """
         pass
 
@@ -535,14 +551,20 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         else:
             self.stream = None
 
-    def __getitem__(self, args):
+    def __getitem__(self, index):
         """
-        Get an iteration panel 2D array
-        from the hdf5 cache file
+        Get an iteration of the panels object from the hdf5 cache file.
+
+        .. note:: panels object is a tuple or variable containing all 2D panels needed for this simulation
+
+        * index: index or slicing
+            index for slicing hdf5 data set
+
+        * return : panels object at index
+
         """
-        with self.get_cache() as f:
-            data = f['panels'][args]
-        return data
+        pass
+
 
     @abstractmethod
     def plot_snapshot(self, frame, **kwargs):
@@ -669,12 +691,15 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         nz, nx = self.shape
         dz, dx = self.dz, self.dx
+
+        u = self.init_panels()  # panels variable must be created first
+
         # Initialize the cache on the first run
         if self.size == 0:
             self.init_cache(iterations)
         else:   # increase cache size by iterations
             self.expand_cache(iterations)
-        u = self.init_panels()
+
         if self.verbose:
             # The size of the progress status bar
             places = 50
@@ -752,6 +777,22 @@ class ElasticSH(WaveFD2D):
         if self.dt is None:
             self.dt = self.maxdt()
 
+    def __getitem__(self, index):
+        """
+        Get an iteration of the panels object from the hdf5 cache file.
+
+        .. note:: panels object is a tuple or variable containing all 2D panels needed for this simulation
+
+        * index: index or slicing
+            index for slicing hdf5 data set
+
+        * return : panels object at index
+
+        """
+        with self.get_cache() as f:
+            data = f['panels'][index]
+        return data
+
     @staticmethod
     def from_cache(fname, verbose=True):
         """
@@ -780,19 +821,25 @@ class ElasticSH(WaveFD2D):
         sim.set_verbose(verbose)
         return sim
 
-    def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
-        and size for storing every iteration
+
+        * npanels: int
+            number of 2D panels needed for this simulation run
+        *  chunks : HDF5 data set option
+
+        * compression: HDF5 data set option
+
+        * shuffle: HDF5 data set option
 
         """
-        panels = self.
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
         with self.get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
-            dset = f.create_dataset('panels', (panels, nz, nx),
+            dset = f.create_dataset('panels', (npanels, nz, nx),
                                      maxshape=(None, nz, nx),
                                      chunks=chunks,
                                      compression=compression,
@@ -811,30 +858,49 @@ class ElasticSH(WaveFD2D):
             f.create_dataset(
                 'sources', data=numpy.void(pickle.dumps(self.sources)))
 
-    def expand_cache(self, iterations):
+    def expand_cache(self, npanels):
         """
-        Extend the capacity of the HDF5 file
-        due certain additional number of iterations.
+        Expand the hdf5 cache file of this simulation parameters
+        for more iterations
 
-        * iterations: int
-            number of iterations to append to the HDF5 file
+        *  npanels: int
+            number of 2D panels needed for this simulation
         """
         with self.get_cache(mode='a') as f:
             cache = f['panels']
-            cache.resize(self.size + iterations, axis=0)
+            cache.resize(self.size + npanels, axis=0)
 
     def cache_panels(self, u, tp1, iteration, simul_size):
+        """
+        Save the last calculated panels and information about it
+        in the hdf5 cache file
+
+        Parameters:
+
+        * panels : tuple or variable
+            tuple or variable containing all 2D panels needed for this simulation
+        * tp1 : int
+            panel time index
+        * iteration:
+            iteration number
+        * simul_size:
+            number of iterations of this run
+        """
         # Save the panel to disk
         with self.get_cache(mode='a') as f:
             cache = f['panels']
-            cache[simul_size - 1] = u[tp1]
-            cache.attrs['size'] = simul_size
-            cache.attrs['iterations'] = iteration
+            cache[simul_size - 1] = u[tp1]  # TODO take a look here
+            cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
+            cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
+            # that simulation runs properly after reloaded from file
 
     def init_panels(self):
         """
         Start the simulation panels used for finite difference solution.
-        Keep consistency of simulations loaded from file.
+        Keep consistency of simulations if loaded from file.
+
+        * return:
+            panels object
         """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
@@ -862,7 +928,6 @@ class ElasticSH(WaveFD2D):
         """
         self.sources.append([position, wavelet])
 
-    @doc_inherit
     def timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3,
@@ -875,7 +940,6 @@ class ElasticSH(WaveFD2D):
             i, j = pos
             u[tp1, i, j] += src(iteration*self.dt)
 
-    @doc_inherit
     def plot_snapshot(self, frame, **kwargs):
         with h5py.File(self.cachefile) as f:
             data = f['panels'][frame]
@@ -1034,14 +1098,12 @@ class ElasticPSV(WaveFD2D):
         zamp = numpy.sin(d2r*dip)
         self.sources.append([position, xamp*source, zamp*source])
 
-    @doc_inherit
     def __getitem__(self, args):
         with self.get_cache() as f:
             ux = f['xpanels'][args]
             uz = f['zpanels'][args]
         return [ux, uz]
 
-    @doc_inherit
     def plot_snapshot(self, frame, **kwargs):
         with h5py.File(self.cachefile) as f:
             ux = f['xpanels'][frame]
@@ -1084,8 +1146,17 @@ class ElasticPSV(WaveFD2D):
                        scale=1/scale, linewidth=linewidth,
                        pivot='tail', angles='xy', scale_units='xy')
 
-    @doc_inherit
     def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+        """
+        Init the hdf5 cache file with this simulation parameters
+
+        *  chunks : HDF5 data set option
+
+        * compression: HDF5 data set option
+
+        * shuffle: HDF5 data set option
+
+        """
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
@@ -1133,7 +1204,7 @@ class ElasticPSV(WaveFD2D):
             pvel = f['pvel']
             svel = f['svel']
             dens = f['density']
-            panels = f['xpanels']
+            panels = f['xpanels']  # the first data set contain all the simulation parameters
             dx = panels.attrs['dx']
             dz = panels.attrs['dz']
             dt = panels.attrs['dt']
@@ -1146,8 +1217,22 @@ class ElasticPSV(WaveFD2D):
             sim.sources = pickle.loads(f['sources'].value.tostring())
         return sim
 
-    @doc_inherit
     def cache_panels(self, u, tp1, iteration, simul_size):
+        """
+        Save the last calculated panels and information about it
+        in the hdf5 cache file
+
+        Parameters:
+
+        * panels : tuple or variable
+            tuple or variable containing all 2D panels needed for this simulation
+        * tp1 : int
+            panel time index
+        * iteration:
+            iteration number
+        * simul_size:
+            number of iterations of this run
+        """
         # Save the panel to disk
         with self.get_cache(mode='a') as f:
             ux, uz = u
@@ -1160,13 +1245,12 @@ class ElasticPSV(WaveFD2D):
             zpanels.attrs['size'] = simul_size
             zpanels.attrs['iterations'] = iteration
 
-    @doc_inherit
+
     def expand_cache(self, iterations):
         with self.get_cache(mode='a') as f:
             f['xpanels'].resize(self.size + iterations, axis=0)
             f['zpanels'].resize(self.size + iterations, axis=0)
 
-    @doc_inherit
     def init_panels(self):
         if self.size == 0:
             nz, nx = self.shape
@@ -1188,7 +1272,7 @@ class ElasticPSV(WaveFD2D):
                                 order='C')
         return [ux, uz]
 
-    @doc_inherit
+
     def timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
         ux, uz = u
