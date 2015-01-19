@@ -415,7 +415,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     """
 
-    def __init__(self, cachefile, spacing, dt, shape, verbose=True):
+    def __init__(self, cachefile, spacing, shape, dt=None,
+                 padding=50, taper=0.007, verbose=True):
         """
         Initiate the 2D simulation
 
@@ -429,6 +430,11 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             time increment for simulation
         * shape : (nz, nx)
             The number of nodes in the simulation grid
+        * padding : int
+            Number of grid nodes to use for the absorbing boundary region
+        * taper : float
+            The intensity of the Gaussian taper function used for the absorbing
+            boundary conditions
         * verbose: bool
             True to show simulation progress bar
         """
@@ -441,7 +447,11 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         if cachefile is None:
             cachefile = self.create_tmp_cache()
         self.cachefile = cachefile
+        self.padding = padding
+        self.taper = taper
         self.dt = dt
+        if self.dt is None:
+            self.dt = self.maxdt()
 
     @abstractmethod
     def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
@@ -526,11 +536,16 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def get_cache(self, mode='r'):
         """
-        Returns the cache file as h5py file object
+        Get the cache file as h5py file object
 
         * mode: str
             'r' or 'w'
             for reading or writing
+
+        Returns:
+
+        * cache : h5py file object
+
         """
         return h5py.File(self.cachefile, mode)
 
@@ -560,7 +575,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         * index: index or slicing
             index for slicing hdf5 data set
 
-        * return : panels object at index
+        Returns:
+
+       * panels object : 2D panels object at index
 
         """
         pass
@@ -572,7 +589,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
         """
-        Plots or returns a snapshot of the i'th simulation frame.
+        Returns a image (snapshot) of the i'th simulation frame.
 
         Calls `plot_snapshot`
 
@@ -767,15 +784,11 @@ class ElasticSH(WaveFD2D):
         * verbose: bool
             True to show simulation progress bar
         """
-        super(ElasticSH, self).__init__(cachefile, spacing, dt, velocity.shape,
-                                        verbose)
+        super(ElasticSH, self).__init__(cachefile, spacing, velocity.shape, dt, padding,
+                                        taper, verbose)
         self.density = density
         self.velocity = velocity
         self.mu = lame_mu(velocity, density)
-        self.padding = padding
-        self.taper = taper
-        if self.dt is None:
-            self.dt = self.maxdt()
 
     def __getitem__(self, index):
         """
@@ -786,7 +799,9 @@ class ElasticSH(WaveFD2D):
         * index: index or slicing
             index for slicing hdf5 data set
 
-        * return : panels object at index
+        Returns:
+
+        * panels object : 2D panels object at index
 
         """
         with self.get_cache() as f:
@@ -889,7 +904,7 @@ class ElasticSH(WaveFD2D):
         # Save the panel to disk
         with self.get_cache(mode='a') as f:
             cache = f['panels']
-            cache[simul_size - 1] = u[tp1]  # TODO take a look here
+            cache[simul_size - 1] = u[tp1]
             cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
             cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
             # that simulation runs properly after reloaded from file
@@ -1039,8 +1054,8 @@ class ElasticPSV(WaveFD2D):
 
     def __init__(self, pvel, svel, density, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
-        super(ElasticPSV, self).__init__(cachefile, spacing, dt, pvel.shape,
-                                         verbose)
+        super(ElasticPSV, self).__init__(cachefile, spacing, pvel.shape, dt,
+                                         padding, taper, verbose)
         self.pvel = pvel
         self.svel = svel
         self.density = density
@@ -1049,8 +1064,6 @@ class ElasticPSV(WaveFD2D):
         self.padding = padding
         self.taper = taper
         self.make_free_surface_matrices()
-        if self.dt is None:
-            self.dt = self.maxdt()
 
     def maxdt(self):
         nz, nx = self.shape
@@ -1656,7 +1669,7 @@ def _add_pad(array, pad, shape):
     return array_pad
 
 
-def scalar(vel, area, dt, iterations, sources, stations=None,
+def  scalar(vel, area, dt, iterations, sources, stations=None,
            snapshot=None, padding=50, taper=0.005):
     """
 
