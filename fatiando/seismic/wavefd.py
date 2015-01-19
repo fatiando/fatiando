@@ -1,25 +1,25 @@
-# TODO remove old code and documentation and fix cookboook
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
-Solutions are implemented as simulation classes taking advantage of Object Orientation.
-They have Rich Display features of IPython Notebook and use the HDF5 file format
-to store and persist the simulation objects.
+Solutions are implemented as simulation classes taking advantage of Object
+Orientation. They have Rich Display features of IPython Notebook and use
+the HDF5 file format to store and persist the simulation objects.
 
-.. note:: Some features restrict to IPython Notebook can't be run outside it
+.. note:: Some features are restrict to IPython Notebook
+and won't run outside it.
 
 
 **Base Classes**
 
 * :class: `~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
-* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing seismic sources.
+* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing
+seismic sources.
 
 
 **Sources**
 
 * :class:`~fatiando.seismic.wavefd.Ricker`: Mexican hat (Ricker) wavelet source.
 * :class:`~fatiando.seismic.wavefd.Gauss`: Gauss derivative wavelet source
-* :class:`~fatiando.seismic.wavefd.SinSqrSource`: Sine squared wavelet source
 
 **Simulation Classes**
 
@@ -30,20 +30,6 @@ to store and persist the simulation objects.
   Schuster (1990)
 * :class:`~fatiando.seismic.wavefd.Scalar`: Simulates scalar waves using simple
   explicit finite differences scheme
-
-
-* :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
-  elastic waves using the Parsimonious Staggered Grid method of Luo and
-  Schuster (1990)
-* :func:`~fatiando.seismic.wavefd.elastic_sh`: Simulates SH elastic waves using
-  the Equivalent Staggered Grid method of Di Bartolo et al. (2012)
-* :func:`~fatiando.seismic.wavefd.scalar`: Simulates scalar waves using simple
-  explicit finite differences scheme
-
-**Sources**
-
-* :func:`~fatiando.seismic.wavefd.blast_source`: A source blasting in all
-  directions
 
 **Auxiliary functions**
 
@@ -160,11 +146,10 @@ import os
 import cPickle as pickle
 from abc import ABCMeta, abstractmethod
 import six
-
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
-from IPython.display import Image, HTML, display, display_png
+from IPython.display import Image, HTML, display
 from IPython.html import widgets
 from IPython.core.pylabtools import print_figure
 from matplotlib import animation
@@ -174,7 +159,7 @@ import h5py
 try:
     from ._wavefd import *
 except:
-    def not_implemented(*args, **kwargs):
+    def not_implemented():
         raise NotImplementedError(
             "Couldn't load C coded extension module.")
     _apply_damping = not_implemented
@@ -185,7 +170,6 @@ except:
     _nonreflexive_psv_boundary_conditions = not_implemented
     _step_scalar = not_implemented
     _reflexive_scalar_boundary_conditions = not_implemented
-
 
 
 class Source(six.with_metaclass(ABCMeta)):
@@ -201,21 +185,17 @@ class Source(six.with_metaclass(ABCMeta)):
     Overloads multiplication by a scalar to multiply the amplitude of the
     source and return a new source.
 
-    .. note:: During simulation the source forces the ground to zero for later times.
+     Parameters:
+
+     * amp : float
+        The amplitude of the source (:math:`A`)
+     * cf : float
+        The peak frequency of the wavelet
+    * delay : float
+        The delay before the source starts
+
     """
-
     def __init__(self, amp, cf, delay):
-        """
-        Parameters:
-
-        * amp : float
-            The amplitude of the source (:math:`A`)
-        * cf : float
-            The peak frequency of the wavelet
-        * delay : float
-            The delay before the source starts
-
-        """
         self.amp = amp
         self.cf = cf
         self.delay = delay
@@ -246,8 +226,17 @@ class Source(six.with_metaclass(ABCMeta)):
         plt.close(fig)
         return data
 
-    def __call__(self, time):
-        return self.value(time)
+    def __call__(self, t):
+        """
+        Return the source function value at a given time
+
+        Parameters:
+
+        * t: float
+            time value where evaluate the source function
+        """
+
+        return self.value(t)
 
     @abstractmethod
     def value(self, t):
@@ -257,7 +246,12 @@ class Source(six.with_metaclass(ABCMeta)):
         Parameters:
 
         * t: float
-            time value where evaluate the source function
+            Time value where evaluate the source function
+
+        Returns:
+
+        * value : float or numpy array
+            The value of Source(t)
 
         """
         pass
@@ -265,28 +259,26 @@ class Source(six.with_metaclass(ABCMeta)):
 
 class Ricker(Source):
     r"""
-       A wave source that vibrates as a Mexican hat (Ricker) wavelet.
+    A wave source that vibrates as a Mexican hat (Ricker) wavelet.
 
-        .. math::
+    .. math::
 
-        \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
+    \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
 
-            .. note:: If you want the source to start with amplitude close to 0,
+    .. note:: If you want the source to start with amplitude close to 0,
                 use ``delay = 3.5/frequency``
+
+    Parameters:
+
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * cf : float
+        The peak frequency of the wavelet
+    * delay : float
+        The delay before the source starts
     """
 
     def __init__(self, amp, cf, delay=0):
-        """
-        Parameters:
-
-        * amp : float
-            The amplitude of the source (:math:`A`)
-        * cf : float
-            The peak frequency of the wavelet
-        * delay : float
-            The delay before the source starts
-
-        """
         super(Ricker, self).__init__(amp, cf, delay)
 
     def value(self, t):
@@ -296,12 +288,18 @@ class Ricker(Source):
         Parameters:
 
         * t: float
-            time value where evaluate the source function
+            Time value where evaluate the source function
+
+        Returns:
+
+        * value : float or numpy array
+            The value of Source(t)
 
         """
         t = (t - self.delay)
         aux = self.amp*(1 - 2*(numpy.pi*self.cf*t)**2)
         return aux*numpy.exp(-(numpy.pi*self.cf*t)**2)
+
 
 class Gauss(Source):
     r"""
@@ -311,22 +309,20 @@ class Gauss(Source):
 
         \psi(t) = A 2 \sqrt{e}\ f\ t\ e^\left(-2t^2f^2\right)
 
-        .. note:: If you want the source to start with amplitude close to 0,
+    .. note:: If you want the source to start with amplitude close to 0,
             use ``delay = 3.0/frequency``.
+
+    Parameters:
+
+    * amp : float
+        The amplitude of the source (:math:`A`)
+    * cf : float
+        The peak frequency of the wavelet
+    * delay : float
+        The delay before the source starts
     """
 
     def __init__(self, amp, cf, delay=0):
-        """
-        Parameters:
-
-        * amp : float
-            The amplitude of the source (:math:`A`)
-        * cf : float
-            The peak frequency of the wavelet
-        * delay : float
-            The delay before the source starts
-
-        """
         super(Gauss, self).__init__(amp, cf, delay)
         self.f2 = self.cf**2
 
@@ -338,63 +334,18 @@ class Gauss(Source):
         Parameters:
 
         * t: float
-            time value where evaluate the source function
+            Time value where evaluate the source function
+
+        Returns:
+
+        * value : float or numpy array
+            The value of Source(t)
 
         """
         t = (t - self.delay)
         psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.cf)
                           * t * numpy.exp(-2 * (t ** 2) * self.f2)
                           )
-        return psi
-
-
-class SinSqrSource(Source):
-    r"""
-    A wave source that vibrates as a sine squared function.
-
-    This source vibrates for a time equal to one period (T).
-
-    .. math::
-
-        \psi(t) = A\sin\left(t\frac{2\pi}{T}\right)^2
-
-        .. note:: If you want the source to start with amplitude close to 0,
-            use ``delay = 3.5/frequency``.
-
-    """
-
-    def __init__(self, amp, cf, delay=0):
-        """
-        Parameters:
-
-        * amp : float
-            The amplitude of the source (:math:`A`)
-        * cf : float
-            The peak frequency of the wavelet
-        * delay : float
-            The delay before the source starts
-
-        """
-        super(SinSqrSource, self).__init__(amp, cf, delay)
-        self.f2 = self.cf**2
-        self.wlength = 1. / cf
-
-
-    def value(self, t):
-        """
-        Return the source function value at a given time
-
-        Parameters:
-
-        * t: float
-            time value where evaluate the source function
-
-        """
-        t = t - self.delay
-        if t + self.delay > self.wlength:
-            return 0
-        psi = self.amp * \
-            numpy.sin(2. * numpy.pi * t / float(self.wlength)) ** 2
         return psi
 
 
@@ -409,36 +360,36 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     printing a progress bar to stderr, and creating an IPython widget to
     explore the snapshots.
 
-    Overloads ``__getitem__``. Indexing the simulation object is like indexing the
-    HDF5 cache file. This way you can treat the simulation object as a numpy
-    array.
+    Overloads ``__getitem__``. Indexing the simulation object is like
+    indexing the HDF5 cache file. This way you can treat the simulation
+    object as a numpy array.
+
+    Parameters:
+
+    * cachefile: str
+        The hdf5 cachefile to store the simulation
+    * spacing: (dx, dz)
+        space increment for x and z direction
+    * dt: float
+        time increment for simulation
+    * shape : (nz, nx)
+        The number of nodes in the simulation grid
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the Gaussian taper function used for the absorbing
+        boundary conditions
+    * verbose: bool
+        True to show simulation progress bar
 
     """
 
     def __init__(self, cachefile, spacing, shape, dt=None,
                  padding=50, taper=0.007, verbose=True):
-        """
-        Initiate the 2D simulation
-
-        Parameters:
-
-        * cachefile: str
-            The hdf5 cachefile to store the simulation
-        * spacing: (dx, dz)
-            space increment for x and z direction
-        * dt: float
-            time increment for simulation
-        * shape : (nz, nx)
-            The number of nodes in the simulation grid
-        * padding : int
-            Number of grid nodes to use for the absorbing boundary region
-        * taper : float
-            The intensity of the Gaussian taper function used for the absorbing
-            boundary conditions
-        * verbose: bool
-            True to show simulation progress bar
-        """
-        self.dx, self.dz = spacing
+        if numpy.size(spacing) == 1:  # equal space increment in x and z
+            self.dx, self.dz = spacing, spacing
+        else:
+            self.dx, self.dz = spacing
         self.shape = shape
         self.set_verbose(verbose)
         self.sources = []
@@ -450,13 +401,13 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         self.padding = padding
         self.taper = taper
         self.dt = dt
-        if self.dt is None:
-            self.dt = self.maxdt()
 
     @abstractmethod
     def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
+
+        Parameters:
 
         * npanels: int
             number of 2D panels needed for this simulation run
@@ -474,6 +425,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         Expand the hdf5 cache file of this simulation parameters
         for more iterations
+
+        Parameters:
 
         *  npanels: int
             number of 2D panels needed for this simulation
@@ -506,6 +459,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         Start the simulation panels used for finite difference solution.
         Keep consistency of simulations if loaded from file.
 
+        Returns:
+
         * return:
             panels object
         """
@@ -524,6 +479,12 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         Creates the temporary file used
         to store data in hdf5 format
+
+        Returns:
+
+        * create_tmp_cache: str
+            returns the name of the file created
+
         """
         tmpfile = NamedTemporaryFile(
             suffix='.h5',
@@ -538,6 +499,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         Get the cache file as h5py file object
 
+        Parameters:
+
         * mode: str
             'r' or 'w'
             for reading or writing
@@ -549,11 +512,11 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         return h5py.File(self.cachefile, mode)
 
-
-
     def set_verbose(self, verbose):
         """
         Whether to show or not progress bar
+
+        Parameters:
 
         * verbose : bool
             True shows progress bar
@@ -789,6 +752,8 @@ class ElasticSH(WaveFD2D):
         self.density = density
         self.velocity = velocity
         self.mu = lame_mu(velocity, density)
+        if self.dt is None:
+            self.dt = self.maxdt()
 
     def __getitem__(self, index):
         """
@@ -1059,6 +1024,8 @@ class ElasticPSV(WaveFD2D):
         self.pvel = pvel
         self.svel = svel
         self.density = density
+        if self.dt is None:
+            self.dt = self.maxdt()
         self.mu = lame_mu(svel, density)
         self.lamb = lame_lamb(pvel, svel, density)
         self.padding = padding
@@ -1098,12 +1065,13 @@ class ElasticPSV(WaveFD2D):
         * position : tuple
             The (x, z) coordinates of the source
 
-        * dip :
-
+        * dip : float
+            dip of the source (with respect to the horizontal)
+            angle in degrees
 
         * source : source function
             (see :class:`~fatiando.seismic.wavefd.Ricker` for an example
-        source)
+            source)
 
         """
         d2r = numpy.pi/180
@@ -1290,7 +1258,7 @@ class ElasticPSV(WaveFD2D):
         nz, nx = self.shape
         ux, uz = u
         _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1,
-                          self.dt, self.dx, self.dx, self.dz,
+                          self.dt, self.dx, self.dz,
                           self.mu, self.lamb, self.density)
         _apply_damping(ux[t], nx, nz, self.padding, self.taper)
         _apply_damping(uz[t], nx, nz, self.padding, self.taper)
