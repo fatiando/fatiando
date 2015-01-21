@@ -5,17 +5,6 @@ Solutions are implemented as simulation classes taking advantage of Object
 Orientation. They have Rich Display features of IPython Notebook and use
 the HDF5 file format to store and persist the simulation objects.
 
-.. note:: Some features are restrict to IPython Notebook
-and won't run outside it.
-
-
-**Base Classes**
-
-* :class: `~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
-* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing
-seismic sources.
-
-
 **Sources**
 
 * :class:`~fatiando.seismic.wavefd.Ricker`: Mexican hat (Ricker) wavelet source.
@@ -31,7 +20,48 @@ seismic sources.
 * :class:`~fatiando.seismic.wavefd.Scalar`: Simulates scalar waves using simple
   explicit finite differences scheme
 
-**Auxiliary functions**
+*Base Classes*
+
+You don't need to know these if you ain't planning to implement a new
+simulation.
+
+* :class: `~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
+* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing
+seismic sources.
+
+**Simulation Storage Access**
+
+The simulation classes store each time frame in an HDF5 file (the cache file).
+All data needed to resume the simulation later are stored. So when you need the
+simulation result, the class can dig into the cache file and return the data
+requested using python slice.
+
+All simulation classes have the following methods:
+
+* :func:`from_cache`: rebuilds a simulation object from the cache file and
+computations can be resumed right away, Source functions are also stored
+in the cache file as pickles.
+
+* slicing : ... to finish ...
+
+**Simulation Rich display**
+
+Simulation and  wavelet classes have rich display capabilities
+through IPython notebook features. There is an option to
+convert the animation to a video and embed it in the IPython notebook.
+
+All simulation classes have the following methods:
+(They work on IPython notebook only!)
+
+* :func:`animate`: ... to finish...
+
+* :func:`explore`:
+
+* :func:`snapshot`: loads a time step frame from the cache file and plots it.
+
+* :func:`_repr_png`:
+
+**Auxiliary functions** what to do with this? ... cleaning up
 
 * :func:`~fatiando.seismic.wavefd.lame_lamb`: Calculate the lambda Lame
   parameter
@@ -40,8 +70,6 @@ seismic sources.
   representations of P and S waves
 * :func:`~fatiando.seismic.wavefd.maxdt`: Calculate the maximum time step for
   elastic wave simulations
-* :func:`~fatiando.seismic.wavefd.scalar_maxdt`: Calculate the maximum time
-  step for a scalar wave simulation
 
 **Theory**
 
@@ -720,33 +748,30 @@ class ElasticSH(WaveFD2D):
 
     Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
     right boundaries. The top implements a free-surface boundary condition.
+
+    Parameters:
+
+    * velocity: 2D-array (defines shape simulation)
+        The wave velocity at all the grid nodes
+    * density: 2D-array
+        The medium density
+    * spacing: (dx, dz)
+        space increment for x and z direction
+    * cachefile: str
+        The hdf5 cachefile file path to store the simulation
+    * dt: float
+        time increment for simulation
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the Gaussian taper function used for the absorbing
+        boundary conditions
+    * verbose: bool
+        True to show simulation progress bar
     """
 
     def __init__(self, velocity, density, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
-        """
-        Initiate the SH waves 2D simulation
-
-        Parameters:
-
-        * velocity: 2D-array (defines shape simulation)
-            The wave velocity at all the grid nodes
-        * density: 2D-array
-            The medium density
-        * spacing: (dx, dz)
-            space increment for x and z direction
-        * cachefile: str
-            The hdf5 cachefile file path to store the simulation
-        * dt: float
-            time increment for simulation
-        * padding : int
-            Number of grid nodes to use for the absorbing boundary region
-        * taper : float
-            The intensity of the Gaussian taper function used for the absorbing
-            boundary conditions
-        * verbose: bool
-            True to show simulation progress bar
-        """
         super(ElasticSH, self).__init__(cachefile, spacing, velocity.shape, dt, padding,
                                         taper, verbose)
         self.density = density
@@ -1378,6 +1403,248 @@ class ElasticPSV(WaveFD2D):
             plt.show()
             return anim
 
+
+class Scalar(WaveFD2D):
+    r"""
+    Simulate scalar waves using an explicit finite differences scheme 4th order
+    space. Space increment must be equal in x and z.
+
+    Parameters:
+
+    * velocity: 2D-array (defines shape simulation)
+        The wave velocity at all the grid nodes
+    * density: 2D-array
+        The medium density
+    * spacing: (dx, dz)
+        space increment for x and z direction
+    * cachefile: str
+        The hdf5 cachefile file path to store the simulation
+    * dt: float
+        time increment for simulation
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the Gaussian taper function used for the absorbing
+        boundary conditions
+    * verbose: bool
+        True to show simulation progress bar
+
+    """
+    def __init__(self, velocity, spacing, cachefile=None, dt=None,
+                 padding=50, taper=0.007, verbose=True):
+        super(Scalar, self).__init__(cachefile, spacing, velocity.shape, dt, padding,
+                                        taper, verbose)
+        self.velocity = velocity
+        if self.dt is None:
+            self.dt = self.maxdt()
+
+    def maxdt(self):
+        r"""
+        Calculate the maximum time step that can be used in the
+        FD scalar simulation with 4th order space 1st time backward.
+
+        References
+
+        Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of finite-difference
+        modeling of the acoustic wave equation Geophysics, 39 (6), P. 834-842
+
+        Chen, Jing-Bo (2011) A stability formula for Lax-Wendroff methods
+        with fourth-order in time and general-order in space for
+        the scalar wave equation Geophysics, v. 76, p. T37-T42
+
+        Convergence
+
+        .. math::
+
+             \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N} (|w_a^1| +
+             |w_a^2|)}}
+             = \frac{ \Delta s \sqrt{3}}{ V_{max} \sqrt{8}}
+
+        Where w_a are the centered differences weights
+
+        Returns:
+
+        * maxdt : float
+            The maximum time step
+
+        """
+        min_spacing = min(self.dx, self.dz)
+        maxvel = numpy.max(self.velocity)
+        factor = numpy.sqrt(3. / 8.)
+        factor -= factor / 100.  # 1% smaller to guarantee criteria
+        # the closer to stability criteria the better the convergence
+        return factor * min_spacing / maxvel
+
+    def __getitem__(self, index):
+        """
+        Get an iteration of the panel object from the hdf5 cache file.
+
+        panel object is an (3, nz, nx)  array needed for this simulation
+
+        Parameters
+
+        * index: index or slicing
+            index or slicing for the hdf5 data set
+
+        Returns:
+
+        * panel object : 2D panels object at index
+
+        """
+        with self.get_cache() as f:
+            data = f['panels'][index]
+        return data
+
+    def add_point_source(self, position, wavelet):
+        """"
+        Adds a point source to this simulation
+
+        Parameters:
+
+        * position : tuple
+            The (x, z) coordinates of the source
+
+        * source : source function
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example
+        source)
+        """
+        self.sources.append([position, wavelet])
+
+    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+        """
+        Init the hdf5 cache file with this simulation parameters
+
+        Parameters:
+
+        * npanels: int
+            number of 2D panels needed for this simulation run
+            from iterations
+        * chunks : HDF5 data set option
+
+        * compression: HDF5 data set option
+
+        * shuffle: HDF5 data set option
+
+        """
+        nz, nx = self.shape
+        if chunks is None:
+            chunks = (1, nz//10, nx//10)
+        with self.get_cache(mode='w') as f:  # create HDF5 data sets
+            nz, nx = self.shape
+            dset = f.create_dataset('panels', (npanels, nz, nx),
+                                     maxshape=(None, nz, nx),
+                                     chunks=chunks,
+                                     compression=compression,
+                                     shuffle=shuffle,
+                                     dtype=numpy.float)
+            dset.attrs['shape'] = self.shape
+            dset.attrs['size'] = self.size
+            dset.attrs['iterations'] = self.it
+            dset.attrs['dx'] = self.dx
+            dset.attrs['dz'] = self.dz
+            dset.attrs['dt'] = self.dt
+            dset.attrs['padding'] = self.padding
+            dset.attrs['taper'] = self.taper
+            f.create_dataset('velocity', data=self.velocity)
+            f.create_dataset(
+                'sources', data=numpy.void(pickle.dumps(self.sources)))
+
+    @staticmethod
+    def from_cache(fname, verbose=True):
+        """
+        Creates a simulation object from a pre-existing HDF5 file
+
+        Parameters
+
+        * fname: str
+            HDF5 file path containing a previous simulation stored
+
+        * verbose: bool
+            Progress status shown or not
+
+        Returns:
+
+        * from_cache: object
+            the simulation object previously stored
+
+        """
+        with h5py.File(fname, 'r') as f:
+            vel = f['velocity']
+            dens = f['density']
+            panels = f['panels']
+            dx = panels.attrs['dx']
+            dz = panels.attrs['dz']
+            dt = panels.attrs['dt']
+            padding = panels.attrs['padding']
+            taper = panels.attrs['taper']
+            sim = Scalar(vel[:], (dx, dz), dt=dt, padding=padding,
+                            taper=taper, cachefile=fname)
+            sim.size = panels.attrs['size']
+            sim.it = panels.attrs['iterations']
+            sim.sources = pickle.loads(f['sources'].value.tostring())
+        sim.set_verbose(verbose)
+        return sim
+
+    def expand_cache(self, npanels):
+        """
+        Expand the hdf5 cache file of this simulation parameters
+        for more iterations
+
+        Parameters:
+
+        *  npanels: int
+            number of 2D panels needed for this simulation
+            from iterations
+        """
+        with self.get_cache(mode='a') as f:
+            cache = f['panels']
+            cache.resize(self.size + npanels, axis=0)
+
+    def cache_panels(self, u, tp1, iteration, simul_size):
+        """
+        Save the last calculated time step panels and information about it
+        in the hdf5 cache file
+
+        Parameters:
+
+        * panels : tuple or variable
+            tuple or variable containing all 2D panels needed for this simulation
+        * tp1 : int
+            panel time index
+        * iteration:
+            iteration number
+        * simul_size:
+            number of iterations of this run
+        """
+        # Save the panel to disk
+        with self.get_cache(mode='a') as f:
+            cache = f['panels']
+            cache[simul_size - 1] = u[tp1]
+            cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
+            cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
+            # that simulation runs properly after reloaded from file
+
+    def init_panels(self):
+        """
+        Initiate the simulation panels used for finite difference solution.
+        Keep consistency of simulation if loaded from file.
+
+        Returns:
+
+        * init_panels: object
+            3D array (2, nz, nx) or tupple of 3D array (?, nz, nx)
+
+        """
+        # If this is the first run, start with zeros, else, get the last two
+        # panels from the cache so that the simulation can be resumed
+        if self.size == 0:
+            nz, nx = self.shape
+            u = numpy.zeros((2, nz, nx), dtype=numpy.float)
+        else:
+            with self.get_cache() as f:
+                cache = f['panels']
+                u = cache[self.size - 2 : self.size][::-1]
+        return u
 
 class MexHatSource(object):
 
@@ -2098,52 +2365,6 @@ def maxdt(area, shape, maxvel):
     return 0.606 * spacing / maxvel
 
 
-def scalar_maxdt(area, shape, maxvel):
-    r"""
-    Calculate the maximum time step that can be used in the
-    FD scalar simulation with 4th order space 1st time backward.
 
-    References
-
-    Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of finite-difference
-    modeling of the acoustic wave equation Geophysics, 39 (6), P. 834-842
-
-    Chen, Jing-Bo (2011) A stability formula for Lax-Wendroff methods
-    with fourth-order in time and general-order in space for
-    the scalar wave equation Geophysics, v. 76, p. T37-T42
-
-    Convergence
-
-    .. math::
-
-         \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N} (|w_a^1| +
-         |w_a^2|)}}
-         = \frac{ \Delta s \sqrt{3}}{ V_{max} \sqrt{8}}
-
-    Where w_a are the centered differences weights
-
-    Parameters:
-
-    * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the shallowest point is
-        at zmin, the deepest at zmax.
-    * shape : (nz, nx)
-        The number of nodes in the finite difference grid
-    * maxvel : float
-        The maximum velocity in the medium
-
-    Returns:
-
-    * maxdt : float
-        The maximum time step
-
-    """
-    x1, x2, z1, z2 = area
-    nz, nx = shape
-    spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
-    factor = numpy.sqrt(3. / 8.)
-    factor -= factor / 100.  # 1% smaller to guarantee criteria
-    # the closer to stability criteria the better the convergence
-    return factor * spacing / maxvel
 
 
