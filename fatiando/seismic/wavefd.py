@@ -20,15 +20,6 @@ the HDF5 file format to store and persist the simulation objects.
 * :class:`~fatiando.seismic.wavefd.Scalar`: Simulates scalar waves using simple
   explicit finite differences scheme
 
-*Base Classes*
-
-You don't need to know these if you ain't planning to implement a new
-simulation.
-
-* :class: `~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
-* :class: `~fatiando.seismic.wavefd.Source`: Base class for describing
-seismic sources.
-
 **Simulation Storage Access**
 
 The simulation classes store each time frame in an HDF5 file (the cache file).
@@ -39,8 +30,8 @@ requested using python slice.
 All simulation classes have the following methods:
 
 * :func:`from_cache`: rebuilds a simulation object from the cache file and
-computations can be resumed right away, Source functions are also stored
-in the cache file as pickles.
+  computations can be resumed right away, Source functions are also stored
+  in the cache file as pickles.
 
 * slicing : ... to finish ...
 
@@ -212,16 +203,6 @@ class Source(six.with_metaclass(ABCMeta)):
 
     Overloads multiplication by a scalar to multiply the amplitude of the
     source and return a new source.
-
-     Parameters:
-
-     * amp : float
-        The amplitude of the source (:math:`A`)
-     * cf : float
-        The peak frequency of the wavelet
-    * delay : float
-        The delay before the source starts
-
     """
     def __init__(self, amp, cf, delay):
         self.amp = amp
@@ -235,11 +216,6 @@ class Source(six.with_metaclass(ABCMeta)):
         return self.__mul__(scalar)
 
     def _repr_png_(self):
-        """
-         Display this source
-
-        .. note:: works only on IPython Notebook
-        """
         t = self.delay + numpy.linspace(-2/self.cf, 2/self.cf, 200)
         fig = plt.figure(figsize=(6, 4), facecolor='white')
         fig.set_figheight(0.5*fig.get_figwidth())
@@ -263,7 +239,6 @@ class Source(six.with_metaclass(ABCMeta)):
         * t: float
             time value where evaluate the source function
         """
-
         return self.value(t)
 
     @abstractmethod
@@ -291,7 +266,7 @@ class Ricker(Source):
 
     .. math::
 
-    \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
+        \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
 
     .. note:: If you want the source to start with amplitude close to 0,
                 use ``delay = 3.5/frequency``
@@ -381,8 +356,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     """
     Base class for 2D simulations.
 
-    Implements the ``run`` method and delegates actual timestepping to the
-    abstract ``timestep`` method.
+    Implements the ``run`` method and delegates actual _timestepping to the
+    abstract ``_timestep`` method.
 
     Handles creating an HDF5 cache file, plotting snapshots of the simulation,
     printing a progress bar to stderr, and creating an IPython widget to
@@ -391,24 +366,6 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     Overloads ``__getitem__``. Indexing the simulation object is like
     indexing the HDF5 cache file. This way you can treat the simulation
     object as a numpy array.
-
-    Parameters:
-
-    * cachefile: str
-        The hdf5 cachefile to store the simulation
-    * spacing: (dx, dz)
-        space increment for x and z direction
-    * dt: float
-        time increment for simulation
-    * shape : (nz, nx)
-        The number of nodes in the simulation grid
-    * padding : int
-        Number of grid nodes to use for the absorbing boundary region
-    * taper : float
-        The intensity of the Gaussian taper function used for the absorbing
-        boundary conditions
-    * verbose: bool
-        True to show simulation progress bar
 
     """
 
@@ -421,96 +378,23 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         self.shape = shape
         self.set_verbose(verbose)
         self.sources = []
-        self.it = -1  # iteration index where we are
-        self.size = 0
+        self.it = -1  # iteration time step index (where we are)
+        self.size = 0  # simulation number of interations to run or already ran
         if cachefile is None:
-            cachefile = self.create_tmp_cache()
+            cachefile = self._create_tmp_cache()
         self.cachefile = cachefile
         self.padding = padding
         self.taper = taper
         self.dt = dt
 
-    @abstractmethod
-    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
-        """
-        Init the hdf5 cache file with this simulation parameters
-
-        Parameters:
-
-        * npanels: int
-            number of 2D panels needed for this simulation run
-        *  chunks : HDF5 data set option
-
-        * compression: HDF5 data set option
-
-        * shuffle: HDF5 data set option
-
-        """
-        pass
-
-    @abstractmethod
-    def expand_cache(self, npanels):
-        """
-        Expand the hdf5 cache file of this simulation parameters
-        for more iterations
-
-        Parameters:
-
-        *  npanels: int
-            number of 2D panels needed for this simulation
-        """
-
-        pass
-
-    @abstractmethod
-    def cache_panels(self, npanels, tp1, iteration, simul_size):
-        """
-        Save the last calculated panels and information about it
-        in the hdf5 cache file
-
-        Parameters:
-
-        * npanels : tuple or variable
-            tuple or variable containing all 2D panels needed for this simulation
-        * tp1 : int
-            panel time index
-        * iteration:
-            iteration number
-        * simul_size:
-            number of iterations of this run
-        """
-        pass
-
-    @abstractmethod
-    def init_panels(self):
-        """
-        Start the simulation panels used for finite difference solution.
-        Keep consistency of simulations if loaded from file.
-
-        Returns:
-
-        * return:
-            panels object
-        """
-        pass
-
-    @abstractmethod
-    def from_cache(fname, verbose=True):
-        """
-        Creates a simulation object from a pre-existing HDF5 file
-
-        * fname: str
-            HDF5 file path containing a previous simulation stored
-        """
-
-    def create_tmp_cache(self):
+    def _create_tmp_cache(self):
         """
         Creates the temporary file used
         to store data in hdf5 format
 
         Returns:
 
-        * create_tmp_cache: str
+        * _create_tmp_cache: str
             returns the name of the file created
 
         """
@@ -523,7 +407,27 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         tmpfile.close()
         return fname
 
-    def get_cache(self, mode='r'):
+    @abstractmethod
+    def from_cache(fname, verbose=True):
+        pass
+
+    @abstractmethod
+    def _init_panels(self):
+        pass
+
+    @abstractmethod
+    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+        pass
+
+    @abstractmethod
+    def _expand_cache(self, npanels):
+        pass
+
+    @abstractmethod
+    def _cache_panels(self, npanels, tp1, iteration, simul_size):
+        pass
+
+    def _get_cache(self, mode='r'):
         """
         Get the cache file as h5py file object
 
@@ -560,29 +464,19 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def __getitem__(self, index):
         """
         Get an iteration of the panels object from the hdf5 cache file.
-
-        .. note:: panels object is a tuple or variable containing all 2D panels needed for this simulation
-
-        * index: index or slicing
-            index for slicing hdf5 data set
-
-        Returns:
-
-       * panels object : 2D panels object at index
-
         """
         pass
 
 
     @abstractmethod
-    def plot_snapshot(self, frame, **kwargs):
+    def _plot_snapshot(self, frame, **kwargs):
         pass
 
     def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
         """
         Returns a image (snapshot) of the i'th simulation frame.
 
-        Calls `plot_snapshot`
+        Calls `_plot_snapshot`
 
         Parameters:
 
@@ -612,7 +506,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         plt.sca(ax)
         fig = ax.get_figure()
         plt.title('Time frame {:d}'.format(title))
-        self.plot_snapshot(frame, **kwargs)
+        self._plot_snapshot(frame, **kwargs)
         nz, nx = self.shape
         mx, mz = nx*self.dx, nz*self.dz
         ax.set_xlim(0, mx)
@@ -645,18 +539,13 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def _repr_png_(self):
         """
         Display one time frame of this simulation
-
-        .. note:: works only on IPython Notebook
         """
         return self.snapshot(-1, raw=True)
 
     def explore(self, **kwargs):
         """
         Interactive visualization of simulation results.
-
         Allows to move back and forth on simulation frames.
-
-        .. note:: works only on IPython Notebook
         """
         plotargs = kwargs
         def plot(Frame):
@@ -669,30 +558,15 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         return widget
 
     @abstractmethod
-    def timestep(self, panels, tm1, t, tp1, iteration):
-        """
-        Perform one forward on time step calculation
-
-        * panels: depends upon implementation
-            simulation grid variables
-        * tm1: int
-            t minus one integer index for panels
-        * t: int
-            t integer index for panels
-        * tp1: int
-            t plus one integer index for panels
-        * iteration: int
-            which iteration are we in
-        """
-
+    def _timestep(self, panels, tm1, t, tp1, iteration):
         pass
 
     def run(self, iterations):
         """
         Run this simulation given the number of iterations.
 
-        Calls `init_cache`, `expand_cache`, `init_panels`
-        `cache_panels` and  `time_step`
+        Calls `_init_cache`, `_expand_cache`, `_init_panels`
+        `_cache_panels` and  `time_step`
 
         * iterations: int
             number of iterations to run
@@ -700,13 +574,13 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         nz, nx = self.shape
         dz, dx = self.dz, self.dx
 
-        u = self.init_panels()  # panels variable must be created first
+        u = self._init_panels()  # panels variable must be created first
 
         # Initialize the cache on the first run
         if self.size == 0:
-            self.init_cache(iterations)
+            self._init_cache(iterations)
         else:   # increase cache size by iterations
-            self.expand_cache(iterations)
+            self._expand_cache(iterations)
 
         if self.verbose:
             # The size of the progress status bar
@@ -719,10 +593,10 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             t, tm1 = iteration%2, (iteration + 1)%2
             tp1 = tm1
             self.it += 1
-            self.timestep(u, tm1, t, tp1, self.it)
+            self._timestep(u, tm1, t, tp1, self.it)
             self.size += 1
             #  won't this make it slower than it should? I/O
-            self.cache_panels(u, tp1, self.it, self.size)
+            self._cache_panels(u, tp1, self.it, self.size)
             # Update the status bar
             if self.verbose:
                 percent = int(round(100*(iteration + 1)/iterations))
@@ -794,7 +668,7 @@ class ElasticSH(WaveFD2D):
         * panels object : 2D panels object at index
 
         """
-        with self.get_cache() as f:
+        with self._get_cache() as f:
             data = f['panels'][index]
         return data
 
@@ -826,7 +700,7 @@ class ElasticSH(WaveFD2D):
         sim.set_verbose(verbose)
         return sim
 
-    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
 
@@ -842,7 +716,7 @@ class ElasticSH(WaveFD2D):
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
-        with self.get_cache(mode='w') as f:  # create HDF5 data sets
+        with self._get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
             dset = f.create_dataset('panels', (npanels, nz, nx),
                                      maxshape=(None, nz, nx),
@@ -863,7 +737,7 @@ class ElasticSH(WaveFD2D):
             f.create_dataset(
                 'sources', data=numpy.void(pickle.dumps(self.sources)))
 
-    def expand_cache(self, npanels):
+    def _expand_cache(self, npanels):
         """
         Expand the hdf5 cache file of this simulation parameters
         for more iterations
@@ -871,11 +745,11 @@ class ElasticSH(WaveFD2D):
         *  npanels: int
             number of 2D panels needed for this simulation
         """
-        with self.get_cache(mode='a') as f:
+        with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache.resize(self.size + npanels, axis=0)
 
-    def cache_panels(self, u, tp1, iteration, simul_size):
+    def _cache_panels(self, u, tp1, iteration, simul_size):
         """
         Save the last calculated panels and information about it
         in the hdf5 cache file
@@ -892,20 +766,23 @@ class ElasticSH(WaveFD2D):
             number of iterations of this run
         """
         # Save the panel to disk
-        with self.get_cache(mode='a') as f:
+        with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache[simul_size - 1] = u[tp1]
             cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
             cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
             # that simulation runs properly after reloaded from file
 
-    def init_panels(self):
+    def _init_panels(self):
         """
         Start the simulation panels used for finite difference solution.
         Keep consistency of simulations if loaded from file.
 
+        Returns:
+
         * return:
             panels object
+
         """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
@@ -913,7 +790,7 @@ class ElasticSH(WaveFD2D):
             nz, nx = self.shape
             u = numpy.zeros((2, nz, nx), dtype=numpy.float)
         else:
-            with self.get_cache() as f:
+            with self._get_cache() as f:
                 cache = f['panels']
                 u = cache[self.size - 2 : self.size][::-1]
         return u
@@ -926,14 +803,13 @@ class ElasticSH(WaveFD2D):
 
         * position : tuple
             The (x, z) coordinates of the source
-
         * source : source function
-            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example
-        source)
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example source)
+
         """
         self.sources.append([position, wavelet])
 
-    def timestep(self, u, tm1, t, tp1, iteration):
+    def _timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3,
                          self.dt, self.dx, self.dz, self.mu, self.density)
@@ -945,7 +821,7 @@ class ElasticSH(WaveFD2D):
             i, j = pos
             u[tp1, i, j] += src(iteration*self.dt)
 
-    def plot_snapshot(self, frame, **kwargs):
+    def _plot_snapshot(self, frame, **kwargs):
         with h5py.File(self.cachefile) as f:
             data = f['panels'][frame]
         scale = numpy.abs(data).max()
@@ -1105,12 +981,12 @@ class ElasticPSV(WaveFD2D):
         self.sources.append([position, xamp*source, zamp*source])
 
     def __getitem__(self, args):
-        with self.get_cache() as f:
+        with self._get_cache() as f:
             ux = f['xpanels'][args]
             uz = f['zpanels'][args]
         return [ux, uz]
 
-    def plot_snapshot(self, frame, **kwargs):
+    def _plot_snapshot(self, frame, **kwargs):
         with h5py.File(self.cachefile) as f:
             ux = f['xpanels'][frame]
             uz = f['zpanels'][frame]
@@ -1152,7 +1028,7 @@ class ElasticPSV(WaveFD2D):
                        scale=1/scale, linewidth=linewidth,
                        pivot='tail', angles='xy', scale_units='xy')
 
-    def init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
 
@@ -1166,7 +1042,7 @@ class ElasticPSV(WaveFD2D):
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
-        with self.get_cache(mode='w') as f:
+        with self._get_cache(mode='w') as f:
             nz, nx = self.shape
             dset = f.create_dataset('xpanels', (panels, nz, nx),
                                      maxshape=(None, nz, nx),
@@ -1205,7 +1081,16 @@ class ElasticPSV(WaveFD2D):
             dset.attrs['len'] = len(self.sources)
 
     @staticmethod
-    def from_cache(fname):
+    def from_cache(fname, verbose=True):
+        """
+        Creates a simulation object from a pre-existing HDF5 file
+
+        * fname: str
+            HDF5 file path containing a previous simulation stored
+
+        * verbose: bool
+            Progress status shown or not
+        """
         with h5py.File(fname, 'r') as f:
             pvel = f['pvel']
             svel = f['svel']
@@ -1221,9 +1106,10 @@ class ElasticPSV(WaveFD2D):
             sim.size = panels.attrs['size']
             sim.it = panels.attrs['iterations']
             sim.sources = pickle.loads(f['sources'].value.tostring())
+        sim.verbose = verbose
         return sim
 
-    def cache_panels(self, u, tp1, iteration, simul_size):
+    def _cache_panels(self, u, tp1, iteration, simul_size):
         """
         Save the last calculated panels and information about it
         in the hdf5 cache file
@@ -1240,7 +1126,7 @@ class ElasticPSV(WaveFD2D):
             number of iterations of this run
         """
         # Save the panel to disk
-        with self.get_cache(mode='a') as f:
+        with self._get_cache(mode='a') as f:
             ux, uz = u
             xpanels = f['xpanels']
             zpanels = f['zpanels']
@@ -1252,25 +1138,25 @@ class ElasticPSV(WaveFD2D):
             zpanels.attrs['iterations'] = iteration
 
 
-    def expand_cache(self, iterations):
-        with self.get_cache(mode='a') as f:
+    def _expand_cache(self, iterations):
+        with self._get_cache(mode='a') as f:
             f['xpanels'].resize(self.size + iterations, axis=0)
             f['zpanels'].resize(self.size + iterations, axis=0)
 
-    def init_panels(self):
+    def _init_panels(self):
         if self.size == 0:
             nz, nx = self.shape
             ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
             uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
         else:
             # Get the last two panels from the cache
-            with self.get_cache() as f:
+            with self._get_cache() as f:
                 # Reverse the array because the later time comes first in
                 # ux, uz
-                # Need to copy them and reorder because the timestep function
+                # Need to copy them and reorder because the _timestep function
                 # takes the whole ux array and complains that it isn't C
                 # contiguous
-                # Could change the timestep to pass ux[tp1], etc, like in
+                # Could change the _timestep to pass ux[tp1], etc, like in
                 # ElasticSH. That would probably be much better.
                 ux = numpy.copy(f['xpanels'][self.size - 2 : self.size][::-1],
                                 order='C')
@@ -1279,7 +1165,7 @@ class ElasticPSV(WaveFD2D):
         return [ux, uz]
 
 
-    def timestep(self, u, tm1, t, tp1, iteration):
+    def _timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
         ux, uz = u
         _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1,
@@ -1478,8 +1364,7 @@ class Scalar(WaveFD2D):
     def __getitem__(self, index):
         """
         Get an iteration of the panel object from the hdf5 cache file.
-
-        panel object is an (3, nz, nx)  array needed for this simulation
+        panel object is an (2, nz, nx)  array needed for this simulation
 
         Parameters
 
@@ -1491,7 +1376,7 @@ class Scalar(WaveFD2D):
         * panel object : 2D panels object at index
 
         """
-        with self.get_cache() as f:
+        with self._get_cache() as f:
             data = f['panels'][index]
         return data
 
@@ -1503,14 +1388,13 @@ class Scalar(WaveFD2D):
 
         * position : tuple
             The (x, z) coordinates of the source
-
         * source : source function
-            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example
-        source)
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example source)
+
         """
         self.sources.append([position, wavelet])
 
-    def init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
 
@@ -1520,16 +1404,19 @@ class Scalar(WaveFD2D):
             number of 2D panels needed for this simulation run
             from iterations
         * chunks : HDF5 data set option
-
+            (Tuple) Chunk shape, or True to enable auto-chunking.
         * compression: HDF5 data set option
-
+            (String or int) Compression strategy.  Legal values are 'gzip',
+            'szip', 'lzf'.  If an integer in range(10), this indicates gzip
+            compression level. Otherwise, an integer indicates the number of a
+            dynamically loaded compression filter.
         * shuffle: HDF5 data set option
-
+            (T/F) Enable shuffle filter.
         """
         nz, nx = self.shape
         if chunks is None:
             chunks = (1, nz//10, nx//10)
-        with self.get_cache(mode='w') as f:  # create HDF5 data sets
+        with self._get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
             dset = f.create_dataset('panels', (npanels, nz, nx),
                                      maxshape=(None, nz, nx),
@@ -1570,7 +1457,6 @@ class Scalar(WaveFD2D):
         """
         with h5py.File(fname, 'r') as f:
             vel = f['velocity']
-            dens = f['density']
             panels = f['panels']
             dx = panels.attrs['dx']
             dz = panels.attrs['dz']
@@ -1585,7 +1471,7 @@ class Scalar(WaveFD2D):
         sim.set_verbose(verbose)
         return sim
 
-    def expand_cache(self, npanels):
+    def _expand_cache(self, npanels):
         """
         Expand the hdf5 cache file of this simulation parameters
         for more iterations
@@ -1596,11 +1482,11 @@ class Scalar(WaveFD2D):
             number of 2D panels needed for this simulation
             from iterations
         """
-        with self.get_cache(mode='a') as f:
+        with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache.resize(self.size + npanels, axis=0)
 
-    def cache_panels(self, u, tp1, iteration, simul_size):
+    def _cache_panels(self, u, tp1, iteration, simul_size):
         """
         Save the last calculated time step panels and information about it
         in the hdf5 cache file
@@ -1617,202 +1503,202 @@ class Scalar(WaveFD2D):
             number of iterations of this run
         """
         # Save the panel to disk
-        with self.get_cache(mode='a') as f:
+        pad = self.padding
+        with self._get_cache(mode='a') as f:
             cache = f['panels']
-            cache[simul_size - 1] = u[tp1]
-            cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
-            cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
+            cache[simul_size - 1] = u[tp1, :-pad, pad:-pad]
+            # is this really needed? it's already saved when initiated ??
+            cache.attrs['size'] = simul_size
+            # i don't understand very well but it's needed to guarantee
+            cache.attrs['iterations'] = iteration
             # that simulation runs properly after reloaded from file
 
-    def init_panels(self):
+    def _init_panels(self):
         """
         Initiate the simulation panels used for finite difference solution.
         Keep consistency of simulation if loaded from file.
 
         Returns:
 
-        * init_panels: object
-            3D array (2, nz, nx) or tupple of 3D array (?, nz, nx)
+        * _init_panels: object
+            3D array (2, nz+pad, nx+2pad) or
+            tupple of 3D array (?, nz+pad, nx+2pad)
 
         """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
+
         if self.size == 0:
-            nz, nx = self.shape
+            nz, nx = self.shape  # self.shape is not changed
+            pad = self.padding
+            # Add some padding to x and z. The padding region is where
+            # the wave is absorbed
+            nx += 2 * pad
+            nz += pad
+            # Pad the velocity
+            self.velocity = _add_pad(self.velocity, pad, (nz, nx))
+            # Pack the particle position u at 2 different times in one 3d array
+            # u[0] = u(t-1)
+            # u[1] = u(t)
+            # The next time step overwrites the t-1 panel
             u = numpy.zeros((2, nz, nx), dtype=numpy.float)
         else:
-            with self.get_cache() as f:
+            with self._get_cache() as f:
                 cache = f['panels']
-                u = cache[self.size - 2 : self.size][::-1]
+                u = cache[self.size - 2: self.size][::-1]  # 0 and 1 invert
+                # add padd
+                nz, nx = self.shape  # self.shape is not changed
+                pad = self.padding
+                # Add some padding to x and z. The padding region is where
+                # the wave is absorbed
+                nx += 2 * pad
+                nz += pad
+                u_ = numpy.zeros((2, nz, nx), dtype=numpy.float)
+                u_[:, :-pad, pad:-pad] = u
+                u = u_
         return u
 
-class MexHatSource(object):
+    def _timestep(self, u, tm1, t, tp1, iteration):
+        nz, nx = self.shape
+        ds = self.dx  # increment equal
+        _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
+                     self.dt, ds, self.velocity)
+        # forth order +2-2 indexes needed
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[t], nx, nz, self.padding, self.taper)
+        # not PML yet or anything similar
+        _reflexive_scalar_boundary_conditions(u[tp1], nx, nz)
+        # Damp the regions in the padding to make waves go to infinity
+        _apply_damping(u[tp1], nx, nz, self.padding, self.taper)
+        for pos, src in self.sources:
+            i, j = pos
+            u[tp1, i, j + self.padding] += src(iteration*self.dt)
 
-    r"""
-    A wave source that vibrates as a Mexican hat (Ricker) wavelet.
-
-    .. math::
-
-        \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
-
-    Parameters:
-
-    * x, z : float
-        The x, z coordinates of the source
-    * area : [xmin, xmax, zmin, zmax]
-        The area bounding the finite difference simulation
-    * shape : (nz, nx)
-        The number of nodes in the finite difference grid
-    * amp : float
-        The amplitude of the source (:math:`A`)
-    * frequency : float
-        The peak frequency of the wavelet
-    * delay : float
-        The delay before the source starts
-
-        .. note:: If you want the source to start with amplitude close to 0,
-            use ``delay = 3.5/frequency``.
-
-    """
-
-    def __init__(self, x, z, area, shape, amp, frequency, delay=0):
-        nz, nx = shape
-        dz, dx = sum(area[2:]) / (nz - 1), sum(area[:2]) / (nx - 1)
-        self.i = int(round((z - area[2]) / dz))
-        self.j = int(round((x - area[0]) / dx))
-        self.x, self.z = x, z
-        self.amp = amp
-        self.frequency = frequency
-        self.f2 = frequency ** 2
-        self.delay = delay
-
-    def __call__(self, time):
-        t2 = (time - self.delay) ** 2
-        pi2 = numpy.pi ** 2
-        psi = self.amp * (1 - 2 * pi2 * self.f2 * t2) * \
-            numpy.exp(-pi2 * self.f2 * t2)
-        return psi
-
-    def coords(self):
-        """
-        Get the x, z coordinates of the source.
-
-        Returns:
-
-        * (x, z) : tuple
-            The x, z coordinates
-
-        """
-        return (self.x, self.z)
-
-    def indexes(self):
-        """
-        Get the i,j coordinates of the source in the finite difference grid.
-
-        Returns:
-
-        * (i,j) : tuple
-            The i,j coordinates
-
-        """
-        return (self.i, self.j)
-
-
-def blast_source(x, z, area, shape, amp, frequency, delay=0,
-                 sourcetype=MexHatSource):
-    """
-    Uses several MexHatSources to create a blast source that pushes in all
-    directions.
-
-    Parameters:
-
-    * x, z : float
-        The x, z coordinates of the source
-    * area : [xmin, xmax, zmin, zmax]
-        The area bounding the finite difference simulation
-    * shape : (nz, nx)
-        The number of nodes in the finite difference grid
-    * amp : float
-        The amplitude of the source
-    * frequency : float
-        The frequency of the source
-    * delay : float
-        The delay before the source starts
-    * sourcetype : source class
-        The type of source to use, like
-        :class:`~fatiando.seismic.wavefd.MexHatSource`.
-
-    Returns:
-
-    * [xsources, zsources]
-        Lists of sources for x- and z-displacements
-
-    """
-    nz, nx = shape
-    xsources, zsources = [], []
-    center = sourcetype(x, z, area, shape, amp, frequency, delay)
-    i, j = center.indexes()
-    tmp = numpy.sqrt(2)
-    locations = [[i - 1, j - 1, -amp, -amp],
-                 [i - 1, j, 0, -tmp * amp],
-                 [i - 1, j + 1, amp, -amp],
-                 [i, j - 1, -tmp * amp, 0],
-                 [i, j + 1, tmp * amp, 0],
-                 [i + 1, j - 1, -amp, amp],
-                 [i + 1, j, 0, tmp * amp],
-                 [i + 1, j + 1, amp, amp]]
-    locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
-                 if i >= 0 and i < nz and j >= 0 and j < nx]
-    for i, j, xamp, zamp in locations:
-        xsrc = sourcetype(x, z, area, shape, xamp, frequency, delay)
-        xsrc.i, xsrc.j = i, j
-        zsrc = sourcetype(x, z, area, shape, zamp, frequency, delay)
-        zsrc.i, zsrc.j = i, j
-        xsources.append(xsrc)
-        zsources.append(zsrc)
-    return xsources, zsources
+# class MexHatSource(object):
+#
+#     r"""
+#     A wave source that vibrates as a Mexican hat (Ricker) wavelet.
+#
+#     .. math::
+#
+#         \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
+#
+#     Parameters:
+#
+#     * x, z : float
+#         The x, z coordinates of the source
+#     * area : [xmin, xmax, zmin, zmax]
+#         The area bounding the finite difference simulation
+#     * shape : (nz, nx)
+#         The number of nodes in the finite difference grid
+#     * amp : float
+#         The amplitude of the source (:math:`A`)
+#     * frequency : float
+#         The peak frequency of the wavelet
+#     * delay : float
+#         The delay before the source starts
+#
+#         .. note:: If you want the source to start with amplitude close to 0,
+#             use ``delay = 3.5/frequency``.
+#
+#     """
+#
+#     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
+#         nz, nx = shape
+#         dz, dx = sum(area[2:]) / (nz - 1), sum(area[:2]) / (nx - 1)
+#         self.i = int(round((z - area[2]) / dz))
+#         self.j = int(round((x - area[0]) / dx))
+#         self.x, self.z = x, z
+#         self.amp = amp
+#         self.frequency = frequency
+#         self.f2 = frequency ** 2
+#         self.delay = delay
+#
+#     def __call__(self, time):
+#         t2 = (time - self.delay) ** 2
+#         pi2 = numpy.pi ** 2
+#         psi = self.amp * (1 - 2 * pi2 * self.f2 * t2) * \
+#             numpy.exp(-pi2 * self.f2 * t2)
+#         return psi
+#
+#     def coords(self):
+#         """
+#         Get the x, z coordinates of the source.
+#
+#         Returns:
+#
+#         * (x, z) : tuple
+#             The x, z coordinates
+#
+#         """
+#         return (self.x, self.z)
+#
+#     def indexes(self):
+#         """
+#         Get the i,j coordinates of the source in the finite difference grid.
+#
+#         Returns:
+#
+#         * (i,j) : tuple
+#             The i,j coordinates
+#
+#         """
+#         return (self.i, self.j)
 
 
-class GaussSource(MexHatSource):
-
-    r"""
-    A wave source that vibrates as a Gaussian derivative wavelet.
-
-    .. math::
-
-        \psi(t) = A 2 \sqrt{e}\ f\ t\ e^\left(-2t^2f^2\right)
-
-    Parameters:
-
-    * x, z : float
-        The x, z coordinates of the source
-    * area : [xmin, xmax, zmin, zmax]
-        The area bounding the finite difference simulation
-    * shape : (nz, nx)
-        The number of nodes in the finite difference grid
-    * amp : float
-        The amplitude of the source (:math:`A`)
-    * frequency : float
-        The approximate frequency of the source
-    * delay : float
-        The delay before the source starts
-
-    .. note:: If you want the source to start with amplitude close to 0,
-        use ``delay = 3.0/frequency``.
-    """
-
-    def __init__(self, x, z, area, shape, amp, frequency, delay=None):
-        super(GaussSource, self).__init__(x, z, area, shape, amp,
-                                          frequency, delay)
-        if delay is None:
-            self.delay = 3.0 / frequency
-
-    def __call__(self, time):
-        t = time - self.delay
-        psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.frequency)
-                          * t * numpy.exp(-2 * (t ** 2) * self.f2)
-                          )
-        return psi
+# def blast_source(x, z, area, shape, amp, frequency, delay=0,
+#                  sourcetype=MexHatSource):
+#     """
+#     Uses several MexHatSources to create a blast source that pushes in all
+#     directions.
+#
+#     Parameters:
+#
+#     * x, z : float
+#         The x, z coordinates of the source
+#     * area : [xmin, xmax, zmin, zmax]
+#         The area bounding the finite difference simulation
+#     * shape : (nz, nx)
+#         The number of nodes in the finite difference grid
+#     * amp : float
+#         The amplitude of the source
+#     * frequency : float
+#         The frequency of the source
+#     * delay : float
+#         The delay before the source starts
+#     * sourcetype : source class
+#         The type of source to use, like
+#         :class:`~fatiando.seismic.wavefd.MexHatSource`.
+#
+#     Returns:
+#
+#     * [xsources, zsources]
+#         Lists of sources for x- and z-displacements
+#
+#     """
+#     nz, nx = shape
+#     xsources, zsources = [], []
+#     center = sourcetype(x, z, area, shape, amp, frequency, delay)
+#     i, j = center.indexes()
+#     tmp = numpy.sqrt(2)
+#     locations = [[i - 1, j - 1, -amp, -amp],
+#                  [i - 1, j, 0, -tmp * amp],
+#                  [i - 1, j + 1, amp, -amp],
+#                  [i, j - 1, -tmp * amp, 0],
+#                  [i, j + 1, tmp * amp, 0],
+#                  [i + 1, j - 1, -amp, amp],
+#                  [i + 1, j, 0, tmp * amp],
+#                  [i + 1, j + 1, amp, amp]]
+#     locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
+#                  if i >= 0 and i < nz and j >= 0 and j < nx]
+#     for i, j, xamp, zamp in locations:
+#         xsrc = sourcetype(x, z, area, shape, xamp, frequency, delay)
+#         xsrc.i, xsrc.j = i, j
+#         zsrc = sourcetype(x, z, area, shape, zamp, frequency, delay)
+#         zsrc.i, zsrc.j = i, j
+#         xsources.append(xsrc)
+#         zsources.append(zsrc)
+#     return xsources, zsources
 
 
 def lame_lamb(pvel, svel, dens):
@@ -1902,115 +1788,6 @@ def _add_pad(array, pad, shape):
     for k in xrange(pad):
         array_pad[-(pad - k), :] = array_pad[-(pad + 1), :]
     return array_pad
-
-
-def  scalar(vel, area, dt, iterations, sources, stations=None,
-           snapshot=None, padding=50, taper=0.005):
-    """
-
-    Simulate scalar waves using an explicit finite differences scheme 4th order
-    space. Space increment must be equal in x and z.
-
-    Parameters:
-
-    * vel : 2D-array (defines shape simulation)
-        The wave velocity at all the grid nodes
-    * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the shallowest point is
-        at zmin, the deepest at zmax.
-    * dt : float
-        The time interval between iterations
-    * iterations : int
-        Number of time steps to take
-    * sources : list
-        A list of the sources of waves
-        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
-        source)
-    * stations : None or list
-        If not None, then a list of [x, z] pairs with the x and z coordinates
-        of the recording stations. These are physical coordinates, not the
-        indexes
-    * snapshot : None or int
-        If not None, than yield a snapshot of the displacement at every
-        *snapshot* iterations.
-    * padding : int
-        Number of grid nodes to use for the absorbing boundary region
-    * taper : float
-        The intensity of the Gaussian taper function used for the absorbing
-        boundary conditions
-
-    Yields:
-
-    * i, u, seismograms : int, 2D-array and list of 1D-arrays
-        The current iteration, the scalar quantity disturbed
-        and a list of the scalar quantity disturbed recorded at each
-        station until the current iteration.
-
-    """
-
-    nz, nx = numpy.shape(vel)  # get simulation dimensions
-    x1, x2, z1, z2 = area
-    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
-
-    if dz != dx:
-        raise ValueError('Space increment must be equal in x and z')
-
-    ds = dz  # dz or dx doesn't matter
-
-    # Get the index of the closest point to the stations and start the
-    # seismograms
-    if stations is not None:
-        stations = [[int(round((z - z1) / ds)), int(round((x - x1) / ds))]
-                    for x, z in stations]
-        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
-    else:
-        stations, seismograms = [], []
-    # Add some padding to x and z. The padding region is where the wave is
-    # absorbed
-    pad = int(padding)
-    nx += 2 * pad
-    nz += pad
-    # Pad the velocity as well
-    vel_pad = _add_pad(vel, pad, (nz, nx))
-    # Pack the particle position u at 2 different times in one 3d array
-    # u[0] = u(t-1)
-    # u[1] = u(t)
-    # The next time step overwrites the t-1 panel
-    u = numpy.zeros((2, nz, nx), dtype=numpy.float)
-    # Compute and yield the initial solutions
-    for src in sources:
-        i, j = src.indexes()
-        u[1, i, j + pad] += -((vel[i, j] * dt) ** 2) * src(0)
-    # Update seismograms
-    for station, seismogram in zip(stations, seismograms):
-        i, j = station
-        seismogram[0] = u[1, i, j + pad]
-    if snapshot is not None:
-        yield 0, u[1, :-pad, pad:-pad], seismograms
-
-    for iteration in xrange(1, iterations):
-        t, tm1 = iteration % 2, (iteration + 1) % 2
-        tp1 = tm1
-        _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
-                     dt, ds, vel_pad)
-        # forth order +2-2 indexes needed
-        # Damp the regions in the padding to make waves go to infinity
-        _apply_damping(u[t], nx, nz, pad, taper)
-        # not PML yet or anything similar
-        _reflexive_scalar_boundary_conditions(u[tp1], nx, nz)
-        # Damp the regions in the padding to make waves go to infinity
-        _apply_damping(u[tp1], nx, nz, pad, taper)
-        for src in sources:
-            i, j = src.indexes()
-            u[tp1, i, j + pad] += - \
-                ((vel[i, j] * dt) ** 2) * src(iteration * dt)
-        # Update seismograms
-        for station, seismogram in zip(stations, seismograms):
-            i, j = station
-            seismogram[iteration] = u[tp1, i, j + pad]
-        if snapshot is not None and iteration % snapshot == 0:
-            yield iteration, u[tp1, :-pad, pad:-pad], seismograms
-    yield iteration, u[tp1, :-pad, pad:-pad], seismograms
 
 
 def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,

@@ -37,6 +37,7 @@ class Mock(object):
             return Mock()
 
 MOCK_MODULES = [
+    'h5py',
     'numpy', 'numpy.linalg', 'numpy.linalg.linalg',
     'scipy', 'scipy.sparse', 'scipy.sparse.linalg', 'scipy.misc',
     'scipy.special', 'scipy.interpolate',
@@ -48,6 +49,7 @@ MOCK_MODULES = [
     'IPython.core',
     'IPython.core.pylabtools',
     'IPython.display',
+    'IPython.html'
     ]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()

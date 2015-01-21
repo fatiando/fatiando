@@ -371,9 +371,11 @@ Some brief guidelines:
             Bla B., and Meh M. (2014). Some relevant article describing the
             methods. Journal. doi:82e1hd1puhd7
             """
+
 * Class docstrings will contain a description of the class and the parameters
   that `__init__` takes. It should also include examples (as doctests when
   possible) and references. Pretty much like function docstrings.
+  Abstract methods should not have docstrings but its overriden version must.
 
 To compile the documentation, run::
 
