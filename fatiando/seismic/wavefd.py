@@ -325,9 +325,11 @@ class Gauss(Source):
         The delay before the source starts
     """
 
-    def __init__(self, amp, cf, delay=0):
+    def __init__(self, amp, cf, delay=None):
         super(Gauss, self).__init__(amp, cf, delay)
         self.f2 = self.cf**2
+        if delay is None:
+            self.delay = 3.0/self.cf
 
 
     def value(self, t):
@@ -1418,6 +1420,7 @@ class Scalar(WaveFD2D):
             chunks = (1, nz//10, nx//10)
         with self._get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
+            pad = self.padding
             dset = f.create_dataset('panels', (npanels, nz, nx),
                                      maxshape=(None, nz, nx),
                                      chunks=chunks,
@@ -1432,7 +1435,7 @@ class Scalar(WaveFD2D):
             dset.attrs['dt'] = self.dt
             dset.attrs['padding'] = self.padding
             dset.attrs['taper'] = self.taper
-            f.create_dataset('velocity', data=self.velocity)
+            f.create_dataset('velocity', data=self.velocity[:-pad, pad:-pad])
             f.create_dataset(
                 'sources', data=numpy.void(pickle.dumps(self.sources)))
 
@@ -1463,8 +1466,9 @@ class Scalar(WaveFD2D):
             dt = panels.attrs['dt']
             padding = panels.attrs['padding']
             taper = panels.attrs['taper']
+            # created from velocity so it must have the shape without padding
             sim = Scalar(vel[:], (dx, dz), dt=dt, padding=padding,
-                            taper=taper, cachefile=fname)
+                         taper=taper, cachefile=fname)
             sim.size = panels.attrs['size']
             sim.it = panels.attrs['iterations']
             sim.sources = pickle.loads(f['sources'].value.tostring())
@@ -1554,12 +1558,15 @@ class Scalar(WaveFD2D):
                 nx += 2 * pad
                 nz += pad
                 u_ = numpy.zeros((2, nz, nx), dtype=numpy.float)
-                u_[:, :-pad, pad:-pad] = u
+                u_[:, :-pad, pad:-pad] += u
                 u = u_
         return u
 
     def _timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
+        # due dump regions
+        nz += self.padding
+        nx += self.padding*2
         ds = self.dx  # increment equal
         _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
                      self.dt, ds, self.velocity)
@@ -1573,6 +1580,10 @@ class Scalar(WaveFD2D):
         for pos, src in self.sources:
             i, j = pos
             u[tp1, i, j + self.padding] += src(iteration*self.dt)
+
+    def _plot_snapshot(self, frame, **kwargs):
+        pass
+
 
 # class MexHatSource(object):
 #
