@@ -377,15 +377,19 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             self.dx, self.dz = spacing, spacing
         else:
             self.dx, self.dz = spacing
-        self.shape = shape
+        self.shape = shape  # grid shape without padding
         self.set_verbose(verbose)
         self.sources = []
+        # simsize stores the total size of this simulation
+        # after some or many runs
+        self.simsize = 0  # simulation number of interations already ran
+        # it is the `run` iteration time step indexer
         self.it = -1  # iteration time step index (where we are)
-        self.size = 0  # simulation number of interations to run or already ran
+        # `it` and `simsize` together allows indefinite simulation runs
         if cachefile is None:
             cachefile = self._create_tmp_cache()
         self.cachefile = cachefile
-        self.padding = padding
+        self.padding = padding # padding region size
         self.taper = taper
         self.dt = dt
 
@@ -476,19 +480,16 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
     def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
         """
-        Returns a image (snapshot) of the i'th simulation frame.
-
-        Calls `_plot_snapshot`
+        Returns an image (snapshot) of the 2D wavefield simulation
+        at a desired iteration number (frame).
 
         Parameters:
 
         * frame : int
-            The iteration number
+            The time step iteration number
         * embed : bool
-            works only on IPython Notebook
             True to plot it inline
         * raw: bool
-            works only on IPython Notebook
             True for raw byte image
 
         Returns:
@@ -498,11 +499,12 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             jpeg picture if embed=True
 
         """
+        # calls `_plot_snapshot`
         if ax is None:
             fig = plt.figure(facecolor='white')
             ax = plt.subplot(111)
         if frame < 0:
-            title = self.size + frame
+            title = self.simsize + frame
         else:
             title = frame
         plt.sca(ax)
@@ -567,19 +569,18 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         Run this simulation given the number of iterations.
 
-        Calls `_init_cache`, `_expand_cache`, `_init_panels`
-        `_cache_panels` and  `time_step`
-
         * iterations: int
-            number of iterations to run
+            number of time step iterations to run
         """
+        # calls `_init_cache`, `_expand_cache`, `_init_panels`
+        # and `_cache_panels` and  `_time_step`
+
         nz, nx = self.shape
         dz, dx = self.dz, self.dx
-
-        u = self._init_panels()  # panels variable must be created first
+        u = self._init_panels()  # panels must be created first
 
         # Initialize the cache on the first run
-        if self.size == 0:
+        if self.simsize == 0:
             self._init_cache(iterations)
         else:   # increase cache size by iterations
             self._expand_cache(iterations)
@@ -596,9 +597,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             tp1 = tm1
             self.it += 1
             self._timestep(u, tm1, t, tp1, self.it)
-            self.size += 1
+            self.simsize += 1
             #  won't this make it slower than it should? I/O
-            self._cache_panels(u, tp1, self.it, self.size)
+            self._cache_panels(u, tp1, self.it, self.simsize)
             # Update the status bar
             if self.verbose:
                 percent = int(round(100*(iteration + 1)/iterations))
@@ -615,6 +616,64 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
                  ' Ran {:d} iterations in {:g} seconds.'.format(
                      iterations, time.clock() - start_time)]))
             self.stream.flush()
+
+    def animate(self, every=1, cutoff=None, ax=None, cmap=plt.cm.seismic,
+                embed=False, fps=10, dpi=70, writer='avconv', **kwargs):
+        """
+        Creates a 2D animation from all the simulation iterations
+        that has been run.
+
+        * every : int
+
+        * cutoff : int
+
+        * ax : int
+
+        * cmap : int
+
+        * embed:
+
+        """
+        if ax is None:
+            plt.figure(facecolor='white')
+            ax = plt.subplot(111)
+            ax.set_xlabel('x')
+            ax.set_ylabel('z')
+        fig = ax.get_figure()
+        nz, nx = self.shape
+        # Check the aspect ratio of the plot and adjust figure size to match
+        aspect = min(self.shape)/max(self.shape)
+        try:
+            aspect /= ax.get_aspect()
+        except TypeError:
+            pass
+        if nx > nz:
+            width = 10
+            height = width*aspect*0.8
+        else:
+            height = 10
+            width = height*aspect*1.5
+        fig.set_size_inches(width, height)
+        # Separate the arguments for imshow
+        imshow_args = dict(cmap=cmap)
+        if cutoff is not None:
+            imshow_args['vmin'] = -cutoff
+            imshow_args['vmax'] = cutoff
+        wavefield = ax.imshow(numpy.zeros(self.shape), **imshow_args)
+        fig.colorbar(wavefield, pad=0, aspect=30).set_label('Displacement')
+        ax.set_title('iteration: 0')
+        frames = self.simsize//every
+        def plot(i):
+            ax.set_title('iteration: {:d}'.format(i*every))
+            u = self[i*every]
+            wavefield.set_array(u)
+            return wavefield
+        anim = animation.FuncAnimation(fig, plot, frames=frames, **kwargs)
+        if embed:
+            return anim_to_html(anim, fps=fps, dpi=dpi, writer=writer)
+        else:
+            plt.show()
+            return anim
 
 
 class ElasticSH(WaveFD2D):
@@ -696,8 +755,8 @@ class ElasticSH(WaveFD2D):
             taper = panels.attrs['taper']
             sim = ElasticSH(vel[:], dens[:], (dx, dz), dt=dt, padding=padding,
                             taper=taper, cachefile=fname)
-            sim.size = panels.attrs['size']
-            sim.it = panels.attrs['iterations']
+            sim.simsize = panels.attrs['simsize']
+            sim.it = panels.attrs['iteration']
             sim.sources = pickle.loads(f['sources'].value.tostring())
         sim.set_verbose(verbose)
         return sim
@@ -727,8 +786,8 @@ class ElasticSH(WaveFD2D):
                                      shuffle=shuffle,
                                      dtype=numpy.float)
             dset.attrs['shape'] = self.shape
-            dset.attrs['size'] = self.size
-            dset.attrs['iterations'] = self.it
+            dset.attrs['simsize'] = self.simsize
+            dset.attrs['iteration'] = self.it
             dset.attrs['dx'] = self.dx
             dset.attrs['dz'] = self.dz
             dset.attrs['dt'] = self.dt
@@ -745,11 +804,11 @@ class ElasticSH(WaveFD2D):
         for more iterations
 
         *  npanels: int
-            number of 2D panels needed for this simulation
+            number of 2D panels needed for this simulation run
         """
         with self._get_cache(mode='a') as f:
             cache = f['panels']
-            cache.resize(self.size + npanels, axis=0)
+            cache.resize(self.simsize + npanels, axis=0)
 
     def _cache_panels(self, u, tp1, iteration, simul_size):
         """
@@ -765,14 +824,16 @@ class ElasticSH(WaveFD2D):
         * iteration:
             iteration number
         * simul_size:
-            number of iterations of this run
+            number of iterations that has been run
         """
         # Save the panel to disk
         with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache[simul_size - 1] = u[tp1]
-            cache.attrs['size'] = simul_size  # is this really needed? it's already saved when initiated or expanded??
-            cache.attrs['iterations'] = iteration  # i don't understand very well but it's needed to guarantee
+            # is this really needed? it's already saved when initiated or expanded??
+            cache.attrs['simsize'] = simul_size
+            # I need to update the attribute with this iteration number
+            cache.attrs['iteration'] = iteration
             # that simulation runs properly after reloaded from file
 
     def _init_panels(self):
@@ -788,13 +849,13 @@ class ElasticSH(WaveFD2D):
         """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
-        if self.size == 0:
+        if self.simsize == 0:
             nz, nx = self.shape
             u = numpy.zeros((2, nz, nx), dtype=numpy.float)
         else:
             with self._get_cache() as f:
                 cache = f['panels']
-                u = cache[self.size - 2 : self.size][::-1]
+                u = cache[self.simsize - 2 : self.simsize][::-1]
         return u
 
     def add_point_source(self, position, wavelet):
@@ -804,7 +865,7 @@ class ElasticSH(WaveFD2D):
         Parameters:
 
         * position : tuple
-            The (x, z) coordinates of the source
+            The (z, x) coordinates of the source
         * source : source function
             (see :class:`~fatiando.seismic.wavefd.Ricker` for an example source)
 
@@ -838,49 +899,6 @@ class ElasticSH(WaveFD2D):
     def maxdt(self):
         nz, nx = self.shape
         return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz], self.shape, self.velocity.max())
-
-    def animate(self, every=1, cutoff=None, ax=None, cmap=plt.cm.seismic,
-                embed=False, fps=10, dpi=70, writer='avconv', **kwargs):
-        if ax is None:
-            plt.figure(facecolor='white')
-            ax = plt.subplot(111)
-            ax.set_xlabel('x')
-            ax.set_ylabel('z')
-        fig = ax.get_figure()
-        nz, nx = self.shape
-        # Check the aspect ratio of the plot and adjust figure size to match
-        aspect = min(self.shape)/max(self.shape)
-        try:
-            aspect /= ax.get_aspect()
-        except TypeError:
-            pass
-        if nx > nz:
-            width = 10
-            height = width*aspect*0.8
-        else:
-            height = 10
-            width = height*aspect*1.5
-        fig.set_size_inches(width, height)
-        # Separate the arguments for imshow
-        imshow_args = dict(cmap=cmap)
-        if cutoff is not None:
-            imshow_args['vmin'] = -cutoff
-            imshow_args['vmax'] = cutoff
-        wavefield = ax.imshow(numpy.zeros(self.shape), **imshow_args)
-        fig.colorbar(wavefield, pad=0, aspect=30).set_label('Displacement')
-        ax.set_title('iteration: 0')
-        frames = self.size//every
-        def plot(i):
-            ax.set_title('iteration: {:d}'.format(i*every))
-            u = self[i*every]
-            wavefield.set_array(u)
-            return wavefield
-        anim = animation.FuncAnimation(fig, plot, frames=frames, **kwargs)
-        if embed:
-            return anim_to_html(anim, fps=fps, dpi=dpi, writer=writer)
-        else:
-            plt.show()
-            return anim
 
 
 def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
@@ -1053,8 +1071,8 @@ class ElasticPSV(WaveFD2D):
                                      shuffle=shuffle,
                                      dtype=numpy.float)
             dset.attrs['shape'] = self.shape
-            dset.attrs['size'] = self.size
-            dset.attrs['iterations'] = self.it
+            dset.attrs['simsize'] = self.simsize
+            dset.attrs['iteration'] = self.it
             dset.attrs['dx'] = self.dx
             dset.attrs['dz'] = self.dz
             dset.attrs['dt'] = self.dt
@@ -1105,8 +1123,8 @@ class ElasticPSV(WaveFD2D):
             taper = panels.attrs['taper']
             sim = ElasticPSV(pvel[:], svel[:], dens[:], (dx, dz), dt=dt,
                              padding=padding, taper=taper, cachefile=fname)
-            sim.size = panels.attrs['size']
-            sim.it = panels.attrs['iterations']
+            sim.simsize = panels.attrs['simsize']
+            sim.it = panels.attrs['iteration']
             sim.sources = pickle.loads(f['sources'].value.tostring())
         sim.verbose = verbose
         return sim
@@ -1125,7 +1143,7 @@ class ElasticPSV(WaveFD2D):
         * iteration:
             iteration number
         * simul_size:
-            number of iterations of this run
+            number of iterations that has been run
         """
         # Save the panel to disk
         with self._get_cache(mode='a') as f:
@@ -1134,19 +1152,19 @@ class ElasticPSV(WaveFD2D):
             zpanels = f['zpanels']
             xpanels[simul_size - 1] = ux[tp1]
             zpanels[simul_size - 1] = uz[tp1]
-            xpanels.attrs['size'] = simul_size
-            xpanels.attrs['iterations'] = iteration
-            zpanels.attrs['size'] = simul_size
-            zpanels.attrs['iterations'] = iteration
+            xpanels.attrs['simsize'] = simul_size
+            xpanels.attrs['iteration'] = iteration
+            zpanels.attrs['simsize'] = simul_size
+            zpanels.attrs['iteration'] = iteration
 
 
     def _expand_cache(self, iterations):
         with self._get_cache(mode='a') as f:
-            f['xpanels'].resize(self.size + iterations, axis=0)
-            f['zpanels'].resize(self.size + iterations, axis=0)
+            f['xpanels'].resize(self.simsize + iterations, axis=0)
+            f['zpanels'].resize(self.simsize + iterations, axis=0)
 
     def _init_panels(self):
-        if self.size == 0:
+        if self.simsize == 0:
             nz, nx = self.shape
             ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
             uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
@@ -1160,9 +1178,9 @@ class ElasticPSV(WaveFD2D):
                 # contiguous
                 # Could change the _timestep to pass ux[tp1], etc, like in
                 # ElasticSH. That would probably be much better.
-                ux = numpy.copy(f['xpanels'][self.size - 2 : self.size][::-1],
+                ux = numpy.copy(f['xpanels'][self.simsize - 2 : self.simsize][::-1],
                                 order='C')
-                uz = numpy.copy(f['zpanels'][self.size - 2 : self.size][::-1],
+                uz = numpy.copy(f['zpanels'][self.simsize - 2 : self.simsize][::-1],
                                 order='C')
         return [ux, uz]
 
@@ -1282,7 +1300,7 @@ class ElasticPSV(WaveFD2D):
             if vectors is not None:
                 vectors.set_UVC(ux, uz)
             return wavefield, particles, vectors
-        frames = self.size//every
+        frames = self.simsize//every
         anim = animation.FuncAnimation(fig, plot, frames=frames, blit=blit,
                                        interval=interval)
         if embed:
@@ -1301,14 +1319,12 @@ class Scalar(WaveFD2D):
 
     * velocity: 2D-array (defines shape simulation)
         The wave velocity at all the grid nodes
-    * density: 2D-array
-        The medium density
     * spacing: (dx, dz)
         space increment for x and z direction
     * cachefile: str
         The hdf5 cachefile file path to store the simulation
     * dt: float
-        time increment for simulation
+        time increment for simulation (recommended not to set)
     * padding : int
         Number of grid nodes to use for the absorbing boundary region
     * taper : float
@@ -1365,18 +1381,21 @@ class Scalar(WaveFD2D):
 
     def __getitem__(self, index):
         """
-        Get an iteration of the panel object from the hdf5 cache file.
-        panel object is an (2, nz, nx)  array needed for this simulation
+        Get an iteration or array slicing of simulation.
+        The simulation is stored in hdf5 file as a 3D array with
+        shape (`simsize`, nz, nx) where `simsize` is the last
+        iteration that has been run.
 
-        Parameters
+        Parameters:
 
-        * index: index or slicing
-            index or slicing for the hdf5 data set
+        * index: int or array slicing
+            simulation iteration index or
+            slicing over simulation
 
         Returns:
 
-        * panel object : 2D panels object at index
-
+        * 3D array
+            two 2D simulation panels shape (`simsize`, nz, nx)
         """
         with self._get_cache() as f:
             data = f['panels'][index]
@@ -1384,7 +1403,7 @@ class Scalar(WaveFD2D):
 
     def add_point_source(self, position, wavelet):
         """"
-        Adds a point source to this simulation
+        Adds a point source to this simulation.
 
         Parameters:
 
@@ -1398,22 +1417,22 @@ class Scalar(WaveFD2D):
 
     def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
         """
-        Init the hdf5 cache file with this simulation parameters
+        Initiate the hdf5 cache file with this simulation parameters
+        (only called by run)
 
         Parameters:
 
         * npanels: int
-            number of 2D panels needed for this simulation run
-            from iterations
-        * chunks : HDF5 data set option
-            (Tuple) Chunk shape, or True to enable auto-chunking.
-        * compression: HDF5 data set option
-            (String or int) Compression strategy.  Legal values are 'gzip',
+            number of 2D panels needed for storing this simulation run
+        * chunks : HDF5 data set option (Tuple)
+            Chunk shape, or True to enable auto-chunking.
+        * compression: HDF5 data set option (String or int)
+            Compression strategy.  Legal values are 'gzip',
             'szip', 'lzf'.  If an integer in range(10), this indicates gzip
             compression level. Otherwise, an integer indicates the number of a
             dynamically loaded compression filter.
-        * shuffle: HDF5 data set option
-            (T/F) Enable shuffle filter.
+        * shuffle: HDF5 data set option (bool)
+            Enable shuffle filter.
         """
         nz, nx = self.shape
         if chunks is None:
@@ -1428,8 +1447,11 @@ class Scalar(WaveFD2D):
                                      shuffle=shuffle,
                                      dtype=numpy.float)
             dset.attrs['shape'] = self.shape
-            dset.attrs['size'] = self.size
-            dset.attrs['iterations'] = self.it
+            # simsize stores the total size of this simulation
+            # after some or many runs
+            dset.attrs['simsize'] = self.simsize
+            # it is the `run` iteration time step indexer
+            dset.attrs['iteration'] = self.it
             dset.attrs['dx'] = self.dx
             dset.attrs['dz'] = self.dz
             dset.attrs['dt'] = self.dt
@@ -1455,7 +1477,8 @@ class Scalar(WaveFD2D):
         Returns:
 
         * from_cache: object
-            the simulation object previously stored
+            a new :class:`~fatiando.seismic.wavefd.Scalar` with
+            the simulation previously stored
 
         """
         with h5py.File(fname, 'r') as f:
@@ -1466,11 +1489,11 @@ class Scalar(WaveFD2D):
             dt = panels.attrs['dt']
             padding = panels.attrs['padding']
             taper = panels.attrs['taper']
-            # created from velocity so it must have the shape without padding
+            # created from velocity so it has the shape without padding
             sim = Scalar(vel[:], (dx, dz), dt=dt, padding=padding,
                          taper=taper, cachefile=fname)
-            sim.size = panels.attrs['size']
-            sim.it = panels.attrs['iterations']
+            sim.simsize = panels.attrs['simsize']
+            sim.it = panels.attrs['iteration']
             sim.sources = pickle.loads(f['sources'].value.tostring())
         sim.set_verbose(verbose)
         return sim
@@ -1478,91 +1501,104 @@ class Scalar(WaveFD2D):
     def _expand_cache(self, npanels):
         """
         Expand the hdf5 cache file of this simulation parameters
-        for more iterations
+        for more iterations.
+        (only called by run)
 
         Parameters:
 
         *  npanels: int
-            number of 2D panels needed for this simulation
-            from iterations
+            number of additional 2D panels needed for a simulation run
         """
         with self._get_cache(mode='a') as f:
             cache = f['panels']
-            cache.resize(self.size + npanels, axis=0)
+            cache.resize(self.simsize + npanels, axis=0)
 
     def _cache_panels(self, u, tp1, iteration, simul_size):
         """
         Save the last calculated time step panels and information about it
         in the hdf5 cache file
+        (only called by run)
 
         Parameters:
 
-        * panels : tuple or variable
-            tuple or variable containing all 2D panels needed for this simulation
+        * u : 3D array
+            two 2D simulation panels shape (2, nz+pad, nx+2pad)
         * tp1 : int
             panel time index
         * iteration:
-            iteration number
+            iteration time step number
         * simul_size:
-            number of iterations of this run
+            number of iterations that has been run
         """
         # Save the panel to disk
         pad = self.padding
         with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache[simul_size - 1] = u[tp1, :-pad, pad:-pad]
-            # is this really needed? it's already saved when initiated ??
-            cache.attrs['size'] = simul_size
-            # i don't understand very well but it's needed to guarantee
-            cache.attrs['iterations'] = iteration
-            # that simulation runs properly after reloaded from file
+            cache.attrs['simsize'] = simul_size  # total iterations ran
+            cache.attrs['iteration'] = iteration
 
     def _init_panels(self):
         """
-        Initiate the simulation panels used for finite difference solution.
+        Initiate the simulation panels used for finite differences solution.
         Keep consistency of simulation if loaded from file.
+        (only called by run)
 
         Returns:
 
-        * _init_panels: object
-            3D array (2, nz+pad, nx+2pad) or
-            tupple of 3D array (?, nz+pad, nx+2pad)
+        * _init_panels: 3D array
+            two 2D simulation panels shape (2, nz+pad, nx+2pad)
 
         """
         # If this is the first run, start with zeros, else, get the last two
         # panels from the cache so that the simulation can be resumed
-
-        if self.size == 0:
-            nz, nx = self.shape  # self.shape is not changed
-            pad = self.padding
-            # Add some padding to x and z. The padding region is where
-            # the wave is absorbed
-            nx += 2 * pad
-            nz += pad
-            # Pad the velocity
-            self.velocity = _add_pad(self.velocity, pad, (nz, nx))
+        nz, nx = self.shape  # self.shape is not changed
+        pad = self.padding
+        # Add some padding to x and z. The padding region is where
+        # the wave is absorbed
+        nx += 2 * pad
+        nz += pad  # free up
+        if self.simsize == 0:
             # Pack the particle position u at 2 different times in one 3d array
             # u[0] = u(t-1)
             # u[1] = u(t)
             # The next time step overwrites the t-1 panel
             u = numpy.zeros((2, nz, nx), dtype=numpy.float)
-        else:
+        else:  # came from cache or another run
             with self._get_cache() as f:
                 cache = f['panels']
-                u = cache[self.size - 2: self.size][::-1]  # 0 and 1 invert
-                # add padd
-                nz, nx = self.shape  # self.shape is not changed
-                pad = self.padding
-                # Add some padding to x and z. The padding region is where
-                # the wave is absorbed
-                nx += 2 * pad
-                nz += pad
+                u = cache[self.simsize - 2: self.simsize][::-1]  # 0 and 1 invert
+                # u was saved with just the unpad region
                 u_ = numpy.zeros((2, nz, nx), dtype=numpy.float)
                 u_[:, :-pad, pad:-pad] += u
                 u = u_
+        # Pad the velocity if needed
+        if self.velocity.shape != (nz, nx):
+            self.velocity = _add_pad(self.velocity, pad, (nz, nx))
         return u
 
     def _timestep(self, u, tm1, t, tp1, iteration):
+        """
+        Performs a single step on time (finite differences solution)
+        (only called by run)
+
+        Parameters:
+
+        * u: 3D array
+            two 2D simulation panels shape (2, nz+pad, nx+2pad)
+        * tm1: int
+            panel index (t minus 1)
+            (to avoid copying between 2D arrays)
+        * t: int
+            panel index (t)
+            (to avoid copying between 2D arrays)
+        * tp1: int
+            panel index (t plus 1)
+            (to avoid copying between 2D arrays)
+        * iteration: int
+            iteration time step of this simulation
+        """
+
         nz, nx = self.shape
         # due dump regions
         nz += self.padding
@@ -1582,7 +1618,23 @@ class Scalar(WaveFD2D):
             u[tp1, i, j + self.padding] += src(iteration*self.dt)
 
     def _plot_snapshot(self, frame, **kwargs):
-        pass
+        """
+        Plots the 2D wavefield at an iteration time index using matplotlib.
+
+        Parameters:
+
+        frame: int
+            time step iteration index smaller than `simsize`
+        """
+        data = self.__getitem__(frame)
+        scale = numpy.abs(data).max()
+        nz, nx = self.shape
+        dx, dz = nx*self.dx, nz*self.dz
+        extent = [0, dx, dz, 0]
+        if 'cmap' not in kwargs:
+            kwargs['cmap'] = plt.cm.seismic
+        plt.imshow(data, extent=extent, vmin=-scale, vmax=scale, **kwargs)
+        plt.colorbar(pad=0, aspect=30).set_label('Displacement')
 
 
 # class MexHatSource(object):
