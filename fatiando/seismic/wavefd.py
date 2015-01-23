@@ -478,10 +478,10 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def _plot_snapshot(self, frame, **kwargs):
         pass
 
-    def snapshot(self, frame, embed=False, raw=False, ax=None, **kwargs):
+    def snapshot(self, frame, embed=False, raw=False, **kwargs):
         """
         Returns an image (snapshot) of the 2D wavefield simulation
-        at a desired iteration number (frame).
+        at a desired iteration number (frame) or just plot it.
 
         Parameters:
 
@@ -497,17 +497,19 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         * image:
             raw byte image if raw=True
             jpeg picture if embed=True
+            or None
 
         """
         # calls `_plot_snapshot`
-        if ax is None:
-            fig = plt.figure(facecolor='white')
-            ax = plt.subplot(111)
+        #if ax is None:
+        #            fig = plt.figure(facecolor='white')
+        #    ax = plt.subplot(111)
         if frame < 0:
             title = self.simsize + frame
         else:
             title = frame
-        plt.sca(ax)
+        #plt.sca(ax)
+        ax = plt.gca()
         fig = ax.get_figure()
         plt.title('Time frame {:d}'.format(title))
         self._plot_snapshot(frame, **kwargs)
@@ -890,10 +892,11 @@ class ElasticSH(WaveFD2D):
         scale = numpy.abs(data).max()
         nz, nx = self.shape
         dx, dz = nx*self.dx, nz*self.dz
-        extent = [0, dx, dz, 0]
+        if 'extent' not in kwargs:
+            kwargs['extent'] = [0, dx, dz, 0]
         if 'cmap' not in kwargs:
             kwargs['cmap'] = plt.cm.seismic
-        plt.imshow(data, extent=extent, vmin=-scale, vmax=scale, **kwargs)
+        plt.imshow(data, vmin=-scale, vmax=scale, **kwargs)
         plt.colorbar(pad=0, aspect=30).set_label('Displacement')
 
     def maxdt(self):
@@ -1333,6 +1336,12 @@ class Scalar(WaveFD2D):
     * verbose: bool
         True to show simulation progress bar
 
+    Attributes:
+
+    * simsize: int
+        number of iterations that has been run
+    * cachefile: str
+        The hdf5 cachefile file path where the simulation is stored
     """
     def __init__(self, velocity, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
@@ -1619,23 +1628,26 @@ class Scalar(WaveFD2D):
 
     def _plot_snapshot(self, frame, **kwargs):
         """
-        Plots the 2D wavefield at an iteration time index using matplotlib.
+        Plots the 2D wavefield at an iteration time index using imshow.
 
         Parameters:
 
         frame: int
             time step iteration index smaller than `simsize`
         """
-        data = self.__getitem__(frame)
-        scale = numpy.abs(data).max()
-        nz, nx = self.shape
-        dx, dz = nx*self.dx, nz*self.dz
-        extent = [0, dx, dz, 0]
+        if 'vmin' or 'vmax' not in kwargs:
+            data = self.__getitem__(frame)
+            scale = numpy.abs(data).max()
+            kwargs['vmin'] = -scale
+            kwargs['vmax'] = scale
+        if 'extent' not in kwargs:
+            nz, nx = self.shape
+            dx, dz = nx*self.dx, nz*self.dz
+            kwargs['extent'] = [0, dx, dz, 0]
         if 'cmap' not in kwargs:
             kwargs['cmap'] = plt.cm.seismic
-        plt.imshow(data, extent=extent, vmin=-scale, vmax=scale, **kwargs)
+        plt.imshow(data, **kwargs)
         plt.colorbar(pad=0, aspect=30).set_label('Displacement')
-
 
 # class MexHatSource(object):
 #

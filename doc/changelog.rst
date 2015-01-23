@@ -10,8 +10,11 @@ Version (development)
 
 **Changes**:
 
-* Complete re-implementation of :ref:`fatiando.seismic <fatiando_seismic>`
-  from methods to simulation classes using HDF5 file format
+* Complete re-implementation of
+  :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
+  from methods to simulation classes using HDF5 file format and rich display
+  features of IPython notebook. Old code still remains but should be avoided.
+  (`PR 137 <https://github.com/fatiando/fatiando/pull/137>`_)
 * **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
   ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
   incompatibilities when using ``matplotlib > 1.3``
