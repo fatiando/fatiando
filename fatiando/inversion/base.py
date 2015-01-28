@@ -31,56 +31,45 @@ from . import solvers
 from ..utils import safe_dot
 
 
-class Objective(six.with_metaclass(ABCMeta)):
+class OperatorMixin(object):
     """
-    An objective function for an inverse problem.
-
-    Parameters:
-
-    * nparams : int
-        The number of parameters the objective function takes.
-    * islinear : True or False
-        Wether the functions is linear with respect to the parameters.
-
-    Operations:
-
-    For joint inversion and regularization, you can add *Objective*
-    instances together and multiply them by scalars (i.e., regularization
-    parameters):
-
-    >>> class MyObjective(Objective):
-    ...     def __init__(self, scale):
-    ...         super(MyObjective, self).__init__(1, True)
-    ...         self.scale = scale
-    ...     def value(self, p):
-    ...         return self.scale*p
-    >>> a = MyObjective(2)
-    >>> a
-    MyObjective(scale=2)
-    >>> a.value(3)
-    6
-    >>> b = MyObjective(-3)
-    >>> b
-    MyObjective(scale=-3)
-    >>> b.value(3)
-    -9
-    >>> c = a + b
-    >>> c
-    (MyObjective(scale=2) + MyObjective(scale=-3))
-    >>> c.value(3)
-    -3
-    >>> d = 0.5*c
-    >>> d
-    0.5*(MyObjective(scale=2) + MyObjective(scale=-3))
-    >>> d.value(3)
-    -1.5
-    >>> e = a + 2*b
-    >>> e
-    (MyObjective(scale=2) + 2*MyObjective(scale=-3))
-    >>> e.value(3)
-    -12
-
+    Implements the operator overload for + and *.
     """
+
+    def __add__(self, other):
+        """
+        Add two objective functions to make a MultiObjective.
+        """
+        if self.nparams != other.nparams:
+            raise ValueError(
+                "Can only add functions with same number of parameters")
+        # Make a shallow copy of self to return. If returned self, doing
+        # 'a = b + c' a and b would reference the same object.
+        res = MultiObjective(self.copy(), other.copy())
+        return res
+
+    def __mul__(self, other):
+        """
+        Multiply the objective function by a scallar to set the `regul_param`
+        attribute.
+        """
+        if not isinstance(other, int) and not isinstance(other, float):
+            raise TypeError('Can only multiply a Objective by a float or int')
+        # Make a shallow copy of self to return. If returned self, doing
+        # 'a = 10*b' a and b would reference the same object.
+        obj = self.copy()
+        obj.regul_param = obj.regul_param*other
+        return obj
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+
+class OptimizerMixin(six.with_metaclass(ABCMeta)):
+    """
+    Defines the `fit` and `config` methods plus all the optmization methods.
+    """
+
     # Set default arguments for fit
     default_solver_args = {
         'linear': {'precondition': True},
@@ -108,180 +97,6 @@ class Objective(six.with_metaclass(ABCMeta)):
                  'evap': 0.85,
                  'seed': None}
     }
-
-    def __init__(self, nparams, islinear):
-        self.nparams = nparams
-        self.islinear = islinear
-        self.p_ = None
-        self.regul_param = 1
-        self.fit_method = None
-        self.fit_args = None
-
-
-    def get_basic_repr(self):
-        args, varargs, varkw, default = inspect.getargspec(self.__init__)
-        # Remove self
-        args.pop(0)
-        numpy.set_printoptions(precision=5, threshold=5, edgeitems=2)
-        args_str = []
-        for key in sorted(args):
-            val = getattr(self, key)
-            arg = '{}={}'.format(key, str(val))
-            args_str.append(arg)
-        repr_str = '{}({})'.format(self.__class__.__name__, ', '.join(args_str))
-        return repr_str
-
-
-    def __repr__(self):
-        repr_str = self.get_basic_repr()
-        if self.regul_param != 1:
-            repr_str = '*'.join(['{:g}'.format(self.regul_param), repr_str])
-        return repr_str
-
-
-    @abstractmethod
-    def value(self, p):
-        """
-        The value (scalar) of this objective function at *p*
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * value : float
-            The value of this Objective function. If this is the sum of 1 or
-            more objective functions, value will be the sum of the values.
-
-        """
-        pass
-
-
-    @abstractmethod
-    def gradient(self, p):
-        """
-        The gradient vector of this objective function at *p*
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * gradient : 1d-array
-            The gradient of this Objective function. If this is the sum of 1 or
-            more objective functions, gradient will be the sum of the gradients
-
-        """
-        pass
-
-
-    @abstractmethod
-    def hessian(self, p):
-        """
-        The Hessian matrix of this objective function at *p*
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector
-
-        Returns:
-
-        * hessian : 2d-array
-            The Hessian of this Objective function. If this is the sum of 1 or
-            more objective functions, hessian will be the sum of the Hessians
-
-        """
-        pass
-
-
-
-    def copy(self, deep=False):
-        """
-        Make a copy of me.
-
-        Parameters:
-
-        * deep : True or False
-            If True, will make copies of all attributes as well
-
-        Returns:
-
-        * copy
-            A copy of me.
-
-        Example:
-
-        >>> class MyObjective(Objective):
-        ...     def __init__(self):
-        ...         super(MyObjective, self).__init__(1, True)
-        ...     def value(self, p):
-        ...         return 1
-        >>> a = MyObjective()
-        >>> b = a
-        >>> a is b
-        True
-        >>> c = a.copy()
-        >>> c is a
-        False
-
-        """
-        if deep:
-            return copy.deepcopy(self)
-        else:
-            return copy.copy(self)
-
-
-    def __add__(self, other):
-        """
-        Add two Objetives to make a Composite
-        """
-        if self.nparams != other.nparams:
-            raise ValueError(
-                "Can only add functions with same number of parameters")
-        # Make a shallow copy of self to return. If returned self, would
-        # overwrite the original class and might get recurrence issues
-        res = Composite(self.copy(), other.copy())
-        return res
-
-
-    def __mul__(self, other):
-        """
-        When multiplied by a scalar, set the `regul_param` attribute.
-        """
-        if not isinstance(other, int) and not isinstance(other, float):
-            raise TypeError('Can only multiply a Objective by a float or int')
-        # Make a shallow copy of self to return. If returned self, would
-        # overwrite the original class and might get recurrence issues
-        obj = self.copy()
-        obj.regul_param = other
-        return obj
-
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-
-    def fmt_estimate(self, p):
-        return p
-
-
-    @property
-    def estimate_(self):
-        """
-        A nicely formatted version of the estimate.
-
-        If the class implements a `fmt_estimate` method, this will its results.
-        This can be used to convert the parameter vector to a more useful form,
-        like a :mod:`fatiando.mesher` object.
-
-        """
-        return self.fmt_estimate(self.p_)
-
 
     def config(self, method, **kwargs):
         """
@@ -338,7 +153,6 @@ class Objective(six.with_metaclass(ABCMeta)):
         self.fit_args = args
         return self
 
-
     def fit(self):
         """
         Solve for the parameter vector that minimizes this objective function.
@@ -353,63 +167,140 @@ class Objective(six.with_metaclass(ABCMeta)):
         :meth:`~fatiando.inversion.base.Objective.estimate_`.
 
         """
-        if self.fit_method is None or self.fit_args is None:
+        not_configured = (getattr(self, 'fit_method', None) is None
+                          or getattr(self, 'fit_args', None) is None)
+        if not_configured:
             if self.islinear:
                 self.config('linear')
             else:
                 self.config('levmarq', initial=numpy.ones(self.nparams))
-        optimizer = getattr(solvers, self.fit_method)
-        if self.fit_method == 'linear':
-            p = optimizer(self.hessian(None), self.gradient(None), **self.fit_args)
-        elif self.fit_method in ['newton', 'levmarq']:
-            for p in optimizer(self.hessian, self.gradient, self.value, **self.fit_args):
-                continue
-        elif self.fit_method in ['steepest']:
-            for p in optimizer(self.gradient, self.value, **self.fit_args):
-                continue
-        elif self.fit_method in ['acor']:
-            for p in optimizer(self.value, **self.fit_args):
-                continue
-        else:
-            raise ValueError('Unsupported solver "{}"'.format(self.fit_method))
-        self.p_ = p
+        optimizer = getattr(self, self.fit_method)
+        self.p_ = optimizer(**self.fit_args)
         return self
 
-class Composite(Objective):
-    def __init__(self, *args):
-        self.components = args
-        nparams = [obj.nparams for obj in self.components]
-        assert all(nparams[0] == n for n in nparams[1:])
-        if all(obj.islinear for obj in self.components):
-            islinear = True
-        else:
-            islinear = False
-        super(Composite, self).__init__(nparams=nparams[0], islinear=islinear)
+    def linear(self, **kwargs):
+        return solvers.linear(self.hessian(None), self.gradient(None),
+                              **kwargs)
 
-    def __getitem__(self, i):
-        return self.components[i]
+    def newton(self, **kwargs):
+        return solvers.newton(self.hessian, self.gradient, self.value,
+                              **kwargs)
+
+    def levmarq(self, **kwargs):
+        for p in solvers.levmarq(self.hessian, self.gradient, self.value,
+                **kwargs):
+            continue
+        return p
+
+    def steepest(self, **kwargs):
+        return solvers.steepest(self.gradient, self.value, **kwargs)
+
+    def acor(self, **kwargs):
+        for p in solvers.acor(self.value, **kwargs):
+            continue
+        return p
+
+    @abstractmethod
+    def value(self, p):
+        pass
 
     def fmt_estimate(self, p):
-        return self.components[0].fmt_estimate(p)
+        """
+        Called when accessing the property ``estimate_``. Use this to convert
+        the paramter vector (p) to a more useful form, like a geometric object,
+        etc.
+        """
+        return p
+
+    @property
+    def estimate_(self):
+        """
+        A nicely formatted version of the estimate.
+
+        If the class implements a `fmt_estimate` method, this will its results.
+        This can be used to convert the parameter vector to a more useful form,
+        like a :mod:`fatiando.mesher` object.
+
+        """
+        return self.fmt_estimate(self.p_)
+
+
+class MultiObjective(OptimizerMixin, OperatorMixin):
+    """
+    An objective (goal) function with more than one component.
+    """
+
+    def __init__(self, *args):
+        self._components = self._unpack_components(args)
+        self.size = len(self._components)
+        self.regul_param = 1
+        nparams = [obj.nparams for obj in self._components]
+        assert all(nparams[0] == n for n in nparams[1:])
+        self.nparams = nparams[0]
+        if all(obj.islinear for obj in self._components):
+            self.islinear = True
+        else:
+            self.islinear = False
+        self._i = 0  # Tracker for indexing
+
+    def _unpack_components(self, args):
+        """
+        Find all the MultiObjective elements in components and unpack them into
+        a single list.
+        """
+        components = []
+        for comp in args:
+            if isinstance(comp, MultiObjective):
+                components.extend([c*comp.regul_param for c in comp])
+            else:
+                components.append(comp)
+        return components
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, i):
+        return self._components[i]
+
+    def __iter__(self):
+        self._i = 0
+        return self
+
+    def next(self):
+        if self._i >= self.size:
+            raise StopIteration
+        comp = self.__getitem__(self._i)
+        self._i += 1
+        return comp
+
+    def copy(self, deep=False):
+        """
+        Make a copy of me together with all the cached methods.
+        """
+        if deep:
+            obj = copy.deepcopy(self)
+        else:
+            obj = copy.copy(self)
+        return obj
+
+    def fmt_estimate(self, p):
+        return self._components[0].fmt_estimate(p)
 
     def value(self, p):
-        return sum(obj.value(p) for obj in self.components)
+        return self.regul_param*sum(obj.value(p) for obj in self)
 
     def gradient(self, p):
-        return sum(obj.gradient(p) for obj in self.components)
+        return self.regul_param*sum(obj.gradient(p) for obj in self)
 
     def hessian(self, p):
-        return sum(obj.hessian(p) for obj in self.components)
-
-    def get_basic_repr(self):
-        expr = ' + '.join(['{}'.format(obj) for obj in self.components])
-        return '({})'.format(expr)
+        return self.regul_param*sum(obj.hessian(p) for obj in self)
 
     def fit(self):
-        super(Composite, self).fit()
-        for obj in self.components:
+        super(MultiObjective, self).fit()
+        for obj in self:
             obj.p_ = self.p_
         return self
+
 
 class Cached(object):
     def __init__(self, instance, meth):
@@ -417,7 +308,8 @@ class Cached(object):
         self.cache = None
         self.instance = instance
         self.meth = meth
-        setattr(self, '__doc__', getattr(getattr(self.instance.__class__, self.meth), '__doc__'))
+        method = getattr(self.instance.__class__, self.meth)
+        setattr(self, '__doc__', getattr(method, '__doc__'))
 
     def hard_reset(self):
         self.cache = None
@@ -429,8 +321,10 @@ class Cached(object):
         p_hash = hashlib.sha1(p).hexdigest()
         if self.cache is None or self.array_hash != p_hash:
             self.array_hash = p_hash
-            self.cache = getattr(self.instance.__class__, self.meth)(self.instance, p)
+            method = getattr(self.instance.__class__, self.meth)
+            self.cache = method(self.instance, p)
         return self.cache
+
 
 class CachedPermanent(object):
     def __init__(self, instance, meth):
@@ -443,10 +337,12 @@ class CachedPermanent(object):
 
     def __call__(self, p=None):
         if self.cache is None:
-            self.cache = getattr(self.instance.__class__, self.meth)(self.instance, p)
+            method = getattr(self.instance.__class__, self.meth)
+            self.cache = method(self.instance, p)
         return self.cache
 
-class Misfit(Objective):
+
+class Misfit(OptimizerMixin, OperatorMixin):
     r"""
     An l2-norm data-misfit function.
 
@@ -458,7 +354,7 @@ class Misfit(Objective):
 
     .. math::
 
-        \phi(\bar{p}) = \dfrac{\bar{r}^T\bar{r}}{N}
+        \phi(\bar{p}) = \bar{r}^T\bar{r}}
 
     where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector and
     :math:`N` is the number of data.
@@ -469,6 +365,10 @@ class Misfit(Objective):
       :math:`\bar{d}` for a given parameter vector ``p``
     * ``jacobian(self, p)``: calculates the Jacobian matrix of
       :math:`\bar{f}(\bar{p})` evaluated at ``p``
+
+    ``jacobian`` is only needed for gradient based optimization. If you plan on
+    using only heuristic methods to produce an estimate, you choose not to
+    implement it.
 
     If :math:`\bar{f}` is linear, then the Jacobian will be cached in memory so
     that it is only calculated once when using the class multiple times. So
@@ -483,32 +383,25 @@ class Misfit(Objective):
 
     * data : 1d-array
         The observed data vector :math:`\bar{d}^o`
-    * positional : dict
-        A dictionary with the positional arguments of the data, for example, x,
-        y coordinates, depths, etc. Keys should the string name of the argument
-        and values should be 1d-arrays with the same size as *data*.
-    * model : dict
-        A dictionary with the model parameters, like the mesh, physical
-        properties, etc.
     * nparams : int
         The number of parameters in parameter vector :math:`\bar{p}`
+    * islinear : True or False
+        Whether :math:`\bar{f}` is linear or not.
     * weights : 1d-array
         Weights to be applied to the each element in *data* when computing the
         l2-norm. Effectively the diagonal of a matrix :math:`\bar{\bar{W}}`
         such that :math:`\phi = \bar{r}^T\bar{\bar{W}}\bar{r}`
-    * islinear : True or False
-        Whether :math:`\bar{f}` is linear or not.
 
     """
 
 
-    def __init__(self, data_dict, data_vector, nparams, islinear, weights=None):
-        super(Misfit, self).__init__(nparams, islinear)
-        self.data_vector = data_vector
-        self.data_dict = data_dict
-        self.data = data_dict[data_vector]
+    def __init__(self, data, nparams, islinear, weights=None):
+        self.p_ = None
+        self.regul_param = 1
+        self.nparams = nparams
+        self.islinear = islinear
+        self.data = data
         self.ndata = self.data.size
-        self.set_attributes(data_dict)
         self.weights = weights
         self.predicted = Cached(self, 'predicted')
         if islinear:
@@ -517,14 +410,14 @@ class Misfit(Objective):
         else:
             self.jacobian = Cached(self, 'jacobian')
 
-
-    def set_attributes(self, data_dict):
-        for key, val in data_dict.items():
-            setattr(self, key, val)
-
-
     def copy(self, deep=False):
-        obj = super(Misfit, self).copy(deep)
+        """
+        Make a copy of me together with all the cached methods.
+        """
+        if deep:
+            obj = copy.deepcopy(self)
+        else:
+            obj = copy.copy(self)
         obj.predicted = copy.copy(obj.predicted)
         obj.predicted.instance = obj
         obj.jacobian = copy.copy(obj.jacobian)
@@ -533,41 +426,6 @@ class Misfit(Objective):
             obj.hessian = copy.copy(obj.hessian)
             obj.hessian.instance = obj
         return obj
-
-
-    def subset(self, indices):
-        """
-        Produce a shallow copy of this object with only a subset of the data.
-
-        Additionally cuts the *positional* arguments and Jacobian matrix (if it
-        is present in the cache).
-
-        Parameters:
-
-        * indices : list of ints or 1d-array of bools
-            The indices that correspond to the subset.
-
-        Returns:
-
-        * subset : Misfit
-            A copy of this object
-
-        Examples:
-
-
-        """
-        sub = copy.copy(self)
-        sub.model = self.model.copy()
-        sub._cache = self._cache.copy()
-        sub.data = sub.data[indices]
-        sub.positional = dict((k, sub.positional[k][indices])
-                              for k in sub.positional)
-        sub._clear_cache()
-        if self._cache['jacobian']['array'] is not None:
-            sub._cache['jacobian']['array'] = \
-                self._cache['jacobian']['array'][indices]
-        sub.ndata = sub.data.size
-        return sub
 
     def set_weights(self, weights):
         """
@@ -585,7 +443,6 @@ class Misfit(Objective):
         # Weights change the Hessian
         self.hessian.hard_reset()
         return self
-
 
     def residuals(self, p=None):
         """
@@ -608,7 +465,6 @@ class Misfit(Objective):
         res = self.data - self.predicted(p)
         return res
 
-
     @abstractmethod
     def predicted(self, p=None):
         """
@@ -630,30 +486,6 @@ class Misfit(Objective):
         """
         pass
 
-
-    @abstractmethod
-    def jacobian(self, p):
-        """
-        Calculate the Jacobian matrix evaluated at a given parameter vector.
-
-        The Jacobian matrix is cached in memory, so passing the same
-        parameter vector again will not trigger a re-calculation. However, only
-        one matrix is cached at a time.
-
-        Parameters:
-
-        * p : 1d-array or None
-            The parameter vector. If the problem is linear, pass ``None``
-
-        Returns:
-
-        * jacobian : 2d-array
-            The Jacobian matrix
-
-        """
-        pass
-
-
     def value(self, p):
         r"""
         Calculate the value of the misfit for a given parameter vector.
@@ -662,7 +494,7 @@ class Misfit(Objective):
 
         .. math::
 
-            \phi(\bar{p}) = \dfrac{\bar{r}^T\bar{\bar{W}}\bar{r}}{N}
+            \phi(\bar{p}) = \bar{r}^T\bar{\bar{W}}\bar{r}
 
 
         where :math:`\bar{r}` is the residual vector and :math:`bar{\bar{W}}`
@@ -684,8 +516,7 @@ class Misfit(Objective):
             val = numpy.linalg.norm(residuals)**2
         else:
             val =  numpy.sum(self.weights*(residuals**2))
-        return val*self.regul_param/self.ndata
-
+        return val*self.regul_param
 
     def hessian(self, p):
         r"""
@@ -718,9 +549,8 @@ class Misfit(Objective):
             hessian =  safe_dot(jacobian.T, jacobian)
         else:
             hessian = safe_dot(jacobian.T, self.weights*jacobian)
-        hessian *= (2/self.ndata)*self.regul_param
+        hessian *= 2*self.regul_param
         return hessian
-
 
     def gradient(self, p):
         r"""
@@ -757,5 +587,5 @@ class Misfit(Objective):
         if len(grad.shape) > 1:
             # Need to convert it to a 1d array so that hell won't break loose
             grad = numpy.array(grad).ravel()
-        grad *= self.regul_param*(-2/self.ndata)
+        grad *= -2*self.regul_param
         return grad
