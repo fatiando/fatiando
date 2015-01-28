@@ -3,6 +3,7 @@
 *.pyd
 build
 .*.swp
+*.un~
 .coverage
 doc/_build
 doc/_static/cookbook
