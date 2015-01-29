@@ -3,13 +3,52 @@
 Changelog
 =========
 
-Version (future)
-----------------
+Version (development)
+---------------------
 
 **Release date**:
 
 **Changes**:
 
+* **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
+  ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
+  incompatibilities when using ``matplotlib > 1.3``
+  (at least in MacOS). Nearest neighbor interpolation method flagged as ``nn``
+  was removed. Now it becomes only ``nearest``. Also replace ``matplotlib``
+  with ``scipy`` in ``fatiando.mesher.PrismMesh.carvetopo``
+  (`PR 148 <https://github.com/fatiando/fatiando/pull/148>`_)
+* **New class** ``fatiando.gravmag.basin2d.PolygonalBasinGravity`` for 2D
+  gravity inversion for the relief of a basin.
+  (`PR 149 <https://github.com/fatiando/fatiando/pull/149>`__)
+* Significant progress on the :ref:`Developer Guide <develop>`. From getting
+  started to making a release on PyPI.
+  (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
+* **Removed** package ``fatiando.gui``. This was an experimental and temporary
+  package to explore interactivity. Given new developments, like the
+  `IPython HTML widgets
+  <http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Interactive%20Widgets/Index.ipynb>`__,
+  it is no longer relevant. The package will be replaced by package specific
+  ``interactive`` modules.
+  From the original classes implemented in this package, only ``Moulder`` has
+  been saved.
+  (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
+* Moved ``Moulder`` to the **new module** ``fatiando.gravmag.interactive``.
+  Completely rewrote the application. It now allows editing, moving, and
+  deleting polygons, persisting the application to a pickle file and reloading,
+  etc.
+  (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
+
+Version 0.3
+-----------
+
+**Release date**: 2014-10-28
+
+**Changes**:
+
+* **New module** :ref:`fatiando.gravmag.normal_gravity
+  <fatiando_gravmag_normal_gravity>` to calculate normal gravity (the gravity
+  of reference ellipsoids).
+  (`PR 133 <https://github.com/fatiando/fatiando/pull/133>`_)
 * Using `versioneer <https://github.com/warner/python-versioneer>`__ to manage
   version numbers. Access the version number + git commit hash from
   ``fatiando.__version__``.

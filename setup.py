@@ -1,6 +1,5 @@
 """
-Build extention modules, package and install Fatiando.
-Uses the numpy's extension of distutils to build the f2py extension modules
+Build extension modules, package and install Fatiando.
 """
 import sys
 import os
@@ -17,21 +16,16 @@ versioneer.parentdir_prefix = '.'
 
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
-DESCRIPTION = "Geophysical modeling and inversion"
+DESCRIPTION = "Modeling and inversion for geophysics"
 VERSION = versioneer.get_version()
 CMDCLASS = versioneer.get_cmdclass()
-try:
-    with open("README.md") as f:
-        LONG_DESCRIPTION = ''.join(f.readlines())
-except IOError:
-    with open("README.txt") as f:
-        LONG_DESCRIPTION = ''.join(f.readlines())
+with open("README.rst") as f:
+    LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.gravmag',
             'fatiando.seismic',
             'fatiando.geothermal',
             'fatiando.vis',
-            'fatiando.gui',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'
@@ -51,8 +45,9 @@ CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
                "License :: OSI Approved :: BSD License",
                "Development Status :: 3 - Alpha",
                "Natural Language :: English"]
+KEYWORDS = 'geophysics modeling inversion gravimetry seismic magnetometry'
 
-# The runing setup.py with --cython, then set things up to generate the Cython
+# The running setup.py with --cython, then set things up to generate the Cython
 # .c files. If not, then compile the pre-converted C files.
 USE_CYTHON = True if '--cython' in sys.argv else False
 ext = '.pyx' if USE_CYTHON else '.c'
@@ -95,4 +90,5 @@ if __name__ == '__main__':
           packages=PACKAGES,
           ext_modules=extensions,
           classifiers=CLASSIFIERS,
+          keywords=KEYWORDS,
           cmdclass=CMDCLASS)

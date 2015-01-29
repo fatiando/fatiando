@@ -1,6 +1,13 @@
+# Miniconda stuff shamelessly copied from
+# https://gist.github.com/dan-blanchard/7045057
+# and
+# https://github.com/Jorge-C/ordination/blob/master/.travis.yml
 language: python
 python:
-    - 2.7
+  - 2.7
+# Need to set this so that packages installed with apt-get are available
+virtualenv:
+  system_site_packages: true
 env:
     matrix:
         - OMP_NUM_THREADS=4
@@ -12,12 +19,12 @@ before_install:
     - ./miniconda.sh -b
     - export PATH=/home/travis/anaconda/bin:$PATH
     - conda update --yes conda
-    - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose
-      sphinx imaging
+    - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging ipython
     - pip install -q --use-mirrors coverage coveralls pep8 sphinx-rtd-theme
 install:
-    - pip install .
-    - make clean && make build
+  - python setup.py build
+  - pip install .
+  - make clean && python setup.py build_ext --inplace
 script:
     - make pep8-stats
     - make test
