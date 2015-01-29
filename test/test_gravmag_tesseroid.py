@@ -1,9 +1,13 @@
+from __future__ import division
 import numpy as np
+from numpy.testing import assert_almost_equal
 
-from fatiando.gravmag import tesseroid, half_sph_shell
-from fatiando.mesher import Tesseroid
+from fatiando.gravmag import tesseroid, spherical_shell
+from fatiando.mesher import Tesseroid, TesseroidMesh
 
 shellmodel = None
+halfshellmodel = None
+halfshellmodel_eq = None
 heights = None
 density = None
 props = None
@@ -13,110 +17,60 @@ bottom = None
 
 def setup():
     "Make a spherical shell model with tesseroids"
-    global shellmodel, heights, density, props, top, bottom
-    tlons = np.linspace(-90, 90, 50, endpoint=False)
-    tlats = np.linspace(-90, 90, 50, endpoint=False)
-    wsize = tlons[1] - tlons[0]
-    ssize = tlats[1] - tlats[0]
+    global shellmodel, halfshellmodel, halfshellmodel_eq, heights, density, \
+        props, top, bottom
+    heights = np.array([50e3, 250e3])
     density = 1000.
     props = {'density': density}
     top = 0
     bottom = -50000
-    shellmodel = [Tesseroid(w, w + wsize, s, s + ssize, top, bottom, props)
-                  for w in tlons for s in tlats]
-    heights = np.linspace(250000, 1000000, 10)
+    shellmodel = TesseroidMesh((0, 360, -90, 90, top, bottom), (1, 90, 180))
+    shellmodel.addprop('density', density*np.ones(shellmodel.size))
+    halfshellmodel = TesseroidMesh((0, 360, 0, 90, top, bottom), (1, 45, 180))
+    halfshellmodel.addprop('density', density*np.ones(halfshellmodel.size))
+    # Also make a half shell with axis at the equator
+    halfshellmodel_eq = TesseroidMesh((-90, 90, -90, 90, top, bottom),
+                                      (1, 90, 90))
+    halfshellmodel_eq.addprop('density',
+                              density*np.ones(halfshellmodel_eq.size))
 
 
-def test_potential():
-    "gravmag.tesseroid.potential with optimal discretize against half a shell"
-    shell = half_sph_shell.potential(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.potential(lons, lats, heights, shellmodel)
-    diff = np.abs((shell - tess) / shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gz():
-    "gravmag.tesseroid.gz with optimal discretize against half a shell"
-    shell = half_sph_shell.gz(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gz(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gxx():
-    "gravmag.tesseroid.gxx with optimal discretize against half a shell"
-    shell = half_sph_shell.gxx(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxx(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gyy():
-    "gravmag.tesseroid.gyy with optimal discretize against half a shell"
-    shell = half_sph_shell.gyy(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gyy(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gzz():
-    "gravmag.tesseroid.gzz with optimal discretize against half a shell"
-    shell = half_sph_shell.gzz(heights, top, bottom, density)
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gzz(lons, lats, heights, shellmodel)
-    diff = np.abs(shell - tess) / np.abs(shell)
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
-def test_gx():
-    "gravmag.tesseroid.gx with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gx(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gy():
-    "gravmag.tesseroid.gy with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gy(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gxy():
-    "gravmag.tesseroid.gxy with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxy(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gxz():
-    "gravmag.tesseroid.gxz with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gxz(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
-
-
-def test_gyz():
-    "gravmag.tesseroid.gyz with optimal discretize against half a shell"
-    lons = np.zeros_like(heights)
-    lats = lons
-    tess = tesseroid.gyz(lons, lats, heights, shellmodel)
-    diff = np.abs(tess)
-    assert np.all(diff <= 10 ** (-10)), 'diff: %s' % (str(diff))
+def test_against_half_shell():
+    "gravmag.tesseroid produces compatible results againt analytic half shell"
+    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
+    for f in fields:
+        if f in 'gx gy'.split():
+            shell = getattr(spherical_shell, 'half_gz')(heights, top, bottom,
+                                                        density)
+        elif f in 'gxy gxz gyz'.split():
+            shell = getattr(spherical_shell, 'half_gzz')(heights, top, bottom,
+                                                         density)
+        else:
+            shell = getattr(spherical_shell, 'half_' + f)(heights, top, bottom,
+                                                          density)
+        # Test things with the polar cap half shell
+        lons = np.zeros_like(heights)
+        lats = 90*np.ones_like(heights)
+        tess = getattr(tesseroid, f)(lons, lats, heights, halfshellmodel)
+        if f in 'gx gy gxy gxz gyz'.split():
+            diff = 100*np.abs(tess)/np.abs(shell)
+        else:
+            diff = 100*np.abs(tess - shell)/np.abs(shell)
+        for i in xrange(len(heights)):
+            assert diff[i] <= 1, \
+                "Failed {} at pole. ".format(f) + \
+                "h={} shell={} tess={} diff={}".format(heights[i], shell[i],
+                                                       tess[i], diff[i])
+        # Test things with the equatorial cap half shell
+        lons = np.zeros_like(heights)
+        lats = np.zeros_like(heights)
+        tess = getattr(tesseroid, f)(lons, lats, heights, halfshellmodel_eq)
+        if f in 'gx gy gxy gxz gyz'.split():
+            diff = 100*np.abs(tess)/np.abs(shell)
+        else:
+            diff = 100*np.abs(tess - shell)/np.abs(shell)
+        for i in xrange(len(heights)):
+            assert diff[i] <= 1, \
+                "Failed {} at equator. ".format(f) + \
+                "h={} shell={} tess={} diff={}".format(heights[i], shell[i],
+                                                       tess[i], diff[i])
