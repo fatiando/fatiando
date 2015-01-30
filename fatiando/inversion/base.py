@@ -20,7 +20,6 @@ See :mod:`fatiando.inversion` for examples, regularization, and more.
 """
 from __future__ import division
 import hashlib
-import inspect
 import copy
 from abc import ABCMeta, abstractmethod
 import six
@@ -33,7 +32,26 @@ from ..utils import safe_dot
 
 class OperatorMixin(object):
     """
-    Implements the operator overload for + and *.
+    Implements the operators + and * for the goal functions classes.
+
+    This class is not meant to be used on its own. Use it as a parent to give
+    the child class the + and * operators.
+
+    Used in :class:`~fatiando.inversion.base.Misfit` and the regularization
+    classes in :mod:`fatiando.inversion.regularization`.
+
+    .. note::
+
+        Performing ``A + B`` produces a
+        :class:`~fatiando.inversion.base.MultiObjetive` with copies of ``A``
+        and ``B``.
+
+    .. note::
+
+        Performing ``scalar*A`` produces a copy of ``A`` with ``scalar`` set as
+        the ``regul_param`` attribute.
+
+
     """
 
     def __add__(self, other):
@@ -67,7 +85,24 @@ class OperatorMixin(object):
 
 class OptimizerMixin(six.with_metaclass(ABCMeta)):
     """
-    Defines the `fit` and `config` methods plus all the optmization methods.
+    Defines ``fit`` and ``config`` methods plus all the optimization methods.
+
+    This class is not meant to be used on its own. Use it as a parent to give
+    the child class the methods it implements.
+
+    Used in :class:`~fatiando.inversion.base.Misfit` and
+    :class:`fatiando.inversion.base.MultiObjetive`.
+
+    The :meth:`~fatiando.inversion.base.OptimizerMixin.config` method is used
+    to configure the optimization method that will be used.
+
+    The :meth:`~fatiando.inversion.base.OptimizerMixin.fit` method runs the
+    optimization method configured and stores the computed parameter vector in
+    the ``p_`` attribute.
+
+    The minimum requirement for a class to inherit from ``OptimizerMixin`` is
+    that it must define a :meth:`~fatiando.inversion.base.OptimizerMixin.value`
+    method.
     """
 
     # Set default arguments for fit
@@ -97,6 +132,27 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
                  'evap': 0.85,
                  'seed': None}
     }
+
+    @abstractmethod
+    def value(self, p):
+        """
+        Calculates the value of the goal function for a given parameter vector.
+
+        Abstract method that must be implemented when subclassing
+        ``OptimizerMixin``.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector.
+
+        Returns:
+
+        * result : scalar (float, int or complex)
+            The value of the goal function for this parameter vector.
+
+        """
+        pass
 
     def config(self, method, **kwargs):
         """
@@ -137,15 +193,20 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
 
         """
         if method not in self.default_solver_args:
-            raise ValueError("Invalid method '%s'" % (method))
-        if (method in ['newton', 'levmarq', 'steepest'] and 'initial' not in kwargs):
-            raise AttributeError("Missing required *initial* argument for '%s'" % (method))
+            raise ValueError("Invalid method '{}'".format(method))
+        need_initial = (method in ['newton', 'levmarq', 'steepest']
+                        and 'initial' not in kwargs)
+        if need_initial:
+            raise AttributeError(
+                "Missing required *initial* argument for '{}'".format(method))
         if method == 'acor' and 'bounds' not in kwargs:
-            raise AttributeError("Missing required *bounds* argument for '%s'" % (method))
+            raise AttributeError(
+                "Missing required *bounds* argument for '{}'".format(method))
         args = self.default_solver_args[method].copy()
         for k in kwargs:
             if k not in args:
-                raise AttributeError("Invalid argument '%s' for '%s'" % (k, method))
+                raise AttributeError(
+                    "Invalid argument '{}' for '{}'".format(k, method))
             args[k] = kwargs[k]
         if method == 'acor':
             args['nparams'] = self.nparams
@@ -158,13 +219,12 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
         Solve for the parameter vector that minimizes this objective function.
 
         Uses the optimization method and parameters defined using the
-        :meth:`~fatiando.inversion.base.Objective.config` method.
+        :meth:`~fatiando.inversion.base.OptimizerMixin.config` method.
 
         The estimated parameter vector can be accessed through the
-        :meth:`~fatiando.inversion.base.Objective.p_` attribute. A (possibly)
-        formatted version (converted to a more manageble type) of the estimate
-        can be accessed through
-        :meth:`~fatiando.inversion.base.Objective.estimate_`.
+        ``p_`` attribute. A (possibly) formatted version (converted to a more
+        manageable type) of the estimate can be accessed through the property
+        ``estimate_``.
 
         """
         not_configured = (getattr(self, 'fit_method', None) is None
@@ -174,41 +234,37 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
                 self.config('linear')
             else:
                 self.config('levmarq', initial=numpy.ones(self.nparams))
-        optimizer = getattr(self, self.fit_method)
-        self.p_ = optimizer(**self.fit_args)
+        optimizer = getattr(solvers, self.fit_method)
+        if self.fit_method == 'linear':
+            p = optimizer(self.hessian(None), self.gradient(None),
+                          **self.fit_args)
+        elif self.fit_method in ['newton', 'levmarq']:
+            p = optimizer(self.hessian, self.gradient, self.value,
+                          **self.fit_args)
+        elif self.fit_method == 'steepest':
+            p = optimizer(self.gradient, self.value, **self.fit_args)
+        elif self.fit_method == 'acor':
+            p = optimizer(self.value, **self.fit_args)
+        self.p_ = p
         return self
-
-    def linear(self, **kwargs):
-        return solvers.linear(self.hessian(None), self.gradient(None),
-                              **kwargs)
-
-    def newton(self, **kwargs):
-        return solvers.newton(self.hessian, self.gradient, self.value,
-                              **kwargs)
-
-    def levmarq(self, **kwargs):
-        for p in solvers.levmarq(self.hessian, self.gradient, self.value,
-                **kwargs):
-            continue
-        return p
-
-    def steepest(self, **kwargs):
-        return solvers.steepest(self.gradient, self.value, **kwargs)
-
-    def acor(self, **kwargs):
-        for p in solvers.acor(self.value, **kwargs):
-            continue
-        return p
-
-    @abstractmethod
-    def value(self, p):
-        pass
 
     def fmt_estimate(self, p):
         """
-        Called when accessing the property ``estimate_``. Use this to convert
-        the paramter vector (p) to a more useful form, like a geometric object,
-        etc.
+        Called when accessing the property ``estimate_``.
+
+        Use this to convert the parameter vector (p) to a more useful form,
+        like a geometric object, etc.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector.
+
+        Returns:
+
+        * formatted
+            Pretty much anything you want.
+
         """
         return p
 
@@ -228,12 +284,29 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
 class MultiObjective(OptimizerMixin, OperatorMixin):
     """
     An objective (goal) function with more than one component.
+
+    This class is a linear combination of other goal functions (like ``Misfit``
+    and regularization classes).
+
+    It is automatically created by adding two goal functions that have the
+    :class:`~fatiando.inversion.base.OperatorMixin` as a base class.
+
+    Alternatively, you can create a ``MultiObjetive`` by passing the other
+    goals function instances as arguments to the constructor.
+
+    The ``MultiObjetive`` behaves like any other goal function object. It has
+    ``fit`` and ``config`` methods and can be added and multiplied by a scalar
+    with the same effects.
+
+    Indexing a ``MultiObjetive`` will iterate over the component goal
+    functions.
     """
 
     def __init__(self, *args):
         self._components = self._unpack_components(args)
         self.size = len(self._components)
         self.regul_param = 1
+        self.p_ = None
         nparams = [obj.nparams for obj in self._components]
         assert all(nparams[0] == n for n in nparams[1:])
         self.nparams = nparams[0]
@@ -243,10 +316,22 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
             self.islinear = False
         self._i = 0  # Tracker for indexing
 
+    def fit(self):
+        super(MultiObjective, self).fit()
+        for obj in self:
+            obj.p_ = self.p_
+        return self
+
+    fit.__doc__ = OptimizerMixin.fit.__doc__
+
     def _unpack_components(self, args):
         """
         Find all the MultiObjective elements in components and unpack them into
         a single list.
+
+        This is needed so that ``D = A + B + C`` can be indexed as ``D[0] == A,
+        D[1] == B, D[2] == C``. Otherwise, ``D[1]`` would be a
+        ``MultiObjetive == B + C``.
         """
         components = []
         for comp in args:
@@ -267,6 +352,9 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         return self
 
     def next(self):
+        """
+        Used for iterating over the MultiObjetive.
+        """
         if self._i >= self.size:
             raise StopIteration
         comp = self.__getitem__(self._i)
@@ -284,25 +372,131 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         return obj
 
     def fmt_estimate(self, p):
+        """
+        Format the current estimated parameter vector into a more useful form.
+
+        Will call the ``fmt_estimate`` method of the first component goal
+        function (the first term in the addition that created this object).
+        """
         return self._components[0].fmt_estimate(p)
 
     def value(self, p):
+        """
+        Return the value of the multi-objective function.
+
+        This will be the sum of all goal functions that make up this
+        multi-objective.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector.
+
+        Returns:
+
+        * result : scalar (float, int, etc)
+            The sum of the values of the components.
+
+        """
         return self.regul_param*sum(obj.value(p) for obj in self)
 
     def gradient(self, p):
+        """
+        Return the gradient of the multi-objective function.
+
+        This will be the sum of all goal functions that make up this
+        multi-objective.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector.
+
+        Returns:
+
+        * result : 1d-array
+            The sum of the gradients of the components.
+
+        """
         return self.regul_param*sum(obj.gradient(p) for obj in self)
 
     def hessian(self, p):
+        """
+        Return the hessian of the multi-objective function.
+
+        This will be the sum of all goal functions that make up this
+        multi-objective.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector.
+
+        Returns:
+
+        * result : 2d-array
+            The sum of the hessians of the components.
+
+        """
         return self.regul_param*sum(obj.hessian(p) for obj in self)
 
-    def fit(self):
-        super(MultiObjective, self).fit()
-        for obj in self:
-            obj.p_ = self.p_
-        return self
 
+class CachedMethod(object):
+    """
+    Wrap a method to cache it's output based on the hash of the input array.
 
-class Cached(object):
+    Store the output of calling the method on a numpy array. If the method is
+    called in succession with the same input array, the cached result will be
+    returned. If the method is called on a different array, the old result will
+    be discarded and the new one stored.
+
+    Uses sha1 hashes of the input array to tell if it is the same array.
+
+    Parameters:
+
+    * instance : object
+        The instance of the object that has the method you want to cache.
+    * meth : string
+        The name of the method you want to cache.
+
+    For pickling reasons we can't use the bound method (``obj.method``) and
+    need the object and the method name.
+
+    Examples::
+
+    >>> import numpy as np
+    >>> class MyClass(object):
+    ...     def __init__(self, cached=False):
+    ...         if cached:
+    ...             self.my_method = CachedMethod(self, 'my_method')
+    ...     def my_method(self, p):
+    ...         return p**2
+    >>> obj = MyClass(cached=False)
+    >>> a = obj.my_method(np.arange(0, 5))
+    >>> a
+    array([ 0,  1,  4,  9, 16])
+    >>> b = obj.my_method(np.arange(0, 5))
+    >>> a is b
+    False
+    >>> cached = MyClass(cached=True)
+    >>> a = cached.my_method(np.arange(0, 5))
+    >>> a
+    array([ 0,  1,  4,  9, 16])
+    >>> b = cached.my_method(np.arange(0, 5))
+    >>> a is b
+    True
+    >>> cached.my_method.hard_reset()
+    >>> b = cached.my_method(np.arange(0, 5))
+    >>> a is b
+    False
+    >>> c = cached.my_method(np.arange(0, 5))
+    >>> b is c
+    True
+    >>> cached.my_method(np.arange(0, 6))
+    array([ 0,  1,  4,  9, 16, 25])
+
+    """
+
     def __init__(self, instance, meth):
         self.array_hash = None
         self.cache = None
@@ -312,6 +506,9 @@ class Cached(object):
         setattr(self, '__doc__', getattr(method, '__doc__'))
 
     def hard_reset(self):
+        """
+        Delete the cached values.
+        """
         self.cache = None
         self.array_hash = None
 
@@ -320,19 +517,75 @@ class Cached(object):
             p = getattr(self.instance, 'p_')
         p_hash = hashlib.sha1(p).hexdigest()
         if self.cache is None or self.array_hash != p_hash:
+            # Update the cache
             self.array_hash = p_hash
+            # Get the method from the class because the instance will overwrite
+            # it with the CachedMethod instance.
             method = getattr(self.instance.__class__, self.meth)
             self.cache = method(self.instance, p)
         return self.cache
 
 
-class CachedPermanent(object):
+class CachedMethodPermanent(object):
+    """
+    Wrap a method to cache it's output and return it whenever the method is
+    called..
+
+    This is different from :class:`~fatiando.inversion.base.CachedMethod`
+    because it will only run the method once. All other times, the result
+    returned will be this first one. This class should be used with methods
+    that should return always the same output (like the Jacobian matrix of a
+    linear problem).
+
+    Parameters:
+
+    * instance : object
+        The instance of the object that has the method you want to cache.
+    * meth : string
+        The name of the method you want to cache.
+
+    For pickling reasons we can't use the bound method (``obj.method``) and
+    need the object and the method name.
+
+    Examples::
+
+    >>> import numpy as np
+    >>> class MyClass(object):
+    ...     def __init__(self, cached=False):
+    ...         if cached:
+    ...             self.my_method = CachedMethodPermanent(self, 'my_method')
+    ...     def my_method(self, p):
+    ...         return p**2
+    >>> obj = MyClass(cached=False)
+    >>> a = obj.my_method(np.arange(0, 5))
+    >>> a
+    array([ 0,  1,  4,  9, 16])
+    >>> b = obj.my_method(np.arange(0, 5))
+    >>> a is b
+    False
+    >>> cached = MyClass(cached=True)
+    >>> a = cached.my_method(np.arange(0, 5))
+    >>> a
+    array([ 0,  1,  4,  9, 16])
+    >>> b = cached.my_method(np.arange(0, 5))
+    >>> a is b
+    True
+    >>> c = cached.my_method(np.arange(10, 15))
+    >>> c
+    array([ 0,  1,  4,  9, 16])
+    >>> a is c
+    True
+
+    """
     def __init__(self, instance, meth):
         self.cache = None
         self.instance = instance
         self.meth = meth
 
     def hard_reset(self):
+        """
+        Delete the cached values.
+        """
         self.cache = None
 
     def __call__(self, p=None):
@@ -403,12 +656,12 @@ class Misfit(OptimizerMixin, OperatorMixin):
         self.data = data
         self.ndata = self.data.size
         self.weights = weights
-        self.predicted = Cached(self, 'predicted')
+        self.predicted = CachedMethod(self, 'predicted')
         if islinear:
-            self.jacobian = CachedPermanent(self, 'jacobian')
-            self.hessian = CachedPermanent(self, 'hessian')
+            self.jacobian = CachedMethodPermanent(self, 'jacobian')
+            self.hessian = CachedMethodPermanent(self, 'hessian')
         else:
-            self.jacobian = Cached(self, 'jacobian')
+            self.jacobian = CachedMethod(self, 'jacobian')
 
     def copy(self, deep=False):
         """

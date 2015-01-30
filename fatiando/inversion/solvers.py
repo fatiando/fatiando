@@ -109,15 +109,14 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
     * precondition : True or False
         If True, will use Jacobi preconditioning.
 
-    Yields:
+    Returns:
 
     * estimate : 1d-array
-        The estimated parameter vector at the current iteration.
+        The estimated parameter vector.
 
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    yield p
     for iteration in xrange(maxit):
         hess = hessian(p)
         grad = gradient(p)
@@ -132,7 +131,7 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
         if newmisfit > misfit or abs((newmisfit - misfit) / misfit) < tol:
             break
         misfit = newmisfit
-        yield p
+    return p
 
 
 def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
@@ -168,15 +167,14 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
     * precondition : True or False
         If True, will use Jacobi preconditioning.
 
-    Yields:
+    Returns:
 
     * estimate : 1d-array
-        The estimated parameter vector at the current iteration.
+        The estimated parameter vector.
 
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    yield p
     for iteration in xrange(maxit):
         hess = hessian(p)
         minus_gradient = -gradient(p)
@@ -206,9 +204,9 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=10, lamb=10,
                 (newmisfit - misfit) / misfit) < tol
             p = newp
             misfit = newmisfit
-            yield p
         if stop:
             break
+    return p
 
 
 def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
@@ -265,10 +263,10 @@ def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
         The convergence criterion. The lower it is, the more steps are
         permitted.
 
-    Yields:
+    Returns:
 
     * estimate : 1d-array
-        The estimated parameter vector at the current iteration.
+        The estimated parameter vector.
 
     References:
 
@@ -277,7 +275,6 @@ def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
     """
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
-    yield p
     # This is a mystic parameter of the Armijo rule
     alpha = 10 ** (-4)
     for iteration in xrange(maxit):
@@ -299,9 +296,9 @@ def steepest(gradient, value, initial, maxit=1000, maxsteps=30, stepsize=0.1,
             stop = abs((newmisfit - misfit) / misfit) < tol
             p = newp
             misfit = newmisfit
-            yield p
         if stop:
             break
+    return p
 
 
 def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
@@ -341,10 +338,10 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     * seed : None or int
         Seed for the random number generator.
 
-    Yields:
+    Returns:
 
     * estimate : 1d-array
-        The best estimate at each iteration
+        The best estimate
 
     """
     numpy.random.seed(seed)
@@ -370,8 +367,6 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     order = numpy.argsort(trail)
     archive = [archive[i] for i in order]
     trail = trail[order].tolist()
-    # The first of the archive is the best solution found
-    yield archive[0]
     # Compute the weights (probabilities) of the solutions in the archive
     amp = 1. / (diverse * archive_size * numpy.sqrt(2 * numpy.pi))
     variance = 2 * diverse ** 2 * archive_size ** 2
@@ -408,4 +403,4 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
             trail.pop()
             archive.insert(place, ant)
             archive.pop()
-        yield archive[0]
+    return archive[0]
