@@ -647,7 +647,6 @@ class Misfit(OptimizerMixin, OperatorMixin):
 
     """
 
-
     def __init__(self, data, nparams, islinear, weights=None):
         self.p_ = None
         self.regul_param = 1
@@ -768,7 +767,7 @@ class Misfit(OptimizerMixin, OperatorMixin):
         if self.weights is None:
             val = numpy.linalg.norm(residuals)**2
         else:
-            val =  numpy.sum(self.weights*(residuals**2))
+            val = numpy.sum(self.weights*(residuals**2))
         return val*self.regul_param
 
     def hessian(self, p):
@@ -799,7 +798,7 @@ class Misfit(OptimizerMixin, OperatorMixin):
         """
         jacobian = self.jacobian(p)
         if self.weights is None:
-            hessian =  safe_dot(jacobian.T, jacobian)
+            hessian = safe_dot(jacobian.T, jacobian)
         else:
             hessian = safe_dot(jacobian.T, self.weights*jacobian)
         hessian *= 2*self.regul_param
