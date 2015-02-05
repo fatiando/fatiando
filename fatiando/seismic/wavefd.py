@@ -7,7 +7,7 @@ the HDF5 file format to store and persist the simulation objects.
 
 **Sources**
 
-* :class:`~fatiando.seismic.wavefd.Ricker`: Mexican hat (Ricker) wavelet source.
+* :class:`~fatiando.seismic.wavefd.Ricker`: Mexican hat (Ricker) wavelet source
 * :class:`~fatiando.seismic.wavefd.Gauss`: Gauss derivative wavelet source
 
 **Simulation Classes**
@@ -44,7 +44,7 @@ convert the animation to a video and embed it in the IPython notebook.
 All simulation classes have the following methods:
 (They work on IPython notebook only!)
 
-* :func:`animate`: ... to finish...
+* :func:`animate`: ... to finish... reference to base class
 
 * :func:`explore`:
 
@@ -331,7 +331,6 @@ class Gauss(Source):
         if delay is None:
             self.delay = 3.0/self.cf
 
-
     def value(self, t):
         """
         Return the source function value at a given time
@@ -389,7 +388,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         if cachefile is None:
             cachefile = self._create_tmp_cache()
         self.cachefile = cachefile
-        self.padding = padding # padding region size
+        self.padding = padding  # padding region size
         self.taper = taper
         self.dt = dt
 
@@ -422,7 +421,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         pass
 
     @abstractmethod
-    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, npanels, chunks=None,
+                    compression='lzf', shuffle=True):
         pass
 
     @abstractmethod
@@ -473,7 +473,6 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         pass
 
-
     @abstractmethod
     def _plot_snapshot(self, frame, **kwargs):
         pass
@@ -501,14 +500,14 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
         """
         # calls `_plot_snapshot`
-        #if ax is None:
+        # if ax is None:
         #            fig = plt.figure(facecolor='white')
         #    ax = plt.subplot(111)
         if frame < 0:
             title = self.simsize + frame
         else:
             title = frame
-        #plt.sca(ax)
+        # plt.sca(ax)
         ax = plt.gca()
         fig = ax.get_figure()
         plt.title('Time frame {:d}'.format(title))
@@ -554,6 +553,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         Allows to move back and forth on simulation frames.
         """
         plotargs = kwargs
+
         def plot(Frame):
             image = Image(self.snapshot(Frame, raw=True, **plotargs))
             display(image)
@@ -595,7 +595,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             nprinted = 0
             start_time = time.clock()
         for iteration in xrange(iterations):
-            t, tm1 = iteration%2, (iteration + 1)%2
+            t, tm1 = iteration % 2, (iteration + 1) % 2
             tp1 = tm1
             self.it += 1
             self._timestep(u, tm1, t, tp1, self.it)
@@ -665,6 +665,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         fig.colorbar(wavefield, pad=0, aspect=30).set_label('Displacement')
         ax.set_title('iteration: 0')
         frames = self.simsize//every
+
         def plot(i):
             ax.set_title('iteration: {:d}'.format(i*every))
             u = self[i*every]
@@ -709,8 +710,8 @@ class ElasticSH(WaveFD2D):
 
     def __init__(self, velocity, density, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
-        super(ElasticSH, self).__init__(cachefile, spacing, velocity.shape, dt, padding,
-                                        taper, verbose)
+        super(ElasticSH, self).__init__(cachefile, spacing, velocity.shape,
+                                        dt, padding, taper, verbose)
         self.density = density
         self.velocity = velocity
         self.mu = lame_mu(velocity, density)
@@ -721,7 +722,7 @@ class ElasticSH(WaveFD2D):
         """
         Get an iteration of the panels object from the hdf5 cache file.
 
-        .. note:: panels object is a tuple or variable containing all 2D panels needed for this simulation
+        Parameters:
 
         * index: index or slicing
             index for slicing hdf5 data set
@@ -763,18 +764,22 @@ class ElasticSH(WaveFD2D):
         sim.set_verbose(verbose)
         return sim
 
-    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, npanels, chunks=None,
+                    compression='lzf', shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
 
         * npanels: int
             number of 2D panels needed for this simulation run
         *  chunks : HDF5 data set option
-
+            (Tuple) Chunk shape, or True to enable auto-chunking.
         * compression: HDF5 data set option
-
-        * shuffle: HDF5 data set option
-
+            (String or int) Compression strategy.  Legal values are 'gzip',
+            'szip', 'lzf'.  If an integer in range(10), this indicates gzip
+            compression level. Otherwise, an integer indicates the number of a
+            dynamically loaded compression filter.
+        * shuffle: (bool) HDF5 data set option
+            (T/F) Enable shuffle filter.
         """
         nz, nx = self.shape
         if chunks is None:
@@ -782,11 +787,11 @@ class ElasticSH(WaveFD2D):
         with self._get_cache(mode='w') as f:  # create HDF5 data sets
             nz, nx = self.shape
             dset = f.create_dataset('panels', (npanels, nz, nx),
-                                     maxshape=(None, nz, nx),
-                                     chunks=chunks,
-                                     compression=compression,
-                                     shuffle=shuffle,
-                                     dtype=numpy.float)
+                                    maxshape=(None, nz, nx),
+                                    chunks=chunks,
+                                    compression=compression,
+                                    shuffle=shuffle,
+                                    dtype=numpy.float)
             dset.attrs['shape'] = self.shape
             dset.attrs['simsize'] = self.simsize
             dset.attrs['iteration'] = self.it
@@ -820,7 +825,8 @@ class ElasticSH(WaveFD2D):
         Parameters:
 
         * panels : tuple or variable
-            tuple or variable containing all 2D panels needed for this simulation
+            tuple or variable containing all 2D panels needed for
+            this simulation
         * tp1 : int
             panel time index
         * iteration:
@@ -832,7 +838,6 @@ class ElasticSH(WaveFD2D):
         with self._get_cache(mode='a') as f:
             cache = f['panels']
             cache[simul_size - 1] = u[tp1]
-            # is this really needed? it's already saved when initiated or expanded??
             cache.attrs['simsize'] = simul_size
             # I need to update the attribute with this iteration number
             cache.attrs['iteration'] = iteration
@@ -857,7 +862,7 @@ class ElasticSH(WaveFD2D):
         else:
             with self._get_cache() as f:
                 cache = f['panels']
-                u = cache[self.simsize - 2 : self.simsize][::-1]
+                u = cache[self.simsize - 2: self.simsize][::-1]
         return u
 
     def add_point_source(self, position, wavelet):
@@ -867,9 +872,10 @@ class ElasticSH(WaveFD2D):
         Parameters:
 
         * position : tuple
-            The (z, x) coordinates of the source
+            The (x, z) coordinates of the source
         * source : source function
-            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example source)
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for an
+            example source)
 
         """
         self.sources.append([position, wavelet])
@@ -879,11 +885,12 @@ class ElasticSH(WaveFD2D):
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3,
                          self.dt, self.dx, self.dz, self.mu, self.density)
         _apply_damping(u[t], nx, nz, self.padding, self.taper)
-        _nonreflexive_sh_boundary_conditions(
-            u[tp1], u[t], nx, nz, self.dt, self.dx, self.dz, self.mu, self.density)
+        _nonreflexive_sh_boundary_conditions(u[tp1], u[t], nx, nz, self.dt,
+                                             self.dx, self.dz,
+                                             self.mu, self.density)
         _apply_damping(u[tp1], nx, nz, self.padding, self.taper)
         for pos, src in self.sources:
-            i, j = pos
+            j, i = pos
             u[tp1, i, j] += src(iteration*self.dt)
 
     def _plot_snapshot(self, frame, **kwargs):
@@ -901,7 +908,8 @@ class ElasticSH(WaveFD2D):
 
     def maxdt(self):
         nz, nx = self.shape
-        return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz], self.shape, self.velocity.max())
+        return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz],
+                         self.shape, self.velocity.max())
 
 
 def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
@@ -958,17 +966,18 @@ class ElasticPSV(WaveFD2D):
 
     def maxdt(self):
         nz, nx = self.shape
-        return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz], self.shape, self.pvel.max())
+        return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz],
+                         self.shape, self.pvel.max())
 
     def add_blast_source(self, position, wavelet):
         nz, nx = self.shape
         i, j = position
         amp = 1/(2**0.5)
         locations = [
-            [i - 1, j    ,    0,   -1],
-            [i + 1, j    ,    0,    1],
-            [i    , j - 1,   -1,    0],
-            [i    , j + 1,    1,    0],
+            [i - 1,     j,    0,   -1],
+            [i + 1,     j,    0,    1],
+            [i + 0, j - 1,   -1,    0],
+            [i + 0, j + 1,    1,    0],
             [i - 1, j - 1, -amp, -amp],
             [i + 1, j - 1, -amp,  amp],
             [i - 1, j + 1,  amp, -amp],
@@ -1051,15 +1060,24 @@ class ElasticPSV(WaveFD2D):
                        scale=1/scale, linewidth=linewidth,
                        pivot='tail', angles='xy', scale_units='xy')
 
-    def _init_cache(self, panels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, panels, chunks=None, compression='lzf',
+                    shuffle=True):
         """
         Init the hdf5 cache file with this simulation parameters
 
+        Parameters:
+
+        * panels:
+
         *  chunks : HDF5 data set option
-
+            (Tuple) Chunk shape, or True to enable auto-chunking.
         * compression: HDF5 data set option
-
-        * shuffle: HDF5 data set option
+            (String or int) Compression strategy.  Legal values are 'gzip',
+            'szip', 'lzf'.  If an integer in range(10), this indicates gzip
+            compression level. Otherwise, an integer indicates the number of a
+            dynamically loaded compression filter.
+        * shuffle: (bool) HDF5 data set option
+            (T/F) Enable shuffle filter.
 
         """
         nz, nx = self.shape
@@ -1068,11 +1086,11 @@ class ElasticPSV(WaveFD2D):
         with self._get_cache(mode='w') as f:
             nz, nx = self.shape
             dset = f.create_dataset('xpanels', (panels, nz, nx),
-                                     maxshape=(None, nz, nx),
-                                     chunks=chunks,
-                                     compression=compression,
-                                     shuffle=shuffle,
-                                     dtype=numpy.float)
+                                    maxshape=(None, nz, nx),
+                                    chunks=chunks,
+                                    compression=compression,
+                                    shuffle=shuffle,
+                                    dtype=numpy.float)
             dset.attrs['shape'] = self.shape
             dset.attrs['simsize'] = self.simsize
             dset.attrs['iteration'] = self.it
@@ -1082,11 +1100,11 @@ class ElasticPSV(WaveFD2D):
             dset.attrs['padding'] = self.padding
             dset.attrs['taper'] = self.taper
             f.create_dataset('zpanels', (panels, nz, nx),
-                                     maxshape=(None, nz, nx),
-                                     chunks=chunks,
-                                     compression=compression,
-                                     shuffle=shuffle,
-                                     dtype=numpy.float)
+                             maxshape=(None, nz, nx),
+                             chunks=chunks,
+                             compression=compression,
+                             shuffle=shuffle,
+                             dtype=numpy.float)
             f.create_dataset('pvel', data=self.pvel,
                              chunks=chunks[1:],
                              compression=compression,
@@ -1118,7 +1136,8 @@ class ElasticPSV(WaveFD2D):
             pvel = f['pvel']
             svel = f['svel']
             dens = f['density']
-            panels = f['xpanels']  # the first data set contain all the simulation parameters
+            # the first data set contain all the simulation parameters
+            panels = f['xpanels']
             dx = panels.attrs['dx']
             dz = panels.attrs['dz']
             dt = panels.attrs['dt']
@@ -1140,7 +1159,8 @@ class ElasticPSV(WaveFD2D):
         Parameters:
 
         * panels : tuple or variable
-            tuple or variable containing all 2D panels needed for this simulation
+            tuple or variable containing all 2D panels needed for
+            this simulation
         * tp1 : int
             panel time index
         * iteration:
@@ -1159,7 +1179,6 @@ class ElasticPSV(WaveFD2D):
             xpanels.attrs['iteration'] = iteration
             zpanels.attrs['simsize'] = simul_size
             zpanels.attrs['iteration'] = iteration
-
 
     def _expand_cache(self, iterations):
         with self._get_cache(mode='a') as f:
@@ -1181,12 +1200,11 @@ class ElasticPSV(WaveFD2D):
                 # contiguous
                 # Could change the _timestep to pass ux[tp1], etc, like in
                 # ElasticSH. That would probably be much better.
-                ux = numpy.copy(f['xpanels'][self.simsize - 2 : self.simsize][::-1],
-                                order='C')
-                uz = numpy.copy(f['zpanels'][self.simsize - 2 : self.simsize][::-1],
-                                order='C')
+                ux = numpy.copy(f['xpanels'][self.simsize - 2: self.simsize]
+                                [::-1], order='C')
+                uz = numpy.copy(f['zpanels'][self.simsize - 2: self.simsize]
+                                [::-1], order='C')
         return [ux, uz]
-
 
     def _timestep(self, u, tm1, t, tp1, iteration):
         nz, nx = self.shape
@@ -1199,17 +1217,17 @@ class ElasticPSV(WaveFD2D):
         # Free-surface boundary conditions
         Mx1, Mx2, Mx3 = self.Mx
         Mz1, Mz2, Mz3 = self.Mz
-        ux[tp1,0,:] = scipy.sparse.linalg.spsolve(
-            Mx1, Mx2*ux[tp1,1,:] + Mx3*uz[tp1,1,:])
-        uz[tp1,0,:] = scipy.sparse.linalg.spsolve(
-            Mz1, Mz2*uz[tp1,1,:] + Mz3*ux[tp1,1,:])
+        ux[tp1, 0, :] = scipy.sparse.linalg.spsolve(
+            Mx1, Mx2*ux[tp1, 1, :] + Mx3*uz[tp1, 1, :])
+        uz[tp1, 0, :] = scipy.sparse.linalg.spsolve(
+            Mz1, Mz2*uz[tp1, 1, :] + Mz3*ux[tp1, 1, :])
         _nonreflexive_psv_boundary_conditions(
             ux, uz, tp1, t, tm1, nx, nz, self.dt, self.dx, self.dz,
             self.mu, self.lamb, self.density)
         _apply_damping(ux[tp1], nx, nz, self.padding, self.taper)
         _apply_damping(uz[tp1], nx, nz, self.padding, self.taper)
         for pos, xsrc, zsrc in self.sources:
-            i, j = pos
+            j, i = pos
             ux[tp1, i, j] += xsrc(iteration*self.dt)
             uz[tp1, i, j] += zsrc(iteration*self.dt)
 
@@ -1288,6 +1306,7 @@ class ElasticPSV(WaveFD2D):
             height = 8
             width = height*aspect*1.5
         fig.set_size_inches(width, height)
+
         def plot(i):
             ax.set_title('iteration: {:d}'.format(i*every))
             ux, uz = self[i*every]
@@ -1345,8 +1364,8 @@ class Scalar(WaveFD2D):
     """
     def __init__(self, velocity, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
-        super(Scalar, self).__init__(cachefile, spacing, velocity.shape, dt, padding,
-                                        taper, verbose)
+        super(Scalar, self).__init__(cachefile, spacing, velocity.shape, dt,
+                                     padding, taper, verbose)
         self.velocity = velocity
         if self.dt is None:
             self.dt = self.maxdt()
@@ -1358,8 +1377,9 @@ class Scalar(WaveFD2D):
 
         References
 
-        Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of finite-difference
-        modeling of the acoustic wave equation Geophysics, 39 (6), P. 834-842
+        Alford R.M., Kelly K.R., Boore D.M. (1974) Accuracy of
+        finite-difference modeling of the acoustic wave equation
+        Geophysics, 39 (6), P. 834-842
 
         Chen, Jing-Bo (2011) A stability formula for Lax-Wendroff methods
         with fourth-order in time and general-order in space for
@@ -1369,8 +1389,8 @@ class Scalar(WaveFD2D):
 
         .. math::
 
-             \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N} (|w_a^1| +
-             |w_a^2|)}}
+             \Delta t \leq \frac{2 \Delta s}{ V \sqrt{\sum_{a=-N}^{N}
+             (|w_a^1| + |w_a^2|)}}
              = \frac{ \Delta s \sqrt{3}}{ V_{max} \sqrt{8}}
 
         Where w_a are the centered differences weights
@@ -1419,12 +1439,14 @@ class Scalar(WaveFD2D):
         * position : tuple
             The (x, z) coordinates of the source
         * source : source function
-            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example source)
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for
+            an example source)
 
         """
         self.sources.append([position, wavelet])
 
-    def _init_cache(self, npanels, chunks=None, compression='lzf', shuffle=True):
+    def _init_cache(self, npanels, chunks=None, compression='lzf',
+                    shuffle=True):
         """
         Initiate the hdf5 cache file with this simulation parameters
         (only called by run)
@@ -1450,11 +1472,11 @@ class Scalar(WaveFD2D):
             nz, nx = self.shape
             pad = self.padding
             dset = f.create_dataset('panels', (npanels, nz, nx),
-                                     maxshape=(None, nz, nx),
-                                     chunks=chunks,
-                                     compression=compression,
-                                     shuffle=shuffle,
-                                     dtype=numpy.float)
+                                    maxshape=(None, nz, nx),
+                                    chunks=chunks,
+                                    compression=compression,
+                                    shuffle=shuffle,
+                                    dtype=numpy.float)
             dset.attrs['shape'] = self.shape
             # simsize stores the total size of this simulation
             # after some or many runs
@@ -1576,7 +1598,8 @@ class Scalar(WaveFD2D):
         else:  # came from cache or another run
             with self._get_cache() as f:
                 cache = f['panels']
-                u = cache[self.simsize - 2: self.simsize][::-1]  # 0 and 1 invert
+                # 0 and 1 invert
+                u = cache[self.simsize - 2: self.simsize][::-1]
                 # u was saved with just the unpad region
                 u_ = numpy.zeros((2, nz, nx), dtype=numpy.float)
                 u_[:, :-pad, pad:-pad] += u
@@ -1623,7 +1646,7 @@ class Scalar(WaveFD2D):
         # Damp the regions in the padding to make waves go to infinity
         _apply_damping(u[tp1], nx, nz, self.padding, self.taper)
         for pos, src in self.sources:
-            i, j = pos
+            j, i = pos
             u[tp1, i, j + self.padding] += src(iteration*self.dt)
 
     def _plot_snapshot(self, frame, **kwargs):
@@ -2215,8 +2238,3 @@ def maxdt(area, shape, maxvel):
     nz, nx = shape
     spacing = min([(x2 - x1) / (nx - 1), (z2 - z1) / (nz - 1)])
     return 0.606 * spacing / maxvel
-
-
-
-
-
