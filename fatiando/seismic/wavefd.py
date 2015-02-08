@@ -12,6 +12,7 @@ the HDF5 file format to store and persist the simulation objects.
 
 **Simulation Classes**
 
+* :class:`~fatiando.seismic.wavefd.WaveFD2D`: Base class for 2D simulations
 * :class:`~fatiando.seismic.wavefd.ElasticSH`: Simulates SH elastic waves using
   the Equivalent Staggered Grid method of Di Bartolo et al. (2012)
 * :class:`~fatiando.seismic.wavefd.ElasticPSV`: Simulates the coupled P and SV
@@ -22,18 +23,29 @@ the HDF5 file format to store and persist the simulation objects.
 
 **Simulation Storage Access**
 
-The simulation classes store each time frame in an HDF5 file (the cache file).
-All data needed to resume the simulation later are stored. So when you need the
-simulation result, the class can dig into the cache file and return the data
-requested using python slice.
+The simulation classes store all its information in a HDF5 file
+(the cache file). The simulation time frames (2D panels) are stored as
+HDF5 datasets that `re-use the NumPy slicing syntax
+<http://docs.h5py.org/en/latest/high/dataset.html#reading-writing-data>`_.
+However each simulation class use a different number of 2D panels
+due its inner physics.
 
-All simulation classes have the following methods:
+It means that **numpy.shape(simulation[:])** gives:
 
-* :func:`from_cache`: rebuilds a simulation object from the cache file and
-  computations can be resumed right away, Source functions are also stored
-  in the cache file as pickles.
+* (``ElasticSH.simsize``, nz, nx) : for
+  :class:`~fatiando.seismic.wavefd.ElasticSH` where nz, nx
+  are ``ElasticSH.shape``
+* (2, ``ElasticPSV.simsize``, nz, nx) : for
+  :class:`~fatiando.seismic.wavefd.ElasticPSV` where the first and second
+  dimensions refers to **ux** and **uz** respectively
+  and nz, nx are ``ElasticPSV.shape``
+* (``Scalar.simsize``, nz, nx) : for :class:`~fatiando.seismic.wavefd.Scalar`
+  where nz, nx are ``Scalar.shape``
 
-* slicing : ... to finish ...
+To restore a simulation from a HDF5 cache file use
+:func:`~fatiando.seismic.wavefd.WaveFD2D.from_cache`. It rebuilds the entire
+simulation so computations can be resumed right away, Source functions are
+also stored in the cache file as pickles.
 
 **Simulation Rich display**
 
@@ -357,7 +369,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     """
     Base class for 2D simulations.
 
-    Implements the ``run`` method and delegates actual _timestepping to the
+    Implements the ``run`` method and delegates actual timestepping to the
     abstract ``_timestep`` method.
 
     Handles creating an HDF5 cache file, plotting snapshots of the simulation,
@@ -368,6 +380,15 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     indexing the HDF5 cache file. This way you can treat the simulation
     object as a numpy array.
 
+    Attributes:
+
+    * simsize: int
+        number of iterations that has been run
+    * cachefile: str
+        The hdf5 cachefile file path where the simulation is stored
+    * shape: tuple
+        2D panel numpy.shape without padding
+
     """
 
     def __init__(self, cachefile, spacing, shape, dt=None,
@@ -376,7 +397,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             self.dx, self.dz = spacing, spacing
         else:
             self.dx, self.dz = spacing
-        self.shape = shape  # grid shape without padding
+        self.shape = shape  # 2D panel shape without padding
         self.set_verbose(verbose)
         self.sources = []
         # simsize stores the total size of this simulation
@@ -947,6 +968,29 @@ class ElasticPSV(WaveFD2D):
     Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
     right boundaries. The top implements the free-surface boundary condition
     of Vidale and Clayton (1986).
+
+    Parameters:
+
+    * pvel: 2D-array (defines shape simulation)
+        The p wave velocity
+    * svel: 2D-array (defines shape simulation)
+        The s wave velocity
+    * density: 2D-array (defines shape simulation)
+        The density
+    * spacing: (dx, dz)
+        space increment for x and z direction
+    * cachefile: str
+        The hdf5 cachefile file path to store the simulation
+    * dt: float
+        time increment for simulation (recommended not to set)
+    * padding : int
+        Number of grid nodes to use for the absorbing boundary region
+    * taper : float
+        The intensity of the Gaussian taper function used for the absorbing
+        boundary conditions
+    * verbose: bool
+        True to show simulation progress bar
+
     """
 
     def __init__(self, pvel, svel, density, spacing, cachefile=None, dt=None,
@@ -1355,12 +1399,6 @@ class Scalar(WaveFD2D):
     * verbose: bool
         True to show simulation progress bar
 
-    Attributes:
-
-    * simsize: int
-        number of iterations that has been run
-    * cachefile: str
-        The hdf5 cachefile file path where the simulation is stored
     """
     def __init__(self, velocity, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
@@ -1567,6 +1605,7 @@ class Scalar(WaveFD2D):
             cache = f['panels']
             cache[simul_size - 1] = u[tp1, :-pad, pad:-pad]
             cache.attrs['simsize'] = simul_size  # total iterations ran
+            cache.attrs['iteration'] = iteration
             cache.attrs['iteration'] = iteration
 
     def _init_panels(self):
