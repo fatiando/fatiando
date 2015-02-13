@@ -12,12 +12,21 @@ Potential field processing using the Fast Fourier Transform
 * :func:`~fatiando.gravmag.fourier.derivz`: Calculate the n-th order
   derivative of a potential field in the z-direction
 
+.. warning::
+
+    Calculating the x-derivative of the x-component of the gravitational
+    attraction (gx) fails for some reason.
+
+
 **Transformations**
 
 * :func:`~fatiando.gravmag.fourier.ansig`: Calculate the amplitude of the
   analytic signal
 * :func:`~fatiando.gravmag.fourier.upcontinue`: Upward continuation of
   potential field data.
+* :func:`~fatiando.gravmag.fourier.reduce_to_pole`: Reduce the total field
+  magnetic anomaly to the pole.
+
 
 ----
 """
@@ -141,6 +150,14 @@ def derivz(x, y, data, shape, order=1):
         **before** calculating the derivative (use one of the unit conversion
         functions of :mod:`fatiando.utils`). This way the derivative will be in
         SI units and can be easily converted to what unit you want.
+
+    .. warning::
+
+        There seems to be a (small) systematic error in the z-derivative. The
+        formula is correct and this might be a numerial error from computing
+        with the FFT. See issue
+        `#167 <https://github.com/fatiando/fatiando/issues/167>`__.
+
 
     Parameters:
 
