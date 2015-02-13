@@ -26,6 +26,7 @@ import numpy
 
 from .. import utils
 
+
 def ansig(x, y, data, shape):
     """
     Calculate the amplitude of the analytic signal of the data.
