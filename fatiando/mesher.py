@@ -102,9 +102,16 @@ class Polygon(GeometricElement):
     """
 
     def __init__(self, vertices, props=None):
-        GeometricElement.__init__(self, props)
-        self.vertices = numpy.asarray(vertices)
-        self.nverts = len(vertices)
+        super(Polygon, self).__init__(props)
+        self._vertices = numpy.asarray(vertices)
+
+    @property
+    def vertices(self):
+        return self._vertices
+
+    @property
+    def nverts(self):
+        return len(self.vertices)
 
     @property
     def x(self):
@@ -130,12 +137,18 @@ class Square(Polygon):
 
     Example::
 
-        >>> sq = Square([0, 1, 2, 4], {'density':750})
-        >>> print sq
-        x1:0 | x2:1 | y1:2 | y2:4 | density:750
+        >>> sq = Square([0, 1, 2, 4], {'density': 750})
+        >>> sq.bounds
+        [0, 1, 2, 4]
+        >>> sq.x1
+        0
+        >>> sq.x2
+        1
+        >>> sq.props
+        {'density': 750}
         >>> sq.addprop('magnetization', 100)
-        >>> print sq
-        x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
+        >>> sq.props['magnetization']
+        100
 
     A square can be used as a :class:`~fatiando.mesher.Polygon`::
 
@@ -144,15 +157,37 @@ class Square(Polygon):
                [1, 2],
                [1, 4],
                [0, 4]])
+        >>> sq.x
+        array([0, 1, 1, 0])
+        >>> sq.y
+        array([2, 2, 4, 4])
+        >>> sq.nverts
+        4
 
     """
 
     def __init__(self, bounds, props=None):
-        self.bounds = bounds
+        super(Square, self).__init__(None, props)
         self.x1, self.x2, self.y1, self.y2 = bounds
-        verts = [[self.x1, self.y1], [self.x2, self.y1],
-                 [self.x2, self.y2], [self.x1, self.y2]]
-        Polygon.__init__(self, verts, props)
+
+    @property
+    def bounds(self):
+        """
+        The x, y boundaries of the square as [xmin, xmax, ymin, ymax]
+        """
+        return [self.x1, self.x2, self.y1, self.y2]
+
+    @property
+    def vertices(self):
+        """
+        The vertices of the square.
+        """
+        verts = numpy.array(
+            [[self.x1, self.y1],
+             [self.x2, self.y1],
+             [self.x2, self.y2],
+             [self.x1, self.y2]])
+        return verts
 
     def __str__(self):
         """Return a string representation of the square."""
