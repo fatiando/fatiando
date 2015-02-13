@@ -25,3 +25,17 @@ def test_derivatives():
         desired = np.reshape(analytical, shape)[50:-50, 50:-50]
         assert_allclose(actual, desired, atol=0.0, rtol=1e-3,
                         err_msg="Failed for g{}z".format(deriv))
+
+
+def test_laplace():
+    "gravmag.fourier second derivatives obey the Laplace equation"
+    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 200})]
+    shape = (300, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    derivatives = 'x y'.split()
+    potential = prism.potential(x, y, z, model)
+    gxx = utils.si2eotvos(fourier.derivx(x, y, potential, shape, order=2))
+    gyy = utils.si2eotvos(fourier.derivy(x, y, potential, shape, order=2))
+    gzz = utils.si2eotvos(fourier.derivz(x, y, potential, shape, order=2))
+    laplace = np.reshape(gxx + gyy + gzz, shape)
+    assert_allclose(laplace, np.zeros_like(laplace), atol=1e-13, rtol=1e-7)
