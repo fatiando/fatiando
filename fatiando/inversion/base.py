@@ -54,6 +54,29 @@ class OperatorMixin(object):
 
     """
 
+    @property
+    def regul_param(self):
+        """
+        The regularization parameter (scale factor) for the objetive function.
+
+        Defaults to 1.
+        """
+        return getattr(self, '_regularizing_parameter', 1)
+
+    @regul_param.setter
+    def regul_param(self, value):
+        """
+        Set the value of the regularizing parameter.
+        """
+        self._regularizing_parameter = value
+        for name in ['hessian', 'gradient', 'value']:
+            if hasattr(self, name):
+                method = getattr(self, name)
+                iscached = (isinstance(method, CachedMethodPermanent) or
+                            isinstance(method, CachedMethod))
+                if iscached:
+                    method.hard_reset()
+
     def copy(self, deep=False):
         """
         Make a copy of me.
@@ -315,7 +338,6 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
     def __init__(self, *args):
         self._components = self._unpack_components(args)
         self.size = len(self._components)
-        self.regul_param = 1
         self.p_ = None
         nparams = [obj.nparams for obj in self._components]
         assert all(nparams[0] == n for n in nparams[1:])
@@ -612,21 +634,29 @@ class Misfit(OptimizerMixin, OperatorMixin):
     where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector and
     :math:`N` is the number of data.
 
-    When subclassing this class, you must implement two methods:
+    When subclassing this class, you must implement the method:
 
     * ``predicted(self, p)``: calculates the predicted data
       :math:`\bar{d}` for a given parameter vector ``p``
+
+    If you want to use any gradient-based solver (you probably do), you'll need
+    to implement the method:
+
     * ``jacobian(self, p)``: calculates the Jacobian matrix of
       :math:`\bar{f}(\bar{p})` evaluated at ``p``
-
-    ``jacobian`` is only needed for gradient based optimization. If you plan on
-    using only heuristic methods to produce an estimate, you choose not to
-    implement it.
 
     If :math:`\bar{f}` is linear, then the Jacobian will be cached in memory so
     that it is only calculated once when using the class multiple times. So
     solving the same problem with different methods or using an iterative
     method doesn't have the penalty of recalculating the Jacobian.
+
+    .. warning::
+
+        When subclassing, be careful not to set the following attributes:
+        ``data``, ``nparams``, ``islinear``, ``nparams``, ``ndata``, and
+        (most importantly) ``regul_param`` and ``_regularizing_parameter``.
+        This could mess with internal behavior and break things in unexpected
+        ways.
 
     .. tip::
 
@@ -649,7 +679,6 @@ class Misfit(OptimizerMixin, OperatorMixin):
 
     def __init__(self, data, nparams, islinear, weights=None):
         self.p_ = None
-        self.regul_param = 1
         self.nparams = nparams
         self.islinear = islinear
         self.data = data
