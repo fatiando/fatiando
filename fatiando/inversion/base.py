@@ -54,6 +54,16 @@ class OperatorMixin(object):
 
     """
 
+    def copy(self, deep=False):
+        """
+        Make a copy of me.
+        """
+        if deep:
+            obj = copy.deepcopy(self)
+        else:
+            obj = copy.copy(self)
+        return obj
+
     def __add__(self, other):
         """
         Add two objective functions to make a MultiObjective.
@@ -360,16 +370,6 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         comp = self.__getitem__(self._i)
         self._i += 1
         return comp
-
-    def copy(self, deep=False):
-        """
-        Make a copy of me together with all the cached methods.
-        """
-        if deep:
-            obj = copy.deepcopy(self)
-        else:
-            obj = copy.copy(self)
-        return obj
 
     def fmt_estimate(self, p):
         """
