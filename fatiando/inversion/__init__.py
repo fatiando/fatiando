@@ -205,11 +205,11 @@ array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> y2 = 2*x2 + 5
 >>> y2
 array([  205.,   805.,  1405.,  2005.])
->>> # Simply sum the 2 classes! Note: the order matters!
+>>> # Simply sum the 2 classes
 >>> solver = Regression(x1, y1) + Regression(x2, y2)
 >>> solver.fit().estimate_
 array([ 2.,  5.])
->>> # index the solver to get each Regression
+>>> # Index the solver to get each Regression
 >>> solver[0].predicted()
 array([  5.,   7.,   9.,  11.,  13.,  15.])
 >>> solver[1].predicted()
