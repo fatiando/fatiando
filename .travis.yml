@@ -26,8 +26,8 @@ install:
   - pip install .
   - python setup.py build_ext --inplace
 script:
-  - nosetests fatiando test -v --with-doctest --with-coverage --cover-package=fatiando
   - make pep8
+  - nosetests fatiando test -v --with-doctest --with-coverage --cover-package=fatiando
 after_success:
   - coveralls
 notifications:
