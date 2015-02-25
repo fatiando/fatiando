@@ -167,12 +167,8 @@ def _straight(cells, prop, srcs, recs, velocity):
                        y_rec]
             # Find out how many points are inside both the cell and the
             # rectangle with the ray path as a diagonal
-            incell = lambda x, y: x <= x2 and x >= x1 and y <= y2 and y >= y1
-            inray = \
-                lambda x, y: (x <= maxx and x >= minx and y <= maxy and
-                              y >= miny)
             cross = [[x, y] for x, y in zip(xps, yps)
-                     if incell(x, y) and inray(x, y)]
+                     if _crosses(x, y, x1, x2, y1, y2, maxx, minx, maxy, miny)]
             # Remove the duplicates
             cross = [p for i, p in enumerate(cross) if p not in cross[0:i]]
             if len(cross) > 2:
@@ -185,3 +181,13 @@ def _straight(cells, prop, srcs, recs, velocity):
                     (p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
                 times[l] += distance / float(vel)
     return times
+
+
+def _crosses(x, y, x1, x2, y1, y2, maxx, minx, maxy, miny):
+    """
+    Check if (x, y) is inside both the cell and the rectangle with the ray path
+    as a diagonal.
+    """
+    incell = x <= x2 and x >= x1 and y <= y2 and y >= y1
+    inray = x <= maxx and x >= minx and y <= maxy and y >= miny
+    return incell and inray
