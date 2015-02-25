@@ -50,17 +50,44 @@ the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
 """
 from __future__ import division
 import multiprocessing
+import copy
 
 import numpy
 import scipy.sparse
 
-from .base import Objective
+from .base import OperatorMixin, CachedMethod, CachedMethodPermanent
 from ..utils import safe_dot
 from ..vis import mpl
 
 
-class Damping(Objective):
+class Regularization(OperatorMixin):
+    """
+    Generic regularizing function.
 
+    When subclassing this, you must implemenent the ``value`` method.
+    """
+
+    def __init__(self, nparams, islinear):
+        self.nparams = nparams
+        self.islinear = islinear
+        if islinear and hasattr(self, 'hessian'):
+            self.hessian = CachedMethodPermanent(self, 'hessian')
+
+    def copy(self, deep=False):
+        """
+        Make a copy of me together with all the cached methods.
+        """
+        if deep:
+            obj = copy.deepcopy(self)
+        else:
+            obj = copy.copy(self)
+        if self.islinear and hasattr(self, 'hessian'):
+            obj.hessian = copy.copy(obj.hessian)
+            obj.hessian.instance = obj
+        return obj
+
+
+class Damping(Regularization):
     r"""
     Damping (0th order Tikhonov) regularization.
 
@@ -110,12 +137,22 @@ class Damping(Objective):
     >>> damp.gradient(p)
     array([ 2.,  0.,  0.])
 
+    The Hessian matrix is cached so that it is only generated on the first
+    call to ``damp.hessian`` (unlike the gradient, which is calculated every
+    time).
+
+    >>> damp.hessian(p) is damp.hessian(p)
+    True
+    >>> damp.gradient(p) is damp.gradient(p)
+    False
+
+
     """
 
     def __init__(self, nparams):
         super(Damping, self).__init__(nparams, islinear=True)
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -130,17 +167,16 @@ class Damping(Objective):
             The Hessian
 
         """
-        # This is cheap so there is no need to cache it
-        return 2 * scipy.sparse.identity(self.nparams).tocsr()
+        return self.regul_param*2*scipy.sparse.identity(self.nparams).tocsr()
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
         Parameters:
 
-        * p : 1d-array or ``'null'``
-            The parameter vector. If ``'null'``, will return 0.
+        * p : 1d-array or None
+            The parameter vector. If None, will return 0.
 
         Returns:
 
@@ -148,13 +184,13 @@ class Damping(Objective):
             The gradient
 
         """
-        if p is 'null':
+        if p is None:
             grad = 0
         else:
-            grad = 2. * p
-        return grad
+            grad = 2.*p
+        return self.regul_param*grad
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -169,11 +205,10 @@ class Damping(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(p) ** 2
+        return self.regul_param*numpy.linalg.norm(p)**2
 
 
-class Smoothness(Objective):
-
+class Smoothness(Regularization):
     r"""
     Smoothness (1st order Tikhonov) regularization.
 
@@ -212,35 +247,42 @@ class Smoothness(Objective):
     >>> import numpy as np
     >>> fd = np.array([[1, -1, 0],
     ...                [0, 1, -1]])
-    >>> s = Smoothness(fd)
+    >>> smooth = Smoothness(fd)
     >>> p = np.array([0, 0, 0])
-    >>> s.value(p)
+    >>> smooth.value(p)
     0.0
-    >>> s.gradient(p)
+    >>> smooth.gradient(p)
     array([0, 0, 0])
-    >>> s.hessian(p)
+    >>> smooth.hessian(p)
     array([[ 2, -2,  0],
            [-2,  4, -2],
            [ 0, -2,  2]])
     >>> p = np.array([1, 0, 1])
-    >>> s.value(p)
+    >>> smooth.value(p)
     2.0
-    >>> s.gradient(p)
+    >>> smooth.gradient(p)
     array([ 2, -4,  2])
-    >>> s.hessian(p)
+    >>> smooth.hessian(p)
     array([[ 2, -2,  0],
            [-2,  4, -2],
            [ 0, -2,  2]])
+
+    The Hessian matrix is cached so that it is only generated on the first
+    call to ``hessian`` (unlike the gradient, which is calculated every
+    time).
+
+    >>> smooth.hessian(p) is smooth.hessian(p)
+    True
+    >>> smooth.gradient(p) is smooth.gradient(p)
+    False
 
     """
 
     def __init__(self, fdmat):
         super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
-        self._cache = {}
-        self._cache['hessian'] = {'hash': '',
-                                  'array': 2 * safe_dot(fdmat.T, fdmat)}
+        self.fdmat = fdmat
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -255,16 +297,16 @@ class Smoothness(Objective):
             The Hessian
 
         """
-        return self._cache['hessian']['array']
+        return self.regul_param*2*safe_dot(self.fdmat.T, self.fdmat)
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
         Parameters:
 
-        * p : 1d-array or ``'null'``
-            The parameter vector. If ``'null'``, will return 0.
+        * p : 1d-array or None
+            The parameter vector. If None, will return 0.
 
         Returns:
 
@@ -272,13 +314,13 @@ class Smoothness(Objective):
             The gradient
 
         """
-        if p is 'null':
+        if p is None:
             grad = 0
         else:
             grad = safe_dot(self.hessian(p), p)
-        return grad
+        return self.regul_param*grad
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -294,11 +336,10 @@ class Smoothness(Objective):
 
         """
         # Need to divide by 2 because the hessian is 2*R.T*R
-        return numpy.sum(p * safe_dot(self.hessian(p), p)) / 2.
+        return self.regul_param*safe_dot(p.T, safe_dot(self.hessian(p), p))/2
 
 
 class Smoothness1D(Smoothness):
-
     """
     Smoothness regularization for 1D problems.
 
@@ -340,7 +381,6 @@ class Smoothness1D(Smoothness):
 
 
 class Smoothness2D(Smoothness):
-
     """
     Smoothness regularization for 2D problems.
 
@@ -386,8 +426,7 @@ class Smoothness2D(Smoothness):
         super(Smoothness2D, self).__init__(fd2d(shape))
 
 
-class TotalVariation(Objective):
-
+class TotalVariation(Regularization):
     r"""
     Total variation regularization.
 
@@ -462,9 +501,9 @@ class TotalVariation(Objective):
         super(TotalVariation, self).__init__(
             nparams=fdmat.shape[1], islinear=False)
         self.beta = beta
-        self._fdmat = fdmat
+        self.fdmat = fdmat
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -479,9 +518,9 @@ class TotalVariation(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(safe_dot(self._fdmat, p), 1)
+        return self.regul_param*numpy.linalg.norm(safe_dot(self.fdmat, p), 1)
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -496,12 +535,12 @@ class TotalVariation(Objective):
             The Hessian
 
         """
-        derivs = safe_dot(self._fdmat, p)
-        q = self.beta / ((derivs ** 2 + self.beta) ** 1.5)
+        derivs = safe_dot(self.fdmat, p)
+        q = self.beta/((derivs**2 + self.beta)**1.5)
         q_matrix = scipy.sparse.diags(q, 0).tocsr()
-        return safe_dot(self._fdmat.T, q_matrix * self._fdmat)
+        return self.regul_param*safe_dot(self.fdmat.T, q_matrix*self.fdmat)
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
@@ -516,16 +555,15 @@ class TotalVariation(Objective):
             The gradient
 
         """
-        derivs = safe_dot(self._fdmat, p)
-        q = derivs / numpy.sqrt(derivs ** 2 + self.beta)
-        grad = safe_dot(self._fdmat.T, q)
+        derivs = safe_dot(self.fdmat, p)
+        q = derivs/numpy.sqrt(derivs**2 + self.beta)
+        grad = safe_dot(self.fdmat.T, q)
         if len(grad.shape) > 1:
             grad = numpy.array(grad.T).ravel()
-        return grad
+        return self.regul_param*grad
 
 
 class TotalVariation1D(TotalVariation):
-
     """
     Total variation regularization for 1D problems.
 
@@ -550,7 +588,6 @@ class TotalVariation1D(TotalVariation):
 
 
 class TotalVariation2D(TotalVariation):
-
     """
     Total variation regularization for 2D problems.
 
@@ -665,7 +702,6 @@ def fd2d(shape):
 
 
 class LCurve(object):
-
     """
     Use the L-curve criterion to estimate the regularization parameter.
 
