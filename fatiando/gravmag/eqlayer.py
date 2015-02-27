@@ -108,7 +108,7 @@ class EQLGravity(EQLBase):
     >>> # Setup a layer
     >>> layer = PointGrid(area, 500, (25, 25))
     >>> solver = (EQLGravity(x, y, z, gz, layer) +
-    ...           10**-26*Damping(layer.size)).fit()
+    ...           1e-24*Damping(layer.size)).fit()
     >>> # Check the fit
     >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
@@ -219,7 +219,7 @@ class EQLTotalField(EQLBase):
     >>> # Setup a layer
     >>> layer = PointGrid(area, 200, (25, 25))
     >>> solver = (EQLTotalField(x, y, z, tf, inc, dec, layer) +
-    ...           10**-19*Damping(layer.size)).fit()
+    ...           10**-17*Damping(layer.size)).fit()
     >>> # Check the fit
     >>> np.allclose(tf, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
@@ -444,7 +444,7 @@ class PELGravity(PELBase):
     >>> windows = (12, 12)
     >>> degree = 1
     >>> solver = (PELGravity(x, y, z, gz, layer, windows, degree) +
-    ...           10**-27*PELSmoothness(layer, windows, degree)).fit()
+    ...           10**-24*PELSmoothness(layer, windows, degree)).fit()
     >>> # Check the fit
     >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
