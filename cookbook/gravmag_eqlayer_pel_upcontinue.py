@@ -20,11 +20,14 @@ layer = mesher.PointGrid([-5000, 5000, -5000, 5000], 200, (100, 100))
 windows = (20, 20)
 degree = 1
 misfit = PELGravity(x, y, z, gz, layer, windows, degree)
-regul = PELSmoothness(layer, windows, degree)
-# Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -18)]).fit()
+# Apply a smoothness constraint to the borders of the equivalent layer windows
+# to avoid gaps in the physical property distribution
+solver = misfit + 1e-18*PELSmoothness(layer, windows, degree)
+solver.fit()
+# Add the estimated density distribution to the layer object for plotting and
+# forward modeling
 layer.addprop('density', solver.estimate_)
-residuals = solver.residuals()
+residuals = solver[0].residuals()
 print "Residuals:"
 print "mean:", residuals.mean()
 print "stddev:", residuals.std()
@@ -33,12 +36,6 @@ print "stddev:", residuals.std()
 # true solution of the prism
 gz_true = prism.gz(x, y, z - 500, model)
 gz_up = sphere.gz(x, y, z - 500, layer)
-
-mpl.figure()
-mpl.suptitle('L-curve')
-mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
-solver.plot_lcurve()
-mpl.grid()
 
 mpl.figure(figsize=(14, 4))
 mpl.subplot(1, 3, 1)
@@ -51,7 +48,7 @@ mpl.subplot(1, 3, 2)
 mpl.axis('scaled')
 mpl.title('Fit (mGal)')
 levels = mpl.contour(y, x, gz, shape, 15, color='r')
-mpl.contour(y, x, solver.predicted(), shape, levels, color='k')
+mpl.contour(y, x, solver[0].predicted(), shape, levels, color='k')
 mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (mGal)')
