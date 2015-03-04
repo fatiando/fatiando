@@ -62,10 +62,14 @@ Announcements
   of the presentation and proceedings are on Github.
   Watch a recorded version `on Youtube <http://youtu.be/Ec38h1oB8cc>`__.
 
-.. raw:: html
+Documentation
+-------------
 
-    <iframe width="560" height="315" src="//www.youtube.com/embed/Ec38h1oB8cc" frameborder="0" allowfullscreen></iframe>
-
+* :ref:`What's changed <changelog>`
+* :ref:`Cookbook <cookbook>`
+* :ref:`Installing <install>`
+* :ref:`API reference <fatiando>`
+* :ref:`Developer guide <develop>`
 
 
 .. toctree::
