@@ -3,26 +3,11 @@
     font-weight: 500;
 }
 .navbar-brand  img {
-    height: 100%;
+    height: 120%;
     margin: 0px 10px;
 }
 .navbar-brand {
-    font-size: 16pt;
-    height: 60px;
-    /*padding: 12px 0px 12px 15px;*/
-}
-.navbar-nav > li a {
-    padding-top:18px;
-    padding-bottom:19px;
-}
-.navbar-right {
-    padding-top:8px;
-}
-.navbar .dropdown-menu > li > a {
-    font-size: 11pt;
-    font-weight: 350;
-    padding-top: 9px;
-    padding-bottom: 9px;
+    padding-top: 8px;
 }
 blockquote {
     font-size: 15px;
@@ -30,7 +15,7 @@ blockquote {
 .navbar .navbar-version {
     font-size: 9pt;
     color: #919191;
-    padding-top: 9px;
+    padding-top: 2px;
 }
 .alert {
     font-size: 11pt;
