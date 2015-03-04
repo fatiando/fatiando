@@ -14,7 +14,7 @@ if [ "true" ]; then
     git config --global github.user "leouieda"
     echo -e "Cloning project"
     # Clone the project, using the secret token. Uses /dev/null to avoid leaking decrypted key
-    git clone --quiet --branch=gh-pages --single-branch https://${GH_TOKEN}@github.com/fatiando/fatiando.github.io.git fatiando.org > /dev/null
+    git clone --quiet --branch=master --single-branch https://${GH_TOKEN}@github.com/fatiando/fatiando.github.io.git fatiando.org > /dev/null
     cd fatiando.org
     # Move the old branch out of the way and create a new one:
     git branch -m master-old
