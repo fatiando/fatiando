@@ -465,6 +465,7 @@ copy this checklist to the PR description
 
     - [ ] Make tests for new code
     - [ ] Create/update docstrings
+    - [ ] Include relevant equations and citations in docstrings
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
     - [ ] Include new dependencies in docs, requirements.txt, README
