@@ -1,4 +1,4 @@
-.. title:: Home
+.. title:: Fatiando a Terra
 
 Fatiando a Terra: modeling and inversion in geophysics
 ======================================================
@@ -26,10 +26,10 @@ for examples of what Fatiando can do.
 .. _Cython: http://www.cython.org/
 
 
-Fatiando is **research software made by scientists**.
-Citations help us justify the effort
-that goes into building and maintaining it.
-Please :ref:`cite <cite>` it in your publications if you used it.
+.. note::
+
+    Fatiando is research software **made by scientists**.
+    Please :ref:`cite <cite>` it in your publications if you used it.
 
 Getting help and contributing
 -----------------------------

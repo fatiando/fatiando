@@ -96,13 +96,12 @@ html_theme_options = {
     'navbar_title': 'fatiando',
     'navbar_site_name': "Site",
     'navbar_links': [
-        ("Install", 'install'),
-        ("Cite", "cite"),
+        ("Cite us", "cite"),
         ("Docs", "docs"),
-        #('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
-            #"https://github.com/fatiando/fatiando", True),
-        #('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
-            #"https://groups.google.com/d/forum/fatiando", True),
+        ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
+            "https://github.com/fatiando/fatiando", True),
+        ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
+            "https://groups.google.com/d/forum/fatiando", True),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,

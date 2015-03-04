@@ -31,3 +31,10 @@ blockquote {
     border-color: #adb8cb !important;
     color: #2c3e50 !important;
 }
+.alert-info {
+    font-size: 11pt !important;
+    font-weight: 400 !important;
+    background-color: #adb8cb !important;
+    border-color: #adb8cb !important;
+    color: #2c3e50 !important;
+}
