@@ -55,7 +55,7 @@ rst_epilog = """
 html_last_updated_fmt = '%b %d, %Y'
 html_title = 'Fatiando a Terra'
 html_short_title = 'Fatiando a Terra'
-html_logo = '_static/fatiando-logo-noborder.png'
+#html_logo = '_static/fatiando-logo-noborder.png'
 html_favicon = u'favicon.ico'
 html_static_path = ['_static']
 html_extra_path = ['.nojekyll', 'CNAME']
@@ -92,17 +92,17 @@ htmlhelp_basename = 'FatiandoATerraDoc'
 html_theme = 'bootstrap'
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
-    'bootswatch_theme': "yeti",
+    'bootswatch_theme': "flatly",
     'navbar_title': 'fatiando',
     'navbar_site_name': "Site",
     'navbar_links': [
         ("Install", 'install'),
         ("Cite", "cite"),
         ("Docs", "docs"),
-        ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
-            "https://github.com/fatiando/fatiando", True),
-        ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
-            "https://groups.google.com/d/forum/fatiando", True),
+        #('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
+            #"https://github.com/fatiando/fatiando", True),
+        #('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
+            #"https://groups.google.com/d/forum/fatiando", True),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,

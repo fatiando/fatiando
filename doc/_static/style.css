@@ -1,22 +1,22 @@
-.navbar {
-    font-size: 11pt;
-    font-weight: 500;
-}
-.navbar-brand  img {
-    height: 120%;
-    margin: 0px 10px;
-}
-.navbar-brand {
-    padding-top: 8px;
-}
+/*.navbar {*/
+    /*font-size: 11pt;*/
+    /*font-weight: 500;*/
+/*}*/
+/*.navbar-brand  img {*/
+    /*height: 120%;*/
+    /*margin: 0px 10px;*/
+/*}*/
+/*.navbar-brand {*/
+    /*padding-top: 8px;*/
+/*}*/
 blockquote {
     font-size: 15px;
 }
-.navbar .navbar-version {
-    font-size: 9pt;
-    color: #919191;
-    padding-top: 2px;
-}
+/*.navbar .navbar-version {*/
+    /*font-size: 9pt;*/
+    /*color: #919191;*/
+    /*padding-top: 2px;*/
+/*}*/
 .alert {
     font-size: 11pt;
     font-weight: 400;

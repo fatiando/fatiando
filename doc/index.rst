@@ -1,44 +1,71 @@
-Fatiando a Terra: Geophysical modeling and inversion
-====================================================
+.. title:: Home
 
-.. topic:: An open source toolkit for geophysical modeling and inversion
+Fatiando a Terra: modeling and inversion in geophysics
+======================================================
 
-    Fatiando provides an easy and flexible way to perform common tasks like:
-    generating synthetic data, forward modeling, inversion, 3D visualization,
-    and more! All from inside the powerful Python_ language.
+An easy and flexible way to perform and implement geophysical data analysis:
 
-For more information visit `the official site`_.
+* Data processing
+* Generate synthetic data
+* Forward modeling
+* Inversion
+* 2D and 3D visualization
 
-The **source code** of Fatiando is hosted on `GitHub`_.
+All from inside the powerful Python_ language.
+Fatiando is built on top of the `Scipy ecosystem`_: Numpy_, Cython_,
+matplotlib_, Mayavi_, etc.
 
-**License**: Fatiando is licensed under the **BSD license**.
-This means that it can be reused and remixed
-with few restrictions.
-See the :ref:`license text <license>` for more information.
+Browse the :ref:`Cookbook <cookbook>`
+for examples of what Fatiando can do.
 
-**Citing**: Fatiando is research software. See our `CITATION file`_ to
-learn how to cite us in your publications.
+.. _Python: https://www.python.org/
+.. _matplotlib: http://matplotlib.org/
+.. _Mayavi: http://code.enthought.com/projects/mayavi/
+.. _Numpy: http://www.numpy.org/
+.. _Scipy ecosystem: http://scipy.org/
+.. _Cython: http://www.cython.org/
 
-The best **place to start** learning
-about Fatiando is the :ref:`Cookbook <cookbook>`.
-There, you'll find many sample scripts
-with common tasks
-that can help you get started.
 
-Watch `Leonardo Uieda`_ talk about the motivation behind  *Fatiando a Terra*
-and some of the main features at the `2013 Scipy conference`_:
-http://youtu.be/Ec38h1oB8cc
+Fatiando is **research software made by scientists**.
+Citations help us justify the effort
+that goes into building and maintaining it.
+Please :ref:`cite <cite>` it in your publications if you used it.
+
+Getting help and contributing
+-----------------------------
+
+There are many ways to get in contact with us:
+
+* Write to our `mailing list`_.
+* Report an `issue on Github`_.
+* Tweet `@leouieda`_.
+* Mention `+Fatiando a Terra`_ on Google+.
+
+We welcome feedback, bug reports, feature requests, code contributions,
+spelling corrections, usage examples, etc.
+
+.. _mailing list: https://groups.google.com/d/forum/fatiando
+.. _issue on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
+.. _@leouieda: https://twitter.com/leouieda
+.. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
+
+Announcements
+-------------
+
+* **July 2014**: We presented a poster at Scipy 2014 about the
+  ``fatiando.inversion`` package. See the
+  `Github repo <https://github.com/leouieda/scipy2014>`__ for the poster and
+  source code behind it.
+
+* **June 2013**: Fatiando a Terra was presented at SciPy 2013.
+  `Slides and source code <https://github.com/leouieda/scipy2013>`__
+  of the presentation and proceedings are on Github.
+  Watch a recorded version `on Youtube <http://youtu.be/Ec38h1oB8cc>`__.
 
 .. raw:: html
 
     <iframe width="560" height="315" src="//www.youtube.com/embed/Ec38h1oB8cc" frameborder="0" allowfullscreen></iframe>
 
-.. _Leonardo Uieda: http://fatiando.org/people/uieda/
-.. _2013 Scipy conference: http://conference.scipy.org/scipy2013/index.php
-.. _GitHub: https://github.com/fatiando/fatiando
-.. _the official site: http://www.fatiando.org
-.. _Python: http://www.python.org
-.. _CITATION file: https://github.com/fatiando/fatiando/blob/master/CITATION.rst
 
 
 .. toctree::
