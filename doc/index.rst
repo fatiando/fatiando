@@ -40,21 +40,12 @@ http://youtu.be/Ec38h1oB8cc
 .. _Python: http://www.python.org
 .. _CITATION file: https://github.com/fatiando/fatiando/blob/master/CITATION.rst
 
-----
-
-.. raw:: html
-
-    <h1>Contents:</h1>
 
 .. toctree::
     :maxdepth: 1
+    :hidden:
 
-    contributors.rst
-    license.rst
-    changelog.rst
-    install.rst
-    api/fatiando.rst
-    cookbook.rst
-    develop.rst
+    cite.rst
+    docs.rst
 
 
