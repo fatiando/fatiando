@@ -1,23 +1,33 @@
-/*.navbar {*/
-    /*font-size: 11pt;*/
-    /*font-weight: 500;*/
-/*}*/
-/*.navbar-brand  img {*/
-    /*height: 120%;*/
-    /*margin: 0px 10px;*/
-/*}*/
-/*.navbar-brand {*/
-    /*padding-top: 8px;*/
-/*}*/
+body {
+    color: #222;
+    font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+}
+a {
+    color: #008CBA;
+}
+.navbar {
+    background-color: #333;
+}
+.navbar-brand  img {
+    height: 40px;
+    margin: 0px 10px;
+}
+.navbar-brand {
+    padding-top: 10px;
+    font-size: 16pt;
+}
 blockquote {
     font-size: 15px;
+    color: #6F6F6F;
 }
-/*.navbar .navbar-version {*/
-    /*font-size: 9pt;*/
-    /*color: #919191;*/
-    /*padding-top: 2px;*/
-/*}*/
-.alert {
-    font-size: 11pt;
-    font-weight: 400;
+.navbar .navbar-version {
+    font-size: 9pt !important;
+    padding-top: 2px !important;
+}
+.note {
+    font-size: 11pt !important;
+    font-weight: 400 !important;
+    background-color: #adb8cb !important;
+    border-color: #adb8cb !important;
+    color: #2c3e50 !important;
 }
