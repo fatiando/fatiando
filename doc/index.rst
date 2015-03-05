@@ -31,8 +31,12 @@ for examples of what Fatiando can do.
     Fatiando is research software **made by scientists**.
     Please :ref:`cite <cite>` it in your publications if you used it.
 
-Getting help and contributing
------------------------------
+.. raw:: html
+
+    <div class="container-fluid">
+    <div class="row">
+    <div class="col-md-4">
+    <h2>Getting help and contributing</h2>
 
 There are many ways to get in contact with us:
 
@@ -49,8 +53,23 @@ spelling corrections, usage examples, etc.
 .. _@leouieda: https://twitter.com/leouieda
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
 
-Announcements
--------------
+.. raw:: html
+
+    </div>
+    <div class="col-md-4">
+    <h2>Documentation</h2>
+
+* :ref:`What's changed <changelog>`
+* :ref:`Cookbook <cookbook>`
+* :ref:`Installing <install>`
+* :ref:`API reference <fatiando>`
+* :ref:`Developer guide <develop>`
+
+.. raw:: html
+
+    </div>
+    <div class="col-md-4">
+    <h2>Announcements</h2>
 
 * **July 2014**: We presented a poster at Scipy 2014 about the
   ``fatiando.inversion`` package. See the
@@ -62,14 +81,11 @@ Announcements
   of the presentation and proceedings are on Github.
   Watch a recorded version `on Youtube <http://youtu.be/Ec38h1oB8cc>`__.
 
-Documentation
--------------
+.. raw:: html
 
-* :ref:`What's changed <changelog>`
-* :ref:`Cookbook <cookbook>`
-* :ref:`Installing <install>`
-* :ref:`API reference <fatiando>`
-* :ref:`Developer guide <develop>`
+    </div>
+    </div>
+    </div>
 
 
 .. toctree::
