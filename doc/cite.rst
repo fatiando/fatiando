@@ -3,7 +3,7 @@
 Citing
 ======
 
-Fatiando is **made by scientists**.
+Fatiando is research software **made by scientists**.
 Citations help us justify the effort
 that goes into building and maintaining Fatiando.
 

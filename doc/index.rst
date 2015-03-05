@@ -3,17 +3,19 @@
 Fatiando a Terra: modeling and inversion in geophysics
 ======================================================
 
-An easy and flexible way to perform and implement geophysical data analysis:
-
-* Data processing
-* Generate synthetic data
-* Forward modeling
-* Inversion
-* 2D and 3D visualization
-
+An easy and flexible way to perform and implement geophysical data analysis.
 All from inside the powerful Python_ language.
-Fatiando is built on top of the `Scipy ecosystem`_: Numpy_, Cython_,
+
+Fatiando is built on top of the `Scipy`_ ecosystem: Numpy_, Cython_,
 matplotlib_, Mayavi_, etc.
+Current capabilities include:
+
+* :ref:`Data processing <fatiando_gravmag>`
+* :ref:`Generate synthetic data <fatiando_gravmag>`
+* :ref:`Forward modeling <fatiando_gravmag>`
+* :ref:`Inversion <fatiando_inversion>`
+* :ref:`2D and 3D visualization <fatiando_vis>`
+
 
 Browse the :ref:`Cookbook <cookbook>`
 for examples of what Fatiando can do.
@@ -22,14 +24,16 @@ for examples of what Fatiando can do.
 .. _matplotlib: http://matplotlib.org/
 .. _Mayavi: http://code.enthought.com/projects/mayavi/
 .. _Numpy: http://www.numpy.org/
-.. _Scipy ecosystem: http://scipy.org/
+.. _Scipy: http://scipy.org/
 .. _Cython: http://www.cython.org/
 
 
-.. note::
+.. important::
 
     Fatiando is research software **made by scientists**.
     Please :ref:`cite <cite>` it in your publications if you used it.
+    Citations help us justify the effort
+    that goes into building and maintenance.
 
 .. raw:: html
 
@@ -59,11 +63,16 @@ spelling corrections, usage examples, etc.
     <div class="col-md-4">
     <h2>Documentation</h2>
 
-* :ref:`What's changed <changelog>`
-* :ref:`Cookbook <cookbook>`
-* :ref:`Installing <install>`
-* :ref:`API reference <fatiando>`
-* :ref:`Developer guide <develop>`
+.. toctree::
+    :maxdepth: 1
+
+    license.rst
+    install.rst
+    changelog.rst
+    api/fatiando.rst
+    develop.rst
+    contributors.rst
+    cookbook.rst
 
 .. raw:: html
 
