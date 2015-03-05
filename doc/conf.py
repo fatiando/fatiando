@@ -111,12 +111,12 @@ html_theme_options = {
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
     # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': False,
+    'navbar_pagenav': True,
     # Tab name for the current pages TOC. (Default: "Page")
     'navbar_pagenav_name': "Page",
     # Global TOC depth for "site" navbar tab. (Default: 1)
     # Switching to -1 shows all levels.
-    'globaltoc_depth': 2,
+    'globaltoc_depth': 1,
     # Include hidden TOCs in Site navbar?
     # Note: If this is "false", you cannot have mixed ``:hidden:`` and
     # non-hidden ``toctree`` directives in the same page, or else the build
