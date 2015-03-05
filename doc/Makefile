@@ -43,4 +43,4 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 serve:
-	cd $(BUILDDIR)/html && python -m SimpleHTTPServer 8005
+	cd $(BUILDDIR)/html && python -m SimpleHTTPServer 8008

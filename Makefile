@@ -39,7 +39,7 @@ linkcheck: clean
 	cd doc; make linkcheck
 
 view-docs:
-	cd doc/_build/html && python -m SimpleHTTPServer 8008
+	cd doc; make serve
 
 .PHONY: test
 test: build
