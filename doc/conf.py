@@ -9,7 +9,7 @@ sys.path.append(os.path.pardir)
 # and the cookbook.py module to build the cookbook
 sys.path.append(os.path.split(os.path.abspath(__file__))[0])
 
-from fatiando import __version__
+from fatiando import __version__, __commit__
 import cookbook
 
 # Build the cookbook recipes
@@ -37,8 +37,12 @@ master_doc = 'index'
 year = datetime.date.today().year
 project = u'Fatiando a Terra'
 copyright = u'2010-{:d}, Leonardo Uieda'.format(year)
-version = 'v{}'.format(__version__)
-release = version
+if len(__version__.split('-')) > 1:
+    version = '-'.join([__version__.split('-')[0], 'dev'])
+else:
+    version = __version__
+release = __version__
+commit = __commit__.split('-')[0] # Get rid of -dirty
 doi = '10.6084/m9.figshare.1115194'
 siteurl = 'http://fatiando.github.io'
 
@@ -97,6 +101,7 @@ html_theme_options = {
     'navbar_site_name': "Site",
     'navbar_links': [
         ("Cite us", "cite"),
+        ("Install", "install"),
         ("Docs", "docs"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),

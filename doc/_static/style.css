@@ -38,3 +38,9 @@ blockquote {
     border-color: #adb8cb !important;
     color: #2c3e50 !important;
 }
+
+.footer {
+    color: #6F6F6F;
+    margin-top: 30px;
+    padding-bottom: 30px;
+}
