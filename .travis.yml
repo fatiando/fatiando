@@ -27,9 +27,9 @@ install:
   - pip install .
   - make clean && python setup.py build_ext --inplace
 script:
-    #- make pep8
-    #- make test
-    #- make coverage
+    - make pep8
+    - make test
+    - make coverage
     - make clean; cd doc; make html && cd ..
 after_success:
     - coveralls
