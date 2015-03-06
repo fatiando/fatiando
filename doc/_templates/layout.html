@@ -37,10 +37,7 @@
                 href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.{%
             endtrans %}<br/>
             {%- endif %}
-            {%- if last_updated %}
-            {% trans last_updated=last_updated|e %}Built on {{ last_updated
-            }}.{% endtrans %}<br/>
-            {%- endif %}
+            Hosted on <a href="https://pages.github.com/">Github Pages</a>.
             </div>
 
             <div class="col-md-4">
@@ -53,6 +50,11 @@
             Version:
             <a href="https://github.com/fatiando/fatiando/commit/{{ commit }}">{{ release }}</a>
             </br>
+            {%- if last_updated %}
+            {% trans last_updated=last_updated|e %}Built on {{ last_updated }}
+            by <a href="https://travis-ci.org">Travis CI</a>.
+            {% endtrans %}<br/>
+            {%- endif %}
             </p>
             </div>
 
