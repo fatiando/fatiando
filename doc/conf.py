@@ -41,14 +41,10 @@ if len(__version__.split('-')) > 1:
     version = '-'.join([__version__.split('-')[0], 'dev'])
 else:
     version = __version__
-release = __version__
-commit = __commit__.split('-')[0] # Get rid of -dirty
+# I'll use the release to place the commit hash at the footer of the site
+release = __commit__.split('-')[0] # Get rid of -dirty
 doi = '10.6084/m9.figshare.1115194'
-siteurl = 'http://fatiando.github.io'
 
-extlinks = {
-    'siteurl': ('{}/%s'.format(siteurl), ''),
-}
 # These enable substitutions using |variable| in the rst files
 rst_epilog = """
 .. |doi| replace:: {doi}
