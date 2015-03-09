@@ -5,7 +5,7 @@
     :alt: Fatiando a Terra
 
 `Website <http://www.fatiando.org>`__ |
-`Docs <http://fatiando.readthedocs.org>`__ |
+`Docs <http://fatiando.github.io/docs.html>`__ |
 `Mailing list <https://groups.google.com/d/forum/fatiando>`__ |
 `Google+ <https://plus.google.com/+FatiandoOrg>`__
 
