@@ -47,11 +47,10 @@ To install and run Fatiando, you'll need the following packages:
 
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.
-See file ``requirements.txt`` and the
-`documentation <http://fatiando.readthedocs.org>`__.
+See file ``requirements.txt``.
 
 **Windows users**: See the
-`install docs <http://fatiando.readthedocs.org/en/latest/install.html>`__
+`install docs <http://fatiando.github.io/install.html#extra-dependencies-for-windows-users>`__
 for special instructions on getting the dependencies installed.
 
 Installing
@@ -82,22 +81,16 @@ please **cite it** in your publications as::
     figshare. doi: 10.6084/m9.figshare.1115194
 
 Some of the methods implemented here are also **original research** by some of
-the developers. Please **also cite the method papers**.
-See the
+the developers. Please **also cite the method papers**. 
+References are available in the documentation of each module.
+See the 
 `CITATION.rst <https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__
-file for more information.
+file or the `documentation <http://fatiando.github.io/cite.html>`__
+for more information.
 
 Read `this blog post by Robin Wilson
 <http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
 if you haven't heard of CITATION files.
-
-Documentation
--------------
-
-The latest documentation is available at ReadTheDocs. The docs reflects the
-*master* branch on Github.
-
-http://fatiando.readthedocs.org
 
 
 License
