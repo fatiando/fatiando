@@ -597,9 +597,9 @@ cdef inline double distance_n_size(
     double lon, double sinlat, double coslat, double radius,
     double* dlon, double* dlat, double* dr):
     cdef:
-        double rt, lont, latt, sinlatt, coslatt, cospsi, distance
+        double rt, rtop, lont, latt, sinlatt, coslatt, cospsi, distance
     # Calculate the distance to the observation point
-    rt = top + MEAN_EARTH_RADIUS
+    rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS
     lont = d2r*0.5*(w + e)
     latt = d2r*0.5*(s + n)
     sinlatt = sin(latt)
@@ -607,7 +607,8 @@ cdef inline double distance_n_size(
     cospsi = sinlat*sinlatt + coslat*coslatt*cos(lon - lont)
     distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)
     # Calculate the dimensions of the tesseroid in meters
-    dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
-    dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
+    rtop = top + MEAN_EARTH_RADIUS
+    dlon[0] = rtop*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+    dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
     dr[0] = top - bottom
     return distance

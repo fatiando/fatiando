@@ -7427,6 +7427,7 @@ static PyObject *__pyx_f_8fatiando_7gravmag_10_tesseroid_with_rediscretization(P
 
 static CYTHON_INLINE double __pyx_f_8fatiando_7gravmag_10_tesseroid_distance_n_size(double __pyx_v_w, double __pyx_v_e, double __pyx_v_s, double __pyx_v_n, double __pyx_v_top, double __pyx_v_bottom, double __pyx_v_lon, double __pyx_v_sinlat, double __pyx_v_coslat, double __pyx_v_radius, double *__pyx_v_dlon, double *__pyx_v_dlat, double *__pyx_v_dr) {
   double __pyx_v_rt;
+  double __pyx_v_rtop;
   double __pyx_v_lont;
   double __pyx_v_latt;
   double __pyx_v_sinlatt;
@@ -7438,17 +7439,17 @@ static CYTHON_INLINE double __pyx_f_8fatiando_7gravmag_10_tesseroid_distance_n_s
   __Pyx_RefNannySetupContext("distance_n_size", 0);
 
   /* "fatiando/gravmag/_tesseroid.pyx":602
- *         double rt, lont, latt, sinlatt, coslatt, cospsi, distance
+ *         double rt, rtop, lont, latt, sinlatt, coslatt, cospsi, distance
  *     # Calculate the distance to the observation point
- *     rt = top + MEAN_EARTH_RADIUS             # <<<<<<<<<<<<<<
+ *     rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS             # <<<<<<<<<<<<<<
  *     lont = d2r*0.5*(w + e)
  *     latt = d2r*0.5*(s + n)
  */
-  __pyx_v_rt = (__pyx_v_top + __pyx_v_8fatiando_7gravmag_10_tesseroid_MEAN_EARTH_RADIUS);
+  __pyx_v_rt = ((0.5 * (__pyx_v_top + __pyx_v_bottom)) + __pyx_v_8fatiando_7gravmag_10_tesseroid_MEAN_EARTH_RADIUS);
 
   /* "fatiando/gravmag/_tesseroid.pyx":603
  *     # Calculate the distance to the observation point
- *     rt = top + MEAN_EARTH_RADIUS
+ *     rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS
  *     lont = d2r*0.5*(w + e)             # <<<<<<<<<<<<<<
  *     latt = d2r*0.5*(s + n)
  *     sinlatt = sin(latt)
@@ -7456,7 +7457,7 @@ static CYTHON_INLINE double __pyx_f_8fatiando_7gravmag_10_tesseroid_distance_n_s
   __pyx_v_lont = ((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * 0.5) * (__pyx_v_w + __pyx_v_e));
 
   /* "fatiando/gravmag/_tesseroid.pyx":604
- *     rt = top + MEAN_EARTH_RADIUS
+ *     rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS
  *     lont = d2r*0.5*(w + e)
  *     latt = d2r*0.5*(s + n)             # <<<<<<<<<<<<<<
  *     sinlatt = sin(latt)
@@ -7496,38 +7497,47 @@ static CYTHON_INLINE double __pyx_f_8fatiando_7gravmag_10_tesseroid_distance_n_s
  *     cospsi = sinlat*sinlatt + coslat*coslatt*cos(lon - lont)
  *     distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)             # <<<<<<<<<<<<<<
  *     # Calculate the dimensions of the tesseroid in meters
- *     dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+ *     rtop = top + MEAN_EARTH_RADIUS
  */
   __pyx_v_distance = sqrt(((pow(__pyx_v_radius, 2.0) + pow(__pyx_v_rt, 2.0)) - (((2.0 * __pyx_v_radius) * __pyx_v_rt) * __pyx_v_cospsi)));
 
   /* "fatiando/gravmag/_tesseroid.pyx":610
  *     distance = sqrt(radius**2 + rt**2 - 2*radius*rt*cospsi)
  *     # Calculate the dimensions of the tesseroid in meters
- *     dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))             # <<<<<<<<<<<<<<
- *     dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
- *     dr[0] = top - bottom
+ *     rtop = top + MEAN_EARTH_RADIUS             # <<<<<<<<<<<<<<
+ *     dlon[0] = rtop*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+ *     dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
  */
-  (__pyx_v_dlon[0]) = (__pyx_v_rt * acos((pow(__pyx_v_sinlatt, 2.0) + (pow(__pyx_v_coslatt, 2.0) * cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * (__pyx_v_e - __pyx_v_w)))))));
+  __pyx_v_rtop = (__pyx_v_top + __pyx_v_8fatiando_7gravmag_10_tesseroid_MEAN_EARTH_RADIUS);
 
   /* "fatiando/gravmag/_tesseroid.pyx":611
  *     # Calculate the dimensions of the tesseroid in meters
- *     dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
- *     dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))             # <<<<<<<<<<<<<<
+ *     rtop = top + MEAN_EARTH_RADIUS
+ *     dlon[0] = rtop*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))             # <<<<<<<<<<<<<<
+ *     dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
+ *     dr[0] = top - bottom
+ */
+  (__pyx_v_dlon[0]) = (__pyx_v_rtop * acos((pow(__pyx_v_sinlatt, 2.0) + (pow(__pyx_v_coslatt, 2.0) * cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * (__pyx_v_e - __pyx_v_w)))))));
+
+  /* "fatiando/gravmag/_tesseroid.pyx":612
+ *     rtop = top + MEAN_EARTH_RADIUS
+ *     dlon[0] = rtop*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+ *     dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))             # <<<<<<<<<<<<<<
  *     dr[0] = top - bottom
  *     return distance
  */
-  (__pyx_v_dlat[0]) = (__pyx_v_rt * acos(((sin((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_n)) * sin((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_s))) + (cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_n)) * cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_s))))));
+  (__pyx_v_dlat[0]) = (__pyx_v_rtop * acos(((sin((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_n)) * sin((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_s))) + (cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_n)) * cos((__pyx_v_8fatiando_7gravmag_10_tesseroid_d2r * __pyx_v_s))))));
 
-  /* "fatiando/gravmag/_tesseroid.pyx":612
- *     dlon[0] = rt*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
- *     dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
+  /* "fatiando/gravmag/_tesseroid.pyx":613
+ *     dlon[0] = rtop*acos(sinlatt**2 + (coslatt**2)*cos(d2r*(e - w)))
+ *     dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
  *     dr[0] = top - bottom             # <<<<<<<<<<<<<<
  *     return distance
  */
   (__pyx_v_dr[0]) = (__pyx_v_top - __pyx_v_bottom);
 
-  /* "fatiando/gravmag/_tesseroid.pyx":613
- *     dlat[0] = rt*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
+  /* "fatiando/gravmag/_tesseroid.pyx":614
+ *     dlat[0] = rtop*acos(sin(d2r*n)*sin(d2r*s) + cos(d2r*n)*cos(d2r*s))
  *     dr[0] = top - bottom
  *     return distance             # <<<<<<<<<<<<<<
  */
