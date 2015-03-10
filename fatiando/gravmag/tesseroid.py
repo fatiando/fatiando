@@ -130,7 +130,7 @@ gravitational field of a tesseroid, Journal of Geodesy,
 doi: 10.1007/s00190-013-0636-1
 
 Wild-Pfeiffer, F. (2008),
-A comparison of different mass elements for use in gravity gradiometry,
+A comparison of different mass elements for use in gravity gratiometry,
 Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 
 
@@ -138,7 +138,11 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 
 """
 from __future__ import division
-import numpy
+import numpy as np
+try:
+    import numba
+except ImportError:
+    numba = None
 
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 try:
@@ -146,23 +150,46 @@ try:
 except ImportError:
     pass
 
-RATIO_POTENTIAL = 1
+RATIO_V = 1
 RATIO_G = 1.5
 RATIO_GG = 8
-QUEUE_SIZE = 100
+STACK_SIZE = 100
 
 
-def potential(lons, lats, heights, tesseroids, dens=None,
-              ratio=RATIO_POTENTIAL):
+def _check_input(lon, lat, height, model, ratio):
+    """
+    Check if the inputs are as expected and pre-compute some things.
+
+    Returns:
+    * [lon_radians, sinlat, coslat, radius, model, result]:
+        The longitude in radians, sine and cossine of the latitude, radius
+        coordinates, the model, a zero-filled result array.
+
+    """
+    assert lons.shape == lats.shape == heights.shape, \
+        "Input arrays lons, lats, and heights must have same length!"
+    assert ratio > 0, "Invalid ratio {}. Must be > 0.".format(ratio)
+    # Convert things to radians
+    lon = np.radians(lon)
+    lat = np.radians(lat)
+    sinlat = np.sin(lat)
+    coslat = np.cos(lat)
+    # Transform the heights into radius
+    radius = MEAN_EARTH_RADIUS + heights
+    result = np.zeros_like(lons)
+    return lon, sinlat, coslat, radius, model, result
+
+
+def potential(lon, lat, height, model, dens=None, ratio=RATIO_V, engine=None):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -170,7 +197,7 @@ def potential(lons, lats, heights, tesseroids, dens=None,
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -181,43 +208,33 @@ def potential(lons, lats, heights, tesseroids, dens=None,
         The calculated field in SI units
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    lon, sinlat, coslat, radius, model, result = _check_input(lon, lat, height,
+                                                              model, ratio)
     for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
+        if tesseroid is None:
+            continue
+        if 'density' not in tesseroid.props and dens is None:
             continue
         if dens is not None:
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.potential(tesseroid, density, ratio, QUEUE_SIZE, rlon,
-                             sinlat, coslat, radius, result)
+        _tesseroid.potential(lon, sinlat, coslat, radius, model, density,
+                ratio, STACK_SIZE, result)
     result *= G
     return result
 
 
-def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gx(lon, lat, height, model, dens=None, ratio=RATIO_G):
     """
     Calculate the North component of the gravitational attraction.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -225,7 +242,7 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -241,14 +258,14 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -257,22 +274,22 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gx(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                       coslat, radius, result)
     result *= SI2MGAL*G
     return result
 
 
-def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gy(lon, lat, height, model, dens=None, ratio=RATIO_G):
     """
     Calculate the East component of the gravitational attraction.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -280,7 +297,7 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -296,14 +313,14 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -312,13 +329,13 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                       coslat, radius, result)
     result *= SI2MGAL*G
     return result
 
 
-def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gz(lon, lat, height, model, dens=None, ratio=RATIO_G):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -329,10 +346,10 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -340,7 +357,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -356,14 +373,14 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -372,7 +389,7 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                       coslat, radius, result)
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
@@ -380,16 +397,16 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     return result
 
 
-def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the xx component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -397,7 +414,7 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -413,14 +430,14 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -429,22 +446,22 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gxx(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the xy component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -452,7 +469,7 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -468,14 +485,14 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -484,22 +501,22 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gxy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the xz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -507,7 +524,7 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -523,14 +540,14 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -539,22 +556,22 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gxz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gxz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the yy component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -562,7 +579,7 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -578,14 +595,14 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -594,22 +611,22 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gyy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gyy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the yz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -617,7 +634,7 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -633,14 +650,14 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -649,22 +666,22 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gyz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gyz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
     """
     Calculate the zz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -672,7 +689,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
@@ -688,14 +705,14 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             "Input arrays lons, lats, and heights must have same length!")
     ndata = len(lons)
     # Convert things to radians
-    d2r = numpy.pi / 180.
+    d2r = np.pi / 180.
     rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
+    sinlat = np.sin(d2r*lats)
+    coslat = np.cos(d2r*lats)
     # Transform the heights into radii
     radius = MEAN_EARTH_RADIUS + heights
     # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
+    result = np.zeros(ndata, np.float)
     for tesseroid in tesseroids:
         if (tesseroid is None or
                 ('density' not in tesseroid.props and dens is None)):
@@ -704,7 +721,7 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
             density = dens
         else:
             density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
+        _tesseroid.gzz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
                        coslat, radius, result)
     result *= SI2EOTVOS*G
     return result

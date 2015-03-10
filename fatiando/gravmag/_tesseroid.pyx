@@ -61,14 +61,14 @@ cdef inline double scale_nodes(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def potential(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -104,14 +104,14 @@ cdef inline double kernelpot(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gx(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -148,14 +148,14 @@ cdef inline double kernelx(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gy(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -192,14 +192,14 @@ cdef inline double kernely(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gz(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -235,14 +235,14 @@ cdef inline double kernelz(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gxx(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -279,14 +279,14 @@ cdef inline double kernelxx(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gxy(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -324,14 +324,14 @@ cdef inline double kernelxy(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gxz(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -369,14 +369,14 @@ cdef inline double kernelxz(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gyy(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -414,14 +414,14 @@ cdef inline double kernelyy(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gyz(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
@@ -460,14 +460,14 @@ cdef inline double kernelyz(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def gzz(
-    tesseroid,
-    double density,
-    double ratio,
-    int queue_max,
     numpy.ndarray[double, ndim=1] lons,
     numpy.ndarray[double, ndim=1] sinlats,
     numpy.ndarray[double, ndim=1] coslats,
     numpy.ndarray[double, ndim=1] radii,
+    tesseroid,
+    double density,
+    double ratio,
+    int queue_max,
     numpy.ndarray[double, ndim=1] result):
     """
     Calculate this gravity field of a tesseroid at given locations.
