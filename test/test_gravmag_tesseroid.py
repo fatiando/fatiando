@@ -18,12 +18,14 @@ def test_queue_overflow():
     tesseroid.QUEUE_SIZE = 5
     for f in fields:
         assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
-    tesseroid.QUEUE_SIZE = backup
     # Check if overflows on normal queue size when trying to calculated on top
     # of the tesseroid
-    lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([1])
+    tesseroid.QUEUE_SIZE = 20
+    lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([0])
     for f in fields:
         assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
+    # Restore the module default queue size
+    tesseroid.QUEUE_SIZE = backup
 
 
 def test_fails_if_shape_mismatch():
