@@ -19,14 +19,13 @@ FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Modeling and inversion for geophysics"
 VERSION = versioneer.get_version()
 CMDCLASS = versioneer.get_cmdclass()
-with open("README.md") as f:
+with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
             'fatiando.gravmag',
             'fatiando.seismic',
             'fatiando.geothermal',
             'fatiando.vis',
-            'fatiando.gui',
             'fatiando.inversion']
 AUTHOR = "Leonardo Uieda"
 AUTHOR_EMAIL = 'leouieda@gmail.com'

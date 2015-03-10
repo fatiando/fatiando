@@ -1,14 +1,19 @@
 """
-Estimate the basement relief of two-dimensional basins from gravity data.
+2D inversion for the basement relief of sedimentary basins.
 
-There are several parametrizations available. The simplest are:
+There are different parametrizations available.
 
-* :func:`~fatiando.gravmag.basin2d.Triangular`
-* :func:`~fatiando.gravmag.basin2d.Trapezoidal`
+The simplest are meant more as an exercise and initiation in inverse problems:
 
-More complex and realistic parametrizations are:
+* :func:`~fatiando.gravmag.basin2d.Triangular`: assumes a basin with a
+  triangular cross-section (think "foreland").
+* :func:`~fatiando.gravmag.basin2d.Trapezoidal`: assumes a basin with a
+  trapezoidal cross-section (think "grabben").
 
-* :func:`~fatiando.gravmag.basin2d.Polynomial`
+More complex parametrizations are:
+
+* :func:`~fatiando.gravmag.basin2d.PolygonalBasinGravity`: approximate the
+  basin by a polygon.
 
 ----
 
@@ -22,8 +27,205 @@ from ..mesher import Polygon
 from .. import utils
 
 
-class Triangular(Misfit):
+class PolygonalBasinGravity(Misfit):
+    """
+    Estimate the relief of a sedimentary basin approximating by a polygon.
 
+    Currently only works with gravity data.
+
+    The top of the basin is straight and fixed at a given height. Polygon
+    vertices are distributed evenly in the x-direction.  The inversion
+    estimates the depths of each vertex.
+
+    This is a non-linear inversion. Therefore you must configure it before
+    running to choose a solver method and set the initial estimate.
+    Use the ``config`` method for this.
+
+    Recommended configuration: Levemberg-Marquardt algorithm (``'levmarq'``)
+    with initial estimate to the average expected depth of the basin.
+
+    Typical regularization to use with this class are:
+    :class:`~fatiando.inversion.regularization.Damping`,
+    :class:`~fatiando.inversion.regularization.Smoothness1D`,
+    :class:`~fatiando.inversion.regularization.TotalVariation1D`.
+
+    The forward modeling is done using :mod:`~fatiando.gravmag.talwani`.
+    Derivatives are calculated using a 2-point finite difference approximation.
+
+    .. tip::
+
+        Use the ``estimate_`` attribute to get a
+        :class:`~fatiando.mesher.Polygon` version of the estimated parameters
+        (attribute ``p_``).
+
+    Parameters:
+
+    * x, z : 1d-arrays
+        The x and z coordinates of the observations. In meters.
+    * data : 1d-array
+        The observed data.
+    * npoints : int
+        Number of points to use
+    * props : dict
+        The physical properties dictionary that will be assigned to the
+        basin :class:`~fatiando.mesher.Polygon`. Ex: to give the basin a
+        density contrast of 500 kg/m3 ``props={'density': 500}``.
+    * top : float
+        The value of the z-coordinate where the top of the basin will be fixed.
+        In meters. Default: 0.
+    * xlim : None or list = [xmin, xmax]
+        The horizontal limits of the model. If not given, will use the limits
+        of the data (i.e., ``[x.min(), x.max()]``).
+
+    Examples:
+
+    Lets run an inversion on synthetic data from a simple model of a trapezoid
+    basin (a polygon with 4 vertices). We'll assume that the horizontal limits
+    of the basin are the same as the limits of the data::
+
+        >>> from fatiando.mesher import Polygon
+        >>> from fatiando.gravmag import talwani
+        >>> import numpy as np
+        >>> # Make some synthetic data from a simple basin
+        >>> props = {'density': -500}
+        >>> model = [Polygon([[3000, 0], [2000, 800], [1000, 500], [0, 0]],
+        ...                  props)]
+        >>> x = np.linspace(0, 3000, 50)
+        >>> z = -np.ones_like(x)  # Put data at 1m height
+        >>> data = talwani.gz(x, z, model)
+        >>> # Make the solver, configure, and invert.
+        >>> # Will use only 2 points because the two in the corners are
+        >>> # considered fixed in the inversion (at 'top').
+        >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0)
+        >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
+        Misfit instance
+        >>> misfit.p_
+        array([ 800.,  500.])
+        >>> type(misfit.estimate_)
+        <class 'fatiando.mesher.Polygon'>
+        >>> misfit.estimate_.vertices
+        array([[ 3000.,     0.],
+               [ 2000.,   800.],
+               [ 1000.,   500.],
+               [    0.,     0.]])
+
+    If the x range of the data points is larger than the basin, you can specify
+    a horizontal range for the basin model. When this is not specified, it is
+    deduced from the data::
+
+        >>> x = np.linspace(-500, 3500, 80)
+        >>> z = -np.ones_like(x)
+        >>> data = talwani.gz(x, z, model)
+        >>> # Specify that the model used for inversion should be within
+        >>> # x => [0, 3000]
+        >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0,
+        ...                                xlim=[0, 3000])
+        >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
+        Misfit instance
+        >>> misfit.p_
+        array([ 800.,  500.])
+        >>> misfit.estimate_.vertices
+        array([[ 3000.,     0.],
+               [ 2000.,   800.],
+               [ 1000.,   500.],
+               [    0.,     0.]])
+
+
+    """
+    def __init__(self, x, z, data, npoints, props, top=0, xlim=None):
+        super(PolygonalBasinGravity, self).__init__(
+            data=data, nparams=npoints, islinear=False,
+            positional=dict(x=x, z=z),
+            model=dict(top=top,
+                       props=props))
+        if xlim is None:
+            xlim = [x.min(), x.max()]
+        self._modelx = numpy.linspace(xlim[0], xlim[1], npoints + 2)[::-1]
+
+    def p2vertices(self, p):
+        """
+        Convert a parameter vector into vertices a Polygon.
+
+        Parameters:
+
+        * p : 1d-array
+            The parameter vector with the depth of the polygon vertices
+
+        Returns:
+
+        * vertices : 2d-array
+            Like a list of [x, z] coordinates of each vertex
+
+        Examples::
+
+            >>> import numpy as np
+            >>> # Make some arrays to create the estimator clas
+            >>> x = np.linspace(-100, 300, 50)
+            >>> z = np.zeros_like(x)
+            >>> data = z
+            >>> misfit = PolygonalBasinGravity(x, z, data, 3, {}, top=-100)
+            >>> misfit.p2vertices([1, 2, 3])
+            array([[ 300., -100.],
+                   [ 200.,    1.],
+                   [ 100.,    2.],
+                   [   0.,    3.],
+                   [-100., -100.]])
+
+        """
+        h = self.model['top']
+        verts = numpy.empty((self.nparams + 2, 2))
+        verts[:, 0] = self._modelx
+        verts[:, 1] = numpy.concatenate([[h], p, [h]])
+        return verts
+
+    def _get_predicted(self, p):
+        """
+        Calculate the predicted data for a parameter vector.
+        """
+        x, z = self.positional['x'], self.positional['z']
+        verts = self.p2vertices(p)
+        poly = Polygon(verts, self.model['props'])
+        return talwani.gz(x, z, [poly])
+
+    def _get_jacobian(self, p):
+        """
+        Calculate the Jacobian (sensitivity) matrix for a parameter vector.
+        """
+        x, z = self.positional['x'], self.positional['z']
+        props = self.model['props']
+        verts = self.p2vertices(p)
+        delta = numpy.array([0, 1])
+        jac = numpy.empty((self.ndata, self.nparams))
+        for i in xrange(self.nparams):
+            diff = Polygon([verts[i + 2], verts[i + 1] - delta,
+                            verts[i], verts[i + 1] + delta], props)
+            jac[:, i] = talwani.gz(x, z, [diff])/(2 * delta[1])
+        return jac
+
+    def fit(self):
+        """
+        Perform the inversion and fit the data.
+
+        Remember to call ``config`` before this to set the optimization method.
+
+        The results are stored in the attributes ``p_`` and ``estimate_``.
+        ``p_`` is the parameter  vector. ``estimate`` is a
+        :class:`~fatiando.mesher.Polygon`` that represented the estimate basin
+        (made from ``p_``).
+
+        Returns:
+
+        * self
+            A copy of this instance
+
+        """
+        super(PolygonalBasinGravity, self).fit()
+        self._estimate = Polygon(self.p2vertices(self.p_),
+                                 self.model['props'])
+        return self
+
+
+class Triangular(Misfit):
     """
     Estimate the relief of a triangular basin.
 
@@ -31,12 +233,11 @@ class Triangular(Misfit):
     vertical cross-section, like foreland basins.
 
     The triangle is assumed to have 2 known vertices at the surface (the edges
-    of the basin) and one unknown vertice in the subsurface.
-    The inversion will estimate the (x, z) coordinates of the unknown vertice.
+    of the basin) and one unknown vertex in the subsurface.
+    The inversion will estimate the (x, z) coordinates of the unknown vertex.
 
     The forward modeling is done using :mod:`~fatiando.gravmag.talwani`.
     Derivatives are calculated using a 2-point finite difference approximation.
-    The Hessian matrix is calculated using a Gauss-Newton approximation.
 
     .. tip::
 
@@ -165,7 +366,6 @@ class Triangular(Misfit):
 
 
 class Trapezoidal(Misfit):
-
     """
     Estimate the relief of a trapezoidal basin.
 

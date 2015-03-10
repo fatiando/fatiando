@@ -20,7 +20,7 @@ Generate and operate on various kinds of meshes and geometric elements
 
 **Utility functions**
 
-* :func:`~fatiando.mesher.extract`: Extract the values of a physicalr
+* :func:`~fatiando.mesher.extract`: Extract the values of a physical
   property from the cells in a list
 * :func:`~fatiando.mesher.vfilter`: Remove cells whose physical property
   value falls outside a given range
@@ -32,7 +32,7 @@ Generate and operate on various kinds of meshes and geometric elements
 """
 import numpy
 import scipy.special
-import matplotlib.mlab
+import scipy.interpolate
 
 from . import gridder
 from . import utils
@@ -83,15 +83,43 @@ class Polygon(GeometricElement):
         Physical properties assigned to the polygon.
         Ex: ``props={'density':10, 'susceptibility':10000}``
 
+    Examples::
+
+        >>> poly = Polygon([[0, 0], [1, 4], [2, 5]], {'density': 500})
+        >>> poly.props
+        {'density': 500}
+        >>> poly.nverts
+        3
+        >>> poly.vertices
+        array([[0, 0],
+               [1, 4],
+               [2, 5]])
+        >>> poly.x
+        array([0, 1, 2])
+        >>> poly.y
+        array([0, 4, 5])
+
     """
 
     def __init__(self, vertices, props=None):
-        GeometricElement.__init__(self, props)
-        x, y = numpy.array(vertices, dtype=numpy.float).T
-        self.vertices = vertices
-        self.x = x
-        self.y = y
-        self.nverts = len(vertices)
+        super(Polygon, self).__init__(props)
+        self._vertices = numpy.asarray(vertices)
+
+    @property
+    def vertices(self):
+        return self._vertices
+
+    @property
+    def nverts(self):
+        return len(self.vertices)
+
+    @property
+    def x(self):
+        return self.vertices[:, 0]
+
+    @property
+    def y(self):
+        return self.vertices[:, 1]
 
 
 class Square(Polygon):
@@ -109,26 +137,57 @@ class Square(Polygon):
 
     Example::
 
-        >>> sq = Square([0, 1, 2, 4], {'density':750})
-        >>> print sq
-        x1:0 | x2:1 | y1:2 | y2:4 | density:750
+        >>> sq = Square([0, 1, 2, 4], {'density': 750})
+        >>> sq.bounds
+        [0, 1, 2, 4]
+        >>> sq.x1
+        0
+        >>> sq.x2
+        1
+        >>> sq.props
+        {'density': 750}
         >>> sq.addprop('magnetization', 100)
-        >>> print sq
-        x1:0 | x2:1 | y1:2 | y2:4 | density:750 | magnetization:100
+        >>> sq.props['magnetization']
+        100
 
     A square can be used as a :class:`~fatiando.mesher.Polygon`::
 
-        >>> print sq.vertices
-        [[0, 2], [1, 2], [1, 4], [0, 4]]
+        >>> sq.vertices
+        array([[0, 2],
+               [1, 2],
+               [1, 4],
+               [0, 4]])
+        >>> sq.x
+        array([0, 1, 1, 0])
+        >>> sq.y
+        array([2, 2, 4, 4])
+        >>> sq.nverts
+        4
 
     """
 
     def __init__(self, bounds, props=None):
-        self.bounds = bounds
+        super(Square, self).__init__(None, props)
         self.x1, self.x2, self.y1, self.y2 = bounds
-        verts = [[self.x1, self.y1], [self.x2, self.y1],
-                 [self.x2, self.y2], [self.x1, self.y2]]
-        Polygon.__init__(self, verts, props)
+
+    @property
+    def bounds(self):
+        """
+        The x, y boundaries of the square as [xmin, xmax, ymin, ymax]
+        """
+        return [self.x1, self.x2, self.y1, self.y2]
+
+    @property
+    def vertices(self):
+        """
+        The vertices of the square.
+        """
+        verts = numpy.array(
+            [[self.x1, self.y1],
+             [self.x2, self.y1],
+             [self.x2, self.y2],
+             [self.x1, self.y2]])
+        return verts
 
     def __str__(self):
         """Return a string representation of the square."""
@@ -1202,7 +1261,8 @@ class PrismMesh(object):
         if len(zc) > nz:
             zc = zc[:-1]
         XC, YC = numpy.meshgrid(xc, yc)
-        topo = matplotlib.mlab.griddata(x, y, height, XC, YC).ravel()
+        topo = scipy.interpolate.griddata((x, y), height, (XC, YC),
+                                          method='cubic').ravel()
         if self.zdown:
             # -1 if to transform height into z coordinate
             topo = -1 * topo

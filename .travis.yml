@@ -9,7 +9,10 @@ python:
 virtualenv:
   system_site_packages: true
 env:
-  - OMP_NUM_THREADS=4
+    matrix:
+        - OMP_NUM_THREADS=4
+    global:
+        secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -17,15 +20,17 @@ before_install:
   - export PATH=/home/travis/anaconda/bin:$PATH
   # Update conda itself
   - conda update --yes conda
-  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging
-  - pip install -q --use-mirrors coverage coveralls pep8
-  # Test the docs build before installing because sphinx breaks on Cython modules
-  - cd doc; sphinx-build -W -d _build/doctrees -b html . _build/html; cd ..
+  - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging ipython
+  - pip install -q --use-mirrors coverage==3.7.1 coveralls==0.5 pep8==1.6.0 sphinx_bootstrap_theme==0.4.5
 install:
-  - python setup.py build_ext --inplace
+  - python setup.py build
+  - pip install .
+  - make clean && python setup.py build_ext --inplace
 script:
-  - nosetests fatiando test -v --with-doctest --with-coverage --cover-package=fatiando
+    - make pep8
+    - make test
+    - make coverage
+    - make clean; cd doc; make html && cd ..
 after_success:
-  - coveralls
-notifications:
-  email: false
+    - coveralls
+    - bash .push-docs.sh

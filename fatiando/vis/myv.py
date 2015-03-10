@@ -177,7 +177,7 @@ def points(points, color=(0, 0, 0), size=200., opacity=1, spherical=False):
 
 def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
                vmin=None, vmax=None, cmap='blue-red', color=None,
-               linewidth=0.1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+               linewidth=1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D polygonal prisms using Mayavi2.
 
@@ -314,7 +314,7 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
 
 def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
                vmin=None, vmax=None, cmap='blue-red', color=None,
-               linewidth=0.1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
+               linewidth=1, edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of tesseroids using Mayavi2.
 
@@ -466,7 +466,7 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
 
 
 def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
-           vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=0.1,
+           vmin=None, vmax=None, cmap='blue-red', color=None, linewidth=1,
            edgecolor=(0, 0, 0), scale=(1, 1, 1)):
     """
     Plot a list of 3D right rectangular prisms using Mayavi2.
