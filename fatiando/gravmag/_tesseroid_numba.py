@@ -40,7 +40,8 @@ def distance_size(lon, coslat, sinlat, radius, w, e, s, n, top, bottom):
     # Calculate the dimensions of the tesseroid in meters
     rtop = top + MEAN_EARTH_RADIUS
     Llon = rtop*np.arccos(sinlatt**2 + (coslatt**2)*np.cos(d2r*(e - w)))
-    Llat = rtop*np.arccos(np.sin(d2r*n)*np.sin(d2r*s) + np.cos(d2r*n)*np.cos(d2r*s))
+    Llat = rtop*np.arccos(np.sin(d2r*n)*np.sin(d2r*s) +
+                          np.cos(d2r*n)*np.cos(d2r*s))
     Lr = top - bottom
     return distance, Llon, Llat, Lr
 
@@ -126,4 +127,427 @@ def kernelz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
     # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
     # doesn't look inverted (ie, negative for positive density)
     result *= -1
+    return result
+
+
+@numba.jit(looplift=True)
+def potential(lon, sinlat, coslat, radius, tesseroid, density, ratio,
+              stack_size, result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelV(lon[l], coslat[l], sinlat[l], radius[l],
+                                 lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelV(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa/np.sqrt(l_sqr)
+    return result
+
+
+@numba.jit(looplift=True)
+def gx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+       result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelx(lon[l], coslat[l], sinlat[l], radius[l],
+                                 lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*rc[k]*kphi/(l_sqr**1.5)
+    return result
+
+
+@numba.jit(looplift=True)
+def gy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+       result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernely(lon[l], coslat[l], sinlat[l], radius[l],
+                                 lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernely(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+    return result
+
+
+@numba.jit(looplift=True)
+def gxx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelxx(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelxx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(3*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(looplift=True)
+def gxy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelxy(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelxy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc_sqr*kphi*coslatc[j]*sinlon/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(looplift=True)
+def gxz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelxz(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelxz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_5 = (r_sqr + rc_sqr - 2*radius*rc[k]*cospsi)**2.5
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc[k]*kphi*(rc[k]*cospsi - radius)/l_5
+    return result
+
+
+@numba.jit(looplift=True)
+def gyy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelyy(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelyy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                result += kappa*(3*(deltay**2) - l_sqr)/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(looplift=True)
+def gyz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelyz(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelyz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*3.*deltay*deltaz/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(looplift=True)
+def gzz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+        result):
+    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                             stack_size)
+    for l in range(result.size):
+        for i in range(6):
+            stack[0, i] = bounds[i]
+        stktop = 0
+        while stktop >= 0:
+            w, e, s, n, top, bottom = stack[stktop, :]
+            stktop -= 1
+            distance, Llon, Llat, Lr = distance_size(
+                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                bottom)
+            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                  ratio)
+            if new_cells > 1:
+                if new_cells + (stktop + 1) > stack_size:
+                    raise OverflowError
+                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                               stktop)
+            else:
+                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                    sinlatc, coslatc, rc)
+                kernel = kernelzz(lon[l], coslat[l], sinlat[l], radius[l],
+                                  lonc, sinlatc, coslatc, rc)
+                result[l] += density*scale*kernel
+
+
+@numba.jit(nopython=True)
+def kernelzz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                l_5 = l_sqr**2.5
+                kappa = rc_sqr*coslatc[j]
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*(3*deltaz**2 - l_sqr)/l_5
     return result

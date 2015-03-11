@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_allclose
 from nose.tools import assert_raises
 
 from fatiando.gravmag import tesseroid
@@ -9,7 +9,34 @@ from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
 
+def test_numba_vs_python():
+    "gravmag.tesseroid numba and pure python implementations give same result"
+    model = TesseroidMesh((0, 1, 0, 2, 1000, 0), (5, 5, 5))
+    lon, lat, height = gridder.regular((0, 1, 0, 2), (30, 30), z=50e3)
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        py = func(lon, lat, height, model, engine='numpy')
+        nb = func(lon, lat, height, model, engine='numba')
+        assert_allclose(np, py, err_msg="Mismatch for {}".format(f))
+
+
+def test_fails_if_shape_mismatch():
+    'gravmag.tesseroid fails if given computation points with different shapes'
+    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
+    area = [-2, 2, -2, 2]
+    shape = (51, 51)
+    lon, lat, h = gridder.regular(area, shape, z=100000)
+
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        assert_raises(AssertionError, func, lon[:-2], lat, h, model)
+        assert_raises(AssertionError, func, lon, lat[:-2], h, model)
+        assert_raises(AssertionError, func, lon, lat, h[:-2], model)
+        assert_raises(AssertionError, func, lon[:-5], lat, h[:-2], model)
+
+
 def calc_shell_effect(height, top, bottom, density):
+    "Calculate the effects of a homogeneous spherical shell"
     r = height + MEAN_EARTH_RADIUS
     # top and bottom are heights
     r1 = bottom + MEAN_EARTH_RADIUS
@@ -26,86 +53,6 @@ def calc_shell_effect(height, top, bottom, density):
             'gyz': 0,
             'gzz': SI2EOTVOS*(2*potential/r**2)}
     return data
-
-
-def test_queue_overflow():
-    "gravmag.tesseroid raises exceptions on queue overflow"
-    model = [Tesseroid(0, 1, 0, 1, 0, -20e4, {'density': 2600})]
-    area = [0, 1, 0, 1]
-    shape = [20, 20]
-    lon, lat, h = gridder.regular(area, shape, z=1000)
-    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
-    backup = tesseroid.QUEUE_SIZE
-    tesseroid.QUEUE_SIZE = 5
-    for f in fields:
-        assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
-    # Check if overflows on normal queue size when trying to calculated on top
-    # of the tesseroid
-    tesseroid.QUEUE_SIZE = 20
-    lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([0])
-    for f in fields:
-        assert_raises(ValueError, getattr(tesseroid, f), lon, lat, h, model)
-    # Restore the module default queue size
-    tesseroid.QUEUE_SIZE = backup
-
-
-def test_fails_if_shape_mismatch():
-    'gravmag.tesseroid fails if given computation points with different shapes'
-    model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]
-    area = [-2, 2, -2, 2]
-    shape = (51, 51)
-    lon, lat, h = gridder.regular(area, shape, z=100000)
-
-    assert_raises(ValueError, tesseroid.potential, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.potential, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.potential, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.potential, lon[:-5], lat, h[:-2],
-                  model)
-
-    assert_raises(ValueError, tesseroid.gx, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gx, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gx, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gx, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gy, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gy, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gy, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gy, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gz, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gz, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gz, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gz, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gxx, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gxx, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gxx, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gxx, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gxy, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gxy, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gxy, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gxy, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gxz, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gxz, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gxz, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gxz, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gyy, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gyy, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gyy, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gyy, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gyz, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gyz, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gyz, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gyz, lon[:-5], lat, h[:-2], model)
-
-    assert_raises(ValueError, tesseroid.gzz, lon[:-2], lat, h, model)
-    assert_raises(ValueError, tesseroid.gzz, lon, lat[:-2], h, model)
-    assert_raises(ValueError, tesseroid.gzz, lon, lat, h[:-2], model)
-    assert_raises(ValueError, tesseroid.gzz, lon[:-5], lat, h[:-2], model)
 
 
 def test_tesseroid_vs_spherical_shell():
@@ -204,3 +151,24 @@ def test_laplace_equation():
         assert_array_almost_equal(trace, np.zeros_like(lon), 9,
                                   'Failed tesseroid %s. Max diff %.15g'
                                   % (str(tess), np.abs(trace).max()))
+
+
+def test_stack_overflow():
+    "gravmag.tesseroid raises exceptions on stack overflow"
+    model = [Tesseroid(0, 1, 0, 1, 0, -20e4, {'density': 2600})]
+    area = [0, 1, 0, 1]
+    shape = [20, 20]
+    lon, lat, h = gridder.regular(area, shape, z=1000)
+    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
+    backup = tesseroid.STACK_SIZE
+    tesseroid.STACK_SIZE = 5
+    for f in fields:
+        assert_raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
+    # Check if overflows on normal queue size when trying to calculated on top
+    # of the tesseroid
+    tesseroid.STACK_SIZE = 20
+    lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([0])
+    for f in fields:
+        assert_raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
+    # Restore the module default queue size
+    tesseroid.STACK_SIZE = backup

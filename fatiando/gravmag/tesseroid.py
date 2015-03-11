@@ -156,7 +156,7 @@ from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 RATIO_V = 1
 RATIO_G = 1.6
 RATIO_GG = 8
-STACK_SIZE = 100
+STACK_SIZE = 500
 
 
 def _check_input(lon, lat, height, model, ratio, njobs):
@@ -266,13 +266,13 @@ def _split_arrays(arrays, extra_args, nparts):
     n = size//nparts
     strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
     strides.append((strides[-1][-1], size))
-    chunks = [[x[low : high] for x in arrays] + extra_args
+    chunks = [[x[low:high] for x in arrays] + extra_args
               for low, high in strides]
     return chunks
 
 
 def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
-              engine='default'):
+              engine='default', njobs=1):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -300,20 +300,24 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
         The calculated field in SI units
 
     """
-    lon, sinlat, coslat, radius, model, result = _check_input(lon, lat, height,
-                                                              model, ratio)
-    module = _get_engine(engine)
-    for tesseroid in model:
-        density = _get_density(tesseroid, dens)
-        if density is None:
-            continue
-        module.potential(lon, sinlat, coslat, radius, model, density,
-                         ratio, STACK_SIZE, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'potential'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= G
     return result
 
 
-def gx(lon, lat, height, model, dens=None, ratio=RATIO_G):
+def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+       njobs=1):
     """
     Calculate the North component of the gravitational attraction.
 
@@ -341,34 +345,24 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gx(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                      coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gx'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2MGAL*G
     return result
 
 
-def gy(lon, lat, height, model, dens=None, ratio=RATIO_G):
+def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+       njobs=1):
     """
     Calculate the East component of the gravitational attraction.
 
@@ -396,35 +390,24 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                      coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2MGAL*G
     return result
 
 
 def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
-        njobs=1):
+       njobs=1):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -460,8 +443,8 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gz'
     if njobs == 1:
-         _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                      field])
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
     else:
         chunks = _split_arrays(arrays=[lon, lat, height, result],
                                extra_args=[model, dens, ratio, engine, field],
@@ -473,7 +456,8 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     return result
 
 
-def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xx component of the gravity gradient tensor.
 
@@ -501,34 +485,24 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxx(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxx'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xy component of the gravity gradient tensor.
 
@@ -556,34 +530,24 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xz component of the gravity gradient tensor.
 
@@ -611,34 +575,24 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the yy component of the gravity gradient tensor.
 
@@ -666,34 +620,24 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gyy(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gyy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the yz component of the gravity gradient tensor.
 
@@ -721,34 +665,24 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gyz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gyz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
+def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the zz component of the gravity gradient tensor.
 
@@ -776,28 +710,17 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gzz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
