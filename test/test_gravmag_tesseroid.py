@@ -1,10 +1,31 @@
+from __future__ import division
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 from nose.tools import assert_raises
 
-from fatiando.gravmag import tesseroid, half_sph_shell
-from fatiando.mesher import Tesseroid
+from fatiando.gravmag import tesseroid
+from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando import gridder
+from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
+
+
+def calc_shell_effect(height, top, bottom, density):
+    r = height + MEAN_EARTH_RADIUS
+    # top and bottom are heights
+    r1 = bottom + MEAN_EARTH_RADIUS
+    r2 = top + MEAN_EARTH_RADIUS
+    potential = (4/3)*np.pi*G*density*(r2**3 - r1**3)/r
+    data = {'potential': potential,
+            'gx': 0,
+            'gy': 0,
+            'gz': SI2MGAL*(potential/r),
+            'gxx': SI2EOTVOS*(-potential/r**2),
+            'gxy': 0,
+            'gxz': 0,
+            'gyy': SI2EOTVOS*(-potential/r**2),
+            'gyz': 0,
+            'gzz': SI2EOTVOS*(2*potential/r**2)}
+    return data
 
 
 def test_queue_overflow():
@@ -88,36 +109,33 @@ def test_fails_if_shape_mismatch():
 
 
 def test_tesseroid_vs_spherical_shell():
-    "gravmag.tesseroid equal analytical solution of spherical half-shell to 1%"
-    tlons = np.linspace(-90, 90, 45, endpoint=False)
-    tlats = np.linspace(-90, 90, 45, endpoint=False)
-    wsize = tlons[1] - tlons[0]
-    ssize = tlats[1] - tlats[0]
+    "gravmag.tesseroid equal analytical solution of spherical shell to 0.1%"
     density = 1000.
-    props = {'density': density}
-    top = 0
-    bottom = -100000
-    shellmodel = [Tesseroid(w, w + wsize, s, s + ssize, top, bottom, props)
-                  for w in tlons for s in tlats]
-    heights = np.linspace(10000, 1000000, 10)
-    lons = np.zeros_like(heights)
-    lats = lons
+    top = 1000
+    bottom = 0
+    model = TesseroidMesh((0, 360, -90, 90, top, bottom), (1, 6, 12))
+    model.addprop('density', density*np.ones(model.size))
+    h = 10000
+    lon, lat, height = gridder.regular((0, model.dims[0], 0, model.dims[1]),
+                                       (10, 10), z=h)
     funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
              'gzz']
+    shellvalues = calc_shell_effect(h, top, bottom, density)
     for f in funcs:
-        shell = getattr(half_sph_shell, f)(heights, top, bottom, density)
-        tess = getattr(tesseroid, f)(lons, lats, heights, shellmodel)
+        shell = shellvalues[f]
+        tess = getattr(tesseroid, f)(lon, lat, height, model)
         diff = np.abs(shell - tess)
-        factor = np.abs(shell).max()
-        if factor > 1e-10:
-            shell /= factor
-            tess /= factor
-            precision = 2  # 1% of the maximum
-        else:
-            precision = 10  # For the components that are zero
-        assert_array_almost_equal(shell, tess, precision,
-                                  'Failed %s: max diff %.15g'
-                                  % (f, diff.max()))
+        # gz gy and the off-diagonal gradients should be zero so I can't
+        # calculate a relative error (in %).
+        # To do that, I'll use the gz and gzz shell values to calculate the
+        # percentage.
+        if f in 'gx gy'.split():
+            shell = shellvalues['gz']
+        elif f in 'gxy gxz gyz'.split():
+            shell = shellvalues['gzz']
+        diff = 100*diff/np.abs(shell)
+        assert diff.max() < 0.1, "diff > 0.1% for {}: {}".format(
+            f, diff.max())
 
 
 def test_skip_none_and_missing_properties():
@@ -137,7 +155,7 @@ def test_skip_none_and_missing_properties():
                            {'density': 2000})]
     area = [-2, 2, -2, 2]
     shape = (51, 51)
-    lon, lat, h = gridder.regular(area, shape, z=50000)
+    lon, lat, h = gridder.regular(area, shape, z=150000)
     funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
              'gzz']
     for f in funcs:
@@ -153,7 +171,7 @@ def test_overwrite_density():
     other = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': density})]
     area = [-2, 2, -2, 2]
     shape = (51, 51)
-    lon, lat, h = gridder.regular(area, shape, z=50000)
+    lon, lat, h = gridder.regular(area, shape, z=250000)
     funcs = ['potential', 'gx', 'gy', 'gz', 'gxx', 'gxy', 'gxz', 'gyy', 'gyz',
              'gzz']
     for f in funcs:

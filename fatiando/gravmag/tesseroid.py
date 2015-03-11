@@ -130,7 +130,7 @@ gravitational field of a tesseroid, Journal of Geodesy,
 doi: 10.1007/s00190-013-0636-1
 
 Wild-Pfeiffer, F. (2008),
-A comparison of different mass elements for use in gravity gratiometry,
+A comparison of different mass elements for use in gravity gradiometry,
 Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 
 
@@ -151,7 +151,7 @@ except ImportError:
     pass
 
 RATIO_V = 1
-RATIO_G = 1.5
+RATIO_G = 1.6
 RATIO_GG = 8
 STACK_SIZE = 100
 
