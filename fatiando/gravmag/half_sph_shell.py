@@ -21,9 +21,10 @@ Components, gx, gy, gxy, gxz, and gyz are all equal to zero (0).
 
 
 """
+from __future__ import division
 import numpy
 
-from fatiando.constants import MEAN_EARTH_RADIUS, G, SI2MGAL, SI2EOTVOS
+from ..constants import MEAN_EARTH_RADIUS, G, SI2MGAL, SI2EOTVOS
 
 
 def potential(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
@@ -36,6 +37,14 @@ def potential(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
         res += (-1) ** (i) * ((l ** 3 + rl ** 3) / (3. * r) - 0.5 * rl ** 2)
     res *= 2 * numpy.pi * G * density
     return res
+
+
+def gx(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
+    return numpy.zeros_like(heights)
+
+
+def gy(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
+    return gx(heights, top, bottom, density, ref_radius)
 
 
 def gz(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
@@ -69,3 +78,15 @@ def gxx(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
 
 def gyy(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
     return gxx(heights, top, bottom, density, ref_radius)
+
+
+def gxy(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
+    return numpy.zeros_like(heights)
+
+
+def gxz(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
+    return gxy(heights, top, bottom, density, ref_radius)
+
+
+def gyz(heights, top, bottom, density, ref_radius=MEAN_EARTH_RADIUS):
+    return gxy(heights, top, bottom, density, ref_radius)
