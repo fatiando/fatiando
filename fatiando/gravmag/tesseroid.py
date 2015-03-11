@@ -147,7 +147,7 @@ except ImportError:
     pass
 
 RATIO_POTENTIAL = 1
-RATIO_G = 1.5
+RATIO_G = 1.6
 RATIO_GG = 8
 QUEUE_SIZE = 100
 
