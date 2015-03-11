@@ -138,17 +138,20 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 
 """
 from __future__ import division
+import multiprocessing
+
 import numpy as np
 try:
     import numba
+    from . import _tesseroid_numba
 except ImportError:
     numba = None
-
-from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 try:
     from . import _tesseroid
 except ImportError:
-    pass
+    cython = None
+
+from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 RATIO_V = 1
 RATIO_G = 1.6
@@ -156,28 +159,33 @@ RATIO_GG = 8
 STACK_SIZE = 100
 
 
-def _check_input(lon, lat, height, model, ratio):
+def _check_input(lon, lat, height, model, ratio, njobs):
     """
-    Check if the inputs are as expected and pre-compute some things.
-
-    Returns:
-    * [lon_radians, sinlat, coslat, radius, model, result]:
-        The longitude in radians, sine and cossine of the latitude, radius
-        coordinates, the model, a zero-filled result array.
-
+    Check if the inputs are as expected and generate the output array.
     """
-    assert lons.shape == lats.shape == heights.shape, \
-        "Input arrays lons, lats, and heights must have same length!"
+    assert lon.shape == lat.shape == height.shape, \
+        "Input coordinate arrays must have same shape"
     assert ratio > 0, "Invalid ratio {}. Must be > 0.".format(ratio)
+    assert njobs > 0, "Invalid number of jobs {}. Must be > 0.".format(njobs)
+    result = np.zeros_like(lon)
+    return result
+
+
+def _convert_coords(lon, lat, height):
+    """
+    Convert angles to radians and heights to radius.
+
+    Pre-compute the sine and cossine of latitude because that is what we need
+    from it.
+    """
     # Convert things to radians
     lon = np.radians(lon)
     lat = np.radians(lat)
     sinlat = np.sin(lat)
     coslat = np.cos(lat)
     # Transform the heights into radius
-    radius = MEAN_EARTH_RADIUS + heights
-    result = np.zeros_like(lons)
-    return lon, sinlat, coslat, radius, model, result
+    radius = MEAN_EARTH_RADIUS + height
+    return lon, sinlat, coslat, radius
 
 
 def _get_engine(engine):
@@ -215,6 +223,40 @@ def _get_density(tesseroid, dens):
     return density
 
 
+def _dispatcher(args):
+    """
+    Run the computations on the model for a given list of arguments.
+
+    This is used because multiprocessing.Pool.map can only use functions that
+    receive a single argument.
+
+    Arguments should be, in order:
+
+    lon, lat, height, result, model, dens, ratio, engine, field
+    """
+    lon, lat, height, result, model, dens, ratio, engine, field = args
+    lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
+    module = _get_engine(engine)
+    func = getattr(module, field)
+    for tesseroid in model:
+        density = _get_density(tesseroid, dens)
+        if density is None:
+            continue
+        func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
+             STACK_SIZE, result)
+    return result
+
+
+def _split_arrays(arrays, extra_args, nparts):
+    size = len(arrays[0])
+    n = size//nparts
+    strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
+    strides.append((strides[-1][-1], size))
+    chunks = [[x[low : high] for x in arrays] + extra_args
+              for low, high in strides]
+    return chunks
+
+
 def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
               engine='default'):
     """
@@ -247,7 +289,7 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     lon, sinlat, coslat, radius, model, result = _check_input(lon, lat, height,
                                                               model, ratio)
     module = _get_engine(engine)
-    for tesseroid in tesseroids:
+    for tesseroid in model:
         density = _get_density(tesseroid, dens)
         if density is None:
             continue
@@ -367,7 +409,8 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G):
     return result
 
 
-def gz(lon, lat, height, model, dens=None, ratio=RATIO_G):
+def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+        njobs=1):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -400,32 +443,19 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = np.pi / 180.
-    rlon = d2r*lons
-    sinlat = np.sin(d2r*lats)
-    coslat = np.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = np.zeros(ndata, np.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gz(tesseroid, density, ratio, STACK_SIZE, rlon, sinlat,
-                      coslat, radius, result)
-    # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
-    # doesn't look inverted (ie, negative for positive density)
-    result *= -SI2MGAL*G
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gz'
+    if njobs == 1:
+         _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                      field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
+    result *= SI2MGAL*G
     return result
 
 
