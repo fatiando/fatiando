@@ -180,7 +180,43 @@ def _check_input(lon, lat, height, model, ratio):
     return lon, sinlat, coslat, radius, model, result
 
 
-def potential(lon, lat, height, model, dens=None, ratio=RATIO_V, engine=None):
+def _get_engine(engine):
+    """
+    Get the correct module to perform the computations.
+
+    Options are the Cython version, a pure Python version, and a numba version.
+    """
+    if engine == 'default':
+        if numba is None:
+            engine = 'numpy'
+        else:
+            engine = 'numba'
+    assert engine in ['numpy', 'numba'], \
+        "Invalid compute module {}".fotmat(engine)
+    if engine == 'numba':
+        module = _tesseroid_numba
+    elif engine == 'numpy':
+        module = _tesseroid_numpy
+    return module
+
+
+def _get_density(tesseroid, dens):
+    """
+    Get the density information from the tesseroid or the given value.
+    """
+    if tesseroid is None:
+        return None
+    if 'density' not in tesseroid.props and dens is None:
+        return None
+    if dens is not None:
+        density = dens
+    else:
+        density = tesseroid.props['density']
+    return density
+
+
+def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
+              engine='default'):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -210,17 +246,13 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V, engine=None):
     """
     lon, sinlat, coslat, radius, model, result = _check_input(lon, lat, height,
                                                               model, ratio)
+    module = _get_engine(engine)
     for tesseroid in tesseroids:
-        if tesseroid is None:
+        density = _get_density(tesseroid, dens)
+        if density is None:
             continue
-        if 'density' not in tesseroid.props and dens is None:
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.potential(lon, sinlat, coslat, radius, model, density,
-                ratio, STACK_SIZE, result)
+        module.potential(lon, sinlat, coslat, radius, model, density,
+                         ratio, STACK_SIZE, result)
     result *= G
     return result
 
