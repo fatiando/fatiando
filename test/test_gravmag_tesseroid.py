@@ -9,6 +9,18 @@ from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
 
+def test_serial_vs_parallel():
+    "gravmag.tesseroid serial and parallel execution give same result"
+    model = TesseroidMesh((-1, 1.5, -2, 2, 0, -10e3), (3, 2, 1))
+    model.addprop('density', 500*np.ones(model.size))
+    lon, lat, height = gridder.regular((-1, 1.5, -2, 2), (15, 21), z=150e3)
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        serial = func(lon, lat, height, model, njobs=1)
+        parallel = func(lon, lat, height, model, njobs=3)
+        assert_allclose(serial, parallel, err_msg="Mismatch for {}".format(f))
+
+
 def test_numba_vs_python():
     "gravmag.tesseroid numba and pure python implementations give same result"
     model = TesseroidMesh((0, 1, 0, 2, 1000, 0), (2, 2, 1))
