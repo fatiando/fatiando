@@ -55,8 +55,7 @@ libs = []
 if os.name == 'posix':
     libs.append('m')
 omp_args = dict(extra_link_args=['-fopenmp'], extra_compile_args=['-fopenmp'])
-C_EXT = [[['fatiando', 'gravmag', '_tesseroid'], {}],
-         [['fatiando', 'seismic', '_ttime2d'], {}],
+C_EXT = [[['fatiando', 'seismic', '_ttime2d'], {}],
          [['fatiando', 'seismic', '_wavefd'], {}],
          [['fatiando', 'gravmag', '_polyprism'], omp_args],
          [['fatiando', 'gravmag', '_sphere'], omp_args],
