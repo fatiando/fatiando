@@ -248,6 +248,20 @@ def _dispatcher(args):
 
 
 def _split_arrays(arrays, extra_args, nparts):
+    """
+    Split the coordinate arrays into nparts. Add extra_args to each part.
+
+    Example::
+
+    >>> chunks = _split_arrays([[1, 2, 3]], ['meh'], 3)
+    >>> chunks[0]
+    [1, 'meh']
+    >>> chunks[1]
+    [2, 'meh']
+    >>> chunks[2]
+    [3, 'meh']
+
+    """
     size = len(arrays[0])
     n = size//nparts
     strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
