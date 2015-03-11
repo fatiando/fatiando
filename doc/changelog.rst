@@ -10,6 +10,9 @@ Version (development)
 
 **Changes**:
 
+* Better documentation and faster implementation of
+  ``fatiando.gravmag.tesseroid``
+  (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`__)
 * **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
   ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
   incompatibilities when using ``matplotlib > 1.3``
