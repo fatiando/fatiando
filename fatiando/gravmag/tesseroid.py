@@ -146,17 +146,13 @@ try:
     from . import _tesseroid_numba
 except ImportError:
     numba = None
-try:
-    from . import _tesseroid
-except ImportError:
-    cython = None
-
+from . import _tesseroid_numpy
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 RATIO_V = 1
 RATIO_G = 1.6
 RATIO_GG = 8
-STACK_SIZE = 500
+STACK_SIZE = 100
 
 
 def _check_input(lon, lat, height, model, ratio, njobs):
@@ -253,13 +249,13 @@ def _split_arrays(arrays, extra_args, nparts):
 
     Example::
 
-    >>> chunks = _split_arrays([[1, 2, 3]], ['meh'], 3)
+    >>> chunks = _split_arrays([[1, 2, 3, 4, 5, 6]], ['meh'], 3)
     >>> chunks[0]
-    [1, 'meh']
+    [[1, 2], 'meh']
     >>> chunks[1]
-    [2, 'meh']
+    [[3, 4], 'meh']
     >>> chunks[2]
-    [3, 'meh']
+    [[5, 6], 'meh']
 
     """
     size = len(arrays[0])

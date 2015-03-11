@@ -11,13 +11,14 @@ from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
 def test_numba_vs_python():
     "gravmag.tesseroid numba and pure python implementations give same result"
-    model = TesseroidMesh((0, 1, 0, 2, 1000, 0), (5, 5, 5))
-    lon, lat, height = gridder.regular((0, 1, 0, 2), (30, 30), z=50e3)
+    model = TesseroidMesh((0, 1, 0, 2, 1000, 0), (2, 2, 1))
+    model.addprop('density', -200*np.ones(model.size))
+    lon, lat, height = gridder.regular((0, 1, 0, 2), (20, 20), z=250e3)
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
         func = getattr(tesseroid, f)
         py = func(lon, lat, height, model, engine='numpy')
         nb = func(lon, lat, height, model, engine='numba')
-        assert_allclose(np, py, err_msg="Mismatch for {}".format(f))
+        assert_allclose(nb, py, err_msg="Mismatch for {}".format(f))
 
 
 def test_fails_if_shape_mismatch():

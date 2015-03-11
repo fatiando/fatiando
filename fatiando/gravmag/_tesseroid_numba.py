@@ -1,12 +1,31 @@
+"""
+A numba implementation of the tesseroid gravity effects.
+
+These functions compute the effect of a single tesseroid. They are used by
+fatiando.gravmag.tesseroid as a backend and are not meant to be used directly.
+"""
 from __future__ import division
 import numba
 import numpy as np
 
-from fatiando.constants import MEAN_EARTH_RADIUS
+from ..constants import MEAN_EARTH_RADIUS
+from . import _tesseroid_numpy
 
 
 nodes = np.array([-0.577350269189625731058868041146,
                   0.577350269189625731058868041146])
+
+# jit compile the kernel functions from the numpy implementation
+kernelV = numba.jit(_tesseroid_numpy.kernelV, nopython=True)
+kernelx = numba.jit(_tesseroid_numpy.kernelx, nopython=True)
+kernely = numba.jit(_tesseroid_numpy.kernely, nopython=True)
+kernelz = numba.jit(_tesseroid_numpy.kernelz, nopython=True)
+kernelxx = numba.jit(_tesseroid_numpy.kernelxx, nopython=True)
+kernelxy = numba.jit(_tesseroid_numpy.kernelxy, nopython=True)
+kernelxz = numba.jit(_tesseroid_numpy.kernelxz, nopython=True)
+kernelyy = numba.jit(_tesseroid_numpy.kernelyy, nopython=True)
+kernelyz = numba.jit(_tesseroid_numpy.kernelyz, nopython=True)
+kernelzz = numba.jit(_tesseroid_numpy.kernelzz, nopython=True)
 
 
 @numba.jit(nopython=True)
@@ -112,24 +131,6 @@ def gz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 result[l] += density*scale*kernel
 
 
-@numba.jit(nopython=True)
-def kernelz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
-                kappa = (rc[k]**2)*coslatc[j]
-                result += kappa*(rc[k]*cospsi - radius)/(l_sqr**1.5)
-    # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
-    # doesn't look inverted (ie, negative for positive density)
-    result *= -1
-    return result
-
-
 @numba.jit(looplift=True)
 def potential(lon, sinlat, coslat, radius, tesseroid, density, ratio,
               stack_size, result):
@@ -158,21 +159,6 @@ def potential(lon, sinlat, coslat, radius, tesseroid, density, ratio,
                 kernel = kernelV(lon[l], coslat[l], sinlat[l], radius[l],
                                  lonc, sinlatc, coslatc, rc)
                 result[l] += density*scale*kernel
-
-
-@numba.jit(nopython=True)
-def kernelV(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
-                kappa = (rc[k]**2)*coslatc[j]
-                result += kappa/np.sqrt(l_sqr)
-    return result
 
 
 @numba.jit(looplift=True)
@@ -205,22 +191,6 @@ def gx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 result[l] += density*scale*kernel
 
 
-@numba.jit(nopython=True)
-def kernelx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
-                kappa = (rc[k]**2)*coslatc[j]
-                result += kappa*rc[k]*kphi/(l_sqr**1.5)
-    return result
-
-
 @numba.jit(looplift=True)
 def gy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
        result):
@@ -249,22 +219,6 @@ def gy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 kernel = kernely(lon[l], coslat[l], sinlat[l], radius[l],
                                  lonc, sinlatc, coslatc, rc)
                 result[l] += density*scale*kernel
-
-
-@numba.jit(nopython=True)
-def kernely(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        sinlon = np.sin(lonc[i] - lon)
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
-                kappa = (rc[k]**2)*coslatc[j]
-                result += kappa*(rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
-    return result
 
 
 @numba.jit(looplift=True)
@@ -297,22 +251,6 @@ def gxx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 result[l] += density*scale*kernel
 
 
-@numba.jit(nopython=True)
-def kernelxx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
-                kappa = (rc[k]**2)*coslatc[j]
-                result += kappa*(3*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5)
-    return result
-
-
 @numba.jit(looplift=True)
 def gxy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
         result):
@@ -341,24 +279,6 @@ def gxy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 kernel = kernelxy(lon[l], coslat[l], sinlat[l], radius[l],
                                   lonc, sinlatc, coslatc, rc)
                 result[l] += density*scale*kernel
-
-
-@numba.jit(nopython=True)
-def kernelxy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lonc[i] - lon)
-        sinlon = np.sin(lonc[i] - lon)
-        for j in range(2):
-            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                kappa = rc_sqr*coslatc[j]
-                result += kappa*3*rc_sqr*kphi*coslatc[j]*sinlon/(l_sqr**2.5)
-    return result
 
 
 @numba.jit(looplift=True)
@@ -391,23 +311,6 @@ def gxz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 result[l] += density*scale*kernel
 
 
-@numba.jit(nopython=True)
-def kernelxz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_5 = (r_sqr + rc_sqr - 2*radius*rc[k]*cospsi)**2.5
-                kappa = rc_sqr*coslatc[j]
-                result += kappa*3*rc[k]*kphi*(rc[k]*cospsi - radius)/l_5
-    return result
-
-
 @numba.jit(looplift=True)
 def gyy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
         result):
@@ -436,24 +339,6 @@ def gyy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 kernel = kernelyy(lon[l], coslat[l], sinlat[l], radius[l],
                                   lonc, sinlatc, coslatc, rc)
                 result[l] += density*scale*kernel
-
-
-@numba.jit(nopython=True)
-def kernelyy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lonc[i] - lon)
-        sinlon = np.sin(lonc[i] - lon)
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                kappa = rc_sqr*coslatc[j]
-                deltay = rc[k]*coslatc[j]*sinlon
-                result += kappa*(3*(deltay**2) - l_sqr)/(l_sqr**2.5)
-    return result
 
 
 @numba.jit(looplift=True)
@@ -486,25 +371,6 @@ def gyz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 result[l] += density*scale*kernel
 
 
-@numba.jit(nopython=True)
-def kernelyz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lonc[i] - lon)
-        sinlon = np.sin(lonc[i] - lon)
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                kappa = rc_sqr*coslatc[j]
-                deltay = rc[k]*coslatc[j]*sinlon
-                deltaz = rc[k]*cospsi - radius
-                result += kappa*3.*deltay*deltaz/(l_sqr**2.5)
-    return result
-
-
 @numba.jit(looplift=True)
 def gzz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
         result):
@@ -533,21 +399,3 @@ def gzz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                 kernel = kernelzz(lon[l], coslat[l], sinlat[l], radius[l],
                                   lonc, sinlatc, coslatc, rc)
                 result[l] += density*scale*kernel
-
-
-@numba.jit(nopython=True)
-def kernelzz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
-    r_sqr = radius**2
-    result = 0
-    for i in range(2):
-        coslon = np.cos(lon - lonc[i])
-        for j in range(2):
-            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
-            for k in range(2):
-                rc_sqr = rc[k]**2
-                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
-                l_5 = l_sqr**2.5
-                kappa = rc_sqr*coslatc[j]
-                deltaz = rc[k]*cospsi - radius
-                result += kappa*(3*deltaz**2 - l_sqr)/l_5
-    return result
