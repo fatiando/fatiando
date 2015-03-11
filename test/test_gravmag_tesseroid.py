@@ -8,6 +8,7 @@ from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
+
 def calc_shell_effect(height, top, bottom, density):
     r = height + MEAN_EARTH_RADIUS
     # top and bottom are heights
@@ -25,6 +26,7 @@ def calc_shell_effect(height, top, bottom, density):
             'gyz': 0,
             'gzz': SI2EOTVOS*(2*potential/r**2)}
     return data
+
 
 def test_queue_overflow():
     "gravmag.tesseroid raises exceptions on queue overflow"
