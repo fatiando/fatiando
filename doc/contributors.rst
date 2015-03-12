@@ -10,6 +10,7 @@ A (hopefully) updated list of people who contributed to Fatiando a Terra:
 * `José Fernando Caparica Junior`_ - LENEP, Brazil
 * `Henrique Bueno dos Santos`_ - UNICAMP, Brazil
 * `André Ferreira`_ - ANP, Brazil
+* Graham Markall - Continuum Analytics, Inc.
 
 .. _Leonardo Uieda: http://www.leouieda.com
 .. _Vanderlei Coelho de Oliveira Junior: http://fatiando.org/people/oliveira-jr
