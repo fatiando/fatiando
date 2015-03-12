@@ -475,7 +475,7 @@ copy this checklist to the PR description
     - [ ] Include relevant equations and citations in docstrings
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
-    - [ ] Include new dependencies in docs, requirements.txt, README
+    - [ ] Include new dependencies in docs, requirements.txt, README, and .travis.yml
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged
