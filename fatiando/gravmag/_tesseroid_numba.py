@@ -28,6 +28,56 @@ kernelyz = numba.jit(_tesseroid_numpy.kernelyz, nopython=True)
 kernelzz = numba.jit(_tesseroid_numpy.kernelzz, nopython=True)
 
 
+def engine_factory(kernel):
+    """
+    Make the engine functions for each specific field by passing in the
+    appropriate kernel.
+    """
+    @numba.jit(looplift=True)
+    def engine(lon, sinlat, coslat, radius, tesseroid, density, ratio,
+               stack_size, result):
+        bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                                 stack_size)
+        for l in range(result.size):
+            for i in range(6):
+                stack[0, i] = bounds[i]
+            stktop = 0
+            while stktop >= 0:
+                w, e, s, n, top, bottom = stack[stktop, :]
+                stktop -= 1
+                distance, Llon, Llat, Lr = distance_size(
+                    lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                    bottom)
+                nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                      ratio)
+                if new_cells > 1:
+                    if new_cells + (stktop + 1) > stack_size:
+                        raise OverflowError
+                    stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr,
+                                   stack, stktop)
+                else:
+                    scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                        sinlatc, coslatc, rc)
+                    result[l] += density*scale*kernel(
+                        lon[l], coslat[l], sinlat[l], radius[l], lonc, sinlatc,
+                        coslatc, rc)
+    return engine
+
+
+# Use the factory to make the functions for specific fields. These are the ones
+# that will be used by fatiando.gravmag.tesseroid
+gx = engine_factory(kernelx)
+gy = engine_factory(kernely)
+gz = engine_factory(kernelz)
+gxx = engine_factory(kernelxx)
+gxy = engine_factory(kernelxy)
+gxz = engine_factory(kernelxz)
+gyy = engine_factory(kernelyy)
+gyz = engine_factory(kernelyz)
+gzz = engine_factory(kernelzz)
+potential = engine_factory(kernelV)
+
+
 @numba.jit(nopython=True)
 def scale_nodes(w, e, s, n, top, bottom, nodes, lonc, sinlatc, coslatc, rc):
     d2r = np.pi/180
@@ -99,47 +149,3 @@ def make_buffers(tesseroid, stack_size):
     coslatc = np.empty_like(nodes)
     rc = np.empty_like(nodes)
     return bounds, stack, lonc, sinlatc, coslatc, rc
-
-def _engine(_fn):
-
-    @numba.jit(looplift=True)
-    def numbafn(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-           result):
-        bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                                 stack_size)
-        for l in range(result.size):
-            for i in range(6):
-                stack[0, i] = bounds[i]
-            stktop = 0
-            while stktop >= 0:
-                w, e, s, n, top, bottom = stack[stktop, :]
-                stktop -= 1
-                distance, Llon, Llat, Lr = distance_size(
-                    lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                    bottom)
-                nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                      ratio)
-                if new_cells > 1:
-                    if new_cells + (stktop + 1) > stack_size:
-                        raise OverflowError
-                    stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                                   stktop)
-                else:
-                    scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                        sinlatc, coslatc, rc)
-                    kernel = _fn(lon[l], coslat[l], sinlat[l], radius[l],
-                                     lonc, sinlatc, coslatc, rc)
-                    result[l] += density*scale*kernel
-
-    return numbafn
-
-gx = _engine(kernelx)
-gy = _engine(kernely)
-gz = _engine(kernelz)
-gxx = _engine(kernelxx)
-gxy = _engine(kernelxy)
-gxz = _engine(kernelxz)
-gyy = _engine(kernelyy)
-gyz = _engine(kernelyz)
-gzz = _engine(kernelzz)
-potential = _engine(kernelV)
