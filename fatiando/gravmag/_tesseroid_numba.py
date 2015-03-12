@@ -3,6 +3,23 @@ A numba implementation of the tesseroid gravity effects.
 
 These functions compute the effect of a single tesseroid. They are used by
 fatiando.gravmag.tesseroid as a backend and are not meant to be used directly.
+
+A few doctests for the numba code::
+
+>>> import numpy as np
+>>> stack = np.empty((6, 6))
+>>> stktop = -1
+>>> stktop = split(0, 4, 3, 6, 11, 5, 2, 1, 3, stack, stktop)
+>>> stktop
+5
+>>> stack
+array([[  0.,   2.,   3.,   6.,   7.,   5.],
+       [  0.,   2.,   3.,   6.,   9.,   7.],
+       [  0.,   2.,   3.,   6.,  11.,   9.],
+       [  2.,   4.,   3.,   6.,   7.,   5.],
+       [  2.,   4.,   3.,   6.,   9.,   7.],
+       [  2.,   4.,   3.,   6.,  11.,   9.]])
+
 """
 from __future__ import division
 import numba
@@ -32,12 +49,21 @@ def engine_factory(kernel):
     """
     Make the engine functions for each specific field by passing in the
     appropriate kernel.
+
+    The call signature is the same as the engine functions in the pure Python
+    implementation (fatiando.gravmag._tesseroid_numpy).
     """
     @numba.jit(looplift=True)
     def engine(lon, sinlat, coslat, radius, tesseroid, density, ratio,
                stack_size, result):
-        bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                                 stack_size)
+        # Create the buffer arrays outside of the for loops so numba can remove
+        # them from the jit compilation
+        bounds = np.array(tesseroid.get_bounds())
+        stack = np.empty((stack_size, 6))
+        lonc = np.empty_like(nodes)
+        sinlatc = np.empty_like(nodes)
+        coslatc = np.empty_like(nodes)
+        rc = np.empty_like(nodes)
         for l in range(result.size):
             for i in range(6):
                 stack[0, i] = bounds[i]
@@ -80,6 +106,7 @@ potential = engine_factory(kernelV)
 
 @numba.jit(nopython=True)
 def scale_nodes(w, e, s, n, top, bottom, nodes, lonc, sinlatc, coslatc, rc):
+    "Put the GLQ nodes in the integration limit"
     d2r = np.pi/180
     dlon = d2r*(e - w)
     dlat = d2r*(n - s)
@@ -98,6 +125,7 @@ def scale_nodes(w, e, s, n, top, bottom, nodes, lonc, sinlatc, coslatc, rc):
 
 @numba.jit(nopython=True)
 def distance_size(lon, coslat, sinlat, radius, w, e, s, n, top, bottom):
+    "Calculate the distance to the center of the tesseroid and its dimensions"
     d2r = np.pi/180
     rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS
     lont = d2r*0.5*(w + e)
@@ -117,6 +145,9 @@ def distance_size(lon, coslat, sinlat, radius, w, e, s, n, top, bottom):
 
 @numba.jit(nopython=True)
 def split(w, e, s, n, top, bottom, nlon, nlat, nr, stack, stktop):
+    """
+    Divide the region into smaller parts and add them to the stack.
+    """
     dlon = (e - w)/nlon
     dlat = (n - s)/nlat
     dr = (top - bottom)/nr
@@ -135,17 +166,8 @@ def split(w, e, s, n, top, bottom, nlon, nlat, nr, stack, stktop):
 
 @numba.jit(nopython=True)
 def divisions(distance, Llon, Llat, Lr, ratio):
+    "How many divisions should be made per dimension"
     nlon = 1 if distance/Llon > ratio else 2
     nlat = 1 if distance/Llat > ratio else 2
     nr = 1 if distance/Lr > ratio else 2
     return nlon, nlat, nr, nlon*nlat*nr
-
-
-def make_buffers(tesseroid, stack_size):
-    bounds = np.array(tesseroid.get_bounds())
-    stack = np.empty((stack_size, 6))
-    lonc = np.empty_like(nodes)
-    sinlatc = np.empty_like(nodes)
-    coslatc = np.empty_like(nodes)
-    rc = np.empty_like(nodes)
-    return bounds, stack, lonc, sinlatc, coslatc, rc

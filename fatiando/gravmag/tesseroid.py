@@ -1,7 +1,7 @@
 r"""
 Calculates the potential fields of a tesseroid (spherical prism).
 
-.. admonition:: Coordinate systems
+.. note:: Coordinate systems
 
     The gravitational attraction
     and gravity gradient tensor
@@ -9,8 +9,6 @@ Calculates the potential fields of a tesseroid (spherical prism).
     the local coordinate system of the computation point.
     This system has **x -> North**, **y -> East**, **z -> up**
     (radial direction).
-
-**Gravity**
 
 .. warning:: The :math:`g_z` component is an **exception** to this.
     In order to conform with the regular convention
@@ -20,7 +18,10 @@ Calculates the potential fields of a tesseroid (spherical prism).
     tesseroids with positive density
     are positive, not negative.
 
-Functions:
+Gravity
+-------
+
+Forward modeling of gravitational fields is performed by functions:
 :func:`~fatiando.gravmag.prism.potential`,
 :func:`~fatiando.gravmag.prism.gx`,
 :func:`~fatiando.gravmag.prism.gy`,
@@ -93,7 +94,8 @@ of the computation point P,
 
 .. _Kronecker delta: http://en.wikipedia.org/wiki/Kronecker_delta
 
-**Numerical integration**
+Numerical integration
++++++++++++++++++++++
 
 The above integrals are solved using the Gauss-Legendre Quadrature rule
 (Asgharzadeh et al., 2007;
@@ -116,8 +118,18 @@ are the number of quadrature nodes
 (i.e., the order of the quadrature),
 for the radius, latitude, and longitude, respectively.
 
+Accurate numerical integration is achieved by an adaptive discretization
+algorithm. The one implemented here is a modified version of Li et al (2011).
+The adaptive discretization keeps the integration error below 0.1%.
 
-**References**
+.. warning::
+
+    The integration error may be larger than this if the computation
+    points are closer than 1 km of the tesseroids. This effect is more
+    significant in the gravity gradient components.
+
+References
+++++++++++
 
 Asgharzadeh, M. F., R. R. B. von Frese, H. R. Kim, T. E. Leftwich,
 and J. W. Kim (2007),
@@ -128,6 +140,10 @@ doi:10.1111/j.1365-246X.2007.03214.x.
 Grombein, T.; Seitz, K.; Heck, B. (2013), Optimized formulas for the
 gravitational field of a tesseroid, Journal of Geodesy,
 doi: 10.1007/s00190-013-0636-1
+
+Li, Z., T. Hao, Y. Xu, and Y. Xu (2011), An efficient and adaptive approach for
+modeling gravity effects in spherical coordinates, Journal of Applied
+Geophysics, 73(3), 221-231, doi:10.1016/j.jappgeo.2011.01.004.
 
 Wild-Pfeiffer, F. (2008),
 A comparison of different mass elements for use in gravity gradiometry,
@@ -289,6 +305,14 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -334,6 +358,14 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -379,6 +411,14 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -429,6 +469,14 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -474,6 +522,14 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -519,6 +575,14 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -564,6 +628,14 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -609,6 +681,14 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -654,6 +734,14 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -699,6 +787,14 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 

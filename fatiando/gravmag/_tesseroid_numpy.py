@@ -16,6 +16,10 @@ nodes = np.array([-0.577350269189625731058868041146,
 
 def adaptive_discretization(lon, coslat, sinlat, radius, tesseroid, density,
                             ratio, stack_size, kernel, result):
+    """
+    Perform the adaptive discretization of a tesseroid and compute the effect
+    of the given kernel function.
+    """
     for l in xrange(lon.size):
         stack = [tesseroid]
         while stack:
@@ -37,6 +41,7 @@ def adaptive_discretization(lon, coslat, sinlat, radius, tesseroid, density,
 
 
 def divisions(distance, Llon, Llat, Lr, ratio):
+    "How many divisions should be made per dimension"
     nlon = 1 if distance/Llon > ratio else 2
     nlat = 1 if distance/Llat > ratio else 2
     nr = 1 if distance/Lr > ratio else 2
@@ -44,6 +49,7 @@ def divisions(distance, Llon, Llat, Lr, ratio):
 
 
 def scale_nodes(bounds, nodes):
+    "Put the GLQ nodes in the integration limit"
     w, e, s, n, top, bottom = bounds
     d2r = np.pi/180
     dlon = d2r*(e - w)
@@ -61,6 +67,7 @@ def scale_nodes(bounds, nodes):
 
 
 def distance_size(lon, coslat, sinlat, radius, cell):
+    "Calculate the distance to the center of the tesseroid and its dimensions"
     w, e, s, n, top, bottom = cell.get_bounds()
     d2r = np.pi/180
     rt = 0.5*(top + bottom) + MEAN_EARTH_RADIUS
@@ -79,12 +86,39 @@ def distance_size(lon, coslat, sinlat, radius, cell):
     return distance, Llon, Llat, Lr
 
 
+# These are the engine functions that gravmag.tesseroid calls. They are
+# basically just a call to adaptive discretization with the appropriate kernel.
 def potential(lon, sinlat, coslat, radius, tesseroid, density, ratio,
               stack_size, result):
+    """
+    Calculate the potential of a single tesseroid using adaptive discretization
+
+    Parameters:
+
+    * lon : 1d-array
+        The longitudes of the computation point in radians.
+    * sinlat, coslat : 1d-array
+        The sine and cossine of the latitudes of the computation points.
+    * radius : 1d-array
+        The radius coordinate of the computation point.
+    * tesseroid : fatiando.mesher.Tesseroid
+        The tesseroid.
+    * density : float
+        The density of the tesseroid.
+    * ratio : float > 0
+        The distance-size ratio used in the adaptive discretization.
+    * stack_size : int > 0
+        The maximum allowed size of the tesseroid stack used in the adaptive
+        discretization.
+    * result : 1d-array
+        Buffer used to return the output. Should be initialized with zeros.
+
+    """
     adaptive_discretization(lon, coslat, sinlat, radius, tesseroid, density,
                             ratio, stack_size, kernelV, result)
 
 
+# Docstrings of the other engines are the same,
 def gx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
        result):
     adaptive_discretization(lon, coslat, sinlat, radius, tesseroid, density,
@@ -139,7 +173,32 @@ def gzz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
                             ratio, stack_size, kernelzz, result)
 
 
+# Kernel functions for tesseroid gravitational effects. This is where the
+# physics is.
 def kernelV(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    """
+    Compute the kernel effect on a single point using GLQ integration.
+
+    Parameters:
+
+    * lon : float
+        The longitude of the computation point in radians.
+    * coslat, sinlat : float
+        The sine and cosine of the latitude of the computation point.
+    * radius : float
+        The radius coordinate of the computation point.
+    * lonc, sinlatc, coslatc, rc : 1d-arrays
+        The coordinates of the GLQ nodes scaled to the integration limits (the
+        dimensions of the tesseroid). sinlatc and coslatc are the sine and
+        cosine of the latitude. lon should be in radians. rc is the radial
+        coordinate.
+
+    Returns:
+
+    * result : float
+        The kernel value
+
+    """
     r_sqr = radius**2
     result = 0
     for i in range(2):
