@@ -100,302 +100,46 @@ def make_buffers(tesseroid, stack_size):
     rc = np.empty_like(nodes)
     return bounds, stack, lonc, sinlatc, coslatc, rc
 
+def _engine(_fn):
 
-@numba.jit(looplift=True)
-def gz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-       result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelz(lon[l], coslat[l], sinlat[l], radius[l],
-                                 lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
+    @numba.jit(looplift=True)
+    def numbafn(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
+           result):
+        bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
+                                                                 stack_size)
+        for l in range(result.size):
+            for i in range(6):
+                stack[0, i] = bounds[i]
+            stktop = 0
+            while stktop >= 0:
+                w, e, s, n, top, bottom = stack[stktop, :]
+                stktop -= 1
+                distance, Llon, Llat, Lr = distance_size(
+                    lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
+                    bottom)
+                nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
+                                                      ratio)
+                if new_cells > 1:
+                    if new_cells + (stktop + 1) > stack_size:
+                        raise OverflowError
+                    stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
+                                   stktop)
+                else:
+                    scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
+                                        sinlatc, coslatc, rc)
+                    kernel = _fn(lon[l], coslat[l], sinlat[l], radius[l],
+                                     lonc, sinlatc, coslatc, rc)
+                    result[l] += density*scale*kernel
 
+    return numbafn
 
-@numba.jit(looplift=True)
-def potential(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-              stack_size, result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelV(lon[l], coslat[l], sinlat[l], radius[l],
-                                 lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-       result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelx(lon[l], coslat[l], sinlat[l], radius[l],
-                                 lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-       result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernely(lon[l], coslat[l], sinlat[l], radius[l],
-                                 lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gxx(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelxx(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gxy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelxy(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gxz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelxz(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gyy(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelyy(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gyz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelyz(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
-
-
-@numba.jit(looplift=True)
-def gzz(lon, sinlat, coslat, radius, tesseroid, density, ratio, stack_size,
-        result):
-    bounds, stack, lonc, sinlatc, coslatc, rc = make_buffers(tesseroid,
-                                                             stack_size)
-    for l in range(result.size):
-        for i in range(6):
-            stack[0, i] = bounds[i]
-        stktop = 0
-        while stktop >= 0:
-            w, e, s, n, top, bottom = stack[stktop, :]
-            stktop -= 1
-            distance, Llon, Llat, Lr = distance_size(
-                lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
-                bottom)
-            nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                  ratio)
-            if new_cells > 1:
-                if new_cells + (stktop + 1) > stack_size:
-                    raise OverflowError
-                stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr, stack,
-                               stktop)
-            else:
-                scale = scale_nodes(w, e, s, n, top, bottom, nodes, lonc,
-                                    sinlatc, coslatc, rc)
-                kernel = kernelzz(lon[l], coslat[l], sinlat[l], radius[l],
-                                  lonc, sinlatc, coslatc, rc)
-                result[l] += density*scale*kernel
+gx = _engine(kernelx)
+gy = _engine(kernely)
+gz = _engine(kernelz)
+gxx = _engine(kernelxx)
+gxy = _engine(kernelxy)
+gxz = _engine(kernelxz)
+gyy = _engine(kernelyy)
+gyz = _engine(kernelyz)
+gzz = _engine(kernelzz)
+potential = _engine(kernelV)
