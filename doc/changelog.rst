@@ -10,6 +10,13 @@ Version (development)
 
 **Changes**:
 
+* Ported the tesseroid forward modeling code from Cython to numba. This is
+  following the discussion on issue
+  `#169 <https://github.com/fatiando/fatiando/issues/169>`__ to make installing
+  less of burden by removing the compilation step. The numba code runs just as
+  fast. New functions support multiprocessing parallelism.
+  Thanks to new contributor Graham Markall for help with numba.
+  (`PR 175 <https://github.com/fatiando/fatiando/pull/175>`__)
 * Better documentation and faster implementation of
   ``fatiando.gravmag.tesseroid``
   (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`__)
