@@ -1,7 +1,7 @@
 r"""
 Calculates the potential fields of a tesseroid (spherical prism).
 
-.. admonition:: Coordinate systems
+.. note:: Coordinate systems
 
     The gravitational attraction
     and gravity gradient tensor
@@ -9,8 +9,6 @@ Calculates the potential fields of a tesseroid (spherical prism).
     the local coordinate system of the computation point.
     This system has **x -> North**, **y -> East**, **z -> up**
     (radial direction).
-
-**Gravity**
 
 .. warning:: The :math:`g_z` component is an **exception** to this.
     In order to conform with the regular convention
@@ -20,7 +18,10 @@ Calculates the potential fields of a tesseroid (spherical prism).
     tesseroids with positive density
     are positive, not negative.
 
-Functions:
+Gravity
+-------
+
+Forward modeling of gravitational fields is performed by functions:
 :func:`~fatiando.gravmag.prism.potential`,
 :func:`~fatiando.gravmag.prism.gx`,
 :func:`~fatiando.gravmag.prism.gy`,
@@ -93,7 +94,8 @@ of the computation point P,
 
 .. _Kronecker delta: http://en.wikipedia.org/wiki/Kronecker_delta
 
-**Numerical integration**
+Numerical integration
++++++++++++++++++++++
 
 The above integrals are solved using the Gauss-Legendre Quadrature rule
 (Asgharzadeh et al., 2007;
@@ -116,8 +118,18 @@ are the number of quadrature nodes
 (i.e., the order of the quadrature),
 for the radius, latitude, and longitude, respectively.
 
+Accurate numerical integration is achieved by an adaptive discretization
+algorithm. The one implemented here is a modified version of Li et al (2011).
+The adaptive discretization keeps the integration error below 0.1%.
 
-**References**
+.. warning::
+
+    The integration error may be larger than this if the computation
+    points are closer than 1 km of the tesseroids. This effect is more
+    significant in the gravity gradient components.
+
+References
+++++++++++
 
 Asgharzadeh, M. F., R. R. B. von Frese, H. R. Kim, T. E. Leftwich,
 and J. W. Kim (2007),
@@ -129,6 +141,10 @@ Grombein, T.; Seitz, K.; Heck, B. (2013), Optimized formulas for the
 gravitational field of a tesseroid, Journal of Geodesy,
 doi: 10.1007/s00190-013-0636-1
 
+Li, Z., T. Hao, Y. Xu, and Y. Xu (2011), An efficient and adaptive approach for
+modeling gravity effects in spherical coordinates, Journal of Applied
+Geophysics, 73(3), 221-231, doi:10.1016/j.jappgeo.2011.01.004.
+
 Wild-Pfeiffer, F. (2008),
 A comparison of different mass elements for use in gravity gradiometry,
 Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
@@ -138,31 +154,146 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 
 """
 from __future__ import division
-import numpy
+import multiprocessing
 
-from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
+import numpy as np
 try:
-    from . import _tesseroid
+    import numba
+    from . import _tesseroid_numba
 except ImportError:
-    pass
+    numba = None
+from . import _tesseroid_numpy
+from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
-RATIO_POTENTIAL = 1
+RATIO_V = 1
 RATIO_G = 1.6
 RATIO_GG = 8
-QUEUE_SIZE = 100
+STACK_SIZE = 100
 
 
-def potential(lons, lats, heights, tesseroids, dens=None,
-              ratio=RATIO_POTENTIAL):
+def _check_input(lon, lat, height, model, ratio, njobs):
+    """
+    Check if the inputs are as expected and generate the output array.
+    """
+    assert lon.shape == lat.shape == height.shape, \
+        "Input coordinate arrays must have same shape"
+    assert ratio > 0, "Invalid ratio {}. Must be > 0.".format(ratio)
+    assert njobs > 0, "Invalid number of jobs {}. Must be > 0.".format(njobs)
+    result = np.zeros_like(lon)
+    return result
+
+
+def _convert_coords(lon, lat, height):
+    """
+    Convert angles to radians and heights to radius.
+
+    Pre-compute the sine and cossine of latitude because that is what we need
+    from it.
+    """
+    # Convert things to radians
+    lon = np.radians(lon)
+    lat = np.radians(lat)
+    sinlat = np.sin(lat)
+    coslat = np.cos(lat)
+    # Transform the heights into radius
+    radius = MEAN_EARTH_RADIUS + height
+    return lon, sinlat, coslat, radius
+
+
+def _get_engine(engine):
+    """
+    Get the correct module to perform the computations.
+
+    Options are the Cython version, a pure Python version, and a numba version.
+    """
+    if engine == 'default':
+        if numba is None:
+            engine = 'numpy'
+        else:
+            engine = 'numba'
+    assert engine in ['numpy', 'numba'], \
+        "Invalid compute module {}".fotmat(engine)
+    if engine == 'numba':
+        module = _tesseroid_numba
+    elif engine == 'numpy':
+        module = _tesseroid_numpy
+    return module
+
+
+def _get_density(tesseroid, dens):
+    """
+    Get the density information from the tesseroid or the given value.
+    """
+    if tesseroid is None:
+        return None
+    if 'density' not in tesseroid.props and dens is None:
+        return None
+    if dens is not None:
+        density = dens
+    else:
+        density = tesseroid.props['density']
+    return density
+
+
+def _dispatcher(args):
+    """
+    Run the computations on the model for a given list of arguments.
+
+    This is used because multiprocessing.Pool.map can only use functions that
+    receive a single argument.
+
+    Arguments should be, in order:
+
+    lon, lat, height, result, model, dens, ratio, engine, field
+    """
+    lon, lat, height, result, model, dens, ratio, engine, field = args
+    lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
+    module = _get_engine(engine)
+    func = getattr(module, field)
+    for tesseroid in model:
+        density = _get_density(tesseroid, dens)
+        if density is None:
+            continue
+        func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
+             STACK_SIZE, result)
+    return result
+
+
+def _split_arrays(arrays, extra_args, nparts):
+    """
+    Split the coordinate arrays into nparts. Add extra_args to each part.
+
+    Example::
+
+    >>> chunks = _split_arrays([[1, 2, 3, 4, 5, 6]], ['meh'], 3)
+    >>> chunks[0]
+    [[1, 2], 'meh']
+    >>> chunks[1]
+    [[3, 4], 'meh']
+    >>> chunks[2]
+    [[5, 6], 'meh']
+
+    """
+    size = len(arrays[0])
+    n = size//nparts
+    strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
+    strides.append((strides[-1][-1], size))
+    chunks = [[x[low:high] for x in arrays] + extra_args
+              for low, high in strides]
+    return chunks
+
+
+def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
+              engine='default', njobs=1):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -170,10 +301,18 @@ def potential(lons, lats, heights, tesseroids, dens=None,
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -181,43 +320,33 @@ def potential(lons, lats, heights, tesseroids, dens=None,
         The calculated field in SI units
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.potential(tesseroid, density, ratio, QUEUE_SIZE, rlon,
-                             sinlat, coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'potential'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= G
     return result
 
 
-def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+       njobs=1):
     """
     Calculate the North component of the gravitational attraction.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -225,10 +354,18 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -236,43 +373,33 @@ def gx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                      coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gx'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2MGAL*G
     return result
 
 
-def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+       njobs=1):
     """
     Calculate the East component of the gravitational attraction.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -280,10 +407,18 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -291,34 +426,24 @@ def gy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                      coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2MGAL*G
     return result
 
 
-def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
+def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+       njobs=1):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -329,10 +454,10 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -340,10 +465,18 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -351,45 +484,33 @@ def gz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_G):
         The calculated field in mGal
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                      coslat, radius, result)
-    # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
-    # doesn't look inverted (ie, negative for positive density)
-    result *= -SI2MGAL*G
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
+    result *= SI2MGAL*G
     return result
 
 
-def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xx component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -397,10 +518,18 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -408,43 +537,33 @@ def gxx(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxx(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxx'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xy component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -452,10 +571,18 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -463,43 +590,33 @@ def gxy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the xz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -507,10 +624,18 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -518,43 +643,33 @@ def gxz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gxz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gxz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the yy component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -562,10 +677,18 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -573,43 +696,33 @@ def gyy(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gyy(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gyy'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the yz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -617,10 +730,18 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -628,43 +749,33 @@ def gyz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gyz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gyz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
+def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+        njobs=1):
     """
     Calculate the zz component of the gravity gradient tensor.
 
     Parameters:
 
-    * lons, lats, heights : arrays
+    * lon, lat, height : arrays
         Arrays with the longitude, latitude and height coordinates of the
         computation points.
-    * tesseroids : list of :class:`~fatiando.mesher.Tesseroid`
+    * model : list of :class:`~fatiando.mesher.Tesseroid`
         The density model used to calculate the gravitational effect.
         Tesseroids must have the property ``'density'``. Those that don't have
         this property will be ignored in the computations. Elements that are
@@ -672,10 +783,18 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
         of the tesseroids. Use this, e.g., for sensitivity matrix building.
-    * radio : float
+    * ratio : float
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
+    * engine : str
+        What implementation to use. If ``'numba'`` will use the numba library
+        implementation for greater speed. If ``'numpy'`` will use a pure Python
+        + numpy version (~100x slower). If ``'default'``, will use numba if it
+        is installed, and numpy if it is not.
+    * njobs : int
+        Split the computation into *njobs* parts and run it in parallel using
+        ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
 
     Returns:
 
@@ -683,28 +802,17 @@ def gzz(lons, lats, heights, tesseroids, dens=None, ratio=RATIO_GG):
         The calculated field in Eotvos
 
     """
-    if lons.shape != lats.shape or lons.shape != heights.shape:
-        raise ValueError(
-            "Input arrays lons, lats, and heights must have same length!")
-    ndata = len(lons)
-    # Convert things to radians
-    d2r = numpy.pi / 180.
-    rlon = d2r*lons
-    sinlat = numpy.sin(d2r*lats)
-    coslat = numpy.cos(d2r*lats)
-    # Transform the heights into radii
-    radius = MEAN_EARTH_RADIUS + heights
-    # Start the computations
-    result = numpy.zeros(ndata, numpy.float)
-    for tesseroid in tesseroids:
-        if (tesseroid is None or
-                ('density' not in tesseroid.props and dens is None)):
-            continue
-        if dens is not None:
-            density = dens
-        else:
-            density = tesseroid.props['density']
-        _tesseroid.gzz(tesseroid, density, ratio, QUEUE_SIZE, rlon, sinlat,
-                       coslat, radius, result)
+    result = _check_input(lon, lat, height, model, ratio, njobs)
+    field = 'gzz'
+    if njobs == 1:
+        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
+                     field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        pool = multiprocessing.Pool(njobs)
+        result = np.hstack(pool.map(_dispatcher, chunks))
+        pool.close()
     result *= SI2EOTVOS*G
     return result

@@ -44,6 +44,7 @@ To install and run Fatiando, you'll need the following packages:
 * PIL >= 1.1.7
 * basemap >= 1.0.7
 * gcc >= 4.8.2
+* numba >= 0.17
 
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.
@@ -81,9 +82,9 @@ please **cite it** in your publications as::
     figshare. doi: 10.6084/m9.figshare.1115194
 
 Some of the methods implemented here are also **original research** by some of
-the developers. Please **also cite the method papers**. 
+the developers. Please **also cite the method papers**.
 References are available in the documentation of each module.
-See the 
+See the
 `CITATION.rst <https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__
 file or the `documentation <http://fatiando.github.io/cite.html>`__
 for more information.
