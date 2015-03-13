@@ -20,10 +20,10 @@ A Python package for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat
     :alt: BSD 3 clause license
     :target: https://github.com/fatiando/fatiando/blob/master/LICENSE.txt
-.. image:: http://img.shields.io/travis/fatiando/fatiando.svg?style=flat
+.. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat
     :alt: Travis CI build status
     :target: https://travis-ci.org/fatiando/fatiando
-.. image:: http://img.shields.io/coveralls/fatiando/fatiando.svg?style=flat
+.. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
 .. image:: http://img.shields.io/badge/doi-10.6084/m9.figshare.1115194-blue.svg?style=flat
