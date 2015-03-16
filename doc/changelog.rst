@@ -10,6 +10,10 @@ Version (development)
 
 **Changes**:
 
+* **BUG FIX**: Avoid weird numba error when tesseroid has zero volume. Let to
+  better sanitizing the input model. Tesseroids with dimensions < 1cm are
+  ignored because they have almost zero gravitational effect
+  (`PR 179 <https://github.com/fatiando/fatiando/pull/179>`__)
 * Ported the tesseroid forward modeling code from Cython to numba. This is
   following the discussion on issue
   `#169 <https://github.com/fatiando/fatiando/issues/169>`__ to make installing
