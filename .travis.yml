@@ -9,8 +9,6 @@ python:
 virtualenv:
   system_site_packages: true
 env:
-    matrix:
-        - OMP_NUM_THREADS=4
     global:
         secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
 before_install:
