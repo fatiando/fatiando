@@ -187,7 +187,7 @@ def _convert_coords(lon, lat, height):
     """
     Convert angles to radians and heights to radius.
 
-    Pre-compute the sine and cossine of latitude because that is what we need
+    Pre-compute the sine and cosine of latitude because that is what we need
     from it.
     """
     # Convert things to radians
@@ -235,7 +235,7 @@ def _check_tesseroid(tesseroid, dens):
     # Check if the dimensions given are valid
     assert w <= e and s <= n and top >= bottom, \
         "Invalid tesseroid dimensions {}".format(tesseroid.get_bounds())
-    # Check if the tesseoid has volume > 0
+    # Check if the tesseroid has volume > 0
     if e - w < 1e-7 or n - s < 1e-7 or top - bottom < 1e-3:
         return None
     if dens is not None:
