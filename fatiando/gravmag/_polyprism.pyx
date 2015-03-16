@@ -9,8 +9,6 @@ from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
-cimport openmp
-from cython.parallel cimport prange, parallel
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
@@ -343,21 +341,20 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -373,21 +370,20 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -403,21 +399,20 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -433,21 +428,20 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -463,21 +457,20 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -493,21 +486,20 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -523,21 +515,20 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T kernel, X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            kernel = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                kernel += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += kernel*density
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            kernel += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -555,33 +546,32 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            v1 = 0
-            v2 = 0
-            v3 = 0
-            v4 = 0
-            v5 = 0
-            v6 = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                v1 += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v4 += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v6 += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += (fx*(v1*mx + v2*my + v3*mz)
-                       + fy*(v2*mx + v4*my + v5*mz)
-                       + fz*(v3*mx + v5*my + v6*mz))
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        v1 = 0
+        v2 = 0
+        v3 = 0
+        v4 = 0
+        v5 = 0
+        v6 = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            v1 += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v4 += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v6 += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += (fx*(v1*mx + v2*my + v3*mz)
+                   + fy*(v2*mx + v4*my + v5*mz)
+                   + fz*(v3*mx + v5*my + v6*mz))
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -599,25 +589,24 @@ def bx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            v1 = 0
-            v2 = 0
-            v3 = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                v1 += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += (v1*mx + v2*my + v3*mz)
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        v1 = 0
+        v2 = 0
+        v3 = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            v1 += kernelxx(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += (v1*mx + v2*my + v3*mz)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -635,25 +624,24 @@ def by(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            v2 = 0
-            v4 = 0
-            v5 = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v4 += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += (v2*mx + v4*my + v5*mz)
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        v2 = 0
+        v4 = 0
+        v5 = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            v2 += kernelxy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v4 += kernelyy(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += (v2*mx + v4*my + v5*mz)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -671,22 +659,21 @@ def bz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
         DTYPE_T X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr
     nverts = len(x)
     size = len(res)
-    with nogil:
-        for i in prange(size):
-            Z1 = z1 - zp[i]
-            Z2 = z2 - zp[i]
-            Z1_sqr = Z1**2
-            Z2_sqr = Z2**2
-            v3 = 0
-            v5 = 0
-            v6 = 0
-            for k in range(nverts):
-                X1 = x[k] - xp[i]
-                Y1 = y[k] - yp[i]
-                kp1 = (k + 1) % nverts
-                X2 = x[kp1] - xp[i]
-                Y2 = y[kp1] - yp[i]
-                v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-                v6 += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
-            res[i] += (v3*mx + v5*my + v6*mz)
+    for i in range(size):
+        Z1 = z1 - zp[i]
+        Z2 = z2 - zp[i]
+        Z1_sqr = Z1**2
+        Z2_sqr = Z2**2
+        v3 = 0
+        v5 = 0
+        v6 = 0
+        for k in range(nverts):
+            X1 = x[k] - xp[i]
+            Y1 = y[k] - yp[i]
+            kp1 = (k + 1) % nverts
+            X2 = x[kp1] - xp[i]
+            Y2 = y[kp1] - yp[i]
+            v3 += kernelxz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v5 += kernelyz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+            v6 += kernelzz(X1, Y1, X2, Y2, Z1, Z2, Z1_sqr, Z2_sqr)
+        res[i] += (v3*mx + v5*my + v6*mz)
