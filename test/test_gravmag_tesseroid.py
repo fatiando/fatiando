@@ -9,6 +9,35 @@ from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
 
+def test_null_tesseroid():
+    "gravmag.tesseroid ignores tesseroids with 0 volume"
+    props = dict(density=2000)
+    model = [Tesseroid(-10, 0, 4, 5, 1000.1, 1000.1, props),
+             Tesseroid(-10, 0, 4, 5, 1000.001, 1000, props),
+             Tesseroid(-10, 0, 3.999999999, 4, 1000, 0, props),
+             Tesseroid(-10, -9.9999999999, 4, 5, 1000, 0, props),
+             Tesseroid(5, 10, -10, -5, 2000.5, 0, props)]
+    lon, lat, height = gridder.regular((-20, 20, -20, 20), (50, 50), z=250e3)
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        f1 = func(lon, lat, height, model)
+        f2 = func(lon, lat, height, [model[-1]])
+        assert_allclose(f1, f2, err_msg="Mismatch for {}".format(f))
+
+
+def test_detect_invalid_tesseroid_dimensions():
+    "gravmag.tesseroid raises error when tesseroids with bad dimensions"
+    props = dict(density=2000)
+    model = [Tesseroid(0, -10, 4, 5, 1000, 0, props),
+             Tesseroid(-10, 0, 5, 4, 1000, 0, props),
+             Tesseroid(-10, 0, 5, 4, 0, 1000, props)]
+    lon, lat, height = gridder.regular((-20, 20, -20, 20), (50, 50), z=250e3)
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        for t in model:
+            assert_raises(AssertionError, func, lon, lat, height, [t])
+
+
 def test_serial_vs_parallel():
     "gravmag.tesseroid serial and parallel execution give same result"
     model = TesseroidMesh((-1, 1.5, -2, 2, 0, -10e3), (3, 2, 1))
