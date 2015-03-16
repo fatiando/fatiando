@@ -220,13 +220,23 @@ def _get_engine(engine):
     return module
 
 
-def _get_density(tesseroid, dens):
+def _check_tesseroid(tesseroid, dens):
     """
-    Get the density information from the tesseroid or the given value.
+    Check if the tesseroid is valid and get the right density to use.
+
+    Returns None if the tesseroid should be ignored. Else, return the density
+    that should be used.
     """
     if tesseroid is None:
         return None
     if 'density' not in tesseroid.props and dens is None:
+        return None
+    w, e, s, n, top, bottom = tesseroid.get_bounds()
+    # Check if the dimensions given are valid
+    assert w <= e and s <= n and top >= bottom, \
+        "Invalid tesseroid dimensions {}".format(tesseroid.get_bounds())
+    # Check if the tesseoid has volume > 0
+    if e - w < 1e-7 or n - s < 1e-7 or top - bottom < 1e-3:
         return None
     if dens is not None:
         density = dens
@@ -251,7 +261,7 @@ def _dispatcher(args):
     module = _get_engine(engine)
     func = getattr(module, field)
     for tesseroid in model:
-        density = _get_density(tesseroid, dens)
+        density = _check_tesseroid(tesseroid, dens)
         if density is None:
             continue
         func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
@@ -287,6 +297,9 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
               engine='default', njobs=1):
     """
     Calculate the gravitational potential due to a tesseroid model.
+
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
 
     Parameters:
 
@@ -341,6 +354,9 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     """
     Calculate the North component of the gravitational attraction.
 
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -393,6 +409,9 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
        njobs=1):
     """
     Calculate the East component of the gravitational attraction.
+
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
 
     Parameters:
 
@@ -452,6 +471,9 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         giving positive gz values, **this component only** is calculated
         with **z axis -> Down**.
 
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -504,6 +526,9 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         njobs=1):
     """
     Calculate the xx component of the gravity gradient tensor.
+
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
 
     Parameters:
 
@@ -558,6 +583,9 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     Calculate the xy component of the gravity gradient tensor.
 
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -610,6 +638,9 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         njobs=1):
     """
     Calculate the xz component of the gravity gradient tensor.
+
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
 
     Parameters:
 
@@ -664,6 +695,9 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     Calculate the yy component of the gravity gradient tensor.
 
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -717,6 +751,9 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     Calculate the yz component of the gravity gradient tensor.
 
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -769,6 +806,9 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         njobs=1):
     """
     Calculate the zz component of the gravity gradient tensor.
+
+    .. warning:: Tesseroids with dimensions < 1 cm will be ignored to avoid
+        numerical errors.
 
     Parameters:
 
