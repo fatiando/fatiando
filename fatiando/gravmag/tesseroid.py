@@ -22,16 +22,16 @@ Gravity
 -------
 
 Forward modeling of gravitational fields is performed by functions:
-:func:`~fatiando.gravmag.prism.potential`,
-:func:`~fatiando.gravmag.prism.gx`,
-:func:`~fatiando.gravmag.prism.gy`,
-:func:`~fatiando.gravmag.prism.gz`,
-:func:`~fatiando.gravmag.prism.gxx`,
-:func:`~fatiando.gravmag.prism.gxy`,
-:func:`~fatiando.gravmag.prism.gxz`,
-:func:`~fatiando.gravmag.prism.gyy`,
-:func:`~fatiando.gravmag.prism.gyz`,
-:func:`~fatiando.gravmag.prism.gzz`
+:func:`~fatiando.gravmag.tesseroid.potential`,
+:func:`~fatiando.gravmag.tesseroid.gx`,
+:func:`~fatiando.gravmag.tesseroid.gy`,
+:func:`~fatiando.gravmag.tesseroid.gz`,
+:func:`~fatiando.gravmag.tesseroid.gxx`,
+:func:`~fatiando.gravmag.tesseroid.gxy`,
+:func:`~fatiando.gravmag.tesseroid.gxz`,
+:func:`~fatiando.gravmag.tesseroid.gyy`,
+:func:`~fatiando.gravmag.tesseroid.gyz`,
+:func:`~fatiando.gravmag.tesseroid.gzz`
 
 The gravitational fields are calculated using the formula of Grombein et al.
 (2013):
