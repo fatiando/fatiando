@@ -10,6 +10,11 @@ Version (development)
 
 **Changes**:
 
+* Tesseroid forward modeling functions in ``fatiando.gravmag.tesseroid`` take
+  an optional ``pool`` argument. Use it to pass an open
+  ``multiprocessing.Pool`` for the function to use. Useful to avoid processes
+  spawning overhead when calling the forward modeling many times
+  (`PR 183 <https://github.com/fatiando/fatiando/pull/183>`__)
 * **BUG FIX**: Avoid weird numba error when tesseroid has zero volume. Let to
   better sanitizing the input model. Tesseroids with dimensions < 1cm are
   ignored because they have almost zero gravitational effect

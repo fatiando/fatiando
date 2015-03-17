@@ -2,11 +2,38 @@ from __future__ import division
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
 from nose.tools import assert_raises
+import multiprocessing
 
 from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
+
+
+def test_pool_as_argument():
+    "gravmag.tesseroid takes an open Pool as argument and uses it"
+    class MockPool(object):
+        "Record if the map method of pool was used."
+        def __init__(self, pool):
+            self.pool = pool
+            self.used = False
+
+        def map(self, *args):
+            res = self.pool.map(*args)
+            self.used = True
+            return res
+    njobs = 2
+    pool = MockPool(multiprocessing.Pool(njobs))
+    model = [Tesseroid(0, 1, 0, 1, 2000, 0, {'density': 600})]
+    lon, lat, height = gridder.regular((-1, 2, -1, 2), (20, 20), z=250e3)
+    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
+        func = getattr(tesseroid, f)
+        f1 = func(lon, lat, height, model)
+        f2 = func(lon, lat, height, model, njobs=njobs, pool=pool)
+        assert_allclose(f1, f2, err_msg="Mismatch for {}".format(f))
+        assert pool.used, "The given pool was not used in {}".format(f)
+        with assert_raises(AssertionError):
+            func(lon, lat, height, model, njobs=1, pool=pool)
 
 
 def test_null_tesseroid():
@@ -43,10 +70,11 @@ def test_serial_vs_parallel():
     model = TesseroidMesh((-1, 1.5, -2, 2, 0, -10e3), (3, 2, 1))
     model.addprop('density', 500*np.ones(model.size))
     lon, lat, height = gridder.regular((-1, 1.5, -2, 2), (15, 21), z=150e3)
+    njobs = 3
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
         func = getattr(tesseroid, f)
         serial = func(lon, lat, height, model, njobs=1)
-        parallel = func(lon, lat, height, model, njobs=3)
+        parallel = func(lon, lat, height, model, njobs=njobs)
         assert_allclose(serial, parallel, err_msg="Mismatch for {}".format(f))
 
 
