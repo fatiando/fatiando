@@ -366,6 +366,11 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -413,6 +418,11 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -460,6 +470,11 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -512,6 +527,11 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -559,6 +579,11 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -606,6 +631,11 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -653,6 +683,11 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -700,6 +735,11 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -747,6 +787,11 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
@@ -794,6 +839,11 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
+    * pool : None or multiprocessing.Pool object
+        If not None, will use this pool to run the computation in parallel
+        instead of creating a new one. You must still specify *njobs* as the
+        number of processes in the pool. Use this to avoid spawning processes
+        on each call to this functions, which can have significant overhead.
 
     Returns:
 
