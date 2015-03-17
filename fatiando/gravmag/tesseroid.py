@@ -171,14 +171,21 @@ RATIO_GG = 8
 STACK_SIZE = 100
 
 
-def _check_input(lon, lat, height, model, ratio, njobs):
+def _check_input(lon, lat, height, model, ratio, njobs, pool):
     """
     Check if the inputs are as expected and generate the output array.
+
+    Returns:
+
+    * results : 1d-array, zero filled
+
     """
     assert lon.shape == lat.shape == height.shape, \
         "Input coordinate arrays must have same shape"
     assert ratio > 0, "Invalid ratio {}. Must be > 0.".format(ratio)
     assert njobs > 0, "Invalid number of jobs {}. Must be > 0.".format(njobs)
+    if njobs == 1:
+        assert pool is None, "njobs should be number of processes in the pool"
     result = np.zeros_like(lon)
     return result
 
@@ -245,7 +252,40 @@ def _check_tesseroid(tesseroid, dens):
     return density
 
 
-def _dispatcher(args):
+def _dispatcher(field, lon, lat, height, model, **kwargs):
+    """
+    Dispatch the computation of *field* to the appropriate function.
+
+    Returns:
+
+    * result : 1d-array
+
+    """
+    njobs = kwargs.get('njobs', 1)
+    pool = kwargs.get('pool', None)
+    engine = kwargs['engine']
+    dens = kwargs['dens']
+    ratio = kwargs['ratio']
+    result = _check_input(lon, lat, height, model, ratio, njobs, pool)
+    if njobs > 1 and pool is None:
+        pool = multiprocessing.Pool(njobs)
+        created_pool = True
+    else:
+        created_pool = False
+    if pool is None:
+        _forward_model([lon, lat, height, result, model, dens, ratio, engine,
+                        field])
+    else:
+        chunks = _split_arrays(arrays=[lon, lat, height, result],
+                               extra_args=[model, dens, ratio, engine, field],
+                               nparts=njobs)
+        result = np.hstack(pool.map(_forward_model, chunks))
+    if created_pool:
+        pool.close()
+    return result
+
+
+def _forward_model(args):
     """
     Run the computations on the model for a given list of arguments.
 
@@ -294,7 +334,7 @@ def _split_arrays(arrays, extra_args, nparts):
 
 
 def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
-              engine='default', njobs=1):
+              engine='default', njobs=1, pool=None):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -333,24 +373,15 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
         The calculated field in SI units
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'potential'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= G
     return result
 
 
 def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
-       njobs=1):
+       njobs=1, pool=None):
     """
     Calculate the North component of the gravitational attraction.
 
@@ -389,24 +420,15 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         The calculated field in mGal
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gx'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
 def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
-       njobs=1):
+       njobs=1, pool=None):
     """
     Calculate the East component of the gravitational attraction.
 
@@ -445,24 +467,15 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         The calculated field in mGal
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gy'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
 def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
-       njobs=1):
+       njobs=1, pool=None):
     """
     Calculate the radial component of the gravitational attraction.
 
@@ -506,24 +519,15 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         The calculated field in mGal
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gz'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
 def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the xx component of the gravity gradient tensor.
 
@@ -562,24 +566,15 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gxx'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
 def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the xy component of the gravity gradient tensor.
 
@@ -618,24 +613,15 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gxy'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
 def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the xz component of the gravity gradient tensor.
 
@@ -674,24 +660,15 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gxz'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
 def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the yy component of the gravity gradient tensor.
 
@@ -730,24 +707,15 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gyy'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
 def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the yz component of the gravity gradient tensor.
 
@@ -786,24 +754,15 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gyz'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
 def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
-        njobs=1):
+        njobs=1, pool=None):
     """
     Calculate the zz component of the gravity gradient tensor.
 
@@ -842,17 +801,8 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         The calculated field in Eotvos
 
     """
-    result = _check_input(lon, lat, height, model, ratio, njobs)
     field = 'gzz'
-    if njobs == 1:
-        _dispatcher([lon, lat, height, result, model, dens, ratio, engine,
-                     field])
-    else:
-        chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
-                               nparts=njobs)
-        pool = multiprocessing.Pool(njobs)
-        result = np.hstack(pool.map(_dispatcher, chunks))
-        pool.close()
+    result = _dispatcher(field, lon, lat, height, model, dens=dens,
+                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
