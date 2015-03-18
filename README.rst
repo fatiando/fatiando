@@ -50,10 +50,6 @@ You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.
 See file ``requirements.txt``.
 
-**Windows users**: See the
-`install docs <http://fatiando.github.io/install.html#extra-dependencies-for-windows-users>`__
-for special instructions on getting the dependencies installed.
-
 Installing
 ----------
 

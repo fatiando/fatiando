@@ -55,19 +55,6 @@ open a terminal (or ``cmd.exe`` on Windows) and run::
 
     conda install numpy scipy matplotlib numba ipython basemap imaging mayavi pip
 
-Extra dependencies for Windows users
-++++++++++++++++++++++++++++++++++++
-
-Unfortunately, the ``gcc`` compiler included in Anaconda MinGW_
-doesn't have OpenMP_ support. This is required to compile
-some extension modules in Fatiando that have multi-threaded parallel code.
-
-You'll have download and install TDM-GCC_
-**after** you've installed Anaconda and **before** you install Fatiando.
-Don't forget to mark the ``openmp`` option in the "Choose Components" part of
-the installation. See this `excellent documentation for Windows users`_
-(they even have screenshots!).
-
 Installing Fatiando
 -------------------
 

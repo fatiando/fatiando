@@ -10,6 +10,11 @@ Version (development)
 
 **Changes**:
 
+* **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
+  forward modeling. Caused the majority of our install problems and didn't
+  offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``
+  parallelism without the install problems
+  (`PR 177 <https://github.com/fatiando/fatiando/pull/177>`__)
 * Tesseroid forward modeling functions in ``fatiando.gravmag.tesseroid`` take
   an optional ``pool`` argument. Use it to pass an open
   ``multiprocessing.Pool`` for the function to use. Useful to avoid processes
