@@ -29,7 +29,7 @@ We also preseve a built version of the documentation for reference.
 
 * `Documentation <http://fatiando.github.io/v0.3/>`__
 * `Source code <https://github.com/fatiando/fatiando/tree/v0.3>`__
-* doi:`not published <http://dx.doi.org/>`__
+* doi:`10.5281/zenodo.16205 <http://dx.doi.org/10.5281/zenodo.16205>`__
 
 .. raw:: html
 
@@ -55,7 +55,7 @@ We also preseve a built version of the documentation for reference.
 
 * `Documentation <http://fatiando.github.io/v0.1/>`__
 * `Source code <https://github.com/fatiando/fatiando/tree/v0.1>`__
-* doi:`not published <http://dx.doi.org/>`__
+* doi:`10.5281/zenodo.16207 <http://dx.doi.org/10.5281/zenodo.16207>`__
 
 .. raw:: html
 
