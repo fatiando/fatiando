@@ -1,6 +1,10 @@
 |title|
 =======
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/fatiando/fatiando
+   :target: https://gitter.im/fatiando/fatiando?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. |title| image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png
     :alt: Fatiando a Terra
 
