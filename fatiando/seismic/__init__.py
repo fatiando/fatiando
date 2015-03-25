@@ -2,7 +2,8 @@
 Various tools for seismic and seismology, like direct modeling, inversion
 (tomography), epicenter determination, etc.
 
-**Forward modeling and inversion**
+Forward modeling and inversion
+------------------------------
 
 * :mod:`~fatiando.seismic.ttime2d`: 2D seismic ray travel-time modeling
 * :mod:`~fatiando.seismic.epic2d`: 2D epicenter determination
@@ -10,7 +11,8 @@ Various tools for seismic and seismology, like direct modeling, inversion
 * :mod:`~fatiando.seismic.wavefd`: Finite difference solution of the 2D elastic
   wave equation
 
-**Tomography**
+Tomography
+----------
 
 * :mod:`~fatiando.seismic.srtomo`: 2D straight-ray tomography
 

@@ -375,6 +375,13 @@ Some brief guidelines:
   that `__init__` takes. It should also include examples (as doctests when
   possible) and references. Pretty much like function docstrings.
 
+
+You'll need to install the `Sphinx bootstrap theme
+<https://github.com/ryan-roemer/sphinx-bootstrap-theme>`__ to build the docs.
+Run this in your terminal/cmd.exe::
+
+    pip install sphinx_bootstrap_theme
+
 To compile the documentation, run::
 
     make docs
@@ -465,9 +472,10 @@ copy this checklist to the PR description
 
     - [ ] Make tests for new code
     - [ ] Create/update docstrings
+    - [ ] Include relevant equations and citations in docstrings
     - [ ] Code follows PEP8 style conventions
     - [ ] Code and docs have been spellchecked
-    - [ ] Include new dependencies in docs, requirements.txt, README
+    - [ ] Include new dependencies in docs, requirements.txt, README, and .travis.yml
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged

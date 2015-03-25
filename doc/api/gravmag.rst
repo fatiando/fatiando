@@ -8,6 +8,7 @@ Gravity and magnetics (``fatiando.gravmag``)
    :show-inheritance:
 
 .. toctree::
+    :hidden:
 
     gravmag.harvester.rst
     gravmag.prism.rst

@@ -8,6 +8,7 @@ Visualization (``fatiando.vis``)
    :show-inheritance:
 
 .. toctree::
+    :hidden:
 
     vis.mpl.rst
     vis.myv.rst
