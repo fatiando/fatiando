@@ -44,18 +44,24 @@ for examples of what Fatiando can do.
 
 There are many ways to get in contact with us:
 
+* Join us on our `Gitter chat room`_.
 * Write to our `mailing list`_.
 * Report an `issue on Github`_.
-* Tweet `@leouieda`_.
 * Mention `+Fatiando a Terra`_ on Google+.
 
-We welcome feedback, bug reports, feature requests, code contributions,
+You don't have to dive into the code to contribute!
+You can start by sending us your 
+feedback, bug reports, feature requests, code contributions,
 spelling corrections, usage examples, etc.
+
+If you want to mess with the code,
+take a look at our :ref:`developers guide <develop>`.
+Don't be afraid to ask for help getting started!
 
 .. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _issue on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
-.. _@leouieda: https://twitter.com/leouieda
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
+.. _Gitter chat room: https://gitter.im/fatiando/fatiando
 
 .. raw:: html
 
