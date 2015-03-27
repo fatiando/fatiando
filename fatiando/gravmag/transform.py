@@ -78,6 +78,8 @@ def thd(x, y, data, shape):
     """
     Calculate the amplitude of the analytic signal of the data.
 
+    This was fourier.ansig, but has been updated to match newer nomenclature.
+
     .. warning::
 
         If the data is not in SI units, the derivatives will be in

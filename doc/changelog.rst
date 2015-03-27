@@ -10,6 +10,11 @@ Version (development)
 
 **Changes**:
 
+* Renamed ``fatiando.gravmag.fourier.ansig`` to ``fatiando.gravmag.transform.thd``
+  (PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **Remove/Merge** ``fatiando.gravmag.fourier`` by moving relevant functions into
+  ``fatiando.gravmag.transform``.
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
 * **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
   forward modeling. Caused the majority of our install problems and didn't
   offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``
