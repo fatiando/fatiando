@@ -17,9 +17,6 @@ A Python package for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat
     :alt: Number of PyPI downloads
     :target:  https://crate.io/packages/fatiando/
-.. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg?style=flat
-    :alt: BSD 3 clause license
-    :target: https://github.com/fatiando/fatiando/blob/master/LICENSE.txt
 .. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat
     :alt: Travis CI build status
     :target: https://travis-ci.org/fatiando/fatiando
@@ -29,7 +26,10 @@ A Python package for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.16205-blue.svg?style=flat
     :alt: doi:10.5281/zenodo.16205
     :target: http://dx.doi.org/10.5281/zenodo.16205
-
+.. image:: https://badges.gitter.im/Join%20Chat.svg                                  
+    :alt: gitter chat room at https://gitter.im/fatiando/fatiando               
+    :target: https://gitter.im/fatiando/fatiando
+ 
 Dependencies
 ------------
 
@@ -67,6 +67,9 @@ from PyPI, this will be something like ``'0.2'``. If you installed from Github,
 this will be the latest commit hash. This way you can track exactly what
 version of Fatiando generated your results.
 
+See the `documentation <http://fatiando.github.io/docs.html>`__ for detailed
+instructions.
+
 Citing
 ------
 
@@ -89,10 +92,18 @@ Read `this blog post by Robin Wilson
 <http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
 if you haven't heard of CITATION files.
 
+Getting help
+------------
+
+Here are a few option to get in touch with us:
+
+* `Open an issue on Github <https://github.com/fatiando/fatiando/issues>`__
+* `Ask on the Gitter chat room <https://gitter.im/fatiando/fatiando>`__
+* `Write to the mailing list <https://groups.google.com/d/forum/fatiando>`__
 
 License
 -------
 
 Fatiando a Terra is free software: you can redistribute it and/or modify it
-under the terms of the **BSD License**. A copy of this license is provided in
+under the terms of the **BSD 3-clause License**. A copy of this license is provided in
 `LICENSE.txt`.
