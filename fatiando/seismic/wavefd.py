@@ -328,13 +328,13 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def _repr_png_(self):
         return self.snapshot(-1, raw=True)
 
-    def explore(self, **kwargs):
+    def explore(self, every=1, **kwargs):
         plotargs = kwargs
         def plot(Frame):
             image = Image(self.snapshot(Frame, raw=True, **plotargs))
             display(image)
             return image
-        slider = widgets.IntSliderWidget(min=0, max=self.it, step=1,
+        slider = widgets.IntSliderWidget(min=0, max=self.it, step=every,
                                          value=self.it, description="Frame")
         widget = widgets.interact(plot, Frame=slider)
         return widget
