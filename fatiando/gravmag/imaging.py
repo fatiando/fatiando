@@ -247,7 +247,7 @@ def geninv(x, y, z, data, shape, zmin, zmax, nlayers):
 
 def _getdataft(x, y, data, shape):
     """
-    Get the Fourier transform of the data and the norm of the wavenumber vector
+    Get the Fourier transform of the data and the norm of the wavenumber vector 
     """
     Fx, Fy = transform._getfreqs(x, y, data, shape)
     freq = numpy.sqrt(Fx ** 2 + Fy ** 2)

@@ -12,7 +12,7 @@ Version (development)
 
 * Renamed ``fatiando.gravmag.fourier.ansig`` to ``fatiando.gravmag.transform.thd``
   (PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
-* **Remove/Merge** ``fatiando.gravmag.fourier`` by moving relevant functions into
+* **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
   ``fatiando.gravmag.transform``.
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
 * **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded

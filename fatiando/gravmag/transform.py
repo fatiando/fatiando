@@ -74,11 +74,13 @@ def upcontinue(gz, height, xp, yp, dims):
     gzcont *= abs(height) / (2 * numpy.pi)
     return gzcont
 
+
 def thd(x, y, data, shape):
     """
     Calculate the amplitude of the analytic signal of the data.
 
-    This was fourier.ansig, but has been updated to match newer nomenclature.
+    This was fourier.ansig, but has been updated to match newer nomenclature and
+    to be more accurate.
 
     .. warning::
 
@@ -107,6 +109,7 @@ def thd(x, y, data, shape):
     dz = derivz(x, y, data, shape)
     res = numpy.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
     return res
+
 
 def derivx(x, y, data, shape, order=1):
     """
@@ -210,6 +213,7 @@ def derivz(x, y, data, shape, order=1):
     Fx, Fy = _getfreqs(x, y, data, shape)
     freqs = numpy.sqrt(Fx ** 2 + Fy ** 2)
     return _deriv(freqs, data, shape, order)
+
 
 def _getfreqs(x, y, data, shape):
     """
