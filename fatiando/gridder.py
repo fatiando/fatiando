@@ -395,8 +395,8 @@ def cut(x, y, scalars, area):
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
     return [x[inside], y[inside], [s[inside] for s in scalars]]
-    
-    def cut_regular(x, y, scalars, shape ,area):
+ 
+ def cut_regular(x, y, scalars, shape, area):
     """
     Return a subsection of a regular grid.
 
@@ -412,35 +412,37 @@ def cut(x, y, scalars, area):
     * scalars
         List of arrays with the scalar values assigned to the grid points.
     * shape: tuple(ny,nx)
-		Shape of the original data points.
+        Shape of the original data points.
     * area
         ``(x1, x2, y1, y2)``: Borders of the subsection
 
     Returns:
 
     * ``[subx, suby, subscalars,shape_window]``
-        Arrays with x and y coordinates and scalar values of the subsection;
-        and a tuple(ny,nx) with the shape of the cutted grid.
+        Arrays with x and y coordinates and scalar values of the subsection.
+    shape_window: tuple(ny,nx)
+        Shape of the cutted grid.
 
     """
     xmin, xmax, ymin, ymax = area
     if xmin > xmax:
-		xmin,xmax = xmax, xmin
+        xmin, xmax = xmax, xmin
     if ymin > ymax:
-		ymin,ymax = ymax, ymin
-       
+        ymin, ymax = ymax, ymin
+
     # Calculates the distance between neighbour points
     if shape[0]*shape[1] != len(x):
-		raise ValueError("The shape isn't the shape of the x,y grid.")
-	
-    distance_x = abs( max(x)-min(x) ) / (shape[1]-1)
-    distance_y = abs( max(y)-min(y) ) / (shape[0]-1)
-    shape_cutted = ( int(abs(ymax-ymin)/distance_y + 1) , int(abs(xmax-xmin)/distance_x + 1) )
-	
+        raise ValueError("The shape isn't the shape of the x,y grid.")
+
+    distance_x = abs(max(x)-min(x)) / (shape[1]-1)
+    distance_y = abs(max(y)-min(y)) / (shape[0]-1)
+    shape_cutted = (int(abs(ymax-ymin)/distance_y + 1),
+                    int(abs(xmax-xmin)/distance_x + 1))
+
     if len(x) != len(y):
         raise ValueError("x and y must have the same length")
     inside = [i for i in xrange(len(x))
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
-    
+
     return [x[inside], y[inside], [s[inside] for s in scalars], shape_cutted]
