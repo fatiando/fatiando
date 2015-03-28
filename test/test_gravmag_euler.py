@@ -14,6 +14,7 @@ pos = None
 field, xderiv, yderiv, zderiv = None, None, None, None
 precision = 0.01
 
+
 def setup():
     global model, x, y, z, inc, dec, struct_ind, field, xderiv, yderiv, \
         zderiv, base, pos
