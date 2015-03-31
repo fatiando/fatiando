@@ -396,6 +396,7 @@ def cut(x, y, scalars, area):
               and y[i] >= ymin and y[i] <= ymax]
     return [x[inside], y[inside], [s[inside] for s in scalars]]
 
+
 def cut_regular(x, y, scalars, shape, area):
     """
     Return a subsection of a regular grid.
