@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long-noborder.png
+.. image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png
     :alt: Fatiando a Terra
 
 `Website <http://www.fatiando.org>`__ |
