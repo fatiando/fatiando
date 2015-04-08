@@ -16,7 +16,8 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
 
         Since the relative difference between the model is the important, being
         consistent with the units chosen for the parameters is the only
-        requirement, whatever the units.
+        requirement, whatever the units. Good reference is available at
+        http://dx.doi.org/10.1190/1.9781560801580.ch2
 
     Parameters:
 
@@ -36,7 +37,7 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
     * synth_l : 2D-array
         Resulting seismogram
     * TWT_ts : 1D-array
-        Time axis for the seismogram
+        Time axis for the seismogramgm
     """
     dt_dwn = dt/10.
     TWT = np.zeros((n_samples, n_traces))
@@ -96,8 +97,8 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
         rc = np.zeros(np.shape(vel_l))
         rc[1:, :] = (vel_l[1:, :]-vel_l[:-1, :])/(vel_l[1:, :]+vel_l[:-1, :])
     else:
-        rc[1:, :] = (vel_l[1:, :]*rho_l[1:, :]-vel_l[:-1, :]*rho_l[:-1, :])
-                    /(vel_l[1:, :]*rho_l[1:, :]+vel_l[:-1, :]*rho_l[:-1, :])
+        rc[1:, :] = ((vel_l[1:, :]*rho_l[1:, :]-vel_l[:-1, :]*rho_l[:-1, :]) /
+                     (vel_l[1:, :]*rho_l[1:, :]+vel_l[:-1, :]*rho_l[:-1, :]))
     #
     # wavelet
     w = rickerwave(f, dt)
