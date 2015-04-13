@@ -437,7 +437,7 @@ def cut_regular(x, y, scalars, shape, area):
 
     distance_x = abs(max(x)-min(x)) / (shape[1]-1)
     distance_y = abs(max(y)-min(y)) / (shape[0]-1)
-    shape_cutted = (int(abs(ymax-ymin)/distance_y + 1),
+    shape_subgrid = (int(abs(ymax-ymin)/distance_y + 1),
                     int(abs(xmax-xmin)/distance_x + 1))
 
     if len(x) != len(y):
