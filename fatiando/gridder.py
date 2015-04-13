@@ -419,10 +419,10 @@ def cut_regular(x, y, scalars, shape, area):
 
     Returns:
 
-    * ``[subx, suby, subscalars,shape_window]``
-        Arrays with x and y coordinates and scalar values of the subsection.
-    shape_window: tuple(ny,nx)
-        Shape of the cutted grid.
+    * ``[subx, suby, subscalars,shape_subgrid]``
+        Arrays with x and y coordinates and scalar values of the subgrid.
+    shape_subgrid: tuple(ny,nx)
+        Shape of the subgrid.
 
     """
     xmin, xmax, ymin, ymax = area
@@ -446,4 +446,4 @@ def cut_regular(x, y, scalars, shape, area):
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
 
-    return [x[inside], y[inside], [s[inside] for s in scalars], shape_cutted]
+    return [x[inside], y[inside], [s[inside] for s in scalars], shape_subgrid]
