@@ -425,6 +425,12 @@ def cut_regular(x, y, scalars, shape, area):
         Shape of the subgrid.
 
     """
+    assert len(x) == len(y) == shape[0]*shape[1], \
+        "The shape isn't the shape of the x and y arrays."
+    for s in scalars:
+        assert len(s) == shape[0]*shape[1], \
+            "All or some scalars haven't the right shape."
+
     xmin, xmax, ymin, ymax = area
     if xmin > xmax:
         xmin, xmax = xmax, xmin
@@ -432,13 +438,10 @@ def cut_regular(x, y, scalars, shape, area):
         ymin, ymax = ymax, ymin
 
     # Calculates the distance between neighbour points
-    if shape[0]*shape[1] != len(x):
-        raise ValueError("The shape isn't the shape of the x,y grid.")
-
     distance_x = abs(max(x)-min(x)) / (shape[1]-1)
     distance_y = abs(max(y)-min(y)) / (shape[0]-1)
     shape_subgrid = (int(abs(ymax-ymin)/distance_y + 1),
-                    int(abs(xmax-xmin)/distance_x + 1))
+                     int(abs(xmax-xmin)/distance_x + 1))
 
     if len(x) != len(y):
         raise ValueError("x and y must have the same length")
