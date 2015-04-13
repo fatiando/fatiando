@@ -425,6 +425,8 @@ def cut_regular(x, y, scalars, shape, area):
         Shape of the subgrid.
 
     """
+    assert len(x) == len(y), \
+        "x and y must have the same length"
     assert len(x) == len(y) == shape[0]*shape[1], \
         "The shape isn't the shape of the x and y arrays."
     for s in scalars:
@@ -443,8 +445,6 @@ def cut_regular(x, y, scalars, shape, area):
     shape_subgrid = (int(abs(ymax-ymin)/distance_y + 1),
                      int(abs(xmax-xmin)/distance_x + 1))
 
-    if len(x) != len(y):
-        raise ValueError("x and y must have the same length")
     inside = [i for i in xrange(len(x))
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
