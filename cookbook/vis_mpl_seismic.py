@@ -24,12 +24,14 @@ for tr in segyfile.traces:
 mpl.figure()
 mpl.subplot(2, 1, 1)
 mpl.ylabel('time (seconds)')
-mpl.title("seismic wiggle plot")
+mpl.title("Seismic wiggle plot", fontsize=13, family='sans-serif',
+          weight='bold')
 # plot using wiggle
 mpl.seismic_wiggle(mtraces, scale=10**-4)
 mpl.subplot(2, 1, 2)
 mpl.ylabel('time (seconds)')
-mpl.title("seismic image plot")
+mpl.title("Seismic image plot", fontsize=13, family='sans-serif',
+          weight='bold')
 # plot using image
 mpl.seismic_image(mtraces, aspect='auto')
 mpl.show()

@@ -22,6 +22,8 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 * :func:`~fatiando.vis.mpl.squaremesh`
 * :func:`~fatiando.vis.mpl.polygon`
 * :func:`~fatiando.vis.mpl.layers`
+* :func:`~fatiando.vis.mpl.seismic_image`
+* :func:`~fatiando.vis.mpl.seismic_wiggle`
 
 **Interactive**
 
@@ -994,7 +996,8 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     return plot
 
 
-def seismic_wiggle(section, dt=0.004, ranges=None, scale=1., color='k', normalize=False):
+def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
+                   color='k', normalize=False):
     """
     Plot a seismic section (numpy 2D array matrix) as wiggles.
     Slow for more than 200 traces, in this case use `seismic_image`.
@@ -1039,12 +1042,13 @@ def seismic_wiggle(section, dt=0.004, ranges=None, scale=1., color='k', normaliz
     pyplot.xlim(x0, x1)
     for i, trace in enumerate(section.transpose()):
         tr = (((trace-gmin)/amp)-toffset)*scale*dx
-        #tr = trace
         x = x0+i*dx  # x positon for this trace
         pyplot.plot(x+tr, t, 'k')
         pyplot.fill_betweenx(t, x+tr, x, tr > 0, color=color)
 
-def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
+
+def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray,
+                  aspect=None, vmin=None, vmax=None):
     """
     Plot a seismic section (numpy 2D array matrix) as an image.
 
@@ -1075,7 +1079,7 @@ def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray, aspect=No
         ranges = (0, maxtraces)
     x0, x1 = ranges
     extent = (x0, x1, t[-1:], t[0])
-    if aspect is None: # guarantee a rectangular picture
+    if aspect is None:  # guarantee a rectangular picture
         aspect = numpy.round((x1-x0)/numpy.max(t))
         aspect -= aspect*0.2
     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',
