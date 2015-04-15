@@ -994,10 +994,6 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     return plot
 
 
-
-
-# TODO: port code for not using obspy using insed fatiando (License issue)
-
 def seismic_wiggle(section, dt=0.004, ranges=None, scale=1., color='k', normalize=False):
     """
     Plot a seismic section (numpy 2D array matrix) as wiggles.
