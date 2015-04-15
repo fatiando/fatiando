@@ -995,96 +995,92 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
 
 
 
+
 # TODO: port code for not using obspy using insed fatiando (License issue)
 
-# def seismic_wiggle(section, ranges=None, scale=1, color='k', normalize=False):
-#     """
-#     Plot a seismic section (numpy 2D array matrix) as wiggles.
-#     Slow for more than 200 traces, in this case use `seismic_image`.
-#
-#     Parameters:
-#
-#     * section :  2D array
-#         matrix of traces
-#     * ranges : (x1, x2)
-#         min and max horizontal values (default trace number)
-#     * scale : float
-#         scale factor multiplied by the section values before plotting
-#     * color : tuple of strings
-#         Color for filling the wiggle, positive  and negative lobes.
-#     * normalize :
-#         normalizes all trace in the section if True (use global max)
-#         (-0.5, 0.5) zero centered; warning might be slow
-#
-#     """
-#     ntraces = len(section)
-#     if ntraces < 1:
-#         raise IndexError("Nothing to plot")
-#     npts = len(section[0].data)
-#     if npts < 1:
-#         raise IndexError("Nothing to plot")
-#     t = section[0].times()
-#     amp = 1.  # normalization factor
-#     gmin = 0.  # global minimum
-#     toffset = 0. # offset in time to make 0 centered
-#     if normalize:
-#         gmax = section[0].data.max()
-#         gmin = gmax
-#         for trace in section.traces:
-#             local_max = trace.data.max()
-#             local_min = trace.data.min()
-#             if local_max > gmax:
-#                 gmax = local_max
-#             if local_min < gmin:
-#                 gmin = local_min
-#         amp = (gmax-gmin)
-#         toffset = 0.5
-#     pyplot.ylim(max(t), 0)
-#     if ranges is None:
-#         ranges = (0, ntraces)
-#     x0, x1 = ranges
-#     # horizontal increment
-#     dx = float((x1-x0)/ntraces)
-#     pyplot.xlim(x0, x1)
-#     for i, trace in enumerate(section):
-#         tr = (((trace.data-gmin)/amp)-toffset)*scale*dx
-#         x = x0+i*dx  # x positon for this trace
-#         pyplot.plot(x+tr, t, 'k')
-#         pyplot.fill_betweenx(t, x+tr, x, tr > 0, color=color)
-#
-# def seismic_image(section, ranges=None, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
-#     """
-#     Plot a seismic section (numpy 2D array matrix) as an image.
-#
-#     Parameters:
-#
-#     * section :  2D array
-#         matrix of traces
-#     * ranges : (x1, x2)
-#         min and max horizontal values (default trace number)
-#     * cmap : colormap
-#         color map to be used. (see pyplot.cm module)
-#     * aspect : float
-#         matplotlib imshow aspect parameter, ratio between axes
-#     * vmin, vmax : float
-#         min and max values for imshow
-#
-#     """
-#     maxtraces = len(section)
-#     if maxtraces < 1 :
-#         raise IndexError("Nothing to plot")
-#     npts = len(section[0].data)
-#     if npts < 1 :
-#         raise IndexError("Nothing to plot")
-#     t = section[0].times()
-#     data = section
-#     if ranges == None:
-#         ranges = (0, maxtraces)
-#     x0, x1 = ranges
-#     extent = (x0, x1, t[-1:], t[0])
-#     if aspect == None: # guarantee a rectangular picture
-#         aspect = numpy.round((x1-x0)/numpy.max(t))
-#         aspect -= aspect*0.2
-#     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',
-#                   extent=extent, vmin=vmin, vmax=vmax)
+def seismic_wiggle(section, dt=0.004, ranges=None, scale=1., color='k', normalize=False):
+    """
+    Plot a seismic section (numpy 2D array matrix) as wiggles.
+    Slow for more than 200 traces, in this case use `seismic_image`.
 
+    Parameters:
+
+    * section :  2D array
+        matrix of traces (first dimension time, second dimension traces)
+    * dt : float
+        sample rate in seconds (default 4 ms)
+    * ranges : (x1, x2)
+        min and max horizontal values (default trace number)
+    * scale : float
+        scale factor multiplied by the section values before plotting
+    * color : tuple of strings
+        Color for filling the wiggle, positive  and negative lobes.
+    * normalize :
+        normalizes all trace in the section if True (use global max)
+        (-0.5, 0.5) zero centered; warning might be slow
+
+    """
+    npts, ntraces = section.shape  # time/traces
+    if ntraces < 1:
+        raise IndexError("Nothing to plot")
+    if npts < 1:
+        raise IndexError("Nothing to plot")
+    t = numpy.linspace(0, dt*npts, npts)
+    amp = 1.  # normalization factor
+    gmin = 0.  # global minimum
+    toffset = 0.  # offset in time to make 0 centered
+    if normalize:
+        gmax = section.max()
+        gmin = section.min()
+        amp = (gmax-gmin)
+        toffset = 0.5
+    pyplot.ylim(max(t), 0)
+    if ranges is None:
+        ranges = (0, ntraces)
+    x0, x1 = ranges
+    # horizontal increment
+    dx = float((x1-x0)/ntraces)
+    pyplot.xlim(x0, x1)
+    for i, trace in enumerate(section.transpose()):
+        tr = (((trace-gmin)/amp)-toffset)*scale*dx
+        #tr = trace
+        x = x0+i*dx  # x positon for this trace
+        pyplot.plot(x+tr, t, 'k')
+        pyplot.fill_betweenx(t, x+tr, x, tr > 0, color=color)
+
+def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray, aspect=None, vmin=None, vmax=None):
+    """
+    Plot a seismic section (numpy 2D array matrix) as an image.
+
+    Parameters:
+
+    * section :  2D array
+        matrix of traces (first dimension time, second dimension traces)
+    * dt : float
+        sample rate in seconds (default 4 ms)
+    * ranges : (x1, x2)
+        min and max horizontal values (default trace number)
+    * cmap : colormap
+        color map to be used. (see pyplot.cm module)
+    * aspect : float
+        matplotlib imshow aspect parameter, ratio between axes
+    * vmin, vmax : float
+        min and max values for imshow
+
+    """
+    npts, maxtraces = section.shape  # time/traces
+    if maxtraces < 1:
+        raise IndexError("Nothing to plot")
+    if npts < 1:
+        raise IndexError("Nothing to plot")
+    t = numpy.linspace(0, dt*npts, npts)
+    data = section
+    if ranges is None:
+        ranges = (0, maxtraces)
+    x0, x1 = ranges
+    extent = (x0, x1, t[-1:], t[0])
+    if aspect is None: # guarantee a rectangular picture
+        aspect = numpy.round((x1-x0)/numpy.max(t))
+        aspect -= aspect*0.2
+    pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',
+                  extent=extent, vmin=vmin, vmax=vmax)
