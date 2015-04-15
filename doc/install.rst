@@ -37,6 +37,8 @@ Fatiando requires the following packages:
 * `numpy <http://numpy.scipy.org/>`_
 * `scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
+* `IPython <http://ipython.org/>`__
+* `numba <http://numba.pydata.org/>`__
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
@@ -51,20 +53,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib basemap imaging mayavi pip
-
-Extra dependencies for Windows users
-++++++++++++++++++++++++++++++++++++
-
-Unfortunately, the ``gcc`` compiler included in Anaconda MinGW_
-doesn't have OpenMP_ support. This is required to compile
-some extension modules in Fatiando that have multi-threaded parallel code.
-
-You'll have download and install TDM-GCC_
-**after** you've installed Anaconda and **before** you install Fatiando.
-Don't forget to mark the ``openmp`` option in the "Choose Components" part of
-the installation. See this `excellent documentation for Windows users`_
-(they even have screenshots!).
+    conda install numpy scipy matplotlib numba ipython basemap imaging mayavi pip
 
 Installing Fatiando
 -------------------
@@ -98,16 +87,16 @@ Installing the latest development version
 If you want the very latest code and features,
 you can install Fatiando directly from Github_.
 We try to maintain the *master* branch stable and
-`passing all tests <https://travis-ci.org/leouieda/fatiando/branches>`__,
+`passing all tests <https://travis-ci.org/fatiando/fatiando/branches>`__,
 so it should be safe to use.
 
 To install the latest version from Github::
 
-    pip install --upgrade https://github.com/leouieda/fatiando/archive/master.zip
+    pip install --upgrade https://github.com/fatiando/fatiando/archive/master.zip
 
 or if you have git installed and want to see the code::
 
-    git clone https://github.com/leouieda/fatiando.git
+    git clone https://github.com/fatiando/fatiando.git
     cd fatiando
     pip install --upgrade .
 
@@ -136,13 +125,13 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
 
-.. _submit a bug report on Github: https://github.com/leouieda/fatiando/issues
+.. _submit a bug report on Github: https://github.com/fatiando/fatiando/issues
 .. _install git: http://git-scm.com/
-.. _Github: https://github.com/leouieda/fatiando
+.. _Github: https://github.com/fatiando/fatiando
 .. _Python: http://www.python.org/
 .. _pip: http://www.pip-installer.org
 .. _MinGW: http://www.mingw.org/
-.. _mailing list: https://groups.google.com/forum/#!forum/fatiando
+.. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
 .. _Continuum Analytics: http://continuum.io/
 .. _Anaconda: http://continuum.io/downloads

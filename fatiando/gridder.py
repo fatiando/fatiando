@@ -32,7 +32,6 @@ Create and operate on grids and profiles.
 
 import numpy
 import scipy.interpolate
-import matplotlib.mlab
 
 
 def load_surfer(fname, fmt='ascii'):
@@ -233,8 +232,7 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
         area from *x* and *y*.
     * algorithm : string
         Interpolation algorithm. Either ``'cubic'``, ``'nearest'``,
-        ``'linear'`` (see scipy.interpolate.griddata), or ``'nn'`` for nearest
-        neighbors (using matplotlib.mlab.griddata)
+        ``'linear'`` (see scipy.interpolate.griddata).
     * extrapolate : True or False
         If True, will extrapolate values outside of the convex hull of the data
         points.
@@ -245,7 +243,7 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
         Three 1D arrays with the interpolated x, y, and v
 
     """
-    if algorithm not in ['cubic', 'linear', 'nearest', 'nn']:
+    if algorithm not in ['cubic', 'linear', 'nearest']:
         raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
     ny, nx = shape
     if area is None:
@@ -254,15 +252,8 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
     xs = numpy.linspace(x1, x2, nx)
     ys = numpy.linspace(y1, y2, ny)
     xp, yp = [i.ravel() for i in numpy.meshgrid(xs, ys)]
-    if algorithm == 'nn':
-        grid = matplotlib.mlab.griddata(x, y, v, numpy.reshape(xp, shape),
-                                        numpy.reshape(yp, shape),
-                                        interp='nn').ravel()
-        if extrapolate and numpy.ma.is_masked(grid):
-            grid = extrapolate_nans(xp, yp, grid)
-    else:
-        grid = interp_at(x, y, v, xp, yp, algorithm=algorithm,
-                         extrapolate=extrapolate)
+    grid = interp_at(x, y, v, xp, yp, algorithm=algorithm,
+                     extrapolate=extrapolate)
     return [xp, yp, grid]
 
 

@@ -1,6 +1,6 @@
 include LICENSE.txt
-include README.txt
-include CITATION.txt
+include README.rst
+include CITATION.rst
 include MANIFEST.in
 recursive-include cookbook *
 recursive-include fatiando *.pyx

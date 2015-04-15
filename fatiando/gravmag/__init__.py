@@ -2,7 +2,8 @@
 Gravity and magnetics forward modeling, inversion, transformations and
 utilities.
 
-**Forward modeling**
+Forward modeling
+----------------
 
 The forward modeling modules provide ways to calculate the gravitational and
 magnetic field of various types of geometric objects:
@@ -18,7 +19,8 @@ magnetic field of various types of geometric objects:
 * :mod:`~fatiando.gravmag.half_sph_shell`: Gravity fields of half a spherical
   shell. Useful for benchmarking and testing.
 
-**Inversion**
+Inversion
+---------
 
 The inversion modules use the forward modeling models and the
 :mod:`fatiando.inversion` package to solve potential field inverse problems:
@@ -32,11 +34,14 @@ The inversion modules use the forward modeling models and the
 * :mod:`~fatiando.gravmag.magdir`: Inversion methods to estimate the total
   magnetization vector of multiple sources.
 
-**Processing**
+Processing
+----------
 
 The processing modules offer tools to prepare potential field data before or
 after modeling.
 
+* :mod:`~fatiando.gravmag.normal_gravity`: Compute normal gravity and
+  reductions.
 * :mod:`~fatiando.gravmag.eqlayer`: Equivalent layer processing
 * :mod:`~fatiando.gravmag.transform`: Space domain potential field
   transformations, like upward continuation
@@ -46,6 +51,13 @@ after modeling.
   estimating physical property distributions
 * :mod:`~fatiando.gravmag.tensor`: Utilities for operating on the gradient
   tensor
+
+Interactivity
+-------------
+
+Module :mod:`~fatiando.gravmag.interactive` implements matplotlib GUIs and
+IPython HTML widgets for interacting with the modeling and processing
+functions.
 
 ----
 

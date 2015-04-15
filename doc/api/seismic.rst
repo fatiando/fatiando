@@ -8,6 +8,7 @@ Seismics and seismology (``fatiando.seismic``)
    :show-inheritance:
 
 .. toctree::
+    :hidden:
 
     seismic.ttime2d.rst
     seismic.epic2d.rst
