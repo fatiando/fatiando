@@ -10,8 +10,9 @@ Version (development)
 
 **Changes**:
 
-* Renamed ``fatiando.gravmag.fourier.ansig`` to ``fatiando.gravmag.transform.thd``
-  (PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **Renamed** ``fatiando.gravmag.fourier.ansig`` to
+  ``fatiando.gravmag.transform.tga``
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
 * **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
   ``fatiando.gravmag.transform``.
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
