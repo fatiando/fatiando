@@ -6,8 +6,8 @@ derivatives and total mass.
 
 * :func:`~fatiando.gravmag.transform.upcontinue`: Upward continuation of the
   vertical component of gravity :math:`g_z` using numerical integration
-* :func:`~fatiando.gravmag.transform.thd`: Calculate the amplitude of the
-  analytic signal
+* :func:`~fatiando.gravmag.transform.tga`: Calculate the amplitude of the
+  total gradient (also called the analytic signal)
 
 **Derivatives**
 
@@ -75,19 +75,20 @@ def upcontinue(gz, height, xp, yp, dims):
     return gzcont
 
 
-def thd(x, y, data, shape):
+def tga(x, y, data, shape):
     """
-    Calculate the amplitude of the analytic signal of the data.
+    Calculate the total gradient amplitude.
 
-    This was fourier.ansig, but has been updated to match newer nomenclature
-    and to be more accurate.
+    This the same as the `analytic signal`, but we prefer the newer, more
+    descriptive nomenclature.
 
     .. warning::
 
         If the data is not in SI units, the derivatives will be in
-        strange units and so will the analytic signal! I strongly recommend
-        converting the data to SI **before** calculating the derivative (use
-        one of the unit conversion functions of :mod:`fatiando.utils`).
+        strange units and so will the total gradient amplitude! I strongly
+        recommend converting the data to SI **before** calculating the
+        derivative (use one of the unit conversion functions of
+        :mod:`fatiando.utils`).
 
     Parameters:
 
@@ -100,8 +101,8 @@ def thd(x, y, data, shape):
 
     Returns:
 
-    * thd : 1D-array
-        The amplitude of the analytic signal
+    * tga : 1D-array
+        The amplitude of the total gradient
 
     """
     dx = derivx(x, y, data, shape)

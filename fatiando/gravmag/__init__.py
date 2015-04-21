@@ -45,8 +45,6 @@ after modeling.
 * :mod:`~fatiando.gravmag.eqlayer`: Equivalent layer processing
 * :mod:`~fatiando.gravmag.transform`: Space domain potential field
   transformations, like upward continuation
-* :mod:`~fatiando.gravmag.fourier`: Potential field transformations using the
-  FFT
 * :mod:`~fatiando.gravmag.imaging`: Imaging methods for potential fields for
   estimating physical property distributions
 * :mod:`~fatiando.gravmag.tensor`: Utilities for operating on the gradient
