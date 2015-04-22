@@ -113,7 +113,7 @@ def tga(x, y, data, shape):
     return res
 
 
-def derivx(x, y, data, shape, order=1):
+def derivx(x, y, data, shape, order=1, method='fft'):
     """
     Calculate the derivative of a potential field in the x direction.
 
@@ -142,14 +142,15 @@ def derivx(x, y, data, shape, order=1):
         The derivative
 
     """
-    ny, nx = shape
+    nx, ny = shape
     # Pad the array with the edge values to avoid instability
     padded, padx, pady = _pad_data(data, shape)
-    kx, ky = _fftfreqs(x, y, shape, padded.shape)
+    kx, _ = _fftfreqs(x, y, shape, padded.shape)
     deriv_ft = numpy.fft.fft2(padded)*(kx*1j)**order
-    deriv = numpy.real(numpy.fft.ifft2(deriv_ft))
+    deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
     # Remove padding from derivative
-    return deriv[pady : pady + ny, padx : padx + nx].ravel()
+    deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+    return deriv.ravel()
 
 
 def derivy(x, y, data, shape, order=1):
@@ -181,14 +182,15 @@ def derivy(x, y, data, shape, order=1):
         The derivative
 
     """
-    ny, nx = shape
+    nx, ny = shape
     # Pad the array with the edge values to avoid instability
     padded, padx, pady = _pad_data(data, shape)
-    kx, ky = _fftfreqs(x, y, shape, padded.shape)
+    _, ky = _fftfreqs(x, y, shape, padded.shape)
     deriv_ft = numpy.fft.fft2(padded)*(ky*1j)**order
-    deriv = numpy.real(numpy.fft.ifft2(deriv_ft))
+    deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
     # Remove padding from derivative
-    return deriv[pady : pady + ny, padx : padx + nx].ravel()
+    deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+    return deriv.ravel()
 
 
 def derivz(x, y, data, shape, order=1):
@@ -220,22 +222,23 @@ def derivz(x, y, data, shape, order=1):
         The derivative
 
     """
-    ny, nx = shape
+    nx, ny = shape
     # Pad the array with the edge values to avoid instability
     padded, padx, pady = _pad_data(data, shape)
     kx, ky = _fftfreqs(x, y, shape, padded.shape)
     deriv_ft = numpy.fft.fft2(padded)*numpy.sqrt(kx**2 + ky**2)**order
     deriv = numpy.real(numpy.fft.ifft2(deriv_ft))
     # Remove padding from derivative
-    return deriv[pady : pady + ny, padx : padx + nx].ravel()
+    return deriv[padx : padx + nx, pady : pady + ny].ravel()
 
 
 def _pad_data(data, shape):
     n = _nextpow2(numpy.max(shape))
-    ny, nx = shape
+    nx, ny = shape
     padx = (n - nx)//2
     pady = (n - ny)//2
-    padded = numpy.pad(data.reshape(shape), (pady, padx), mode='edge')
+    padded = numpy.pad(data.reshape(shape), ((padx, padx), (pady, pady)),
+                       mode='edge')
     return padded, padx, pady
 
 
@@ -248,9 +251,10 @@ def _fftfreqs(x, y, shape, padshape):
     """
     Get two 2D-arrays with the wave numbers in the x and y directions.
     """
-    ny, nx = shape
+    nx, ny = shape
     dx = (x.max() - x.min())/(nx - 1)
-    fx = 2*numpy.pi*numpy.fft.fftfreq(padshape[1], dx)
+    fx = 2*numpy.pi*numpy.fft.fftfreq(padshape[0], dx)
     dy = (y.max() - y.min())/(ny - 1)
-    fy = 2*numpy.pi*numpy.fft.fftfreq(padshape[0], dy)
-    return numpy.meshgrid(fx, fy)
+    print dx, dy
+    fy = 2*numpy.pi*numpy.fft.fftfreq(padshape[1], dy)
+    return numpy.meshgrid(fy, fx)
