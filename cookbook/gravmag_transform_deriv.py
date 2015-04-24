@@ -2,7 +2,7 @@
 GravMag: Calculating the derivatives of the gravity anomaly using FFT
 """
 from fatiando import mesher, gridder, utils
-from fatiando.gravmag import prism, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 
 model = [mesher.Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 100})]
@@ -13,9 +13,9 @@ xp, yp, zp = gridder.regular(area, shape, z=z0)
 gz = utils.contaminate(prism.gz(xp, yp, zp, model), 0.001)
 
 # Need to convert gz to SI units so that the result can be converted to Eotvos
-gxz = utils.si2eotvos(fourier.derivx(xp, yp, utils.mgal2si(gz), shape))
-gyz = utils.si2eotvos(fourier.derivy(xp, yp, utils.mgal2si(gz), shape))
-gzz = utils.si2eotvos(fourier.derivz(xp, yp, utils.mgal2si(gz), shape))
+gxz = utils.si2eotvos(transform.derivx(xp, yp, utils.mgal2si(gz), shape))
+gyz = utils.si2eotvos(transform.derivy(xp, yp, utils.mgal2si(gz), shape))
+gzz = utils.si2eotvos(transform.derivz(xp, yp, utils.mgal2si(gz), shape))
 
 gxz_true = prism.gxz(xp, yp, zp, model)
 gyz_true = prism.gyz(xp, yp, zp, model)
