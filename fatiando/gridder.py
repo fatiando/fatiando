@@ -29,7 +29,7 @@ Create and operate on grids and profiles.
 ----
 
 """
-
+from __future__ import division
 import numpy
 import scipy.interpolate
 
@@ -68,7 +68,7 @@ def load_surfer(fname, fmt='ascii'):
     * grd : 1d-array
         Values of the field in each grid point. Field can be for example
         topography, gravity anomaly etc
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The number of points in the vertical and horizontal grid dimensions,
         respectively
 
@@ -104,53 +104,77 @@ def load_surfer(fname, fmt='ascii'):
     if fmt == 'binary':
         raise NotImplementedError(
             "Binary file support is not implemented yet.")
-    return x, y, grd, (ny, nx)
+    return x, y, grd, (nx, ny)
 
 
 def regular(area, shape, z=None):
     """
-    Create a regular grid. Order of the output grid is x varies first, then y.
+    Create a regular grid.
+
+    The x directions is North-South and y East-West. Imagine the grid as a
+    matrix with x varying in the lines and y in columns.
+
+    Returned arrays will be flattened to 1D with ``numpy.ravel``.
 
     Parameters:
 
     * area
         ``(x1, x2, y1, y2)``: Borders of the grid
     * shape
-        Shape of the regular grid, ie ``(ny, nx)``.
+        Shape of the regular grid, ie ``(nx, ny)``.
     * z
         Optional. z coordinate of the grid points. If given, will return an
         array with the value *z*.
 
     Returns:
 
-    * ``[xcoords, ycoords]``
+    * ``[x, y]``
         Numpy arrays with the x and y coordinates of the grid points
-    * ``[xcoords, ycoords, zcoords]``
+    * ``[x, y, z]``
         If *z* given. Numpy arrays with the x, y, and z coordinates of the grid
         points
 
+    Examples::
+
+    >>> x, y = regular((0, 10, 0, 5), (5, 3))
+    >>> x
+    array([  0. ,   0. ,   0. ,   2.5,   2.5,   2.5,   5. ,   5. ,   5. ,
+             7.5,   7.5,   7.5,  10. ,  10. ,  10. ])
+    >>> y
+    array([ 0. ,  2.5,  5. ,  0. ,  2.5,  5. ,  0. ,  2.5,  5. ,  0. ,  2.5,
+            5. ,  0. ,  2.5,  5. ])
+    >>> x.reshape((5, 3))
+    array([[  0. ,   0. ,   0. ],
+           [  2.5,   2.5,   2.5],
+           [  5. ,   5. ,   5. ],
+           [  7.5,   7.5,   7.5],
+           [ 10. ,  10. ,  10. ]])
+    >>> y.reshape((5, 3))
+    array([[ 0. ,  2.5,  5. ],
+           [ 0. ,  2.5,  5. ],
+           [ 0. ,  2.5,  5. ],
+           [ 0. ,  2.5,  5. ],
+           [ 0. ,  2.5,  5. ]])
+    >>> x, y, z = regular((0, 10, 0, 5), (5, 3), z=-10)
+    >>> z
+    array([-10., -10., -10., -10., -10., -10., -10., -10., -10., -10., -10.,
+           -10., -10., -10., -10.])
+
     """
-    ny, nx = shape
+    nx, ny = shape
     x1, x2, y1, y2 = area
-    dy, dx = spacing(area, shape)
-    x_range = numpy.arange(x1, x2, dx)
-    y_range = numpy.arange(y1, y2, dy)
-    # Need to make sure that the number of points in the grid is correct
-    # because of rounding errors in arange. Sometimes x2 and y2 are included,
-    # sometimes not
-    if len(x_range) < nx:
-        x_range = numpy.append(x_range, x2)
-    if len(y_range) < ny:
-        y_range = numpy.append(y_range, y2)
-    assert len(x_range) == nx, "Failed! x_range doesn't have nx points"
-    assert len(y_range) == ny, "Failed! y_range doesn't have ny points"
-    xcoords, ycoords = [mat.ravel()
-                        for mat in numpy.meshgrid(x_range, y_range)]
+    assert x1 < x2, \
+        "Invalid area dimensions {}, {}. x1 must be < x2.".format(x1, x2)
+    assert y1 < y2, \
+        "Invalid area dimensions {}, {}. y1 must be < y2.".format(y1, y2)
+    xs = numpy.linspace(x1, x2, nx)
+    ys = numpy.linspace(y1, y2, ny)
+    # Must pass ys, xs in this order because meshgrid uses the first argument
+    # for the columns
+    arrays = numpy.meshgrid(ys, xs)[::-1]
     if z is not None:
-        zcoords = z * numpy.ones_like(xcoords)
-        return [xcoords, ycoords, zcoords]
-    else:
-        return [xcoords, ycoords]
+        arrays.append(z*numpy.ones(nx*ny, dtype=numpy.float))
+    return [i.ravel() for i in arrays]
 
 
 def scatter(area, n, z=None, seed=None):
@@ -173,22 +197,26 @@ def scatter(area, n, z=None, seed=None):
 
     Returns:
 
-    * ``[xcoords, ycoords]``
+    * ``[x, y]``
         Numpy arrays with the x and y coordinates of the points
-    * ``[xcoords, ycoords, zcoords]``
+    * ``[x, y, z]``
         If *z* given. Arrays with the x, y, and z coordinates of the points
+
+    Examples::
+
+    >>> x, y = scatter((0, 10, 0, 2), 5, seed=0)
+    >>> x
+    array([ 5.48813504,  7.15189366,  6.02763376,  5.44883183,  4.23654799])
+    >>> y
+    array([ 1.29178823,  0.87517442,  1.783546  ,  1.92732552,  0.76688304])
 
     """
     x1, x2, y1, y2 = area
     numpy.random.seed(seed)
-    xcoords = numpy.random.uniform(x1, x2, n)
-    ycoords = numpy.random.uniform(y1, y2, n)
-    numpy.random.seed()
+    arrays = [numpy.random.uniform(x1, x2, n), numpy.random.uniform(y1, y2, n)]
     if z is not None:
-        zcoords = z * numpy.ones(n)
-        return [xcoords, ycoords, zcoords]
-    else:
-        return [xcoords, ycoords]
+        arrays.append(z*numpy.ones(n))
+    return arrays
 
 
 def spacing(area, shape):
@@ -200,19 +228,30 @@ def spacing(area, shape):
     * area
         ``(x1, x2, y1, y2)``: Borders of the grid
     * shape
-        Shape of the regular grid, ie ``(ny, nx)``.
+        Shape of the regular grid, ie ``(nx, ny)``.
 
     Returns:
 
-    * ``[dy, dx]``
+    * ``[dx, dy]``
         Spacing the y and x directions
+
+    Examples::
+
+    >>> spacing((0, 10, 0, 20), (11, 11))
+    [1.0, 2.0]
+    >>> spacing((0, 10, 0, 20), (11, 21))
+    [1.0, 1.0]
+    >>> spacing((0, 10, 0, 20), (5, 21))
+    [2.5, 1.0]
+    >>> spacing((0, 10, 0, 20), (21, 21))
+    [0.5, 1.0]
 
     """
     x1, x2, y1, y2 = area
-    ny, nx = shape
-    dx = float(x2 - x1) / float(nx - 1)
-    dy = float(y2 - y1) / float(ny - 1)
-    return [dy, dx]
+    nx, ny = shape
+    dx = (x2 - x1)/(nx - 1)
+    dy = (y2 - y1)/(ny - 1)
+    return [dx, dy]
 
 
 def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
@@ -225,8 +264,8 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
         Arrays with the x and y coordinates of the data points.
     * v : 1D array
         Array with the scalar value assigned to the data points.
-    * shape : tuple = (ny, nx)
-        Shape of the interpolated regular grid, ie (ny, nx).
+    * shape : tuple = (nx, ny)
+        Shape of the interpolated regular grid, ie (nx, ny).
     * area : tuple = (x1, x2, y1, y2)
         The are where the data will be interpolated. If None, then will get the
         area from *x* and *y*.
@@ -245,13 +284,11 @@ def interp(x, y, v, shape, area=None, algorithm='cubic', extrapolate=False):
     """
     if algorithm not in ['cubic', 'linear', 'nearest']:
         raise ValueError("Invalid interpolation algorithm: " + str(algorithm))
-    ny, nx = shape
+    nx, ny = shape
     if area is None:
         area = (x.min(), x.max(), y.min(), y.max())
     x1, x2, y1, y2 = area
-    xs = numpy.linspace(x1, x2, nx)
-    ys = numpy.linspace(y1, y2, ny)
-    xp, yp = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+    xp, yp = regular(area, shape)
     grid = interp_at(x, y, v, xp, yp, algorithm=algorithm,
                      extrapolate=extrapolate)
     return [xp, yp, grid]
