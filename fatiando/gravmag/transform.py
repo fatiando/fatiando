@@ -143,13 +143,26 @@ def derivx(x, y, data, shape, order=1, method='fft'):
 
     """
     nx, ny = shape
-    # Pad the array with the edge values to avoid instability
-    padded, padx, pady = _pad_data(data, shape)
-    kx, _ = _fftfreqs(x, y, shape, padded.shape)
-    deriv_ft = numpy.fft.fft2(padded)*(kx*1j)**order
-    deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
-    # Remove padding from derivative
-    deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+    if method == 'fft':
+        # Pad the array with the edge values to avoid instability
+        padded, padx, pady = _pad_data(data, shape)
+        kx, _ = _fftfreqs(x, y, shape, padded.shape)
+        deriv_ft = numpy.fft.fft2(padded)*(kx*1j)**order
+        deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
+        # Remove padding from derivative
+        deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+    elif method == 'fd':
+        datamat = data.reshape(shape)
+        dx = (x.max() - x.min())/(nx - 1)
+        deriv = numpy.empty_like(datamat)
+        #deriv[:, 1:-1] = (datamat[:, 2:] - datamat[:, :-2])/(2*dx)
+        #deriv[:, 0] = deriv[:, 1]
+        #deriv[:, -1] = deriv[:, -2]
+        deriv[1:-1, :] = (datamat[2:, :] - datamat[:-2, :])/(2*dx)
+        deriv[0, :] = deriv[1, :]
+        deriv[-1, :] = deriv[-2, :]
+        if order > 1:
+            deriv = derivx(x, y, deriv, shape, order=order - 1)
     return deriv.ravel()
 
 
@@ -255,6 +268,5 @@ def _fftfreqs(x, y, shape, padshape):
     dx = (x.max() - x.min())/(nx - 1)
     fx = 2*numpy.pi*numpy.fft.fftfreq(padshape[0], dx)
     dy = (y.max() - y.min())/(ny - 1)
-    print dx, dy
     fy = 2*numpy.pi*numpy.fft.fftfreq(padshape[1], dy)
-    return numpy.meshgrid(fy, fx)
+    return numpy.meshgrid(fy, fx)[::-1]

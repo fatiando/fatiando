@@ -11,15 +11,45 @@ def _trim(array, shape, d=20):
     return array.reshape(shape)[d : -d, d : -d].ravel()
 
 
-def test_gz_derivatives():
-    "gravmag.fourier FFT first derivatives of gz against analytical solutions"
-    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 100})]
-    shape = (200, 300)
+def test_horizontal_derivatives_fd():
+    "gravmag.fourier 1st xy derivatives by finite diff against analytical"
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
     # Note: The z derivative appears to have a systematic error. Could not get
     # the test to pass.
-    derivatives = 'x y z'.split()
+    derivatives = 'x y'.split()
     # Note: Calculating the x derivative of gx fails for some reason.
+    grav = utils.mgal2si(prism.gz(x, y, z, model))
+    for deriv in derivatives:
+        analytical = getattr(prism, 'g{}z'.format(deriv))(x, y, z, model)
+        calculated = utils.si2eotvos(
+            getattr(fourier, 'deriv' + deriv)(x, y, grav, shape, method='fd'))
+        diff = _trim(np.abs(analytical - calculated), shape)
+        assert np.all(diff <= 0.005*np.abs(analytical).max()), \
+            "Failed for g{}. Max: {} Mean: {} STD: {}".format(
+                deriv, diff.max(), diff.mean(), diff.std())
+
+
+def test_derivatives_uneven_shape():
+    "gravmag.fourier FFT derivatives work if grid spacing is uneven"
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (150, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    grav = utils.mgal2si(prism.gz(x, y, z, model))
+    analytical = prism.gzz(x, y, z, model)
+    calculated = utils.si2eotvos(fourier.derivz(x, y, grav, shape))
+    diff = _trim(np.abs(analytical - calculated), shape)
+    assert np.all(diff <= 0.005*np.abs(analytical).max()), \
+        "Failed for gzz"
+
+
+def test_gz_derivatives():
+    "gravmag.fourier FFT first derivatives of gz against analytical solutions"
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (300, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    derivatives = 'x y z'.split()
     grav = utils.mgal2si(prism.gz(x, y, z, model))
     for deriv in derivatives:
         analytical = getattr(prism, 'g{}z'.format(deriv))(x, y, z, model)
@@ -32,13 +62,10 @@ def test_gz_derivatives():
 
 def test_gx_derivatives():
     "gravmag.fourier FFT first derivatives of gx against analytical solutions"
-    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 100})]
-    shape = (200, 300)
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
-    # Note: The z derivative appears to have a systematic error. Could not get
-    # the test to pass.
     derivatives = 'x y z'.split()
-    # Note: Calculating the x derivative of gx fails for some reason.
     grav = utils.mgal2si(prism.gx(x, y, z, model))
     for deriv in derivatives:
         analytical = getattr(prism, 'gx{}'.format(deriv))(x, y, z, model)
@@ -51,14 +78,10 @@ def test_gx_derivatives():
 
 def test_gy_derivatives():
     "gravmag.fourier FFT first derivatives of gy against analytical solutions"
-    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 100})]
-    # Doesn't work if the spacing is larger in y direction. Kind of makes sence
-    shape = (300, 200)
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
-    # Note: The z derivative appears to have a systematic error. Could not get
-    # the test to pass.
     derivatives = 'x y z'.split()
-    # Note: Calculating the x derivative of gy fails for some reason.
     grav = utils.mgal2si(prism.gy(x, y, z, model))
     for deriv in derivatives:
         if deriv == 'x':
@@ -75,13 +98,10 @@ def test_gy_derivatives():
 
 def test_second_derivatives():
     "gravmag.fourier FFT second derivatives against analytical solutions"
-    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': -200})]
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': -200})]
     shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
-    # Note: The z derivative appears to have a systematic error. Could not get
-    # the test to pass.
     derivatives = 'xx yy zz'.split()
-    # Note: Calculating the x derivative of gx fails for some reason.
     pot = prism.potential(x, y, z, model)
     for deriv in derivatives:
         analytical = getattr(prism, 'g{}'.format(deriv))(x, y, z, model)
@@ -95,8 +115,8 @@ def test_second_derivatives():
 
 def test_laplace_from_potential():
     "gravmag.fourier second derivatives of potential obey the Laplace equation"
-    model = [Prism(-1000, 1000, -1000, 1000, 0, 2000, {'density': 200})]
-    shape = (200, 200)
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 200})]
+    shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
     potential = prism.potential(x, y, z, model)
     gxx = utils.si2eotvos(fourier.derivx(x, y, potential, shape, order=2))
