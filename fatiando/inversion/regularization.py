@@ -883,8 +883,11 @@ class LCurve(object):
         x, y = self._scale_curve()
         n = len(self.regul_params)
         corner = n - 1
-        dist = lambda p1, p2: numpy.sqrt(
-            (p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+
+        def dist(p1, p2):
+            "Return the geometric distance between p1 and p2"
+            return numpy.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
         cte = 7. * numpy.pi / 8.
         angmin = None
         c = [x[-1], y[-1]]

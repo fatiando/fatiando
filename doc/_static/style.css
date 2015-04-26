@@ -1,0 +1,46 @@
+body {
+    color: #222;
+    font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+    font-size: 12pt;
+}
+a {
+    color: #008CBA;
+}
+.navbar {
+    background-color: #333;
+}
+.navbar-brand  img {
+    height: 40px;
+    margin: 0px 10px;
+}
+.navbar-brand {
+    padding-top: 10px;
+    font-size: 20pt;
+}
+blockquote {
+    font-size: 12pt;
+    color: #6F6F6F;
+}
+.navbar .navbar-version {
+    font-size: 9pt !important;
+    padding-top: 2px !important;
+}
+
+.alert {
+    font-size: 12pt;
+}
+.alert a {
+    color: #FFF;
+    text-decoration: underline;
+}
+
+.footer {
+    color: #6F6F6F;
+    margin-top: 30px;
+    padding-bottom: 30px;
+}
+
+.jumbotron p {
+    font-size: 16pt;
+    color: #333;
+}

@@ -8,5 +8,6 @@ Geothermal heat (``fatiando.geothermal``)
    :show-inheritance:
 
 .. toctree::
+    :hidden:
 
     geothermal.climsig.rst

@@ -8,6 +8,7 @@ Inverse problems framework (``fatiando.inversion``)
    :show-inheritance:
 
 .. toctree::
+    :hidden:
 
     inversion.base.rst
     inversion.solvers.rst
