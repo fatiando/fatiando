@@ -1000,7 +1000,6 @@ def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
                    color='k', normalize=False):
     """
     Plot a seismic section (numpy 2D array matrix) as wiggles.
-    Slow for more than 200 traces, in this case use `seismic_image`.
 
     Parameters:
 
@@ -1015,8 +1014,12 @@ def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
     * color : tuple of strings
         Color for filling the wiggle, positive  and negative lobes.
     * normalize :
-        normalizes all trace in the section if True (use global max)
-        (-0.5, 0.5) zero centered; warning might be slow
+        True to normalizes all trace in the section using global max/min
+        data will be in the range (-0.5, 0.5) zero centered
+
+    .. warning::
+        Slow for more than 200 traces, in this case decimate your
+        data or use ``seismic_image``.
 
     """
     npts, ntraces = section.shape  # time/traces

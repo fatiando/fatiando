@@ -1,5 +1,7 @@
 """
-Seismic: seismic plotting utilities uses Obspy for SEGY reading
+Seismic: plotting a seismic section from a SEGY
+
+Uses ObsPy package for SEGY file reading
 """
 from fatiando.vis import mpl
 from obspy.segy import segy
@@ -11,7 +13,7 @@ url = "http://dl.dropboxusercontent.com/" \
       "s/i287ci4ww3w7gdt/marmousi_nearoffset.segy"
 urllib.urlretrieve(url, 'marmousi_nearoffset.segy')
 segyfile = segy.readSEGY('marmousi_nearoffset.segy')
-# turn Obspy Stream in a matrix of traces
+# turn ObsPy Stream in a matrix of traces
 # first dimension time, second dimension traces
 ntraces = len(segyfile.traces)
 nsamples = len(segyfile.traces[0].data)
