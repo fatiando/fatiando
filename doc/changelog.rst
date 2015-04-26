@@ -10,6 +10,12 @@ Version (development)
 
 **Changes**:
 
+* **Renamed** ``fatiando.gravmag.fourier.ansig`` to
+  ``fatiando.gravmag.transform.tga``
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
+  ``fatiando.gravmag.transform``.
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
 * **New** ``seismic_wiggle`` and ``seismic_image`` plotting functions for
   seismic data in :ref:`fatiando.vis.mpl <fatiando_vis_mpl>` (`PR 192
   <https://github.com/fatiando/fatiando/pull/192>`__) plus cookbook
