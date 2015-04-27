@@ -53,7 +53,8 @@ def test_derivatives_uneven_shape():
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
     grav = utils.mgal2si(prism.gz(x, y, z, model))
     analytical = prism.gzz(x, y, z, model)
-    calculated = utils.si2eotvos(transform.derivz(x, y, grav, shape))
+    calculated = utils.si2eotvos(transform.derivz(x, y, grav, shape,
+                                                  method='fft'))
     diff = _trim(np.abs(analytical - calculated), shape)
     assert np.all(diff <= 0.005*np.abs(analytical).max()), \
         "Failed for gzz"
@@ -69,7 +70,8 @@ def test_gz_derivatives():
     for deriv in derivatives:
         analytical = getattr(prism, 'g{}z'.format(deriv))(x, y, z, model)
         calculated = utils.si2eotvos(
-            getattr(transform, 'deriv' + deriv)(x, y, grav, shape))
+            getattr(transform, 'deriv' + deriv)(x, y, grav, shape,
+                                                method='fft'))
         diff = _trim(np.abs(analytical - calculated), shape)
         assert np.all(diff <= 0.005*np.abs(analytical).max()), \
             "Failed for g{}z".format(deriv)
@@ -85,7 +87,8 @@ def test_gx_derivatives():
     for deriv in derivatives:
         analytical = getattr(prism, 'gx{}'.format(deriv))(x, y, z, model)
         calculated = utils.si2eotvos(
-            getattr(transform, 'deriv' + deriv)(x, y, grav, shape))
+            getattr(transform, 'deriv' + deriv)(x, y, grav, shape,
+                                                method='fft'))
         diff = _trim(np.abs(analytical - calculated), shape)
         assert np.all(diff <= 0.005*np.abs(analytical).max()), \
             "Failed for gx{}".format(deriv)
@@ -105,7 +108,8 @@ def test_gy_derivatives():
             func = getattr(prism, 'gy{}'.format(deriv))
         analytical = func(x, y, z, model)
         calculated = utils.si2eotvos(
-            getattr(transform, 'deriv' + deriv)(x, y, grav, shape))
+            getattr(transform, 'deriv' + deriv)(x, y, grav, shape,
+                                                method='fft'))
         diff = _trim(np.abs(analytical - calculated), shape)
         assert np.all(diff <= 0.005*np.abs(analytical).max()), \
             "Failed for gy{}".format(deriv)
@@ -121,7 +125,8 @@ def test_second_derivatives():
     for deriv in derivatives:
         analytical = getattr(prism, 'g{}'.format(deriv))(x, y, z, model)
         calculated = utils.si2eotvos(
-            getattr(transform, 'deriv' + deriv[0])(x, y, pot, shape, order=2))
+            getattr(transform, 'deriv' + deriv[0])(x, y, pot, shape, order=2,
+                                                   method='fft'))
         diff = _trim(np.abs(analytical - calculated), shape)
         assert np.all(diff <= 0.005*np.abs(analytical).max()), \
             "Failed for g{}. Max: {} Mean: {} STD: {}".format(
@@ -134,8 +139,10 @@ def test_laplace_from_potential():
     shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
     potential = prism.potential(x, y, z, model)
-    gxx = utils.si2eotvos(transform.derivx(x, y, potential, shape, order=2))
-    gyy = utils.si2eotvos(transform.derivy(x, y, potential, shape, order=2))
+    gxx = utils.si2eotvos(transform.derivx(x, y, potential, shape, order=2,
+                                           method='fft'))
+    gyy = utils.si2eotvos(transform.derivy(x, y, potential, shape, order=2,
+                                           method='fft'))
     gzz = utils.si2eotvos(transform.derivz(x, y, potential, shape, order=2))
     laplace = _trim(gxx + gyy + gzz, shape)
     assert np.all(np.abs(laplace) <= 1e-10), \

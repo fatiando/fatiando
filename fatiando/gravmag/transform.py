@@ -1,20 +1,21 @@
 """
-Space domain potential field transformations, like upward continuation,
-derivatives and total mass.
+Potential field transformations, like upward continuation and derivatives.
+
+.. note:: Most, if not all, functions here required gridded data.
 
 **Transformations**
 
-* :func:`~fatiando.gravmag.transform.upcontinue`: Upward continuation of the
-  vertical component of gravity :math:`g_z` using numerical integration
+* :func:`~fatiando.gravmag.transform.upcontinue`: Upward continuation of
+  gridded potential field data on a level surface
 * :func:`~fatiando.gravmag.transform.tga`: Calculate the amplitude of the
   total gradient (also called the analytic signal)
 
 **Derivatives**
 
 * :func:`~fatiando.gravmag.transform.derivx`: Calculate the n-th order
-  derivative of a potential field in the x-direction
+  derivative of a potential field in the x-direction (North-South)
 * :func:`~fatiando.gravmag.transform.derivy`: Calculate the n-th order
-  derivative of a potential field in the y-direction
+  derivative of a potential field in the y-direction (East-West)
 * :func:`~fatiando.gravmag.transform.derivz`: Calculate the n-th order
   derivative of a potential field in the z-direction
 
@@ -76,7 +77,7 @@ def upcontinue(gz, height, xp, yp, dims):
     return gzcont
 
 
-def tga(x, y, data, shape):
+def tga(x, y, data, shape, method='fft'):
     """
     Calculate the total gradient amplitude.
 
@@ -97,8 +98,12 @@ def tga(x, y, data, shape):
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The shape of the grid
+    * method : string
+        The method used to calculate the horizontal derivatives. Options are:
+        ``'fd'`` for finite-difference (more stable) or ``'fft'`` for the Fast
+        Fourier Transform. The z derivative is always calculated by FFT.
 
     Returns:
 
@@ -106,8 +111,8 @@ def tga(x, y, data, shape):
         The amplitude of the total gradient
 
     """
-    dx = derivx(x, y, data, shape)
-    dy = derivy(x, y, data, shape)
+    dx = derivx(x, y, data, shape, method=method)
+    dy = derivy(x, y, data, shape, method=method)
     dz = derivz(x, y, data, shape)
     res = numpy.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
     return res
@@ -131,10 +136,14 @@ def derivx(x, y, data, shape, order=1, method='fft'):
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The shape of the grid
     * order : int
         The order of the derivative
+    * method : string
+        The method used to calculate the derivatives. Options are:
+        ``'fd'`` for central finite-differences (more stable) or ``'fft'``
+        for the Fast Fourier Transform.
 
     Returns:
 
@@ -183,10 +192,14 @@ def derivy(x, y, data, shape, order=1, method='fft'):
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The shape of the grid
     * order : int
         The order of the derivative
+    * method : string
+        The method used to calculate the derivatives. Options are:
+        ``'fd'`` for central finite-differences (more stable) or ``'fft'``
+        for the Fast Fourier Transform.
 
     Returns:
 
@@ -217,7 +230,7 @@ def derivy(x, y, data, shape, order=1, method='fft'):
     return deriv.ravel()
 
 
-def derivz(x, y, data, shape, order=1):
+def derivz(x, y, data, shape, order=1, method='fft'):
     """
     Calculate the derivative of a potential field in the z direction.
 
@@ -235,10 +248,13 @@ def derivz(x, y, data, shape, order=1):
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The shape of the grid
     * order : int
         The order of the derivative
+    * method : string
+        The method used to calculate the derivatives. Options are:
+        ``'fft'`` for the Fast Fourier Transform.
 
     Returns:
 
@@ -246,6 +262,8 @@ def derivz(x, y, data, shape, order=1):
         The derivative
 
     """
+    assert method == 'fft', \
+        "Invalid method '{}'".format(method)
     nx, ny = shape
     # Pad the array with the edge values to avoid instability
     padded, padx, pady = _pad_data(data, shape)
