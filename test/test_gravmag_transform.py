@@ -11,21 +11,36 @@ def _trim(array, shape, d=20):
     return array.reshape(shape)[d : -d, d : -d].ravel()
 
 
+def test_secont_horizontal_derivatives_fd():
+    "gravmag.transform 2nd xy derivatives by finite diff against analytical"
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
+    shape = (300, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-500)
+    derivatives = 'xx yy'.split()
+    grav = prism.potential(x, y, z, model)
+    for deriv in derivatives:
+        analytical = getattr(prism, 'g{}'.format(deriv))(x, y, z, model)
+        func = getattr(transform, 'deriv' + deriv[0])
+        calculated = utils.si2eotvos(func(x, y, grav, shape, method='fd',
+                                          order=2))
+        diff = np.abs(analytical - calculated)
+        assert np.all(diff/np.abs(analytical).max() <= 0.01), \
+            "Failed for g{}. Max: {} Mean: {} STD: {}".format(
+                deriv, diff.max(), diff.mean(), diff.std())
+
+
 def test_horizontal_derivatives_fd():
     "gravmag.transform 1st xy derivatives by finite diff against analytical"
     model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
     shape = (300, 300)
-    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
-    # Note: The z derivative appears to have a systematic error. Could not get
-    # the test to pass.
+    x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-200)
     derivatives = 'x y'.split()
-    # Note: Calculating the x derivative of gx fails for some reason.
     grav = utils.mgal2si(prism.gz(x, y, z, model))
     for deriv in derivatives:
         analytical = getattr(prism, 'g{}z'.format(deriv))(x, y, z, model)
         func = getattr(transform, 'deriv' + deriv)
         calculated = utils.si2eotvos(func(x, y, grav, shape, method='fd'))
-        diff = _trim(np.abs(analytical - calculated), shape)
+        diff = np.abs(analytical - calculated)
         assert np.all(diff <= 0.005*np.abs(analytical).max()), \
             "Failed for g{}. Max: {} Mean: {} STD: {}".format(
                 deriv, diff.max(), diff.mean(), diff.std())
