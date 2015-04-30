@@ -2,6 +2,8 @@
 Seismic: plotting a seismic section from a SEGY
 
 Uses ObsPy package for SEGY file reading
+You can find instructions for installing Obspy at http://obspy.org/
+
 """
 from fatiando.vis import mpl
 from obspy.segy import segy
@@ -12,6 +14,7 @@ import numpy as np
 url = "http://dl.dropboxusercontent.com/" \
       "s/i287ci4ww3w7gdt/marmousi_nearoffset.segy"
 urllib.urlretrieve(url, 'marmousi_nearoffset.segy')
+# We'll use the ObsPy library to load the SEGY data"
 segyfile = segy.readSEGY('marmousi_nearoffset.segy')
 # turn ObsPy Stream in a matrix of traces
 # first dimension time, second dimension traces
