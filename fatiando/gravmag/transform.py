@@ -77,7 +77,7 @@ def upcontinue(gz, height, xp, yp, dims):
     return gzcont
 
 
-def tga(x, y, data, shape, method='fft'):
+def tga(x, y, data, shape, method='fd'):
     """
     Calculate the total gradient amplitude.
 
@@ -118,7 +118,7 @@ def tga(x, y, data, shape, method='fft'):
     return res
 
 
-def derivx(x, y, data, shape, order=1, method='fft'):
+def derivx(x, y, data, shape, order=1, method='fd'):
     """
     Calculate the derivative of a potential field in the x direction.
 
@@ -174,7 +174,7 @@ def derivx(x, y, data, shape, order=1, method='fft'):
     return deriv.ravel()
 
 
-def derivy(x, y, data, shape, order=1, method='fft'):
+def derivy(x, y, data, shape, order=1, method='fd'):
     """
     Calculate the derivative of a potential field in the y direction.
 
