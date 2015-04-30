@@ -16,6 +16,9 @@ Version (development)
 * **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
   ``fatiando.gravmag.transform``.
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **New** ``seismic_wiggle`` and ``seismic_image`` plotting functions for
+  seismic data in :ref:`fatiando.vis.mpl <fatiando_vis_mpl>` (`PR 192
+  <https://github.com/fatiando/fatiando/pull/192>`__) plus cookbook
 * **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
   forward modeling. Caused the majority of our install problems and didn't
   offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``
