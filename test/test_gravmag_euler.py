@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 from fatiando.gravmag.euler import Classic, ExpandingWindow, MovingWindow
-from fatiando.gravmag import sphere, fourier
+from fatiando.gravmag import sphere, transform
 from fatiando.mesher import Sphere
 from fatiando import utils, gridder
 
@@ -27,9 +27,9 @@ def setup():
     x, y, z = gridder.regular((0, 3000, 0, 3000), shape, z=-1)
     base = 10
     field = utils.nt2si(sphere.tf(x, y, z, [model], inc, dec)) + base
-    xderiv = fourier.derivx(x, y, field, shape)
-    yderiv = fourier.derivy(x, y, field, shape)
-    zderiv = fourier.derivz(x, y, field, shape)
+    xderiv = transform.derivx(x, y, field, shape)
+    yderiv = transform.derivy(x, y, field, shape)
+    zderiv = transform.derivz(x, y, field, shape)
 
 
 def test_euler_classic_sphere_mag():

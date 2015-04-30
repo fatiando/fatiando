@@ -10,6 +10,39 @@ Version (development)
 
 **Changes**:
 
+* **Renamed** ``fatiando.gravmag.fourier.ansig`` to
+  ``fatiando.gravmag.transform.tga``
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
+  ``fatiando.gravmag.transform``.
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **New** ``seismic_wiggle`` and ``seismic_image`` plotting functions for
+  seismic data in :ref:`fatiando.vis.mpl <fatiando_vis_mpl>` (`PR 192
+  <https://github.com/fatiando/fatiando/pull/192>`__) plus cookbook
+* **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
+  forward modeling. Caused the majority of our install problems and didn't
+  offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``
+  parallelism without the install problems
+  (`PR 177 <https://github.com/fatiando/fatiando/pull/177>`__)
+* Tesseroid forward modeling functions in ``fatiando.gravmag.tesseroid`` take
+  an optional ``pool`` argument. Use it to pass an open
+  ``multiprocessing.Pool`` for the function to use. Useful to avoid processes
+  spawning overhead when calling the forward modeling many times
+  (`PR 183 <https://github.com/fatiando/fatiando/pull/183>`__)
+* **BUG FIX**: Avoid weird numba error when tesseroid has zero volume. Let to
+  better sanitizing the input model. Tesseroids with dimensions < 1cm are
+  ignored because they have almost zero gravitational effect
+  (`PR 179 <https://github.com/fatiando/fatiando/pull/179>`__)
+* Ported the tesseroid forward modeling code from Cython to numba. This is
+  following the discussion on issue
+  `#169 <https://github.com/fatiando/fatiando/issues/169>`__ to make installing
+  less of burden by removing the compilation step. The numba code runs just as
+  fast. New functions support multiprocessing parallelism.
+  Thanks to new contributor Graham Markall for help with numba.
+  (`PR 175 <https://github.com/fatiando/fatiando/pull/175>`__)
+* Better documentation and faster implementation of
+  ``fatiando.gravmag.tesseroid``
+  (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`__)
 * **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
   ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
   incompatibilities when using ``matplotlib > 1.3``

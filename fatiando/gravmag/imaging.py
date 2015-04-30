@@ -52,7 +52,7 @@ Prospecting, 59(6), 1052-1071, doi:10.1111/j.1365-2478.2011.01005.x
 import numpy
 
 from fatiando.mesher import PrismMesh
-from fatiando.gravmag import fourier
+from fatiando.gravmag import transform
 from fatiando.gravmag import prism as pot_prism
 from fatiando.constants import G
 from fatiando import utils
@@ -249,7 +249,7 @@ def _getdataft(x, y, data, shape):
     """
     Get the Fourier transform of the data and the norm of the wavenumber vector
     """
-    Fx, Fy = fourier._getfreqs(x, y, data, shape)
+    Fx, Fy = transform._getfreqs(x, y, data, shape)
     freq = numpy.sqrt(Fx ** 2 + Fy ** 2)
     dataft = (2. * numpy.pi) * numpy.fft.fft2(numpy.reshape(data, shape))
     return freq, dataft

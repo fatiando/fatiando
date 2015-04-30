@@ -38,6 +38,7 @@ Fatiando requires the following packages:
 * `scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
 * `IPython <http://ipython.org/>`__
+* `numba <http://numba.pydata.org/>`__
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
@@ -52,20 +53,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib ipython basemap imaging mayavi pip
-
-Extra dependencies for Windows users
-++++++++++++++++++++++++++++++++++++
-
-Unfortunately, the ``gcc`` compiler included in Anaconda MinGW_
-doesn't have OpenMP_ support. This is required to compile
-some extension modules in Fatiando that have multi-threaded parallel code.
-
-You'll have download and install TDM-GCC_
-**after** you've installed Anaconda and **before** you install Fatiando.
-Don't forget to mark the ``openmp`` option in the "Choose Components" part of
-the installation. See this `excellent documentation for Windows users`_
-(they even have screenshots!).
+    conda install numpy scipy matplotlib numba ipython basemap imaging mayavi pip
 
 Installing Fatiando
 -------------------

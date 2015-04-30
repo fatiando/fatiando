@@ -2,7 +2,7 @@
 GravMag: Upward continuation of noisy gz data
 """
 from fatiando import mesher, gridder, utils
-from fatiando.gravmag import prism, transform, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 import numpy as np
 
@@ -19,12 +19,11 @@ gz = utils.contaminate(prism.gz(x, y, z, model), 0.5, seed=0)
 # The how much higher to go
 height = 1000
 
-# Now do the upward continuation using the analytical formula
-dims = gridder.spacing(area, shape)
-gzcont = transform.upcontinue(gz, height, x, y, dims)
+# Now do the upward continuation using the analytical space domain formula
+gzcont = transform.upcontinue(x, y, gz, shape, height, method='space')
 
 # and using the Fourier transform
-gzcontf = fourier.upcontinue(x, y, gz, shape, height)
+gzcontf = transform.upcontinue(x, y, gz, shape, height, method='fft')
 
 # Compute the true value at the new height for comparison
 gztrue = prism.gz(x, y, z - height, model)

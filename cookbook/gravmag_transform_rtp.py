@@ -2,7 +2,7 @@
 GravMag: Reduction to the pole of a total field anomaly using FFT
 """
 from fatiando import mesher, gridder, utils
-from fatiando.gravmag import prism, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 
 # Direction of the Geomagnetic field
@@ -17,7 +17,7 @@ x, y, z = gridder.regular(area, shape, z=z0)
 tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec),
                        1, seed=0)
 # Reduce to the pole using FFT
-pole = fourier.reduce_to_pole(x, y, tf, shape, inc, dec)
+pole = transform.reduce_to_pole(x, y, tf, shape, inc, dec)
 # Calculate the true value at the pole for comparison
 true = prism.tf(x, y, z, model, 90, 0, pmag=utils.ang2vec(10, 90, 0))
 

@@ -9,8 +9,6 @@ from libc.math cimport log, atan2, sqrt
 # Import Cython definitions for numpy
 cimport numpy
 cimport cython
-cimport openmp
-from cython.parallel cimport prange, parallel
 
 DTYPE = numpy.float
 ctypedef numpy.float_t DTYPE_T
@@ -84,27 +82,26 @@ def tf(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        v1 = kernelxx(dx, dy, dz, r)
-                        v2 = kernelxy(dx, dy, dz, r)
-                        v3 = kernelxz(dx, dy, dz, r)
-                        v4 = kernelyy(dx, dy, dz, r)
-                        v5 = kernelyz(dx, dy, dz, r)
-                        v6 = kernelzz(dx, dy, dz, r)
-                        bx = (v1*mx + v2*my + v3*mz)
-                        by = (v2*mx + v4*my + v5*mz)
-                        bz = (v3*mx + v5*my + v6*mz)
-                        kernel = fx*bx + fy*by + fz*bz
-                        res[l] += ((-1.)**(i + j + k))*kernel
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    v1 = kernelxx(dx, dy, dz, r)
+                    v2 = kernelxy(dx, dy, dz, r)
+                    v3 = kernelxz(dx, dy, dz, r)
+                    v4 = kernelyy(dx, dy, dz, r)
+                    v5 = kernelyz(dx, dy, dz, r)
+                    v6 = kernelzz(dx, dy, dz, r)
+                    bx = (v1*mx + v2*my + v3*mz)
+                    by = (v2*mx + v4*my + v5*mz)
+                    bz = (v3*mx + v5*my + v6*mz)
+                    kernel = fx*bx + fy*by + fz*bz
+                    res[l] += ((-1.)**(i + j + k))*kernel
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -121,21 +118,20 @@ def bx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        v1 = kernelxx(dx, dy, dz, r)
-                        v2 = kernelxy(dx, dy, dz, r)
-                        v3 = kernelxz(dx, dy, dz, r)
-                        kernel = (v1*mx + v2*my + v3*mz)
-                        res[l] += ((-1.)**(i + j + k))*kernel
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    v1 = kernelxx(dx, dy, dz, r)
+                    v2 = kernelxy(dx, dy, dz, r)
+                    v3 = kernelxz(dx, dy, dz, r)
+                    kernel = (v1*mx + v2*my + v3*mz)
+                    res[l] += ((-1.)**(i + j + k))*kernel
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -152,21 +148,20 @@ def by(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        v2 = kernelxy(dx, dy, dz, r)
-                        v4 = kernelyy(dx, dy, dz, r)
-                        v5 = kernelyz(dx, dy, dz, r)
-                        kernel = (v2*mx + v4*my + v5*mz)
-                        res[l] += ((-1.)**(i + j + k))*kernel
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    v2 = kernelxy(dx, dy, dz, r)
+                    v4 = kernelyy(dx, dy, dz, r)
+                    v5 = kernelyz(dx, dy, dz, r)
+                    kernel = (v2*mx + v4*my + v5*mz)
+                    res[l] += ((-1.)**(i + j + k))*kernel
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -183,21 +178,20 @@ def bz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        v3 = kernelxz(dx, dy, dz, r)
-                        v5 = kernelyz(dx, dy, dz, r)
-                        v6 = kernelzz(dx, dy, dz, r)
-                        kernel = (v3*mx + v5*my + v6*mz)
-                        res[l] += ((-1.)**(i + j + k))*kernel
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    v3 = kernelxz(dx, dy, dz, r)
+                    v5 = kernelyz(dx, dy, dz, r)
+                    v6 = kernelzz(dx, dy, dz, r)
+                    kernel = (v3*mx + v5*my + v6*mz)
+                    res[l] += ((-1.)**(i + j + k))*kernel
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -214,18 +208,17 @@ def gx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelx(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelx(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -242,18 +235,17 @@ def gy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernely(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernely(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -270,18 +262,17 @@ def gz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelz(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelz(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -298,18 +289,17 @@ def gxx(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelxx(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelxx(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -326,23 +316,22 @@ def gxy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        if dx == 0 and dy == 0 and dz < 0:
-                            tmp1 = 0.00001*(x2 - x1)
-                            tmp2 = 0.00001*(y2 - y1)
-                            r = sqrt(tmp1**2 + tmp2**2 + dz**2)
-                        else:
-                            r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelxy(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    if dx == 0 and dy == 0 and dz < 0:
+                        tmp1 = 0.00001*(x2 - x1)
+                        tmp2 = 0.00001*(y2 - y1)
+                        r = sqrt(tmp1**2 + tmp2**2 + dz**2)
+                    else:
+                        r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelxy(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -359,23 +348,22 @@ def gxz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        if dx == 0 and dz == 0 and dy < 0:
-                            tmp1 = 0.00001*(x2 - x1)
-                            tmp2 = 0.00001*(z2 - z1)
-                            r = sqrt(tmp1**2 + tmp2**2 + dy**2)
-                        else:
-                            r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelxz(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    if dx == 0 and dz == 0 and dy < 0:
+                        tmp1 = 0.00001*(x2 - x1)
+                        tmp2 = 0.00001*(z2 - z1)
+                        r = sqrt(tmp1**2 + tmp2**2 + dy**2)
+                    else:
+                        r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelxz(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -392,18 +380,17 @@ def gyy(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelyy(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelyy(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -420,23 +407,22 @@ def gyz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        if dy == 0 and dz == 0 and dx < 0:
-                            tmp1 = 0.00001*(y2 - y1)
-                            tmp2 = 0.00001*(z2 - z1)
-                            r = sqrt(tmp1**2 + tmp2**2 + dx**2)
-                        else:
-                            r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelyz(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    if dy == 0 and dz == 0 and dx < 0:
+                        tmp1 = 0.00001*(y2 - y1)
+                        tmp2 = 0.00001*(z2 - z1)
+                        r = sqrt(tmp1**2 + tmp2**2 + dx**2)
+                    else:
+                        r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelyz(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -453,18 +439,17 @@ def gzz(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelzz(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelzz(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
@@ -481,15 +466,14 @@ def potential(numpy.ndarray[DTYPE_T, ndim=1] xp not None,
     x = numpy.array([x2, x1], dtype=DTYPE)
     y = numpy.array([y2, y1], dtype=DTYPE)
     z = numpy.array([z2, z1], dtype=DTYPE)
-    with nogil:
-        for l in prange(size):
-            # Evaluate the integration limits
-            for k in range(2):
-                dz = z[k] - zp[l]
-                for j in range(2):
-                    dy = y[j] - yp[l]
-                    for i in range(2):
-                        dx = x[i] - xp[l]
-                        r = sqrt(dx**2 + dy**2 + dz**2)
-                        kernel = kernelpot(dx, dy, dz, r)
-                        res[l] += ((-1.)**(i + j + k))*kernel*density
+    for l in range(size):
+        # Evaluate the integration limits
+        for k in range(2):
+            dz = z[k] - zp[l]
+            for j in range(2):
+                dy = y[j] - yp[l]
+                for i in range(2):
+                    dx = x[i] - xp[l]
+                    r = sqrt(dx**2 + dy**2 + dz**2)
+                    kernel = kernelpot(dx, dy, dz, r)
+                    res[l] += ((-1.)**(i + j + k))*kernel*density

@@ -1,0 +1,90 @@
+# Benchmark the performance of tesseroid
+# Compare the fatiando implementation with Tesseroids
+# (http://leouieda.com/tesseroids/)
+import sys
+import numpy as np
+from numpy.testing import assert_array_almost_equal
+from fatiando import gridder
+from fatiando.gravmag import tesseroid
+from fatiando.mesher import Tesseroid, TesseroidMesh
+from fatiando.vis import mpl
+
+
+def run_tesseroids(field):
+    if field == 'potential':
+        ratio = tesseroid.RATIO_POTENTIAL
+        field = 'pot'
+    elif field in 'gx gy gz'.split():
+        ratio = tesseroid.RATIO_G
+    elif field in 'gxx gxy gxz gyy gyz gzz'.split():
+        ratio = tesseroid.RATIO_GG
+    prog = 'tess{}'.format(field)
+    ! $prog model.tmp -t$ratio < grid.tmp > out.tmp
+
+
+def run_n_time(field, model, lon, lat, height):
+    # Create a model file and a grid file for Tesseroids
+    modfile = 'model.tmp'
+    with open(modfile, 'w') as f:
+        for t in model:
+            f.write('%g %g %g %g %g %g %g\n'
+                    % (t.w, t.e, t.s, t.n, t.top, t.bottom, t.props['density']))
+    gridfile = 'grid.tmp'
+    np.savetxt(gridfile, np.transpose([lon, lat, height]), fmt='%g')
+
+    lines = ! wc -l model.tmp
+    print "lines", lines[0]
+    ! head model.tmp
+    lines = ! wc -l grid.tmp
+    print "lines", lines[0]
+    ! head grid.tmp
+
+    print "\nBenchmark {}:".format(field)
+    print "Tesseroids:"
+    %timeit run_tesseroids(field)
+    print "fatiando.tesseroid:"
+    %timeit getattr(tesseroid, field)(lon, lat, height, model)
+
+    ctess = np.loadtxt('out.tmp', unpack=True, usecols=[-1])
+    pytess = getattr(tesseroid, field)(lon, lat, height, model)
+    diff = np.abs(ctess - pytess)/np.abs(ctess).max()
+    assert_array_almost_equal(diff, np.zeros_like(lon), 3, 'Max diff: %.15g'
+                              % (np.abs(ctess - pytess).max()))
+
+    ! rm grid.tmp model.tmp out.tmp
+
+
+# Make a model with few tesseroids to run fast
+model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 5, 5))
+model.addprop('density', 2700*np.ones(model.size))
+area = [101, 109, -4, 4]
+shape = [25, 25]
+lon, lat, height = gridder.regular(area, shape, z=10000)
+
+if 'profile' in sys.argv:
+    profile = True
+    if len(sys.argv) > 2:
+        field = sys.argv[1]
+    else:
+        field = 'gzz'
+else:
+    profile = False
+    if len(sys.argv) > 1:
+        field = sys.argv[1]
+    else:
+        field = 'gzz'
+
+if profile:
+    print "Profiling code:"
+    %prun getattr(tesseroid, field)(lon, lat, height, model)
+else:
+    run_n_time(field, model, lon, lat, height)
+
+    print "\nLarge model, many points:\n"
+    model = TesseroidMesh((100, 110, -5, 5, 0, -10000), (1, 10, 10))
+    model.addprop('density', 2700*np.ones(model.size))
+    area = [101, 109, -4, 4]
+    shape = [50, 50]
+    lon, lat, height = gridder.regular(area, shape, z=10000)
+    run_n_time(field, model, lon, lat, height)
+
