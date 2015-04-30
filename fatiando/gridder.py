@@ -44,14 +44,6 @@ def load_surfer(fname, fmt='ascii'):
 
     http://www.goldensoftware.com/products/surfer
 
-    According to Surfer structure, x and y are horizontal and vertical
-    screen-based coordinates respectively. If the grid is in geographic
-    coordinates, x will be longitude and y latitude. If the coordinates
-    are cartesian, x will be the easting and y the norting coordinates.
-
-    WARNING: This is opposite to the convention used for Fatiando.
-    See io_surfer.py in cookbook.
-
     Parameters:
 
     * fname : str
@@ -62,15 +54,14 @@ def load_surfer(fname, fmt='ascii'):
     Returns:
 
     * x : 1d-array
-        Value of the horizontal coordinate of each grid point.
+        Value of the North-South coordinate of each grid point.
     * y : 1d-array
-        Value of the vertical coordinate of each grid point.
-    * grd : 1d-array
+        Value of the East-West coordinate of each grid point.
+    * data : 1d-array
         Values of the field in each grid point. Field can be for example
         topography, gravity anomaly etc
     * shape : tuple = (nx, ny)
-        The number of points in the vertical and horizontal grid dimensions,
-        respectively
+        The number of points in the x and y grid dimensions, respectively
 
     """
     assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be \
@@ -86,25 +77,30 @@ def load_surfer(fname, fmt='ascii'):
         with open(fname) as ftext:
             # DSAA is a Surfer ASCII GRD ID
             id = ftext.readline()
-            # Read the number of columns (nx) and rows (ny)
-            nx, ny = [int(s) for s in ftext.readline().split()]
-            # Read the min/max value of x (columns/longitue)
-            xmin, xmax = [float(s) for s in ftext.readline().split()]
-            # Read the min/max value of  y(rows/latitude)
+            # Read the number of columns (ny) and rows (nx)
+            ny, nx = [int(s) for s in ftext.readline().split()]
+            shape = (nx, ny)
+            # Read the min/max value of columns/longitue (y direction)
             ymin, ymax = [float(s) for s in ftext.readline().split()]
-            # Read the min/max value of grd
-            zmin, zmax = [float(s) for s in ftext.readline().split()]
+            # Read the min/max value of rows/latitude (x direction)
+            xmin, xmax = [float(s) for s in ftext.readline().split()]
+            area = (xmin, xmax, ymin, ymax)
+            # Read the min/max value of grid values
+            datamin, datamax = [float(s) for s in ftext.readline().split()]
             data = numpy.fromiter((float(i) for line in ftext for i in
                                    line.split()), dtype='f')
-            grd = numpy.ma.masked_greater_equal(data, 1.70141e+38)
-        # Create x and y numpy arrays
-        x = numpy.linspace(xmin, xmax, nx)
-        y = numpy.linspace(ymin, ymax, ny)
-        x, y = [tmp.ravel() for tmp in numpy.meshgrid(x, y)]
+            data = numpy.ma.masked_greater_equal(data, 1.70141e+38)
+            assert numpy.allclose(datamin, data.min()) \
+                and numpy.allclose(datamax, data.max()), \
+                "Min and max values of grid don't match ones read from file." \
+                + "Read: ({}, {})  Actual: ({}, {})".format(
+                    datamin, datamax, data.min(), data.max())
+        # Create x and y coordinate numpy arrays
+        x, y = regular(area, shape)
     if fmt == 'binary':
         raise NotImplementedError(
             "Binary file support is not implemented yet.")
-    return x, y, grd, (nx, ny)
+    return x, y, data, shape
 
 
 def regular(area, shape, z=None):
