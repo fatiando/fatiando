@@ -138,34 +138,6 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
     method.
     """
 
-    # Set default arguments for fit
-    default_solver_args = {
-        'linear': {'precondition': True},
-        'newton': {'initial': None,
-                   'maxit': 30,
-                   'tol': 1e-5,
-                   'precondition': True},
-        'levmarq': {'initial': None,
-                    'maxit': 30,
-                    'maxsteps': 10,
-                    'lamb': 1,
-                    'dlamb': 2,
-                    'tol': 1e-5,
-                    'precondition': True},
-        'steepest': {'initial': None,
-                     'stepsize': 0.1,
-                     'maxsteps': 30,
-                     'maxit': 1000,
-                     'tol': 1e-5},
-        'acor': {'bounds': None,
-                 'nants': None,
-                 'archive_size': None,
-                 'maxit': 1000,
-                 'diverse': 0.5,
-                 'evap': 0.85,
-                 'seed': None}
-    }
-
     @abstractmethod
     def value(self, p):
         """
@@ -225,26 +197,19 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
             Use the individual methods to step through iterations.
 
         """
-        if method not in self.default_solver_args:
-            raise ValueError("Invalid method '{}'".format(method))
-        need_initial = (method in ['newton', 'levmarq', 'steepest']
-                        and 'initial' not in kwargs)
-        if need_initial:
-            raise AttributeError(
-                "Missing required *initial* argument for '{}'".format(method))
-        if method == 'acor' and 'bounds' not in kwargs:
-            raise AttributeError(
-                "Missing required *bounds* argument for '{}'".format(method))
-        args = self.default_solver_args[method].copy()
-        for k in kwargs:
-            if k not in args:
-                raise AttributeError(
-                    "Invalid argument '{}' for '{}'".format(k, method))
-            args[k] = kwargs[k]
+        kwargs = copy.deepcopy(kwargs)
+        assert method in ['linear', 'newton', 'levmarq', 'steepest', 'acor'], \
+            "Invalid optimization method '{}'".format(method)
+        if method in ['newton', 'levmarq', 'steepest']:
+            assert 'initial' in kwargs, \
+                "Missing required *initial* argument for '{}'".format(method)
         if method == 'acor':
-            args['nparams'] = self.nparams
+            assert 'bounds' in kwargs, \
+                "Missing required *bounds* argument for '{}'".format(method)
+        if method == 'acor' and 'nparams' not in kwargs:
+            kwargs['nparams'] = self.nparams
         self.fit_method = method
-        self.fit_args = args
+        self.fit_args = kwargs
         return self
 
     def fit(self):
@@ -268,17 +233,22 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
             else:
                 self.config('levmarq', initial=numpy.ones(self.nparams))
         optimizer = getattr(solvers, self.fit_method)
+        # Make the generators from the optimization function
         if self.fit_method == 'linear':
-            p = optimizer(self.hessian(None), self.gradient(None),
-                          **self.fit_args)
+            solver = optimizer(self.hessian(None), self.gradient(None),
+                               **self.fit_args)
         elif self.fit_method in ['newton', 'levmarq']:
-            p = optimizer(self.hessian, self.gradient, self.value,
-                          **self.fit_args)
+            solver = optimizer(self.hessian, self.gradient, self.value,
+                               **self.fit_args)
         elif self.fit_method == 'steepest':
-            p = optimizer(self.gradient, self.value, **self.fit_args)
+            solver = optimizer(self.gradient, self.value, **self.fit_args)
         elif self.fit_method == 'acor':
-            p = optimizer(self.value, **self.fit_args)
+            solver = optimizer(self.value, **self.fit_args)
+        # Run the optimizer to the end
+        for i, p, stats in solver:
+            continue
         self.p_ = p
+        self.stats_ = stats
         return self
 
     def fmt_estimate(self, p):
