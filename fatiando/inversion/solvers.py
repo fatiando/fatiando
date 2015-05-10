@@ -81,7 +81,7 @@ def linear(hessian, gradient, precondition=True):
             Statistics about the optimization so far
 
     Linear solvers have only a single step, so ``i`` will be 0 and ``stats``
-    will be an empty dict.
+    will only have the method name.
 
     """
     if precondition:
@@ -91,7 +91,7 @@ def linear(hessian, gradient, precondition=True):
         hessian = safe_dot(precond, hessian)
         gradient = safe_dot(precond, gradient)
     p = safe_solve(hessian, -gradient)
-    yield 0, p, {}
+    yield 0, p, dict(method="Linear solver")
 
 
 def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
@@ -144,6 +144,8 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+            * method : str
+                The name of the optimization method
             * iterations : int
                 The total number of iterations  so far
             * objective : list
@@ -151,7 +153,8 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
                 corresponds to the inital estimate
 
     """
-    stats = dict(iterations=0,
+    stats = dict(method="Newton's method",
+                 iterations=0,
                  objective=[])
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
@@ -223,6 +226,8 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+            * method : str
+                The name of the optimization method
             * iterations : int
                 The total number of iterations so far
             * objective : list
@@ -233,7 +238,8 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
                 is zero, reflecting the initial estimate.
 
     """
-    stats = dict(iterations=0,
+    stats = dict(method="Levemberg-Marquardt",
+                 iterations=0,
                  objective=[],
                  step_attempts=[],
                  step_size=[])
@@ -360,6 +366,8 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+            * method : stf
+                The name of the optimization algorithm
             * iterations : int
                 The total number of iterations so far
             * objective : list
@@ -375,7 +383,8 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
 
     """
-    stats = dict(iterations=0,
+    stats = dict(method='Steepest Descent',
+                 iterations=0,
                  objective=[],
                  step_attempts=[])
     p = numpy.array(initial, dtype=numpy.float)
@@ -478,6 +487,8 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
             The current best estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+            * method : stf
+                The name of the optimization algorithm
             * iterations : int
                 The total number of iterations so far
             * objective : list
@@ -485,7 +496,8 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
                 estimate per iteration.
 
     """
-    stats = dict(iterations=0,
+    stats = dict(method="Ant Colony Optimization for Continuous Domains",
+                 iterations=0,
                  objective=[])
     numpy.random.seed(seed)
     # Set the defaults for number of ants and archive size
