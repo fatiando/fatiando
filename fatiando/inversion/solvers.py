@@ -301,7 +301,7 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
 
 
 def steepest(gradient, value, initial, maxit=1000, linesearch=True,
-             maxsteps=30, stepsize=0.1, tol=10**-5):
+             maxsteps=30, beta=0.1, tol=10**-5):
     r"""
     Minimize an objective function using the Steepest Descent method.
 
@@ -351,8 +351,9 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
         size.
     * maxsteps : int
         The maximum number of times to try to take a step before giving up.
-    * stepsize : float
-        Initial amount of step step size.
+    * beta : float
+        The base factor used to determine the step size in line search
+        algorithm. Must be 1 > beta > 0.
     * tol : float
         The convergence criterion. The lower it is, the more steps are
         permitted.
@@ -383,6 +384,8 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
     Kelley, C. T., 1999, Iterative methods for optimization: Raleigh: SIAM.
 
     """
+    assert 1 > beta > 0, \
+        "Invalid 'beta' parameter {}. Must be 1 > beta > 0".format(beta)
     stats = dict(method='Steepest Descent',
                  iterations=0,
                  objective=[],
