@@ -326,6 +326,17 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
 
     fit.__doc__ = OptimizerMixin.fit.__doc__
 
+    # Pass along the configuration in case the classes need to change something
+    # depending on the optimization method.
+    def config(self, *args, **kwargs):
+        super(MultiObjective, self).config(*args, **kwargs)
+        for obj in self:
+            if hasattr(obj, 'config'):
+                obj.config(*args, **kwargs)
+        return self
+
+    config.__doc__ = OptimizerMixin.config.__doc__
+
     def _unpack_components(self, args):
         """
         Find all the MultiObjective elements in components and unpack them into
@@ -644,22 +655,26 @@ class Misfit(OptimizerMixin, OperatorMixin):
         Weights to be applied to the each element in *data* when computing the
         l2-norm. Effectively the diagonal of a matrix :math:`\bar{\bar{W}}`
         such that :math:`\phi = \bar{r}^T\bar{\bar{W}}\bar{r}`
+    * cache : True
+        Whether or not to cache the output of some methods to avoid recomputing
+        matrices and vectors when passed the same input parameter vector.
 
     """
 
-    def __init__(self, data, nparams, islinear, weights=None):
+    def __init__(self, data, nparams, islinear, weights=None, cache=True):
         self.p_ = None
         self.nparams = nparams
         self.islinear = islinear
         self.data = data
         self.ndata = self.data.size
         self.weights = weights
-        self.predicted = CachedMethod(self, 'predicted')
-        if islinear:
-            self.jacobian = CachedMethodPermanent(self, 'jacobian')
-            self.hessian = CachedMethodPermanent(self, 'hessian')
-        else:
-            self.jacobian = CachedMethod(self, 'jacobian')
+        if cache:
+            self.predicted = CachedMethod(self, 'predicted')
+            if islinear:
+                self.jacobian = CachedMethodPermanent(self, 'jacobian')
+                self.hessian = CachedMethodPermanent(self, 'hessian')
+            else:
+                self.jacobian = CachedMethod(self, 'jacobian')
 
     def copy(self, deep=False):
         """
@@ -669,13 +684,13 @@ class Misfit(OptimizerMixin, OperatorMixin):
             obj = copy.deepcopy(self)
         else:
             obj = copy.copy(self)
-        obj.predicted = copy.copy(obj.predicted)
-        obj.predicted.instance = obj
-        obj.jacobian = copy.copy(obj.jacobian)
-        obj.jacobian.instance = obj
-        if self.islinear:
-            obj.hessian = copy.copy(obj.hessian)
-            obj.hessian.instance = obj
+        for name in ['predicted', 'jacobian', 'hessian']:
+            meth = getattr(obj, name)
+            is_cached = (isinstance(meth, CachedMethod)
+                         or isinstance(meth, CachedMethodPermanent))
+            if is_cached:
+                setattr(obj, name, copy.copy(meth))
+                getattr(obj, name).instance = obj
         return obj
 
     def set_weights(self, weights):
