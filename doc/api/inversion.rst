@@ -11,5 +11,5 @@ Inverse problems framework (``fatiando.inversion``)
     :hidden:
 
     inversion.base.rst
-    inversion.solvers.rst
+    inversion.optimization.rst
     inversion.regularization.rst

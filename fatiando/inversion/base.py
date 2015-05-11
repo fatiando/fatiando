@@ -6,11 +6,11 @@ represents an objective function, a scalar function of a parameter vector.
 
 The main powerhouse of this module is the
 :class:`~fatiando.inversion.base.Misfit` class. It represents a data misfit
-function and knows how to fit a specified model to data using various solvers
-(see :mod:`~fatiando.inversion.solvers`). A model is specified by subclassing
-Misfit and implementing the
-:meth:`~fatiando.inversion.base.Misfit._get_predicted` and
-:meth:`~fatiando.inversion.base.Misfit._get_jacobian` methods, which are
+function and knows how to fit a specified model to data using various
+optimization methods (see :mod:`~fatiando.inversion.optimization`). A model is
+specified by subclassing ``Misfit`` and implementing the
+:meth:`~fatiando.inversion.base.Misfit.predicted` and
+:meth:`~fatiando.inversion.base.Misfit.jacobian` methods, which are
 problem specific.
 
 See :mod:`fatiando.inversion` for examples, regularization, and more.
@@ -26,7 +26,7 @@ import six
 import numpy
 import scipy.sparse
 
-from . import solvers
+from . import optimization
 from ..utils import safe_dot
 
 
@@ -232,7 +232,7 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
                 self.config('linear')
             else:
                 self.config('levmarq', initial=numpy.ones(self.nparams))
-        optimizer = getattr(solvers, self.fit_method)
+        optimizer = getattr(optimization, self.fit_method)
         # Make the generators from the optimization function
         if self.fit_method == 'linear':
             solver = optimizer(self.hessian(None), self.gradient(None),
