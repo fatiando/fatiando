@@ -20,9 +20,10 @@ well.
 
 """
 from __future__ import division
-import numpy
+import numpy as np
 
 from . import ttime2d
+from .srtomo import slowness2vel
 from .. import utils
 from ..mesher import Square
 from ..inversion.base import Misfit
@@ -74,7 +75,6 @@ def layered_straight_ray(thickness, velocity, zp):
 
 
 class LayeredStraight(Misfit):
-
     r"""
     Inversion of straight-ray travel-times for the velocity of a layered medium
 
@@ -170,42 +170,30 @@ class LayeredStraight(Misfit):
     """
 
     def __init__(self, traveltimes, zp, thickness):
-        super(LayeredStraight, self).__init__(data=traveltimes,
-                                              positional={'zp': zp},
-                                              model={'thickness': thickness},
-                                              nparams=len(thickness),
-                                              islinear=True)
+        super(LayeredStraight, self).__init__(
+            data=traveltimes, nparams=len(thickness), islinear=True)
+        self.zp = zp
+        self.thickness = thickness
 
-    def _get_predicted(self, p):
-        return layered_straight_ray(self.model['thickness'], 1. / p,
-                                    self.positional['zp'])
+    def predicted(self, p):
+        return layered_straight_ray(self.thickness, 1/p, self.zp)
 
-    def _get_jacobian(self, p):
-        thicks = self.model['thickness']
+    def jacobian(self, p):
+        thicks = self.thickness
         nlayers = len(thicks)
-        zmax = numpy.sum(thicks)
-        z = [numpy.sum(thicks[:i]) for i in xrange(nlayers + 1)]
+        zmax = np.sum(thicks)
+        z = [np.sum(thicks[:i]) for i in xrange(nlayers + 1)]
         layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': 1.})
                   for i in xrange(nlayers)]
-        srcs = [(0, 0)] * self.ndata
-        recs = numpy.transpose(
-            [numpy.zeros(self.ndata), self.positional['zp']])
-        jac = numpy.transpose(
-            [ttime2d.straight([l], 'vp', srcs, recs) for l in layers])
+        srcs = [(0, 0)]*self.ndata
+        recs = np.transpose([np.zeros(self.ndata), self.zp])
+        jac = np.empty((self.ndata, self.nparams))
+        for i, l in enumerate(layers):
+            jac[:, i] = ttime2d.straight([l], 'vp', srcs, recs)
         return jac
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Solve for the velocities of each layer.
-
-        Actually uses slowness instead of velocity to make the problem linear.
-        The estimated slowness is stored in the ``p_`` attribute. The
-        corresponding velocities are in ``estimate_``.
-
-        See the docstring of :class:`~fatiando.seismic.profile.LayeredStraight`
-        for examples.
-
+        Convert the estimated slowness to velocity.
         """
-        super(LayeredStraight, self).fit()
-        self._estimate = 1. / self.p_
-        return self
+        return slowness2vel(self.p_, tol=10**-8)
