@@ -406,10 +406,10 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
             stagnation = True
             # Determine the best step size
             for i in xrange(maxsteps):
-                factor = stepsize ** i
-                newp = p - factor * grad
+                stepsize = beta**i
+                newp = p - stepsize*grad
                 newmisfit = value(newp)
-                if newmisfit - misfit < alpha * factor * gradnorm:
+                if newmisfit - misfit < alpha*stepsize*gradnorm:
                     stagnation = False
                     break
         else:
