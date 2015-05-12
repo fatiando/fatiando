@@ -1,6 +1,26 @@
 """
+Zero-offset convolutional seismic modeling
+
+Give a depth model and obtain a seismic zero-offset convolutional gather. You 
+can give the wavelet, if you already have, or use one of the existing, from 
+which we advise ricker wavelet (rickerwave function).
+
+* :func:`~fatiando.seismic.conv.seismic_convolutional`: given the depth 
+  velocity model and wavelet, it returns the convolutional seismic gather.
+* :func:`~fatiando.seismic.conv.rickerwave`: calculates a ricker wavelet.
+
+**References**
+
+Yilmaz, Öz,
+Ch.2 Deconvolution. In: YILMAZ, Öz. Seismic Data Analysis: Processing, 
+Inversion, and Interpretation of Seismic Data. Tulsa: Seg, 2001. Cap. 2. 
+p. 159-270. Available at: <http://dx.doi.org/10.1190/1.9781560801580.ch2>
+
+
+----
 
 """
+from __future__ import division
 import numpy as np
 from scipy import interpolate  # linear interpolation of velocity/density
 
@@ -8,16 +28,17 @@ from scipy import interpolate  # linear interpolation of velocity/density
 def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
                                 dt=2.e-3, rho=1.):
     """
-    Calculate the synthetic seismogram of a geological depth model, Vp is
-    mandatory while density is optional. The given model in a matrix form is
-    considered a mesh of square cells.
+    Calculate convolutional seismogram for a geological model    
+    
+    Calculate the synthetic concolutionla seismogram of a geological depth 
+    model, Vp is mandatory while density is optional. The given model in a
+    matrix form is considered a mesh of square cells.
 
     .. warning::
 
         Since the relative difference between the model is the important, being
         consistent with the units chosen for the parameters is the only
-        requirement, whatever the units. Good reference is available at
-        http://dx.doi.org/10.1190/1.9781560801580.ch2
+        requirement, whatever the units.
 
     Parameters:
 
@@ -37,7 +58,7 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
     * synth_l : 2D-array
         Resulting seismogram
     * TWT_ts : 1D-array
-        Time axis for the seismogramgm
+        Time axis for the seismogram
     """
     dt_dwn = dt/10.
     TWT = np.zeros((n_samples, n_traces))
@@ -55,12 +76,12 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
     for j in range(0, n_traces):
         kk = np.ceil(TWT[0, j]/dt_dwn)
         lim = np.ceil(TWT[-1, j]/dt_dwn)-1
-    # linear interpolation
+    # necessary do before resampling to have values in all points of time model
         tck = interpolate.interp1d(TWT[:, j], model[:, j])
         vel[kk:lim, j] = tck(TWT_rs[kk:lim])
-    # extension of the model repeats the last value of the true model
+    # the model is extended in time because of depth time conversion
         vel[lim:, j] = vel[lim-1, j]
-    # first values equal to the first value of the true model
+    # because of time conversion, the values between 0 e kk need to be filed
         vel[0:kk, j] = model[0, j]
     # resampling from dt_dwn to dt
     vel_l = np.zeros((np.ceil(TMAX/dt), n_traces))
@@ -93,7 +114,7 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
             for jj in range(1, len(TWT_ts)):
                 rho_l[jj, j] = rho[resmpl*jj, j]
     # calculate RC
-    if ~isinstance(rho, np.ndarray):
+    if not isinstance(rho, np.ndarray):
         rc = np.zeros(np.shape(vel_l))
         rc[1:, :] = (vel_l[1:, :]-vel_l[:-1, :])/(vel_l[1:, :]+vel_l[:-1, :])
     else:
