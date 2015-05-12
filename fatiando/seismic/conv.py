@@ -136,12 +136,26 @@ def seismic_convolutional_model(n_samples, n_traces, model, f, dz=1.,
 
 
 def rickerwave(f, dt):
+    """
+    Given a frequency and time sampling rate, outputs ricker function.
+    
+    Parameters:
+
+    * f : dominant frequency value in Hz
+    * dt : time sampling rate in seconds (usually it is in the order of ms)
+
+    Returns:
+
+    * res : float
+        ricker function for the given parameters
+    
+    """
     nw = 2.2/f/dt
     nw = 2*np.floor(nw/2)+1
     nc = np.floor(nw/2)
-    w = np.zeros(nw)
+    result = np.zeros(nw)
     k = np.arange(1, nw+1)
     alpha = (nc-k+1)*f*dt*np.pi
     beta = alpha**2
-    w = (1.-beta*2)*np.exp(-beta)
-    return w
+    result = (1.-beta*2)*np.exp(-beta)
+    return result
