@@ -10,6 +10,20 @@ Version (development)
 
 **Changes**:
 
+* **IMPORTANT BUG FIX**: ``fatiando,gridder.regular`` and many other places in
+  Fatiando where using the wrong convention for x, y dimensions.
+  x should point North and y East. Thus, a data matrix (regular grid) should
+  have x varying in the lines and y varying in the columns. This is **oposite**
+  what we had. This fix also changes the ``shape`` argument to be ``(nx, ny)``
+  instead of ``(ny, nx)``. **Users should be aware of this and double check
+  their code.**
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
+* More stable derivatives in ``fatiando.gravamag.transform``. The horizontal
+  derivatives default to central finite-differences for greater stability. The
+  FFT based derivatives use a grid padding to avoid edge effects.
+  Thanks to `Matteo Niccoli <https://mycarta.wordpress.com/>`__ for suggesting
+  this fix.
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
 * **Renamed** ``fatiando.gravmag.fourier.ansig`` to
   ``fatiando.gravmag.transform.tga``
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
