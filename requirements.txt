@@ -6,3 +6,4 @@ IPython >= 2.0.0
 PIL >= 1.1.7
 basemap >= 1.0.7
 numba >= 0.17
+six
