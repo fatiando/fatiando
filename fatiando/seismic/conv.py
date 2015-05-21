@@ -7,12 +7,14 @@ which we advise ricker wavelet (rickerwave function).
 
 * :func:`~fatiando.seismic.conv.seismic_convolutional`: given the depth 
   velocity model and wavelet, it returns the convolutional seismic gather.
+* :func:`~fatiando.seismic.conv.depth_2_time`: convert depth property model to 
+  the model in time.  
 * :func:`~fatiando.seismic.conv.rickerwave`: calculates a ricker wavelet.
 
 **References**
 
 Yilmaz, Oz,
-Ch.2 Deconvolution. In: YILMAZ, Öz. Seismic Data Analysis: Processing, 
+Ch.2 Deconvolution. In: YILMAZ, Oz. Seismic Data Analysis: Processing, 
 Inversion, and Interpretation of Seismic Data. Tulsa: Seg, 2001. Cap. 2. 
 p. 159-270. Available at: <http://dx.doi.org/10.1190/1.9781560801580.ch2>
 
@@ -25,7 +27,7 @@ import numpy as np
 from scipy import interpolate  # linear interpolation of velocity/density
 
 
-def seismic_convolutional_model(n_traces, model, f, dt=2.e-3, rho=1.,wavelet):
+def seismic_convolutional_model(n_traces, vel_l, f, wavelet, dt=2.e-3, rho=1.):
     """
     Calculate convolutional seismogram for a geological model    
     
@@ -58,19 +60,15 @@ def seismic_convolutional_model(n_traces, model, f, dt=2.e-3, rho=1.,wavelet):
         Resulting seismogram
 
     """ 
-    #dimension of rho must be the same of velocity grid, if both are matrix
-    if isinstance(rho, np.ndarray):
-        try:
-            np.shape(rho)==np.shape(vel_l)
-        except Exception as error:
-            print error
     # calculate RC
-    if not isinstance(rho, np.ndarray):
-        rc = np.zeros(np.shape(vel_l))
-        rc[1:, :] = (vel_l[1:, :]-vel_l[:-1, :])/(vel_l[1:, :]+vel_l[:-1, :])
-    else:
+    rc = np.zeros(np.shape(vel_l))
+    try:
+    #dimension of rho must be the same of velocity grid, if both are matrix
         rc[1:, :] = ((vel_l[1:, :]*rho[1:, :]-vel_l[:-1, :]*rho[:-1, :]) /
-                     (vel_l[1:, :]*rho[1:, :]+vel_l[:-1, :]*rho[:-1, :]))
+                     (vel_l[1:, :]*rho[1:, :]+vel_l[:-1, :]*rho[:-1, :]))        
+    except TypeError:
+        rc[1:, :] = (vel_l[1:, :]-vel_l[:-1, :])/(vel_l[1:, :]+vel_l[:-1, :])
+        
     w = wavelet(f, dt)
     # convolution
     synth_l = np.zeros(np.shape(rc))
@@ -134,6 +132,8 @@ def depth_2_time(n_samples, n_traces, model, dt=2.e-3, dz=1., rho=1.):
             vel_l[jj, j] = vel[resmpl*jj, j]  # 10=dt/dt_new, dt_new=0.002=2ms
     for j in range(1, len(TWT_ts)):
         TWT_ts[j, :] = TWT_rs[resmpl*j]
+
+#block
     # density calculations
     if isinstance(rho, np.ndarray):
         rho2 = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
@@ -150,9 +150,9 @@ def depth_2_time(n_samples, n_traces, model, dt=2.e-3, dz=1., rho=1.):
         rho_l[0, :] = rho2[0, :]
         for j in range(0, n_traces):
             for jj in range(1, len(TWT_ts)):
-                rho_l[jj, j] = rho[resmpl*jj, j]
-        else:
-            rho_l=rho
+                rho_l[jj, j] = rho2[resmpl*jj, j]
+    else:
+        rho_l = rho
     return vel_l,TWT_ts,rho_l
 
 def rickerwave(f, dt):
