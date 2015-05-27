@@ -5,7 +5,7 @@ expanding window
 import numpy as np
 from fatiando.mesher import Prism
 from fatiando import gridder, utils
-from fatiando.gravmag import prism, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.gravmag.euler import Classic, ExpandingWindow
 from fatiando.vis import mpl, myv
 
@@ -27,9 +27,9 @@ baselevel = 10
 tf = (utils.nt2si(prism.tf(xp, yp, zp, model, inc, dec))
       + baselevel)
 # Calculate the derivatives using FFT
-xderiv = fourier.derivx(xp, yp, tf, shape)
-yderiv = fourier.derivy(xp, yp, tf, shape)
-zderiv = fourier.derivz(xp, yp, tf, shape)
+xderiv = transform.derivx(xp, yp, tf, shape)
+yderiv = transform.derivy(xp, yp, tf, shape)
+zderiv = transform.derivz(xp, yp, tf, shape)
 
 mpl.figure()
 titles = ['Total field', 'x derivative', 'y derivative', 'z derivative']

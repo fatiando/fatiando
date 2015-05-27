@@ -8,8 +8,8 @@ from fatiando.vis import mpl
 # Will download the archive and save it with the default name
 archive = datasets.fetch_bouguer_alps_egm()
 
-# Load the GRD file and convert in three numpy-arrays (y, x, bouguer)
-y, x, bouguer, shape = gridder.load_surfer(archive, fmt='ascii')
+# Load the GRD file and convert in three numpy-arrays (x, y, bouguer)
+x, y, bouguer, shape = gridder.load_surfer(archive, fmt='ascii')
 
 mpl.figure()
 mpl.axis('scaled')

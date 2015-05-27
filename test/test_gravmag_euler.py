@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 from fatiando.gravmag.euler import Classic, ExpandingWindow, MovingWindow
-from fatiando.gravmag import sphere, fourier
+from fatiando.gravmag import sphere
 from fatiando.mesher import Sphere
 from fatiando import utils, gridder
 
@@ -19,17 +19,22 @@ def setup():
     global model, x, y, z, inc, dec, struct_ind, field, xderiv, yderiv, \
         zderiv, base, pos
     inc, dec = -30, 50
-    pos = np.array([1000, 1000, 200])
+    pos = np.array([1000, 1200, 200])
     model = Sphere(pos[0], pos[1], pos[2], 1,
                    {'magnetization': utils.ang2vec(10000, inc, dec)})
     struct_ind = 3
-    shape = (128, 128)
-    x, y, z = gridder.regular((0, 3000, 0, 3000), shape, z=-1)
+    shape = (200, 200)
+    x, y, z = gridder.regular((0, 3000, 0, 3000), shape, z=-100)
     base = 10
-    field = utils.nt2si(sphere.tf(x, y, z, [model], inc, dec)) + base
-    xderiv = fourier.derivx(x, y, field, shape)
-    yderiv = fourier.derivy(x, y, field, shape)
-    zderiv = fourier.derivz(x, y, field, shape)
+    field = sphere.tf(x, y, z, [model], inc, dec) + base
+    # Use finite difference derivatives so that these tests don't depend on the
+    # performance of the FFT derivatives.
+    xderiv = (sphere.tf(x + 1, y, z, [model], inc, dec)
+              - sphere.tf(x - 1, y, z, [model], inc, dec))/2
+    yderiv = (sphere.tf(x, y + 1, z, [model], inc, dec)
+              - sphere.tf(x, y - 1, z, [model], inc, dec))/2
+    zderiv = (sphere.tf(x, y, z + 1, [model], inc, dec)
+              - sphere.tf(x, y, z - 1, [model], inc, dec))/2
 
 
 def test_euler_classic_sphere_mag():

@@ -11,11 +11,18 @@ Source code snapshots of each release of Fatiando a Terra are archived in
 `figshare <http://figshare.com/>`__.
 We also preseve a built version of the documentation for reference.
 
-.. important::
+.. raw:: html
 
-    Refer to the **latest build** of the docs for more up-to-date information.
-    It reflects the *master* branch `on Github
-    <https://github.com/fatiando/fatiando>`__.
+    <div class="alert alert-success">
+    <h4>Important</h4>
+
+Refer to the **latest build** of the docs for more up-to-date information.
+It reflects the *master* branch `on Github
+<https://github.com/fatiando/fatiando>`__.
+
+.. raw:: html
+
+    </div>
 
 .. raw:: html
 

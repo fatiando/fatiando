@@ -2,7 +2,7 @@
 GravMag: Calculate the analytic signal of a total field anomaly using FFT
 """
 from fatiando import mesher, gridder, utils
-from fatiando.gravmag import prism, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 
 model = [mesher.Prism(-100, 100, -100, 100, 0, 2000, {'magnetization': 10})]
@@ -15,7 +15,7 @@ tf = utils.contaminate(prism.tf(xp, yp, zp, model, inc, dec), 0.001,
                        percent=True)
 
 # Need to convert gz to SI units so that the result is also in SI
-ansig = fourier.ansig(xp, yp, utils.nt2si(tf), shape)
+total_grad_amp = transform.tga(xp, yp, utils.nt2si(tf), shape)
 
 mpl.figure()
 mpl.subplot(1, 2, 1)
@@ -25,9 +25,9 @@ mpl.contourf(yp, xp, tf, shape, 30)
 mpl.colorbar(orientation='horizontal')
 mpl.m2km()
 mpl.subplot(1, 2, 2)
-mpl.title("Analytic signal")
+mpl.title("Total Gradient Amplitude")
 mpl.axis('scaled')
-mpl.contourf(yp, xp, ansig, shape, 30)
+mpl.contourf(yp, xp, total_grad_amp, shape, 30)
 mpl.colorbar(orientation='horizontal')
 mpl.m2km()
 mpl.show()
