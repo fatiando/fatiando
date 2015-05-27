@@ -4,7 +4,7 @@ moving window
 """
 from fatiando.mesher import Prism
 from fatiando import gridder, utils
-from fatiando.gravmag import prism, fourier
+from fatiando.gravmag import prism, transform
 from fatiando.gravmag.euler import Classic, MovingWindow
 from fatiando.vis import mpl, myv
 
@@ -22,9 +22,9 @@ baselevel = 10
 # Convert the data from mGal to SI because Euler and FFT derivation require
 # data in SI
 gz = utils.mgal2si(prism.gz(xp, yp, zp, model)) + baselevel
-xderiv = fourier.derivx(xp, yp, gz, shape)
-yderiv = fourier.derivy(xp, yp, gz, shape)
-zderiv = fourier.derivz(xp, yp, gz, shape)
+xderiv = transform.derivx(xp, yp, gz, shape)
+yderiv = transform.derivy(xp, yp, gz, shape)
+zderiv = transform.derivz(xp, yp, gz, shape)
 
 mpl.figure()
 titles = ['Gravity anomaly', 'x derivative', 'y derivative', 'z derivative']
