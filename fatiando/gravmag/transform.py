@@ -78,19 +78,29 @@ def upcontinue(gz, height, xp, yp, dims):
 
 
 def tga(x, y, data, shape, method='fd'):
-    """
-    Calculate the total gradient amplitude.
+    r"""
+    Calculate the total gradient amplitude (TGA).
 
-    This the same as the `analytic signal`, but we prefer the newer, more
-    descriptive nomenclature.
+    This the same as the `3D analytic signal` of Roest et al. (1992), but we
+    prefer the newer, more descriptive nomenclature suggested by Reid (2012).
+
+    The TGA is defined as the amplitude of the gradient vector of a potential
+    field :math:`T` (e.g. the magnetic total field anomaly):
+
+    .. math::
+
+        TGA = \sqrt{
+            \left(\frac{\partial T}{\partial x}\right)^2 +
+            \left(\frac{\partial T}{\partial y}\right)^2 +
+            \left(\frac{\partial T}{\partial z}\right)^2 }
 
     .. warning::
 
         If the data is not in SI units, the derivatives will be in
         strange units and so will the total gradient amplitude! I strongly
         recommend converting the data to SI **before** calculating the
-        derivative (use one of the unit conversion functions of
-        :mod:`fatiando.utils`).
+        TGA is you need the gradient in Eotvos (use one of the unit conversion
+        functions of :mod:`fatiando.utils`).
 
     Parameters:
 
@@ -109,6 +119,16 @@ def tga(x, y, data, shape, method='fd'):
 
     * tga : 1D-array
         The amplitude of the total gradient
+
+    References:
+
+    Reid, A. (2012), Forgotten truths, myths and sacred cows of Potential
+    Fields Geophysics - II, in SEG Technical Program Expanded Abstracts 2012,
+    pp. 1-3, Society of Exploration Geophysicists.
+
+    Roest, W., J. Verhoef, and M. Pilkington (1992), Magnetic interpretation
+    using the 3-D analytic signal, GEOPHYSICS, 57(1), 116-125,
+    doi:10.1190/1.1443174.
 
     """
     dx = derivx(x, y, data, shape, method=method)
