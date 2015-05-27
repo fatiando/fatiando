@@ -1,10 +1,29 @@
 .. title:: Fatiando a Terra
 
-Fatiando a Terra: modeling and inversion in geophysics
-======================================================
+.. raw:: html
+
+    <div class="row" style="margin-top: 30px">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-8">
+    <img src="_static/fatiando-banner-homepage.png" width="100%"
+        style="margin-bottom: 50px;"></img>
+    </div>
+    <div class="col-md-2">
+    </div>
+    </div>
+
+    <div class="jumbotron" style="text-align: center; ">
+    <em>
 
 An easy and flexible way to perform and implement geophysical data analysis.
+
 All from inside the powerful Python_ language.
+
+.. raw:: html
+
+    </em>
+    </div>
 
 Fatiando is built on top of the `Scipy`_ ecosystem: Numpy_, Cython_,
 matplotlib_, Mayavi_, etc.
@@ -28,12 +47,19 @@ for examples of what Fatiando can do.
 .. _Cython: http://www.cython.org/
 
 
-.. important::
+.. raw:: html
 
-    Fatiando is research software **made by scientists**.
-    Please :ref:`cite <cite>` it in your publications if you used it.
-    Citations help us justify the effort
-    that goes into building and maintenance.
+    <div class="alert alert-success">
+    <h4><strong>Support us!</strong></h4>
+
+Fatiando is research software **made by scientists**.
+Please :ref:`cite <cite>` it in your publications if you used it.
+Citations help us justify the effort
+that goes into building and maintenance.
+
+.. raw:: html
+
+    </div>
 
 .. raw:: html
 
@@ -44,18 +70,24 @@ for examples of what Fatiando can do.
 
 There are many ways to get in contact with us:
 
+* Join us on our `Gitter chat room`_.
 * Write to our `mailing list`_.
 * Report an `issue on Github`_.
-* Tweet `@leouieda`_.
 * Mention `+Fatiando a Terra`_ on Google+.
 
-We welcome feedback, bug reports, feature requests, code contributions,
+You don't have to dive into the code to contribute!
+You can start by sending us your
+feedback, bug reports, feature requests, code contributions,
 spelling corrections, usage examples, etc.
+
+If you want to mess with the code,
+take a look at our :ref:`developers guide <develop>`.
+Don't be afraid to ask for help getting started!
 
 .. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _issue on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
-.. _@leouieda: https://twitter.com/leouieda
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
+.. _Gitter chat room: https://gitter.im/fatiando/fatiando
 
 .. raw:: html
 

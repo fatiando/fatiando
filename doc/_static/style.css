@@ -1,6 +1,7 @@
 body {
     color: #222;
     font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+    font-size: 12pt;
 }
 a {
     color: #008CBA;
@@ -14,33 +15,32 @@ a {
 }
 .navbar-brand {
     padding-top: 10px;
-    font-size: 16pt;
+    font-size: 20pt;
 }
 blockquote {
-    font-size: 15px;
+    font-size: 12pt;
     color: #6F6F6F;
 }
 .navbar .navbar-version {
     font-size: 9pt !important;
     padding-top: 2px !important;
 }
-.note {
-    font-size: 11pt !important;
-    font-weight: 400 !important;
-    background-color: #adb8cb !important;
-    border-color: #adb8cb !important;
-    color: #2c3e50 !important;
+
+.alert {
+    font-size: 12pt;
 }
-.alert-info {
-    font-size: 11pt !important;
-    font-weight: 400 !important;
-    background-color: #adb8cb !important;
-    border-color: #adb8cb !important;
-    color: #2c3e50 !important;
+.alert a {
+    color: #FFF;
+    text-decoration: underline;
 }
 
 .footer {
     color: #6F6F6F;
     margin-top: 30px;
     padding-bottom: 30px;
+}
+
+.jumbotron p {
+    font-size: 16pt;
+    color: #333;
 }

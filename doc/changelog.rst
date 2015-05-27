@@ -10,6 +10,29 @@ Version (development)
 
 **Changes**:
 
+* **IMPORTANT BUG FIX**: ``fatiando,gridder.regular`` and many other places in
+  Fatiando where using the wrong convention for x, y dimensions.
+  x should point North and y East. Thus, a data matrix (regular grid) should
+  have x varying in the lines and y varying in the columns. This is **oposite**
+  what we had. This fix also changes the ``shape`` argument to be ``(nx, ny)``
+  instead of ``(ny, nx)``. **Users should be aware of this and double check
+  their code.**
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
+* More stable derivatives in ``fatiando.gravamag.transform``. The horizontal
+  derivatives default to central finite-differences for greater stability. The
+  FFT based derivatives use a grid padding to avoid edge effects.
+  Thanks to `Matteo Niccoli <https://mycarta.wordpress.com/>`__ for suggesting
+  this fix.
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
+* **Renamed** ``fatiando.gravmag.fourier.ansig`` to
+  ``fatiando.gravmag.transform.tga``
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
+  ``fatiando.gravmag.transform``.
+  (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **New** ``seismic_wiggle`` and ``seismic_image`` plotting functions for
+  seismic data in :ref:`fatiando.vis.mpl <fatiando_vis_mpl>` (`PR 192
+  <https://github.com/fatiando/fatiando/pull/192>`__) plus cookbook
 * **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
   forward modeling. Caused the majority of our install problems and didn't
   offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``
@@ -34,6 +57,11 @@ Version (development)
 * Better documentation and faster implementation of
   ``fatiando.gravmag.tesseroid``
   (`PR 118 <https://github.com/fatiando/fatiando/pull/118>`__)
+* Complete re-implementation of
+  :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`
+  from methods to simulation classes using HDF5 file format and rich display
+  features of IPython notebook. Old code still remains but should be avoided.
+  (`PR 137 <https://github.com/fatiando/fatiando/pull/137>`_)
 * **BUG FIX**: Replace ``matplotlib.mlab.griddata`` with
   ``scipy.interpolate.griddata`` in ``fatiando.gridder.interp`` to avoid
   incompatibilities when using ``matplotlib > 1.3``
