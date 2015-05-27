@@ -177,20 +177,22 @@ import os
 import cPickle as pickle
 from abc import ABCMeta, abstractmethod
 import six
+
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
-from IPython.display import Image, HTML, display
+from IPython.display import Image, HTML, display, display_png
 from IPython.html import widgets
 from IPython.core.pylabtools import print_figure
 from matplotlib import animation
 from matplotlib import pyplot as plt
 import h5py
 
+
 try:
     from ._wavefd import *
 except:
-    def not_implemented():
+    def not_implemented(*args, **kwargs):
         raise NotImplementedError(
             "Couldn't load C coded extension module.")
     _apply_damping = not_implemented
@@ -210,12 +212,13 @@ class Source(six.with_metaclass(ABCMeta)):
     Call an instance as a function with a given time to get back the source
     function at that time.
 
-    Implements a `_repr_png_` method that plots the source function around the
-    delay time.
+    Implements a ``_repr_png_`` method that plots the source function
+    around the delay time.
 
     Overloads multiplication by a scalar to multiply the amplitude of the
     source and return a new source.
     """
+
     def __init__(self, amp, cf, delay):
         self.amp = amp
         self.cf = cf
@@ -242,31 +245,32 @@ class Source(six.with_metaclass(ABCMeta)):
         plt.close(fig)
         return data
 
-    def __call__(self, t):
+    def __call__(self, time):
         """
         Return the source function value at a given time
 
         Parameters:
 
-        * t: float
+        * time: float
             time value where evaluate the source function
+
         """
-        return self.value(t)
+        return self.value(time)
 
     @abstractmethod
-    def value(self, t):
+    def value(self, time):
         """
         Return the source function value at a given time
 
         Parameters:
 
-        * t: float
+        * time: float
             Time value where evaluate the source function
 
         Returns:
 
         * value : float or numpy array
-            The value of Source(t)
+            The value of Source(time)
 
         """
         pass
@@ -291,6 +295,7 @@ class Ricker(Source):
         The peak frequency of the wavelet
     * delay : float
         The delay before the source starts
+
     """
 
     def __init__(self, amp, cf, delay=0):
@@ -498,7 +503,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def _plot_snapshot(self, frame, **kwargs):
         pass
 
-    def snapshot(self, frame, embed=False, raw=False, **kwargs):
+    def snapshot(self, frame, embed=False, raw=False, ax=None,
+                 **kwargs):
         """
         Returns an image (snapshot) of the 2D wavefield simulation
         at a desired iteration number (frame) or just plot it.
@@ -509,8 +515,11 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             The time step iteration number
         * embed : bool
             True to plot it inline
-        * raw: bool
+        * raw : bool
             True for raw byte image
+        * ax : None or matplotlib Axes
+            If not None, will assume this is a matplotlib Axes
+            and make the plot on it.
 
         Returns:
 
@@ -520,10 +529,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             or None
 
         """
-        # calls `_plot_snapshot`
-        # if ax is None:
-        #            fig = plt.figure(facecolor='white')
-        #    ax = plt.subplot(111)
+        if ax is None:
+            fig = plt.figure(facecolor='white')
+            ax = plt.subplot(111)
         if frame < 0:
             title = self.simsize + frame
         else:
@@ -568,10 +576,17 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         """
         return self.snapshot(-1, raw=True)
 
-    def explore(self, **kwargs):
+    def explore(self, every=1, **kwargs):
         """
         Interactive visualization of simulation results.
-        Allows to move back and forth on simulation frames.
+
+        Allows to move back and forth on simulation frames
+        using the IPython widgets feature.
+
+        .. warning::
+
+            Only works when running in an IPython notebook.
+
         """
         plotargs = kwargs
 
@@ -579,9 +594,10 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             image = Image(self.snapshot(Frame, raw=True, **plotargs))
             display(image)
             return image
-        slider = widgets.IntSliderWidget(min=0, max=self.it, step=1,
+
+        slider = widgets.IntSliderWidget(min=0, max=self.it, step=every,
                                          value=self.it, description="Frame")
-        widget = widgets.interact(plot, Frame=slider)
+        widget = widgets.interactive(plot, Frame=slider)
         return widget
 
     @abstractmethod
@@ -595,9 +611,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         * iterations: int
             number of time step iterations to run
         """
-        # calls `_init_cache`, `_expand_cache`, `_init_panels`
+        # Calls the following abstract methods:
+        # `_init_cache`, `_expand_cache`, `_init_panels`
         # and `_cache_panels` and  `_time_step`
-
         nz, nx = self.shape
         dz, dx = self.dz, self.dx
         u = self._init_panels()  # panels must be created first
@@ -861,8 +877,8 @@ class ElasticSH(WaveFD2D):
             cache[simul_size - 1] = u[tp1]
             cache.attrs['simsize'] = simul_size
             # I need to update the attribute with this iteration number
+            # so that simulation runs properly after reloaded from file
             cache.attrs['iteration'] = iteration
-            # that simulation runs properly after reloaded from file
 
     def _init_panels(self):
         """
@@ -1020,8 +1036,8 @@ class ElasticPSV(WaveFD2D):
         locations = [
             [i - 1,     j,    0,   -1],
             [i + 1,     j,    0,    1],
-            [i + 0, j - 1,   -1,    0],
-            [i + 0, j + 1,    1,    0],
+            [i    , j - 1,   -1,    0],
+            [i    , j + 1,    1,    0],
             [i - 1, j - 1, -amp, -amp],
             [i + 1, j - 1, -amp,  amp],
             [i - 1, j + 1,  amp, -amp],
@@ -1175,6 +1191,7 @@ class ElasticPSV(WaveFD2D):
 
         * verbose: bool
             Progress status shown or not
+
         """
         with h5py.File(fname, 'r') as f:
             pvel = f['pvel']
@@ -1366,6 +1383,7 @@ class ElasticPSV(WaveFD2D):
             if vectors is not None:
                 vectors.set_UVC(ux, uz)
             return wavefield, particles, vectors
+
         frames = self.simsize//every
         anim = animation.FuncAnimation(fig, plot, frames=frames, blit=blit,
                                        interval=interval)
@@ -1400,6 +1418,7 @@ class Scalar(WaveFD2D):
         True to show simulation progress bar
 
     """
+
     def __init__(self, velocity, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
         super(Scalar, self).__init__(cachefile, spacing, velocity.shape, dt,
@@ -1710,132 +1729,6 @@ class Scalar(WaveFD2D):
             kwargs['cmap'] = plt.cm.seismic
         plt.imshow(data, **kwargs)
         plt.colorbar(pad=0, aspect=30).set_label('Displacement')
-
-# class MexHatSource(object):
-#
-#     r"""
-#     A wave source that vibrates as a Mexican hat (Ricker) wavelet.
-#
-#     .. math::
-#
-#         \psi(t) = A(1 - 2 \pi^2 f^2 t^2)exp(-\pi^2 f^2 t^2)
-#
-#     Parameters:
-#
-#     * x, z : float
-#         The x, z coordinates of the source
-#     * area : [xmin, xmax, zmin, zmax]
-#         The area bounding the finite difference simulation
-#     * shape : (nz, nx)
-#         The number of nodes in the finite difference grid
-#     * amp : float
-#         The amplitude of the source (:math:`A`)
-#     * frequency : float
-#         The peak frequency of the wavelet
-#     * delay : float
-#         The delay before the source starts
-#
-#         .. note:: If you want the source to start with amplitude close to 0,
-#             use ``delay = 3.5/frequency``.
-#
-#     """
-#
-#     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
-#         nz, nx = shape
-#         dz, dx = sum(area[2:]) / (nz - 1), sum(area[:2]) / (nx - 1)
-#         self.i = int(round((z - area[2]) / dz))
-#         self.j = int(round((x - area[0]) / dx))
-#         self.x, self.z = x, z
-#         self.amp = amp
-#         self.frequency = frequency
-#         self.f2 = frequency ** 2
-#         self.delay = delay
-#
-#     def __call__(self, time):
-#         t2 = (time - self.delay) ** 2
-#         pi2 = numpy.pi ** 2
-#         psi = self.amp * (1 - 2 * pi2 * self.f2 * t2) * \
-#             numpy.exp(-pi2 * self.f2 * t2)
-#         return psi
-#
-#     def coords(self):
-#         """
-#         Get the x, z coordinates of the source.
-#
-#         Returns:
-#
-#         * (x, z) : tuple
-#             The x, z coordinates
-#
-#         """
-#         return (self.x, self.z)
-#
-#     def indexes(self):
-#         """
-#         Get the i,j coordinates of the source in the finite difference grid.
-#
-#         Returns:
-#
-#         * (i,j) : tuple
-#             The i,j coordinates
-#
-#         """
-#         return (self.i, self.j)
-
-
-# def blast_source(x, z, area, shape, amp, frequency, delay=0,
-#                  sourcetype=MexHatSource):
-#     """
-#     Uses several MexHatSources to create a blast source that pushes in all
-#     directions.
-#
-#     Parameters:
-#
-#     * x, z : float
-#         The x, z coordinates of the source
-#     * area : [xmin, xmax, zmin, zmax]
-#         The area bounding the finite difference simulation
-#     * shape : (nz, nx)
-#         The number of nodes in the finite difference grid
-#     * amp : float
-#         The amplitude of the source
-#     * frequency : float
-#         The frequency of the source
-#     * delay : float
-#         The delay before the source starts
-#     * sourcetype : source class
-#         The type of source to use, like
-#         :class:`~fatiando.seismic.wavefd.MexHatSource`.
-#
-#     Returns:
-#
-#     * [xsources, zsources]
-#         Lists of sources for x- and z-displacements
-#
-#     """
-#     nz, nx = shape
-#     xsources, zsources = [], []
-#     center = sourcetype(x, z, area, shape, amp, frequency, delay)
-#     i, j = center.indexes()
-#     tmp = numpy.sqrt(2)
-#     locations = [[i - 1, j - 1, -amp, -amp],
-#                  [i - 1, j, 0, -tmp * amp],
-#                  [i - 1, j + 1, amp, -amp],
-#                  [i, j - 1, -tmp * amp, 0],
-#                  [i, j + 1, tmp * amp, 0],
-#                  [i + 1, j - 1, -amp, amp],
-#                  [i + 1, j, 0, tmp * amp],
-#                  [i + 1, j + 1, amp, amp]]
-#     locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
-#                  if i >= 0 and i < nz and j >= 0 and j < nx]
-#     for i, j, xamp, zamp in locations:
-#         xsrc = sourcetype(x, z, area, shape, xamp, frequency, delay)
-#         xsrc.i, xsrc.j = i, j
-#         zsrc = sourcetype(x, z, area, shape, zamp, frequency, delay)
-#         zsrc.i, zsrc.j = i, j
-#         xsources.append(xsrc)
-#         zsources.append(zsrc)
-#     return xsources, zsources
 
 
 def lame_lamb(pvel, svel, dens):
