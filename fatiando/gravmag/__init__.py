@@ -43,10 +43,8 @@ after modeling.
 * :mod:`~fatiando.gravmag.normal_gravity`: Compute normal gravity and
   reductions.
 * :mod:`~fatiando.gravmag.eqlayer`: Equivalent layer processing
-* :mod:`~fatiando.gravmag.transform`: Space domain potential field
-  transformations, like upward continuation
-* :mod:`~fatiando.gravmag.fourier`: Potential field transformations using the
-  FFT
+* :mod:`~fatiando.gravmag.transform`: Potential field transformations,
+  like upward continuation, derivatives, etc
 * :mod:`~fatiando.gravmag.imaging`: Imaging methods for potential fields for
   estimating physical property distributions
 * :mod:`~fatiando.gravmag.tensor`: Utilities for operating on the gradient

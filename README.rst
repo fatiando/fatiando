@@ -1,7 +1,4 @@
-|title|
-=======
-
-.. |title| image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png
+.. image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png
     :alt: Fatiando a Terra
 
 `Website <http://www.fatiando.org>`__ |
@@ -11,23 +8,23 @@
 
 A Python package for modeling and inversion in geophysics.
 
-.. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat
+.. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
     :target: https://crate.io/packages/fatiando
-.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat
+.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat-square
     :alt: Number of PyPI downloads
     :target:  https://crate.io/packages/fatiando/
-.. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat
+.. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat-square
     :alt: Travis CI build status
     :target: https://travis-ci.org/fatiando/fatiando
-.. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat
+.. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
-.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.16205-blue.svg?style=flat
+.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.16205-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.16205
     :target: http://dx.doi.org/10.5281/zenodo.16205
-.. image:: https://badges.gitter.im/Join%20Chat.svg                                  
-    :alt: gitter chat room at https://gitter.im/fatiando/fatiando               
+.. image:: http://img.shields.io/badge/GITTER-JOIN_CHAT-brightgreen.svg?style=flat-square
+    :alt: gitter chat room at https://gitter.im/fatiando/fatiando
     :target: https://gitter.im/fatiando/fatiando
  
 Dependencies

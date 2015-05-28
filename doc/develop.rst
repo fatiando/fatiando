@@ -479,7 +479,8 @@ copy this checklist to the PR description
     - [ ] Documentation builds properly
     - [ ] All tests pass
     - [ ] Can be merged
-    - [ ] Changelog entry
+    - [ ] Changelog entry (leave for last)
+    - [ ] Firt-time contributor? Add yourself to `doc/contributors.rst` (leave for last)
 
 This will create check boxes that you can mark as you complete each of the
 requirements.

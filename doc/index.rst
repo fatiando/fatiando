@@ -1,10 +1,29 @@
 .. title:: Fatiando a Terra
 
-Fatiando a Terra: modeling and inversion in geophysics
-======================================================
+.. raw:: html
+
+    <div class="row" style="margin-top: 30px">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-8">
+    <img src="_static/fatiando-banner-homepage.png" width="100%"
+        style="margin-bottom: 50px;"></img>
+    </div>
+    <div class="col-md-2">
+    </div>
+    </div>
+
+    <div class="jumbotron" style="text-align: center; ">
+    <em>
 
 An easy and flexible way to perform and implement geophysical data analysis.
+
 All from inside the powerful Python_ language.
+
+.. raw:: html
+
+    </em>
+    </div>
 
 Fatiando is built on top of the `Scipy`_ ecosystem: Numpy_, Cython_,
 matplotlib_, Mayavi_, etc.
@@ -28,12 +47,19 @@ for examples of what Fatiando can do.
 .. _Cython: http://www.cython.org/
 
 
-.. important::
+.. raw:: html
 
-    Fatiando is research software **made by scientists**.
-    Please :ref:`cite <cite>` it in your publications if you used it.
-    Citations help us justify the effort
-    that goes into building and maintenance.
+    <div class="alert alert-success">
+    <h4><strong>Support us!</strong></h4>
+
+Fatiando is research software **made by scientists**.
+Please :ref:`cite <cite>` it in your publications if you used it.
+Citations help us justify the effort
+that goes into building and maintenance.
+
+.. raw:: html
+
+    </div>
 
 .. raw:: html
 
@@ -50,7 +76,7 @@ There are many ways to get in contact with us:
 * Mention `+Fatiando a Terra`_ on Google+.
 
 You don't have to dive into the code to contribute!
-You can start by sending us your 
+You can start by sending us your
 feedback, bug reports, feature requests, code contributions,
 spelling corrections, usage examples, etc.
 
