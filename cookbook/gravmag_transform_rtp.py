@@ -16,8 +16,9 @@ z0 = -500
 x, y, z = gridder.regular(area, shape, z=z0)
 tf = utils.contaminate(prism.tf(x, y, z, model, inc, dec),
                        1, seed=0)
-# Reduce to the pole using FFT
-pole = transform.reduce_to_pole(x, y, tf, shape, inc, dec)
+# Reduce to the pole using FFT. Since there is only induced magnetization, the
+# magnetization direction (sinc and sdec) is the same as the geomagnetic field
+pole = transform.reduce_to_pole(x, y, tf, shape, inc, dec, sinc=inc, sdec=dec)
 # Calculate the true value at the pole for comparison
 true = prism.tf(x, y, z, model, 90, 0, pmag=utils.ang2vec(10, 90, 0))
 

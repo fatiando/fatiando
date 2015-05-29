@@ -30,28 +30,82 @@ import numpy
 from .. import utils
 
 
-def reduce_to_pole(x, y, data, shape, inc, dec, sinc=None, sdec=None):
-    """
+def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
+    r"""
+    Reduce total field magnetic anomaly data to the pole.
+
+    The reduction to the pole if a phase transformation that can be applied to
+    total field magnetic anomaly data. It "simulates" how the data would be if
+    **both** the Geomagnetic field and the magnetization of the source were
+    vertical (:math:`90^\circ` inclination) (Blakely, 1996).
+
+    This functions performs the reduction in the frequency domain (using the
+    FFT). The transform filter is (in the frequency domain):
+
+    .. math::
+
+        RTP(k_x, k_y) = \frac{|k|}{
+            a_1 k_x^2 + a_2 k_y^2 + a_3 k_x k_y +
+            i|k|(b_1 k_x + b_2 k_y)}
+
+    in which :math:`k_x` and :math:`k_y` are the wave-numbers if the x and y
+    directions and
+
+    .. math::
+
+        |k| = \sqrt{k_x^2 + k_y^2} \\
+        a_1 = m_z f_z - m_x f_x \\
+        a_2 = m_z f_z - m_y f_y \\
+        a_3 = -m_y f_x - m_x f_y \\
+        b_1 = m_x f_z + m_z f_x \\
+        b_2 = m_y f_z + m_z f_y
+
+    :math:`\mathbf{m} = (m_x, m_y, m_z)` is the unit-vector of the source
+    total magnetization and
+    :math:`\mathbf{f} = (f_x, f_y, f_z)` is the unit-vector of the Geomagnetic
+    field.
+
+    .. note:: Requires gridded data.
+
+    .. warning::
+
+        The magnetization direction of the anomaly source is crucial to the
+        reduction-to-the-pole.
+        **Wrong values of *sinc* and *sdec* will lead to a wrong reduction.**
+
     Parameters:
 
     * x, y : 1d-arrays
         The x, y, z coordinates of each data point.
     * data : 1d-array
         The total field anomaly data at each point.
+    * shape : tuple = (nx, ny)
+        The shape of the data grid
     * inc, dec : floats
-        The inclination and declination of the inducing field
-    * sinc, sdec : None or floats
-        The inclination and declination of the equivalent layer. Use these if
-        there is remanent magnetization and the total magnetization of the
-        layer if different from the induced magnetization.
-        If there is only induced magnetization, use None
+        The inclination and declination of the inducing Geomagnetic field
+    * sinc, sdec : floats
+        The inclination and declination of the total magnetization of the
+        anomaly source. The total magnetization is the vector sum of the
+        induced and remanent magnetization. If there is only induced
+        magnetization, use the *inc* and *dec* of the Geomagnetic field.
+
+    Returns:
+
+    * rtp : 1d-array
+        The data reduced to the pole.
+
+    References:
+
+    Blakely, R. J. (1996), Potential Theory in Gravity and Magnetic
+    Applications, Cambridge University Press.
+
     """
     fx, fy, fz = utils.ang2vec(1, inc, dec)
     if sinc is None or sdec is None:
         mx, my, mz = fx, fy, fz
     else:
         mx, my, mz = utils.ang2vec(1, sinc, sdec)
-    kx, ky = [k for k in _getfreqs(x, y, data, shape)]
+    kx, ky = [k for k in _fftfreqs(x, y, shape, shape)]
     kz_sqr = kx**2 + ky**2
     a1 = mz*fz - mx*fx
     a2 = mz*fz - my*fy
@@ -80,26 +134,22 @@ def upcontinue(x, y, data, shape, height, method='fft'):
 
     .. math::
 
-        g_z(x,y,z) = \\frac{z-z_0}{2\pi}\int_{-\infty}^{\infty}\int_{-\infty}^
-        {\infty} g_z(x',y',z_0) \\frac{1}{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
-        ]^{\\frac{3}{2}}} dx' dy'
+        h_{up}(x,y,z) = \frac{z-z_0}{2\pi}\int_{-\infty}^{\infty}\int_{-\infty}^
+        {\infty} \frac{h(x',y',z_0) }{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
+        ]^{\frac{3}{2}}} dx' dy'
 
-    For the FFT based continuation. The Fourier transform of the upward
-    continued field is calculated using:
+    For the FFT based continuation, the Fourier transform of the upward
+    continued field is calculated using (Blakely, 1996):
 
     .. math::
 
-        F\{h_{up}\} = F\{h\} e^{-\Delta z |k|}
+        F\{h_{up}\} = F\{h\} e^{-(z - z_0) |k|}
 
     and then transformed back to the space domain.
 
-    .. note:: Data needs to be on a regular grid!
+    .. note:: Requires gridded data.
 
-    .. note:: Units are SI for all coordinates x, y, z.
-
-    .. note:: be aware of coordinate systems!
-        The *x*, *y*, *z* coordinates are:
-        x -> North, y -> East and z -> **DOWN**.
+    .. note:: x, y, z and height should be in meters.
 
     Parameters:
 
@@ -120,6 +170,11 @@ def upcontinue(x, y, data, shape, height, method='fft'):
     * cont : array
         The upward continued data
 
+    References:
+
+    Blakely, R. J. (1996), Potential Theory in Gravity and Magnetic
+    Applications, Cambridge University Press.
+
     """
     assert method in ['fft', 'space'], \
         "Invalid method '{}'".format(method)
@@ -128,10 +183,10 @@ def upcontinue(x, y, data, shape, height, method='fft'):
     assert height > 0, \
         "Continuation height increase 'height' should be positive"
     if method == 'fft':
-        kx, ky = _getfreqs(x, y, data, shape)
+        kx, ky = _fftfreqs(x, y, shape, shape)
         kz = numpy.sqrt(kx**2 + ky**2)
-        ft = numpy.fft.fft2(numpy.reshape(data, shape))
-        ft_up = numpy.exp(-height*kz)*ft
+        filt = numpy.exp(-height*kz)
+        ft_up = numpy.fft.fft2(numpy.reshape(data, shape))*filt
         cont = numpy.real(numpy.fft.ifft2(ft_up)).ravel()
     elif method == 'space':
         nx, ny = shape
@@ -162,6 +217,8 @@ def tga(x, y, data, shape, method='fd'):
             \left(\frac{\partial T}{\partial x}\right)^2 +
             \left(\frac{\partial T}{\partial y}\right)^2 +
             \left(\frac{\partial T}{\partial z}\right)^2 }
+
+    .. note:: Requires gridded data.
 
     .. warning::
 
@@ -210,6 +267,8 @@ def tga(x, y, data, shape, method='fd'):
 def derivx(x, y, data, shape, order=1, method='fd'):
     """
     Calculate the derivative of a potential field in the x direction.
+
+    .. note:: Requires gridded data.
 
     .. warning::
 
@@ -267,6 +326,8 @@ def derivy(x, y, data, shape, order=1, method='fd'):
     """
     Calculate the derivative of a potential field in the y direction.
 
+    .. note:: Requires gridded data.
+
     .. warning::
 
         If the data is not in SI units, the derivative will be in
@@ -322,6 +383,8 @@ def derivy(x, y, data, shape, order=1, method='fd'):
 def derivz(x, y, data, shape, order=1, method='fft'):
     """
     Calculate the derivative of a potential field in the z direction.
+
+    .. note:: Requires gridded data.
 
     .. warning::
 
