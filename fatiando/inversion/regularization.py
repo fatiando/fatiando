@@ -59,6 +59,9 @@ from .base import OperatorMixin, CachedMethod, CachedMethodPermanent
 from ..utils import safe_dot
 from ..vis import mpl
 
+__all__ = ["Damping", "Smoothness", "Smoothness1D", "Smoothness2D",
+           "TotalVariation", "TotalVariation1D". "TotalVariation2D"]
+
 
 class Regularization(OperatorMixin):
     """

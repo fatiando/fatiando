@@ -252,3 +252,5 @@ array([ 2.,  5.])
 ----
 
 """
+from .misfit import *
+from .regularization import *
