@@ -22,7 +22,7 @@ from __future__ import division
 import numpy as np
 import scipy.sparse
 
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 from ..utils import safe_dot
 from . import ttime2d
 
