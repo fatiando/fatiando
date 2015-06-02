@@ -254,3 +254,4 @@ array([ 2.,  5.])
 """
 from .misfit import *
 from .regularization import *
+from .hyper_param import *
