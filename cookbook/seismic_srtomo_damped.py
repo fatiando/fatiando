@@ -4,7 +4,7 @@ Seismic: 2D straight-ray tomography using damping regularization
 import numpy as np
 from fatiando.mesher import SquareMesh
 from fatiando.seismic import ttime2d, srtomo
-from fatiando.inversion.regularization import Damping, LCurve
+from fatiando.inversion import Damping, LCurve
 from fatiando.vis import mpl
 from fatiando import utils
 
@@ -30,7 +30,7 @@ misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
 regularization = Damping(mesh.size)
 # Will use the l-curve criterion to find the best regularization parameter
 tomo = LCurve(misfit, regularization,
-              [8 ** i for i in np.arange(-8, 8, 1)], jobs=8).fit()
+              [10.**i for i in np.arange(0, 12, 1)], jobs=8).fit()
 mesh.addprop('vp', tomo.estimate_)
 
 # Plot the L-curve annd print the regularization parameter estimated
@@ -41,7 +41,7 @@ print "Estimated regularization parameter: %g" % (tomo.regul_param_)
 
 # Calculate and print the standard deviation of the residuals
 # Should be close to the data error if the inversion was able to fit the data
-residuals = tomo.residuals()
+residuals = tomo[0].residuals()
 print "Assumed error: %g" % (error)
 print "Standard deviation of residuals: %g" % (np.std(residuals))
 
