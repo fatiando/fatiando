@@ -9,11 +9,12 @@ import multiprocessing
 import numpy
 
 from ..vis import mpl
+from .base import OptimizerMixin
 
 __all__ = ['LCurve']
 
 
-class LCurve(object):
+class LCurve(OptimizerMixin):
     """
     Use the L-curve criterion to estimate the regularization parameter.
 
@@ -146,17 +147,46 @@ class LCurve(object):
         self.regul_params = regul_params
         self.datamisfit = datamisfit
         self.regul = regul
-        self.regul_param_ = None
         self.objectives = None
-        self.corner_ = None
-        self.estimate_ = None
-        self.p_ = None
         self.dnorm = None
         self.mnorm = None
         self.fit_method = None
         self.fit_args = None
         self.jobs = jobs
         self.loglog = loglog
+        # Estimated parameters from the L curve
+        self.corner_ = None
+        self.regul_param_ = None
+        self.objetive_ = None
+
+    @property
+    def p_(self):
+        """
+        The estimated parameter vector obtained from the best regularization
+        parameter.
+        """
+        if self.objective_ is None:
+            raise AttributeError(
+                'No optimal solution found. '
+                + 'Run "fit" to run the L-curve analysis')
+        return self.objective_.p_
+
+    def fmt_estimate(self, p):
+        """
+        Return the ``estimate_`` attribute of the optimal solution.
+        """
+        if self.objective_ is None:
+            raise AttributeError(
+                'No optimal solution found. '
+                + 'Run "fit" to run the L-curve analysis')
+        return self.objective_.estimate_
+
+    def __getitem__(self, i):
+        if self.objective_ is None:
+            raise AttributeError(
+                'No optimal solution found. '
+                + 'Run "fit" to run the L-curve analysis')
+        return self.objective_[i]
 
     def fit(self):
         """
@@ -217,15 +247,31 @@ class LCurve(object):
 
     def select_corner(self):
         """
-        Selects the corner value of the L-curve and sets the estimate to it.
+        Select the corner value of the L-curve formed inversion results.
+
+        This is performed automatically after calling the
+        :meth:`~fatiando.inversion.hyper_param.LCurve.fit` method.
+        You can run this method separately after
+        :meth:`~fatiando.inversion.hyper_param.LCurve.fit` has been called to
+        tweak the results.
+
+        You can access the estimated values by:
+
+        * The ``p_`` and ``estimate_`` attributes will hold the estimated
+          parameter vector and formatted estimate, respective, corresponding
+          to the corner value.
+        * The ``regul_param_`` attribute holds the value of the regularization
+          parameter corresponding to the corner value.
+        * The ``corner_`` attribute will hold the index of the corner value in
+          the list of computed solutions.
 
         Uses the Triangle method of Castellanos et al. (2002).
 
-        The index of the corner value is stored in the ``corner_`` attribute.
+        References:
 
-        Returns:
-
-        * self
+        Castellanos, J. L., S. Gomez, and V. Guerra (2002), The triangle method
+        for finding the corner of the L-curve, Applied Numerical Mathematics,
+        43(4), 359-373, doi:10.1016/S0168-9274(01)00179-9.
 
         """
         x, y = self._scale_curve()
@@ -257,39 +303,10 @@ class LCurve(object):
                     angmin = ang
         self.corner_ = corner
         self.regul_param_ = self.regul_params[corner]
-        self.p_ = self.objectives[corner].p_
-        self.estimate_ = self.objectives[corner].estimate_
-        return self
+        self.objective_ = self.objectives[corner]
 
-    def config(self, method, **kwargs):
-        """
-        Configure the optimization method and its parameters.
 
-        This sets the method used by
-        :meth:`~fatiando.inversion.regularization.LCurve.fit` and the keyword
-        arguments that are passed to it.
-
-        Parameters:
-
-        * method : string
-            The optimization method. One of: ``'linear'``, ``'newton'``,
-            ``'levmarq'``, ``'steepest'``, ``'acor'``
-
-        Other keyword arguments that can be passed are the ones allowed by each
-        method.
-
-        See :meth:`fatiando.inversion.base.Misfit.config`.
-
-        Returns:
-
-        * self
-
-        """
-        self.fit_method = method
-        self.fit_args = kwargs
-        return self
-
-    def plot_lcurve(self, guides=True):
+    def plot_lcurve(self, ax=None, guides=True):
         """
         Make a plot of the data-misfit x regularization values.
 
@@ -297,17 +314,22 @@ class LCurve(object):
 
         Parameters:
 
+        * ax : matplotlib Axes
+            If not ``None``, will plot the curve on this Axes instance.
         * guides : True or False
             Plot vertical and horizontal lines across the corner value.
 
         """
+        if ax is None:
+            ax = mpl.gca()
+        else:
+            mpl.sca(ax)
         x, y = self.dnorm, self.mnorm
         if self.loglog:
             mpl.loglog(x, y, '.-k')
         else:
             mpl.plot(x, y, '.-k')
         if guides:
-            ax = mpl.gca()
             vmin, vmax = ax.get_ybound()
             mpl.vlines(x[self.corner_], vmin, vmax)
             vmin, vmax = ax.get_xbound()
