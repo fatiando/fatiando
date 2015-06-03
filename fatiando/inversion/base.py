@@ -120,30 +120,9 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
     the ``p_`` attribute.
 
     The minimum requirement for a class to inherit from ``OptimizerMixin`` is
-    that it must define a :meth:`~fatiando.inversion.base.OptimizerMixin.value`
-    method.
+    that it must define at least a
+    :meth:`~fatiando.inversion.base.OptimizerMixin.value` method.
     """
-
-    @abstractmethod
-    def value(self, p):
-        """
-        Calculates the value of the goal function for a given parameter vector.
-
-        Abstract method that must be implemented when subclassing
-        ``OptimizerMixin``.
-
-        Parameters:
-
-        * p : 1d-array
-            The parameter vector.
-
-        Returns:
-
-        * result : scalar (float, int or complex)
-            The value of the goal function for this parameter vector.
-
-        """
-        pass
 
     def config(self, method, **kwargs):
         """
