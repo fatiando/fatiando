@@ -11,6 +11,30 @@ def _trim(array, shape, d=20):
     return array.reshape(shape)[d : -d, d : -d].ravel()
 
 
+def test_upcontinue():
+    "gravmag.transform upward continuation matches analytical solution"
+    model = [Prism(-1000, 1000, -500, 500, 0, 1000,
+                   {'density': 1000,
+                    'magnetization': utils.ang2vec(10, 20, -30)})]
+    shape = (100, 100)
+    inc, dec = -10, 15
+    x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
+    dz = 10
+    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
+    accuracy = [0.002, 0.2, 0.2, 0.3, 2, 2, 4, 4, 4, 6]
+    for f, atol in zip(fields, accuracy):
+        func = getattr(prism, f)
+        data = func(x, y, z, model)
+        analytical = func(x, y, z + dz, model)
+        up = transform.upcontinue(x, y, data, shape, dz)
+        diff = np.abs(up - analytical)
+        print up.max(), diff.max()
+        check = diff <= atol
+        assert np.all(check), \
+            'Failed for {} (mismatch {:.2f}%)'.format(
+            f, 100*(check.size - check.sum())/check.size)
+
+
 def test_secont_horizontal_derivatives_fd():
     "gravmag.transform 2nd xy derivatives by finite diff against analytical"
     model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
@@ -148,33 +172,3 @@ def test_laplace_from_potential():
     assert np.all(np.abs(laplace) <= 1e-10), \
         "Max: {} Mean: {} STD: {}".format(
             laplace.max(), laplace.mean(), laplace.std())
-
-
-def test_upcontinue():
-    "gravmag.transform upward continuation matches analytical solution"
-    model = [Prism(-1000, 1000, -500, 500, 0, 1000,
-                   {'density': 500,
-                    'magnetization': utils.ang2vec(10, 20, -30)})]
-    shape = (100, 100)
-    inc, dec = -10, 15
-    x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-100)
-    dz = 20
-    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
-    accuracy = [(0.1, 0), (0.1, 0.1), (0.1, 0.1), (0.1, 0.1),
-                (0.1, 0.1), (0.1, 0.1), (0.1, 0.1),
-                (0.1, 0.1), (0.1, 0.1), (0.1, 0.1)]
-    for f, tmp in zip(fields, accuracy):
-        rtol, atol = tmp
-        func = getattr(prism, f)
-        data = func(x, y, z, model)
-        analytical = _trim(func(x, y, z + dz, model), shape, d=20)
-        for method in 'fft'.split():
-            up = transform.upcontinue(x, y, data, shape, dz, method=method)
-            up = _trim(up, shape, d=20)
-            diff = np.abs(up - analytical)
-            assert np.all(diff <= atol + rtol*np.abs(analytical)), \
-                'Failed for {} using the {} method'.format(f, method)
-            print(atol + rtol*np.abs(analytical))
-            #assert_allclose(up, analytical, rtol=rtol, atol=atol,
-                            #err_msg='Failed for {} using the {} method'.format(
-                                #f, method))
