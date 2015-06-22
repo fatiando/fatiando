@@ -151,6 +151,11 @@ def upcontinue(x, y, data, shape, height, method='fft'):
 
     .. note:: x, y, z and height should be in meters.
 
+    .. warning::
+
+        The space domain approach can be slow and is not tested as well as
+        the FFT approach. Use with caution.
+
     Parameters:
 
     * x, y : 1D-arrays
@@ -182,14 +187,17 @@ def upcontinue(x, y, data, shape, height, method='fft'):
         "x and y arrays must have same shape"
     assert height > 0, \
         "Continuation height increase 'height' should be positive"
+    nx, ny = shape
     if method == 'fft':
-        kx, ky = _fftfreqs(x, y, shape, shape)
+        # Pad the array with the edge values to avoid instability
+        padded, padx, pady = _pad_data(data, shape)
+        kx, ky = _fftfreqs(x, y, shape, padded.shape)
         kz = numpy.sqrt(kx**2 + ky**2)
-        filt = numpy.exp(-height*kz)
-        ft_up = numpy.fft.fft2(numpy.reshape(data, shape))*filt
-        cont = numpy.real(numpy.fft.ifft2(ft_up)).ravel()
+        upcont_ft = numpy.fft.fft2(padded)*numpy.exp(-height*kz)
+        cont = numpy.real(numpy.fft.ifft2(upcont_ft))
+        # Remove padding
+        cont = cont[padx : padx + nx, pady : pady + ny].ravel()
     elif method == 'space':
-        nx, ny = shape
         dx = (x.max() - x.min())/(nx - 1)
         dy = (y.max() - y.min())/(ny - 1)
         area = dx*dy
