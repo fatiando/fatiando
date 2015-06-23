@@ -15,7 +15,7 @@ def test_upcontinue():
     "gravmag.transform upward continuation matches analytical solution"
     model = [Prism(-1000, 1000, -500, 500, 0, 1000,
                    {'density': 1000,
-                    'magnetization': utils.ang2vec(10, 20, -30)})]
+                    'magnetization': utils.ang2vec(5, 20, -30)})]
     shape = (100, 100)
     inc, dec = -10, 15
     x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
@@ -28,11 +28,19 @@ def test_upcontinue():
         analytical = func(x, y, z + dz, model)
         up = transform.upcontinue(x, y, data, shape, dz)
         diff = np.abs(up - analytical)
-        print up.max(), diff.max()
         check = diff <= atol
         assert np.all(check), \
             'Failed for {} (mismatch {:.2f}%)'.format(
             f, 100*(check.size - check.sum())/check.size)
+    data = prism.tf(x, y, z, model, inc, dec)
+    analytical = prism.tf(x, y, z + dz, model, inc, dec)
+    up = transform.upcontinue(x, y, data, shape, dz)
+    diff = np.abs(up - analytical)
+    print up.max(), diff.max()
+    check = diff <= 15
+    assert np.all(check), \
+        'Failed for tf (mismatch {:.2f}%)'.format(
+        100*(check.size - check.sum())/check.size)
 
 
 def test_secont_horizontal_derivatives_fd():
