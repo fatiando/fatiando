@@ -121,7 +121,7 @@ def depth_2_time(n_samples, n_traces, model, dt=2.e-3, dz=1., rho=1.):
        rho_l=_resampling(rho,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces)
     except TypeError:
         rho_l = rho
-    return vel_l,TWT_ts,rho_l
+    return vel_l, rho_l
 
 def _resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces):
     """
