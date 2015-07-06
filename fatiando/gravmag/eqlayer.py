@@ -335,23 +335,23 @@ def _bkmatrix(grid, degree):
     >>> grid = PointGrid((0, 1, 0, 2), 10, (2, 2))
     >>> print _bkmatrix(grid, 2)
     [[ 1.  0.  0.  0.  0.  0.]
-     [ 1.  0.  1.  0.  0.  1.]
      [ 1.  2.  0.  4.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.]
      [ 1.  2.  1.  4.  2.  1.]]
     >>> print _bkmatrix(grid, 1)
     [[ 1.  0.  0.]
-     [ 1.  0.  1.]
      [ 1.  2.  0.]
+     [ 1.  0.  1.]
      [ 1.  2.  1.]]
     >>> print _bkmatrix(grid, 3)
     [[ 1.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-     [ 1.  0.  1.  0.  0.  1.  0.  0.  0.  1.]
      [ 1.  2.  0.  4.  0.  0.  8.  0.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.  0.  0.  0.  1.]
      [ 1.  2.  1.  4.  2.  1.  8.  4.  2.  1.]]
 
     """
     bmatrix = numpy.transpose(
-        [(grid.x ** i) * (grid.y ** j)
+        [(grid.x**i)*(grid.y**j)
          for l in xrange(1, degree + 2)
          for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
     return bmatrix
