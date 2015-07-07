@@ -801,7 +801,10 @@ class PointGrid(object):
     Create a regular grid of 3D point sources (spheres of unit volume).
 
     Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
-    Grid points are ordered with x varying first, then y (like a C matrix).
+
+    Grid points are ordered like a C matrix, first each row in a column, then
+    change columns. In this case, the x direction (North-South) are the rows
+    and y (East-West) are the columns.
 
     Parameters:
 
@@ -819,31 +822,31 @@ class PointGrid(object):
 
     Examples::
 
-    >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
-    >>> g.shape
-    (2, 3)
-    >>> g.size
-    6
-    >>> g[0].center
-    array([   0.,    2.,  200.])
-    >>> g[-1].center
-    array([  10.,    6.,  200.])
-    >>> for p in g:
-    ...     p.center
-    array([   0.,    2.,  200.])
-    array([   0.,    4.,  200.])
-    array([   0.,    6.,  200.])
-    array([  10.,    2.,  200.])
-    array([  10.,    4.,  200.])
-    array([  10.,    6.,  200.])
-    >>> g.x.reshape(g.shape)
-    array([[  0.,   0.,   0.],
-           [ 10.,  10.,  10.]])
-    >>> g.y.reshape(g.shape)
-    array([[ 2.,  4.,  6.],
-           [ 2.,  4.,  6.]])
-    >>> g.dx, g.dy
-    (10.0, 2.0)
+        >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
+        >>> g.shape
+        (2, 3)
+        >>> g.size
+        6
+        >>> g[0].center
+        array([   0.,    2.,  200.])
+        >>> g[-1].center
+        array([  10.,    6.,  200.])
+        >>> for p in g:
+        ...     p.center
+        array([   0.,    2.,  200.])
+        array([   0.,    4.,  200.])
+        array([   0.,    6.,  200.])
+        array([  10.,    2.,  200.])
+        array([  10.,    4.,  200.])
+        array([  10.,    6.,  200.])
+        >>> g.x.reshape(g.shape)
+        array([[  0.,   0.,   0.],
+               [ 10.,  10.,  10.]])
+        >>> g.y.reshape(g.shape)
+        array([[ 2.,  4.,  6.],
+               [ 2.,  4.,  6.]])
+        >>> g.dx, g.dy
+        (10.0, 2.0)
 
     """
 
