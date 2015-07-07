@@ -798,7 +798,7 @@ class PolygonalPrism(GeometricElement):
 
 class PointGrid(object):
     """
-    Create a grid of 3D point sources (spheres of unit volume).
+    Create a regular grid of 3D point sources (spheres of unit volume).
 
     Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
     Grid points are ordered with x varying first, then y (like a C matrix).
@@ -960,7 +960,7 @@ class PointGrid(object):
         totalx, totaly = self.shape
         if totalx % nx != 0 or totaly % ny != 0:
             raise ValueError(
-                'Cannot split! nx and ny must be divible by grid shape')
+                'Cannot split! nx and ny must be divisible by grid shape')
         x1, x2, y1, y2 = self.area
         xs = numpy.linspace(x1, x2, totalx)
         ys = numpy.linspace(y1, y2, totaly)
