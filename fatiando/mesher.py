@@ -717,6 +717,7 @@ class Sphere(GeometricElement):
         self.y = float(y)
         self.z = float(z)
         self.radius = float(radius)
+        self.center = numpy.array([x, y, z])
 
     def __str__(self):
         """Return a string representation of the sphere."""
@@ -796,7 +797,6 @@ class PolygonalPrism(GeometricElement):
 
 
 class PointGrid(object):
-
     """
     Create a grid of 3D point sources (spheres of unit volume).
 
@@ -816,6 +816,34 @@ class PointGrid(object):
         Each key should be the name of a physical property. The corresponding
         value should be a list with the values of that particular property for
         each point in the grid.
+
+    Examples::
+
+    >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
+    >>> g.shape
+    (2, 3)
+    >>> g.size
+    6
+    >>> g[0].center
+    array([   0.,    2.,  200.])
+    >>> g[-1].center
+    array([  10.,    6.,  200.])
+    >>> for p in g:
+    ...     p.center
+    array([   0.,    2.,  200.])
+    array([   0.,    4.,  200.])
+    array([   0.,    6.,  200.])
+    array([  10.,    2.,  200.])
+    array([  10.,    4.,  200.])
+    array([  10.,    6.,  200.])
+    >>> g.x.reshape(g.shape)
+    array([[  0.,   0.,   0.],
+           [ 10.,  10.,  10.]])
+    >>> g.y.reshape(g.shape)
+    array([[ 2.,  4.,  6.],
+           [ 2.,  4.,  6.]])
+    >>> g.dx, g.dy
+    (10.0, 2.0)
 
     """
 
@@ -903,29 +931,29 @@ class PointGrid(object):
             ...                   10, 11, 12])
             >>> grids = g.split((2, 3))
             >>> for s in grids:
-            ...     print s.props['bla']
-            [1 4]
-            [2 5]
-            [3 6]
-            [ 7 10]
-            [ 8 11]
-            [ 9 12]
+            ...     s.props['bla']
+            array([1, 4])
+            array([2, 5])
+            array([3, 6])
+            array([ 7, 10])
+            array([ 8, 11])
+            array([ 9, 12])
             >>> for s in grids:
-            ...     print s.x
-            [ 0.  1.]
-            [ 0.  1.]
-            [ 0.  1.]
-            [ 2.  3.]
-            [ 2.  3.]
-            [ 2.  3.]
+            ...     s.x
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
             >>> for s in grids:
-            ...     print s.y
-            [ 0.  0.]
-            [ 1.  1.]
-            [ 2.  2.]
-            [ 0.  0.]
-            [ 1.  1.]
-            [ 2.  2.]
+            ...     s.y
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
 
         """
         nx, ny = shape
