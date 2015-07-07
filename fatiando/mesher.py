@@ -976,8 +976,8 @@ class PointGrid(object):
                 props = {}
                 for p in self.props:
                     pmatrix = numpy.reshape(self.props[p], self.shape)
-                    props[p] = pmatrix[i*mx : (i + 1)*mx,
-                                       j*my : (j + 1)*my].ravel()
+                    props[p] = pmatrix[i*mx:(i + 1)*mx,
+                                       j*my:(j + 1)*my].ravel()
                 subs.append(PointGrid(area, self.z, (mx, my), props))
         return subs
 
