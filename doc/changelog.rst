@@ -10,7 +10,15 @@ Version (development)
 
 **Changes**:
 
-* **IMPORTANT BUG FIX**: ``fatiando,gridder.regular`` and many other places in
+* **IMPORTANT BUG FIX**: Fixed wrong ordering of nodes in
+  ``fatiando.mesher.PointGrid``. The order of nodes had the same problem as the
+  regular grids (fixed in
+  `196 <https://github.com/fatiando/fatiando/pull/196>`__). This was not caught
+  before because ``PointGrid`` didn't use ``gridder.regular`` to generate its
+  internal regular grid. This is an example of why reuse is a good thing! Tests
+  now should catch any future problems.
+  (`PR 209 <https://github.com/fatiando/fatiando/pull/209>`__)
+* **IMPORTANT BUG FIX**: ``fatiando.gridder.regular`` and many other places in
   Fatiando where using the wrong convention for x, y dimensions.
   x should point North and y East. Thus, a data matrix (regular grid) should
   have x varying in the lines and y varying in the columns. This is **oposite**

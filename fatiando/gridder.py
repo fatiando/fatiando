@@ -154,6 +154,11 @@ def regular(area, shape, z=None):
                [ 0. ,  2.5,  5. ],
                [ 0. ,  2.5,  5. ],
                [ 0. ,  2.5,  5. ]])
+        >>> x, y = regular((0, 0, 0, 5), (1, 3))
+        >>> x.reshape((1, 3))
+        array([[ 0.,  0.,  0.]])
+        >>> y.reshape((1, 3))
+        array([[ 0. ,  2.5,  5. ]])
         >>> x, y, z = regular((0, 10, 0, 5), (5, 3), z=-10)
         >>> z.reshape((5, 3))
         array([[-10., -10., -10.],
@@ -166,9 +171,9 @@ def regular(area, shape, z=None):
     """
     nx, ny = shape
     x1, x2, y1, y2 = area
-    assert x1 < x2, \
+    assert x1 <= x2, \
         "Invalid area dimensions {}, {}. x1 must be < x2.".format(x1, x2)
-    assert y1 < y2, \
+    assert y1 <= y2, \
         "Invalid area dimensions {}, {}. y1 must be < y2.".format(y1, y2)
     xs = numpy.linspace(x1, x2, nx)
     ys = numpy.linspace(y1, y2, ny)
