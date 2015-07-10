@@ -48,7 +48,7 @@ def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
             a_1 k_x^2 + a_2 k_y^2 + a_3 k_x k_y +
             i|k|(b_1 k_x + b_2 k_y)}
 
-    in which :math:`k_x` and :math:`k_y` are the wave-numbers if the x and y
+    in which :math:`k_x` and :math:`k_y` are the wave-numbers in the x and y
     directions and
 
     .. math::
@@ -60,8 +60,8 @@ def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
         b_1 = m_x f_z + m_z f_x \\
         b_2 = m_y f_z + m_z f_y
 
-    :math:`\mathbf{m} = (m_x, m_y, m_z)` is the unit-vector of the source
-    total magnetization and
+    :math:`\mathbf{m} = (m_x, m_y, m_z)` is the unit-vector of the total
+    magnetization of the source and
     :math:`\mathbf{f} = (f_x, f_y, f_z)` is the unit-vector of the Geomagnetic
     field.
 
@@ -124,37 +124,24 @@ def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
     return data_pole
 
 
-def upcontinue(x, y, data, shape, height, method='fft'):
+def upcontinue(x, y, data, shape, height):
     r"""
     Upward continuation of potential field data.
 
-    Has the option of calculating the continuation through the Fast Fourier
-    Transform in the wavenumber domain or through numerical integration of the
-    analytical formula below in the space domain:
+    Calculates the continuation through the Fast Fourier Transform in the
+    wavenumber domain (Blakely, 1996):
 
     .. math::
 
-        h_{up}(x,y,z) = \frac{z-z_0}{2\pi}\int_{-\infty}^{\infty}\int_{-\infty}^
-        {\infty} \frac{h(x',y',z_0) }{[(x-x')^2 + (y-y')^2 + (z-z_0)^2
-        ]^{\frac{3}{2}}} dx' dy'
+        F\{h_{up}\} = F\{h\} e^{-\Delta z |k|}
 
-    For the FFT based continuation, the Fourier transform of the upward
-    continued field is calculated using (Blakely, 1996):
-
-    .. math::
-
-        F\{h_{up}\} = F\{h\} e^{-(z - z_0) |k|}
-
-    and then transformed back to the space domain.
+    and then transformed back to the space domain. :math:`h_{up}` is the upward
+    continue data, :math:`\Delta z` is the height increase, :math:`F` denotes
+    the Fourier Transform,  and :math:`|k|` is the wavenumber modulus.
 
     .. note:: Requires gridded data.
 
     .. note:: x, y, z and height should be in meters.
-
-    .. warning::
-
-        The space domain approach can be slow and is not tested as well as
-        the FFT approach. Use with caution.
 
     Parameters:
 
@@ -166,9 +153,6 @@ def upcontinue(x, y, data, shape, height, method='fft'):
         The shape of the grid
     * height : float
         The height increase (delta z) in meters.
-    * method : string
-        The method used to upward continue. Can be either: ``'fft'`` for FFT
-        based continuation or ``'space'`` for the space domain approach.
 
     Returns:
 
@@ -181,31 +165,38 @@ def upcontinue(x, y, data, shape, height, method='fft'):
     Applications, Cambridge University Press.
 
     """
-    assert method in ['fft', 'space'], \
-        "Invalid method '{}'".format(method)
     assert x.shape == y.shape, \
         "x and y arrays must have same shape"
     assert height > 0, \
         "Continuation height increase 'height' should be positive"
     nx, ny = shape
-    if method == 'fft':
-        # Pad the array with the edge values to avoid instability
-        padded, padx, pady = _pad_data(data, shape)
-        kx, ky = _fftfreqs(x, y, shape, padded.shape)
-        kz = numpy.sqrt(kx**2 + ky**2)
-        upcont_ft = numpy.fft.fft2(padded)*numpy.exp(-height*kz)
-        cont = numpy.real(numpy.fft.ifft2(upcont_ft))
-        # Remove padding
-        cont = cont[padx : padx + nx, pady : pady + ny].ravel()
-    elif method == 'space':
-        dx = (x.max() - x.min())/(nx - 1)
-        dy = (y.max() - y.min())/(ny - 1)
-        area = dx*dy
-        deltaz_sqr = (height)**2
-        cont = numpy.zeros_like(data)
-        for i, j, g in zip(x, y, data):
-            cont += g*area*((x - i)**2 + (y - j)**2 + deltaz_sqr)**(-1.5)
-        cont *= abs(height)/(2*numpy.pi)
+    # Pad the array with the edge values to avoid instability
+    padded, padx, pady = _pad_data(data, shape)
+    kx, ky = _fftfreqs(x, y, shape, padded.shape)
+    kz = numpy.sqrt(kx**2 + ky**2)
+    upcont_ft = numpy.fft.fft2(padded)*numpy.exp(-height*kz)
+    cont = numpy.real(numpy.fft.ifft2(upcont_ft))
+    # Remove padding
+    cont = cont[padx : padx + nx, pady : pady + ny].ravel()
+    return cont
+
+
+def _upcontinue_space(x, y, data, shape, height):
+    """
+    Upward continuation using the space-domain formula.
+
+    DEPRECATED. Use the better implementation using FFT. Kept here for
+    historical reasons.
+
+    """
+    dx = (x.max() - x.min())/(nx - 1)
+    dy = (y.max() - y.min())/(ny - 1)
+    area = dx*dy
+    deltaz_sqr = (height)**2
+    cont = numpy.zeros_like(data)
+    for i, j, g in zip(x, y, data):
+        cont += g*area*((x - i)**2 + (y - j)**2 + deltaz_sqr)**(-1.5)
+    cont *= abs(height)/(2*numpy.pi)
     return cont
 
 
