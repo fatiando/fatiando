@@ -11,6 +11,24 @@ def _trim(array, shape, d=20):
     return array.reshape(shape)[d : -d, d : -d].ravel()
 
 
+def test_pole_reduce():
+    "gravmag.transform pole reduction matches analytical solution"
+    # Use remanent magnetization
+    sinc, sdec = -70, 30
+    model = [Prism(-100, 100, -500, 500, 0, 100,
+                   {'density': 1000,
+                    'magnetization': utils.ang2vec(5, sinc, sdec)})]
+    # Use low latitudes to make sure that there are no problems with FFT
+    # instability.
+    inc, dec = -60, -15
+    shape = (100, 100)
+    x, y, z = gridder.regular([-2000, 2000, -2000, 2000], shape, z=-100)
+    data = prism.tf(x, y, z, model, inc, dec)
+    pole = transform.reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec)
+    pole_true = prism.tf(x, y, z, model, -90, 0, pmag=utils.ang2vec(5, -90, 0))
+    assert_allclose(pole, pole_true, atol=10, rtol=0.01)
+
+
 def test_upcontinue():
     "gravmag.transform upward continuation matches analytical solution"
     model = [Prism(-1000, 1000, -500, 500, 0, 1000,
