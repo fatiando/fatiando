@@ -85,14 +85,16 @@ class LCurve(OptimizerMixin):
     >>> tts = utils.contaminate(tts, 0.01, percent=True, seed=0)
 
     Now we can setup a tomography by creating the necessary data misfit
-    (`SRTomo`) and regularization (`Smoothness2D`) objects:
+    (``SRTomo``) and regularization (``Smoothness2D``) objects. We'll normalize
+    the data misfit by the number of data points to make the scale of the
+    regularization parameter more tractable.
 
     >>> mesh = SquareMesh(area, shape)
-    >>> datamisfit = srtomo.SRTomo(tts, srcs, recs, mesh)
+    >>> datamisfit = (1./tts.size)*srtomo.SRTomo(tts, srcs, recs, mesh)
     >>> regul = Smoothness2D(mesh.shape)
 
-    The tomography solver will be the `LCurve` solver. It works by calling
-    `fit()` and accessing `estimate_`, exactly like any other solver:
+    The tomography solver will be the ``LCurve`` solver. It works by calling
+    ``fit()`` and accessing ``estimate_``, exactly like any other solver:
 
     >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
     >>> e = tomo.fit().estimate_
@@ -108,37 +110,38 @@ class LCurve(OptimizerMixin):
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
 
-    The estimated regularization parameter is stored in `regul_param_`:
+    The estimated regularization parameter is stored in ``regul_param_``:
 
     >>> tomo.regul_param_
     1e-05
 
-    The `LCurve` object also exposes the `residuals()` and `predicted()`
-    methods of the data misfit class:
+    The ``LCurve`` object behaves like a normal multi-objective function. You
+    can index it to access the data misfit and regularization parts. For
+    example, to get the residuals vector or the predicted data:
 
-    >>> residuals = tomo.residuals()
+    >>> predicted = tomo[0].predicted()
+    >>> residuals = tomo[0].residuals()
     >>> print '%.4f %.4f' % (residuals.mean(), residuals.std())
     -0.0000 0.0047
 
-    `LCurve` also has a `config` method to configure the optimization process
-    for non-linear problems, for example:
+    ``LCurve`` also has a ``config`` method to configure the optimization
+    process for non-linear problems, for example:
 
-    >>> initial = 1./4.*numpy.ones(mesh.size)
-    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
-    >>> e = tomo.config('levmarq', initial=initial).fit().estimate_
+    >>> initial = numpy.ones(mesh.size)
+    >>> e = tomo.config('newton', initial=initial).fit().estimate_
     >>> tomo.regul_param_
-    1e-05
+    0.0001
     >>> print numpy.array_repr(e.reshape(shape), precision=0)
-    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+    array([[  4.,   4.,   3.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  12.,   9.,  11.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,  11.,  10.,  10.,   4.,   4.,   4.],
            [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  12.,  10.,  11.,   9.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+           [  4.,   4.,   4.,   4.,   4.,   4.,   5.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   5.]])
 
     """
 
