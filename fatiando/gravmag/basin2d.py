@@ -19,9 +19,9 @@ More complex parametrizations are:
 
 """
 from __future__ import division
-import numpy
+import numpy as np
 
-from ..inversion.base import Misfit
+from ..inversion.misfit import Misfit
 from . import talwani
 from ..mesher import Polygon
 from .. import utils
@@ -81,66 +81,69 @@ class PolygonalBasinGravity(Misfit):
 
     Lets run an inversion on synthetic data from a simple model of a trapezoid
     basin (a polygon with 4 vertices). We'll assume that the horizontal limits
-    of the basin are the same as the limits of the data::
+    of the basin are the same as the limits of the data:
 
-        >>> from fatiando.mesher import Polygon
-        >>> from fatiando.gravmag import talwani
-        >>> import numpy as np
-        >>> # Make some synthetic data from a simple basin
-        >>> props = {'density': -500}
-        >>> model = [Polygon([[3000, 0], [2000, 800], [1000, 500], [0, 0]],
-        ...                  props)]
-        >>> x = np.linspace(0, 3000, 50)
-        >>> z = -np.ones_like(x)  # Put data at 1m height
-        >>> data = talwani.gz(x, z, model)
-        >>> # Make the solver, configure, and invert.
-        >>> # Will use only 2 points because the two in the corners are
-        >>> # considered fixed in the inversion (at 'top').
-        >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0)
-        >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
-        Misfit instance
-        >>> misfit.p_
-        array([ 800.,  500.])
-        >>> type(misfit.estimate_)
-        <class 'fatiando.mesher.Polygon'>
-        >>> misfit.estimate_.vertices
-        array([[ 3000.,     0.],
-               [ 2000.,   800.],
-               [ 1000.,   500.],
-               [    0.,     0.]])
+    >>> from fatiando.mesher import Polygon
+    >>> from fatiando.gravmag import talwani
+    >>> import numpy as np
+    >>> # Make some synthetic data from a simple basin
+    >>> props = {'density': -500}
+    >>> model = [Polygon([[3000, 0], [2000, 800], [1000, 500], [0, 0]],
+    ...                  props)]
+    >>> x = np.linspace(0, 3000, 50)
+    >>> z = -np.ones_like(x)  # Put data at 1m height
+    >>> data = talwani.gz(x, z, model)
+    >>> # Make the solver, configure, and invert.
+    >>> # Will use only 2 points because the two in the corners are
+    >>> # considered fixed in the inversion (at 'top').
+    >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0)
+    >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
+    Misfit instance
+    >>> misfit.p_
+    array([ 800.,  500.])
+    >>> type(misfit.estimate_)
+    <class 'fatiando.mesher.Polygon'>
+    >>> misfit.estimate_.vertices
+    array([[ 3000.,     0.],
+           [ 2000.,   800.],
+           [ 1000.,   500.],
+           [    0.,     0.]])
 
     If the x range of the data points is larger than the basin, you can specify
     a horizontal range for the basin model. When this is not specified, it is
-    deduced from the data::
+    deduced from the data:
 
-        >>> x = np.linspace(-500, 3500, 80)
-        >>> z = -np.ones_like(x)
-        >>> data = talwani.gz(x, z, model)
-        >>> # Specify that the model used for inversion should be within
-        >>> # x => [0, 3000]
-        >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0,
-        ...                                xlim=[0, 3000])
-        >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
-        Misfit instance
-        >>> misfit.p_
-        array([ 800.,  500.])
-        >>> misfit.estimate_.vertices
-        array([[ 3000.,     0.],
-               [ 2000.,   800.],
-               [ 1000.,   500.],
-               [    0.,     0.]])
+    >>> x = np.linspace(-500, 3500, 80)
+    >>> z = -np.ones_like(x)
+    >>> data = talwani.gz(x, z, model)
+    >>> # Specify that the model used for inversion should be within
+    >>> # x => [0, 3000]
+    >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0,
+    ...                                xlim=[0, 3000])
+    >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
+    Misfit instance
+    >>> misfit.p_
+    array([ 800.,  500.])
+    >>> misfit.estimate_.vertices
+    array([[ 3000.,     0.],
+           [ 2000.,   800.],
+           [ 1000.,   500.],
+           [    0.,     0.]])
 
 
     """
     def __init__(self, x, z, data, npoints, props, top=0, xlim=None):
         super(PolygonalBasinGravity, self).__init__(
-            data=data, nparams=npoints, islinear=False,
-            positional=dict(x=x, z=z),
-            model=dict(top=top,
-                       props=props))
+            data=data.ravel(), nparams=npoints, islinear=False)
+        self.npoints = npoints
+        self.x = x
+        self.z = z
+        self.props = props
+        self.top = top
         if xlim is None:
             xlim = [x.min(), x.max()]
-        self._modelx = numpy.linspace(xlim[0], xlim[1], npoints + 2)[::-1]
+        self.xlim = xlim
+        self._modelx = np.linspace(xlim[0], xlim[1], npoints + 2)[::-1]
 
     def p2vertices(self, p):
         """
@@ -156,73 +159,75 @@ class PolygonalBasinGravity(Misfit):
         * vertices : 2d-array
             Like a list of [x, z] coordinates of each vertex
 
-        Examples::
+        Examples:
 
-            >>> import numpy as np
-            >>> # Make some arrays to create the estimator clas
-            >>> x = np.linspace(-100, 300, 50)
-            >>> z = np.zeros_like(x)
-            >>> data = z
-            >>> misfit = PolygonalBasinGravity(x, z, data, 3, {}, top=-100)
-            >>> misfit.p2vertices([1, 2, 3])
-            array([[ 300., -100.],
-                   [ 200.,    1.],
-                   [ 100.,    2.],
-                   [   0.,    3.],
-                   [-100., -100.]])
+        >>> import numpy as np
+        >>> # Make some arrays to create the estimator clas
+        >>> x = np.linspace(-100, 300, 50)
+        >>> z = np.zeros_like(x)
+        >>> data = z
+        >>> misfit = PolygonalBasinGravity(x, z, data, 3, {}, top=-100)
+        >>> misfit.p2vertices([1, 2, 3])
+        array([[ 300., -100.],
+               [ 200.,    1.],
+               [ 100.,    2.],
+               [   0.,    3.],
+               [-100., -100.]])
 
         """
-        h = self.model['top']
-        verts = numpy.empty((self.nparams + 2, 2))
+        h = self.top
+        verts = np.empty((self.nparams + 2, 2))
         verts[:, 0] = self._modelx
-        verts[:, 1] = numpy.concatenate([[h], p, [h]])
+        verts[:, 1] = np.concatenate([[h], p, [h]])
         return verts
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
         """
         Calculate the predicted data for a parameter vector.
         """
-        x, z = self.positional['x'], self.positional['z']
         verts = self.p2vertices(p)
-        poly = Polygon(verts, self.model['props'])
-        return talwani.gz(x, z, [poly])
+        poly = Polygon(verts, self.props)
+        return talwani.gz(self.x, self.z, [poly])
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
         """
         Calculate the Jacobian (sensitivity) matrix for a parameter vector.
         """
-        x, z = self.positional['x'], self.positional['z']
-        props = self.model['props']
         verts = self.p2vertices(p)
-        delta = numpy.array([0, 1])
-        jac = numpy.empty((self.ndata, self.nparams))
+        delta = np.array([0, 1])
+        jac = np.empty((self.ndata, self.nparams))
         for i in xrange(self.nparams):
             diff = Polygon([verts[i + 2], verts[i + 1] - delta,
-                            verts[i], verts[i + 1] + delta], props)
-            jac[:, i] = talwani.gz(x, z, [diff])/(2 * delta[1])
+                            verts[i], verts[i + 1] + delta], self.props)
+            jac[:, i] = talwani.gz(self.x, self.z, [diff])/(2*delta[1])
         return jac
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Perform the inversion and fit the data.
+        Convert the parameter vector to a  :class:`fatiando.mesher.Polygon` so
+        that it can be used for plotting and forward modeling.
 
-        Remember to call ``config`` before this to set the optimization method.
+        Examples:
 
-        The results are stored in the attributes ``p_`` and ``estimate_``.
-        ``p_`` is the parameter  vector. ``estimate`` is a
-        :class:`~fatiando.mesher.Polygon`` that represented the estimate basin
-        (made from ``p_``).
-
-        Returns:
-
-        * self
-            A copy of this instance
+        >>> import numpy as np
+        >>> # Make some arrays to create the estimator clas
+        >>> x = np.linspace(-100, 300, 50)
+        >>> z = np.zeros_like(x)
+        >>> data = z
+        >>> misfit = PolygonalBasinGravity(x, z, data, 3, {}, top=-100)
+        >>> poly = misfit.fmt_estimate([1, 2, 3])
+        >>> type(poly)
+        <class 'fatiando.mesher.Polygon'>
+        >>> poly.vertices
+        array([[ 300., -100.],
+               [ 200.,    1.],
+               [ 100.,    2.],
+               [   0.,    3.],
+               [-100., -100.]])
 
         """
-        super(PolygonalBasinGravity, self).fit()
-        self._estimate = Polygon(self.p2vertices(self.p_),
-                                 self.model['props'])
-        return self
+        poly = Polygon(self.p2vertices(p), self.props)
+        return poly
 
 
 class Triangular(Misfit):
@@ -270,71 +275,73 @@ class Triangular(Misfit):
 
         The recommended solver for this inverse problem is the
         Levemberg-Marquardt method. Since this is a non-linear problem, set the
-        desired method and initial solution using the
-        :meth:`~fatiando.inversion.base.FitMixin.config` method.
-        See the example bellow.
+        desired method and initial solution using the ``config`` method of
+        this class. See the example bellow.
 
-    Example using synthetic data::
+    Example using synthetic data:
 
-        >>> import numpy
-        >>> from fatiando.mesher import Polygon
-        >>> from fatiando.gravmag import talwani
-        >>> # Make a triangular basin model (will estimate the last point)
-        >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
-        >>> left, middle, right = verts
-        >>> model = Polygon(verts, {'density':500})
-        >>> # Generate the synthetic gz profile
-        >>> x = numpy.linspace(0, 100000, 50)
-        >>> z = numpy.zeros_like(x)
-        >>> gz = talwani.gz(x, z, [model])
-        >>> # Make a solver and fit it to the data
-        >>> solver = Triangular(x, z, gz, [left, middle], 500).config(
-        ...     'levmarq', initial=[10000, 1000]).fit()
-        >>> # p_ is the estimated parameter vector (x and z in this case)
-        >>> x, z = solver.p_
-        >>> print '%.1f, %.1f' % (x, z)
-        50000.0, 5000.0
-        >>> # The parameter vector is not that useful so use estimate_ to get a
-        >>> # Polygon object
-        >>> poly = solver.estimate_
-        >>> poly.vertices
-        array([[  1.00000000e+04,   1.00000000e+00],
-               [  9.00000000e+04,   1.00000000e+00],
-               [  5.00000000e+04,   5.00000000e+03]])
-        >>> poly.props
-        {'density': 500}
-        >>> # Check is the residuals are all small
-        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
-        True
+    >>> import numpy as np
+    >>> from fatiando.mesher import Polygon
+    >>> from fatiando.gravmag import talwani
+    >>> # Make a triangular basin model (will estimate the last point)
+    >>> verts = [(10000, 1), (90000, 1), (50000, 5000)]
+    >>> left, middle, right = verts
+    >>> model = Polygon(verts, {'density':500})
+    >>> # Generate the synthetic gz profile
+    >>> x = np.linspace(0, 100000, 50)
+    >>> z = np.zeros_like(x)
+    >>> gz = talwani.gz(x, z, [model])
+    >>> # Make a solver and fit it to the data
+    >>> solver = Triangular(x, z, gz, [left, middle], 500).config(
+    ...     'levmarq', initial=[10000, 1000]).fit()
+    >>> # p_ is the estimated parameter vector (x and z in this case)
+    >>> x, z = solver.p_
+    >>> '{:.1f}, {:.1f}'.format(x, z)
+    50000.0, 5000.0
+    >>> # The parameter vector is not that useful so use estimate_ to get a
+    >>> # Polygon object
+    >>> poly = solver.estimate_
+    >>> poly.vertices
+    array([[  1.00000000e+04,   1.00000000e+00],
+           [  9.00000000e+04,   1.00000000e+00],
+           [  5.00000000e+04,   5.00000000e+03]])
+    >>> poly.props
+    {'density': 500}
+    >>> # Check is the residuals are all small
+    >>> np.all(np.abs(solver.residuals()) < 10**-10)
+    True
 
     """
 
     def __init__(self, x, z, gz, verts, density):
-        if len(x) != len(z) != len(gz):
-            raise ValueError("x, z, and data must be of same length")
-        if len(verts) != 2:
-            raise ValueError("Need exactly 2 vertices. %d given"
-                             % (len(verts)))
-        super(Triangular, self).__init__(
-            data=gz,
-            positional=dict(x=numpy.array(x, dtype=numpy.float),
-                            z=numpy.array(z, dtype=numpy.float)),
-            model=dict(density=density, verts=list(verts)),
-            nparams=2, islinear=False)
+        assert x.shape == z.shape == gz.shape, \
+            "x, z, and data must be of same length"
+        assert len(verts) == 2, \
+            "Need exactly 2 vertices. {} given".format(len(verts))
+        super(Triangular, self).__init__(data=gz, nparams=2, islinear=False)
+        self.x = np.array(x, dtype=np.float)
+        self.z = np.array(z, dtype=np.float)
+        self.density = density
+        self.verts = list(verts)
 
-    def _get_predicted(self, p):
-        polygon = Polygon(self.model['verts'] + [p],
-                          {'density': self.model['density']})
-        x, z = self.positional['x'], self.positional['z']
-        return talwani.gz(x, z, [polygon])
+    def predicted(self, p):
+        """
+        Calculate predicted data for a given parameter vector.
+        """
+        polygon = Polygon(self.verts + [p], {'density': self.density})
+        return talwani.gz(self.x, self.z, [polygon])
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
+        """
+        Calculate the Jacobian (sensitivity) matrix for a given parameter
+        vector.
+        """
         delta = 1.
-        props = {'density': self.model['density']}
-        verts = self.model['verts']
-        xp, zp = self.positional['x'], self.positional['z']
+        props = {'density': self.density}
+        xp, zp = self.x, self.z
+        verts = self.verts
         x, z = p
-        jac = numpy.transpose([
+        jac = np.transpose([
             (talwani.gz(xp, zp, [Polygon(verts + [[x + delta, z]], props)])
              - talwani.gz(xp, zp, [Polygon(verts + [[x - delta, z]], props)])
              ) / (2. * delta),
@@ -343,26 +350,15 @@ class Triangular(Misfit):
              ) / (2. * delta)])
         return jac
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Solve for the third vertice of the triangle.
-
-        After solving, use the ``estimate_`` attribute to get a
-        :class:`~fatiando.mesher.Polygon` representing the triangle.
-
-        The estimate parameter vector (x and z) can be accessed through the
-        ``p_`` attribute.
-
-        See the the docstring of :class:`~fatiando.gravmag.basin2d.Triangular`
-        for examples.
-
+        Convert the parameter vector to a  :class:`~fatiando.mesher.Polygon` so
+        that it can be used for plotting and forward modeling.
         """
-        super(Triangular, self).fit()
-        left, right = self.model['verts']
-        props = {'density': self.model['density']}
-        self._estimate = Polygon(numpy.array([left, right, self.p_]),
-                                 props=props)
-        return self
+        left, right = self.verts
+        props = {'density': self.density}
+        poly = Polygon(np.array([left, right, p]), props=props)
+        return poly
 
 
 class Trapezoidal(Misfit):
@@ -419,7 +415,7 @@ class Trapezoidal(Misfit):
 
     Example with synthetic data:
 
-        >>> import numpy
+        >>> import numpy as np
         >>> from fatiando.mesher import Polygon
         >>> from fatiando.gravmag import talwani
         >>> # Make a trapezoidal basin model (will estimate the z coordinates
@@ -427,8 +423,8 @@ class Trapezoidal(Misfit):
         >>> verts = [[10000, 1], [90000, 1], [90000, 5000], [10000, 3000]]
         >>> model = Polygon(verts, {'density':500})
         >>> # Generate the synthetic gz profile
-        >>> x = numpy.linspace(0, 100000, 50)
-        >>> z = numpy.zeros_like(x)
+        >>> x = np.linspace(0, 100000, 50)
+        >>> z = np.zeros_like(x)
         >>> gz = talwani.gz(x, z, [model])
         >>> # Make a solver and fit it to the data
         >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500).config(
@@ -448,7 +444,7 @@ class Trapezoidal(Misfit):
         >>> poly.props
         {'density': 500}
         >>> # Check is the residuals are all small
-        >>> numpy.all(numpy.abs(solver.residuals()) < 10**-10)
+        >>> np.all(np.abs(solver.residuals()) < 10**-10)
         True
 
     """
@@ -461,8 +457,8 @@ class Trapezoidal(Misfit):
                              % (len(verts)))
         super(Trapezoidal, self).__init__(
             data=gz,
-            positional=dict(x=numpy.array(x, dtype=numpy.float),
-                            z=numpy.array(z, dtype=numpy.float)),
+            positional=dict(x=np.array(x, dtype=np.float),
+                            z=np.array(z, dtype=np.float)),
             model=dict(density=density, verts=list(verts)),
             nparams=2, islinear=False)
 
@@ -483,7 +479,7 @@ class Trapezoidal(Misfit):
         x, z = self.positional['x'], self.positional['z']
         verts = self.model['verts']
         delta = 1.
-        jac = numpy.transpose([
+        jac = np.transpose([
             (talwani.gz(x, z,
                         [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)])
              - talwani.gz(x, z,
@@ -518,5 +514,5 @@ class Trapezoidal(Misfit):
         props = {'density': self.model['density']}
         left, right = self.model['verts']
         self._estimate = Polygon(
-            numpy.array([left, right, [x1, z1], [x2, z2]]), props)
+            np.array([left, right, [x1, z1], [x2, z2]]), props)
         return self
