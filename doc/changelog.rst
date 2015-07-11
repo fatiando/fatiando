@@ -10,6 +10,11 @@ Version (development)
 
 **Changes**:
 
+* **New** reduction to the pole and upward continuation with FFT in
+  ``fatiando.gravmag.transform``. The pole reduction allows both remanent and
+  induced magnetization. Upward continuation is more stable and faster than the
+  old space domain approach that was implemented.
+  (`PR 156 <https://github.com/fatiando/fatiando/pull/156>`__)
 * **IMPORTANT BUG FIX**: Fixed wrong ordering of nodes in
   ``fatiando.mesher.PointGrid``. The order of nodes had the same problem as the
   regular grids (fixed in

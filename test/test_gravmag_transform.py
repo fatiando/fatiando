@@ -11,6 +11,56 @@ def _trim(array, shape, d=20):
     return array.reshape(shape)[d : -d, d : -d].ravel()
 
 
+def test_pole_reduce():
+    "gravmag.transform pole reduction matches analytical solution"
+    # Use remanent magnetization
+    sinc, sdec = -70, 30
+    model = [Prism(-100, 100, -500, 500, 0, 100,
+                   {'density': 1000,
+                    'magnetization': utils.ang2vec(5, sinc, sdec)})]
+    # Use low latitudes to make sure that there are no problems with FFT
+    # instability.
+    inc, dec = -60, -15
+    shape = (100, 100)
+    x, y, z = gridder.regular([-2000, 2000, -2000, 2000], shape, z=-100)
+    data = prism.tf(x, y, z, model, inc, dec)
+    pole = transform.reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec)
+    pole_true = prism.tf(x, y, z, model, -90, 0, pmag=utils.ang2vec(5, -90, 0))
+    assert_allclose(pole, pole_true, atol=10, rtol=0.01)
+
+
+def test_upcontinue():
+    "gravmag.transform upward continuation matches analytical solution"
+    model = [Prism(-1000, 1000, -500, 500, 0, 1000,
+                   {'density': 1000,
+                    'magnetization': utils.ang2vec(5, 20, -30)})]
+    shape = (100, 100)
+    inc, dec = -10, 15
+    x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
+    dz = 10
+    fields = 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split()
+    accuracy = [0.002, 0.2, 0.2, 0.3, 2, 2, 4, 4, 4, 6]
+    for f, atol in zip(fields, accuracy):
+        func = getattr(prism, f)
+        data = func(x, y, z, model)
+        analytical = func(x, y, z + dz, model)
+        up = transform.upcontinue(x, y, data, shape, dz)
+        diff = np.abs(up - analytical)
+        check = diff <= atol
+        assert np.all(check), \
+            'Failed for {} (mismatch {:.2f}%)'.format(
+            f, 100*(check.size - check.sum())/check.size)
+    data = prism.tf(x, y, z, model, inc, dec)
+    analytical = prism.tf(x, y, z + dz, model, inc, dec)
+    up = transform.upcontinue(x, y, data, shape, dz)
+    diff = np.abs(up - analytical)
+    print up.max(), diff.max()
+    check = diff <= 15
+    assert np.all(check), \
+        'Failed for tf (mismatch {:.2f}%)'.format(
+        100*(check.size - check.sum())/check.size)
+
+
 def test_secont_horizontal_derivatives_fd():
     "gravmag.transform 2nd xy derivatives by finite diff against analytical"
     model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
