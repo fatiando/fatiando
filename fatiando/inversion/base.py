@@ -143,6 +143,9 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
     optimization method configured and stores the computed parameter vector in
     the ``p_`` attribute.
 
+    Some stats about the optimization process are stored in the ``stats_``
+    attribute as a dictionary.
+
     The minimum requirement for a class to inherit from ``OptimizerMixin`` is
     that it must define at least a
     :meth:`~fatiando.inversion.base.OptimizerMixin.value` method.
