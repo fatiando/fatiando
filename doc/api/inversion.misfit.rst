@@ -1,6 +1,6 @@
 .. _fatiando_inversion_misfit:
 
-Base class for an l2-norm data misfit (``fatiando.inversion.misfit``)
+Base class for data misfit functions (``fatiando.inversion.misfit``)
 ========================================================================
 
 .. automodule:: fatiando.inversion.misfit
