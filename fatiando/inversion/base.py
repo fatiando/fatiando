@@ -3,6 +3,30 @@ The base classes for inverse problem solving.
 
 See :mod:`fatiando.inversion` for examples, regularization, and more.
 
+This module defines base classes that are used by the rest of the
+``inversion`` package:
+
+* :class:`~fatiando.inversion.base.MultiObjective`: A "container" class that
+  emulates a sum of different  objective (goal) functions (like
+  :class:`~fatiando.inversion.misfit.Misfit` or some form of
+  :mod:`~fatiando.inversion.regularization`). When two of those classes are
+  added they generate a ``MultiObjective`` object.
+* :class:`~fatiando.inversion.base.OperatorMixin`: A mix-in class that defines
+  the operators ``+`` and ``*`` (by a scalar). Used to give these properties to
+  ``Misfit`` and the regularizing functions. Adding results in a
+  ``MultiObjective``. Multiplying sets the ``regul_param`` of the class (like a
+  scalar weight factor).
+* :class:`~fatiando.inversion.base.OptimizerMixin`: A mix-in class that defines
+  the ``fit`` and ``config`` methods for optimizing a ``Misfit`` or
+  ``MultiObjective`` and fitting the model to the data.
+* :class:`~fatiando.inversion.base.CachedMethod`: A class that wraps a method
+  and caches the returned value. When the same argument (an array) is passed
+  twice in a row, the class returns the cached value instead of recomputing.
+* :class:`~fatiando.inversion.base.CachedMethodPermanent`: Like
+  ``CachedMethod`` but always returns the cached value, regardless of the
+  input. Effectively calculates only the first time the method is called.
+  Useful for caching the Jacobian matrix in a linear problem.
+
 ----
 
 """
@@ -77,9 +101,9 @@ class OperatorMixin(object):
         """
         Add two objective functions to make a MultiObjective.
         """
-        if self.nparams != other.nparams:
-            raise ValueError(
-                "Can only add functions with same number of parameters")
+        assert self.nparams == other.nparams, \
+            "Can't add goals with different number of parameters:" \
+            + ' {}, {}'.format(self.nparams, other.nparams)
         # Make a shallow copy of self to return. If returned self, doing
         # 'a = b + c' a and b would reference the same object.
         res = MultiObjective(self.copy(), other.copy())
@@ -253,8 +277,8 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
     """
     An objective (goal) function with more than one component.
 
-    This class is a linear combination of other goal functions (like ``Misfit``
-    and regularization classes).
+    This class is a linear combination of other goal functions (like
+    :class:`~fatiando.inversion.misfit.Misfit` and regularization classes).
 
     It is automatically created by adding two goal functions that have the
     :class:`~fatiando.inversion.base.OperatorMixin` as a base class.
@@ -268,6 +292,83 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
 
     Indexing a ``MultiObjetive`` will iterate over the component goal
     functions.
+
+    Examples:
+
+    To show how this class is generated and works, let's create a simple class
+    that subclasses ``OperatorMixin``.
+
+    >>> class MyGoal(OperatorMixin):
+    ...     def __init__(self, name, nparams, islinear):
+    ...         self.name = name
+    ...         self.islinear = islinear
+    ...         self.nparams = nparams
+    ...     def value(self, p):
+    ...         return 1
+    ...     def gradient(self, p):
+    ...         return 2
+    ...     def hessian(self, p):
+    ...         return 3
+    >>> a = MyGoal('A', 10, True)
+    >>> b = MyGoal('B', 10, True)
+    >>> c = a + b
+    >>> type(c)
+    <class 'fatiando.inversion.base.MultiObjective'>
+    >>> c.size
+    2
+    >>> c.nparams
+    10
+    >>> c.islinear
+    True
+    >>> c[0].name
+    'A'
+    >>> c[1].name
+    'B'
+
+    Asking for the value, gradient, and Hessian of the ``MultiObjective`` will
+    give me the sum of both components.
+
+    >>> c.value(None)
+    2
+    >>> c.gradient(None)
+    4
+    >>> c.hessian(None)
+    6
+
+    Multiplying the ``MultiObjective`` by a scalar will set the regularization
+    parameter for the sum.
+
+    >>> d = 10*c
+    >>> d.value(None)
+    20
+    >>> d.gradient(None)
+    40
+    >>> d.hessian(None)
+    60
+
+    All components must have the same number of parameters. For the moment,
+    ``MultiObjetive`` doesn't handle multiple parameter vector (one for each
+    objective function).
+
+    >>> e = MyGoal("E", 20, True)
+    >>> a + e
+    Traceback (most recent call last):
+      ...
+    AssertionError: Can't add goals with different number of parameters: 10, 20
+
+    The ``MultiObjective`` will automatically detect if the problem remains
+    linear or not. For example, adding a non-linear problem to a linear one
+    makes the sum non-linear.
+
+    >>> (a + b).islinear
+    True
+    >>> f = MyGoal('F', 10, False)
+    >>> (a + f).islinear
+    False
+    >>> (f + f).islinear
+    False
+
+
     """
 
     def __init__(self, *args):
@@ -275,7 +376,9 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         self.size = len(self._components)
         self.p_ = None
         nparams = [obj.nparams for obj in self._components]
-        assert all(nparams[0] == n for n in nparams[1:])
+        assert all(nparams[0] == n for n in nparams[1:]), \
+            "Can't add goals with different number of parameters:" \
+            + ' ' + ', '.join(str(n) for n in nparams)
         self.nparams = nparams[0]
         if all(obj.islinear for obj in self._components):
             self.islinear = True
@@ -418,7 +521,14 @@ class CachedMethod(object):
     returned. If the method is called on a different array, the old result will
     be discarded and the new one stored.
 
-    Uses sha1 hashes of the input array to tell if it is the same array.
+    Uses SHA1 hashes of the input array to tell if it is the same array.
+
+    .. note::
+
+        We need the object instance and method name instead of the bound method
+        (like ``obj.method``) because we can't pickle bound methods. We need to
+        be able to pickle so that the solvers can be passed between processes
+        in parallelization.
 
     Parameters:
 
@@ -427,10 +537,7 @@ class CachedMethod(object):
     * meth : string
         The name of the method you want to cache.
 
-    For pickling reasons we can't use the bound method (``obj.method``) and
-    need the object and the method name.
-
-    Examples::
+    Examples:
 
     >>> import numpy as np
     >>> class MyClass(object):
@@ -505,6 +612,13 @@ class CachedMethodPermanent(object):
     that should return always the same output (like the Jacobian matrix of a
     linear problem).
 
+    .. note::
+
+        We need the object instance and method name instead of the bound method
+        (like ``obj.method``) because we can't pickle bound methods. We need to
+        be able to pickle so that the solvers can be passed between processes
+        in parallelization.
+
     Parameters:
 
     * instance : object
@@ -512,10 +626,7 @@ class CachedMethodPermanent(object):
     * meth : string
         The name of the method you want to cache.
 
-    For pickling reasons we can't use the bound method (``obj.method``) and
-    need the object and the method name.
-
-    Examples::
+    Examples:
 
     >>> import numpy as np
     >>> class MyClass(object):
