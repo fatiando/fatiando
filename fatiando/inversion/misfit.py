@@ -144,6 +144,38 @@ The ``'objective'`` key holds a list of the objective function value per
 iteration of the optimization process.
 
 
+Re-weighted least squares
++++++++++++++++++++++++++
+
+``Misfit`` allows you to set weights to the data in the form of a weight
+matrix or vector (the vector is assumed to be the diagonal of the weight
+matrix). We can use this to perform a re-weighted least-squares fit to remove
+outliers from our data.
+
+>>> y_outlier = y.copy()
+>>> y_outlier[3] += 20
+>>> y_outlier
+array([  5.,   7.,   9.,  31.,  13.,  15.])
+
+First, we run the regression without any weights.
+
+>>> solver = Regression(x, y_outlier).fit()
+>>> print(np.array_repr(solver.estimate_, precision=3))
+array([ 2.571,  6.905])
+
+Now, we can use the inverse of the residuals to set the weights for our data.
+We repeat this for a few iterations and should have our robust estimate by the
+end of it.
+
+>>> for i in range(20):
+...     r = np.abs(solver.residuals())
+...     # Avoid small residuals because of zero-division errors
+...     r[r < 1e-10] = 1
+...     _ = solver.set_weights(1/r).fit()
+>>> solver.estimate_
+array([ 2.,  5.])
+
+
 Non-linear problems
 +++++++++++++++++++
 
@@ -235,7 +267,7 @@ class Misfit(OptimizerMixin, OperatorMixin):
 
     .. math::
 
-        \phi(\bar{p}) = \bar{r}^T \bar{r}}
+        \phi (\bar{p}) = \bar{r}^T \bar{r}
 
     where :math:`\bar{r} = \bar{d}^o - \bar{d}` is the residual vector and
     :math:`N` is the number of data.
@@ -272,23 +304,19 @@ class Misfit(OptimizerMixin, OperatorMixin):
         The number of parameters in parameter vector :math:`\bar{p}`
     * islinear : True or False
         Whether :math:`\bar{f}` is linear or not.
-    * weights : 1d-array
-        Weights to be applied to the each element in *data* when computing the
-        l2-norm. Effectively the diagonal of a matrix :math:`\bar{\bar{W}}`
-        such that :math:`\phi = \bar{r}^T\bar{\bar{W}}\bar{r}`
     * cache : True
         Whether or not to cache the output of some methods to avoid recomputing
         matrices and vectors when passed the same input parameter vector.
 
     """
 
-    def __init__(self, data, nparams, islinear, weights=None, cache=True):
+    def __init__(self, data, nparams, islinear, cache=True):
         self.p_ = None
         self.nparams = nparams
         self.islinear = islinear
         self.data = data
         self.ndata = self.data.size
-        self.weights = weights
+        self.weights = None
         if cache:
             self.predicted = CachedMethod(self, 'predicted')
             if islinear:
@@ -315,18 +343,35 @@ class Misfit(OptimizerMixin, OperatorMixin):
         return obj
 
     def set_weights(self, weights):
-        """
-        Set the data weights array.
+        r"""
+        Set the data weights.
 
-        See :class:`~fatiando.inversion.base.Misfit` for more information.
+        Using weights for the data, the least-squares data-misfit function
+        becomes:
+
+        .. math::
+
+            \phi = \bar{r}^T \bar{\bar{W}}\bar{r}
 
         Parameters:
 
-        * weights : 1d-array
-            A vector with the data weights.
+        * weights : 1d-array or 2d-array or None
+            Weights for the data vector.
+            If None, will remove any weights that have been set before.
+            If it is a 2d-array, it will be interpreted as the weight matrix
+            :math:`\bar{\bar{W}}`.
+            If it is a 1d-array, it will be interpreted as the diagonal of the
+            weight matrix (all off-diagonal elements will default to zero).
+            The weight matrix can be a sparse array from ``scipy.sparse``.
 
         """
-        self.weights = scipy.sparse.diags(weights, 0)
+        self.weights = weights
+        if weights is not None:
+            assert len(weights.shape) <= 2, \
+                "Invalid weights array with shape {}. ".format(weights.shape) \
+                + "Weights array should be 1d or 2d"
+        if len(weights.shape) == 1:
+            self.weights = scipy.sparse.diags(weights, 0)
         # Weights change the Hessian
         self.hessian.hard_reset()
         return self
