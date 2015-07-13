@@ -26,7 +26,7 @@ from . import ttime2d
 from .srtomo import slowness2vel
 from .. import utils
 from ..mesher import Square
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 
 
 def layered_straight_ray(thickness, velocity, zp):
@@ -52,13 +52,15 @@ def layered_straight_ray(thickness, velocity, zp):
 
     Examples:
 
+    >>> import numpy as np
     >>> # Make a 4 layer model
     >>> thicks = [10, 20, 10, 30]
     >>> vels = [2, 4, 10, 5]
     >>> # Set the recording depths
     >>> zs = [10, 30, 40, 70]
     >>> # Calculate the travel-times from a surface source
-    >>> layered_straight_ray(thicks, vels, zs)
+    >>> tt = layered_straight_ray(thicks, vels, zs)
+    >>> tt
     array([  5.,  10.,  11.,  17.])
 
     """
@@ -196,4 +198,4 @@ class LayeredStraight(Misfit):
         """
         Convert the estimated slowness to velocity.
         """
-        return slowness2vel(self.p_, tol=10**-8)
+        return slowness2vel(self.p_, tol=10**-10)
