@@ -10,6 +10,8 @@ Inverse problems framework (``fatiando.inversion``)
 .. toctree::
     :hidden:
 
+    inversion.misfit.rst
+    inversion.hyper_param.rst
+    inversion.regularization.rst
     inversion.base.rst
     inversion.optimization.rst
-    inversion.regularization.rst
