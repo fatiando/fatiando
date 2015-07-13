@@ -1,5 +1,17 @@
 r"""
-Classes for dealing with hyper parameters.
+Classes for hyper parameter estimation (like the regularizing parameter).
+
+These classes copy the interface of the standard inversion classes based on
+:class:`~fatiando.inversion.misfit.Misfit` (i.e.,
+``solver.config(...).fit().estimate_``). When their ``fit`` method is called,
+they perform many runs of the inversion and try to select the optimal values
+for the hyper parameters. The class will then behave as the solver that yields
+the best estimate (e.g., ``solver[0].predicted()``).
+
+Available classes:
+
+* :class:`~fatiando.inversion.hyper_param.LCurve`: Estimate the regularizing
+  parameter using an L-curve analysis.
 
 ----
 
