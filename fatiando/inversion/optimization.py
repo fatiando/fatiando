@@ -17,16 +17,16 @@ loop, like so::
 
 **Gradient descent**
 
-* :func:`~fatiando.inversion.solvers.linear`: Solver for a linear problem
-* :func:`~fatiando.inversion.solvers.newton`: Newton's method
-* :func:`~fatiando.inversion.solvers.levmarq`: Levemberg-Marquardt algorithm
-* :func:`~fatiando.inversion.solvers.steepest`: Steepest Descent method
+* :func:`~fatiando.inversion.optimization.linear`: Solver for a linear problem
+* :func:`~fatiando.inversion.optimization.newton`: Newton's method
+* :func:`~fatiando.inversion.optimization.levmarq`: Levemberg-Marquardt
+  algorithm
+* :func:`~fatiando.inversion.optimization.steepest`: Steepest Descent method
 
 **Heuristic methods**
 
-* :func:`~fatiando.inversion.solvers.acor`: ACO-R: Ant Colony Optimization for
-  Continuous Domains (Socha and Dorigo, 2008)
-
+* :func:`~fatiando.inversion.optimization.acor`: ACO-R: Ant Colony Optimization
+  for Continuous Domains (Socha and Dorigo, 2008)
 
 **References**
 
@@ -144,6 +144,7 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+
             * method : str
                 The name of the optimization method
             * iterations : int
@@ -226,6 +227,7 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+
             * method : str
                 The name of the optimization method
             * iterations : int
@@ -367,6 +369,7 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
             The current estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+
             * method : stf
                 The name of the optimization algorithm
             * iterations : int
@@ -490,6 +493,7 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
             The current best estimated parameter vector
         * stats : dict
             Statistics about the optimization so far. Keys:
+
             * method : stf
                 The name of the optimization algorithm
             * iterations : int
