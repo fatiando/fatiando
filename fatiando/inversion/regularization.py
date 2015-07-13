@@ -1,10 +1,9 @@
 """
-Ready made and base classes for regularization.
+Ready made classes for regularization.
 
-All classes are derived from :class:`~fatiando.inversion.base.Objective` and
-should be used by summing them to a :class:`~fatiando.inversion.base.Misfit`
-derivative.
-
+Each class represents a regularizing function. They can be used by adding them
+to a :class:`~fatiando.inversion.misfit.Misfit` derivative (all inversions in
+Fatiando are derived from Misfit).
 The regularization parameter is set by multiplying the regularization instance
 by a scalar, e.g., ``solver = misfit + 0.1*regularization``.
 
@@ -31,19 +30,6 @@ See :class:`fatiando.gravmag.eqlayer.EQLGravity` for an example.
   for 1D problems. Similar to Smoothness1D
 * :class:`~fatiando.inversion.regularization.TotalVariation2D`: Total variation
   for 2D grid based problems. Similar to Smoothness2D
-
-**Regularization parameter estimation**
-
-Bellow are classes that estimate an optimal value for the regularization
-parameter. They work exactly like an Objective function, i.e., run the
-inversion by calling their `fit()` method and accessing
-the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
-
-* :class:`~fatiando.inversion.regularization.LCurve`: Use an L-curve criterion.
-  Runs the inversion using several regularization parameters. The best value
-  is the one that falls on the corner of the log-log plot of the data
-  misfit vs regularizing function. Only works for a single regularization.
-
 
 ----
 
