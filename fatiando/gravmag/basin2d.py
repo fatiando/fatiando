@@ -97,8 +97,7 @@ class PolygonalBasinGravity(Misfit):
     >>> # Will use only 2 points because the two in the corners are
     >>> # considered fixed in the inversion (at 'top').
     >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0)
-    >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
-    Misfit instance
+    >>> _ = misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
     >>> misfit.p_
     array([ 800.,  500.])
     >>> type(misfit.estimate_)
@@ -120,8 +119,7 @@ class PolygonalBasinGravity(Misfit):
     >>> # x => [0, 3000]
     >>> misfit = PolygonalBasinGravity(x, z, data, 2, props, top=0,
     ...                                xlim=[0, 3000])
-    >>> misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
-    Misfit instance
+    >>> _ = misfit.config('levmarq', initial=100*np.ones(misfit.nparams)).fit()
     >>> misfit.p_
     array([ 800.,  500.])
     >>> misfit.estimate_.vertices
@@ -249,7 +247,6 @@ class Triangular(Misfit):
         Use the ``estimate_`` attribute to produce a polygon from the
         estimated parameter vector (``p_``).
 
-
     Parameters:
 
     * x, z : array
@@ -296,7 +293,7 @@ class Triangular(Misfit):
     ...     'levmarq', initial=[10000, 1000]).fit()
     >>> # p_ is the estimated parameter vector (x and z in this case)
     >>> x, z = solver.p_
-    >>> '{:.1f}, {:.1f}'.format(x, z)
+    >>> print('{:.1f}, {:.1f}'.format(x, z))
     50000.0, 5000.0
     >>> # The parameter vector is not that useful so use estimate_ to get a
     >>> # Polygon object
@@ -380,8 +377,8 @@ class Trapezoidal(Misfit):
 
     .. tip::
 
-        Use :meth:`~fatiando.gravmag.basin2d.Trapezoidal.topolygon` to
-        produce a polygon from the estimate returned by ``fit``.
+        Use the ``estimate_`` attribute to produce a polygon from the
+        estimated parameter vector (``p_``).
 
 
     Parameters:
@@ -409,110 +406,94 @@ class Trapezoidal(Misfit):
 
         The recommended solver for this inverse problem is the
         Levemberg-Marquardt method. Since this is a non-linear problem, set the
-        desired method and initial solution using the
-        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        desired method and initial solution using the ``config`` method.
         See the example bellow.
 
     Example with synthetic data:
 
-        >>> import numpy as np
-        >>> from fatiando.mesher import Polygon
-        >>> from fatiando.gravmag import talwani
-        >>> # Make a trapezoidal basin model (will estimate the z coordinates
-        >>> # of the last two points)
-        >>> verts = [[10000, 1], [90000, 1], [90000, 5000], [10000, 3000]]
-        >>> model = Polygon(verts, {'density':500})
-        >>> # Generate the synthetic gz profile
-        >>> x = np.linspace(0, 100000, 50)
-        >>> z = np.zeros_like(x)
-        >>> gz = talwani.gz(x, z, [model])
-        >>> # Make a solver and fit it to the data
-        >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500).config(
-        ...     'levmarq', initial=[1000, 500]).fit()
-        >>> # p_ is the estimated parameter vector (z1 and z2 in this case)
-        >>> z1, z2 = solver.p_
-        >>> print '%.1f, %.1f' % (z1, z2)
-        5000.0, 3000.0
-        >>> # The parameter vector is not that useful so use estimate_ to get a
-        >>> # Polygon object
-        >>> poly = solver.estimate_
-        >>> poly.vertices
-        array([[  1.00000000e+04,   1.00000000e+00],
-               [  9.00000000e+04,   1.00000000e+00],
-               [  9.00000000e+04,   5.00000000e+03],
-               [  1.00000000e+04,   3.00000000e+03]])
-        >>> poly.props
-        {'density': 500}
-        >>> # Check is the residuals are all small
-        >>> np.all(np.abs(solver.residuals()) < 10**-10)
-        True
+    >>> import numpy as np
+    >>> from fatiando.mesher import Polygon
+    >>> from fatiando.gravmag import talwani
+    >>> # Make a trapezoidal basin model (will estimate the z coordinates
+    >>> # of the last two points)
+    >>> verts = [[10000, 1], [90000, 1], [90000, 5000], [10000, 3000]]
+    >>> model = Polygon(verts, {'density':500})
+    >>> # Generate the synthetic gz profile
+    >>> x = np.linspace(0, 100000, 50)
+    >>> z = np.zeros_like(x)
+    >>> gz = talwani.gz(x, z, [model])
+    >>> # Make a solver and fit it to the data
+    >>> solver = Trapezoidal(x, z, gz, verts[0:2], 500).config(
+    ...     'levmarq', initial=[1000, 500]).fit()
+    >>> # p_ is the estimated parameter vector (z1 and z2 in this case)
+    >>> z1, z2 = solver.p_
+    >>> print('{:.1f}, {:.1f}'.format(z1, z2))
+    5000.0, 3000.0
+    >>> # The parameter vector is not that useful so use estimate_ to get a
+    >>> # Polygon object
+    >>> poly = solver.estimate_
+    >>> poly.vertices
+    array([[  1.00000000e+04,   1.00000000e+00],
+           [  9.00000000e+04,   1.00000000e+00],
+           [  9.00000000e+04,   5.00000000e+03],
+           [  1.00000000e+04,   3.00000000e+03]])
+    >>> poly.props
+    {'density': 500}
+    >>> # Check is the residuals are all small
+    >>> np.all(np.abs(solver.residuals()) < 10**-10)
+    True
 
     """
 
     def __init__(self, x, z, gz, verts, density):
-        if len(x) != len(z) != len(gz):
-            raise ValueError("x, z, and data must be of same length")
-        if len(verts) != 2:
-            raise ValueError("Need exactly 2 vertices. %d given"
-                             % (len(verts)))
-        super(Trapezoidal, self).__init__(
-            data=gz,
-            positional=dict(x=np.array(x, dtype=np.float),
-                            z=np.array(z, dtype=np.float)),
-            model=dict(density=density, verts=list(verts)),
-            nparams=2, islinear=False)
+        assert x.shape == z.shape == gz.shape, \
+            "x, z, and data must be of same length"
+        assert len(verts) == 2, \
+            "Need exactly 2 vertices. {} given".format(len(verts))
+        super(Trapezoidal, self).__init__(data=gz, nparams=2, islinear=False)
+        self.x = np.array(x, dtype=np.float)
+        self.z = np.array(z, dtype=np.float)
+        self.density = density
+        self.props = {'density': self.density}
+        self.verts = list(verts)
+        self.x1, self.x2 = verts[1][0], verts[0][0]
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
         z1, z2 = p
-        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
-        x, z = self.positional['x'], self.positional['z']
-        props = {'density': self.model['density']}
-        pred = talwani.gz(x, z,
-                          [Polygon(self.model['verts'] + [[x1, z1], [x2, z2]],
-                                   props)])
+        model = [Polygon(self.verts + [[self.x1, z1], [self.x2, z2]],
+                         self.props)]
+        pred = talwani.gz(self.x, self.z, model)
         return pred
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
         z1, z2 = p
-        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
-        props = {'density': self.model['density']}
-        x, z = self.positional['x'], self.positional['z']
-        verts = self.model['verts']
+        x1, x2 = self.x1, self.x2
+        x, z = self.x, self.z
+        props = self.props
+        verts = self.verts
         delta = 1.
-        jac = np.transpose([
-            (talwani.gz(x, z,
-                        [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)])
-             - talwani.gz(x, z,
-                          [Polygon(verts + [[x1, z1 - delta], [x2, z2]],
-                                   props)])
-             ) / (2. * delta),
-            (talwani.gz(x, z,
-                        [Polygon(verts + [[x1, z1], [x2, z2 + delta]], props)])
-             - talwani.gz(x, z,
-                          [Polygon(verts + [[x1, z1], [x2, z2 - delta]],
-                                   props)])
-             ) / (2. * delta)])
+        jac = np.empty((self.ndata, self.nparams), dtype=np.float)
+        jac[:, 0] = (
+            talwani.gz(x, z, [Polygon(verts + [[x1, z1 + delta], [x2, z2]],
+                                      props)])
+             - talwani.gz(x, z, [Polygon(verts + [[x1, z1 - delta], [x2, z2]],
+                                         props)])
+             )/(2*delta)
+        jac[:, 1] = (
+            talwani.gz(x, z, [Polygon(verts + [[x1, z1], [x2, z2 + delta]],
+                                      props)])
+             - talwani.gz(x, z, [Polygon(verts + [[x1, z1], [x2, z2 - delta]],
+                                         props)])
+             )/(2*delta)
         return jac
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Solve for the depths of the two side vertices of the trapezoid.
-
-        After solving, use the ``estimate_`` attribute to get a
-        :class:`~fatiando.mesher.Polygon` representing the trapezoid.
-
-        The estimate parameter vector (z1 and z2) can be accessed through the
-        ``p_`` attribute.
-
-        See the the docstring of :class:`~fatiando.gravmag.basin2d.Trapezoidal`
-        for examples.
-
+        Convert the parameter vector to a  :class:`fatiando.mesher.Polygon` so
+        that it can be used for plotting and forward modeling.
         """
-        super(Trapezoidal, self).fit()
-        z1, z2 = self.p_
-        x1, x2 = self.model['verts'][1][0], self.model['verts'][0][0]
-        props = {'density': self.model['density']}
-        left, right = self.model['verts']
-        self._estimate = Polygon(
-            np.array([left, right, [x1, z1], [x2, z2]]), props)
-        return self
+        z1, z2 = p
+        left, right = self.verts
+        poly = Polygon(np.array([left, right, [self.x1, z1], [self.x2, z2]]),
+                       self.props)
+        return poly
