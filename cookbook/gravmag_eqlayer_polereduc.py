@@ -4,7 +4,7 @@ the pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import EQLTotalField
-from fatiando.inversion.regularization import Damping
+from fatiando.inversion import Damping
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -24,9 +24,9 @@ regul = Damping(layer.size)
 solver = (misfit + 1e-18*regul).fit()
 residuals = solver[0].residuals()
 layer.addprop('magnetization', solver.estimate_)
-print "Residuals:"
-print "mean:", residuals.mean()
-print "stddev:", residuals.std()
+print("Residuals:")
+print("mean:", residuals.mean())
+print("stddev:", residuals.std())
 
 # Now I can forward model the layer at the south pole and check against the
 # true solution of the prism

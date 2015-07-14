@@ -3,7 +3,6 @@ GravMag: Use the polynomial equivalent layer to upward continue gravity data
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import PELGravity, PELSmoothness
-from fatiando.inversion.regularization import LCurve
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -28,9 +27,9 @@ solver.fit()
 # forward modeling
 layer.addprop('density', solver.estimate_)
 residuals = solver[0].residuals()
-print "Residuals:"
-print "mean:", residuals.mean()
-print "stddev:", residuals.std()
+print("Residuals:")
+print("mean:", residuals.mean())
+print("stddev:", residuals.std())
 
 # Now I can forward model the layer at a greater height and check against the
 # true solution of the prism
