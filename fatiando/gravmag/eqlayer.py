@@ -16,6 +16,8 @@ the layer. Use :mod:`fatiando.gravmag.sphere` for forward modeling.
 * :class:`~fatiando.gravmag.eqlayer.PELGravity` and
   :class:`~fatiando.gravmag.eqlayer.PELTotalField`: The polynomial equivalent
   layer of Oliveira Jr. et al (2012). A fast and memory efficient algorithm.
+  Both of these require special regularization
+  (:class:`~fatiando.gravmag.eqlayer.PELSmoothness`).
 
 **References**
 
@@ -34,8 +36,7 @@ import scipy.sparse
 
 from . import sphere as kernel
 from ..utils import dircos, safe_dot
-from ..inversion.base import Misfit
-from ..inversion.regularization import Smoothness
+from ..inversion import Misfit, Smoothness
 
 
 class EQLBase(Misfit):
@@ -99,7 +100,7 @@ class EQLGravity(EQLBase):
     >>> from fatiando import gridder
     >>> from fatiando.gravmag import sphere, prism
     >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> from fatiando.inversion.regularization import Damping
+    >>> from fatiando.inversion import Damping
     >>> # Produce some gravity data
     >>> area = (0, 10000, 0, 10000)
     >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
@@ -209,7 +210,7 @@ class EQLTotalField(EQLBase):
     >>> from fatiando import gridder
     >>> from fatiando.gravmag import sphere, prism
     >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> from fatiando.inversion.regularization import Damping
+    >>> from fatiando.inversion import Damping
     >>> # Produce some synthetic data
     >>> area = (0, 1000, 0, 1000)
     >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
