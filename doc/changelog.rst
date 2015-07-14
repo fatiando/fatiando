@@ -10,12 +10,42 @@ Version (development)
 
 **Changes**:
 
+* **New** reduction to the pole and upward continuation with FFT in
+  ``fatiando.gravmag.transform``. The pole reduction allows both remanent and
+  induced magnetization. Upward continuation is more stable and faster than the
+  old space domain approach that was implemented.
+  (`PR 156 <https://github.com/fatiando/fatiando/pull/156>`__)
+* **IMPORTANT BUG FIX**: Fixed wrong ordering of nodes in
+  ``fatiando.mesher.PointGrid``. The order of nodes had the same problem as the
+  regular grids (fixed in
+  `196 <https://github.com/fatiando/fatiando/pull/196>`__). This was not caught
+  before because ``PointGrid`` didn't use ``gridder.regular`` to generate its
+  internal regular grid. This is an example of why reuse is a good thing! Tests
+  now should catch any future problems.
+  (`PR 209 <https://github.com/fatiando/fatiando/pull/209>`__)
+* **IMPORTANT BUG FIX**: ``fatiando.gridder.regular`` and many other places in
+  Fatiando where using the wrong convention for x, y dimensions.
+  x should point North and y East. Thus, a data matrix (regular grid) should
+  have x varying in the lines and y varying in the columns. This is **oposite**
+  what we had. This fix also changes the ``shape`` argument to be ``(nx, ny)``
+  instead of ``(ny, nx)``. **Users should be aware of this and double check
+  their code.**
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
+* More stable derivatives in ``fatiando.gravamag.transform``. The horizontal
+  derivatives default to central finite-differences for greater stability. The
+  FFT based derivatives use a grid padding to avoid edge effects.
+  Thanks to `Matteo Niccoli <https://mycarta.wordpress.com/>`__ for suggesting
+  this fix.
+  (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
 * **Renamed** ``fatiando.gravmag.fourier.ansig`` to
   ``fatiando.gravmag.transform.tga``
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
 * **Remove** ``fatiando.gravmag.fourier`` by moving relevant functions into
   ``fatiando.gravmag.transform``.
   (`PR 186 <https://github.com/fatiando/fatiando/pull/186>`__)
+* **New** ``seismic_wiggle`` and ``seismic_image`` plotting functions for
+  seismic data in :ref:`fatiando.vis.mpl <fatiando_vis_mpl>` (`PR 192
+  <https://github.com/fatiando/fatiando/pull/192>`__) plus cookbook
 * **Remove** OpenMP parallelism from the ``fatiando.gravmag`` Cython coded
   forward modeling. Caused the majority of our install problems and didn't
   offer a great speed up anyway (< 2x). Can be replaced by ``multiprocessing``

@@ -30,6 +30,7 @@ Generate and operate on various kinds of meshes and geometric elements
 ----
 
 """
+from __future__ import division
 import numpy
 import scipy.special
 import scipy.interpolate
@@ -256,8 +257,8 @@ class SquareMesh(object):
         ny, nx = shape
         size = int(nx * ny)
         x1, x2, y1, y2 = bounds
-        dx = float(x2 - x1) / nx
-        dy = float(y2 - y1) / ny
+        dx = (x2 - x1)/nx
+        dy = (y2 - y1)/ny
         self.bounds = bounds
         self.shape = tuple(int(i) for i in shape)
         self.size = size
@@ -285,8 +286,8 @@ class SquareMesh(object):
         if index in self.mask:
             return None
         ny, nx = self.shape
-        j = index / nx
-        i = index - j * nx
+        j = index//nx
+        i = index - j*nx
         x1 = self.bounds[0] + self.dims[0] * i
         x2 = x1 + self.dims[0]
         y1 = self.bounds[2] + self.dims[1] * j
@@ -716,6 +717,7 @@ class Sphere(GeometricElement):
         self.y = float(y)
         self.z = float(z)
         self.radius = float(radius)
+        self.center = numpy.array([x, y, z])
 
     def __str__(self):
         """Return a string representation of the sphere."""
@@ -795,12 +797,14 @@ class PolygonalPrism(GeometricElement):
 
 
 class PointGrid(object):
-
     """
-    Create a grid of 3D point sources (spheres of unit volume).
+    Create a regular grid of 3D point sources (spheres of unit volume).
 
     Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
-    Grid points are ordered with x varying first, then y (like a C matrix).
+
+    Grid points are ordered like a C matrix, first each row in a column, then
+    change columns. In this case, the x direction (North-South) are the rows
+    and y (East-West) are the columns.
 
     Parameters:
 
@@ -808,13 +812,41 @@ class PointGrid(object):
         The area where the grid will be spread out
     * z : float
         The z coordinate of the grid (remember, z is positive downward)
-    * shape : tuple = (ny, nx)
-        The number of points in the y and x directions
+    * shape : tuple = (nx, ny)
+        The number of points in the x and y directions
     * props :  dict
         Physical properties of each point in the grid.
         Each key should be the name of a physical property. The corresponding
         value should be a list with the values of that particular property for
         each point in the grid.
+
+    Examples::
+
+        >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
+        >>> g.shape
+        (2, 3)
+        >>> g.size
+        6
+        >>> g[0].center
+        array([   0.,    2.,  200.])
+        >>> g[-1].center
+        array([  10.,    6.,  200.])
+        >>> for p in g:
+        ...     p.center
+        array([   0.,    2.,  200.])
+        array([   0.,    4.,  200.])
+        array([   0.,    6.,  200.])
+        array([  10.,    2.,  200.])
+        array([  10.,    4.,  200.])
+        array([  10.,    6.,  200.])
+        >>> g.x.reshape(g.shape)
+        array([[  0.,   0.,   0.],
+               [ 10.,  10.,  10.]])
+        >>> g.y.reshape(g.shape)
+        array([[ 2.,  4.,  6.],
+               [ 2.,  4.,  6.]])
+        >>> g.dx, g.dy
+        (10.0, 2.0)
 
     """
 
@@ -827,13 +859,12 @@ class PointGrid(object):
             self.props = {}
         else:
             self.props = props
-        ny, nx = shape
-        self.size = nx * ny
+        nx, ny = shape
+        self.size = nx*ny
         self.radius = scipy.special.cbrt(3. / (4. * numpy.pi))
-        x1, x2, y1, y2 = area
-        xs = numpy.linspace(x1, x2, nx)
-        ys = numpy.linspace(y1, y2, ny)
-        self.x, self.y = [i.ravel() for i in numpy.meshgrid(xs, ys)]
+        self.x, self.y = gridder.regular(area, shape)
+        # The spacing between points
+        self.dx, self.dy = gridder.spacing(area, shape)
 
     def __len__(self):
         return self.size
@@ -880,10 +911,14 @@ class PointGrid(object):
         """
         Divide the grid into subgrids.
 
+        .. note::
+
+            Remember that x is the North-South direction and y is East-West.
+
         Parameters:
 
-        * shape : tuple = (ny, nx)
-            Number of subgrids in the y and x directions, respectively
+        * shape : tuple = (nx, ny)
+            Number of subgrids in the x and y directions, respectively.
 
         Returns:
 
@@ -892,64 +927,58 @@ class PointGrid(object):
 
         Examples::
 
-            >>> g = PointGrid((1, 4, 1, 3), 10, (3, 4))
-            >>> g.addprop('bla', [1, 1, 2, 2, 4, 4, 5, 5, 7, 7, 8, 8])
-            >>> grids = g.split((3, 2))
+            >>> g = PointGrid((0, 3, 0, 2), 10, (4, 3))
+            >>> g.addprop('bla', [1,   2,  3,
+            ...                   4,   5,  6,
+            ...                   7,   8,  9,
+            ...                   10, 11, 12])
+            >>> grids = g.split((2, 3))
             >>> for s in grids:
-            ...     print s.props['bla']
-            [1 1]
-            [2 2]
-            [4 4]
-            [5 5]
-            [7 7]
-            [8 8]
+            ...     s.props['bla']
+            array([1, 4])
+            array([2, 5])
+            array([3, 6])
+            array([ 7, 10])
+            array([ 8, 11])
+            array([ 9, 12])
             >>> for s in grids:
-            ...     print s.x
-            [ 1.  2.]
-            [ 3.  4.]
-            [ 1.  2.]
-            [ 3.  4.]
-            [ 1.  2.]
-            [ 3.  4.]
+            ...     s.x
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
             >>> for s in grids:
-            ...     print s.y
-            [ 1.  1.]
-            [ 1.  1.]
-            [ 2.  2.]
-            [ 2.  2.]
-            [ 3.  3.]
-            [ 3.  3.]
+            ...     s.y
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
 
         """
-        ny, nx = shape
-        x1, x2, y1, y2 = self.area
-        totaly, totalx = self.shape
+        nx, ny = shape
+        totalx, totaly = self.shape
         if totalx % nx != 0 or totaly % ny != 0:
             raise ValueError(
-                'Cannot split! nx and ny must be divible by grid shape')
+                'Cannot split! nx and ny must be divisible by grid shape')
+        x1, x2, y1, y2 = self.area
         xs = numpy.linspace(x1, x2, totalx)
         ys = numpy.linspace(y1, y2, totaly)
-        dx = totalx / nx
-        dy = totaly / ny
+        mx, my = (totalx//nx, totaly//ny)
+        dx, dy = self.dx*(mx - 1), self.dy*(my - 1)
         subs = []
-        for i in xrange(ny):
-            ystart = i * dy
-            yend = ystart + dy - 1
-            if yend >= totaly:
-                yend = totaly - 1
-            for j in xrange(nx):
-                xstart = j * dx
-                xend = xstart + dx - 1
-                if xend >= totalx:
-                    xend = totalx - 1
-                area = [xs[xstart], xs[xend], ys[ystart], ys[yend]]
-                shape = (yend - ystart + 1, xend - xstart + 1)
+        for i, xstart in enumerate(xs[::mx]):
+            for j, ystart in enumerate(ys[::my]):
+                area = [xstart, xstart + dx, ystart, ystart + dy]
                 props = {}
                 for p in self.props:
-                    pmatrix = numpy.reshape(self.props[p], (totaly, totalx))
-                    props[p] = pmatrix[
-                        ystart:yend + 1, xstart:xend + 1].ravel()
-                subs.append(PointGrid(area, self.z, shape, props))
+                    pmatrix = numpy.reshape(self.props[p], self.shape)
+                    props[p] = pmatrix[i*mx:(i + 1)*mx,
+                                       j*my:(j + 1)*my].ravel()
+                subs.append(PointGrid(area, self.z, (mx, my), props))
         return subs
 
 
@@ -1156,9 +1185,9 @@ class PrismMesh(object):
                     str(shape)))
         size = int(nx * ny * nz)
         x1, x2, y1, y2, z1, z2 = bounds
-        dx = float(x2 - x1) / nx
-        dy = float(y2 - y1) / ny
-        dz = float(z2 - z1) / nz
+        dx = (x2 - x1)/nx
+        dy = (y2 - y1)/ny
+        dz = (z2 - z1)/nz
         self.shape = tuple(int(i) for i in shape)
         self.size = size
         self.dims = (dx, dy, dz)
@@ -1187,9 +1216,9 @@ class PrismMesh(object):
         if index in self.mask:
             return None
         nz, ny, nx = self.shape
-        k = index / (nx * ny)
-        j = (index - k * (nx * ny)) / nx
-        i = (index - k * (nx * ny) - j * nx)
+        k = index//(nx*ny)
+        j = (index - k*(nx*ny))//nx
+        i = (index - k*(nx*ny) - j*nx)
         x1 = self.bounds[0] + self.dims[0] * i
         x2 = x1 + self.dims[0]
         y1 = self.bounds[2] + self.dims[1] * j
