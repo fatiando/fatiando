@@ -17,7 +17,7 @@ distribution.
 from __future__ import division
 import numpy as np
 
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 
 
 class Homogeneous(Misfit):
