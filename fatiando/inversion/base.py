@@ -273,6 +273,7 @@ class OptimizerMixin(six.with_metaclass(ABCMeta)):
         like a :mod:`fatiando.mesher` object.
 
         """
+        assert self.p_ is not None, "No estimate found. Run 'fit' first."
         return self.fmt_estimate(self.p_)
 
 
