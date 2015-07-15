@@ -5,13 +5,11 @@ import sys
 import os
 
 body = r"""
-.. raw:: html
 
-    [<a href="{code}">source code</a>]
+**Download** source code: :download:`{recipe}<{code}>`
 
 .. literalinclude:: {code}
     :language: python
-    :linenos:
 """
 
 def recipe_to_rst(recipe):
@@ -35,6 +33,7 @@ def recipe_to_rst(recipe):
         f.write(title.strip() + '\n')
         f.write('='*len(title) + '\n')
         f.write(body.format(
+            recipe=recipe_file,
             code='../_static/cookbook/{}'.format(recipe_file)))
     sys.stderr.write(" done\n")
 
