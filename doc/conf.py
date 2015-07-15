@@ -6,14 +6,8 @@ import sphinx_bootstrap_theme
 
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append(os.path.pardir)
-# and the cookbook.py module to build the cookbook
-sys.path.append(os.path.split(os.path.abspath(__file__))[0])
 
 from fatiando import __version__, __commit__
-import cookbook
-
-# Build the cookbook recipes
-cookbook.build(os.path.join(os.pardir, 'cookbook'))
 
 extensions = [
     'sphinx.ext.autodoc',

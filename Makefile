@@ -33,13 +33,13 @@ develop:
 	pip install --no-deps --ignore-installed .
 
 docs: clean
-	cd doc; make html
+	make -C doc all
 
 linkcheck: clean
-	cd doc; make linkcheck
+	make -C doc linkcheck
 
 view-docs:
-	cd doc; make serve
+	make -C doc serve
 
 .PHONY: test
 test: build
