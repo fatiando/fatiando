@@ -6,17 +6,12 @@ import sphinx_bootstrap_theme
 
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append(os.path.pardir)
-# and the cookbook.py module to build the cookbook
-sys.path.append(os.path.split(os.path.abspath(__file__))[0])
 
 from fatiando import __version__, __commit__
-import cookbook
-
-# Build the cookbook recipes
-cookbook.build(os.path.join(os.pardir, 'cookbook'))
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.doctest',
@@ -60,7 +55,7 @@ html_favicon = u'favicon.ico'
 html_static_path = ['_static']
 html_extra_path = ['.nojekyll', 'CNAME']
 html_use_smartypants = True
-pygments_style = 'sphinx'
+pygments_style = 'default'
 add_function_parentheses = False
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
@@ -96,9 +91,9 @@ html_theme_options = {
     'navbar_title': 'fatiando',
     'navbar_site_name': "Site",
     'navbar_links': [
-        ("Cite us", "cite"),
-        ("Install", "install"),
-        ("Docs", "docs"),
+        ("Installing", "install"),
+        ("Documentation", "docs"),
+        ("Cookbook", "cookbook"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),
         ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',

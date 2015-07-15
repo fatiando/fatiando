@@ -44,3 +44,39 @@ blockquote {
     font-size: 16pt;
     color: #333;
 }
+
+/* CODE BLOCKS */
+.highlight pre {
+    font-size: 11pt;
+    color: #333;
+}
+
+/* autosummary items */
+.table > tbody > tr > td {
+    border-top: 1px solid #d2d2d2;
+    border-bottom: 1px solid #d2d2d2;
+}
+
+/* Separator for class and function blocks */
+.class {
+    border-top: 1px solid #d2d2d2;
+    padding-top: 20px;
+    margin-top: 30px;
+}
+.function {
+    border-top: 1px solid #d2d2d2;
+    padding-top: 20px;
+    margin-top: 30px;
+}
+.method {
+    border-top: 1px solid #d2d2d2;
+    margin-top: 30px;
+    padding-top: 10px;
+    margin-left: 30px;
+}
+.attribute {
+    border-top: 1px solid #d2d2d2;
+    margin-top: 30px;
+    padding-top: 10px;
+    margin-left: 30px;
+}
