@@ -188,7 +188,9 @@ class ExpandingWindow(object):
             ds = 0.5*size
             window = [xc - ds, xc + ds, yc - ds, yc + ds]
             solver = self.euler.cut_window(window).fit()
-            cov = safe_inverse(solver.hessian(solver.p_))
+            # Don't really know why dividing by ndata makes this better but it
+            # does.
+            cov = safe_inverse(solver.hessian(solver.p_)/solver.ndata)
             uncertainty = np.sqrt(safe_diagonal(cov)[0:3])
             mean_error = np.linalg.norm(uncertainty)
             errors.append(mean_error)
