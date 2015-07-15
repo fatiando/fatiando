@@ -11,6 +11,7 @@ from fatiando import __version__, __commit__
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.doctest',
