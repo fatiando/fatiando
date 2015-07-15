@@ -90,9 +90,9 @@ html_theme_options = {
     'navbar_title': 'fatiando',
     'navbar_site_name': "Site",
     'navbar_links': [
-        ("Cite us", "cite"),
-        ("Install", "install"),
-        ("Docs", "docs"),
+        ("Installing", "install"),
+        ("Documentation", "docs"),
+        ("Cookbook", "cookbook"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),
         ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
