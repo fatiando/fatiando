@@ -44,3 +44,9 @@ blockquote {
     font-size: 16pt;
     color: #333;
 }
+
+/* CODE BLOCKS */
+.highlight pre {
+    font-size: 11pt;
+    color: #333;
+}
