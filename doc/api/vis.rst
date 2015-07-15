@@ -6,6 +6,7 @@ Visualization (``fatiando.vis``)
 .. automodule:: fatiando.vis
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. toctree::
     :hidden:

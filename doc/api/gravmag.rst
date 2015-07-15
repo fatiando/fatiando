@@ -6,6 +6,7 @@ Gravity and magnetics (``fatiando.gravmag``)
 .. automodule:: fatiando.gravmag
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. toctree::
     :hidden:
