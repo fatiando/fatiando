@@ -27,7 +27,7 @@ install:
 script:
     - make test
     - make coverage
-    - make clean; cd doc; make html && cd ..
+    - make docs
 after_success:
     - coveralls
     - bash .push-docs.sh

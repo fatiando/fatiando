@@ -98,13 +98,14 @@ Don't be afraid to ask for help getting started!
 .. toctree::
     :maxdepth: 1
 
-    license.rst
     install.rst
-    changelog.rst
+    cookbook.rst
+    cite.rst
     api/fatiando.rst
     develop.rst
     contributors.rst
-    cookbook.rst
+    changelog.rst
+    license.rst
 
 .. raw:: html
 

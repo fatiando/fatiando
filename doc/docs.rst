@@ -80,8 +80,9 @@ Latest build
     :maxdepth: 2
 
     license.rst
-    install.rst
+    cite.rst
     changelog.rst
+    install.rst
     api/fatiando.rst
     develop.rst
     contributors.rst
