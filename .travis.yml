@@ -9,7 +9,7 @@ python:
 virtualenv:
   system_site_packages: true
 env:
-    global:
+    global: # For pushing the built docs to the fatiando.github.io repo
         secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
 before_install:
     - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
@@ -33,3 +33,5 @@ after_success:
     - bash .push-docs.sh
 after_failure:
     - make pep8
+notifications:
+    email: false
