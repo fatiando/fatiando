@@ -3,6 +3,8 @@ import sys
 import os
 import datetime
 import sphinx_bootstrap_theme
+import matplotlib as mpl
+mpl.use("Agg")
 
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append(os.path.pardir)
