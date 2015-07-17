@@ -40,7 +40,7 @@ cookbook:
 	@echo "Build finished."
 
 clean:
-	rm -rf $(BUILDDIR)/html/* $(CBDIR) cookbook
+	rm -rf $(BUILDDIR)/html/* $(CBDIR) cookbook $(BUILDDIR)/plot_directive
 
 html:
 	@echo

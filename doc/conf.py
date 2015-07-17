@@ -20,6 +20,11 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
 ]
 
+# Configure the inline plots from matplotlib plot_directive
+plot_formats = [("png", 90)]
+plot_html_show_formats = False
+plot_html_show_source_link = False
+
 # Sphinx project configuration
 templates_path = ['_templates']
 exclude_patterns = ['_build']
