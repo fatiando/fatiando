@@ -1,7 +1,7 @@
 # Miniconda stuff shamelessly copied from
 # https://gist.github.com/dan-blanchard/7045057
-# and
 # https://github.com/Jorge-C/ordination/blob/master/.travis.yml
+# and the seaborn package
 language: python
 
 env:
