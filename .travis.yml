@@ -21,7 +21,7 @@ before_install:
   - conda update --yes conda
 
 install:
-  - conda create -n testenv --yes pip python=$PYTHON
+  - conda create -n testenv --yes pip python==$PYTHON
   - conda update conda --yes
   - source activate testenv
   - conda install --yes --file requirements.txt
