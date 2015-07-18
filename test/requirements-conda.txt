@@ -2,3 +2,4 @@ sphinx
 nose
 pep8=1.6.2
 coverage=3.7.1
+cython
