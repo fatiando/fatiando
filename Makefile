@@ -32,10 +32,10 @@ develop:
 	$(PY) setup.py build --cython
 	pip install --no-deps --ignore-installed .
 
-docs: clean
+docs:
 	make -C doc all
 
-linkcheck: clean
+linkcheck:
 	make -C doc linkcheck
 
 view-docs:
@@ -70,6 +70,4 @@ clean:
 	rm -rvf crust2.tar.gz cookbook/crust2.tar.gz
 	rm -rvf bouguer_alps_egm08.grd cookbook/bouguer_alps_egm08.grd
 	rm -rvf *.gdf cookbook/*.gdf
-
-clean-docs:
-	cd doc; make clean
+	make -C doc clean
