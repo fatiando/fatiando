@@ -118,10 +118,8 @@ def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
         rtp = (kz_sqr)/(a1*kx**2 + a2*ky**2 + a3*kx*ky +
                         1j*numpy.sqrt(kz_sqr)*(b1*kx + b2*ky))
     rtp[0, 0] = 0
-    ft = numpy.fft.fft2(numpy.reshape(data, shape))
-    ft_pole = ft*rtp
-    data_pole = numpy.real(numpy.fft.ifft2(ft_pole)).ravel()
-    return data_pole
+    ft_pole = rtp*numpy.fft.fft2(numpy.reshape(data, shape))
+    return numpy.real(numpy.fft.ifft2(ft_pole)).ravel()
 
 
 def upcontinue(x, y, data, shape, height):
@@ -189,6 +187,7 @@ def _upcontinue_space(x, y, data, shape, height):
     historical reasons.
 
     """
+    nx, ny = shape
     dx = (x.max() - x.min())/(nx - 1)
     dy = (y.max() - y.min())/(ny - 1)
     area = dx*dy

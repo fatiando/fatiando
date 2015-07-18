@@ -16,20 +16,14 @@ z0 = -100
 x, y, z = gridder.regular(area, shape, z=z0)
 gz = utils.contaminate(prism.gz(x, y, z, model), 0.5, seed=0)
 
-# The how much higher to go
-height = 1000
-
-# Now do the upward continuation using the analytical space domain formula
-gzcont = transform.upcontinue(x, y, gz, shape, height, method='space')
-
-# and using the Fourier transform
-gzcontf = transform.upcontinue(x, y, gz, shape, height, method='fft')
+height = 1000  # How much higher to go
+gzcontf = transform.upcontinue(x, y, gz, shape, height)
 
 # Compute the true value at the new height for comparison
 gztrue = prism.gz(x, y, z - height, model)
 
 args = dict(shape=shape, levels=20, cmap=mpl.cm.RdBu_r)
-fig, axes = mpl.subplots(2, 2)
+fig, axes = mpl.subplots(1, 3, figsize=(12, 3.5))
 axes = axes.ravel()
 mpl.sca(axes[0])
 mpl.title("Original")
@@ -44,15 +38,10 @@ mpl.contourf(y, x, gztrue, **args)
 mpl.colorbar(pad=0).set_label('mGal')
 mpl.m2km()
 mpl.sca(axes[2])
-mpl.title("Continued (Analytical)")
-mpl.axis('scaled')
-mpl.contourf(y, x, gzcont, **args)
-mpl.colorbar(pad=0).set_label('mGal')
-mpl.m2km()
-mpl.sca(axes[3])
 mpl.title("Continued (Fourier)")
 mpl.axis('scaled')
 mpl.contourf(y, x, gzcontf, **args)
 mpl.colorbar(pad=0).set_label('mGal')
 mpl.m2km()
+mpl.tight_layout()
 mpl.show()

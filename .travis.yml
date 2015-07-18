@@ -1,35 +1,47 @@
 # Miniconda stuff shamelessly copied from
 # https://gist.github.com/dan-blanchard/7045057
-# and
 # https://github.com/Jorge-C/ordination/blob/master/.travis.yml
+# and the seaborn package
 language: python
-python:
-  - 2.7
-# Need to set this so that packages installed with apt-get are available
-virtualenv:
-  system_site_packages: true
+
+sudo: false
+
 env:
-    global:
-        secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
+  global: # For pushing the built docs to the fatiando.github.io repo
+    - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
+  matrix:
+    - PYTHON=2.7
+
 before_install:
-    - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
-    - chmod +x miniconda.sh
-    - ./miniconda.sh -b
-    - export PATH=/home/travis/anaconda/bin:$PATH
-    # Update conda itself
-    - conda update --yes conda
-    - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging ipython numba pep8==1.6.2
-    - pip install coverage==3.7.1 coveralls==0.5 sphinx_bootstrap_theme==0.4.5
+  # Get Miniconda from Continuum
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+
 install:
-    - python setup.py build
-    - pip install .
-    - make clean && python setup.py build_ext --inplace
+  - conda create -n testenv --yes pip python=$PYTHON
+  - conda update conda --yes
+  - source activate testenv
+  - conda install --yes --file requirements.txt
+  - conda install --yes --file test/requirements-conda.txt
+  - pip install -r test/requirements-pip.txt
+  - pip install .
+  - python setup.py build_ext --inplace
+
 script:
-    - make test
-    - make coverage
-    - make docs
+  - make test
+  - make coverage
+  - make docs
+
 after_success:
-    - coveralls
-    - bash .push-docs.sh
+  - coveralls
+  - bash .push-docs.sh
+
 after_failure:
-    - make pep8
+  - make pep8
+
+notifications:
+  email: false
