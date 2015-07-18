@@ -24,8 +24,8 @@ install:
   - conda update conda --yes
   - source activate testenv
   - conda install --yes --file requirements.txt
-  - conda install --yes --file test/requirements.txt
-  - pip install coveralls==0.5 sphinx_bootstrap_theme==0.4.5
+  - conda install --yes --file test/requirements-conda.txt
+  - pip install -r test/requirements-pip.txt
   - pip install .
   - python setup.py build_ext --inplace
 
