@@ -35,6 +35,15 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 master_doc = 'index'
 
+# To serve the built docs for PRs, I'll need to set absolute paths for the CSS
+# files. Otherwise it won't find them at fatiando.org/pulls/PR_DIR. Travis will
+# overwrite the CNAME file in those cases and the  template will plug the url
+# in front of the links.
+with open('CNAME') as f:
+    site_url = f.read().strip()
+if site_url != 'www.fatiando.org':
+    html_context = {'site_url': site_url}
+
 # General information about the project
 year = datetime.date.today().year
 project = u'Fatiando a Terra'

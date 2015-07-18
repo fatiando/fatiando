@@ -21,6 +21,7 @@ before_install:
     - conda install --yes pip python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose sphinx imaging ipython numba pep8==1.6.2
     - pip install coverage==3.7.1 coveralls==0.5 sphinx_bootstrap_theme==0.4.5
     - cp ci-tools/matplotlibrc .
+    - bash ci-tools/generate-cname.sh
 install:
     - python setup.py build
     - pip install .
