@@ -3,6 +3,8 @@ import sys
 import os
 import datetime
 import sphinx_bootstrap_theme
+import matplotlib as mpl
+mpl.use("Agg")
 
 # Sphinx needs to be able to import fatiando to use autodoc
 sys.path.append(os.path.pardir)
@@ -20,6 +22,11 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
 ]
 
+# Configure the inline plots from matplotlib plot_directive
+plot_formats = [("png", 90)]
+plot_html_show_formats = False
+plot_html_show_source_link = False
+
 # Sphinx project configuration
 templates_path = ['_templates']
 exclude_patterns = ['_build']
@@ -27,6 +34,12 @@ source_suffix = '.rst'
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
 master_doc = 'index'
+
+# Tell the docs if this is a PR being built by Travis CI
+pull_request = os.environ.get('TRAVIS_PULL_REQUEST', False)
+if pull_request and pull_request == 'false':
+    pull_request = False
+html_context = {'pull_request': pull_request}
 
 # General information about the project
 year = datetime.date.today().year

@@ -8,6 +8,7 @@ a {
 }
 .navbar {
     background-color: #333;
+    border-radius: 0px;
 }
 .navbar-brand  img {
     height: 40px;
