@@ -21,7 +21,6 @@ before_install:
   # Update conda itself
   - conda update --yes conda
   - cp ci-tools/matplotlibrc .
-  - bash ci-tools/generate-cname.sh
 
 install:
   - conda create -n testenv --yes pip python=$PYTHON

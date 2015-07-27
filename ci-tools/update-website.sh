@@ -45,8 +45,8 @@ else
     git config --global github.user "leouieda"
     echo -e "Cloning fatiando/pulls"
     # Clone the project, using the secret token. Uses /dev/null to avoid leaking decrypted key
-    git clone --quiet --depth=50 --branch=gh-pages --single-branch https://${GH_TOKEN}@github.com/fatiando/pulls.git > /dev/null
-    cd pulls
+    git clone --quiet --depth=50 --branch=gh-pages --single-branch https://${GH_TOKEN}@github.com/fatiando/pull.git > /dev/null
+    cd pull
     git checkout gh-pages
     # Make sure the PR folder is present
     mkdir -p $TRAVIS_PULL_REQUEST
@@ -54,11 +54,13 @@ else
     echo -e "Remove old files from previous builds"
     git rm -rf $TRAVIS_PULL_REQUEST/*
     echo -e "Copy new files to the PR folder"
-    cp -Rf $HOME/keep/. $HOME/pulls/$TRAVIS_PULL_REQUEST
+    cp -Rf $HOME/keep/. $HOME/pull/$TRAVIS_PULL_REQUEST
+    # Make sure .nojekyll is in the root dir
+    touch .nojekyll
     # add, commit and push files
-    git add -f $TRAVIS_PULL_REQUEST
+    git add -f .
     echo -e "Commit changes"
-    git commit -m "Travis build $TRAVIS_BUILD_NUMBER: PR$TRAVIS_PULL_REQUEST commit $TRAVIS_COMMIT"
+    git commit -m "Travis build $TRAVIS_BUILD_NUMBER: PR $TRAVIS_PULL_REQUEST commit $TRAVIS_COMMIT"
     echo -e "Pushing..."
     git push -fq origin gh-pages > /dev/null
     echo -e "Uploaded generated files\n"
