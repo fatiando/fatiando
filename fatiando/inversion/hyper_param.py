@@ -108,9 +108,10 @@ class LCurve(OptimizerMixin):
     The tomography solver will be the ``LCurve`` solver. It works by calling
     ``fit()`` and accessing ``estimate_``, exactly like any other solver:
 
-    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
-    >>> e = tomo.fit().estimate_
-    >>> print numpy.array_repr(e.reshape(shape), precision=0)
+    >>> regul_params = [10**i for i in range(-10, -2, 1)]
+    >>> tomo = LCurve(datamisfit, regul, regul_params)
+    >>> _ = tomo.fit()
+    >>> print(numpy.array_repr(tomo.estimate_.reshape(shape), precision=0))
     array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
@@ -122,43 +123,85 @@ class LCurve(OptimizerMixin):
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
 
-    The estimated regularization parameter is stored in ``regul_param_``:
+    When ``fit()`` is called, the ``LCurve``  will run the inversion for each
+    value of the regularization parameter, build an l-curve, and find the
+    best solution (i.e., the corner value of the l-curve).
 
-    >>> tomo.regul_param_
-    1e-05
-
-    The ``LCurve`` object behaves like a normal multi-objective function. You
-    can index it to access the data misfit and regularization parts. For
-    example, to get the residuals vector or the predicted data:
+    The ``LCurve`` object behaves like a normal multi-objective function.
+    In fact, it will try to mirror the objective function that resulted in the
+    best solution.
+    You can index it to access the data misfit and regularization parts.
+    For example, to get the residuals vector or the predicted data:
 
     >>> predicted = tomo[0].predicted()
     >>> residuals = tomo[0].residuals()
     >>> print '%.4f %.4f' % (residuals.mean(), residuals.std())
     -0.0000 0.0047
 
+    The estimated regularization parameter is stored in ``regul_param_``:
+
+    >>> tomo.regul_param_
+    1e-05
+
+    You can run the l-curve analysis in parallel by specifying the ``njobs``
+    argument. This will spread the computations over ``njobs`` number of
+    processes and give some speedup over running sequentially. Note that you
+    should **not** enable any kind of multi-processes parallelism
+    on the data misfit class. It is often better to run each inversion
+    sequentially and run many of them in parallel. Note that you'll enough
+    memory to run multiple inversions at the same time, so this is not suited
+    for large, memory hungry inversions.
+
+    >>> par_tomo = LCurve(datamisfit, regul, regul_params, njobs=2)
+    >>> _ = par_tomo.fit()  # Will you 2 processes to run inversions
+    >>> par_tomo.regul_param_
+    1e-05
+    >>> print(numpy.array_repr(par_tomo.estimate_.reshape(shape), precision=0))
+    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+
     ``LCurve`` also has a ``config`` method to configure the optimization
     process for non-linear problems, for example:
 
     >>> initial = numpy.ones(mesh.size)
-    >>> e = tomo.config('newton', initial=initial).fit().estimate_
+    >>> _ = tomo.config('newton', initial=initial, tol=0.2).fit()
     >>> tomo.regul_param_
-    0.0001
-    >>> print numpy.array_repr(e.reshape(shape), precision=0)
+    1e-05
+    >>> print(numpy.array_repr(tomo.estimate_.reshape(shape), precision=0))
     array([[  4.,   4.,   3.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,  12.,   9.,  11.,  10.,   4.,   4.,   4.],
            [  4.,   4.,   4.,  11.,  11.,  10.,  10.,   4.,   4.,   4.],
            [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  12.,  10.,  11.,   9.,   4.,   4.,   4.],
+           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
            [  4.,   4.,   4.,   4.,   4.,   4.,   5.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   5.]])
+           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
+
+    You can view the optimization information for the run corresponding to the
+    best estimate using the ``stats_`` attribute:
+
+    >>> list(sorted(tomo.stats_))
+    ['iterations', 'method', 'objective']
+    >>> tomo.stats_['method']
+    "Newton's method"
+    >>> tomo.stats_['iterations']
+    2
 
     """
 
     def __init__(self, datamisfit, regul, regul_params, loglog=True,
-                 jobs=None):
+                 njobs=1):
+        assert njobs >= 1, "njobs should be >= 1. {} given.".format(njobs)
         self.regul_params = regul_params
         self.datamisfit = datamisfit
         self.regul = regul
@@ -167,12 +210,41 @@ class LCurve(OptimizerMixin):
         self.mnorm = None
         self.fit_method = None
         self.fit_args = None
-        self.jobs = jobs
+        self.njobs = njobs
         self.loglog = loglog
         # Estimated parameters from the L curve
         self.corner_ = None
-        self.regul_param_ = None
-        self.objetive_ = None
+
+    def _run_fit_first(self):
+        """
+        Check if a solution was found by running fit.
+        Will raise an ``AssertionError`` if not.
+        """
+        assert self.corner_ is not None, \
+            'No optimal solution found. Run "fit" to run the L-curve analysis.'
+
+    @property
+    def regul_param_(self):
+        """
+        The regularization parameter corresponding to the best estimate.
+        """
+        self._run_fit_first()
+        return self.regul_params[self.corner_]
+
+    @property
+    def objective_(self):
+        """
+        The objective function corresponding to the best estimate.
+        """
+        self._run_fit_first()
+        return self.objectives[self.corner_]
+
+    @property
+    def stats_(self):
+        """
+        The optimization information for the best solution found.
+        """
+        return self.objective_.stats_
 
     @property
     def p_(self):
@@ -180,27 +252,15 @@ class LCurve(OptimizerMixin):
         The estimated parameter vector obtained from the best regularization
         parameter.
         """
-        if self.objective_ is None:
-            raise AttributeError(
-                'No optimal solution found. '
-                + 'Run "fit" to run the L-curve analysis')
         return self.objective_.p_
 
     def fmt_estimate(self, p):
         """
         Return the ``estimate_`` attribute of the optimal solution.
         """
-        if self.objective_ is None:
-            raise AttributeError(
-                'No optimal solution found. '
-                + 'Run "fit" to run the L-curve analysis')
         return self.objective_.estimate_
 
     def __getitem__(self, i):
-        if self.objective_ is None:
-            raise AttributeError(
-                'No optimal solution found. '
-                + 'Run "fit" to run the L-curve analysis')
         return self.objective_[i]
 
     def fit(self):
@@ -229,13 +289,13 @@ class LCurve(OptimizerMixin):
         if self.fit_method is not None:
             for solver in solvers:
                 solver.config(self.fit_method, **self.fit_args)
-        if self.jobs is None:
-            results = [_run_lcurve(s) for s in solvers]
-        else:
-            pool = multiprocessing.Pool(self.jobs)
-            results = pool.map(_run_lcurve, solvers)
+        if self.njobs > 1:
+            pool = multiprocessing.Pool(self.njobs)
+            results = pool.map(_fit_solver, solvers)
             pool.close()
             pool.join()
+        else:
+            results = [s.fit() for s in solvers]
         self.objectives = results
         self.dnorm = numpy.array(
             [self.datamisfit.value(s.p_) for s in results])
@@ -277,8 +337,8 @@ class LCurve(OptimizerMixin):
           to the corner value.
         * The ``regul_param_`` attribute holds the value of the regularization
           parameter corresponding to the corner value.
-        * The ``corner_`` attribute will hold the index of the corner value in
-          the list of computed solutions.
+        * The ``corner_`` attribute will hold the index of the corner value
+          in the list of computed solutions.
 
         Uses the Triangle method of Castellanos et al. (2002).
 
@@ -317,9 +377,6 @@ class LCurve(OptimizerMixin):
                     corner = j
                     angmin = ang
         self.corner_ = corner
-        self.regul_param_ = self.regul_params[corner]
-        self.objective_ = self.objectives[corner]
-
 
     def plot_lcurve(self, ax=None, guides=True):
         """
@@ -354,9 +411,8 @@ class LCurve(OptimizerMixin):
         mpl.ylabel('Regularization')
 
 
-def _run_lcurve(solver):
+def _fit_solver(solver):
     """
     Call ``fit`` on the solver. Needed for multiprocessing.
     """
-    result = solver.fit()
-    return result
+    return solver.fit()
