@@ -93,7 +93,8 @@ class EQLGravity(EQLBase):
         >>> # Produce some gravity data
         >>> area = (0, 10000, 0, 10000)
         >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
-        >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000, {'density':1000})]
+        >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000,
+        ...                {'density': 1000})]
         >>> gz = prism.gz(x, y, z, model)
         >>> # Plot the data
         >>> fig = plt.figure(figsize=(6, 5))

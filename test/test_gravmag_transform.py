@@ -8,7 +8,7 @@ from fatiando.mesher import Prism
 
 def _trim(array, shape, d=20):
     "Remove d elements from the edges of an array"
-    return array.reshape(shape)[d : -d, d : -d].ravel()
+    return array.reshape(shape)[d: -d, d: -d].ravel()
 
 
 def test_pole_reduce():

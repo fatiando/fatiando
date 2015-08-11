@@ -50,11 +50,11 @@ coverage: build
 		test/
 
 pep8:
-	pep8 --show-source --show-pep8 --ignore=W503,E226,E241\
-		--exclude=_version.py fatiando test cookbook
+	pep8 --show-source --ignore=W503,E226,E241\
+		--exclude=_version.py fatiando test cookbook setup.py
 
 pep8-stats:
-	pep8 --exclude=_version.py --statistics -qq fatiando test cookbook
+	pep8 --exclude=_version.py --statistics -qq fatiando test cookbook setup.py
 
 package:
 	$(PY) setup.py sdist --formats=zip,gztar
