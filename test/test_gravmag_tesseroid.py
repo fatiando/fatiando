@@ -19,8 +19,7 @@ def test_warn_if_division_makes_too_small():
     ds = 1e-6
     models = [
         [Tesseroid(-ds, ds, -ds, ds, 0, -1000, {'density': 100})],
-        [Tesseroid(-1e-3, 1e-3, -1e-3, 1e-3, 0, -1e-2, {'density': 100})],
-        ]
+        [Tesseroid(-1e-3, 1e-3, -1e-3, 1e-3, 0, -1e-2, {'density': 100})]]
     lat, lon = np.zeros((2, 1))
     h = np.array([0.1])
     warning_msg = (
@@ -47,8 +46,7 @@ def test_warn_if_too_small():
     ds = 1e-6/2
     models = [
         [Tesseroid(-ds, ds, -ds, ds, 0, -1000, {'density': 100})],
-        [Tesseroid(-1e-2, 1e-2, -1e-2, 1e-2, 0, -1e-4, {'density': 100})],
-        ]
+        [Tesseroid(-1e-2, 1e-2, -1e-2, 1e-2, 0, -1e-4, {'density': 100})]]
     lat, lon = np.zeros((2, 1))
     h = np.array([10])
     warning_msg = (
