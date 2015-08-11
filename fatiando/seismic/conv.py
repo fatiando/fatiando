@@ -27,7 +27,7 @@ import numpy as np
 from scipy import interpolate  # linear interpolation of velocity/density
 
 
-def seismic_convolutional_model(n_traces, vel_l, f, wavelet, dt=2.e-3, rho=1.):
+def seismic_convolutional_model(rc, f, wavelet, dt=2.e-3):
     """
     Calculate convolutional seismogram for a geological model    
     
@@ -45,8 +45,8 @@ def seismic_convolutional_model(n_traces, vel_l, f, wavelet, dt=2.e-3, rho=1.):
 
     * n_traces: integers
         The vertical and horizontal grid dimensions
-    * model : 2D-array
-        Vp values
+    * model_t : 2D-array
+        Vp values in the time domain (instead of depth)
     * f : float
         Dominant frequency of the ricker wavelet
     * dt: float
@@ -60,19 +60,10 @@ def seismic_convolutional_model(n_traces, vel_l, f, wavelet, dt=2.e-3, rho=1.):
         Resulting seismogram
 
     """
-    # calculate RC
-    rc = np.zeros(np.shape(vel_l))
-    try:
-    #dimension of rho must be the same of velocity grid, if both are matrix
-        rc[1:, :] = ((vel_l[1:, :]*rho[1:, :]-vel_l[:-1, :]*rho[:-1, :]) /
-                     (vel_l[1:, :]*rho[1:, :]+vel_l[:-1, :]*rho[:-1, :]))        
-    except TypeError:
-        rc[1:, :] = (vel_l[1:, :]-vel_l[:-1, :])/(vel_l[1:, :]+vel_l[:-1, :])
-        
     w = wavelet(f, dt)
     # convolution
     synth_l = np.zeros(np.shape(rc))
-    for j in range(0, n_traces):
+    for j in range(0, rc.shape[1]):
         if np.shape(rc)[0] >= len(w):
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='same')
         else:
@@ -80,13 +71,36 @@ def seismic_convolutional_model(n_traces, vel_l, f, wavelet, dt=2.e-3, rho=1.):
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='full')[aux:-aux]
     return synth_l
 
-def depth_2_time(n_samples, n_traces, model, dt=2.e-3, dz=1., rho=1.):
+def calc_RC(model_t, rho=1.):
+    """
+    Calculate reflectivity series
+
+    Parameters:
+    * model_t : 2D-array
+        Vp values in time domain
+    * rho : 2D-array (optional)
+        Density values for all the model, in time domain.
+
+    Returns:
+
+    * rc : 2D-array
+        Calculated reflectivity series for all the model given.
+    """
+    rc = np.zeros(np.shape(model_t))
+    try:
+    #dimension of rho must be the same of velocity grid, if both are matrix
+        rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
+                     (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))        
+    except TypeError:
+        rc[1:, :] = ((model_t[1:, :]-model_t[:-1, :]) /
+                    (model_t[1:, :]+model_t[:-1, :]))
+    return rc
+
+def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
     """
     Convert depth property model to time model.
 
     Parameters:
-    * n_samples, n_traces: integers
-        The vertical and horizontal grid dimensions
     * model : 2D-array
         Vp values
     * dt: float
@@ -101,6 +115,7 @@ def depth_2_time(n_samples, n_traces, model, dt=2.e-3, dz=1., rho=1.):
 
     """
     #downsampled time rate to make a better interpolation
+    n_samples, n_traces=[model.shape[0],model.shape[1]]
     dt_dwn = dt/10.
     TWT = np.zeros((n_samples, n_traces))
     TWT[0, :] = 2*dz/model[0, :]
