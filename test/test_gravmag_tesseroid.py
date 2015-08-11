@@ -24,7 +24,7 @@ def test_warn_if_division_makes_too_small():
     lat, lon = np.zeros((2, 1))
     h = np.array([0.1])
     warning_msg = (
-        "Stoped dividing a tesseroid because it's dimensions would be below "
+        "Stopped dividing a tesseroid because it's dimensions would be below "
         + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
         + "Will compute without division. Cannot guarantee the accuracy of "
         + "the solution.")

@@ -306,7 +306,7 @@ def _forward_model(args):
     module = _get_engine(engine)
     func = getattr(module, field)
     warning_msg = (
-        "Stoped dividing a tesseroid because it's dimensions would be below "
+        "Stopped dividing a tesseroid because it's dimensions would be below "
         + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
         + "Will compute without division. Cannot guarantee the accuracy of "
         + "the solution.")
