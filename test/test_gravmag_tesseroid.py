@@ -95,7 +95,7 @@ def test_pool_as_argument():
             func(lon, lat, height, model, njobs=1, pool=pool)
 
 
-def test_null_tesseroid():
+def test_ignore_zero_volume():
     "gravmag.tesseroid ignores tesseroids with 0 volume"
     props = dict(density=2000)
     model = [Tesseroid(-10, 0, 4, 5, 1000.1, 1000.1, props),
@@ -105,9 +105,10 @@ def test_null_tesseroid():
              Tesseroid(5, 10, -10, -5, 2000.5, 0, props)]
     lon, lat, height = gridder.regular((-20, 20, -20, 20), (50, 50), z=250e3)
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
-        func = getattr(tesseroid, f)
-        f1 = func(lon, lat, height, model)
-        f2 = func(lon, lat, height, [model[-1]])
+        with warnings.catch_warnings(record=True) as w:
+            func = getattr(tesseroid, f)
+            f1 = func(lon, lat, height, model)
+            f2 = func(lon, lat, height, [model[-1]])
         assert_allclose(f1, f2, err_msg="Mismatch for {}".format(f))
 
 
@@ -139,13 +140,14 @@ def test_serial_vs_parallel():
 
 def test_numba_vs_python():
     "gravmag.tesseroid numba and pure python implementations give same result"
-    model = TesseroidMesh((0, 1, 0, 2, 1000, 0), (2, 2, 1))
+    model = TesseroidMesh((0.3, 0.6, 0.2, 0.8, 1000, 0), (2, 2, 1))
     model.addprop('density', -200*np.ones(model.size))
     lon, lat, height = gridder.regular((0, 1, 0, 2), (20, 20), z=250e3)
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
-        func = getattr(tesseroid, f)
-        py = func(lon, lat, height, model, engine='numpy')
-        nb = func(lon, lat, height, model, engine='numba')
+        with warnings.catch_warnings(record=True) as w:
+            func = getattr(tesseroid, f)
+            py = func(lon, lat, height, model, engine='numpy')
+            nb = func(lon, lat, height, model, engine='numba')
         assert_allclose(nb, py, err_msg="Mismatch for {}".format(f))
 
 
