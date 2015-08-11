@@ -3,11 +3,70 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
 from nose.tools import assert_raises
 import multiprocessing
+import warnings
 
 from fatiando.gravmag import tesseroid
 from fatiando.mesher import Tesseroid, TesseroidMesh
 from fatiando import gridder
 from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
+
+
+def test_warn_if_division_makes_too_small():
+    "gravmag.tesseroid warn if not dividing further bc tesseroid got too small"
+    # When tesseroids get below a threshold, they should not divide further and
+    # compute as is instead. Otherwise results in ZeroDivisionError involving
+    # some trigonometric functions.
+    ds = 1e-6
+    models = [
+        [Tesseroid(-ds, ds, -ds, ds, 0, -1000, {'density': 100})],
+        [Tesseroid(-1e-3, 1e-3, -1e-3, 1e-3, 0, -1e-2, {'density': 100})],
+        ]
+    lat, lon = np.zeros((2, 1))
+    h = np.array([0.1])
+    warning_msg = (
+        "Stoped dividing a tesseroid because it's dimensions would be below "
+        + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
+        + "Will compute without division. Cannot guarantee the accuracy of "
+        + "the solution.")
+    for i, model in enumerate(models):
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            tesseroid.gz(lon, lat, h, model)
+            msg = ("Failed model {}. Got {} warnings.\n\n".format(i, len(w))
+                   + "\n\n".join([str(j.message) for j in w]))
+            assert len(w) >= 1, msg
+            assert any(issubclass(j.category, RuntimeWarning) for j in w), \
+                "No RuntimeWarning found. " + msg
+            assert any(warning_msg in str(j.message) for j in w), \
+                "Message mismatch. " + msg
+
+
+def test_warn_if_too_small():
+    "gravmag.tesseroid warns if ignoring tesseroid that is too small"
+    ds = 1e-6/2
+    models = [
+        [Tesseroid(-ds, ds, -ds, ds, 0, -1000, {'density': 100})],
+        [Tesseroid(-1e-2, 1e-2, -1e-2, 1e-2, 0, -1e-4, {'density': 100})],
+        ]
+    lat, lon = np.zeros((2, 1))
+    h = np.array([10])
+    warning_msg = (
+        "Encountered tesseroid with dimensions smaller than the "
+        + "numerical threshold (1e-6 degrees or 1e-3 m). "
+        + "Ignoring this tesseroid.")
+    for i, model in enumerate(models):
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            tesseroid.gz(lon, lat, h, model)
+            msg = ("Failed model {}. Got {} warnings.\n\n".format(i, len(w))
+                   + "\n\n".join([str(j.message) for j in w]))
+            assert len(w) >= 1, msg
+            assert any(issubclass(j.category, RuntimeWarning) for j in w), \
+                "No RuntimeWarning found. " + msg
+            assert any(warning_msg in str(j.message) for j in w), \
+                "Message mismatch. " + msg
 
 
 def test_pool_as_argument():
