@@ -155,6 +155,7 @@ Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
 """
 from __future__ import division
 import multiprocessing
+import warnings
 
 import numpy as np
 try:
@@ -243,7 +244,11 @@ def _check_tesseroid(tesseroid, dens):
     assert w <= e and s <= n and top >= bottom, \
         "Invalid tesseroid dimensions {}".format(tesseroid.get_bounds())
     # Check if the tesseroid has volume > 0
-    if e - w < 1e-7 or n - s < 1e-7 or top - bottom < 1e-3:
+    if (e - w <= 1e-6) or (n - s <= 1e-6) or (top - bottom <= 1e-3):
+        msg = ("Encountered tesseroid with dimensions smaller than the "
+               + "numerical threshold (1e-6 degrees or 1e-3 m). "
+               + "Ignoring this tesseroid.")
+        warnings.warn(msg, RuntimeWarning)
         return None
     if dens is not None:
         density = dens
@@ -300,12 +305,19 @@ def _forward_model(args):
     lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
     module = _get_engine(engine)
     func = getattr(module, field)
+    warning_msg = (
+        "Stoped dividing a tesseroid because it's dimensions would be below "
+        + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
+        + "Will compute without division. Cannot guarantee the accuracy of "
+        + "the solution.")
     for tesseroid in model:
         density = _check_tesseroid(tesseroid, dens)
         if density is None:
             continue
-        func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-             STACK_SIZE, result)
+        error = func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
+                     STACK_SIZE, result)
+        if error != 0:
+            warnings.warn(warning_msg, RuntimeWarning)
     return result
 
 
