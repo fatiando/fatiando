@@ -21,7 +21,7 @@ See the figure below.
     A tesseroid in a geocentric coordinate system (X, Y, Z). Point P is a
     computation point with associated local North-oriented coordinate system
     (x, y, z).
-    Image by L. Uieda (`doi:10.6084/m9.figshare.1495525
+    Image by L. Uieda (doi:`10.6084/m9.figshare.1495525
     <http://dx.doi.org/10.6084/m9.figshare.1495525>`__).
 
 .. raw:: html
