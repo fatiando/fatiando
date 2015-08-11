@@ -5,8 +5,8 @@ from nose.tools import assert_raises
 from fatiando.seismic import conv
 
 
-def test_density_matrix_input
-#rho default com rho matrix=1, result the same
+def test_density_matrix_input():
+    "rho default and rho matrix=1, result the same"
     #model parameters
     n_samples, n_traces = [600, 500]
     rock_grid = 1500.*np.ones((n_samples, n_traces))
@@ -23,3 +23,15 @@ def test_density_matrix_input
                                            30., conv.rickerwave, rho=rho_l_mat)
     assert_array_almost_equal(synt_int, synt_mat, 9)
 
+def test_impulse_response():
+    """
+    conv.seismic_convolutional_model raises the source wavelet as result
+    when the model is a centred spike, considering the dimension of the model 
+    equal to the source wavelet
+    """
+    w=conv.rickerwave(30., 2.e-3)
+    RC_test=np.zeros((w.shape, 20))
+    RC_test[w.shape[0]/2,:]=1
+    spike=conv.seismic_convolutional_model(RC_test, 30., w)
+    for j in range(0,RC_test.shape[1]):
+        assert_array_almost_equal(spike[:,j], w, 9)
