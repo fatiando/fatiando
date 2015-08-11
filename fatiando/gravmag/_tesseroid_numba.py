@@ -64,6 +64,7 @@ def engine_factory(kernel):
         sinlatc = np.empty_like(nodes)
         coslatc = np.empty_like(nodes)
         rc = np.empty_like(nodes)
+        error_code = 0
         for l in range(result.size):
             for i in range(6):
                 stack[0, i] = bounds[i]
@@ -74,8 +75,9 @@ def engine_factory(kernel):
                 distance, Llon, Llat, Lr = distance_size(
                     lon[l], coslat[l], sinlat[l], radius[l], w, e, s, n, top,
                     bottom)
-                nlon, nlat, nr, new_cells = divisions(distance, Llon, Llat, Lr,
-                                                      ratio)
+                nlon, nlat, nr, new_cells, err = divisions(
+                    distance, Llon, Llat, Lr, ratio)
+                error_code += err
                 if new_cells > 1:
                     if new_cells + (stktop + 1) > stack_size:
                         raise OverflowError
@@ -87,6 +89,7 @@ def engine_factory(kernel):
                     result[l] += density*scale*kernel(
                         lon[l], coslat[l], sinlat[l], radius[l], lonc, sinlatc,
                         coslatc, rc)
+        return error_code
     return engine
 
 
@@ -167,7 +170,23 @@ def split(w, e, s, n, top, bottom, nlon, nlat, nr, stack, stktop):
 @numba.jit(nopython=True)
 def divisions(distance, Llon, Llat, Lr, ratio):
     "How many divisions should be made per dimension"
-    nlon = 1 if distance/Llon > ratio else 2
-    nlat = 1 if distance/Llat > ratio else 2
-    nr = 1 if distance/Lr > ratio else 2
-    return nlon, nlat, nr, nlon*nlat*nr
+    nlon = 1
+    nlat = 1
+    nr = 1
+    error = 0
+    if distance <= ratio*Llon:
+        if Llon <= 0.1:  # in meters. ~1e-6  degrees
+            error = -1
+        else:
+            nlon = 2
+    if distance <= ratio*Llat:
+        if Llat <= 0.1:  # in meters. ~1e-6  degrees
+            error = -1
+        else:
+            nlat = 2
+    if distance <= ratio*Lr:
+        if Lr <= 1e3:
+            error = -1
+        else:
+            nr = 2
+    return nlon, nlat, nr, nlon*nlat*nr, error

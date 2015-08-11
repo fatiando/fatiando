@@ -79,7 +79,7 @@ class Moulder(object):
         # below). Start drawing (follow the instruction in the figure title).
         # When satisfied, close the window to resume execution.
 
-    .. image:: ../_static/Moulder-screenshot.png
+    .. image:: ../_static/images/Moulder-screenshot.png
         :alt: Screenshot of the Moulder GUI
 
 
