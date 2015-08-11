@@ -194,7 +194,7 @@ def radial_average(spectrum, dx=1.0):
     * averages: 1D-array
         Radial averages of the spectrum.
     * rms: 1D-array
-        Error bar for each average.
+        Standard Deviation of each average.
     """
 
     ny, nx = spectrum.shape
