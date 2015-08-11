@@ -10,6 +10,12 @@ Version (development)
 
 **Changes**:
 
+* **BUG FIX**: Tesseroid computations failed (silently) when tesseroids were
+  smaller than 1e-6 degrees on a side (~ 10 cm). Code now ignores these
+  tesseroids on input and warns the user about it. If a tesseroid becomes
+  smaller than this during adaptive discretization, the tesseroid effect will
+  be computed without division.  The user will be warned when this happens.
+  (`PR 228 <https://github.com/fatiando/fatiando/pull/228>`__)
 * **New** reduction to the pole and upward continuation with FFT in
   ``fatiando.gravmag.transform``. The pole reduction allows both remanent and
   induced magnetization. Upward continuation is more stable and faster than the
