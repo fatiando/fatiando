@@ -175,7 +175,7 @@ def upcontinue(x, y, data, shape, height):
     upcont_ft = numpy.fft.fft2(padded)*numpy.exp(-height*kz)
     cont = numpy.real(numpy.fft.ifft2(upcont_ft))
     # Remove padding
-    cont = cont[padx : padx + nx, pady : pady + ny].ravel()
+    cont = cont[padx: padx + nx, pady: pady + ny].ravel()
     return cont
 
 
@@ -307,7 +307,7 @@ def derivx(x, y, data, shape, order=1, method='fd'):
         deriv_ft = numpy.fft.fft2(padded)*(kx*1j)**order
         deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
         # Remove padding from derivative
-        deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+        deriv = deriv_pad[padx: padx + nx, pady: pady + ny]
     elif method == 'fd':
         datamat = data.reshape(shape)
         dx = (x.max() - x.min())/(nx - 1)
@@ -365,7 +365,7 @@ def derivy(x, y, data, shape, order=1, method='fd'):
         deriv_ft = numpy.fft.fft2(padded)*(ky*1j)**order
         deriv_pad = numpy.real(numpy.fft.ifft2(deriv_ft))
         # Remove padding from derivative
-        deriv = deriv_pad[padx : padx + nx, pady : pady + ny]
+        deriv = deriv_pad[padx: padx + nx, pady: pady + ny]
     elif method == 'fd':
         datamat = data.reshape(shape)
         dy = (y.max() - y.min())/(ny - 1)
@@ -421,7 +421,7 @@ def derivz(x, y, data, shape, order=1, method='fft'):
     deriv_ft = numpy.fft.fft2(padded)*numpy.sqrt(kx**2 + ky**2)**order
     deriv = numpy.real(numpy.fft.ifft2(deriv_ft))
     # Remove padding from derivative
-    return deriv[padx : padx + nx, pady : pady + ny].ravel()
+    return deriv[padx: padx + nx, pady: pady + ny].ravel()
 
 
 def _pad_data(data, shape):
