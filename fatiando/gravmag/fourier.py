@@ -12,6 +12,12 @@ Potential field processing using the Fast Fourier Transform
 * :func:`~fatiando.gravmag.fourier.derivz`: Calculate the n-th order
   derivative of a potential field in the z-direction
 
+**Radial Average**
+
+* :func:`~fatiando.gravmag.fourier.radial_average`:Calculate the Radial
+  Average of a Power Spectrum or any function of it (i.e. Log Power
+  Spectrum).
+
 **Transformations**
 
 * :func:`~fatiando.gravmag.fourier.ansig`: Calculate the amplitude of the
@@ -158,6 +164,60 @@ def derivz(x, y, data, shape, order=1):
     Fx, Fy = _getfreqs(x, y, data, shape)
     freqs = numpy.sqrt(Fx ** 2 + Fy ** 2)
     return _deriv(freqs, data, shape, order)
+
+
+def radial_average(spectrum, dx=1.0):
+    """
+    Performs a radial average of the spectrum grid using concentric
+    rings, and calculates the standard deviation for each average.
+
+    Parameters:
+
+    * spectrum: real 2D-array
+        Power Spectrum on regular grid or any function of it
+        (i.e. Log Power Spectrum).
+        The grid must be square, equally spaced and must have
+        odd number of points per axis.
+
+    * dx: float
+        Sampling distance (default = 1)
+
+    .. warning ::
+
+        The spectrum has to be in the form as the output of fft2,
+        DON'T USE np.fft.fftshift.
+
+    Returns:
+
+    * freqs: 1D-array
+        Array containing the frequency values for each averaged ring.
+    * averages: 1D-array
+        Radial averages of the spectrum.
+    * rms: 1D-array
+        Error bar for each average.
+    """
+
+    ny, nx = spectrum.shape
+    assert ny == nx, "The spectrum grid isn't square."
+    assert nx % 2 != 0, \
+        "The spectrum grid must have odd number of points per axis."
+
+    freqs = np.fft.fftfreq(nx, dx)
+    fx, fy = np.meshgrid(freqs, freqs)
+    f = np.sqrt(fx**2 + fy**2)
+    df = 1/float(dx*nx)
+
+    averages = [spectrum[f == 0][0]]
+    rms = [0]
+    for freq in freqs[1:nx/2 + 1]:
+        ring_points = spectrum[(f <= freq + df/2.) & (f > freq - df/2.)]
+        ring_n = float(len(ring_points))
+        ring_average = np.sum(ring_points)/ring_n
+        ring_rms = np.sqrt(np.sum((ring_points - ring_average)**2)/ring_n**2)
+        averages.append(ring_average)
+        rms.append(ring_rms)
+
+    return freqs[:nx/2+1], np.array(averages), np.array(rms)
 
 
 def _getfreqs(x, y, data, shape):
