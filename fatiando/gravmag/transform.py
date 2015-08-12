@@ -21,6 +21,12 @@ Potential field transformations, like upward continuation and derivatives.
 * :func:`~fatiando.gravmag.transform.derivz`: Calculate the n-th order
   derivative of a potential field in the z-direction
 
+**Radial Average**
+
+* :func:`~fatiando.gravmag.fourier.radial_average`:Calculate the Radial
+  Average of a Power Spectrum or any function of it (i.e. Log Power
+  Spectrum).
+
 ----
 
 """
@@ -28,6 +34,74 @@ from __future__ import division
 import numpy
 
 from .. import utils
+
+
+def radial_average(spectrum, dx=1.0, is_shifted=False):
+    """
+    Performs a radial average of the spectrum grid using
+    concentric rings, and calculates the standard deviation
+    for each average.
+
+    Parameters:
+
+    * spectrum: 2D-array
+        Power Spectrum on regular grid.
+        The Spectrum must be in a square regular grid with
+        odd number of points per axis.
+
+    * dx: float
+        Sampling distance (default = 1). Its units defines the
+        units of the returned wave number array.
+
+    * is_shifted: bool (default False)
+        If the spectrum hasn't been shifted, then keep it False
+        (i.e. the output of fft2 isn't shifted). If otherwise,
+        it has been shifted with the numpy.fft.fftshift() function
+        then set this True.
+
+    Returns:
+
+    * k: 1D-array
+        Array containing the wave numbers for each averaged ring.
+        Each ring has a mean radii equal to the frequency given by
+        the positive values of 2*numpy.pi*numpy.fft.fftfreq().
+        Its units are radians over the unit of distance.
+
+    * averages: 1D-array
+        Radial averages of the spectrum.
+
+    * rms: 1D-array
+        Standard deviation for each average.
+
+    """
+
+    ny, nx = spectrum.shape
+    assert ny == nx, "The spectrum grid isn't square."
+    assert nx % 2 != 0, \
+        "The spectrum grid must have odd number of points per axis."
+
+    if not is_shifted:
+        spectrum = numpy.fft.fftshift(spectrum)
+
+    index_range = numpy.arange(-nx//2 + 1, nx//2 + 1, 1)
+    index_x, index_y = numpy.meshgrid(index_range, index_range)
+    index_grid = numpy.sqrt(index_x**2 + index_y**2)
+
+    averages = [spectrum[index_grid == 0][0]]
+    rms = [0]
+    for i in index_range[nx//2 + 1:]:
+        ring_points = spectrum[(index_grid <= i + 1/2) &
+                               (index_grid > i - 1/2)]
+        ring_n = float(len(ring_points))
+        ring_average = numpy.sum(ring_points)/ring_n
+        ring_rms = numpy.sum((ring_points - ring_average)**2)/ring_n**2
+        ring_rms = numpy.sqrt(ring_rms)
+        averages.append(ring_average)
+        rms.append(ring_rms)
+
+    k = 2*numpy.pi*numpy.fft.fftfreq(nx, dx)[:nx/2+1]
+
+    return k, numpy.array(averages), numpy.array(rms)
 
 
 def reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec):
