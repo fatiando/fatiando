@@ -40,4 +40,3 @@ def test_reflectivity_wrong_dimensions():
     vel=np.ones((10,10))
     dens=np.ones((11,11))
     assert_raises(ValueError, conv.reflectivity, vel,dens)
-
