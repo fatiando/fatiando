@@ -11,7 +11,12 @@ which we advise ricker wavelet (rickerwave function).
   the model in time.  
 * :func:`~fatiando.seismic.conv.rickerwave`: calculates a ricker wavelet.
 
-**References**
+Examples
+--------
+
+
+References
+----------
 
 Yilmaz, Oz,
 Ch.2 Deconvolution. In: YILMAZ, Oz. Seismic Data Analysis: Processing, 
@@ -27,7 +32,7 @@ import numpy as np
 from scipy import interpolate  # linear interpolation of velocity/density
 
 
-def seismic_convolutional_model(rc, f, wavelet, dt=2.e-3):
+def convolutional_model(rc, f, wavelet, dt=2.e-3):
     """
     Calculate convolutional seismogram for a geological model    
     
@@ -43,16 +48,14 @@ def seismic_convolutional_model(rc, f, wavelet, dt=2.e-3):
 
     Parameters:
 
-    * n_traces: integers
-        The vertical and horizontal grid dimensions
-    * model_t : 2D-array
-        Vp values in the time domain (instead of depth)
+    * rc : 2D-array
+        reflectivity values in the time domain
     * f : float
         Dominant frequency of the ricker wavelet
-    * dt: float
-        Sample time of the ricker wavelet and of the resulting seismogram
     * wavelet : float
         The function to consider as source in the seismic modelling.
+    * dt: float
+        Sample time of the ricker wavelet and of the resulting seismogram
 
     Returns:
 
@@ -71,11 +74,12 @@ def seismic_convolutional_model(rc, f, wavelet, dt=2.e-3):
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='full')[aux:-aux]
     return synth_l
 
-def calc_RC(model_t, rho=1.):
+def reflectivity(model_t, rho=1.):
     """
     Calculate reflectivity series
 
     Parameters:
+    
     * model_t : 2D-array
         Vp values in time domain
     * rho : 2D-array (optional)
@@ -101,17 +105,22 @@ def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
     Convert depth property model to time model.
 
     Parameters:
+    
     * model : 2D-array
         Vp values
     * dt: float
         Sample time of the ricker wavelet and of the resulting seismogram
     * dz : float
         Length of square grid cells
+    * rho : 2D-array (optional)
+        Density values for all the model, in depth domain.
 
     Returns:
 
-    * TWT_ts : 1D-array
-        Time axis for the property converted
+    * vel_l : 2D-array
+        Velocity model in time domain
+    * rho_l : 2D-array
+        Density model in time domain
 
     """
     #downsampled time rate to make a better interpolation
@@ -146,6 +155,7 @@ def _resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces):
     Returns:
 
     * vel_l : resampled input data
+
     """ 
     vel = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
     for j in range(0, n_traces):
