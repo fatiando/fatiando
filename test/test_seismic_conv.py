@@ -25,9 +25,9 @@ def test_density_matrix_input():
 
 def test_impulse_response():
     """
-    conv.seismic_convolutional_model raises the source wavelet as result
-    when the model is a centred spike, considering the dimension of the model 
-    equal to the source wavelet
+    conv.convolutional_model raises the source wavelet as result when the model
+    is a centred spike, considering the dimension of the model equal to the 
+    source wavelet
     """
     w=conv.rickerwave(30., 2.e-3)
     RC_test=np.zeros((w.shape[0], 20))
@@ -35,3 +35,9 @@ def test_impulse_response():
     spike=conv.convolutional_model(RC_test, 30., conv.rickerwave)
     for j in range(0,RC_test.shape[1]):
         assert_array_almost_equal(spike[:,j], w, 9)
+
+def test_reflectivity_wrong_dimensions():
+    vel=np.ones((10,10))
+    dens=np.ones((11,11))
+    assert_raises(ValueError, conv.reflectivity, vel,dens)
+
