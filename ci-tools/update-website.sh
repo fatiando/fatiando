@@ -14,7 +14,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
         git config --global github.user "leouieda"
         echo -e "Cloning fatiando.github.io"
         # Clone the project, using the secret token. Uses /dev/null to avoid leaking decrypted key
-        git clone --quiet --branch=master --single-branch https://leouieda:${GH_TOKEN}@github.com/fatiando/fatiando.github.io.git fatiando.org > /dev/null
+        git clone --quiet --branch=master --single-branch https://${GH_TOKEN}@github.com/fatiando/fatiando.github.io.git fatiando.org > /dev/null
         cd fatiando.org
         # Move the old branch out of the way and create a new one:
         echo -e "Create and empty master branch"
@@ -45,7 +45,7 @@ else
     git config --global github.user "leouieda"
     echo -e "Cloning fatiando/pulls"
     # Clone the project, using the secret token. Uses /dev/null to avoid leaking decrypted key
-    git clone --quiet --depth=50 --branch=gh-pages --single-branch https://leouieda:${GH_TOKEN}@github.com/fatiando/pull.git > /dev/null
+    git clone --quiet --depth=50 --branch=gh-pages --single-branch https://${GH_TOKEN}@github.com/fatiando/pull.git > /dev/null
     cd pull
     git checkout gh-pages
     # Make sure the PR folder is present
