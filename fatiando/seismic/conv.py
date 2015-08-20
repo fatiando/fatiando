@@ -126,6 +126,8 @@ def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
     #downsampled time rate to make a better interpolation
     n_samples, n_traces=[model.shape[0],model.shape[1]]
     dt_dwn = dt/10.
+    if dt_dwn>dz/np.max(model):
+        dt_dwn=(dz/np.max(model))/10.
     TWT = np.zeros((n_samples, n_traces))
     TWT[0, :] = 2*dz/model[0, :]
     for j in range(1, n_samples):
@@ -179,7 +181,9 @@ def _resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces):
 
 def rickerwave(f, dt):
     """
-    Given a frequency and time sampling rate, outputs ricker function.
+    Given a frequency and time sampling rate, outputs ricker function. To
+    satisfy sampling and stability, f<<(1/(2*dt)). Here, we consider this as:
+    f<0.2*(1/(2*dt)).
     
     Parameters:
 
@@ -192,6 +196,7 @@ def rickerwave(f, dt):
         ricker function for the given parameters
     
     """
+    assert f<0.2*(1./(2.*dt)), "Frequency too high for the dt chosen."
     nw = 2.2/f/dt
     nw = 2*np.floor(nw/2)+1
     nc = np.floor(nw/2)
