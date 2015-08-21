@@ -13,7 +13,14 @@ which we advise ricker wavelet (rickerwave function).
 
 Examples
 --------
-
+    >>>import numpy as np
+    >>>from fatiando.seismic import conv
+    >>>n_samples, n_traces = [600, 20]
+    >>>rock_grid = 1500.*np.ones((n_samples, n_traces))
+    >>>rock_grid[300:, :] = 2500.
+    >>>[vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3)
+    >>>rc = conv.reflectivity(vel_l,rho_l)
+    >>>synt = conv.convolutional_model(rc, 30., conv.rickerwave)
 
 References
 ----------
