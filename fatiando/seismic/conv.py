@@ -1,37 +1,55 @@
 """
 Zero-offset convolutional seismic modeling
 
-Give a depth model and obtain a seismic zero-offset convolutional gather. You 
-can give the wavelet, if you already have, or use one of the existing, from 
+Give a depth model and obtain a seismic zero-offset convolutional gather. You
+can give the wavelet, if you already have, or use one of the existing, from
 which we advise ricker wavelet (rickerwave function).
 
-* :func:`~fatiando.seismic.conv.seismic_convolutional`: given the depth 
-  velocity model and wavelet, it returns the convolutional seismic gather.
-* :func:`~fatiando.seismic.conv.depth_2_time`: convert depth property model to 
-  the model in time.  
+* :func:`~fatiando.seismic.conv.convolutional_model`: given the reflectivity
+  series and wavelet, it returns the convolutional seismic gather.
+* :func:`~fatiando.seismic.conv.reflectivity`: calculates the reflectivity
+  series from the velocity model (and density model if present).
+* :func:`~fatiando.seismic.conv.depth_2_time`: convert depth property model to
+  the model in time.
 * :func:`~fatiando.seismic.conv.rickerwave`: calculates a ricker wavelet.
 
 Examples
 --------
-    >>>import numpy as np
-    >>>from fatiando.seismic import conv
-    >>>n_samples, n_traces = [600, 20]
-    >>>rock_grid = 1500.*np.ones((n_samples, n_traces))
-    >>>rock_grid[300:, :] = 2500.
-    >>>[vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3)
-    >>>rc = conv.reflectivity(vel_l,rho_l)
-    >>>synt = conv.convolutional_model(rc, 30., conv.rickerwave)
+.. plot::
+    :include-source:
+    :context:
+
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from fatiando.seismic import conv
+    >>> from fatiando.vis import mpl
+    >>> # Choose some velocity depth model
+    >>> n_samples, n_traces = [600, 20]
+    >>> rock_grid = 1500.*np.ones((n_samples, n_traces))
+    >>> rock_grid[300:, :] = 2500.
+    >>> # Convert from depth to time
+    >>> [vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3)
+    >>> # Calculate the reflectivity for all the model
+    >>> rc = conv.reflectivity(vel_l,rho_l)
+    >>> # Convolve the reflectivity with a ricker wavelet
+    >>> synt = conv.convolutional_model(rc, 30., conv.rickerwave)
+    >>> # Plot the result
+    >>> fig = plt.figure(figsize=(6,5))
+    >>> _ = mpl.seismic_wiggle(synt, dt=2.e-3)
+    >>> _ = mpl.seismic_image(synt, dt=2.e-3,
+    ...                            cmap=mpl.pyplot.cm.jet, aspect='auto')
+    >>> plt.ylabel('time (seconds)')
+    >>> plt.title("Convolutional seismogram", fontsize=13, family='sans-serif',
+          weight='bold')
 
 References
 ----------
 
 Yilmaz, Oz,
-Ch.2 Deconvolution. In: YILMAZ, Oz. Seismic Data Analysis: Processing, 
-Inversion, and Interpretation of Seismic Data. Tulsa: Seg, 2001. Cap. 2. 
+Ch.2 Deconvolution. In: YILMAZ, Oz. Seismic Data Analysis: Processing,
+Inversion, and Interpretation of Seismic Data. Tulsa: Seg, 2001. Cap. 2.
 p. 159-270. Available at: <http://dx.doi.org/10.1190/1.9781560801580.ch2>
 
-
-----
 
 """
 from __future__ import division
@@ -41,8 +59,8 @@ from scipy import interpolate  # linear interpolation of velocity/density
 
 def convolutional_model(rc, f, wavelet, dt=2.e-3):
     """
-    Calculate convolutional seismogram for a geological model    
-    
+    Calculate convolutional seismogram for a geological model
+
     Calculate the synthetic convolutional seismogram of a geological model, Vp
     is mandatory while density is optional. The given model in a matrix form is
     considered a mesh of square cells.
@@ -81,12 +99,13 @@ def convolutional_model(rc, f, wavelet, dt=2.e-3):
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='full')[aux:-aux]
     return synth_l
 
+
 def reflectivity(model_t, rho=1.):
     """
     Calculate reflectivity series
 
     Parameters:
-    
+
     * model_t : 2D-array
         Vp values in time domain
     * rho : 2D-array (optional)
@@ -98,21 +117,22 @@ def reflectivity(model_t, rho=1.):
         Calculated reflectivity series for all the model given.
     """
     rc = np.zeros(np.shape(model_t))
+    # dimension of rho must be the same of velocity grid, if both are matrix
     try:
-    #dimension of rho must be the same of velocity grid, if both are matrix
         rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
-                     (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))        
+                     (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))
     except TypeError:
         rc[1:, :] = ((model_t[1:, :]-model_t[:-1, :]) /
-                    (model_t[1:, :]+model_t[:-1, :]))
+                     (model_t[1:, :]+model_t[:-1, :]))
     return rc
+
 
 def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
     """
     Convert depth property model to time model.
 
     Parameters:
-    
+
     * model : 2D-array
         Vp values
     * dt: float
@@ -130,11 +150,11 @@ def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
         Density model in time domain
 
     """
-    #downsampled time rate to make a better interpolation
-    n_samples, n_traces=[model.shape[0],model.shape[1]]
+    # downsampled time rate to make a better interpolation
+    n_samples, n_traces = [model.shape[0], model.shape[1]]
     dt_dwn = dt/10.
-    if dt_dwn>dz/np.max(model):
-        dt_dwn=(dz/np.max(model))/10.
+    if dt_dwn > dz/np.max(model):
+        dt_dwn = (dz/np.max(model))/10.
     TWT = np.zeros((n_samples, n_traces))
     TWT[0, :] = 2*dz/model[0, :]
     for j in range(1, n_samples):
@@ -145,27 +165,28 @@ def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
     for j in range(1, len(TWT_rs)):
         TWT_rs[j] = TWT_rs[j-1]+dt_dwn
     resmpl = int(dt/dt_dwn)
-    vel_l=_resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces)
+    vel_l = _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
     TWT_ts = np.zeros((np.ceil(TMAX/dt), n_traces))
     for j in range(1, len(TWT_ts)):
         TWT_ts[j, :] = TWT_rs[resmpl*j]
     # density calculations
     try:
-       rho_l=_resampling(rho,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces)
+        rho_l = _resampling(rho, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
     except TypeError:
         rho_l = rho
     return vel_l, rho_l
 
-def _resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces):
+
+def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
     """
     Resamples the input data to adjust it after time conversion with the chosen
-    time sample rate, dt. 
-    
+    time sample rate, dt.
+
     Returns:
 
     * vel_l : resampled input data
 
-    """ 
+    """
     vel = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
     for j in range(0, n_traces):
         kk = np.ceil(TWT[0, j]/dt_dwn)
@@ -186,12 +207,13 @@ def _resampling(model,TMAX,TWT,TWT_rs,dt,dt_dwn,n_traces):
             vel_l[jj, j] = vel[resmpl*jj, j]  # 10=dt/dt_new, dt_new=0.002=2m
     return vel_l
 
+
 def rickerwave(f, dt):
     """
     Given a frequency and time sampling rate, outputs ricker function. To
     satisfy sampling and stability, f<<(1/(2*dt)). Here, we consider this as:
     f<0.2*(1/(2*dt)).
-    
+
     Parameters:
 
     * f : dominant frequency value in Hz
@@ -201,9 +223,9 @@ def rickerwave(f, dt):
 
     * res : float
         ricker function for the given parameters
-    
+
     """
-    assert f<0.2*(1./(2.*dt)), "Frequency too high for the dt chosen."
+    assert f < 0.2*(1./(2.*dt)), "Frequency too high for the dt chosen."
     nw = 2.2/f/dt
     nw = 2*np.floor(nw/2)+1
     nc = np.floor(nw/2)
