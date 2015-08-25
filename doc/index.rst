@@ -145,6 +145,7 @@ Don't be afraid to ask for help getting started!
     contributors.rst
     changelog.rst
     license.rst
+    news.rst
 
 .. raw:: html
 
@@ -198,9 +199,4 @@ Read :ref:`all announcements <news>`.
     :maxdepth: 1
     :hidden:
 
-    cite.rst
     docs.rst
-    news.rst
-    develop.rst
-
-
