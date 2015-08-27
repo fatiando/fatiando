@@ -38,9 +38,8 @@ Examples
     >>> _ = mpl.seismic_wiggle(synt, dt=2.e-3)
     >>> _ = mpl.seismic_image(synt, dt=2.e-3,
     ...                            cmap=mpl.pyplot.cm.jet, aspect='auto')
-    >>> plt.ylabel('time (seconds)')
-    >>> plt.title("Convolutional seismogram", fontsize=13, family='sans-serif',
-          weight='bold')
+    >>> _ = plt.ylabel('time (seconds)')
+    >>> plt.title("Convolutional seismogram", fontsize=13, family='sans-serif')
 
 References
 ----------
