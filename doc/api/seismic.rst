@@ -15,3 +15,4 @@ Seismics and seismology (``fatiando.seismic``)
     seismic.profile.rst
     seismic.srtomo.rst
     seismic.wavefd.rst
+    seismic.conv.rst
