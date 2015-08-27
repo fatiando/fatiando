@@ -39,7 +39,7 @@ Examples
     >>> _ = mpl.seismic_image(synt, dt=2.e-3,
     ...                            cmap=mpl.pyplot.cm.jet, aspect='auto')
     >>> _ = plt.ylabel('time (seconds)')
-    >>> plt.title("Convolutional seismogram", fontsize=13, family='sans-serif')
+    >>> _ = plt.title("Convolutional seismogram", fontsize=13, family='sans-serif')
 
 References
 ----------
