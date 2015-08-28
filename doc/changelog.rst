@@ -10,6 +10,10 @@ Version (development)
 
 **Changes**:
 
+* **New** obtain a synthetic convolutional seismogram in
+  ``fatiando.seismic.conv``. It can be given a depth model that will be 
+  converted to a time model before generating the synthetic seismogram.
+  (`PR 190 <https://github.com/fatiando/fatiando/pull/190>`__)
 * **BUG FIX**: Tesseroid computations failed (silently) when tesseroids were
   smaller than 1e-6 degrees on a side (~ 10 cm). Code now ignores these
   tesseroids on input and warns the user about it. If a tesseroid becomes
