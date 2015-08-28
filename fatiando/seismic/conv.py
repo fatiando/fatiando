@@ -208,10 +208,19 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
 
 
 def rickerwave(f, dt):
-    """
+    r"""
     Given a frequency and time sampling rate, outputs ricker function. To
-    satisfy sampling and stability, f<<(1/(2*dt)). Here, we consider this as:
-    f<0.2*(1/(2*dt)).
+    satisfy sampling and stability:
+
+    .. math::
+
+        f << \frac{1}{2 dt}.
+
+    Here, we consider this as:
+
+    .. math::
+
+        f < 0.2 \frac{1}{2 dt}.
 
     Parameters:
 
