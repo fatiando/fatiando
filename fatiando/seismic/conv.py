@@ -183,7 +183,8 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
 
     Returns:
 
-    * vel_l : resampled input data
+    * vel_l : 2D-array
+        resampled input data
 
     """
     vel = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
@@ -203,14 +204,17 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
     vel_l[0, :] = vel[0, :]
     for j in range(0, n_traces):
         for jj in range(1, int(np.ceil(TMAX/dt))):
-            vel_l[jj, j] = vel[resmpl*jj, j]  # 10=dt/dt_new, dt_new=0.002=2m
+            vel_l[jj, j] = vel[resmpl*jj, j]
     return vel_l
 
 
 def rickerwave(f, dt):
     r"""
-    Given a frequency and time sampling rate, outputs ricker function. To
-    satisfy sampling and stability:
+    Given a frequency and time sampling rate, outputs ricker function. The
+    length of the function varies according to f and dt, in order for the
+    ricker function starts and ends as zero. It is also considered that the
+    functions is causal, what means it starts at time zero. To satisfy sampling
+    and stability:
 
     .. math::
 
@@ -224,12 +228,14 @@ def rickerwave(f, dt):
 
     Parameters:
 
-    * f : dominant frequency value in Hz
-    * dt : time sampling rate in seconds (usually it is in the order of ms)
+    * f : float
+        dominant frequency value in Hz
+    * dt : float
+        time sampling rate in seconds (usually it is in the order of ms)
 
     Returns:
 
-    * res : float
+    * ricker : float
         ricker function for the given parameters
 
     """
@@ -237,9 +243,9 @@ def rickerwave(f, dt):
     nw = 2.2/f/dt
     nw = 2*np.floor(nw/2)+1
     nc = np.floor(nw/2)
-    result = np.zeros(nw)
+    ricker = np.zeros(nw)
     k = np.arange(1, nw+1)
     alpha = (nc-k+1)*f*dt*np.pi
     beta = alpha**2
-    result = (1.-beta*2)*np.exp(-beta)
-    return result
+    ricker = (1.-beta*2)*np.exp(-beta)
+    return ricker
