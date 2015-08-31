@@ -12,6 +12,7 @@ A (hopefully) updated list of people who contributed to Fatiando a Terra:
 * `André Ferreira`_ - ANP, Brazil
 * Graham Markall - Continuum Analytics, Inc.
 * `Martin Bentley`_ - Nelson Mandela Metropolitan University, South Africa and AEON, South Africa
+* `Victor Almeida`_ - UERJ, Brazil.
 
 .. _Leonardo Uieda: http://www.leouieda.com
 .. _Vanderlei Coelho de Oliveira Junior: http://fatiando.org/people/oliveira-jr
@@ -19,3 +20,4 @@ A (hopefully) updated list of people who contributed to Fatiando a Terra:
 .. _Henrique Bueno dos Santos: http://fatiando.org/people/santos
 .. _André Ferreira: http://fatiando.org/people/ferreira
 .. _Martin Bentley: https://twitter.com/astonsplat
+.. _Victor Almeida: http://www.pinga-lab.org/people/victor-almeida.html
