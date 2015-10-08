@@ -402,6 +402,7 @@ class Moulder(object):
         vmin = 1.2*min(self.predicted.min(), self.dmin)
         vmax = 1.2*max(self.predicted.max(), self.dmax)
         self.dataax.set_ylim(vmin, vmax)
+        self.dataax.grid()
         self.canvas.draw()
 
     def _set_error_callback(self, value):
