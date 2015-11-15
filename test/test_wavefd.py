@@ -21,7 +21,6 @@ def test_sources():
     assert_almost_equal(w(-2), w(2), decimal=5,
                         err_msg="Gauss has no symmetry")
 
-
 def test_wavefd_elastipsv_run():
     "make a simple run of elastic psv"
     shape = (50, 50)
@@ -34,23 +33,8 @@ def test_wavefd_elastipsv_run():
     sim.run(180)
 
 
-def test_wavefd_elasticsh_run():
-    "run with and sumn two simulation with different phase wavelets equal zero"
-    shape = (50, 50)
-    velocity = 1500*np.ones(shape)
-    density = 2200*np.ones(shape)
-    sim = ElasticSH(velocity, density, (5, 5))
-    sim.add_point_source((shape[0]//2, shape[1]//2), Ricker(5, 10.))
-    sim.run(100)
-    sim_iphase = ElasticSH(velocity, density, (5, 5))
-    sim_iphase.add_point_source((shape[0]//2, shape[1]//2), -1*Ricker(5, 10.))
-    sim_iphase.run(100)
-    diff = sim[-1] + sim_iphase[-1]
-    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
-
-
 def test_wavefd_scalar_run():
-    "run with and sumn two simulation with different phase wavelets equal zero"
+    "run and sum two simulation with different phase wavelets that equals zero"
     # TODO change to analytic solution comparison
     shape = (50, 50)
     velocity = 1500*np.ones(shape)
@@ -63,3 +47,19 @@ def test_wavefd_scalar_run():
     sim_iphase.run(100)
     diff = sim[-1] + sim_iphase[-1]
     assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
+
+
+def test_wavefd_elasticsh_run():
+    "run and sum two simulation with different phase wavelets that equals zero"
+    shape = (50, 50)
+    velocity = 1500*np.ones(shape)
+    density = 2200*np.ones(shape)
+    sim = ElasticSH(velocity, density, (5, 5))
+    sim.add_point_source((shape[0]//2, shape[1]//2), Ricker(5, 10.))
+    sim.run(100)
+    sim_iphase = ElasticSH(velocity, density, (5, 5))
+    sim_iphase.add_point_source((shape[0]//2, shape[1]//2), -1*Ricker(5, 10.))
+    sim_iphase.run(100)
+    diff = sim[-1] + sim_iphase[-1]
+    assert np.all(diff <= 0.01), 'diff: %s' % (str(diff))
+

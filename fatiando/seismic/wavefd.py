@@ -1009,7 +1009,7 @@ class ElasticPSV(WaveFD2D):
 
     """
 
-    def __init__(self, pvel, svel, density, spacing, cachefile=None, dt=None,
+    def     __init__(self, pvel, svel, density, spacing, cachefile=None, dt=None,
                  padding=50, taper=0.007, verbose=True):
         super(ElasticPSV, self).__init__(cachefile, spacing, pvel.shape, dt,
                                          padding, taper, verbose)
@@ -1029,7 +1029,20 @@ class ElasticPSV(WaveFD2D):
         return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz],
                          self.shape, self.pvel.max())
 
-    def add_blast_source(self, position, wavelet):
+    def add_blast_source(self, position, source):
+        """
+        Adds a point source to this simulation
+
+        Parameters:
+
+        * position : tuple
+            The (x, z) coordinates of the source
+
+        * source : source function
+            (see :class:`~fatiando.seismic.wavefd.Ricker` for an example
+            source)
+
+        """
         nz, nx = self.shape
         i, j = position
         amp = 1/(2**0.5)
@@ -1045,8 +1058,8 @@ class ElasticPSV(WaveFD2D):
             ]
         for k, l, xamp, zamp in locations:
             if k >= 0 and k < nz and l >= 0 and l < nx:
-                xwav = xamp*wavelet
-                zwav = zamp*wavelet
+                xwav = xamp*source
+                zwav = zamp*source
                 self.sources.append([[k, l], xwav, zwav])
 
     def add_point_source(self, position, dip, source):
@@ -1818,286 +1831,6 @@ def _add_pad(array, pad, shape):
     for k in xrange(pad):
         array_pad[-(pad - k), :] = array_pad[-(pad + 1), :]
     return array_pad
-
-
-def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
-               snapshot=None, padding=50, taper=0.005):
-    """
-    Simulate SH waves using the Equivalent Staggered Grid (ESG) finite
-    differences scheme of Di Bartolo et al. (2012).
-
-    This is an iterator. It yields a panel of $u_y$ displacements and a list
-    of arrays with recorded displacements in a time series.
-    Parameter *snapshot* controls how often the iterator yields. The default
-    is only at the end, so only the final panel and full time series are
-    yielded.
-
-    Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
-    right boundaries. The top implements a free-surface boundary condition.
-
-    Parameters:
-
-    * mu : 2D-array (shape = *shape*)
-        The :math:`\mu` Lame parameter at all the grid nodes
-    * density : 2D-array (shape = *shape*)
-        The value of the density at all the grid nodes
-    * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the shallowest point is
-        at zmin, the deepest at zmax.
-    * dt : float
-        The time interval between iterations
-    * iterations : int
-        Number of time steps to take
-    * sources : list
-        A list of the sources of waves
-        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
-        source)
-    * stations : None or list
-        If not None, then a list of [x, z] pairs with the x and z coordinates
-        of the recording stations. These are physical coordinates, not the
-        indexes
-    * snapshot : None or int
-        If not None, than yield a snapshot of the displacement at every
-        *snapshot* iterations.
-    * padding : int
-        Number of grid nodes to use for the absorbing boundary region
-    * taper : float
-        The intensity of the Gaussian taper function used for the absorbing
-        boundary conditions
-
-    Yields:
-
-    * t, uy, seismograms : int, 2D-array and list of 1D-arrays
-        The current iteration, the particle displacement in the y direction
-        and a list of the displacements recorded at each station until the
-        current iteration.
-
-    """
-    if mu.shape != density.shape:
-        raise ValueError('Density and mu grids should have same shape')
-    x1, x2, z1, z2 = area
-    nz, nx = mu.shape
-    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
-    # Get the index of the closest point to the stations and start the
-    # seismograms
-    if stations is not None:
-        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
-                    for x, z in stations]
-        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
-    else:
-        stations, seismograms = [], []
-    # Add some padding to x and z. The padding region is where the wave is
-    # absorbed
-    pad = int(padding)
-    nx += 2 * pad
-    nz += pad
-    mu_pad = _add_pad(mu, pad, (nz, nx))
-    dens_pad = _add_pad(density, pad, (nz, nx))
-    # Pack the particle position u at 2 different times in one 3d array
-    # u[0] = u(t-1)
-    # u[1] = u(t)
-    # The next time step overwrites the t-1 panel
-    u = numpy.zeros((2, nz, nx), dtype=numpy.float)
-    # Compute and yield the initial solutions
-    for src in sources:
-        i, j = src.indexes()
-        u[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
-    # Update seismograms
-    for station, seismogram in zip(stations, seismograms):
-        i, j = station
-        seismogram[0] = u[1, i, j + pad]
-    if snapshot is not None:
-        yield 0, u[1, :-pad, pad:-pad], seismograms
-    for iteration in xrange(1, iterations):
-        t, tm1 = iteration % 2, (iteration + 1) % 2
-        tp1 = tm1
-        _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3, dt, dx,
-                         dz, mu_pad, dens_pad)
-        _apply_damping(u[t], nx, nz, pad, taper)
-        _nonreflexive_sh_boundary_conditions(u[tp1], u[t], nx, nz, dt, dx, dz,
-                                             mu_pad, dens_pad)
-        _apply_damping(u[tp1], nx, nz, pad, taper)
-        for src in sources:
-            i, j = src.indexes()
-            u[tp1, i, j +
-                pad] += (dt ** 2 / density[i, j]) * src(iteration * dt)
-        # Update seismograms
-        for station, seismogram in zip(stations, seismograms):
-            i, j = station
-            seismogram[iteration] = u[tp1, i, j + pad]
-        if snapshot is not None and iteration % snapshot == 0:
-            yield iteration, u[tp1, :-pad, pad:-pad], seismograms
-    yield iteration, u[tp1, :-pad, pad:-pad], seismograms
-
-
-def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
-                stations=None, snapshot=None, padding=50, taper=0.002,
-                xz2ps=False):
-    """
-    Simulate P and SV waves using the Parsimonious Staggered Grid (PSG) finite
-    differences scheme of Luo and Schuster (1990).
-
-    This is an iterator. It yields panels of $u_x$ and $u_z$ displacements
-    and a list of arrays with recorded displacements in a time series.
-    Parameter *snapshot* controls how often the iterator yields. The default
-    is only at the end, so only the final panel and full time series are
-    yielded.
-
-    Uses absorbing boundary conditions (Gaussian taper) in the lower, left and
-    right boundaries. The top implements the free-surface boundary condition
-    of Vidale and Clayton (1986).
-
-    Parameters:
-
-    * mu : 2D-array (shape = *shape*)
-        The :math:`\mu` Lame parameter at all the grid nodes
-    * lamb : 2D-array (shape = *shape*)
-        The :math:`\lambda` Lame parameter at all the grid nodes
-    * density : 2D-array (shape = *shape*)
-        The value of the density at all the grid nodes
-    * area : [xmin, xmax, zmin, zmax]
-        The x, z limits of the simulation area, e.g., the shallowest point is
-        at zmin, the deepest at zmax.
-    * dt : float
-        The time interval between iterations
-    * iterations : int
-        Number of time steps to take
-    * sources : [xsources, zsources] : lists
-        A lists of the sources of waves for the particle movement in the x and
-        z directions
-        (see :class:`~fatiando.seismic.wavefd.MexHatSource` for an example
-        source)
-    * stations : None or list
-        If not None, then a list of [x, z] pairs with the x and z coordinates
-        of the recording stations. These are physical coordinates, not the
-        indexes!
-    * snapshot : None or int
-        If not None, than yield a snapshot of the displacements at every
-        *snapshot* iterations.
-    * padding : int
-        Number of grid nodes to use for the absorbing boundary region
-    * taper : float
-        The intensity of the Gaussian taper function used for the absorbing
-        boundary conditions
-    * xz2ps : True or False
-        If True, will yield P and S wave panels instead of ux, uz. See
-        :func:`~fatiando.seismic.wavefd.xz2ps`.
-
-    Yields:
-
-    * [t, ux, uz, xseismograms, zseismograms]
-        The current iteration, the particle displacements in the x and z
-        directions, lists of arrays containing the displacements recorded at
-        each station until the current iteration.
-
-    References:
-
-    Vidale, J. E., and R. W. Clayton (1986), A stable free-surface boundary
-    condition for two-dimensional elastic finite-difference wave simulation,
-    Geophysics, 51(12), 2247-2249.
-
-    """
-    if mu.shape != lamb.shape != density.shape:
-        raise ValueError('Density lambda, and mu grids should have same shape')
-    x1, x2, z1, z2 = area
-    nz, nx = mu.shape
-    dz, dx = (z2 - z1) / (nz - 1), (x2 - x1) / (nx - 1)
-    xsources, zsources = sources
-    # Get the index of the closest point to the stations and start the
-    # seismograms
-    if stations is not None:
-        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
-                    for x, z in stations]
-        xseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
-        zseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
-    else:
-        stations, xseismograms, zseismograms = [], [], []
-    # Add padding to have an absorbing region to simulate an infinite medium
-    pad = int(padding)
-    nx += 2 * pad
-    nz += pad
-    mu_pad = _add_pad(mu, pad, (nz, nx))
-    lamb_pad = _add_pad(lamb, pad, (nz, nx))
-    dens_pad = _add_pad(density, pad, (nz, nx))
-    # Pre-compute the matrices required for the free-surface boundary
-    dzdx = dz / dx
-    identity = scipy.sparse.identity(nx)
-    B = scipy.sparse.eye(nx, nx, k=1) - scipy.sparse.eye(nx, nx, k=-1)
-    gamma = scipy.sparse.spdiags(lamb_pad[0] / (lamb_pad[0] + 2 * mu_pad[0]),
-                                 [0], nx, nx)
-    Mx1 = identity - 0.0625 * (dzdx ** 2) * B * gamma * B
-    Mx2 = identity + 0.0625 * (dzdx ** 2) * B * gamma * B
-    Mx3 = 0.5 * dzdx * B
-    Mz1 = identity - 0.0625 * (dzdx ** 2) * gamma * B * B
-    Mz2 = identity + 0.0625 * (dzdx ** 2) * gamma * B * B
-    Mz3 = 0.5 * dzdx * gamma * B
-    # Compute and yield the initial solutions
-    ux = numpy.zeros((2, nz, nx), dtype=numpy.float)
-    uz = numpy.zeros((2, nz, nx), dtype=numpy.float)
-    if xz2ps:
-        p, s = numpy.empty_like(mu), numpy.empty_like(mu)
-    for src in xsources:
-        i, j = src.indexes()
-        ux[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
-    for src in zsources:
-        i, j = src.indexes()
-        uz[1, i, j + pad] += (dt ** 2 / density[i, j]) * src(0)
-    # Update seismograms
-    for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
-        i, j = station
-        xseis[0] = ux[1, i, j + pad]
-        zseis[0] = uz[1, i, j + pad]
-    if snapshot is not None:
-        if xz2ps:
-            _xz2ps(ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad], p, s,
-                   p.shape[1], p.shape[0], dx, dz)
-            yield [0, p, s, xseismograms, zseismograms]
-        else:
-            yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
-                   xseismograms, zseismograms]
-    for iteration in xrange(1, iterations):
-        t, tm1 = iteration % 2, (iteration + 1) % 2
-        tp1 = tm1
-        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1, dt, dx,
-                          dz, mu_pad, lamb_pad, dens_pad)
-        _apply_damping(ux[t], nx, nz, pad, taper)
-        _apply_damping(uz[t], nx, nz, pad, taper)
-        # Free-surface boundary conditions
-        ux[tp1, 0, :] = scipy.sparse.linalg.spsolve(
-            Mx1, Mx2*ux[tp1, 1, :] + Mx3*uz[tp1, 1, :])
-        uz[tp1, 0, :] = scipy.sparse.linalg.spsolve(
-            Mz1, Mz2*uz[tp1, 1, :] + Mz3*ux[tp1, 1, :])
-        _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt,
-                                              dx, dz, mu_pad, lamb_pad,
-                                              dens_pad)
-        _apply_damping(ux[tp1], nx, nz, pad, taper)
-        _apply_damping(uz[tp1], nx, nz, pad, taper)
-        for src in xsources:
-            i, j = src.indexes()
-            ux[tp1, i, j + pad] += (dt**2 / density[i, j])*src(iteration*dt)
-        for src in zsources:
-            i, j = src.indexes()
-            uz[tp1, i, j +
-                pad] += (dt ** 2 / density[i, j]) * src(iteration * dt)
-        for station, xseis, zseis in zip(stations, xseismograms, zseismograms):
-            i, j = station
-            xseis[iteration] = ux[tp1, i, j + pad]
-            zseis[iteration] = uz[tp1, i, j + pad]
-        if snapshot is not None and iteration % snapshot == 0:
-            if xz2ps:
-                _xz2ps(ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad], p,
-                       s, p.shape[1], p.shape[0], dx, dz)
-                yield [iteration, p, s, xseismograms, zseismograms]
-            else:
-                yield [iteration, ux[tp1, :-pad, pad:-pad],
-                       uz[tp1, :-pad, pad:-pad], xseismograms, zseismograms]
-    if xz2ps:
-        _xz2ps(ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad], p,
-               s, p.shape[1], p.shape[0], dx, dz)
-        yield [iteration, p, s, xseismograms, zseismograms]
-    else:
-        yield [iteration, ux[tp1, :-pad, pad:-pad], uz[tp1, :-pad, pad:-pad],
-               xseismograms, zseismograms]
 
 
 def xz2ps(ux, uz, area):
