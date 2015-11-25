@@ -381,7 +381,7 @@ You'll need to install the `Sphinx bootstrap theme
 <https://github.com/ryan-roemer/sphinx-bootstrap-theme>`__ to build the docs.
 Run this in your terminal/cmd.exe::
 
-    pip install sphinx_bootstrap_theme
+    pip install sphinx_bootstrap_theme==0.4.5
 
 To compile the documentation, run::
 
