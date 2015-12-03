@@ -17,6 +17,11 @@ Create and operate on grids and profiles.
 * :func:`~fatiando.gridder.interp_at`
 * :func:`~fatiando.gridder.extrapolate_nans`
 
+**Padding**
+
+* :func:`~fatiando.gridder.pad_array`
+* :func:`~fatiando.gridder.unpad_array`
+
 **Input/Output**
 
 * :func:`~fatiando.gridder.load_surfer`: Read a Surfer grid file and return
@@ -80,7 +85,7 @@ def load_surfer(fname, fmt='ascii'):
             # Read the number of columns (ny) and rows (nx)
             ny, nx = [int(s) for s in ftext.readline().split()]
             shape = (nx, ny)
-            # Read the min/max value of columns/longitue (y direction)
+            # Read the min/max value of columns/longitude (y direction)
             ymin, ymax = [float(s) for s in ftext.readline().split()]
             # Read the min/max value of rows/latitude (x direction)
             xmin, xmax = [float(s) for s in ftext.readline().split()]
@@ -439,3 +444,269 @@ def cut(x, y, scalars, area):
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
     return [x[inside], y[inside], [s[inside] for s in scalars]]
+
+def pad_array(a, xy=None, npd=None, padtype='OddReflectionTaper'):
+    """
+    Return a padded array of arbitrary dimension.
+
+    The function takes an array of arbitrary dimension and pads it either to 
+    the dimensions given by the tuple npd, or to the next power of 2 if npd is
+    not given.  New coordinate vectors are computed for each dimension, if
+    provided.
+
+    An odd reflection with a cosine taper is the author's preferred method of
+    padding for Fourier operations.  The odd reflection optimally preserves
+    the frequency content while adding minimal sharp inflections.  The cosine
+    taper is a smooth function which also adds few sharp inflection points.
+
+    .. note:: Requires gridded data of the same dimension as desired
+        (i.e. no flattened arrays; use reshape).
+
+    .. note:: This function returns a deep copy of the original array.
+
+    .. warning:: This function returns the coordinate vectors as a list of 
+        arrays.  This means that even for a 1D input array, the returned 
+        vector will be in a list of one element.
+
+    Parameters:
+
+    * a : numpy array
+        numpy array (N-D) to be padded
+    * xy : N-D array (optional)
+        [MxN] array where M is the number of observation points and N is the 
+        dimension.  This is effectively a concatenated xp,yp, etc...
+    * npd : tuple (optional)
+        Optional tuple containing the total number of desired elements in each
+        dimension
+    * padtype : string (optional)
+        String describing what to pad the new values with. Options:
+
+        [ OddReflectionTaper | OddReflection | Reflection | value | LinTaper
+        | edge | mean ]
+            OddReflectionTaper - Generates odd reflection then tapers to the 
+            mean using a cosine function (Default)
+
+            OddReflection - Pads with the odd reflection, with no taper
+
+            Reflection - Pads with simple reflection
+
+            LinTaper - Linearly tapers to the mean
+
+            value - numeric value
+
+            edge - uses the edge value as a constant pad
+
+            mean - uses the mean of the vector along each axis
+
+    Returns:
+
+    * ap : numpy array
+        Padded array. The array core is a deep copy of the original array
+    * cp : list
+        List of coordinate arrays containing the extrapolated coordinate values
+        Returns None if xy not provided
+    * nps : list
+        List of tuples containing the number of elements padded onto each 
+        dimension.
+
+    """
+
+    # Test to make sure padtype is valid
+    padopts = ['','oddreflectiontaper','oddreflection', 'reflection',
+            'lintaper', 'edge', 'value', 'mean']
+    #API Note:
+    # If one wishes to add more options to the padding, use the following
+    # checklist to make sure all the sections are consistent.
+    #  [ ] Docstring (2 spots: the options, and the option descriptions
+    #  [ ] padopts - Make sure to add to avoid raising a ValueError
+    #  [ ] if statements below - Finally add an elif to the if statements
+    #                            below. Add a descriptive comment.
+    if padtype.lower() not in padopts and not _is_number(padtype):
+        raise ValueError('gridder.pad_array: Pad Type not understood')
+    # If npd is not provided, populate with next power of 2
+    npt = []
+    nd = a.ndim
+    if npd == None:
+        for ii in range(0, nd):
+            if nd == 1:
+                npt.append(_nextpow2(len(a)))
+            else:
+                npt.append(_nextpow2(a.shape[ii]))
+    else:
+        et = 'gridder.pad_array: pad dimensions do not match array dims'
+        if nd == 1:
+            if _is_integer(npd):
+                npt.append(npd)
+            else:
+                if len(npd) != 1:
+                    raise ValueError(et)
+                else:
+                    npt.append(npd)
+        else:
+            if _is_integer(npd):
+                raise ValueError(et)
+            elif len(npd) != a.ndim:
+                raise ValueError(et)
+            else:
+                npt = npd
+        for ii in numpy.arange(len(npt)):
+            if npt[ii] <= a.shape[ii]:
+                # How are you supposed to properly assign a multi-line string?
+                et1 = 'gridder.pad_array: Desired padding is less than array '
+                et2 = 'length along dimension '+str(ii)
+                et = et1+et2
+                raise ValueError(et)
+    # Compute numbers to pad on the left and right side of the array along
+    # each dimension
+    nps = []
+    for ii in range(0, nd):
+        nps.append((int(numpy.ceil((npt[ii] - a.shape[ii])/2.)),
+            int(numpy.floor((npt[ii] - a.shape[ii])/2.))))
+
+    # If it will be needed, compute the mean
+    meanneeded = ['lintaper', 'oddreflectiontaper']
+    if padtype.lower() in meanneeded:
+        m = numpy.mean(a)
+    # Use numpy's padding routines where possible
+    if _is_number(padtype):
+        # Pad with value
+        ap = numpy.pad(numpy.copy(a), nps, mode='constant',
+            constant_values = float(padtype))
+    elif padtype.lower() == 'mean':
+        # Pad with the mean
+        ap = numpy.pad(numpy.copy(a), nps, mode='mean')
+    elif padtype.lower() == 'lintaper':
+        # Linearly taper to the mean
+        ap = numpy.pad(numpy.copy(a), nps, mode='linear_ramp', end_values=m)
+    elif padtype.lower() == 'edge':
+        # Pad with edge values
+        ap = numpy.pad(numpy.copy(a), nps, mode='edge')
+    elif padtype.lower() == 'reflection':
+        # Pad with even reflection 
+        ap = numpy.pad(numpy.copy(a), nps, mode='reflect', 
+            reflect_type='even')
+    elif padtype.lower() == 'oddreflection':
+        # Pad with odd reflection
+        ap = numpy.pad(numpy.copy(a), nps, mode='reflect', 
+            reflect_type='odd')
+    elif padtype.lower() == 'oddreflectiontaper':
+        # Pad with odd reflection and a cosine taper to mean
+        ap = (numpy.pad(numpy.copy(a), nps, mode='reflect', 
+            reflect_type='odd') - m)
+        for ii in numpy.arange(nd):
+            ap = numpy.apply_along_axis(_costaper, ii, ap, lp=nps[ii][0],
+                rp=nps[ii][1])
+        ap += m
+    if xy is not None:
+        cp = _padcoords(xy, a.shape, nps)
+    else:
+        # What is the preferred way to do this?
+        cp = None
+
+    return ap, cp, nps
+
+def unpad_array(a, nps):
+    '''
+    Unpads an array using the outputs from pad_array.
+
+    This function takes a padded array and removes the padding from both. 
+    Effectively, this is a complement to gridder.cut for when you already 
+    know the number of elements to remove.
+
+    .. note: Unlike pad_array, this returns a slice of the input array.
+    Therefore, any changes to the padded array will be reflected in the 
+    unpadded array.
+
+    Parameters:
+
+    * a : N-D array
+        Array to be un-padded.  Can be of arbitrary dimension.
+    * nps : list
+        List of tuples giving the min and max indices for the cutoff
+        Identical to nps returned by pad_array
+
+    Returns:
+
+    * b : N-D array
+        Array of same dimension as a, with padding removed
+    '''
+
+    # xkcd.com/1597
+    # Remove padding from the n-d array
+    o = []
+    for ii in numpy.arange(a.ndim):
+        o.append(slice(nps[ii][0],a.shape[ii] - nps[ii][1]))
+    b = a[o]
+
+    return b
+
+def _padcoords(xy, s, nps):
+    # Define vector for coordinates for each dimension
+    coords = []
+    d = []
+    coordspad = []
+    for ii in numpy.arange(len(s)):
+        if len(s) <= 1:
+            coords.append(xy)
+        else:
+            coords.append(xy[:,ii].reshape(s).transpose().take(0,axis=ii))
+        d.append(coords[ii][1]-coords[ii][0])
+        coordspad.append(_padcvec(coords[ii], nps[ii], d[ii]))
+
+    return coordspad
+
+def _padcvec(x,n,dx):
+    # Used by _padcoords to pad an individual vector based on the number
+    # of points on either side and the point spacing
+    xp = numpy.zeros(len(x) + n[0] + n[1])
+    xp[n[0]:n[0]+len(x)] = x[:]
+    for ii,jj in enumerate(numpy.arange(n[0])[::-1]):
+        xp[ii] = x[0] - ((jj + 1) * dx)
+    for ii,jj in enumerate(numpy.arange(len(x)+n[0], len(xp))):
+        xp[jj] = x[-1] + (dx * (ii + 1))
+    return xp
+
+def _unpadcvec(x,n):
+    # Takes a vector, x, and a tuple, n, and removes n[0] elements from the 
+    # left and n[1] to the right  
+    return x[n[0]:len(x)-n[1]]
+            
+def _costaper(a,lp,rp):
+    # This takes an array and applies a cosine taper to each end.
+    # The array has already been deep copied above.  This is by reference only.
+    a[0:lp] = a[0:lp] * _calccostaper(lp)[::-1]
+    a[-rp:] = a[-rp:] * _calccostaper(rp)
+    return a
+
+def _calccostaper(ntp):
+    # Used by _costaper to compute a cosine taper from 1 to zero over
+    # ntp points
+    tp = numpy.zeros(ntp)
+    for ii in range(1,ntp + 1):
+        tp[ii-1] = (1.0 + numpy.cos((ii*numpy.pi) / float(ntp))/2.) - 0.5
+    return tp
+
+def _nextpow2(ii):
+    # Computes the next power of two
+    buf = numpy.ceil(numpy.log(ii) / numpy.log(2))
+    return int(2**buf)
+
+def _is_number(s):
+    # Returns true if s can be cast as a float, false otherwise
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+def _is_integer(s):
+    # Returns true if s is an integer. Used for testing int/array
+    try:
+        int(s)
+        return True
+    except TypeError:
+        return False
+
+
+
+
