@@ -186,8 +186,8 @@ def center_of_mass(x, y, z, eigvec1, windows=1, wcenter=None, wmin=None,
     >>> eigenvals, eigenvecs = tensor.eigen(data)
     >>> # Now estimate the center of mass
     >>> cm = tensor.center_of_mass(x, y, z, eigenvecs[0])
-    >>> cm
-    array([-100.,  20., 100.])
+    >>> print('{:.1f} {:.1f} {:.1f}'.format(cm[0], cm[1], cm[2]))
+    -100.0 20.0 100.0
 
     """
     if wmin is None:
