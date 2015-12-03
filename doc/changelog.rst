@@ -10,6 +10,8 @@ Version (development)
 
 **Changes**:
 
+* Fix the doctest for ``fatiando.gravmag.tensor.center_of_mass``.
+  (`PR 242 <https://github.com/fatiando/fatiando/pull/242>`__)
 * **BUG FIX**: Tesseroid computations failed (silently) when tesseroids were
   smaller than 1e-6 degrees on a side (~ 10 cm). Code now ignores these
   tesseroids on input and warns the user about it. If a tesseroid becomes
