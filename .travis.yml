@@ -18,24 +18,23 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda2/bin:$PATH
-  # Update conda itself
-  - conda update --yes conda
   - cp ci-tools/matplotlibrc .
 
 install:
+  - conda update --yes conda
   - conda create -n testenv --yes pip python=$PYTHON
   - conda update conda --yes
   - source activate testenv
   - conda install --yes --file requirements.txt
   - conda install --yes --file test/requirements-conda.txt
   - pip install -r test/requirements-pip.txt
+  - conda list
   - pip install .
   - python setup.py build_ext --inplace
 
 script:
-  - make test
-  - make coverage
-  - make docs
+  - nosetests -v --with-doctest --with-coverage --cover-package=fatiando fatiando test/
+  - make -C doc all
 
 after_success:
   - coveralls
