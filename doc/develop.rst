@@ -23,8 +23,8 @@ private repositories.
 .. note::
 
     If you are new to **version control** (or don't know what that means),
-    start with the `Software Carpentry lessons on version control
-    <http://software-carpentry.org/v5/novice/git/index.html>`__.
+    start with the `Software Carpentry lessons on version control with Git
+    <http://software-carpentry.org/>`__.
     After you've gone through those, the
     Github `help page <https://help.github.com/>`__
     and `guides <https://guides.github.com/>`__
@@ -127,8 +127,8 @@ style, building the documentation, etc.
 .. note::
 
     If you don't know what ``make`` is or need a quick start, read the
-    `Software Carpentry lessons on Make
-    <http://software-carpentry.org/v4/make/index.html>`__.
+    `Software Carpentry lessons on Automation and Make
+    <http://software-carpentry.org/>`__.
 
 
 To build the C-extensions (all of the ``.c`` files in the ``fatiando``
@@ -166,9 +166,9 @@ unit tests and doc tests.
 
 .. note::
 
-    If you are new to automated tests, see the (you guessed it)
-    `Software Carpentry lessons on testing
-    <http://software-carpentry.org/v4/test/index.html>`__.
+    If you are new to automated tests, see the Software Carpentry lessons on 
+    `Testing: Unit Testing
+    <http://software-carpentry.org/>`__.
 
 Unit tests are implemented in the ``test/test_*.py`` files of the repository.
 Doctests are part of the docstrings of functions and modules.
@@ -381,7 +381,7 @@ You'll need to install the `Sphinx bootstrap theme
 <https://github.com/ryan-roemer/sphinx-bootstrap-theme>`__ to build the docs.
 Run this in your terminal/cmd.exe::
 
-    pip install sphinx_bootstrap_theme==0.4.5
+    pip install sphinx_bootstrap_theme
 
 To compile the documentation, run::
 
