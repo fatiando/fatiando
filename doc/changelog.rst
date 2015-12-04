@@ -11,6 +11,7 @@ Version (development)
 **Changes**:
 
 * Fix the broken software carpentry links in ``develop.rst``.
+  (`PR 245 <https://github.com/fatiando/fatiando/pull/245>`__)
 * Fix the doctest for ``fatiando.gravmag.tensor.center_of_mass``.
   (`PR 242 <https://github.com/fatiando/fatiando/pull/242>`__)
 * **BUG FIX**: Tesseroid computations failed (silently) when tesseroids were
