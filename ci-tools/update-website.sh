@@ -25,8 +25,8 @@
         echo -e "Remove old files from previous builds"
         git rm -rf .
         cp -Rf $HOME/keep/. $HOME/website
-        # Overwrite the CNAME file to include the dev sufix
-        echo "www.fatiando.org/dev/" > CNAME
+        # Remove the CNAME file because this will be under the /dev sufix
+        rm CNAME
         # add, commit and push files
         git add -f .
         echo -e "Commit changes"
