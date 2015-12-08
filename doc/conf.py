@@ -45,8 +45,8 @@ html_context = {'pull_request': pull_request}
 year = datetime.date.today().year
 project = u'Fatiando a Terra'
 copyright = u'2010-{:d}, Leonardo Uieda'.format(year)
-if len(__version__.split('-')) > 1:
-    version = '-'.join([__version__.split('-')[0], 'dev'])
+if len(__version__.split('-')) > 1 or __version__ == 'unknown':
+    version = 'dev version'
 else:
     version = __version__
 # I'll use the release to place the commit hash at the footer of the site
