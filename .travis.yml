@@ -13,6 +13,7 @@ env:
     - PYTHON=2.7
 
 install:
+  - git describe --tags --dirty --always
   # Get Miniconda from Continuum
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
