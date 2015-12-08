@@ -33,8 +33,9 @@ blockquote {
 
 .footer {
     color: #6F6F6F;
-    margin-top: 30px;
+    margin-top: 50px;
     padding-bottom: 30px;
+    font-size: 11pt;
 }
 
 .jumbotron p {
