@@ -1,90 +1,58 @@
 .. _docs:
 
-Documentation
-=============
-
-Previous versions
------------------
-
-Source code snapshots of each release of Fatiando a Terra are archived in
-`Zenodo <http://zenodo.org/>`__ or
-`figshare <http://figshare.com/>`__.
-We also preseve a built version of the documentation for reference.
+Documentation (version |version|)
+===================================
 
 .. raw:: html
 
-    <div class="alert alert-success">
-    <h4>Important</h4>
-
-Refer to the **latest build** of the docs for more up-to-date information.
-It reflects the *master* branch `on Github
-<https://github.com/fatiando/fatiando>`__.
-
-.. raw:: html
-
-    </div>
-
-.. raw:: html
-
-    <div class="container-fluid">
     <div class="row">
 
-.. raw:: html
+        <div class="col-md-3">
+            <h3><a href="api/fatiando.html">Library reference</a></h3>
 
-    <div class="col-md-4">
-    <h3>Version 0.3</h3>
+            The modules and packages of the
+            <code class="docutils literal">fatiando</code> package.
+        </div>
 
-* `Documentation <http://fatiando.github.io/v0.3/>`__
-* `Source code <https://github.com/fatiando/fatiando/tree/v0.3>`__
-* doi:`10.5281/zenodo.16205 <http://dx.doi.org/10.5281/zenodo.16205>`__
+        <div class="col-md-3">
+            <h3>Cookbook</h3>
+        </div>
 
-.. raw:: html
+        <div class="col-md-3">
+            <h3><a href="cite.html">Citing</a></h3>
+        </div>
 
-    </div>
+        <div class="col-md-3">
+            <h3><a href="develop.html">Developer Guide</a></h3>
 
-.. raw:: html
-
-    <div class="col-md-4">
-    <h3>Version 0.2</h3>
-
-* `Documentation <http://fatiando.github.io/v0.2/>`__
-* `Source code <https://github.com/fatiando/fatiando/tree/v0.2>`__
-* doi:`10.6084/m9.figshare.1115194 <http://dx.doi.org/10.6084/m9.figshare.1115194>`__
-
-.. raw:: html
+            Instructions for contributing to Fatiando.
+        </div>
 
     </div>
 
-.. raw:: html
+    <div class="row">
 
-    <div class="col-md-4">
-    <h3>Version 0.1</h3>
+        <div class="col-md-3">
+            <h3>Changelog</h3>
+        </div>
 
-* `Documentation <http://fatiando.github.io/v0.1/>`__
-* `Source code <https://github.com/fatiando/fatiando/tree/v0.1>`__
-* doi:`10.5281/zenodo.16207 <http://dx.doi.org/10.5281/zenodo.16207>`__
+        <div class="col-md-3">
+            <h3>Contributors</h3>
+        </div>
 
-.. raw:: html
+        <div class="col-md-3">
+            <h3>License</h3>
+        </div>
+
+        <div class="col-md-3">
+        </div>
 
     </div>
 
-.. raw:: html
+Other versions
+--------------
 
-    </div>
-    </div>
-
-Latest build
-------------
-
-.. toctree::
-    :maxdepth: 2
-
-    license.rst
-    cite.rst
-    changelog.rst
-    install.rst
-    api/fatiando.rst
-    develop.rst
-    contributors.rst
-    cookbook.rst
-
+* `Development version <http://www.fatiando.org/dev>`__
+* `Version 0.3 (stable) <http://www.fatiando.org/v0.3>`__
+* `Version 0.2 <http://www.fatiando.org/v0.2>`__
+* `Version 0.1 <http://www.fatiando.org/v0.1>`__
