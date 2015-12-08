@@ -31,6 +31,7 @@ install:
   - conda list
   - pip install .
   - python setup.py build_ext --inplace
+  - python -c "import fatiando; print(fatiando.__version__)"
 
 script:
   - nosetests -v --with-doctest --with-coverage --cover-package=fatiando fatiando test/
