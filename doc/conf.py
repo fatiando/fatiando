@@ -35,18 +35,12 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 master_doc = 'index'
 
-# Tell the docs if this is a PR being built by Travis CI
-pull_request = os.environ.get('TRAVIS_PULL_REQUEST', False)
-if pull_request and pull_request == 'false':
-    pull_request = False
-html_context = {'pull_request': pull_request}
-
 # General information about the project
 year = datetime.date.today().year
 project = u'Fatiando a Terra'
 copyright = u'2010-{:d}, Leonardo Uieda'.format(year)
 if len(__version__.split('-')) > 1 or __version__ == 'unknown':
-    version = 'dev version'
+    version = 'dev'
 else:
     version = __version__
 # I'll use the release to place the commit hash at the footer of the site
