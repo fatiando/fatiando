@@ -12,8 +12,13 @@ env:
   matrix:
     - PYTHON=2.7
 
+before_install:
+  # Need to fetch a deeper clone because the default depth Travis uses (50)
+  # isn't enough to get the git tags so versioneer can't find the correct
+  # version number.
+  - git fetch --depth=100
+
 install:
-  - git describe --tags --dirty --always
   # Get Miniconda from Continuum
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
