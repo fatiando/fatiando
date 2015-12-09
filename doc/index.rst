@@ -1,4 +1,4 @@
-.. title:: Fatiando a Terra
+.. title:: Fatiando a Terra: modeling and inversion
 
 .. raw:: html
 
@@ -27,23 +27,37 @@ for geophysical data analysis and the development of new methodologies.
 
 .. raw:: html
 
-    <div class="row">
+    <div class="row alert alert-info">
 
-    <div class="col-md-6">
-    <h2>Overview</h2>
-
+    <div class="col-md-4">
 
 **Research:** Fatiando allows you to write Python scripts to
 perform your data analysis and generate figures in a reproducible way.
 
+.. raw:: html
+
+    </div>
+    <div class="col-md-4">
 
 **Development:** Designed for extensibility, Fatiando offers tools for users to
 build upon the existing infrastructure and develop new inversion methods.
 We take care of the boilerplate.
 
+.. raw:: html
+
+    </div>
+    <div class="col-md-4">
 
 **Teaching:** Fatiando can be combined with the `Jupyter notebook`_ to make rich, interactive
 documents. Great for teaching fundamental concepts of geophysics.
+
+.. raw:: html
+
+    </div>
+
+.. raw:: html
+
+    </div> <!-- Row -->
 
 .. _Jupyter notebook: https://jupyter.org/
 .. _Python: https://www.python.org/
@@ -53,6 +67,106 @@ documents. Great for teaching fundamental concepts of geophysics.
 .. _Scipy: http://scipy.org/
 .. _Cython: http://www.cython.org/
 
+.. raw:: html
+
+    <div class="row">
+
+    <div class="col-md-12">
+
+.. raw:: html
+
+    <h2>Overview</h2>
+
+    <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-6">
+            <h3><a href="api/gravmag.html">Gravity and magnetics</a></h3>
+            <p>
+            Modeling, inversion, and processing for potential field methods.
+            </p>
+            <em>
+            3D forward modeling with prisms,
+            polygonal prisms, spheres, and tesseroids.
+            Handles the potential, acceleration,
+            gradient tensor, magnetic induction, total field magnetic anomaly.
+            </em>
+        </div>
+        <div class="col-md-6">
+            <h3><a href="api/seismic.html">Seismology and Seismics</a></h3>
+            <p>
+            Simple modeling functions for seismics and seismology.
+            </p>
+            <em>
+            Toy problems for: Cartesian straight-ray tomography,
+            VSP, epicenter estimation.
+            Experimental finite-difference wave propagation.
+            </em>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3><a href="api/inversion.html">Inverse Problems</a></h3>
+            <p>
+            API for building inverse problem solvers.
+            </p>
+            <em>
+            Easily prototype a new inversion.
+            Simple and uniform sintax for running invsersions.
+            Ready-made regularization (damping, smoothness, total variation).
+            </em>
+        </div>
+        <div class="col-md-6">
+            <h3><a href="api/vis.html">2D and 3D plotting</a></h3>
+            <p>
+            Utilities for plotting with
+            <a href="http://matplotlib.org/">matplotlib</a>
+            and
+            <a href="http://code.enthought.com/projects/mayavi/">Mayavi</a>.
+            </p>
+            <em>
+            Better defaults for some matplotlib functions,
+            plot 3D objects from <code>fatiando.mesher</code> in Mayavi,
+            automate common plotting tasks.
+            </em>
+        </div>
+    </div>
+    </div>
+
+.. raw:: html
+
+    </div>
+
+.. raw:: html
+
+    </div><!-- Row -->
+
+.. raw:: html
+
+    <div class="row">
+
+    <div class="col-md-6">
+    <h2>Getting started</h2>
+
+See the :ref:`install instructions <install>` to set up your computer and
+install Fatiando.
+
+Once you have everything installed,
+take a look at the :ref:`Documentation <docs>`
+for a detailed tour of the library.
+You can also browse the :ref:`Cookbook <cookbook>`
+for examples of what Fatiando can do.
+
+.. raw:: html
+
+    <div class="alert alert-success">
+    <h4><strong>Support us!</strong></h4>
+
+Fatiando is research software **made by scientists**.
+See :ref:`Citing <cite>` to find out how to cite it in your publications.
+
+.. raw:: html
+
+    </div> <!-- Alert bubble -->
 
 .. raw:: html
 
@@ -61,17 +175,17 @@ documents. Great for teaching fundamental concepts of geophysics.
 .. raw:: html
 
     <div class="col-md-6">
-    <h2>Getting started</h2>
+    <h2>Getting help</h2>
 
-See the :ref:`install instructions <install>` to set up your computer and
-install Fatiando.
+There are many ways to contact us:
 
-Once you have everything installed, browse the :ref:`cookbook <cookbook>`
-for examples of what Fatiando can do.
+* Write to our `mailing list`_.
+* Join us on our open `Gitter chat room`_.
+* Report bugs through `Github`_.
 
-If you have problems, don't hesitate to
-`get in touch <https://groups.google.com/d/forum/fatiando>`__!
-
+If you come across a bug, please include in your message: your operating
+system, Python version, Fatiando version, code that generated the error, the
+full error message.
 
 .. raw:: html
 
@@ -88,30 +202,9 @@ If you have problems, don't hesitate to
 .. raw:: html
 
     <div class="col-md-6">
-    <h2>Getting help</h2>
-
-There are many ways to get in contact with us:
-
-* Join us on our open `Gitter chat room`_.
-* Report bugs through `Github`_.
-* Ask for new features by creating `issues on Github`_
-* Write to our `mailing list`_.
-* Mention `+Fatiando a Terra`_ on Google+.
-
-If you come across a bug, please include this in your message: your operating
-system, Python version, Fatiando version, code that generated the error, the
-full error message.
-
-.. raw:: html
-
-    </div>
-
-.. raw:: html
-
-    <div class="col-md-6">
     <h2>Contributing</h2>
 
-**You don't need to code to contribute.**
+**You don't need to be a programmer to contribute.**
 You can start by sending us your
 **feedback**: bug reports, feature requests, code contributions,
 spelling corrections, usage examples, etc.
@@ -134,79 +227,7 @@ Don't be afraid to ask for help getting started!
 
     </div>
 
-    </div> <!-- Row -->
-
 .. raw:: html
-
-    <div class="row">
-
-    <div class="col-md-12">
-
-.. raw:: html
-
-    <h2>Documentation</h2>
-
-    <div class="col-md-12">
-    <div class="row">
-        <div class="col-md-3">
-            <h3><a href="install.html">Installing</a></h3>
-            <em>
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="api/fatiando.html">Library reference</a></h3>
-            <em>
-            The modules and packages of the
-            <code class="docutils literal">fatiando</code> package.
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="cookbook.html">Cookbook</a></h3>
-            <em>
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="cite.html">Citing</a></h3>
-            <em>
-            Fatiando is research software <strong>made by scientists</strong>.
-            See how to cite it in your publications.
-            </em>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-3">
-            <h3><a href="develop.html">Developer Guide</a></h3>
-            <em>
-            Instructions for contributing to Fatiando.
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="contributors.html">Contributors</a></h3>
-            <em>
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="changelog.html">Changelog</a></h3>
-            <em>
-            </em>
-        </div>
-        <div class="col-md-3">
-            <h3><a href="license.html">License</a></h3>
-            <em>
-            </em>
-        </div>
-    </div>
-    </div>
-
-.. raw:: html
-
-    </div>
-
-    </div><!-- Row -->
-
-.. raw:: html
-
-    <div class="row">
 
     <div class="col-md-6">
     <h2>Announcements</h2>
@@ -234,21 +255,9 @@ Read :ref:`all announcements <news>`.
 
 .. raw:: html
 
-    <div class="col-md-6">
-    <h2>Other versions</h2>
-
-* `Development version <http://www.fatiando.org/dev>`__
-* `Version 0.3 (stable) <http://www.fatiando.org/v0.3>`__
-* `Version 0.2 <http://www.fatiando.org/v0.2>`__
-* `Version 0.1 <http://www.fatiando.org/v0.1>`__
+    </div> <!-- Row -->
 
 .. raw:: html
-
-    </div>
-    </div> <!-- row -->
-
-.. raw:: html
-
 
     <div class="row" style="margin-top: 50px;">
         <div class="col-md-3">
@@ -280,3 +289,4 @@ Read :ref:`all announcements <news>`.
     develop.rst
     contributors.rst
     cookbook.rst
+    docs.rst

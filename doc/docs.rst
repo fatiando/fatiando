@@ -6,47 +6,53 @@ Documentation (version |version|)
 .. raw:: html
 
     <div class="row">
-
+        <div class="col-md-3">
+            <h3><a href="install.html">Installing</a></h3>
+            <em>
+            </em>
+        </div>
         <div class="col-md-3">
             <h3><a href="api/fatiando.html">Library reference</a></h3>
-
+            <em>
             The modules and packages of the
             <code class="docutils literal">fatiando</code> package.
+            </em>
         </div>
-
         <div class="col-md-3">
-            <h3>Cookbook</h3>
+            <h3><a href="cookbook.html">Cookbook</a></h3>
+            <em>
+            </em>
         </div>
-
         <div class="col-md-3">
             <h3><a href="cite.html">Citing</a></h3>
+            <em>
+            Fatiando is research software <strong>made by scientists</strong>.
+            See how to cite it in your publications.
+            </em>
         </div>
-
+    </div>
+    <div class="row">
         <div class="col-md-3">
             <h3><a href="develop.html">Developer Guide</a></h3>
-
+            <em>
             Instructions for contributing to Fatiando.
+            </em>
         </div>
-
-    </div>
-
-    <div class="row">
-
         <div class="col-md-3">
-            <h3>Changelog</h3>
+            <h3><a href="contributors.html">Contributors</a></h3>
+            <em>
+            </em>
         </div>
-
         <div class="col-md-3">
-            <h3>Contributors</h3>
+            <h3><a href="changelog.html">Changelog</a></h3>
+            <em>
+            </em>
         </div>
-
         <div class="col-md-3">
-            <h3>License</h3>
+            <h3><a href="license.html">License</a></h3>
+            <em>
+            </em>
         </div>
-
-        <div class="col-md-3">
-        </div>
-
     </div>
 
 Other versions
