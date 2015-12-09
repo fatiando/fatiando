@@ -6,6 +6,9 @@ body {
 a {
     color: #008CBA;
 }
+h2 {
+    margin-top: 50px;
+}
 .navbar {
     background-color: #333;
     border-radius: 0px;
@@ -22,10 +25,6 @@ blockquote {
     font-size: 12pt;
     color: #6F6F6F;
 }
-.navbar .navbar-version {
-    font-size: 9pt !important;
-    padding-top: 2px !important;
-}
 
 .alert {
     font-size: 12pt;
@@ -37,8 +36,9 @@ blockquote {
 
 .footer {
     color: #6F6F6F;
-    margin-top: 30px;
+    margin-top: 50px;
     padding-bottom: 30px;
+    font-size: 11pt;
 }
 
 .jumbotron p {
