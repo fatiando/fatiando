@@ -16,7 +16,7 @@
     <div class="text-center" style="font-size: 16pt; margin-bottom: 50px;">
 
 
-A Python library for modeling and inversion in geophysics.
+An open-source Python library for modeling and inversion in geophysics.
 
 Our goal is provide a comprehensive and extensible framework
 for geophysical data analysis and the development of new methodologies.
