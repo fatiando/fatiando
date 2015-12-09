@@ -6,6 +6,9 @@ body {
 a {
     color: #008CBA;
 }
+h2 {
+    margin-top: 50px;
+}
 .navbar {
     background-color: #333;
     border-radius: 0px;
