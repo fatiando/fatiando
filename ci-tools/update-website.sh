@@ -2,8 +2,8 @@
 # Based on
 # http://sleepycoders.blogspot.com.au/2013/03/sharing-travis-ci-generated-files.html
 # and https://github.com/richfitz/wood
-#if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    #if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
         echo -e "This is the master branch. Pushing built docs to the fatiando/dev repository"
         echo -e "Copying generated files."
         cp -R doc/_build/html/ $HOME/keep
@@ -34,8 +34,8 @@
         echo -e "Pushing..."
         git push -fq origin gh-pages > /dev/null
         echo -e "Uploaded generated files\n"
-    #else
-        #echo -e "This isn't the master branch. Not updating website."
-    #fi
-#fi
+    else
+        echo -e "This isn't the master branch. Not updating website."
+    fi
+fi
 echo -e "Done"
