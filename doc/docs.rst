@@ -9,6 +9,7 @@ Documentation (version |version|)
         <div class="col-md-3">
             <h3><a href="install.html">Installing</a></h3>
             <em>
+            Instructions to setup Fatiando and its dependencies.
             </em>
         </div>
         <div class="col-md-3">
@@ -21,6 +22,7 @@ Documentation (version |version|)
         <div class="col-md-3">
             <h3><a href="cookbook.html">Cookbook</a></h3>
             <em>
+            Recipes showing how to use our modules and functions.
             </em>
         </div>
         <div class="col-md-3">
@@ -35,22 +37,25 @@ Documentation (version |version|)
         <div class="col-md-3">
             <h3><a href="develop.html">Developer Guide</a></h3>
             <em>
-            Instructions for contributing to Fatiando.
+            Get involved! See these instructions for contributing to Fatiando.
             </em>
         </div>
         <div class="col-md-3">
             <h3><a href="contributors.html">Contributors</a></h3>
             <em>
+            A list of all who contributed to Fatiando.
             </em>
         </div>
         <div class="col-md-3">
             <h3><a href="changelog.html">Changelog</a></h3>
             <em>
+            List of changes for each release.
             </em>
         </div>
         <div class="col-md-3">
             <h3><a href="license.html">License</a></h3>
             <em>
+            Our open-source license (BSD 3-clause).
             </em>
         </div>
     </div>
