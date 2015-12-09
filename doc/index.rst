@@ -214,7 +214,7 @@ You can help by reporting typos, suggesting new sections and improvements,
 and anything that you think would make the docs better in any way.
 
 If you  want to mess with the **code**,
-take a look at our :ref:`developers guide <develop>`.
+take a look at our :ref:`Developer Guide <develop>`.
 Don't be afraid to ask for help getting started!
 
 .. _mailing list: https://groups.google.com/d/forum/fatiando

@@ -101,15 +101,14 @@ html_theme_options = {
         ("Installing", "install"),
         ("Documentation", "docs"),
         ("Cookbook", "cookbook"),
+        ("Developer Guide", "develop"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),
-        ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
-            "https://groups.google.com/d/forum/fatiando", True),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
     # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': True,
+    'navbar_pagenav': False,
     # Tab name for the current pages TOC. (Default: "Page")
     'navbar_pagenav_name': "Page",
     # Global TOC depth for "site" navbar tab. (Default: 1)
@@ -120,7 +119,7 @@ html_theme_options = {
     # non-hidden ``toctree`` directives in the same page, or else the build
     # will break.
     # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "true",
+    'globaltoc_includehidden': "false",
     # HTML navbar class (Default: "navbar") to attach to <div> element.
     # For black navbar, do "navbar navbar-inverse"
     'navbar_class': "navbar navbar-default",
