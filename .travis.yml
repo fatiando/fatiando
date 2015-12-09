@@ -13,14 +13,19 @@ env:
     - PYTHON=2.7
 
 before_install:
+  # Need to fetch a deeper clone because the default depth Travis uses (50)
+  # isn't enough to get the git tags so versioneer can't find the correct
+  # version number.
+  - git fetch --depth=100
+
+install:
   # Get Miniconda from Continuum
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda2/bin:$PATH
   - cp ci-tools/matplotlibrc .
-
-install:
+  # Create a conda env to install required libraries
   - conda update --yes conda
   - conda create -n testenv --yes pip python=$PYTHON
   - conda update conda --yes
@@ -28,8 +33,13 @@ install:
   - conda install --yes --file requirements.txt
   - conda install --yes --file test/requirements-conda.txt
   - pip install -r test/requirements-pip.txt
+  # Show installed pkg information for postmortem diagnostic
   - conda list
-  - pip install .
+  # Package Fatiando and install
+  - python setup.py sdist  --formats=gztar
+  - pip install dist/fatiando-*.tar.gz
+  # Check that versioneer got the correct version
+  - python -c "import fatiando; print(fatiando.__version__)"
   - python setup.py build_ext --inplace
 
 script:
