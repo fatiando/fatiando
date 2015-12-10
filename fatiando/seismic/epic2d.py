@@ -15,6 +15,7 @@ distribution.
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 
 from ..inversion import Misfit
@@ -100,8 +101,7 @@ class Homogeneous(Misfit):
     """
 
     def __init__(self, ttres, recs, vp, vs):
-        super(Homogeneous, self).__init__(
-            data=ttres, nparams=2, islinear=False)
+        super().__init__(data=ttres, nparams=2, islinear=False)
         self.recs = np.array(recs)
         self.vp = vp
         self.vs = vs

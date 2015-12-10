@@ -31,6 +31,7 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy
 import scipy.sparse
 
@@ -45,8 +46,7 @@ class EQLBase(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid):
-        super(EQLBase, self).__init__(data=data, nparams=grid.size,
-                                      islinear=True)
+        super().__init__(data=data, nparams=grid.size, islinear=True)
         self.x = x
         self.y = y
         self.z = z
@@ -223,7 +223,7 @@ class EQLGravity(EQLBase):
     """
 
     def __init__(self, x, y, z, data, grid, field='gz'):
-        super(EQLGravity, self).__init__(x, y, z, data, grid)
+        super().__init__(x, y, z, data, grid)
         self.field = field
 
     def jacobian(self, p):
@@ -312,7 +312,7 @@ class EQLTotalField(EQLBase):
     """
 
     def __init__(self, x, y, z, data, inc, dec, grid, sinc=None, sdec=None):
-        super(EQLTotalField, self).__init__(x, y, z, data, grid)
+        super().__init__(x, y, z, data, grid)
         self.inc, self.dec = inc, dec
         self.sinc = sinc if sinc is not None else inc
         self.sdec = sdec if sdec is not None else dec
@@ -344,7 +344,7 @@ class PELBase(EQLBase):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree):
-        super(PELBase, self).__init__(x, y, z, data, grid)
+        super().__init__(x, y, z, data, grid)
         self.nparams = windows[0]*windows[1]*ncoeffs(degree)
         self.windows = windows
         self.degree = degree
@@ -532,7 +532,7 @@ class PELGravity(PELBase):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree, field='gz'):
-        super(PELGravity, self).__init__(x, y, z, data, grid, windows, degree)
+        super().__init__(x, y, z, data, grid, windows, degree)
         self.field = field
 
     def jacobian(self, p):
@@ -633,8 +633,7 @@ class PELTotalField(PELBase):
 
     def __init__(self, x, y, z, data, inc, dec, grid, windows, degree,
                  sinc=None, sdec=None):
-        super(PELTotalField, self).__init__(x, y, z, data, grid, windows,
-                                            degree)
+        super().__init__(x, y, z, data, grid, windows, degree)
         self.inc, self.dec = inc, dec
         self.sinc = sinc if sinc is not None else inc
         self.sdec = sdec if sdec is not None else dec
@@ -686,8 +685,7 @@ class PELSmoothness(Smoothness):
     """
 
     def __init__(self, grid, windows, degree):
-        super(PELSmoothness, self).__init__(
-            _pel_fdmatrix(windows, grid, degree))
+        super().__init__(_pel_fdmatrix(windows, grid, degree))
 
 
 def _pel_fdmatrix(windows, grid, degree):

@@ -24,6 +24,7 @@ Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 
 from .. import gridder
@@ -81,7 +82,7 @@ class Classic(Misfit):
         assert structural_index >= 0, \
             "Invalid structural index '{}'. Should be >= 0".format(
                 structural_index)
-        super(Classic, self).__init__(
+        super().__init__(
             data=-x*xderiv - y*yderiv -z*zderiv - structural_index*field,
             nparams=4, islinear=True)
         self.x = x

@@ -81,6 +81,12 @@ First, I'll load numpy and the ``Misfit`` class.
 >>> import numpy as np
 >>> from fatiando.inversion import Misfit
 
+We'll also need some compatibility code to support Python 2 and 3 at the same
+time.
+
+>>> from __future__ import division
+>>> from future.builtins import super
+
 Now, I'll make my regression class that *inherits* from ``Misfit``.
 All of the least-squares solving code and much more we get for free just by
 using ``Misfit`` as template for our regression class. Note ``Misfit`` wants a
@@ -90,7 +96,7 @@ using ``Misfit`` as template for our regression class. Note ``Misfit`` wants a
 ...     "Perform a linear regression"
 ...     def __init__(self, x, y):
 ...         # Call the initialization of Misfit
-...         super(Regression, self).__init__(data=y, nparams=2, islinear=True)
+...         super().__init__(data=y, nparams=2, islinear=True)
 ...         self.x = x  # Store this to use in the other methods
 ...     def predicted(self, p):
 ...         "Calculate the predicted data for a given parameter vector"
@@ -273,7 +279,7 @@ First, lets create our solver class based on ``Misfit`` and implement the
 
 >>> class GaussianFit(Misfit):
 ...     def __init__(self, x, y):
-...         super(GaussianFit, self).__init__(
+...         super().__init__(
 ...             data=y, nparams=3, islinear=False)
 ...         self.x = x
 ...     def predicted(self, p):
@@ -311,7 +317,7 @@ Continuous Domains (ACO-R) does for this problem:
 >>> # bounds are the min, max values of the search domain for each parameter
 >>> _ = solver.config('acor', bounds=[50, 500, 0, 1, -20, 0], seed=0).fit()
 >>> print(np.array_repr(solver.estimate_, precision=3))
-array([ 100. ,    0.1,   -2. ])
+array([100. ,   0.1,  -2. ])
 
 For non-linear problems, the Jacobian and Hessian are cached but not
 permanently. Calling ``jacobian`` twice in a row with the same parameter vector

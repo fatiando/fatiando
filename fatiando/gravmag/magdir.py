@@ -17,7 +17,7 @@ bodies.
 """
 
 from __future__ import division
-
+from future.builtins import super
 import numpy as np
 from ..inversion import Misfit
 from .. import mesher
@@ -124,8 +124,7 @@ class DipoleMagDir(Misfit):
     """
 
     def __init__(self, x, y, z, data, inc, dec, points):
-        super(DipoleMagDir, self).__init__(
-            data=data, nparams=3*len(points), islinear=True)
+        super().__init__(data=data, nparams=3*len(points), islinear=True)
         self.x, self.y, self.z = x, y, z
         self.inc, self.dec = inc, dec
         self.points = points

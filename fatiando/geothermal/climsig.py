@@ -45,6 +45,7 @@ amplitude and age of the change. The available inversion solvers are:
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 import scipy.special
 
@@ -204,8 +205,7 @@ class SingleChange(Misfit):
         assert len(temp) == len(zp), "temp and zp must be of same length"
         assert mode in ['abrupt', 'linear'], \
             "Invalid mode: {}. Must be 'abrupt' or 'linear'".format(mode)
-        super(SingleChange, self).__init__(data=temp, nparams=2,
-                                           islinear=False)
+        super().__init__(data=temp, nparams=2, islinear=False)
         self.zp = zp
         self.diffus = diffus
         self.mode = mode

@@ -35,6 +35,7 @@ See :class:`fatiando.gravmag.eqlayer.EQLGravity` for an example.
 
 """
 from __future__ import division
+from future.builtins import super
 import copy
 
 import numpy
@@ -137,7 +138,7 @@ class Damping(Regularization):
     """
 
     def __init__(self, nparams):
-        super(Damping, self).__init__(nparams, islinear=True)
+        super().__init__(nparams, islinear=True)
 
     def hessian(self, p):
         """
@@ -266,7 +267,7 @@ class Smoothness(Regularization):
     """
 
     def __init__(self, fdmat):
-        super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
+        super().__init__(fdmat.shape[1], islinear=True)
         self.fdmat = fdmat
 
     def hessian(self, p):
@@ -364,7 +365,7 @@ class Smoothness1D(Smoothness):
     """
 
     def __init__(self, npoints):
-        super(Smoothness1D, self).__init__(fd1d(npoints))
+        super().__init__(fd1d(npoints))
 
 
 class Smoothness2D(Smoothness):
@@ -410,7 +411,7 @@ class Smoothness2D(Smoothness):
     """
 
     def __init__(self, shape):
-        super(Smoothness2D, self).__init__(fd2d(shape))
+        super().__init__(fd2d(shape))
 
 
 class TotalVariation(Regularization):
@@ -485,7 +486,7 @@ class TotalVariation(Regularization):
     def __init__(self, beta, fdmat):
         if beta <= 0:
             raise ValueError("Invalid beta=%g. Must be > 0" % (beta))
-        super(TotalVariation, self).__init__(
+        super().__init__(
             nparams=fdmat.shape[1], islinear=False)
         self.beta = beta
         self.fdmat = fdmat
@@ -571,7 +572,7 @@ class TotalVariation1D(TotalVariation):
     """
 
     def __init__(self, beta, npoints):
-        super(TotalVariation1D, self).__init__(beta, fd1d(npoints))
+        super().__init__(beta, fd1d(npoints))
 
 
 class TotalVariation2D(TotalVariation):
@@ -596,7 +597,7 @@ class TotalVariation2D(TotalVariation):
     """
 
     def __init__(self, beta, shape):
-        super(TotalVariation2D, self).__init__(beta, fd2d(shape))
+        super().__init__(beta, fd2d(shape))
 
 
 def fd1d(size):

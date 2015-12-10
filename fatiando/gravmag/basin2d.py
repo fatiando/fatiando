@@ -19,6 +19,7 @@ More complex parametrizations are:
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 
 from ..inversion.misfit import Misfit
@@ -131,8 +132,7 @@ class PolygonalBasinGravity(Misfit):
 
     """
     def __init__(self, x, z, data, npoints, props, top=0, xlim=None):
-        super(PolygonalBasinGravity, self).__init__(
-            data=data.ravel(), nparams=npoints, islinear=False)
+        super().__init__(data=data.ravel(), nparams=npoints, islinear=False)
         self.npoints = npoints
         self.x = x
         self.z = z
@@ -315,7 +315,7 @@ class Triangular(Misfit):
             "x, z, and data must be of same length"
         assert len(verts) == 2, \
             "Need exactly 2 vertices. {} given".format(len(verts))
-        super(Triangular, self).__init__(data=gz, nparams=2, islinear=False)
+        super().__init__(data=gz, nparams=2, islinear=False)
         self.x = np.array(x, dtype=np.float)
         self.z = np.array(z, dtype=np.float)
         self.density = density
@@ -450,7 +450,7 @@ class Trapezoidal(Misfit):
             "x, z, and data must be of same length"
         assert len(verts) == 2, \
             "Need exactly 2 vertices. {} given".format(len(verts))
-        super(Trapezoidal, self).__init__(data=gz, nparams=2, islinear=False)
+        super().__init__(data=gz, nparams=2, islinear=False)
         self.x = np.array(x, dtype=np.float)
         self.z = np.array(z, dtype=np.float)
         self.density = density

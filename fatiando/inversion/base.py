@@ -31,10 +31,11 @@ This module defines base classes that are used by the rest of the
 
 """
 from __future__ import division
+from future.utils import with_metaclass
+from future.builtins import super, object, range, isinstance, zip, map
 import hashlib
 import copy
 from abc import ABCMeta, abstractmethod
-import six
 import numpy as np
 
 from . import optimization
@@ -126,7 +127,7 @@ class OperatorMixin(object):
         return self.__mul__(other)
 
 
-class OptimizerMixin(six.with_metaclass(ABCMeta)):
+class OptimizerMixin(with_metaclass(ABCMeta)):
     """
     Defines ``fit`` and ``config`` methods plus all the optimization methods.
 
@@ -391,7 +392,7 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         self._i = 0  # Tracker for indexing
 
     def fit(self):
-        super(MultiObjective, self).fit()
+        super().fit()
         for obj in self:
             obj.p_ = self.p_
         return self
@@ -401,7 +402,7 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
     # Pass along the configuration in case the classes need to change something
     # depending on the optimization method.
     def config(self, *args, **kwargs):
-        super(MultiObjective, self).config(*args, **kwargs)
+        super().config(*args, **kwargs)
         for obj in self:
             if hasattr(obj, 'config'):
                 obj.config(*args, **kwargs)
@@ -436,7 +437,7 @@ class MultiObjective(OptimizerMixin, OperatorMixin):
         self._i = 0
         return self
 
-    def next(self):
+    def __next__(self):
         """
         Used for iterating over the MultiObjetive.
         """

@@ -19,6 +19,7 @@ refraction)
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 import scipy.sparse
 
@@ -91,8 +92,7 @@ class SRTomo(Misfit):
     """
 
     def __init__(self, ttimes, srcs, recs, mesh):
-        super(SRTomo, self).__init__(
-            data=ttimes, nparams=mesh.size, islinear=True)
+        super().__init__(data=ttimes, nparams=mesh.size, islinear=True)
         self.srcs = srcs
         self.recs = recs
         self.mesh = mesh

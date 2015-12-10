@@ -20,6 +20,7 @@ well.
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy as np
 
 from . import ttime2d
@@ -172,8 +173,8 @@ class LayeredStraight(Misfit):
     """
 
     def __init__(self, traveltimes, zp, thickness):
-        super(LayeredStraight, self).__init__(
-            data=traveltimes, nparams=len(thickness), islinear=True)
+        super().__init__(data=traveltimes, nparams=len(thickness),
+                         islinear=True)
         self.zp = zp
         self.thickness = thickness
 
