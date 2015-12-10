@@ -5,7 +5,7 @@ regularization and unknown layer thicknesses
 import numpy
 from fatiando import utils
 from fatiando.seismic.profile import layered_straight_ray, LayeredStraight
-from fatiando.inversion.regularization import Smoothness1D
+from fatiando.inversion import Smoothness1D
 from fatiando.vis import mpl
 
 # Make a layered model
