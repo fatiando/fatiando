@@ -178,16 +178,11 @@ class OptimizerMixin(with_metaclass(ABCMeta)):
 
         See the corresponding docstrings for more information:
 
-        * :meth:`~fatiando.inversion.solver.linear`
-        * :meth:`~fatiando.inversion.solver.newton`
-        * :meth:`~fatiando.inversion.solver.levmarq`
-        * :meth:`~fatiando.inversion.solver.steepest`
-        * :meth:`~fatiando.inversion.solver.acor`
-
-        .. note::
-
-            The *iterate* keyword is not supported by *fit*.
-            Use the individual methods to step through iterations.
+        * :meth:`~fatiando.inversion.optimization.linear`
+        * :meth:`~fatiando.inversion.optimization.newton`
+        * :meth:`~fatiando.inversion.optimization.levmarq`
+        * :meth:`~fatiando.inversion.optimization.steepest`
+        * :meth:`~fatiando.inversion.optimization.acor`
 
         """
         kwargs = copy.deepcopy(kwargs)
