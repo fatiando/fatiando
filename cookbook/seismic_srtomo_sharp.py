@@ -27,8 +27,8 @@ tts, error = utils.contaminate(tts, 0.02, percent=True, return_stddev=True,
 # Make the mesh
 mesh = SquareMesh(area, shape)
 # and run the inversion
-tomo = srtomo.SRTomo(tts, srcs, recs, mesh) \
-       + 30*TotalVariation2D(1e-10, mesh.shape)
+tomo = (srtomo.SRTomo(tts, srcs, recs, mesh) +
+        30*TotalVariation2D(1e-10, mesh.shape))
 # Since Total Variation is a non-linear function, then the tomography becomes
 # non-linear. So we need to configure fit to use the Levemberg-Marquardt
 # algorithm, a gradient descent method, that requires an initial estimate

@@ -83,7 +83,7 @@ class Classic(Misfit):
             "Invalid structural index '{}'. Should be >= 0".format(
                 structural_index)
         super().__init__(
-            data=-x*xderiv - y*yderiv -z*zderiv - structural_index*field,
+            data=-x*xderiv - y*yderiv - z*zderiv - structural_index*field,
             nparams=4, islinear=True)
         self.x = x
         self.y = y

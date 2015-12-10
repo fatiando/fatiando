@@ -30,8 +30,8 @@ Also included is the :mod:`fatiando.inversion` package with utilities for
 implementing inverse problems. There you'll find ready to use regularization,
 optimization methods, and templates to implement new inversion methods.
 
-Inversions implemented in Fatiando leverage :mod:`fatiando.inversion`, providing
-a common interface and usage patters. For examples, see modules
+Inversions implemented in Fatiando leverage :mod:`fatiando.inversion`,
+providing a common interface and usage patters. For examples, see modules
 :mod:`fatiando.seismic.epic2d`,
 :mod:`fatiando.seismic.srtomo`,
 :mod:`fatiando.gravmag.basin2d`,

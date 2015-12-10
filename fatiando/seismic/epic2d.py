@@ -110,16 +110,16 @@ class Homogeneous(Misfit):
         "Calculate the predicted travel time data given a parameter vector."
         x, y = p
         alpha = 1/self.vs - 1/self.vp
-        pred = alpha*np.sqrt((self.recs[:, 0] - x)**2
-                              + (self.recs[:, 1] - y)**2)
+        pred = alpha*np.sqrt((self.recs[:, 0] - x)**2 +
+                             (self.recs[:, 1] - y)**2)
         return pred
 
     def jacobian(self, p):
         "Calculate the Jacobian matrix for the inversion."
         x, y = p
         alpha = 1/self.vs - 1/self.vp
-        sqrt = np.sqrt((self.recs[:, 0] - x)**2
-                        + (self.recs[:, 1] - y)**2)
+        sqrt = np.sqrt((self.recs[:, 0] - x)**2 +
+                       (self.recs[:, 1] - y)**2)
         jac = np.empty((self.ndata, self.nparams))
         jac[:, 0] = -alpha*(self.recs[:, 0] - x)/sqrt
         jac[:, 1] = -alpha*(self.recs[:, 1] - y)/sqrt

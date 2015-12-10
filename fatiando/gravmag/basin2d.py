@@ -473,18 +473,12 @@ class Trapezoidal(Misfit):
         verts = self.verts
         delta = 1.
         jac = np.empty((self.ndata, self.nparams), dtype=np.float)
-        jac[:, 0] = (
-            talwani.gz(x, z, [Polygon(verts + [[x1, z1 + delta], [x2, z2]],
-                                      props)])
-             - talwani.gz(x, z, [Polygon(verts + [[x1, z1 - delta], [x2, z2]],
-                                         props)])
-             )/(2*delta)
-        jac[:, 1] = (
-            talwani.gz(x, z, [Polygon(verts + [[x1, z1], [x2, z2 + delta]],
-                                      props)])
-             - talwani.gz(x, z, [Polygon(verts + [[x1, z1], [x2, z2 - delta]],
-                                         props)])
-             )/(2*delta)
+        z1p = [Polygon(verts + [[x1, z1 + delta], [x2, z2]], props)]
+        z1m = [Polygon(verts + [[x1, z1 - delta], [x2, z2]], props)]
+        jac[:, 0] = (talwani.gz(x, z, z1p) - talwani.gz(x, z, z1m))/(2*delta)
+        z2p = [Polygon(verts + [[x1, z1], [x2, z2 + delta]], props)]
+        z2m = [Polygon(verts + [[x1, z1], [x2, z2 - delta]], props)]
+        jac[:, 1] = (talwani.gz(x, z, z2p) - talwani.gz(x, z, z2m))/(2*delta)
         return jac
 
     def fmt_estimate(self, p):
