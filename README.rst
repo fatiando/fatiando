@@ -45,7 +45,7 @@ To install and run Fatiando, you'll need the following packages:
 * basemap >= 1.0.7
 * gcc >= 4.8.2
 * numba >= 0.17
-* six >= 1.9.0
+* future
 
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.

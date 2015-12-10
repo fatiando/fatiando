@@ -38,7 +38,7 @@ Fatiando requires the following packages:
 * `numba <http://numba.pydata.org/>`__
 * `PIL <http://www.pythonware.com/products/pil/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
-* `six <http://pythonhosted.org/six/>`_
+* `future <http://python-future.org/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
 
 The easiest and **preferred** way to get all dependencies in the latest
@@ -51,7 +51,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib numba ipython basemap imaging mayavi pip six
+    conda install numpy scipy matplotlib numba ipython basemap imaging mayavi pip future
 
 
 Installing Fatiando
