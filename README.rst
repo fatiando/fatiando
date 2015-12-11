@@ -2,11 +2,13 @@
     :alt: Fatiando a Terra
 
 `Website <http://www.fatiando.org>`__ |
-`Docs <http://fatiando.github.io/docs.html>`__ |
-`Mailing list <https://groups.google.com/d/forum/fatiando>`__ |
-`Google+ <https://plus.google.com/+FatiandoOrg>`__
+`Docs <http://www.fatiando.org/docs.html>`__ |
+`Mailing list <https://groups.google.com/d/forum/fatiando>`__
 
-A Python package for modeling and inversion in geophysics.
+An open-source Python library for modeling and inversion in geophysics.
+
+Our goal is provide a comprehensive and extensible framework
+for geophysical data analysis and the development of new methodologies.
 
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
@@ -30,22 +32,33 @@ A Python package for modeling and inversion in geophysics.
     :alt: gitter chat room at https://gitter.im/fatiando/fatiando
     :target: https://gitter.im/fatiando/fatiando
 
+**Research:** Fatiando allows you to write Python scripts to
+perform your data analysis and generate figures in a reproducible way.
+
+**Development:** Designed for extensibility, Fatiando offers tools for users to
+build upon the existing infrastructure and develop new inversion methods.
+We take care of the boilerplate.
+
+**Teaching:** Fatiando can be combined with the `Jupyter notebook
+<https://jupyter.org/>`__ to make rich, interactive documents. Great for
+teaching fundamental concepts of geophysics.
+
+Getting started
+---------------
+
+Take a look at the `Documentation <http://www.fatiando.org/docs.html>`__ for a
+detailed tour of the library.  You can also browse the `Cookbook
+<http://www.fatiando.org/cookbook.html>`__ for examples of what Fatiando can
+do.
+
 Dependencies
 ------------
 
-For the moment, Fatiando runs and is tested in Python 2.7.
-To install and run Fatiando, you'll need the following packages:
-
-* numpy >= 1.8
-* scipy >= 0.14
-* matplotlib >= 1.3
-* IPython >= 2.0.0
-* mayavi >= 4.3
-* PIL >= 1.1.7
-* basemap >= 1.0.7
-* gcc >= 4.8.2
-* numba >= 0.17
-* future
+For the moment, Fatiando runs and is tested in **Python 2.7**.
+To install and run Fatiando, you'll need the following Python packages:
+``numpy``, ``scipy``, ``matplotlib``, ``ipython``, ``pillow``,
+``basemap``, ``numba``, ``future``, ``mayavi``.
+You'll also need a C compiler, preferably ``gcc``.
 
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.
@@ -63,12 +76,12 @@ or get the latest development version from Github::
 
     pip install --upgrade https://github.com/fatiando/fatiando/archive/master.zip
 
-**Note**: ``fatiando.__version__`` has the current version number. If you install
-from PyPI, this will be something like ``'0.2'``. If you installed from Github,
-this will be the latest commit hash. This way you can track exactly what
-version of Fatiando generated your results.
+**Note**: ``fatiando.__version__`` has the current version number. If you
+install from PyPI, this will be something like ``'0.2'``. If you installed from
+Github, this will be the latest commit hash. This way you can track exactly
+what version of Fatiando generated your results.
 
-See the `documentation <http://fatiando.github.io/docs.html>`__ for detailed
+See the `documentation <http://www.fatiando.org/docs.html>`__ for detailed
 instructions.
 
 Citing
@@ -82,12 +95,10 @@ please **cite it** in your publications as::
     figshare. doi: 10.6084/m9.figshare.1115194
 
 Some of the methods implemented here are also **original research** by some of
-the developers. Please **also cite the method papers**.
-References are available in the documentation of each module.
-See the
-`CITATION.rst <https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__
-file or the `documentation <http://fatiando.github.io/cite.html>`__
-for more information.
+the developers. Please **also cite the method papers**.  References are
+available in the documentation of each module.  See the `CITATION.rst
+<https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__ file or the
+`documentation <http://www.fatiando.org/cite.html>`__ for more information.
 
 Read `this blog post by Robin Wilson
 <http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
@@ -99,12 +110,12 @@ Getting help
 Here are a few option to get in touch with us:
 
 * `Open an issue on Github <https://github.com/fatiando/fatiando/issues>`__
-* `Ask on the Gitter chat room <https://gitter.im/fatiando/fatiando>`__
 * `Write to the mailing list <https://groups.google.com/d/forum/fatiando>`__
+* `Ask on the Gitter chat room <https://gitter.im/fatiando/fatiando>`__
 
 License
 -------
 
 Fatiando a Terra is free software: you can redistribute it and/or modify it
-under the terms of the **BSD 3-clause License**. A copy of this license is provided in
-`LICENSE.txt`.
+under the terms of the **BSD 3-clause License**. A copy of this license is
+provided in `LICENSE.txt`.
