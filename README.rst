@@ -7,9 +7,6 @@
 
 An open-source Python library for modeling and inversion in geophysics.
 
-Our goal is provide a comprehensive and extensible framework
-for geophysical data analysis and the development of new methodologies.
-
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
     :target: https://crate.io/packages/fatiando
@@ -31,6 +28,12 @@ for geophysical data analysis and the development of new methodologies.
 .. image:: http://img.shields.io/badge/GITTER-JOIN_CHAT-brightgreen.svg?style=flat-square
     :alt: gitter chat room at https://gitter.im/fatiando/fatiando
     :target: https://gitter.im/fatiando/fatiando
+
+Overview
+--------
+
+Our goal is provide a comprehensive and extensible framework
+for geophysical data analysis and the development of new methodologies.
 
 **Research:** Fatiando allows you to write Python scripts to
 perform your data analysis and generate figures in a reproducible way.
