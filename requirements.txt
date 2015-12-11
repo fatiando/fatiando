@@ -4,6 +4,6 @@ matplotlib
 numba
 future
 basemap
-imaging
+pillow
 ipython
 mayavi
