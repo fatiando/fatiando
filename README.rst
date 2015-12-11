@@ -90,18 +90,19 @@ instructions.
 Citing
 ------
 
-Fatiando is research software. If you use it in your research,
-please **cite it** in your publications as::
+If you use it in your research, please cite Fatiando in your publications as:
 
-    Uieda, L, Oliveira Jr, V C, Ferreira, A, Santos, H B; Caparica Jr, J F (2014),
-    Fatiando a Terra: a Python package for modeling and inversion in geophysics.
-    figshare. doi: 10.6084/m9.figshare.1115194
+    Uieda, L., V. C. Oliveira Jr, and V. C. F. Barbosa (2013), Modeling the
+    Earth with Fatiando a Terra, Proceedings of the 12th Python in Science
+    Conference, pp. 91 - 98.
 
-Some of the methods implemented here are also **original research** by some of
-the developers. Please **also cite the method papers**.  References are
-available in the documentation of each module.  See the `CITATION.rst
+Please **also cite the method papers** of individual functions/classes.
+References are available in the documentation of each module.
+
+See the `CITATION.rst
 <https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__ file or the
-`documentation <http://www.fatiando.org/cite.html>`__ for more information.
+`Citing section <http://www.fatiando.org/cite.html>`__ of the docs for more
+information.
 
 Read `this blog post by Robin Wilson
 <http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
