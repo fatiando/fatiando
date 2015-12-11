@@ -10,6 +10,12 @@ Version (development)
 
 **Changes**:
 
+* **Refactor** ``fatiando.inversion``. Completely redesigned classes make
+  implementing new inversions simpler. Subclassing ``Misfit`` is simpler, with
+  fewer parameters necessary. The usage of existing inversions has changed
+  little. A **new dependency** ``future`` was added to ease the transition to
+  support Python 3.
+  (`PR 127 <https://github.com/fatiando/fatiando/pull/127>`__)
 * Fix the broken software carpentry links in ``develop.rst``.
   (`PR 245 <https://github.com/fatiando/fatiando/pull/245>`__)
 * Fix the doctest for ``fatiando.gravmag.tensor.center_of_mass``.

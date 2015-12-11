@@ -16,6 +16,8 @@ the layer. Use :mod:`fatiando.gravmag.sphere` for forward modeling.
 * :class:`~fatiando.gravmag.eqlayer.PELGravity` and
   :class:`~fatiando.gravmag.eqlayer.PELTotalField`: The polynomial equivalent
   layer of Oliveira Jr. et al (2012). A fast and memory efficient algorithm.
+  Both of these require special regularization
+  (:class:`~fatiando.gravmag.eqlayer.PELSmoothness`).
 
 **References**
 
@@ -29,28 +31,43 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 
 """
 from __future__ import division
+from future.builtins import super
 import numpy
 import scipy.sparse
 
 from . import sphere as kernel
 from ..utils import dircos, safe_dot
-from ..inversion.base import Misfit
-from ..inversion.regularization import Smoothness
+from ..inversion import Misfit, Smoothness
 
 
 class EQLBase(Misfit):
-
     """
     Base class for the classic equivalent layer.
     """
 
     def __init__(self, x, y, z, data, grid):
-        super(EQLBase, self).__init__(data=data,
-                                      positional={'x': x, 'y': y, 'z': z},
-                                      model={'grid': grid},
-                                      nparams=grid.size, islinear=True)
+        super().__init__(data=data, nparams=grid.size, islinear=True)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.grid = grid
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
+        """
+        Calculate the data predicted by a given parameter vector.
+
+        Parameters:
+
+        * p : 1d-array (optional)
+            The parameter vector with the estimated physical properties of the
+            layer. If not given, will use the value calculated by ``.fit()``.
+
+        Returns:
+
+        * result : 1d-array
+            The predicted data vector.
+
+        """
         return safe_dot(self.jacobian(p), p)
 
 
@@ -109,9 +126,9 @@ class EQLGravity(EQLBase):
         >>> # Setup a layer
         >>> layer = PointGrid(area, 500, (25, 25))
         >>> solver = (EQLGravity(x, y, z, gz, layer) +
-        ...           10**-26*Damping(layer.size)).fit()
+        ...           10**-24*Damping(layer.size)).fit()
         >>> # Check that the predicted data fits the observations
-        >>> np.allclose(gz, solver.predicted(), rtol=0.01, atol=0.5)
+        >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
         True
         >>> # Add the densities to the layer
         >>> layer.addprop('density', solver.estimate_)
@@ -172,7 +189,8 @@ class EQLGravity(EQLBase):
         ...           EQLGravity(x2, y2, z2, gxy, layer, field='gxy') +
         ...           10**-24*Damping(layer.size)).fit()
         >>> # Check the fit
-        >>> gz_pred, gxy_pred = solver.predicted()
+        >>> gz_pred = solver[0].predicted()
+        >>> gxy_pred = solver[1].predicted()
         >>> np.allclose(gz, gz_pred, rtol=0.01, atol=0.5)
         True
         >>> np.allclose(gxy, gxy_pred, rtol=0.01, atol=0.5)
@@ -205,22 +223,24 @@ class EQLGravity(EQLBase):
     """
 
     def __init__(self, x, y, z, data, grid, field='gz'):
-        super(EQLGravity, self).__init__(x, y, z, data, grid)
+        super().__init__(x, y, z, data, grid)
         self.field = field
 
-    def _get_jacobian(self, p):
-        x = self.positional['x']
-        y = self.positional['y']
-        z = self.positional['z']
+    def jacobian(self, p):
+        """
+        Calculate the Jacobian matrix for a given parameter vector.
+        """
+        x = self.x
+        y = self.y
+        z = self.z
         func = getattr(kernel, self.field)
-        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
-        for i, c in enumerate(self.model['grid']):
+        jac = numpy.empty((self.ndata, self.nparams), dtype=numpy.float)
+        for i, c in enumerate(self.grid):
             jac[:, i] = func(x, y, z, [c], dens=1.)
         return jac
 
 
 class EQLTotalField(EQLBase):
-
     """
     Estimate an equivalent layer from total field magnetic anomaly data.
 
@@ -254,7 +274,7 @@ class EQLTotalField(EQLBase):
     >>> from fatiando import gridder
     >>> from fatiando.gravmag import sphere, prism
     >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> from fatiando.inversion.regularization import Damping
+    >>> from fatiando.inversion import Damping
     >>> # Produce some synthetic data
     >>> area = (0, 1000, 0, 1000)
     >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
@@ -264,9 +284,9 @@ class EQLTotalField(EQLBase):
     >>> # Setup a layer
     >>> layer = PointGrid(area, 200, (25, 25))
     >>> solver = (EQLTotalField(x, y, z, tf, inc, dec, layer) +
-    ...           10**-19*Damping(layer.size)).fit()
+    ...           10**-17*Damping(layer.size)).fit()
     >>> # Check the fit
-    >>> np.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
+    >>> np.allclose(tf, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
     >>> # Add the magnetization to the layer
     >>> layer.addprop('magnetization', solver.estimate_)
@@ -292,25 +312,27 @@ class EQLTotalField(EQLBase):
     """
 
     def __init__(self, x, y, z, data, inc, dec, grid, sinc=None, sdec=None):
-        super(EQLTotalField, self).__init__(x, y, z, data, grid)
+        super().__init__(x, y, z, data, grid)
         self.inc, self.dec = inc, dec
-        self.model['inc'] = sinc if sinc is not None else inc
-        self.model['dec'] = sdec if sdec is not None else dec
+        self.sinc = sinc if sinc is not None else inc
+        self.sdec = sdec if sdec is not None else dec
 
-    def _get_jacobian(self, p):
-        x = self.positional['x']
-        y = self.positional['y']
-        z = self.positional['z']
+    def jacobian(self, p):
+        """
+        Calculate the Jacobian matrix for a given parameter vector.
+        """
+        x = self.x
+        y = self.y
+        z = self.z
         inc, dec = self.inc, self.dec
-        mag = dircos(self.model['inc'], self.model['dec'])
+        mag = dircos(self.sinc, self.sdec)
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
-        for i, c in enumerate(self.model['grid']):
+        for i, c in enumerate(self.grid):
             jac[:, i] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
         return jac
 
 
-class PELBase(Misfit):
-
+class PELBase(EQLBase):
     """
     Base class for the Polynomial Equivalent Layer.
 
@@ -322,35 +344,31 @@ class PELBase(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree):
-        super(PELBase, self).__init__(
-            data=data,
-            positional={'x': x, 'y': y, 'z': z},
-            model={'grid': grid, 'windows': windows, 'degree': degree},
-            nparams=windows[0]*windows[1]*ncoeffs(degree),
-            islinear=True)
+        super().__init__(x, y, z, data, grid)
+        self.nparams = windows[0]*windows[1]*ncoeffs(degree)
+        self.windows = windows
+        self.degree = degree
 
-    def _get_predicted(self, p):
-        return safe_dot(self.jacobian(p), p)
-
-    def fit(self):
+    def fmt_estimate(self, coefs):
         """
-        Solve for the physical property distribution that fits the data.
+        Convert the estimated polynomial coefficients to physical property
+        values along the layer.
 
-        Uses the optimization method and parameters defined using the
-        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        Parameters:
 
-        The estimated physical properties can be accessed through
-        :meth:`~fatiando.inversion.base.FitMixin.estimate_`.
-        The estimate polynomial coefficients are stored in the ``coeffs_``
-        attribute.
+        * coefs : 1d-array
+            The estimated parameter vector with the polynomial coefficients
+
+        Returns:
+
+        * estimate : 1d-array
+            The converted physical property values along the layer.
 
         """
-        super(PELBase, self).fit()
-        coefs = self.p_
-        ny, nx = self.model['windows']
-        pergrid = ncoeffs(self.model['degree'])
-        estimate = numpy.empty(self.model['grid'].shape, dtype=float)
-        grids = self.model['grid'].split(self.model['windows'])
+        ny, nx = self.windows
+        pergrid = ncoeffs(self.degree)
+        estimate = numpy.empty(self.grid.shape, dtype=float)
+        grids = self.grid.split(self.windows)
         k = 0
         ystart = 0
         gny, gnx = grids[0].shape
@@ -360,16 +378,15 @@ class PELBase(Misfit):
             for j in xrange(nx):
                 xend = xstart + gnx
                 g = grids[k]
-                estimate[ystart:yend, xstart:xend] = safe_dot(
-                    _bkmatrix(g, self.model['degree']),
-                    coefs[k * pergrid:(k + 1) * pergrid]
-                ).reshape(g.shape)
+                bk = _bkmatrix(g, self.degree)
+                window_coefs = coefs[k * pergrid:(k + 1) * pergrid]
+                window_props = safe_dot(bk, window_coefs).reshape(g.shape)
+                estimate[ystart:yend, xstart:xend] = window_props
                 xstart = xend
                 k += 1
             ystart = yend
-        self.coeffs_ = self.p_
-        self._estimate = estimate.ravel()
-        return self
+        self.coeffs_ = coefs
+        return estimate.ravel()
 
 
 def _bkmatrix(grid, degree):
@@ -449,7 +466,6 @@ def ncoeffs(degree):
 
 
 class PELGravity(PELBase):
-
     """
     Estimate a polynomial equivalent layer from gravity data.
 
@@ -493,9 +509,9 @@ class PELGravity(PELBase):
     >>> windows = (12, 12)
     >>> degree = 1
     >>> solver = (PELGravity(x, y, z, gz, layer, windows, degree) +
-    ...           10**-27*PELSmoothness(layer, windows, degree)).fit()
+    ...           10**-24*PELSmoothness(layer, windows, degree)).fit()
     >>> # Check the fit
-    >>> np.allclose(gz, solver.predicted(), rtol=0.01, atol=0.5)
+    >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
     >>> # Add the densities to the layer
     >>> layer.addprop('density', solver.estimate_)
@@ -516,28 +532,30 @@ class PELGravity(PELBase):
     """
 
     def __init__(self, x, y, z, data, grid, windows, degree, field='gz'):
-        super(PELGravity, self).__init__(x, y, z, data, grid, windows, degree)
+        super().__init__(x, y, z, data, grid, windows, degree)
         self.field = field
 
-    def _get_jacobian(self, p):
-        x = self.positional['x']
-        y = self.positional['y']
-        z = self.positional['z']
+    def jacobian(self, p):
+        """
+        Calculate the Jacobian matrix for a given parameter vector.
+        """
+        x = self.x
+        y = self.y
+        z = self.z
         func = getattr(kernel, self.field)
-        grids = self.model['grid'].split(self.model['windows'])
-        pergrid = ncoeffs(self.model['degree'])
+        grids = self.grid.split(self.windows)
+        pergrid = ncoeffs(self.degree)
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         gk = numpy.empty((self.ndata, grids[0].size), dtype=float)
         for i, grid in enumerate(grids):
-            bk = _bkmatrix(grid, self.model['degree'])
+            bk = _bkmatrix(grid, self.degree)
             for k, c in enumerate(grid):
                 gk[:, k] = func(x, y, z, [c], dens=1.)
-            jac[:, i * pergrid:(i + 1) * pergrid] = safe_dot(gk, bk)
+            jac[:, i*pergrid:(i + 1)*pergrid] = safe_dot(gk, bk)
         return jac
 
 
 class PELTotalField(PELBase):
-
     """
     Estimate a polynomial equivalent layer from magnetic total field anomaly.
 
@@ -588,7 +606,7 @@ class PELTotalField(PELBase):
     >>> solver = (PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree)
     ...           + 10**-15*PELSmoothness(layer, windows, degree)).fit()
     >>> # Check the fit
-    >>> np.allclose(tf, solver.predicted(), rtol=0.01, atol=0.5)
+    >>> np.allclose(tf, solver[0].predicted(), rtol=0.01, atol=0.5)
     True
     >>> # Add the magnetization to the layer
     >>> layer.addprop('magnetization', solver.estimate_)
@@ -615,32 +633,33 @@ class PELTotalField(PELBase):
 
     def __init__(self, x, y, z, data, inc, dec, grid, windows, degree,
                  sinc=None, sdec=None):
-        super(PELTotalField, self).__init__(x, y, z, data, grid, windows,
-                                            degree)
+        super().__init__(x, y, z, data, grid, windows, degree)
         self.inc, self.dec = inc, dec
-        self.model['inc'] = sinc if sinc is not None else inc
-        self.model['dec'] = sdec if sdec is not None else dec
+        self.sinc = sinc if sinc is not None else inc
+        self.sdec = sdec if sdec is not None else dec
 
-    def _get_jacobian(self, p):
-        x = self.positional['x']
-        y = self.positional['y']
-        z = self.positional['z']
+    def jacobian(self, p):
+        """
+        Calculate the Jacobian matrix for a given parameter vector.
+        """
+        x = self.x
+        y = self.y
+        z = self.z
         inc, dec = self.inc, self.dec
-        mag = dircos(self.model['inc'], self.model['dec'])
-        grids = self.model['grid'].split(self.model['windows'])
-        pergrid = ncoeffs(self.model['degree'])
+        mag = dircos(self.sinc, self.sdec)
+        grids = self.grid.split(self.windows)
+        pergrid = ncoeffs(self.degree)
         jac = numpy.empty((self.ndata, self.nparams), dtype=float)
         gk = numpy.empty((self.ndata, grids[0].size), dtype=float)
         for i, grid in enumerate(grids):
-            bk = _bkmatrix(grid, self.model['degree'])
+            bk = _bkmatrix(grid, self.degree)
             for k, c in enumerate(grid):
                 gk[:, k] = kernel.tf(x, y, z, [c], inc, dec, pmag=mag)
-            jac[:, i * pergrid:(i + 1) * pergrid] = safe_dot(gk, bk)
+            jac[:, i*pergrid:(i + 1)*pergrid] = safe_dot(gk, bk)
         return jac
 
 
 class PELSmoothness(Smoothness):
-
     """
     Regularization to "join" neighboring windows in the PEL.
 
@@ -666,8 +685,7 @@ class PELSmoothness(Smoothness):
     """
 
     def __init__(self, grid, windows, degree):
-        super(PELSmoothness, self).__init__(
-            _pel_fdmatrix(windows, grid, degree))
+        super().__init__(_pel_fdmatrix(windows, grid, degree))
 
 
 def _pel_fdmatrix(windows, grid, degree):
@@ -709,7 +727,7 @@ def _pel_fdmatrix(windows, grid, degree):
     for i, g in enumerate(grids):
         bk = _bkmatrix(g, degree)
         en = st + g.size
-        fdmatrix[
-            :, i * pergrid:(i + 1) * pergrid] = safe_dot(rmatrix[:, st:en], bk)
+        fdmatrix[:, i*pergrid:(i + 1)*pergrid] = safe_dot(rmatrix[:, st:en],
+                                                          bk)
         st = en
     return fdmatrix

@@ -126,7 +126,7 @@ def _straight(cells, prop, srcs, recs, velocity):
     """
     Calculate the travel time of a straight ray.
     """
-    times = numpy.zeros(len(srcs), dtype='f')
+    times = numpy.zeros(len(srcs), dtype=numpy.float)
     for l in xrange(len(times)):
         x_src, y_src = srcs[l]
         x_rec, y_rec = recs[l]

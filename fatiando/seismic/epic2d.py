@@ -15,13 +15,13 @@ distribution.
 
 """
 from __future__ import division
-import numpy
+from future.builtins import super
+import numpy as np
 
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 
 
 class Homogeneous(Misfit):
-
     r"""
     Estimate the epicenter assuming a homogeneous Earth.
 
@@ -41,7 +41,7 @@ class Homogeneous(Misfit):
         The recommended solver for this inverse problem is the
         Levemberg-Marquardt method. Since this is a non-linear problem, set the
         desired method and initial solution using the
-        :meth:`~fatiando.inversion.base.FitMixin.config` method.
+        :meth:`~fatiando.inversion.base.OptimizerMixin.config` method.
         See the example bellow.
 
     Examples:
@@ -101,24 +101,26 @@ class Homogeneous(Misfit):
     """
 
     def __init__(self, ttres, recs, vp, vs):
-        super(Homogeneous, self).__init__(
-            data=ttres,
-            positional=dict(recs=numpy.array(recs)),
-            model=dict(vp=vp, vs=vs),
-            nparams=2, islinear=False)
+        super().__init__(data=ttres, nparams=2, islinear=False)
+        self.recs = np.array(recs)
+        self.vp = vp
+        self.vs = vs
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
+        "Calculate the predicted travel time data given a parameter vector."
         x, y = p
-        alpha = 1. / self.model['vs'] - 1. / self.model['vp']
-        return alpha * numpy.sqrt((self.positional['recs'][:, 0] - x) ** 2 +
-                                  (self.positional['recs'][:, 1] - y) ** 2)
+        alpha = 1/self.vs - 1/self.vp
+        pred = alpha*np.sqrt((self.recs[:, 0] - x)**2 +
+                             (self.recs[:, 1] - y)**2)
+        return pred
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
+        "Calculate the Jacobian matrix for the inversion."
         x, y = p
-        alpha = 1. / self.model['vs'] - 1. / self.model['vp']
-        sqrt = numpy.sqrt((self.positional['recs'][:, 0] - x) ** 2 +
-                          (self.positional['recs'][:, 1] - y) ** 2)
-        jac = numpy.transpose([
-            -alpha * (self.positional['recs'][:, 0] - x) / sqrt,
-            -alpha * (self.positional['recs'][:, 1] - y) / sqrt])
+        alpha = 1/self.vs - 1/self.vp
+        sqrt = np.sqrt((self.recs[:, 0] - x)**2 +
+                       (self.recs[:, 1] - y)**2)
+        jac = np.empty((self.ndata, self.nparams))
+        jac[:, 0] = -alpha*(self.recs[:, 0] - x)/sqrt
+        jac[:, 1] = -alpha*(self.recs[:, 1] - y)/sqrt
         return jac

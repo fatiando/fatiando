@@ -6,10 +6,13 @@ Inverse problems framework (``fatiando.inversion``)
 .. automodule:: fatiando.inversion
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. toctree::
     :hidden:
 
-    inversion.base.rst
-    inversion.solvers.rst
+    inversion.misfit.rst
+    inversion.hyper_param.rst
     inversion.regularization.rst
+    inversion.base.rst
+    inversion.optimization.rst

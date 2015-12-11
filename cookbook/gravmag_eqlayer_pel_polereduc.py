@@ -4,7 +4,6 @@ anomaly to the pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import PELTotalField, PELSmoothness
-from fatiando.inversion.regularization import LCurve
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -23,24 +22,21 @@ windows = (20, 20)
 degree = 1
 misfit = PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree)
 regul = PELSmoothness(layer, windows, degree)
-# Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10 ** i for i in range(-20, -10)]).fit()
+# Apply a smoothness constraint to the borders of the equivalent layer windows
+# to avoid gaps in the physical property distribution
+solver = (misfit + 1e-15*regul).fit()
+# Add the estimated density distribution to the layer object for plotting and
+# forward modeling
 layer.addprop('magnetization', solver.estimate_)
-residuals = solver.residuals()
-print "Residuals:"
-print "mean:", residuals.mean()
-print "stddev:", residuals.std()
+residuals = solver[0].residuals()
+print("Residuals:")
+print("mean:", residuals.mean())
+print("stddev:", residuals.std())
 
 # Now I can forward model the layer at the south pole and 500 m above the
 # original data. Check against the true solution of the prism
 tfpole = prism.tf(x, y, z - 500, model, -90, 0)
 tfreduced = sphere.tf(x, y, z - 500, layer, -90, 0)
-
-mpl.figure()
-mpl.suptitle('L-curve')
-mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
-solver.plot_lcurve()
-mpl.grid()
 
 mpl.figure(figsize=(15, 4))
 mpl.subplot(1, 3, 1)
@@ -53,7 +49,7 @@ mpl.subplot(1, 3, 2)
 mpl.axis('scaled')
 mpl.title('Fit (nT)')
 levels = mpl.contour(y, x, tf, shape, 15, color='r')
-mpl.contour(y, x, solver.predicted(), shape, levels, color='k')
+mpl.contour(y, x, solver[0].predicted(), shape, levels, color='k')
 mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (nT)')

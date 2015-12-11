@@ -29,7 +29,7 @@ A Python package for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/badge/GITTER-JOIN_CHAT-brightgreen.svg?style=flat-square
     :alt: gitter chat room at https://gitter.im/fatiando/fatiando
     :target: https://gitter.im/fatiando/fatiando
- 
+
 Dependencies
 ------------
 
@@ -45,6 +45,7 @@ To install and run Fatiando, you'll need the following packages:
 * basemap >= 1.0.7
 * gcc >= 4.8.2
 * numba >= 0.17
+* future
 
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.

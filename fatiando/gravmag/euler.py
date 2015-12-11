@@ -24,15 +24,15 @@ Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
 
 """
 from __future__ import division
-import numpy
+from future.builtins import super
+import numpy as np
 
 from .. import gridder
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 from ..utils import safe_inverse, safe_dot, safe_diagonal
 
 
 class Classic(Misfit):
-
     """
     Classic 3D Euler deconvolution of potential field data.
 
@@ -41,6 +41,9 @@ class Classic(Misfit):
     :class:`~fatiando.gravmag.euler.ExpandingWindow`.
 
     Works on any potential field that satisfies Euler's homogeneity equation.
+
+    Estimated coordinates are stored in ``estimate_`` attribute and the
+    estimated base level is stored in ``baselevel_``.
 
     .. note::
 
@@ -73,46 +76,74 @@ class Classic(Misfit):
 
     def __init__(self, x, y, z, field, xderiv, yderiv, zderiv,
                  structural_index):
-        if (len(x) != len(y) != len(z) != len(field) != len(xderiv)
-                != len(yderiv) != len(zderiv)):
-            raise ValueError("x, y, z, field, xderiv, yderiv, zderiv must " +
-                             "have the same number of elements")
-        if structural_index < 0:
-            raise ValueError("Invalid structural index '%g'. Should be >= 0"
-                             % (structural_index))
-        super(Classic, self).__init__(
-            data=-x * xderiv - y * yderiv - z *
-            zderiv - structural_index * field,
-            positional=dict(x=x, y=y, z=z, field=field, xderiv=xderiv,
-                            yderiv=yderiv, zderiv=zderiv),
-            model=dict(structural_index=structural_index),
+        same_shape = all(i.shape == x.shape
+                         for i in [y, z, field, xderiv, yderiv, zderiv])
+        assert same_shape, 'All input arrays should have the same shape.'
+        assert structural_index >= 0, \
+            "Invalid structural index '{}'. Should be >= 0".format(
+                structural_index)
+        super().__init__(
+            data=-x*xderiv - y*yderiv - z*zderiv - structural_index*field,
             nparams=4, islinear=True)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.field = field
+        self.xderiv = xderiv
+        self.yderiv = yderiv
+        self.zderiv = zderiv
+        self.structural_index = structural_index
 
-    def _get_jacobian(self, p):
-        jac = numpy.transpose(
-            [-self.positional['xderiv'], -self.positional['yderiv'],
-             -self.positional['zderiv'],
-             -self.model['structural_index'] * numpy.ones(self.ndata)])
+    def jacobian(self, p):
+        jac = np.empty((self.ndata, self.nparams), dtype=np.float)
+        jac[:, 0] = -self.xderiv
+        jac[:, 1] = -self.yderiv
+        jac[:, 2] = -self.zderiv
+        jac[:, 3] = -self.structural_index*np.ones(self.ndata)
         return jac
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
-    def fit(self):
-        """
-        Solve the deconvolution on the whole data set.
+    @property
+    def baselevel_(self):
+        assert self.p_ is not None, "No estimates found. Run 'fit' first."
+        return self.p_[3]
 
-        Estimates an (x, y, z) point (stored in ``estimate_``) and a base level
-        (stored in ``baselevel_``).
+    def fmt_estimate(self, p):
         """
-        super(Classic, self).fit()
-        self._estimate = self.p_[:3]
-        self.baselevel_ = self.p_[3]
-        return self
+        Separate the (x, y, z) point coordinates from the baselevel.
+
+        Coordinates are stored in ``estimate_`` and a base level is stored in
+        ``baselevel_``.
+        """
+        return p[:3]
+
+    def cut_window(self, area):
+        """
+        Return a copy of self with only data that falls inside the given area
+
+        Parameters:
+
+        * area : list = (x1, x2, y1, y2)
+            The limiting coordinates of the area
+
+        Returns:
+
+        * subset
+            An instance of this class.
+
+        """
+        x, y = self.x, self.y
+        x1, x2, y1, y2 = area
+        indices = ((x >= x1) & (x <= x2) & (y >= y1) & (y <= y2))
+        slices = [i[indices] for i in [self.x, self.y, self.z, self.field,
+                                       self.xderiv, self.yderiv, self.zderiv]]
+        slices.append(self.structural_index)
+        return self.__class__(*slices)
 
 
 class ExpandingWindow(object):
-
     """
     Solve an Euler deconvolution problem using an expanding window scheme.
 
@@ -152,30 +183,26 @@ class ExpandingWindow(object):
 
         """
         xc, yc = self.center
-        euler = self.euler
-        x, y = euler.positional['x'], euler.positional['y']
         results = []
         errors = []
         for size in self.sizes:
-            ds = 0.5 * size
-            xmin, xmax, ymin, ymax = xc - ds, xc + ds, yc - ds, yc + ds
-            indices = (x >= xmin) & (x <= xmax) & (y >= ymin) & (y <= ymax)
-            if not numpy.any(indices):
-                continue
-            solver = euler.subset(indices).fit()
-            cov = safe_inverse(solver.hessian(solver.p_))
-            uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
-            mean_error = numpy.linalg.norm(uncertainty)
+            ds = 0.5*size
+            window = [xc - ds, xc + ds, yc - ds, yc + ds]
+            solver = self.euler.cut_window(window).fit()
+            # Don't really know why dividing by ndata makes this better but it
+            # does.
+            cov = safe_inverse(solver.hessian(solver.p_)/solver.ndata)
+            uncertainty = np.sqrt(safe_diagonal(cov)[0:3])
+            mean_error = np.linalg.norm(uncertainty)
             errors.append(mean_error)
             results.append(solver.p_)
-        self.p_ = results[numpy.argmin(errors)]
+        self.p_ = results[np.argmin(errors)]
         self.estimate_ = self.p_[:3]
         self.baselevel_ = self.p_[3]
         return self
 
 
 class MovingWindow(object):
-
     """
     Solve an Euler deconvolution problem using a moving window scheme.
 
@@ -207,9 +234,33 @@ class MovingWindow(object):
         self.windows = windows
         self.size = size
         self.keep = keep
-        self.window_centers = None
+        self.window_centers = self.get_window_centers()
         self.estimate_ = None
         self.p_ = None
+
+    def get_window_centers(self):
+        """
+        Calculate the center coordinates of the windows.
+
+        Based on the data stored in the given Euler Deconvolution solver.
+
+        Returns:
+
+        * centers : list
+            List of [x, y] coordinate pairs for the center of each window.
+
+        """
+        ny, nx = self.windows
+        dy, dx = self.size
+        x, y = self.euler.x, self.euler.y
+        x1, x2, y1, y2 = x.min(), x.max(), y.min(), y.max()
+        centers = []
+        xmidpoints = np.linspace(x1 + 0.5 * dx, x2 - 0.5 * dx, nx)
+        ymidpoints = np.linspace(y1 + 0.5 * dy, y2 - 0.5 * dy, ny)
+        for yc in ymidpoints:
+            for xc in xmidpoints:
+                centers.append([xc, yc])
+        return centers
 
     def fit(self):
         """
@@ -219,39 +270,27 @@ class MovingWindow(object):
         ``baselevel_``.
 
         """
-        ny, nx = self.windows
         dy, dx = self.size
         euler = self.euler
-        x, y = euler.positional['x'], euler.positional['y']
-        x1, x2, y1, y2 = x.min(), x.max(), y.min(), y.max()
         paramvecs = []
         estimates = []
         baselevels = []
         errors = []
         # Thank you Saulinho for the solution!
         # Calculate the mid-points of the windows
-        self.window_centers = []
-        xmidpoints = numpy.linspace(x1 + 0.5 * dx, x2 - 0.5 * dx, nx)
-        ymidpoints = numpy.linspace(y1 + 0.5 * dy, y2 - 0.5 * dy, ny)
-        for yc in ymidpoints:
-            for xc in xmidpoints:
-                self.window_centers.append([xc, yc])
-                # Separate the indices that fall inside the window with center
-                # (xc, yc)
-                indices = ((x >= xc - 0.5 * dx) & (x <= xc + 0.5 * dx) &
-                           (y >= yc - 0.5 * dy) & (y <= yc + 0.5 * dy))
-                if not numpy.any(indices):
-                    continue
-                solver = euler.subset(indices).fit()
+        for xc, yc in self.window_centers:
+                window = [xc - 0.5 * dx, xc + 0.5 * dx,
+                          yc - 0.5 * dy, yc + 0.5 * dy]
+                solver = euler.cut_window(window).fit()
                 cov = safe_inverse(solver.hessian(solver.p_))
-                uncertainty = numpy.sqrt(safe_diagonal(cov)[0:3])
-                mean_error = numpy.linalg.norm(uncertainty)
+                uncertainty = np.sqrt(safe_diagonal(cov)[0:3])
+                mean_error = np.linalg.norm(uncertainty)
                 errors.append(mean_error)
                 paramvecs.append(solver.p_)
                 estimates.append(solver.estimate_)
                 baselevels.append(solver.baselevel_)
-        best = numpy.argsort(errors)[:int(self.keep * len(errors))]
-        self.p_ = numpy.array(paramvecs)[best]
-        self.estimate_ = numpy.array(estimates)[best]
-        self.baselevel_ = numpy.array(baselevels)[best]
+        best = np.argsort(errors)[:int(self.keep * len(errors))]
+        self.p_ = np.array(paramvecs)[best]
+        self.estimate_ = np.array(estimates)[best]
+        self.baselevel_ = np.array(baselevels)[best]
         return self

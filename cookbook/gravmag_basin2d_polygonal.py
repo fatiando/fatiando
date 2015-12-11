@@ -1,7 +1,7 @@
 """
 GravMag: 2D gravity inversion for the relief of a basin
 """
-from fatiando.inversion.regularization import Smoothness1D, LCurve
+from fatiando.inversion import Smoothness1D
 from fatiando.gravmag.basin2d import PolygonalBasinGravity
 from fatiando.gravmag import talwani
 from fatiando.mesher import Polygon
@@ -22,24 +22,24 @@ x = np.linspace(0, 100000, 100)
 z = -100*np.ones_like(x)
 data = utils.contaminate(talwani.gz(x, z, [model]), 0.5, seed=0)
 
-# Make the solver and run the inversion
+# Make the solver using smoothness regularization and run the inversion
 misfit = PolygonalBasinGravity(x, z, data, 50, props, top=0)
 regul = Smoothness1D(misfit.nparams)
-# Use an L-curve analysis to find the best regularization parameter
-lc = LCurve(misfit, regul, [10**i for i in np.arange(-10, -5, 0.5)], jobs=4)
+solver = misfit + 1e-4*regul
+# This is a non-linear problem so we need to pick an initial estimate
 initial = 3000*np.ones(misfit.nparams)
-lc.config('levmarq', initial=initial).fit()
+solver.config('levmarq', initial=initial).fit()
 
 mpl.figure()
-mpl.subplot(2, 2, 1)
+mpl.subplot(2, 1, 1)
 mpl.plot(x, data, 'ok', label='observed')
-mpl.plot(x, lc.predicted(), '-r', linewidth=2, label='predicted')
+mpl.plot(x, solver[0].predicted(), '-r', linewidth=2, label='predicted')
 mpl.legend()
-ax = mpl.subplot(2, 2, 3)
-mpl.polygon(model, fill='gray', alpha=0.5)
-mpl.polygon(lc.estimate_, style='o-r')
+ax = mpl.subplot(2, 1, 2)
+mpl.polygon(model, fill='gray', alpha=0.5, label='True')
+# The estimate_ property of our solver gives us the estimate basin as a polygon
+# So we can directly pass it to plotting and forward modeling functions
+mpl.polygon(solver.estimate_, style='o-r', label='Estimated')
 ax.invert_yaxis()
-mpl.subplot(1, 2, 2)
-mpl.title('L-curve')
-lc.plot_lcurve()
+mpl.legend()
 mpl.show()

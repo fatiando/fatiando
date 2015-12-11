@@ -6,3 +6,4 @@
 .. automodule:: fatiando.gravmag.harvester
    :members:
    :show-inheritance:
+   :inherited-members:

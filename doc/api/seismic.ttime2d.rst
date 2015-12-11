@@ -6,3 +6,4 @@
 .. automodule:: fatiando.seismic.ttime2d
    :members:
    :show-inheritance:
+   :inherited-members:

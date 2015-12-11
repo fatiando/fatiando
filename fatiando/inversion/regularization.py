@@ -1,10 +1,9 @@
 """
-Ready made and base classes for regularization.
+Ready made classes for regularization.
 
-All classes are derived from :class:`~fatiando.inversion.base.Objective` and
-should be used by summing them to a :class:`~fatiando.inversion.base.Misfit`
-derivative.
-
+Each class represents a regularizing function. They can be used by adding them
+to a :class:`~fatiando.inversion.misfit.Misfit` derivative (all inversions in
+Fatiando are derived from Misfit).
 The regularization parameter is set by multiplying the regularization instance
 by a scalar, e.g., ``solver = misfit + 0.1*regularization``.
 
@@ -32,35 +31,51 @@ See :class:`fatiando.gravmag.eqlayer.EQLGravity` for an example.
 * :class:`~fatiando.inversion.regularization.TotalVariation2D`: Total variation
   for 2D grid based problems. Similar to Smoothness2D
 
-**Regularization parameter estimation**
-
-Bellow are classes that estimate an optimal value for the regularization
-parameter. They work exactly like an Objective function, i.e., run the
-inversion by calling their `fit()` method and accessing
-the estimates by `p_`, `estimate_`, `residuals()` and `predicted()`.
-
-* :class:`~fatiando.inversion.regularization.LCurve`: Use an L-curve criterion.
-  Runs the inversion using several regularization parameters. The best value
-  is the one that falls on the corner of the log-log plot of the data
-  misfit vs regularizing function. Only works for a single regularization.
-
-
 ----
 
 """
 from __future__ import division
-import multiprocessing
+from future.builtins import super
+import copy
 
 import numpy
 import scipy.sparse
 
-from .base import Objective
+from .base import OperatorMixin, CachedMethod, CachedMethodPermanent
 from ..utils import safe_dot
-from ..vis import mpl
+
+__all__ = ["Damping", "Smoothness", "Smoothness1D", "Smoothness2D",
+           "TotalVariation", "TotalVariation1D", "TotalVariation2D"]
 
 
-class Damping(Objective):
+class Regularization(OperatorMixin):
+    """
+    Generic regularizing function.
 
+    When subclassing this, you must implemenent the ``value`` method.
+    """
+
+    def __init__(self, nparams, islinear):
+        self.nparams = nparams
+        self.islinear = islinear
+        if islinear and hasattr(self, 'hessian'):
+            self.hessian = CachedMethodPermanent(self, 'hessian')
+
+    def copy(self, deep=False):
+        """
+        Make a copy of me together with all the cached methods.
+        """
+        if deep:
+            obj = copy.deepcopy(self)
+        else:
+            obj = copy.copy(self)
+        if self.islinear and hasattr(self, 'hessian'):
+            obj.hessian = copy.copy(obj.hessian)
+            obj.hessian.instance = obj
+        return obj
+
+
+class Damping(Regularization):
     r"""
     Damping (0th order Tikhonov) regularization.
 
@@ -110,12 +125,22 @@ class Damping(Objective):
     >>> damp.gradient(p)
     array([ 2.,  0.,  0.])
 
+    The Hessian matrix is cached so that it is only generated on the first
+    call to ``damp.hessian`` (unlike the gradient, which is calculated every
+    time).
+
+    >>> damp.hessian(p) is damp.hessian(p)
+    True
+    >>> damp.gradient(p) is damp.gradient(p)
+    False
+
+
     """
 
     def __init__(self, nparams):
-        super(Damping, self).__init__(nparams, islinear=True)
+        super().__init__(nparams, islinear=True)
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -130,17 +155,16 @@ class Damping(Objective):
             The Hessian
 
         """
-        # This is cheap so there is no need to cache it
-        return 2 * scipy.sparse.identity(self.nparams).tocsr()
+        return self.regul_param*2*scipy.sparse.identity(self.nparams).tocsr()
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
         Parameters:
 
-        * p : 1d-array or ``'null'``
-            The parameter vector. If ``'null'``, will return 0.
+        * p : 1d-array or None
+            The parameter vector. If None, will return 0.
 
         Returns:
 
@@ -148,13 +172,13 @@ class Damping(Objective):
             The gradient
 
         """
-        if p is 'null':
+        if p is None:
             grad = 0
         else:
-            grad = 2. * p
-        return grad
+            grad = 2.*p
+        return self.regul_param*grad
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -169,11 +193,10 @@ class Damping(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(p) ** 2
+        return self.regul_param*numpy.linalg.norm(p)**2
 
 
-class Smoothness(Objective):
-
+class Smoothness(Regularization):
     r"""
     Smoothness (1st order Tikhonov) regularization.
 
@@ -212,35 +235,42 @@ class Smoothness(Objective):
     >>> import numpy as np
     >>> fd = np.array([[1, -1, 0],
     ...                [0, 1, -1]])
-    >>> s = Smoothness(fd)
+    >>> smooth = Smoothness(fd)
     >>> p = np.array([0, 0, 0])
-    >>> s.value(p)
+    >>> smooth.value(p)
     0.0
-    >>> s.gradient(p)
+    >>> smooth.gradient(p)
     array([0, 0, 0])
-    >>> s.hessian(p)
+    >>> smooth.hessian(p)
     array([[ 2, -2,  0],
            [-2,  4, -2],
            [ 0, -2,  2]])
     >>> p = np.array([1, 0, 1])
-    >>> s.value(p)
+    >>> smooth.value(p)
     2.0
-    >>> s.gradient(p)
+    >>> smooth.gradient(p)
     array([ 2, -4,  2])
-    >>> s.hessian(p)
+    >>> smooth.hessian(p)
     array([[ 2, -2,  0],
            [-2,  4, -2],
            [ 0, -2,  2]])
 
+    The Hessian matrix is cached so that it is only generated on the first
+    call to ``hessian`` (unlike the gradient, which is calculated every
+    time).
+
+    >>> smooth.hessian(p) is smooth.hessian(p)
+    True
+    >>> smooth.gradient(p) is smooth.gradient(p)
+    False
+
     """
 
     def __init__(self, fdmat):
-        super(Smoothness, self).__init__(fdmat.shape[1], islinear=True)
-        self._cache = {}
-        self._cache['hessian'] = {'hash': '',
-                                  'array': 2 * safe_dot(fdmat.T, fdmat)}
+        super().__init__(fdmat.shape[1], islinear=True)
+        self.fdmat = fdmat
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -255,16 +285,16 @@ class Smoothness(Objective):
             The Hessian
 
         """
-        return self._cache['hessian']['array']
+        return self.regul_param*2*safe_dot(self.fdmat.T, self.fdmat)
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
         Parameters:
 
-        * p : 1d-array or ``'null'``
-            The parameter vector. If ``'null'``, will return 0.
+        * p : 1d-array or None
+            The parameter vector. If None, will return 0.
 
         Returns:
 
@@ -272,13 +302,13 @@ class Smoothness(Objective):
             The gradient
 
         """
-        if p is 'null':
+        if p is None:
             grad = 0
         else:
             grad = safe_dot(self.hessian(p), p)
-        return grad
+        return self.regul_param*grad
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -294,11 +324,10 @@ class Smoothness(Objective):
 
         """
         # Need to divide by 2 because the hessian is 2*R.T*R
-        return numpy.sum(p * safe_dot(self.hessian(p), p)) / 2.
+        return self.regul_param*safe_dot(p.T, safe_dot(self.hessian(p), p))/2
 
 
 class Smoothness1D(Smoothness):
-
     """
     Smoothness regularization for 1D problems.
 
@@ -336,11 +365,10 @@ class Smoothness1D(Smoothness):
     """
 
     def __init__(self, npoints):
-        super(Smoothness1D, self).__init__(fd1d(npoints))
+        super().__init__(fd1d(npoints))
 
 
 class Smoothness2D(Smoothness):
-
     """
     Smoothness regularization for 2D problems.
 
@@ -383,11 +411,10 @@ class Smoothness2D(Smoothness):
     """
 
     def __init__(self, shape):
-        super(Smoothness2D, self).__init__(fd2d(shape))
+        super().__init__(fd2d(shape))
 
 
-class TotalVariation(Objective):
-
+class TotalVariation(Regularization):
     r"""
     Total variation regularization.
 
@@ -459,12 +486,12 @@ class TotalVariation(Objective):
     def __init__(self, beta, fdmat):
         if beta <= 0:
             raise ValueError("Invalid beta=%g. Must be > 0" % (beta))
-        super(TotalVariation, self).__init__(
+        super().__init__(
             nparams=fdmat.shape[1], islinear=False)
         self.beta = beta
-        self._fdmat = fdmat
+        self.fdmat = fdmat
 
-    def _get_value(self, p):
+    def value(self, p):
         """
         Calculate the value of this function.
 
@@ -479,9 +506,9 @@ class TotalVariation(Objective):
             The value of this function evaluated at *p*
 
         """
-        return numpy.linalg.norm(safe_dot(self._fdmat, p), 1)
+        return self.regul_param*numpy.linalg.norm(safe_dot(self.fdmat, p), 1)
 
-    def _get_hessian(self, p):
+    def hessian(self, p):
         """
         Calculate the Hessian matrix.
 
@@ -496,12 +523,12 @@ class TotalVariation(Objective):
             The Hessian
 
         """
-        derivs = safe_dot(self._fdmat, p)
-        q = self.beta / ((derivs ** 2 + self.beta) ** 1.5)
+        derivs = safe_dot(self.fdmat, p)
+        q = self.beta/((derivs**2 + self.beta)**1.5)
         q_matrix = scipy.sparse.diags(q, 0).tocsr()
-        return safe_dot(self._fdmat.T, q_matrix * self._fdmat)
+        return self.regul_param*safe_dot(self.fdmat.T, q_matrix*self.fdmat)
 
-    def _get_gradient(self, p):
+    def gradient(self, p):
         """
         Calculate the gradient vector.
 
@@ -516,16 +543,15 @@ class TotalVariation(Objective):
             The gradient
 
         """
-        derivs = safe_dot(self._fdmat, p)
-        q = derivs / numpy.sqrt(derivs ** 2 + self.beta)
-        grad = safe_dot(self._fdmat.T, q)
+        derivs = safe_dot(self.fdmat, p)
+        q = derivs/numpy.sqrt(derivs**2 + self.beta)
+        grad = safe_dot(self.fdmat.T, q)
         if len(grad.shape) > 1:
             grad = numpy.array(grad.T).ravel()
-        return grad
+        return self.regul_param*grad
 
 
 class TotalVariation1D(TotalVariation):
-
     """
     Total variation regularization for 1D problems.
 
@@ -546,11 +572,10 @@ class TotalVariation1D(TotalVariation):
     """
 
     def __init__(self, beta, npoints):
-        super(TotalVariation1D, self).__init__(beta, fd1d(npoints))
+        super().__init__(beta, fd1d(npoints))
 
 
 class TotalVariation2D(TotalVariation):
-
     """
     Total variation regularization for 2D problems.
 
@@ -572,7 +597,7 @@ class TotalVariation2D(TotalVariation):
     """
 
     def __init__(self, beta, shape):
-        super(TotalVariation2D, self).__init__(beta, fd2d(shape))
+        super().__init__(beta, fd2d(shape))
 
 
 def fd1d(size):
@@ -662,360 +687,3 @@ def fd2d(shape):
             deriv += 1
             param += 1
     return scipy.sparse.coo_matrix((V, (I, J)), (nderivs, nx * ny)).tocsr()
-
-
-class LCurve(object):
-
-    """
-    Use the L-curve criterion to estimate the regularization parameter.
-
-    Runs the inversion using several specified regularization parameters.
-    The best value is the one that falls on the corner of the log-log plot of
-    the data misfit vs regularizing function.
-    This point is automatically found using the triangle method of
-    Castellanos et al. (2002).
-
-    This class behaves as :class:`~fatiando.inversion.base.Misfit`.
-    To use it, simply call ``fit`` and optionally ``config``.
-    The estimate will be stored in ``estimate_`` and ``p_``.
-    The estimated regularization parameter will be stored in ``regul_param_``.
-
-    Parameters:
-
-    * datamisfit : :class:`~fatiando.inversion.base.Misfit`
-        The data misfit instance for the inverse problem. Can be a sum of other
-        misfits.
-    * regul : A class from :mod:`fatiando.inversion.regularization`
-        The regularizing function.
-    * regul_params : list
-        The values of the regularization parameter that will be tested.
-    * loglog : True or False
-        If True, will use a log-log scale for the L-curve (recommended).
-    * jobs : None or int
-        If not None, will use *jobs* processes to calculate the L-curve.
-
-    References:
-
-    Castellanos, J. L., S. Gomez, and V. Guerra (2002), The triangle method for
-    finding the corner of the L-curve, Applied Numerical Mathematics, 43(4),
-    359-373, doi:10.1016/S0168-9274(01)00179-9.
-
-    Examples:
-
-    We'll use the L-curve to estimate the best regularization parameter for a
-    smooth inversion using :mod:`fatiando.seismic.srtomo`.
-
-    First, we'll setup some synthetic data:
-
-    >>> import numpy
-    >>> from fatiando.mesher import SquareMesh
-    >>> from fatiando.seismic import ttime2d, srtomo
-    >>> from fatiando.inversion.regularization import Smoothness2D, LCurve
-    >>> from fatiando import utils
-    >>> area = (0, 2, 0, 2)
-    >>> shape = (10, 10)
-    >>> model = SquareMesh(area, shape)
-    >>> vp = 4*numpy.ones(shape)
-    >>> vp[3:7,3:7] = 10
-    >>> vp
-    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
-    >>> model.addprop('vp', vp.ravel())
-    >>> src_loc = utils.random_points(area, 30, seed=0)
-    >>> rec_loc = utils.circular_points(area, 20, random=True, seed=0)
-    >>> srcs, recs = utils.connect_points(src_loc, rec_loc)
-    >>> tts = ttime2d.straight(model, 'vp', srcs, recs)
-    >>> tts = utils.contaminate(tts, 0.01, percent=True, seed=0)
-
-    Now we can setup a tomography by creating the necessary data misfit
-    (`SRTomo`) and regularization (`Smoothness2D`) objects:
-
-    >>> mesh = SquareMesh(area, shape)
-    >>> datamisfit = srtomo.SRTomo(tts, srcs, recs, mesh)
-    >>> regul = Smoothness2D(mesh.shape)
-
-    The tomography solver will be the `LCurve` solver. It works by calling
-    `fit()` and accessing `estimate_`, exactly like any other solver:
-
-    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
-    >>> e = tomo.fit().estimate_
-    >>> print numpy.array_repr(e.reshape(shape), precision=0)
-    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
-
-    The estimated regularization parameter is stored in `regul_param_`:
-
-    >>> tomo.regul_param_
-    1e-05
-
-    The `LCurve` object also exposes the `residuals()` and `predicted()`
-    methods of the data misfit class:
-
-    >>> residuals = tomo.residuals()
-    >>> print '%.4f %.4f' % (residuals.mean(), residuals.std())
-    -0.0000 0.0047
-
-    `LCurve` also has a `config` method to configure the optimization process
-    for non-linear problems, for example:
-
-    >>> initial = 1./4.*numpy.ones(mesh.size)
-    >>> tomo = LCurve(datamisfit, regul, [10**i for i in range(-10, -2, 1)])
-    >>> e = tomo.config('levmarq', initial=initial).fit().estimate_
-    >>> tomo.regul_param_
-    1e-05
-    >>> print numpy.array_repr(e.reshape(shape), precision=0)
-    array([[  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,   9.,  11.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  11.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  10.,  10.,  10.,  10.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,  11.,  10.,  11.,   9.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.],
-           [  4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.,   4.]])
-
-    """
-
-    def __init__(self, datamisfit, regul, regul_params, loglog=True,
-                 jobs=None):
-        self.regul_params = regul_params
-        self.datamisfit = datamisfit
-        self.regul = regul
-        self.regul_param_ = None
-        self.objectives = None
-        self.corner_ = None
-        self.estimate_ = None
-        self.p_ = None
-        self.dnorm = None
-        self.mnorm = None
-        self.fit_method = None
-        self.fit_args = None
-        self.jobs = jobs
-        self.loglog = loglog
-
-    def fit(self):
-        """
-        Solve for the parameter vector and optimum regularization parameter.
-
-        Combines the data-misfit and regularization solvers using the range of
-        regularization parameters provided and calls ``fit`` and ``config`` on
-        each.
-
-        The ``p_`` and ``estimate_`` attributes correspond to the combination
-        that falls in the corner of the L-curve.
-
-        The regularization parameter for this corner point if stored in the
-        ``regul_param_`` attribute.
-
-        Returns:
-
-        * self
-
-        """
-        if self.datamisfit.islinear:
-            self.datamisfit.jacobian('null')
-        solvers = [
-            self.datamisfit + mu * self.regul for mu in self.regul_params]
-        if self.fit_method is not None:
-            for solver in solvers:
-                solver.config(self.fit_method, **self.fit_args)
-        if self.jobs is None:
-            results = [_run_lcurve(s) for s in solvers]
-        else:
-            pool = multiprocessing.Pool(self.jobs)
-            results = pool.map(_run_lcurve, solvers)
-            pool.close()
-            pool.join()
-        self.objectives = results
-        self.dnorm = numpy.array(
-            [self.datamisfit.value(s.p_) for s in results])
-        self.mnorm = numpy.array([self.regul.value(s.p_) for s in results])
-        self.select_corner()
-        return self
-
-    def _scale_curve(self):
-        """
-        Puts the data-misfit and regularizing function values in the range
-        [-10, 10].
-        """
-        if self.loglog:
-            x, y = numpy.log(self.dnorm), numpy.log(self.mnorm)
-        else:
-            x, y = self.dnorm, self.mnorm
-
-        def scale(a):
-            vmin, vmax = a.min(), a.max()
-            l, u = -10, 10
-            return (((u - l) / (vmax - vmin)) *
-                    (a - (u * vmin - l * vmax) / (u - l)))
-        return scale(x), scale(y)
-
-    def select_corner(self):
-        """
-        Selects the corner value of the L-curve and sets the estimate to it.
-
-        Uses the Triangle method of Castellanos et al. (2002).
-
-        The index of the corner value is stored in the ``corner_`` attribute.
-
-        Returns:
-
-        * self
-
-        """
-        x, y = self._scale_curve()
-        n = len(self.regul_params)
-        corner = n - 1
-
-        def dist(p1, p2):
-            "Return the geometric distance between p1 and p2"
-            return numpy.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
-
-        cte = 7. * numpy.pi / 8.
-        angmin = None
-        c = [x[-1], y[-1]]
-        for k in xrange(0, n - 2):
-            b = [x[k], y[k]]
-            for j in xrange(k + 1, n - 1):
-                a = [x[j], y[j]]
-                ab = dist(a, b)
-                ac = dist(a, c)
-                bc = dist(b, c)
-                cosa = (ab ** 2 + ac ** 2 - bc ** 2) / (2. * ab * ac)
-                ang = numpy.arccos(cosa)
-                area = 0.5 * ((b[0] - a[0]) * (a[1] - c[1]) -
-                              (a[0] - c[0]) * (b[1] - a[1]))
-                # area is > 0 because in the paper C is index 0
-                if area > 0 and (ang < cte and
-                                 (angmin is None or ang < angmin)):
-                    corner = j
-                    angmin = ang
-        self.corner_ = corner
-        self.regul_param_ = self.regul_params[corner]
-        self.p_ = self.objectives[corner].p_
-        self.estimate_ = self.objectives[corner].estimate_
-        return self
-
-    def config(self, method, **kwargs):
-        """
-        Configure the optimization method and its parameters.
-
-        This sets the method used by
-        :meth:`~fatiando.inversion.regularization.LCurve.fit` and the keyword
-        arguments that are passed to it.
-
-        Parameters:
-
-        * method : string
-            The optimization method. One of: ``'linear'``, ``'newton'``,
-            ``'levmarq'``, ``'steepest'``, ``'acor'``
-
-        Other keyword arguments that can be passed are the ones allowed by each
-        method.
-
-        See :meth:`fatiando.inversion.base.Misfit.config`.
-
-        Returns:
-
-        * self
-
-        """
-        self.fit_method = method
-        self.fit_args = kwargs
-        return self
-
-    def predicted(self, p=None):
-        """
-        Returns the predicted data for a given parameter vector.
-
-        Uses the solver that falls on the corner of the L-curve.
-
-        Parameters:
-
-        * p : 1d-array or None
-            The parameter vector used to calculate the predicted data. If None,
-            will use the current estimate stored in ``estimate_``.
-
-        Returns:
-
-        * predicted : 1d-array or list of 1d-arrays
-            The predicted data. If this is the sum of 1 or more Misfit
-            instances, will return the predicted data from each of the summed
-            misfits in the order of the sum.
-
-        """
-        return self.objectives[self.corner_].predicted(p)
-
-    def residuals(self, p=None):
-        """
-        Returns the residuals vector (observed - predicted data).
-
-        Uses the solver that falls on the corner of the L-curve.
-
-        Parameters:
-
-        * p : 1d-array or None
-            The parameter vector used to calculate the residuals. If None, will
-            use the current estimate stored in ``estimate_``.
-
-        Returns:
-
-        * residuals : 1d-array or list of 1d-arrays
-            The residual vector. If this is the sum of 1 or more Misfit
-            instances, will return the residual vector from each of the summed
-            misfits in the order of the sum.
-
-        """
-        return self.objectives[self.corner_].residuals(p)
-
-    def plot_lcurve(self, guides=True):
-        """
-        Make a plot of the data-misfit x regularization values.
-
-        The estimated corner value is shown as a blue triangle.
-
-        Parameters:
-
-        * guides : True or False
-            Plot vertical and horizontal lines across the corner value.
-
-        """
-        x, y = self.dnorm, self.mnorm
-        if self.loglog:
-            mpl.loglog(x, y, '.-k')
-        else:
-            mpl.plot(x, y, '.-k')
-        if guides:
-            ax = mpl.gca()
-            vmin, vmax = ax.get_ybound()
-            mpl.vlines(x[self.corner_], vmin, vmax)
-            vmin, vmax = ax.get_xbound()
-            mpl.hlines(y[self.corner_], vmin, vmax)
-        mpl.plot(x[self.corner_], y[self.corner_], '^b', markersize=10)
-        mpl.xlabel('Data misfit')
-        mpl.ylabel('Regularization')
-
-
-def _run_lcurve(solver):
-    """
-    Call ``fit`` on the solver. Needed for multiprocessing.
-    """
-    result = solver.fit()
-    return result

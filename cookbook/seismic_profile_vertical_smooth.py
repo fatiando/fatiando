@@ -5,7 +5,7 @@ regularization and unknown layer thicknesses
 import numpy
 from fatiando import utils
 from fatiando.seismic.profile import layered_straight_ray, LayeredStraight
-from fatiando.inversion.regularization import Smoothness1D
+from fatiando.inversion import Smoothness1D
 from fatiando.vis import mpl
 
 # Make a layered model
@@ -29,7 +29,7 @@ mpl.subplot(1, 2, 1)
 mpl.grid()
 mpl.title("Vertical seismic profile")
 mpl.plot(tts, zp, 'ok', label='Observed')
-mpl.plot(solver.predicted(), zp, '-r', linewidth=3, label='Predicted')
+mpl.plot(solver[0].predicted(), zp, '-r', linewidth=3, label='Predicted')
 mpl.legend(loc='upper right', numpoints=1)
 mpl.xlabel("Travel-time (s)")
 mpl.ylabel("Z (m)")
