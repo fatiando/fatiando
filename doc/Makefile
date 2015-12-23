@@ -4,6 +4,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 BUILDDIR      = _build
+CBDIR         = _static/cookbook
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -13,20 +14,38 @@ endif
 # Internal variables.
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees  $(SPHINXOPTS) .
 
-.PHONY: help clean html linkcheck doctest
+.PHONY: help clean html linkcheck doctest cookbook
 
-all: html
+all: cookbook html
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make standalone HTML files"
-	@echo "  linkcheck  to check all external links for integrity"
-	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
+	@echo "  all        generate the complete webpage"
+	@echo "  html       make only the HTML files from the existing rst sources"
+	@echo "  cookbook   make the cookbook recipes .rst files from the .py files"
+	@echo "  linkcheck  check all external links for integrity"
+	@echo "  doctest    run all doctests embedded in the documentation (if enabled)"
+
+cookbook:
+	@echo
+	@echo "Building cookbook rst files."
+	@echo
+	mkdir -p $(CBDIR)
+	cp ../cookbook/*.py $(CBDIR)
+	cd $(CBDIR); python ../../tools/make_cookbook.py `ls *.py`
+	rm -rf cookbook
+	mkdir -p cookbook
+	mv $(CBDIR)/*.rst cookbook
+	@echo
+	@echo "Build finished."
 
 clean:
-	rm -rf $(BUILDDIR)/html/*
+	rm -rf $(BUILDDIR)/html/* $(CBDIR) cookbook $(BUILDDIR)/plot_directive
 
 html:
+	@echo
+	@echo "Building HTML files."
+	@echo
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

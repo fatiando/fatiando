@@ -97,13 +97,14 @@ Follow
 for instructions on setting environment variables.
 
 You will need some extra dependencies installed for development.
-If you are using Anaconda (and you should) run::
+If you are using Anaconda (and you should) run the following from the
+repository base directory::
 
-    conda install cython sphinx nose
+    conda install --file test/requirements-conda.txt
 
 and::
 
-    pip install coverage pep8 sphinx-rtd-theme
+    pip install -r test/requirements-pip.txt
 
 You will also need `make <http://www.gnu.org/software/make/>`__, which usually
 comes with GNU/Linux by default. On windows, you can get it through

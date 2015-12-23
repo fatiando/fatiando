@@ -55,7 +55,6 @@ class EQLBase(Misfit):
 
 
 class EQLGravity(EQLBase):
-
     """
     Estimate an equivalent layer from gravity data.
 
@@ -77,68 +76,130 @@ class EQLGravity(EQLBase):
 
     Examples:
 
-    Use the layer to fit some gravity data and check is our layer is able to
+    Use the layer to fit some gravity data and check if our layer is able to
     produce data at a different locations (i.e., interpolate, upward continue)
 
-    >>> import numpy as np
-    >>> from fatiando import gridder
-    >>> from fatiando.gravmag import sphere, prism
-    >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> from fatiando.inversion.regularization import Damping
-    >>> # Produce some gravity data
-    >>> area = (0, 10000, 0, 10000)
-    >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
-    >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000, {'density':1000})]
-    >>> gz = prism.gz(x, y, z, model)
-    >>> # Setup a layer
-    >>> layer = PointGrid(area, 500, (25, 25))
-    >>> solver = (EQLGravity(x, y, z, gz, layer) +
-    ...           10**-26*Damping(layer.size)).fit()
-    >>> # Check the fit
-    >>> np.allclose(gz, solver.predicted(), rtol=0.01, atol=0.5)
-    True
-    >>> # Add the densities to the layer
-    >>> layer.addprop('density', solver.estimate_)
-    >>> # Make a regular grid
-    >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
-    >>> # Interpolate and check agains the model
-    >>> gz_layer = sphere.gz(x, y, z, layer)
-    >>> gz_model = prism.gz(x, y, z, model)
-    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
-    True
-    >>> # Upward continue and check agains model data
-    >>> zup = z - 50
-    >>> gz_layer = sphere.gz(x, y, zup, layer)
-    >>> gz_model = prism.gz(x, y, zup, model)
-    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
-    True
+    .. plot::
+        :include-source:
+        :context:
+
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> from fatiando import gridder
+        >>> from fatiando.gravmag import sphere, prism
+        >>> from fatiando.gravmag.eqlayer import EQLGravity
+        >>> from fatiando.mesher import Prism, PointGrid
+        >>> from fatiando.inversion.regularization import Damping
+        >>> # Produce some gravity data
+        >>> area = (0, 10000, 0, 10000)
+        >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
+        >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000, {'density':1000})]
+        >>> gz = prism.gz(x, y, z, model)
+        >>> # Plot the data
+        >>> fig = plt.figure(figsize=(6, 5))
+        >>> _ = plt.tricontourf(y, x, gz, 30, cmap='Reds')
+        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
+        >>> _ = plt.plot(y, x, '.k')
+
+    .. plot::
+        :include-source:
+        :context:
+
+        >>> # Setup a layer
+        >>> layer = PointGrid(area, 500, (25, 25))
+        >>> solver = (EQLGravity(x, y, z, gz, layer) +
+        ...           10**-26*Damping(layer.size)).fit()
+        >>> # Check that the predicted data fits the observations
+        >>> np.allclose(gz, solver.predicted(), rtol=0.01, atol=0.5)
+        True
+        >>> # Add the densities to the layer
+        >>> layer.addprop('density', solver.estimate_)
+        >>> # Make a regular grid
+        >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
+        >>> # Interpolate and check against the model
+        >>> gz_layer = sphere.gz(x, y, z, layer)
+        >>> gz_model = prism.gz(x, y, z, model)
+        >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
+        True
+        >>> # Upward continue and check against model data
+        >>> zup = z - 500
+        >>> gz_layer_up = sphere.gz(x, y, zup, layer)
+        >>> gz_model_up = prism.gz(x, y, zup, model)
+        >>> np.allclose(gz_layer_up, gz_model_up, rtol=0.01, atol=0.1)
+        True
+        >>> # Plot the interpolated and upward continued data
+        >>> plt.close()
+        >>> fig = plt.figure(figsize=(6, 5))
+        >>> _ = plt.tricontourf(y, x, gz_layer_up, 30, cmap='Reds')
+        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
 
     If you have multiple types of gravity data (like gravity anomaly and
-    gradient tensor components), you can add EQLGravity instances together for
-    a joint inversion:
+    gradient tensor components), you can add ``EQLGravity`` instances together
+    for a joint inversion:
 
-    >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
-    >>> gz = prism.gz(x, y, z, model)
-    >>> gzz = prism.gzz(x, y, z, model)
-    >>> # Setup a layer
-    >>> layer = PointGrid(area, 500, (25, 25))
-    >>> solver = (EQLGravity(x, y, z, gz, layer, field='gz') +
-    ...           EQLGravity(x, y, z, gzz, layer, field='gzz') +
-    ...           10**-24*Damping(layer.size)).fit()
-    >>> # Check the fit
-    >>> gz_pred, gzz_pred = solver.predicted()
-    >>> np.allclose(gz, gz_pred, rtol=0.01, atol=0.5)
-    True
-    >>> np.allclose(gzz, gzz_pred, rtol=0.01, atol=1)
-    True
-    >>> # Add the densities to the layer
-    >>> layer.addprop('density', solver.estimate_)
-    >>> # Upward continue gzz only and check agains model data
-    >>> zup = z - 50
-    >>> gzz_layer = sphere.gzz(x, y, zup, layer)
-    >>> gzz_model = prism.gzz(x, y, zup, model)
-    >>> np.allclose(gzz_layer, gzz_model, rtol=0.01, atol=1)
-    True
+    .. plot::
+        :include-source:
+        :context:
+
+        >>> x1, y1, z1 = gridder.scatter(area, 200, z=-400, seed=0)
+        >>> gz = prism.gz(x1, y1, z1, model)
+        >>> x2, y2, z2 = gridder.scatter(area, 400, z=-150, seed=2)
+        >>> gxy = prism.gxy(x2, y2, z2, model)
+        >>> # Plot the gz and gxy data
+        >>> plt.close()
+        >>> fig = plt.figure(figsize=(12, 5))
+        >>> ax = plt.subplot(121, aspect='equal')
+        >>> _ = plt.title('gz')
+        >>> _ = plt.tricontourf(y1, x1, gz, 30, cmap='Reds')
+        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
+        >>> _ = plt.plot(y1, x1, '.k')
+        >>> ax = plt.subplot(122)
+        >>> _ = plt.title('gxy')
+        >>> _ = plt.tricontourf(y2, x2, gxy, 30, cmap='RdBu_r')
+        >>> plt.colorbar(pad=0, aspect=30).set_label('Eotvos')
+        >>> _ = plt.plot(y2, x2, '.k')
+        >>> plt.tight_layout()
+
+    .. plot::
+        :include-source:
+        :context:
+        :nofigs:
+
+        >>> # Setup a layer
+        >>> layer = PointGrid(area, 500, (25, 25))
+        >>> solver = (EQLGravity(x1, y1, z1, gz, layer, field='gz') +
+        ...           EQLGravity(x2, y2, z2, gxy, layer, field='gxy') +
+        ...           10**-24*Damping(layer.size)).fit()
+        >>> # Check the fit
+        >>> gz_pred, gxy_pred = solver.predicted()
+        >>> np.allclose(gz, gz_pred, rtol=0.01, atol=0.5)
+        True
+        >>> np.allclose(gxy, gxy_pred, rtol=0.01, atol=0.5)
+        True
+        >>> # Add the densities to the layer
+        >>> layer.addprop('density', solver.estimate_)
+
+    Now that we have the layer, we can do any operation by forward modeling the
+    layer. For example, lets just upward continue gxy (without interpolation).
+
+    .. plot::
+        :include-source:
+        :context:
+
+        >>> # Upward continue gxy only without interpolation
+        >>> zup = z2 - 500
+        >>> gxy_layer = sphere.gxy(x2, y2, zup, layer)
+        >>> # Check against model data
+        >>> gxy_model = prism.gxy(x2, y2, zup, model)
+        >>> np.allclose(gxy_layer, gxy_model, rtol=0.01, atol=0.5)
+        True
+        >>> # Plot the upward continued gxy
+        >>> plt.close()
+        >>> fig = plt.figure(figsize=(6, 5))
+        >>> _ = plt.title('Upward continued gxy')
+        >>> _ = plt.tricontourf(y2, x2, gxy_layer, 30, cmap='RdBu_r')
+        >>> plt.colorbar(pad=0, aspect=30).set_label('Eotvos')
+        >>> _ = plt.plot(y2, x2, '.k')
 
     """
 
@@ -335,23 +396,23 @@ def _bkmatrix(grid, degree):
     >>> grid = PointGrid((0, 1, 0, 2), 10, (2, 2))
     >>> print _bkmatrix(grid, 2)
     [[ 1.  0.  0.  0.  0.  0.]
-     [ 1.  0.  1.  0.  0.  1.]
      [ 1.  2.  0.  4.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.]
      [ 1.  2.  1.  4.  2.  1.]]
     >>> print _bkmatrix(grid, 1)
     [[ 1.  0.  0.]
-     [ 1.  0.  1.]
      [ 1.  2.  0.]
+     [ 1.  0.  1.]
      [ 1.  2.  1.]]
     >>> print _bkmatrix(grid, 3)
     [[ 1.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-     [ 1.  0.  1.  0.  0.  1.  0.  0.  0.  1.]
      [ 1.  2.  0.  4.  0.  0.  8.  0.  0.  0.]
+     [ 1.  0.  1.  0.  0.  1.  0.  0.  0.  1.]
      [ 1.  2.  1.  4.  2.  1.  8.  4.  2.  1.]]
 
     """
     bmatrix = numpy.transpose(
-        [(grid.x ** i) * (grid.y ** j)
+        [(grid.x**i)*(grid.y**j)
          for l in xrange(1, degree + 2)
          for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
     return bmatrix

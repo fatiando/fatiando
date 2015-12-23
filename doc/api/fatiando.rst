@@ -1,6 +1,6 @@
 .. _fatiando:
 
-API Reference: The ``fatiando`` package
+The ``fatiando`` package
 ========================================
 
 .. automodule:: fatiando

@@ -32,14 +32,14 @@ develop:
 	$(PY) setup.py build --cython
 	pip install --no-deps --ignore-installed .
 
-docs: clean
-	cd doc; make html
+docs:
+	make -C doc all
 
-linkcheck: clean
-	cd doc; make linkcheck
+linkcheck:
+	make -C doc linkcheck
 
 view-docs:
-	cd doc; make serve
+	make -C doc serve
 
 .PHONY: test
 test: build
@@ -70,6 +70,4 @@ clean:
 	rm -rvf crust2.tar.gz cookbook/crust2.tar.gz
 	rm -rvf bouguer_alps_egm08.grd cookbook/bouguer_alps_egm08.grd
 	rm -rvf *.gdf cookbook/*.gdf
-
-clean-docs:
-	cd doc; make clean
+	make -C doc clean

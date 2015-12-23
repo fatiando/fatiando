@@ -20,6 +20,9 @@ A Python package for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
+.. image:: https://landscape.io/github/fatiando/fatiando/master/landscape.svg?style=flat-square
+   :target: https://landscape.io/github/fatiando/fatiando/master
+   :alt: Code Health from landscape.io
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.16205-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.16205
     :target: http://dx.doi.org/10.5281/zenodo.16205

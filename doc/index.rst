@@ -2,7 +2,7 @@
 
 .. raw:: html
 
-    <div class="row" style="margin-top: 30px">
+    <div class="row" style="margin-top: 60px">
     <div class="col-md-2">
     </div>
     <div class="col-md-8">
@@ -13,32 +13,37 @@
     </div>
     </div>
 
-    <div class="jumbotron" style="text-align: center; ">
-    <em>
+    <div class="text-center" style="font-size: 16pt; margin-bottom: 50px;">
 
-An easy and flexible way to perform and implement geophysical data analysis.
 
-All from inside the powerful Python_ language.
+A Python library for modeling and inversion in geophysics.
+
+Our goal is provide a comprehensive and extensible framework
+for geophysical data analysis and the development of new methodologies.
 
 .. raw:: html
 
-    </em>
     </div>
 
-Fatiando is built on top of the `Scipy`_ ecosystem: Numpy_, Cython_,
-matplotlib_, Mayavi_, etc.
-Current capabilities include:
-
-* :ref:`Data processing <fatiando_gravmag>`
-* :ref:`Generate synthetic data <fatiando_gravmag>`
-* :ref:`Forward modeling <fatiando_gravmag>`
-* :ref:`Inversion <fatiando_inversion>`
-* :ref:`2D and 3D visualization <fatiando_vis>`
+    <div class="container-fluid">
+    <div class="row">
+    <div class="col-md-4">
+    <h2>Overview</h2>
 
 
-Browse the :ref:`Cookbook <cookbook>`
-for examples of what Fatiando can do.
+**Research:** Fatiando allows you to write Python scripts to
+perform your data analysis and generate figures in a reproducible way.
 
+
+**Development:** Designed for extensibility, Fatiando offers tools for users to
+build upon the existing infrastructure and develop new inversion methods.
+We take care of the boilerplate.
+
+
+**Teaching:** Fatiando can be combined with the `Jupyter notebook`_ to make rich, interactive
+documents. Great for teaching fundamental concepts of geophysics.
+
+.. _Jupyter notebook: https://jupyter.org/
 .. _Python: https://www.python.org/
 .. _matplotlib: http://matplotlib.org/
 .. _Mayavi: http://code.enthought.com/projects/mayavi/
@@ -46,6 +51,20 @@ for examples of what Fatiando can do.
 .. _Scipy: http://scipy.org/
 .. _Cython: http://www.cython.org/
 
+
+.. raw:: html
+
+    </div>
+    <div class="col-md-4">
+    <h2>Getting started</h2>
+
+See the :ref:`install instructions <install>` to set up your computer and
+install Fatiando.
+
+Once you have everything installed, browse the :ref:`cookbook <cookbook>`
+for examples of what Fatiando can do.
+
+If you have problems, don't hesitate to :ref:`get in touch <contact>`!
 
 .. raw:: html
 
@@ -61,31 +80,51 @@ that goes into building and maintenance.
 
     </div>
 
+.. _contact:
+
 .. raw:: html
 
-    <div class="container-fluid">
-    <div class="row">
+    </div>
     <div class="col-md-4">
-    <h2>Getting help and contributing</h2>
+    <h2>Getting help</h2>
 
 There are many ways to get in contact with us:
 
-* Join us on our `Gitter chat room`_.
+* Join us on our open `Gitter chat room`_.
+* Report bugs through `Github`_.
+* Ask for new features by creating `issues on Github`_
 * Write to our `mailing list`_.
-* Report an `issue on Github`_.
 * Mention `+Fatiando a Terra`_ on Google+.
 
-You don't have to dive into the code to contribute!
+If you come across a bug, please include this in your message: your operating
+system, Python version, Fatiando version, code that generated the error, the
+full error message.
+
+.. raw:: html
+
+    </div>
+    </div> <!-- row -->
+
+    <div class="row">
+    <div class="col-md-4">
+    <h2>Contributing</h2>
+
+**You don't need to code to contribute.**
 You can start by sending us your
-feedback, bug reports, feature requests, code contributions,
+**feedback**: bug reports, feature requests, code contributions,
 spelling corrections, usage examples, etc.
 
-If you want to mess with the code,
+We need a lot of help improving the **documentation**.
+You can help by reporting typos, suggesting new sections and improvements,
+and anything that you think would make the docs better in any way.
+
+If you  want to mess with the **code**,
 take a look at our :ref:`developers guide <develop>`.
 Don't be afraid to ask for help getting started!
 
 .. _mailing list: https://groups.google.com/d/forum/fatiando
-.. _issue on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
+.. _issues on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
+.. _Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
 .. _Gitter chat room: https://gitter.im/fatiando/fatiando
 
@@ -98,19 +137,25 @@ Don't be afraid to ask for help getting started!
 .. toctree::
     :maxdepth: 1
 
-    license.rst
     install.rst
-    changelog.rst
+    cookbook.rst
+    cite.rst
     api/fatiando.rst
     develop.rst
     contributors.rst
-    cookbook.rst
+    changelog.rst
+    license.rst
 
 .. raw:: html
 
     </div>
     <div class="col-md-4">
     <h2>Announcements</h2>
+
+* **October 2014**: Fatiando was featured on volume 89 of the bulletin of the
+  Brazilian Geophysical Society (SBGf). Read it on page 13 of the `PDF file
+  <http://sys2.sbgf.org.br/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
+  (in Portuguese).
 
 * **July 2014**: We presented a poster at Scipy 2014 about the
   ``fatiando.inversion`` package. See the
@@ -122,10 +167,30 @@ Don't be afraid to ask for help getting started!
   of the presentation and proceedings are on Github.
   Watch a recorded version `on Youtube <http://youtu.be/Ec38h1oB8cc>`__.
 
+Read :ref:`all announcements <news>`.
+
 .. raw:: html
 
     </div>
+    </div> <!-- row -->
+
+    <div class="row" style="margin-top: 50px;">
+    <div class="col-md-3">
     </div>
+    <div class="col-md-6">
+        <div class="text-center" style="margin-bottom: 20px;">
+            Watch Leo give a presentation about Fatiando at Scipy 2013.
+        </div>
+        <div class="responsive-embed">
+            <iframe width="100%" height="400"
+            src="https://www.youtube.com/embed/Ec38h1oB8cc" frameborder="0"
+            allowfullscreen></iframe>
+        </div>
+    </div>
+    <div class="col-md-3">
+    </div>
+    </div>
+
     </div>
 
 
@@ -135,5 +200,7 @@ Don't be afraid to ask for help getting started!
 
     cite.rst
     docs.rst
+    news.rst
+    develop.rst
 
 
