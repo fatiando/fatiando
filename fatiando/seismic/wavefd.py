@@ -182,15 +182,16 @@ import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 from IPython.display import Image, HTML, display, display_png
-from IPython.html import widgets
+from ipywidgets import widgets
 from IPython.core.pylabtools import print_figure
 from matplotlib import animation
 from matplotlib import pyplot as plt
 import h5py
 
+from fatiando.vis.utils import anim_to_html, progressbar
 
 try:
-    from ._wavefd import *
+    from _wavefd import *
 except:
     def not_implemented(*args, **kwargs):
         raise NotImplementedError(
@@ -403,7 +404,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         else:
             self.dx, self.dz = spacing
         self.shape = shape  # 2D panel shape without padding
-        self.set_verbose(verbose)
+        self.verbose = verbose
         self.sources = []
         # simsize stores the total size of this simulation
         # after some or many runs
@@ -475,23 +476,6 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
         """
         return h5py.File(self.cachefile, mode)
-
-    def set_verbose(self, verbose):
-        """
-        Whether to show or not progress bar
-
-        Parameters:
-
-        * verbose : bool
-            True shows progress bar
-        """
-        self.verbose = verbose
-        # Need an option to get rid of the sys.stderr reference because it
-        # can't be pickled.
-        if verbose:
-            self.stream = sys.stderr
-        else:
-            self.stream = None
 
     def __getitem__(self, index):
         """
@@ -592,10 +576,9 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
 
         def plot(Frame):
             image = Image(self.snapshot(Frame, raw=True, **plotargs))
-            display(image)
             return image
 
-        slider = widgets.IntSliderWidget(min=0, max=self.it, step=every,
+        slider = widgets.IntSlider(min=0, max=self.it, step=every,
                                          value=self.it, description="Frame")
         widget = widgets.interactive(plot, Frame=slider)
         return widget
@@ -603,6 +586,12 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     @abstractmethod
     def _timestep(self, panels, tm1, t, tp1, iteration):
         pass
+
+    def _it(self):
+        """
+         the number of iteration already run
+        """
+        return self.it
 
     def run(self, iterations):
         """
@@ -624,14 +613,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         else:   # increase cache size by iterations
             self._expand_cache(iterations)
 
-        if self.verbose:
-            # The size of the progress status bar
-            places = 50
-            self.stream.write(''.join(['|', '-'*places, '|', '  0%']))
-            self.stream.flush()
-            nprinted = 0
-            start_time = time.clock()
-        for iteration in xrange(iterations):
+        for iteration in progressbar(xrange(iterations), sys.stderr):
             t, tm1 = iteration % 2, (iteration + 1) % 2
             tp1 = tm1
             self.it += 1
@@ -639,22 +621,6 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
             self.simsize += 1
             #  won't this make it slower than it should? I/O
             self._cache_panels(u, tp1, self.it, self.simsize)
-            # Update the status bar
-            if self.verbose:
-                percent = int(round(100*(iteration + 1)/iterations))
-                n = int(round(0.01*percent*places))
-                if n > nprinted:
-                    self.stream.write(''.join(['\r|', '#'*n, '-'*(places - n),
-                                               '|', '%3d%s' % (percent, '%')]))
-                    self.stream.flush()
-                    nprinted = n
-        # Make sure the progress bar ends in 100 percent
-        if self.verbose:
-            self.stream.write(''.join(
-                ['\r|', '#'*places, '|', '100%',
-                 ' Ran {:d} iterations in {:g} seconds.'.format(
-                     iterations, time.clock() - start_time)]))
-            self.stream.flush()
 
     def animate(self, every=1, cutoff=None, ax=None, cmap=plt.cm.seismic,
                 embed=False, fps=10, dpi=70, writer='avconv', **kwargs):
@@ -947,33 +913,6 @@ class ElasticSH(WaveFD2D):
         nz, nx = self.shape
         return 0.6*maxdt([0, nx*self.dx, 0, nz*self.dz],
                          self.shape, self.velocity.max())
-
-
-def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
-    """
-    Convert a matplotlib animation object to a video embedded in an HTML
-    <video> tag.
-
-    Uses avconv (default) or ffmpeg.
-
-    Returns an IPython.display.HTML object for embedding in the notebook.
-
-    Adapted from `the yt project docs
-    <http://yt-project.org/doc/cookbook/embedded_webm_animation.html>`__.
-    """
-    VIDEO_TAG = """
-    <video controls>
-    <source src="data:video/webm;base64,{0}" type="video/webm">
-    Your browser does not support the video tag.
-    </video>"""
-    plt.close(anim._fig)
-    if not hasattr(anim, '_encoded_video'):
-        with NamedTemporaryFile(suffix='.webm') as f:
-            anim.save(f.name, fps=fps, dpi=dpi, writer=writer,
-                      extra_args=['-vcodec', 'libvpx'])
-            video = open(f.name, "rb").read()
-        anim._encoded_video = video.encode("base64")
-    return HTML(VIDEO_TAG.format(anim._encoded_video))
 
 
 class ElasticPSV(WaveFD2D):
