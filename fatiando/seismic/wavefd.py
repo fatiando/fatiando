@@ -404,7 +404,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         else:
             self.dx, self.dz = spacing
         self.shape = shape  # 2D panel shape without padding
-        self.verbose = verbose
+        if verbose:
+            self.stream = sys.stdout
         self.sources = []
         # simsize stores the total size of this simulation
         # after some or many runs
@@ -587,12 +588,6 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
     def _timestep(self, panels, tm1, t, tp1, iteration):
         pass
 
-    def _it(self):
-        """
-         the number of iteration already run
-        """
-        return self.it
-
     def run(self, iterations):
         """
         Run this simulation given the number of iterations.
@@ -613,7 +608,7 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         else:   # increase cache size by iterations
             self._expand_cache(iterations)
 
-        for iteration in progressbar(xrange(iterations), sys.stderr):
+        for iteration in progressbar(xrange(iterations), self.stream):
             t, tm1 = iteration % 2, (iteration + 1) % 2
             tp1 = tm1
             self.it += 1
