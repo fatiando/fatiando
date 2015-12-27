@@ -406,6 +406,8 @@ class WaveFD2D(six.with_metaclass(ABCMeta)):
         self.shape = shape  # 2D panel shape without padding
         if verbose:
             self.stream = sys.stdout
+        else:
+            self.stream = None
         self.sources = []
         # simsize stores the total size of this simulation
         # after some or many runs
