@@ -12,14 +12,15 @@ def test_density_matrix_input():
     rock_grid = 1500.*np.ones((n_samples, n_traces))
     rock_grid[300:, :] = 2500.
     # synthetic calculation for rho as int
-    [vel_l_int, rho_l_int] = conv.depth_2_time(rock_grid, dt=2.e-3)
+    [vel_l_int, rho_l_int] = conv.depth_2_time(rock_grid, dt=2.e-3, dz=1.)
     rc_int = conv.reflectivity(vel_l_int, rho_l_int)
-    synt_int = conv.convolutional_model(rc_int, 30., conv.rickerwave)
+    synt_int = conv.convolutional_model(rc_int, 30., conv.rickerwave, dt=2.e-3)
     # synthetic calculation for rho as matrix
     rho_m = 1.*np.ones((n_samples, n_traces))
-    [vel_l_mat, rho_l_mat] = conv.depth_2_time(rock_grid, dt=2.e-3, rho=rho_m)
+    [vel_l_mat, rho_l_mat] = conv.depth_2_time(rock_grid, dt=2.e-3, dz=1.,
+                                               rho=rho_m)
     rc_mat = conv.reflectivity(vel_l_mat, rho_l_mat)
-    synt_mat = conv.convolutional_model(rc_mat, 30., conv.rickerwave)
+    synt_mat = conv.convolutional_model(rc_mat, 30., conv.rickerwave, dt=2.e-3)
     assert_array_almost_equal(synt_int, synt_mat, 9)
 
 
@@ -32,7 +33,7 @@ def test_impulse_response():
     w = conv.rickerwave(30., 2.e-3)
     rc_test = np.zeros((w.shape[0], 20))
     rc_test[w.shape[0]/2, :] = 1.
-    spike = conv.convolutional_model(rc_test, 30., conv.rickerwave)
+    spike = conv.convolutional_model(rc_test, 30., conv.rickerwave, dt=2.e-3)
     for j in range(0, rc_test.shape[1]):
         assert_array_almost_equal(spike[:, j], w, 9)
 
@@ -46,7 +47,7 @@ def test_rc_shorter_than_wavelet():
     w = conv.rickerwave(30., 2.e-3)
     rc_test = np.zeros((21, 20))
     rc_test[rc_test.shape[0]/2, :] = 1
-    spike = conv.convolutional_model(rc_test, 30., conv.rickerwave)
+    spike = conv.convolutional_model(rc_test, 30., conv.rickerwave, dt=2.e-3)
     for j in range(0, rc_test.shape[1]):
         assert_array_almost_equal(spike[:, j],
                                   w[(w.shape[0]-rc_test.shape[0])/2:
