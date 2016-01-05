@@ -56,7 +56,7 @@ import numpy as np
 from scipy import interpolate  # linear interpolation of velocity/density
 
 
-def convolutional_model(rc, f, wavelet, dt=2.e-3):
+def convolutional_model(rc, f, wavelet, dt):
     """
     Calculate convolutional seismogram for a geological model
 
@@ -79,7 +79,8 @@ def convolutional_model(rc, f, wavelet, dt=2.e-3):
     * wavelet : float
         The function to consider as source in the seismic modelling.
     * dt: float
-        Sample time of the ricker wavelet and of the resulting seismogram
+        Sample time of the ricker wavelet and of the resulting seismogram, in 
+        general a value of 2.e-3 is used.
 
     Returns:
 
@@ -101,7 +102,8 @@ def convolutional_model(rc, f, wavelet, dt=2.e-3):
 
 def reflectivity(model_t, rho=1.):
     """
-    Calculate reflectivity series
+    Calculate reflectivity series in the time domain, so it is necessary to use
+    the function depth_2_time first if the model is in depth domain. 
 
     Parameters:
 
@@ -126,16 +128,17 @@ def reflectivity(model_t, rho=1.):
     return rc
 
 
-def depth_2_time(model, dt=2.e-3, dz=1., rho=1.):
+def depth_2_time(model, dt, dz, rho=1.0):
     """
     Convert depth property model to time model.
 
     Parameters:
 
     * model : 2D-array
-        Vp values
+        Vp values in the depth domain.
     * dt: float
-        Sample time of the ricker wavelet and of the resulting seismogram
+        Sample time of the ricker wavelet and of the resulting seismogram, in 
+        general a value of 2.e-3 is used.
     * dz : float
         Length of square grid cells
     * rho : 2D-array (optional)

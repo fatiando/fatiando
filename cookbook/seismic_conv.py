@@ -11,9 +11,9 @@ n_samples, n_traces = [600, 20]
 rock_grid = 1500.*np.ones((n_samples, n_traces))
 rock_grid[300:, :] = 2500.
 # synthetic calculation
-[vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3)
+[vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3, dz=1.)
 rc = conv.reflectivity(vel_l, rho_l)
-synt = conv.convolutional_model(rc, 30., conv.rickerwave)
+synt = conv.convolutional_model(rc, 30., conv.rickerwave, dt=2.e-3)
 # plot input model
 plt.figure()
 plt.subplot(3, 1, 1)
