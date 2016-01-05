@@ -28,11 +28,11 @@ Examples
     >>> rock_grid = 1500.*np.ones((n_samples, n_traces))
     >>> rock_grid[300:, :] = 2500.
     >>> # Convert from depth to time
-    >>> [vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3)
+    >>> [vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3, dz=1.)
     >>> # Calculate the reflectivity for all the model
-    >>> rc = conv.reflectivity(vel_l,rho_l)
+    >>> rc = conv.reflectivity(vel_l, rho_l)
     >>> # Convolve the reflectivity with a ricker wavelet
-    >>> synt = conv.convolutional_model(rc, 30., conv.rickerwave)
+    >>> synt = conv.convolutional_model(rc, 30., conv.rickerwave, dt=2.e-3)
     >>> # Plot the result
     >>> fig = plt.figure(figsize=(6,5))
     >>> _ = mpl.seismic_wiggle(synt, dt=2.e-3)
