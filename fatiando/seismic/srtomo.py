@@ -19,16 +19,16 @@ refraction)
 
 """
 from __future__ import division
-import numpy
+from future.builtins import super
+import numpy as np
 import scipy.sparse
 
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 from ..utils import safe_dot
 from . import ttime2d
 
 
 class SRTomo(Misfit):
-
     """
     2D travel-time straight-ray tomography.
 
@@ -92,50 +92,66 @@ class SRTomo(Misfit):
     """
 
     def __init__(self, ttimes, srcs, recs, mesh):
-        super(SRTomo, self).__init__(
-            data=ttimes,
-            positional=dict(srcs=srcs, recs=recs),
-            model=dict(mesh=mesh),
-            nparams=mesh.size, islinear=True)
+        super().__init__(data=ttimes, nparams=mesh.size, islinear=True)
+        self.srcs = srcs
+        self.recs = recs
+        self.mesh = mesh
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
         """
-        Build the Jacobian (sensitivity) matrix using the travel-time data
-        stored.
+        Build the Jacobian (sensitivity) matrix.
+
+        The matrix will contain the length of the path takes by the ray inside
+        each cell of the mesh.
+
+        Parameters:
+
+        * p : 1d-array
+            An estimate of the parameter vector or ``None``.
+
+        Returns:
+
+        * jac : 2d-array (sparse CSR matrix from ``scipy.sparse``)
+            The Jacobian
+
         """
-        srcs, recs = self.positional['srcs'], self.positional['recs']
+        srcs, recs = self.srcs, self.recs
         i, j, v = [], [], []
-        for k, c in enumerate(self.model['mesh']):
+        for k, c in enumerate(self.mesh):
             column = ttime2d.straight([c], '', srcs, recs,
                                       velocity=1.)
-            nonzero = numpy.flatnonzero(column)
+            nonzero = np.flatnonzero(column)
             i.extend(nonzero)
-            j.extend(k * numpy.ones_like(nonzero))
+            j.extend(k*np.ones_like(nonzero))
             v.extend(column[nonzero])
         shape = (self.ndata, self.nparams)
         return scipy.sparse.coo_matrix((v, (i, j)), shape).tocsr()
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
+        """
+        Calculate the travel time data predicted by a parameter vector.
+
+        Parameters:
+
+        * p : 1d-array
+            An estimate of the parameter vector
+
+        Returns:
+
+        * pred : 1d-array
+            The predicted travel time data.
+
+        """
         pred = safe_dot(self.jacobian(p), p)
         if len(pred.shape) > 1:
-            pred = numpy.array(pred.T).ravel()
+            pred = np.array(pred.T).ravel()
         return pred
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Solve the tomography for the velocity of each cell.
-
-        Actually solves for the slowness to make the inverse problem linear.
-        The ``estimate_`` attribute holds the estimated velocities and ``p_``
-        the respective slownesses.
-
-        See the docstring of :class:`~fatiando.seismic.srtomo.SRTomo` for
-        examples.
-
+        Convert the estimated slowness to velocity.
         """
-        super(SRTomo, self).fit()
-        self._estimate = slowness2vel(self.p_, tol=10 ** -8)
-        return self
+        return slowness2vel(self.p_, tol=10**-8)
 
 
 def slowness2vel(slowness, tol=10 ** (-8)):
@@ -164,7 +180,7 @@ def slowness2vel(slowness, tol=10 ** (-8)):
     array([ 1.  ,  0.5 ,  0.  ,  0.25])
 
     """
-    velocity = numpy.array(slowness)
+    velocity = np.array(slowness)
     velocity[slowness < tol] = 0
     divide = slowness >= tol
     velocity[divide] = 1. / slowness[divide]

@@ -6,3 +6,4 @@
 .. automodule:: fatiando.seismic.epic2d
    :members:
    :show-inheritance:
+   :inherited-members:

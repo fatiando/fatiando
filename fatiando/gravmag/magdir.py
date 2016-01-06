@@ -17,9 +17,9 @@ bodies.
 """
 
 from __future__ import division
-
-import numpy
-from ..inversion.base import Misfit
+from future.builtins import super
+import numpy as np
+from ..inversion import Misfit
 from .. import mesher
 from ..utils import ang2vec, vec2ang, safe_dot
 from . import sphere
@@ -27,7 +27,6 @@ from ..constants import G, CM, T2NT, SI2EOTVOS
 
 
 class DipoleMagDir(Misfit):
-
     """
     Estimate the magnetization vector of a set of dipoles from magnetic
     total field anomaly.
@@ -39,10 +38,10 @@ class DipoleMagDir(Misfit):
     vectors, they are converted to dipole moment, inclination (positive down)
     and declination (with respect to x, North).
 
-    Reference
-
-    Blakely, R. (1996), Potential theory in gravity and magnetic applications:
-    CUP
+    After solving, use the ``estimate_`` attribute to get the estimated
+    magnetization vectors in dipole moment, inclination and declination.  The
+    estimated magnetization vectors in Cartesian coordinates can be accessed
+    through the ``p_`` attribute.
 
     .. note:: Assumes x = North, y = East, z = Down.
 
@@ -63,11 +62,16 @@ class DipoleMagDir(Misfit):
     .. note:: Inclination is positive down and declination is measured with
         respect to x (North).
 
+    References:
+
+    Blakely, R. (1996), Potential theory in gravity and magnetic applications:
+    CUP
+
     Examples:
 
     Estimation of the total magnetization vector of dipoles with known centers
 
-    >>> import numpy
+    >>> import numpy as np
     >>> from fatiando import gridder, utils
     >>> from fatiando.gravmag import sphere
     >>> from fatiando.mesher import Sphere, Prism
@@ -82,16 +86,16 @@ class DipoleMagDir(Misfit):
     >>> tf = sphere.tf(x, y, z, model, inc, dec)
     >>> # Give the coordinates of the dipoles
     >>> points = [[3000.0, 3000.0, 1000.0], [7000.0, 7000.0, 1000.0]]
-    >>> p_true = numpy.hstack((ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3,
+    >>> p_true = np.hstack((ang2vec(CM*(4.*np.pi/3.)*6.0*1000**3,
     ...                                             -20.0, -10.0),
-    ...                        ang2vec(CM*(4.*numpy.pi/3.)*6.0*1000**3,
+    ...                        ang2vec(CM*(4.*np.pi/3.)*6.0*1000**3,
     ...                                              30.0, -40.0)))
     >>> estimate_true = [utils.vec2ang(p_true[3*i : 3*i + 3]) for i
     ...                                in range(len(points))]
     >>> # Make a solver and fit it to the data
     >>> solver = DipoleMagDir(x, y, z, tf, inc, dec, points).fit()
     >>> # Check the fit
-    >>> numpy.allclose(tf, solver.predicted(), rtol=0.001, atol=0.001)
+    >>> np.allclose(tf, solver.predicted(), rtol=0.001, atol=0.001)
     True
     >>> # solver.p_ returns the Cartesian components of the
     >>> # estimated magnetization vectors
@@ -103,7 +107,7 @@ class DipoleMagDir(Misfit):
     -1399.0653093445
     1256.6370614359
     >>> # Check the estimated parameter vector
-    >>> numpy.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
+    >>> np.allclose(p_true, solver.p_, rtol=0.001, atol=0.001)
     True
     >>> # The parameter vector is not that useful so use solver.estimate_
     >>> # to convert the estimated magnetization vectors in dipole moment,
@@ -113,37 +117,35 @@ class DipoleMagDir(Misfit):
     2513.2741228718 -20.0000000000 -10.0000000000
     2513.2741228718 30.0000000000 -40.0000000000
     >>> # Check the converted estimate
-    >>> numpy.allclose(estimate_true, solver.estimate_, rtol=0.001,
+    >>> np.allclose(estimate_true, solver.estimate_, rtol=0.001,
     ...                                                 atol=0.001)
     True
 
     """
 
     def __init__(self, x, y, z, data, inc, dec, points):
-        super(DipoleMagDir, self).__init__(
-            data=data,
-            positional={'x': x, 'y': y, 'z': z},
-            model={'inc': inc, 'dec': dec, 'points': points},
-            nparams=3 * len(points),
-            islinear=True)
+        super().__init__(data=data, nparams=3*len(points), islinear=True)
+        self.x, self.y, self.z = x, y, z
+        self.inc, self.dec = inc, dec
+        self.points = points
         # Constants
         self.ndipoles = len(points)
-        self.cte = 1.0 / ((4.0 * numpy.pi / 3.0) * G * SI2EOTVOS)
+        self.cte = 1/((4*np.pi/3)*G*SI2EOTVOS)
         # Geomagnetic Field versor
-        self.F_versor = ang2vec(1.0, self.model['inc'], self.model['dec'])
+        self.F_versor = ang2vec(1.0, inc, dec)
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
         return safe_dot(self.jacobian(p), p)
 
-    def _get_jacobian(self, p):
-        x = self.positional['x']
-        y = self.positional['y']
-        z = self.positional['z']
+    def jacobian(self, p):
+        x = self.x
+        y = self.y
+        z = self.z
         dipoles = [mesher.Sphere(xp, yp, zp, 1.) for xp, yp, zp in
-                   self.model['points']]
-        jac = numpy.empty((self.ndata, self.nparams), dtype=float)
+                   self.points]
+        jac = np.empty((self.ndata, self.nparams), dtype=np.float)
         for i, dipole in enumerate(dipoles):
-            k = 3 * i
+            k = 3*i
             derivative_gxx = sphere.gxx(x, y, z, [dipole], dens=self.cte)
             derivative_gxy = sphere.gxy(x, y, z, [dipole], dens=self.cte)
             derivative_gxz = sphere.gxz(x, y, z, [dipole], dens=self.cte)
@@ -161,22 +163,10 @@ class DipoleMagDir(Misfit):
                                     (self.F_versor[2] * derivative_gzz))
         return jac
 
-    def fit(self):
+    def fmt_estimate(self, p):
         """
-        Solve for the magnetization direction of a set of dipoles.
-
-        After solving, use the ``estimate_`` attribute to get the
-        estimated magnetization vectors in dipole moment, inclination
-        and declination.
-
-        The estimated magnetization vectors in Cartesian coordinates can
-        be accessed through the ``p_`` attribute.
-
-        See the the docstring of :class:`~fatiando.gravmag.magdir.DipoleMagDir`
-        for examples.
-
+        Convert the estimate parameters from Cartesian to inclination,
+        declication, and intensity.
         """
-        super(DipoleMagDir, self).fit()
-        self._estimate = [vec2ang(self.p_[3 * i: 3 * i + 3]) for i in
-                          range(len(self.model['points']))]
-        return self
+        angles = [vec2ang(p[3*i: 3*i + 3]) for i in range(len(self.points))]
+        return angles

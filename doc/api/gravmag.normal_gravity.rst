@@ -7,3 +7,4 @@ Compute normal gravity and reductions (``fatiando.gravmag.normal_gravity``)
 .. automodule:: fatiando.gravmag.normal_gravity
    :members:
    :show-inheritance:
+   :inherited-members:

@@ -3,52 +3,47 @@
 Citing
 ======
 
-Fatiando is research software **made by scientists**.
-Citations help us justify the effort
-that goes into building and maintaining Fatiando.
+Fatiando is **made by scientists**.  Citations help us justify the effort that
+goes into building and maintaining Fatiando.
 
 Citing the software
 -------------------
 
-If you use it in your research, please cite software archive on
-`figshare <http://figshare.com/>`__ in your publications as:
+If you use it in your research, please cite Fatiando in your publications as:
 
-    Uieda, L, Oliveira Jr, V C, Ferreira, A, Santos, H B; Caparica Jr, J F (2014),
-    Fatiando a Terra: a Python package for modeling and inversion in geophysics.
-    figshare. doi:10.6084/m9.figshare.1115194
+    Uieda, L., V. C. Oliveira Jr, and V. C. F. Barbosa (2013), Modeling the
+    Earth with Fatiando a Terra, Proceedings of the 12th Python in Science
+    Conference, pp. 91 - 98.
 
-See http://dx.doi.org/10.6084/m9.figshare.1115194 for more citation styles,
-BibTeX files, etc.
+This article was `peer-reviewed
+<https://github.com/scipy-conference/scipy_proceedings/pull/52>`__ and is
+available open-access at the `conference website
+<http://conference.scipy.org/proceedings/scipy2013/uieda.html>`__.
+Source files and extra material for the paper are on the
+`leouieda/scipy2013 <https://github.com/leouieda/scipy2013>`__ Github
+repository.
+
+Here is a Bibtex entry for LaTeX users::
+
+    @InProceedings{ uieda-proc-scipy-2013,
+      author    = { Leonardo Uieda and Vanderlei C. Oliveira Jr and Val\'eria C. F. Barbosa },
+      title     = { Modeling the Earth with Fatiando a Terra },
+      booktitle = { Proceedings of the 12th Python in Science Conference },
+      pages     = { 96 - 103 },
+      year      = { 2013 },
+      editor    = { St\'efan van der Walt and Jarrod Millman and Katy Huff }
+    }
+
 
 Citing the methods
 ------------------
 
-Some of the methods implemented here are also **original research** by
-the developers.
-If you used any of the code below, please **also cite the method papers**.
+Please also cite the method papers of individual functions and classes. The
+proper references are found in the function, class or module documentation.
 
-Polynomial Equivalent Layer
-+++++++++++++++++++++++++++
-
-Implemented in ``fatiando.gravmag.eqlayer.PELGravity`` and
-``fatiando.gravmag.eqlayer.PELTotalField``.
+For example,  the ``fatiando.gravmag.eqlayer.PELGravity`` and
+``fatiando.gravmag.eqlayer.PELTotalField`` classes implement:
 
     Oliveira Jr, V. C., V. C. F. Barbosa, and L. Uieda (2013), Polynomial
     equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 
-Published article: http://library.seg.org/doi/abs/10.1190/geo2012-0196.1
-<`pdf
-<http://www.leouieda.com/pdf/paper-polynomial-eqlayer-2013.pdf>`__>
-
-3D potential-field inversion by a planting algorithm
-++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Implemented in ``fatiando.gravmag.harvester``.
-
-    Uieda, L., and V. C. F. Barbosa (2012), Robust 3D gravity gradient inversion by
-    planting anomalous densities, Geophysics, 77(4), G55-G66,
-    doi:10.1190/geo2011-0388.1
-
-Published article: http://library.seg.org/doi/abs/10.1190/geo2011-0388.1
-<`pdf
-<http://www.leouieda.com/pdf/paper-planting-anomalous-densities-2012.pdf>`__>

@@ -258,6 +258,14 @@ class Moulder(object):
                                 self._button_release_callback)
         self.canvas.mpl_connect('motion_notify_event',
                                 self._mouse_move_callback)
+        self.canvas.mpl_connect('draw_event',
+                                self._draw_callback)
+        # Call the cleanup and extra code for a draw event when resizing as
+        # well. This is needed so that tight_layout adjusts the figure when
+        # resized. Otherwise, tight_layout snaps only when the user clicks on
+        # the figure to do something.
+        self.canvas.mpl_connect('resize_event',
+                                self._draw_callback)
         self.density_slider.on_changed(self._set_density_callback)
         self.error_slider.on_changed(self._set_error_callback)
 
@@ -309,7 +317,7 @@ class Moulder(object):
         ax1.set_xlabel('x (m)', labelpad=-10)
         ax1.set_xlim(self.area[:2])
         ax1.set_ylim((-200, 200))
-        ax1.grid()
+        ax1.grid(True)
         tmp = ax2.pcolor(numpy.array([self.density_range]), cmap=self.cmap)
         tmp.set_visible(False)
         pyplot.colorbar(tmp, orientation='horizontal',
@@ -328,11 +336,12 @@ class Moulder(object):
         self.lines = newlines
         ax2.set_xlim(self.area[:2])
         ax2.set_ylim(self.area[2:])
-        ax2.grid()
+        ax2.grid(True)
         ax2.invert_yaxis()
         ax2.set_ylabel('z (m)')
         fig.subplots_adjust(top=0.95, left=0.1, right=0.95, bottom=0.06,
                             hspace=0.1)
+        self.figure = fig
         self.canvas = fig.canvas
         self.dataax = axes[0]
         self.modelax = axes[1]
@@ -402,7 +411,18 @@ class Moulder(object):
         vmin = 1.2*min(self.predicted.min(), self.dmin)
         vmax = 1.2*max(self.predicted.max(), self.dmax)
         self.dataax.set_ylim(vmin, vmax)
+        self.dataax.grid(True)
         self.canvas.draw()
+
+    def _draw_callback(self, value):
+        """
+        Callback for the canvas.draw() event.
+
+        This is called everytime the figure is redrawn. Used to do some
+        clean up and tunning whenever this is called as well, like calling
+        ``tight_layout``.
+        """
+        self.figure.tight_layout()
 
     def _set_error_callback(self, value):
         """

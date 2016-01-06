@@ -7,3 +7,4 @@ Forward modeling with spheres (``fatiando.gravmag.sphere``)
 .. automodule:: fatiando.gravmag.sphere
    :members:
    :show-inheritance:
+   :inherited-members:

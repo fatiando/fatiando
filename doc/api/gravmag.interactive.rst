@@ -6,4 +6,4 @@ Interactivity through functions and classes (``fatiando.gravmag.interactive``)
 .. automodule:: fatiando.gravmag.interactive
     :members:
     :show-inheritance:
-
+    :inherited-members:

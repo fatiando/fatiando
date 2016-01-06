@@ -1,8 +1,9 @@
 numpy
 scipy
 matplotlib
-basemap
-imaging
 numba
+future
+basemap
+pillow
 ipython
 mayavi

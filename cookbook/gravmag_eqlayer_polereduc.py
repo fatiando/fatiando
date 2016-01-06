@@ -4,7 +4,7 @@ the pole
 """
 from fatiando.gravmag import prism, sphere
 from fatiando.gravmag.eqlayer import EQLTotalField
-from fatiando.inversion.regularization import Damping, LCurve
+from fatiando.inversion import Damping
 from fatiando import gridder, utils, mesher
 from fatiando.vis import mpl
 
@@ -21,24 +21,17 @@ layer = mesher.PointGrid([-7000, 7000, -7000, 7000], 700, (50, 50))
 # Need to apply regularization so that won't try to fit the error as well
 misfit = EQLTotalField(x, y, z, tf, inc, dec, layer)
 regul = Damping(layer.size)
-# Use an L-curve analysis to find the best regularization parameter
-solver = LCurve(misfit, regul, [10 ** i for i in range(-30, -15)]).fit()
-residuals = solver.residuals()
+solver = (misfit + 1e-18*regul).fit()
+residuals = solver[0].residuals()
 layer.addprop('magnetization', solver.estimate_)
-print "Residuals:"
-print "mean:", residuals.mean()
-print "stddev:", residuals.std()
+print("Residuals:")
+print("mean:", residuals.mean())
+print("stddev:", residuals.std())
 
 # Now I can forward model the layer at the south pole and check against the
 # true solution of the prism
 tfpole = prism.tf(x, y, z, model, -90, 0)
 tfreduced = sphere.tf(x, y, z, layer, -90, 0)
-
-mpl.figure()
-mpl.suptitle('L-curve')
-mpl.title("Estimated regularization parameter: %g" % (solver.regul_param_))
-solver.plot_lcurve()
-mpl.grid()
 
 mpl.figure(figsize=(14, 4))
 mpl.subplot(1, 3, 1)
@@ -51,7 +44,7 @@ mpl.subplot(1, 3, 2)
 mpl.axis('scaled')
 mpl.title('Fit (nT)')
 levels = mpl.contour(y, x, tf, shape, 15, color='r')
-mpl.contour(y, x, solver.predicted(), shape, levels, color='k')
+mpl.contour(y, x, solver[0].predicted(), shape, levels, color='k')
 mpl.m2km()
 mpl.subplot(1, 3, 3)
 mpl.title('Residuals (nT)')

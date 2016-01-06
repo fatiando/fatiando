@@ -11,7 +11,7 @@ Modules for each geophysical method are group in subpackages:
 * :mod:`geothermal <fatiando.geothermal>`:
   Geothermal heat transfer modeling
 
-Modules for gridding, meshing, visualization, user interface, input/output etc:
+Modules for gridding, meshing, visualization, etc:
 
 * :mod:`mesher <fatiando.mesher>`:
   Mesh generation and definition of geometric elements
@@ -27,17 +27,11 @@ Modules for gridding, meshing, visualization, user interface, input/output etc:
   Physical constants and unit conversions
 
 Also included is the :mod:`fatiando.inversion` package with utilities for
-implementing inverse problems. There you'll find:
+implementing inverse problems. There you'll find ready to use regularization,
+optimization methods, and templates to implement new inversion methods.
 
-* :mod:`~fatiando.inversion.regularization`: Common regularizing functions and
-  base classes for building custom ones
-* :mod:`~fatiando.inversion.base`: Base classes to implement your inverse
-  problem. They do most of the heavy lifting for you!
-* :mod:`~fatiando.inversion.solvers`: Functions for optimization (used by
-  :mod:`~fatiando.inversion.base` classes)
-
-Inversion methods in Fatiando leverage :mod:`fatiando.inversion`, providing a
-common interface and usage patters. For examples, see modules
+Inversions implemented in Fatiando leverage :mod:`fatiando.inversion`,
+providing a common interface and usage patters. For examples, see modules
 :mod:`fatiando.seismic.epic2d`,
 :mod:`fatiando.seismic.srtomo`,
 :mod:`fatiando.gravmag.basin2d`,

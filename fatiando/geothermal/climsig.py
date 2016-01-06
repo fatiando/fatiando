@@ -45,10 +45,11 @@ amplitude and age of the change. The available inversion solvers are:
 
 """
 from __future__ import division
-import numpy
+from future.builtins import super
+import numpy as np
 import scipy.special
 
-from ..inversion.base import Misfit
+from ..inversion import Misfit
 from ..constants import THERMAL_DIFFUSIVITY_YEAR
 
 
@@ -77,9 +78,9 @@ def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         The residual temperatures measured along the well
 
     """
-    tmp = zp / numpy.sqrt(4. * diffus * age)
+    tmp = zp / np.sqrt(4. * diffus * age)
     res = amp * ((1. + 2 * tmp ** 2) * scipy.special.erfc(tmp)
-                 - 2. / numpy.sqrt(numpy.pi) * tmp * numpy.exp(-tmp ** 2))
+                 - 2. / np.sqrt(np.pi) * tmp * np.exp(-tmp ** 2))
     return res
 
 
@@ -108,11 +109,10 @@ def abrupt(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
         The residual temperatures measured along the well
 
     """
-    return amp * (1. - scipy.special.erf(zp / numpy.sqrt(4. * diffus * age)))
+    return amp * (1. - scipy.special.erf(zp / np.sqrt(4. * diffus * age)))
 
 
 class SingleChange(Misfit):
-
     r"""
     Invert the well temperature data for a single change in temperature.
 
@@ -143,8 +143,8 @@ class SingleChange(Misfit):
 
     Example with synthetic data:
 
-        >>> import numpy
-        >>> zp = numpy.arange(0, 100, 1)
+        >>> import numpy as np
+        >>> zp = np.arange(0, 100, 1)
         >>> # For an ABRUPT change
         >>> amp = 2
         >>> age = 100 # Uses years to avoid overflows
@@ -152,19 +152,19 @@ class SingleChange(Misfit):
         >>> # Run the inversion for the amplitude and time
         >>> # This is a non-linear problem, so use the Levemberg-Marquardt
         >>> # algorithm with an initial estimate
-        >>> solver = SingleChange(temp, zp, mode='abrupt').config(
-        ...             'levmarq', initial=[1, 1])
-        >>> amp_, age_ = solver.fit().estimate_
-        >>> print "amp: %.2f  age: %.2f" % (amp_, age_)
+        >>> solver = SingleChange(temp, zp, mode='abrupt')
+        >>> _ = solver.config('levmarq', initial=[1, 1]).fit()
+        >>> amp_, age_ = solver.estimate_
+        >>> print("amp: {:.2f}  age: {:.2f}".format(amp_, age_))
         amp: 2.00  age: 100.00
         >>> # For a LINEAR change
         >>> amp = 3.45
         >>> age = 52.5
         >>> temp = linear(amp, age, zp)
-        >>> solver = SingleChange(temp, zp, mode='linear').config(
-        ...             'levmarq', initial=[1, 1])
-        >>> amp_, age_ = solver.fit().estimate_
-        >>> print "amp: %.2f  age: %.2f" % (amp_, age_)
+        >>> solver = SingleChange(temp, zp, mode='linear')
+        >>> _ = solver.config('levmarq', initial=[1, 1]).fit()
+        >>> amp_, age_ = solver.estimate_
+        >>> print("amp: {:.2f}  age: {:.2f}".format(amp_, age_))
         amp: 3.45  age: 52.50
 
     Notes:
@@ -202,42 +202,33 @@ class SingleChange(Misfit):
     """
 
     def __init__(self, temp, zp, mode, diffus=THERMAL_DIFFUSIVITY_YEAR):
-        if len(temp) != len(zp):
-            raise ValueError("temp and zp must be of same length")
-        if mode not in ['abrupt', 'linear']:
-            raise ValueError("Invalid mode: %s. Must be 'abrupt' or 'linear'"
-                             % (mode))
-        super(SingleChange, self).__init__(
-            data=temp,
-            positional=dict(zp=zp),
-            model=dict(diffus=float(diffus), mode=mode),
-            nparams=2, islinear=False)
+        assert len(temp) == len(zp), "temp and zp must be of same length"
+        assert mode in ['abrupt', 'linear'], \
+            "Invalid mode: {}. Must be 'abrupt' or 'linear'".format(mode)
+        super().__init__(data=temp, nparams=2, islinear=False)
+        self.zp = zp
+        self.diffus = diffus
+        self.mode = mode
 
-    def _get_predicted(self, p):
+    def predicted(self, p):
         amp, age = p
-        zp = self.positional['zp']
-        diffus = self.model['diffus']
-        if self.model['mode'] == 'abrupt':
-            return abrupt(amp, age, zp, diffus)
-        if self.model['mode'] == 'linear':
-            return linear(amp, age, zp, diffus)
+        if self.mode == 'abrupt':
+            return abrupt(amp, age, self.zp, self.diffus)
+        if self.mode == 'linear':
+            return linear(amp, age, self.zp, self.diffus)
 
-    def _get_jacobian(self, p):
+    def jacobian(self, p):
         amp, age = p
-        zp = self.positional['zp']
-        diffus = self.model['diffus']
-        mode = self.model['mode']
-        if mode == 'abrupt':
-            tmp = zp / numpy.sqrt(4. * diffus * age)
-            jac = numpy.transpose([
-                abrupt(1., age, zp, diffus),
-                (amp * tmp * numpy.exp(-(tmp ** 2)) /
-                 (numpy.sqrt(numpy.pi) * age))])
-        if mode == 'linear':
+        jac = np.empty((self.ndata, self.nparams), dtype=np.float)
+        if self.mode == 'abrupt':
+            tmp = self.zp/np.sqrt(4*self.diffus*age)
+            jac[:, 0] = abrupt(1., age, self.zp, self.diffus)
+            jac[:, 1] = amp*tmp*np.exp(-(tmp**2))/(np.sqrt(np.pi)*age)
+        if self.mode == 'linear':
             delta = 0.5
-            at_p = linear(amp, age, zp, diffus)
-            jac = numpy.transpose([
-                linear(1., age, zp, diffus),
-                (linear(amp, age + delta, zp, diffus) -
-                 linear(amp, age - delta, zp, diffus)) / (2 * delta)])
+            at_p = linear(amp, age, self.zp, self.diffus)
+            jac[:, 0] = linear(1., age, self.zp, self.diffus)
+            jac[:, 1] = (
+                linear(amp, age + delta, self.zp, self.diffus)
+                - linear(amp, age - delta, self.zp, self.diffus))/(2*delta)
         return jac

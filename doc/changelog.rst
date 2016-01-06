@@ -14,6 +14,16 @@ Version (development)
   ``fatiando.seismic.conv``. It can be given a depth model that will be 
   converted to a time model before generating the synthetic seismogram.
   (`PR 190 <https://github.com/fatiando/fatiando/pull/190>`__)
+* **Refactor** ``fatiando.inversion``. Completely redesigned classes make
+  implementing new inversions simpler. Subclassing ``Misfit`` is simpler, with
+  fewer parameters necessary. The usage of existing inversions has changed
+  little. A **new dependency** ``future`` was added to ease the transition to
+  support Python 3.
+  (`PR 127 <https://github.com/fatiando/fatiando/pull/127>`__)
+* Fix the broken software carpentry links in ``develop.rst``.
+  (`PR 245 <https://github.com/fatiando/fatiando/pull/245>`__)
+* Fix the doctest for ``fatiando.gravmag.tensor.center_of_mass``.
+  (`PR 242 <https://github.com/fatiando/fatiando/pull/242>`__)
 * **BUG FIX**: Tesseroid computations failed (silently) when tesseroids were
   smaller than 1e-6 degrees on a side (~ 10 cm). Code now ignores these
   tesseroids on input and warns the user about it. If a tesseroid becomes

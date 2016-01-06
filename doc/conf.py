@@ -35,18 +35,12 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 master_doc = 'index'
 
-# Tell the docs if this is a PR being built by Travis CI
-pull_request = os.environ.get('TRAVIS_PULL_REQUEST', False)
-if pull_request and pull_request == 'false':
-    pull_request = False
-html_context = {'pull_request': pull_request}
-
 # General information about the project
 year = datetime.date.today().year
 project = u'Fatiando a Terra'
 copyright = u'2010-{:d}, Leonardo Uieda'.format(year)
-if len(__version__.split('-')) > 1:
-    version = '-'.join([__version__.split('-')[0], 'dev'])
+if len(__version__.split('-')) > 1 or __version__ == 'unknown':
+    version = 'dev'
 else:
     version = __version__
 # I'll use the release to place the commit hash at the footer of the site
@@ -61,7 +55,7 @@ rst_epilog = """
 """.format(doi=doi, year=year)
 
 html_last_updated_fmt = '%b %d, %Y'
-html_title = 'Fatiando a Terra'
+html_title = 'fatiando {} documentation'.format(version)
 html_short_title = 'Fatiando a Terra'
 html_logo = '_static/fatiando-logo.png'
 html_favicon = u'favicon.ico'
@@ -107,15 +101,14 @@ html_theme_options = {
         ("Installing", "install"),
         ("Documentation", "docs"),
         ("Cookbook", "cookbook"),
+        ("Developer Guide", "develop"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),
-        ('<i class="fa fa-envelope fa-lg" title="Mailing list"></i>',
-            "https://groups.google.com/d/forum/fatiando", True),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
     # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': True,
+    'navbar_pagenav': False,
     # Tab name for the current pages TOC. (Default: "Page")
     'navbar_pagenav_name': "Page",
     # Global TOC depth for "site" navbar tab. (Default: 1)
@@ -126,7 +119,7 @@ html_theme_options = {
     # non-hidden ``toctree`` directives in the same page, or else the build
     # will break.
     # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "true",
+    'globaltoc_includehidden': "false",
     # HTML navbar class (Default: "navbar") to attach to <div> element.
     # For black navbar, do "navbar navbar-inverse"
     'navbar_class': "navbar navbar-default",

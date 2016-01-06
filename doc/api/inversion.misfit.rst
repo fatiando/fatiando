@@ -1,9 +1,9 @@
-.. _fatiando_inversion_base:
+.. _fatiando_inversion_misfit:
 
-Base classes for internal use (``fatiando.inversion.base``)
+Data misfit functions (``fatiando.inversion.misfit``)
 ========================================================================
 
-.. automodule:: fatiando.inversion.base
+.. automodule:: fatiando.inversion.misfit
    :members:
    :show-inheritance:
    :inherited-members:

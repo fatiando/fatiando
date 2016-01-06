@@ -5,7 +5,7 @@ regularization
 import numpy as np
 from fatiando.mesher import SquareMesh
 from fatiando.seismic import ttime2d, srtomo
-from fatiando.inversion.regularization import TotalVariation2D, LCurve
+from fatiando.inversion.regularization import TotalVariation2D
 from fatiando.vis import mpl
 from fatiando import utils
 
@@ -27,20 +27,17 @@ tts, error = utils.contaminate(tts, 0.02, percent=True, return_stddev=True,
 # Make the mesh
 mesh = SquareMesh(area, shape)
 # and run the inversion
-misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
-regularization = TotalVariation2D(10 ** -10, mesh.shape)
-tomo = misfit + 30*regularization
+tomo = (srtomo.SRTomo(tts, srcs, recs, mesh) +
+        30*TotalVariation2D(1e-10, mesh.shape))
 # Since Total Variation is a non-linear function, then the tomography becomes
 # non-linear. So we need to configure fit to use the Levemberg-Marquardt
 # algorithm, a gradient descent method, that requires an initial estimate
-tomo.config('levmarq', initial=0.00001 * np.ones(mesh.size)).fit()
+tomo.config('levmarq', initial=0.00001*np.ones(mesh.size)).fit()
 mesh.addprop('vp', tomo.estimate_)
 
 # Calculate and print the standard deviation of the residuals
 # Should be close to the data error if the inversion was able to fit the data
-residuals = tomo.residuals()
-print "Assumed error: %f" % (error)
-print "Standard deviation of residuals: %f" % (np.std(residuals))
+residuals = tomo[0].residuals()
 
 mpl.figure(figsize=(14, 5))
 mpl.subplot(1, 2, 1)

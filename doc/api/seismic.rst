@@ -6,6 +6,7 @@ Seismics and seismology (``fatiando.seismic``)
 .. automodule:: fatiando.seismic
    :members:
    :show-inheritance:
+   :inherited-members:
 
 .. toctree::
     :hidden:

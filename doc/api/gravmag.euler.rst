@@ -7,3 +7,4 @@
 .. automodule:: fatiando.gravmag.euler
    :members:
    :show-inheritance:
+   :inherited-members:

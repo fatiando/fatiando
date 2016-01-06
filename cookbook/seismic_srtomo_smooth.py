@@ -4,7 +4,7 @@ Seismic: 2D straight-ray tomography using smoothness regularization
 import numpy as np
 from fatiando.mesher import SquareMesh
 from fatiando.seismic import ttime2d, srtomo
-from fatiando.inversion.regularization import Smoothness2D, LCurve
+from fatiando.inversion import Smoothness2D
 from fatiando.vis import mpl
 from fatiando import utils
 
@@ -26,22 +26,14 @@ tts, error = utils.contaminate(tts, 0.02, percent=True, return_stddev=True,
 # Make the mesh
 mesh = SquareMesh(area, shape)
 # and run the inversion
-misfit = srtomo.SRTomo(tts, srcs, recs, mesh)
-regularization = Smoothness2D(mesh.shape)
-# Will use the l-curve criterion to find the best regularization parameter
-tomo = LCurve(misfit, regularization,
-              [10 ** i for i in np.arange(0, 10, 1)], jobs=8).fit()
+tomo = (srtomo.SRTomo(tts, srcs, recs, mesh) +
+        1e8*Smoothness2D(mesh.shape))
+tomo.fit()
 mesh.addprop('vp', tomo.estimate_)
-
-# Plot the L-curve annd print the regularization parameter estimated
-mpl.figure()
-mpl.title('L-curve: triangle marks the best solution')
-tomo.plot_lcurve()
-print "Estimated regularization parameter: %g" % (tomo.regul_param_)
 
 # Calculate and print the standard deviation of the residuals
 # Should be close to the data error if the inversion was able to fit the data
-residuals = tomo.residuals()
+residuals = tomo[0].residuals()
 print "Assumed error: %g" % (error)
 print "Standard deviation of residuals: %g" % (np.std(residuals))
 
