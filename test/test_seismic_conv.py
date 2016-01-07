@@ -37,15 +37,24 @@ def test_rc_shorter_than_wavelet():
 
 def test_reflectivity_wrong_dimensions():
     """
-    If velocity and density are provided as matrix to reflectivity calculation,
-    conv.reflectivity they must have the same dimension.
+    Velocity and density are provided as matrix to reflectivity calculation,
+    so they must have the same dimension.
     """
     vel = np.ones((10, 10))
     dens = np.ones((11, 11))
-    assert_raises(ValueError, conv.reflectivity, vel, dens)
+    assert_raises(AssertionError, conv.reflectivity, vel, dens)
+
+
+def test_depth_2_time_wrong_dimensions():
+    """
+    Velocity and property are provided as matrix to depth to time cconversion,
+    so they must have the same dimension.
+    """
+    vel = np.ones((10, 10))
+    dens = np.ones((11, 11))
     dt = 2.e-3
     dz = 1.
-    assert_raises(ValueError, conv.depth_2_time, vel, dt, dz, dens)
+    assert_raises(AssertionError, conv.depth_2_time, vel, dens, dt, dz)
 
 
 def test_ricker():
