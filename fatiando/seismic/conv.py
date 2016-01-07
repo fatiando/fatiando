@@ -100,7 +100,7 @@ def convolutional_model(rc, f, wavelet, dt):
     return synth_l
 
 
-def reflectivity(model_t, rho=1.):
+def reflectivity(model_t, rho):
     """
     Calculate reflectivity series in the time domain, so it is necessary to use
     the function depth_2_time first if the model is in depth domain. 
@@ -108,7 +108,7 @@ def reflectivity(model_t, rho=1.):
     Parameters:
 
     * model_t : 2D-array
-        Vp values in time domain
+        Velocity values in time domain
     * rho : 2D-array (optional)
         Density values for all the model, in time domain.
 
@@ -117,14 +117,14 @@ def reflectivity(model_t, rho=1.):
     * rc : 2D-array
         Calculated reflectivity series for all the model given.
     """
+    assert rho.ndim == 2, "rho must be a 2-dimensional array"
+    assert model_t.ndim == 2, "model_t must be a 2-dimensional array"
+    err_message = "Velocity and density matrix must have the same dimension"
+    assert model_t.shape == rho.shape, err_message
+    
     rc = np.zeros(np.shape(model_t))
-    # dimension of rho must be the same of velocity grid, if both are matrix
-    try:
-        rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
-                     (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))
-    except TypeError:
-        rc[1:, :] = ((model_t[1:, :]-model_t[:-1, :]) /
-                     (model_t[1:, :]+model_t[:-1, :]))
+    rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
+                 (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))
     return rc
 
 
