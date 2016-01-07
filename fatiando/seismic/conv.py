@@ -28,7 +28,9 @@ Examples
     >>> rock_grid = 1500.*np.ones((n_samples, n_traces))
     >>> rock_grid[300:, :] = 2500.
     >>> # Convert from depth to time
-    >>> [vel_l, rho_l] = conv.depth_2_time(rock_grid, dt=2.e-3, dz=1.)
+    >>> vel_l = conv.depth_2_time(rock_grid, rock_grid, dt=2.e-3, dz=1.)
+    >>> # Considering rho constant
+    >>> rho_l = np.ones(np.shape(vel_l))
     >>> # Calculate the reflectivity for all the model
     >>> rc = conv.reflectivity(vel_l, rho_l)
     >>> # Convolve the reflectivity with a ricker wavelet
@@ -39,7 +41,8 @@ Examples
     >>> _ = mpl.seismic_image(synt, dt=2.e-3,
     ...                            cmap=mpl.pyplot.cm.jet, aspect='auto')
     >>> _ = plt.ylabel('time (seconds)')
-    >>> _ = plt.title("Convolutional seismogram", fontsize=13, family='sans-serif')
+    >>> _ = plt.title("Convolutional seismogram", fontsize=13,
+    >>>               family='sans-serif')
 
 References
 ----------
@@ -79,7 +82,7 @@ def convolutional_model(rc, f, wavelet, dt):
     * wavelet : float
         The function to consider as source in the seismic modelling.
     * dt: float
-        Sample time of the ricker wavelet and of the resulting seismogram, in 
+        Sample time of the ricker wavelet and of the resulting seismogram, in
         general a value of 2.e-3 is used.
 
     Returns:
@@ -103,7 +106,7 @@ def convolutional_model(rc, f, wavelet, dt):
 def reflectivity(model_t, rho):
     """
     Calculate reflectivity series in the time domain, so it is necessary to use
-    the function depth_2_time first if the model is in depth domain. 
+    the function depth_2_time first if the model is in depth domain.
 
     Parameters:
 
@@ -121,7 +124,6 @@ def reflectivity(model_t, rho):
     assert model_t.ndim == 2, "model_t must be a 2-dimensional array."
     err_message = "Velocity and density matrix must have the same dimension."
     assert model_t.shape == rho.shape, err_message
-    
     rc = np.zeros(np.shape(model_t))
     rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
                  (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))
@@ -139,7 +141,7 @@ def depth_2_time(vel, model, dt, dz):
     * model : 2D-array
         Model values in the depth domain.
     * dt: float
-        Sample time of the ricker wavelet and of the resulting seismogram, in 
+        Sample time of the ricker wavelet and of the resulting seismogram, in
         general a value of 2.e-3 is used.
     * dz : float
         Length of square grid cells.

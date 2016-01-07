@@ -1,5 +1,5 @@
 """
-Seismic: Synthetic convolutional seismogram for a simple two layer velocity 
+Seismic: Synthetic convolutional seismogram for a simple two layer velocity
 model
 """
 import numpy as np
