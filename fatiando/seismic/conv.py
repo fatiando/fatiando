@@ -73,9 +73,9 @@ def convolutional_model(rc, f, wavelet, dt):
     Parameters:
 
     * rc : 2D-array
-        reflectivity values in the time domain
+        Reflectivity values in the time domain.
     * f : float
-        Dominant frequency of the ricker wavelet
+        Dominant frequency of the ricker wavelet.
     * wavelet : float
         The function to consider as source in the seismic modelling.
     * dt: float
@@ -85,7 +85,7 @@ def convolutional_model(rc, f, wavelet, dt):
     Returns:
 
     * synth_l : 2D-array
-        Resulting seismogram
+        Resulting seismogram.
 
     """
     w = wavelet(f, dt)
@@ -108,7 +108,7 @@ def reflectivity(model_t, rho):
     Parameters:
 
     * model_t : 2D-array
-        Velocity values in time domain
+        Velocity values in time domain.
     * rho : 2D-array (optional)
         Density values for all the model, in time domain.
 
@@ -117,9 +117,9 @@ def reflectivity(model_t, rho):
     * rc : 2D-array
         Calculated reflectivity series for all the model given.
     """
-    assert rho.ndim == 2, "rho must be a 2-dimensional array"
-    assert model_t.ndim == 2, "model_t must be a 2-dimensional array"
-    err_message = "Velocity and density matrix must have the same dimension"
+    assert rho.ndim == 2, "rho must be a 2-dimensional array."
+    assert model_t.ndim == 2, "model_t must be a 2-dimensional array."
+    err_message = "Velocity and density matrix must have the same dimension."
     assert model_t.shape == rho.shape, err_message
     
     rc = np.zeros(np.shape(model_t))
@@ -128,55 +128,49 @@ def reflectivity(model_t, rho):
     return rc
 
 
-def depth_2_time(model, dt, dz, rho=1.0):
+def depth_2_time(vel, model, dt, dz):
     """
     Convert depth property model to time model.
 
     Parameters:
 
+    * vel : 2D-array
+        Velocity values in the depth domain.
     * model : 2D-array
-        Vp values in the depth domain.
+        Model values in the depth domain.
     * dt: float
         Sample time of the ricker wavelet and of the resulting seismogram, in 
         general a value of 2.e-3 is used.
     * dz : float
-        Length of square grid cells
+        Length of square grid cells.
     * rho : 2D-array (optional)
         Density values for all the model, in depth domain.
 
     Returns:
 
-    * vel_l : 2D-array
-        Velocity model in time domain
-    * rho_l : 2D-array
-        Density model in time domain
+    * model_t : 2D-array
+        Property model in time domain.
 
     """
+    err_message = "Velocity and model matrix must have the same dimension."
+    assert vel.shape == model.shape, err_message
     # downsampled time rate to make a better interpolation
-    n_samples, n_traces = [model.shape[0], model.shape[1]]
+    n_samples, n_traces = [vel.shape[0], vel.shape[1]]
     dt_dwn = dt/10.
-    if dt_dwn > dz/np.max(model):
-        dt_dwn = (dz/np.max(model))/10.
+    if dt_dwn > dz/np.max(vel):
+        dt_dwn = (dz/np.max(vel))/10.
     TWT = np.zeros((n_samples, n_traces))
-    TWT[0, :] = 2*dz/model[0, :]
+    TWT[0, :] = 2*dz/vel[0, :]
     for j in range(1, n_samples):
-        TWT[j, :] = TWT[j-1]+2*dz/model[j, :]
+        TWT[j, :] = TWT[j-1]+2*dz/vel[j, :]
     TMAX = max(TWT[-1, :])
     TMIN = min(TWT[0, :])
     TWT_rs = np.zeros(np.ceil(TMAX/dt_dwn))
     for j in range(1, len(TWT_rs)):
         TWT_rs[j] = TWT_rs[j-1]+dt_dwn
     resmpl = int(dt/dt_dwn)
-    vel_l = _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
-    TWT_ts = np.zeros((np.ceil(TMAX/dt), n_traces))
-    for j in range(1, len(TWT_ts)):
-        TWT_ts[j, :] = TWT_rs[resmpl*j]
-    # density calculations
-    try:
-        rho_l = _resampling(rho, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
-    except TypeError:
-        rho_l = rho
-    return vel_l, rho_l
+    model_t = _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
+    return model_t
 
 
 def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
@@ -187,7 +181,7 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
     Returns:
 
     * vel_l : 2D-array
-        resampled input data
+        Resampled input data.
 
     """
     vel = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
@@ -239,7 +233,7 @@ def rickerwave(f, dt):
     Returns:
 
     * ricker : float
-        ricker function for the given parameters
+        Ricker function for the given parameters.
 
     """
     assert f < 0.2*(1./(2.*dt)), "Frequency too high for the dt chosen."
