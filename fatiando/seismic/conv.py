@@ -42,7 +42,7 @@ Examples
     ...                            cmap=mpl.pyplot.cm.jet, aspect='auto')
     >>> _ = plt.ylabel('time (seconds)')
     >>> _ = plt.title("Convolutional seismogram", fontsize=13,
-    >>>               family='sans-serif')
+    ...               family='sans-serif')
 
 References
 ----------
@@ -106,7 +106,8 @@ def convolutional_model(rc, f, wavelet, dt):
 def reflectivity(model_t, rho):
     """
     Calculate reflectivity series in the time domain, so it is necessary to use
-    the function depth_2_time first if the model is in depth domain.
+    the function depth_2_time first if the model is in depth domain. Note this
+    this function can also be used to one dimensional array.
 
     Parameters:
 
@@ -120,13 +121,11 @@ def reflectivity(model_t, rho):
     * rc : 2D-array
         Calculated reflectivity series for all the model given.
     """
-    assert rho.ndim == 2, "rho must be a 2-dimensional array."
-    assert model_t.ndim == 2, "model_t must be a 2-dimensional array."
     err_message = "Velocity and density matrix must have the same dimension."
     assert model_t.shape == rho.shape, err_message
     rc = np.zeros(np.shape(model_t))
-    rc[1:, :] = ((model_t[1:, :]*rho[1:, :]-model_t[:-1, :]*rho[:-1, :]) /
-                 (model_t[1:, :]*rho[1:, :]+model_t[:-1, :]*rho[:-1, :]))
+    rc[1:, :] = ((model_t[1:]*rho[1:]-model_t[:-1]*rho[:-1]) /
+                 (model_t[1:]*rho[1:]+model_t[:-1]*rho[:-1]))
     return rc
 
 

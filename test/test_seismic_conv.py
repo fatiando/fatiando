@@ -37,11 +37,14 @@ def test_rc_shorter_than_wavelet():
 
 def test_reflectivity_wrong_dimensions():
     """
-    Velocity and density are provided as matrix to reflectivity calculation,
-    so they must have the same dimension.
+    Velocity and density are provided as matrix or vector to reflectivity
+    calculation, so they must have the same dimension.
     """
     vel = np.ones((10, 10))
     dens = np.ones((11, 11))
+    assert_raises(AssertionError, conv.reflectivity, vel, dens)
+    vel = np.ones((10))
+    dens = np.ones((11))
     assert_raises(AssertionError, conv.reflectivity, vel, dens)
 
 
