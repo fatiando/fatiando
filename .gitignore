@@ -15,3 +15,4 @@ benchmarks/.ipynb_checkpoints
 cookbook/_tmp*.png
 notebooks/_tmp*.png
 .ipynb_checkpoints
+*.py~

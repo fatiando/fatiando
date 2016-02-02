@@ -10,6 +10,10 @@ Version (development)
 
 **Changes**:
 
+* **New** obtain a synthetic convolutional seismogram in
+  ``fatiando.seismic.conv``. It can be given a depth model that will be 
+  converted to a time model before generating the synthetic seismogram.
+  (`PR 190 <https://github.com/fatiando/fatiando/pull/190>`__)
 * **Refactor** ``fatiando.inversion``. Completely redesigned classes make
   implementing new inversions simpler. Subclassing ``Misfit`` is simpler, with
   fewer parameters necessary. The usage of existing inversions has changed

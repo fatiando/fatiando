@@ -10,6 +10,7 @@ Forward modeling and inversion
 * :mod:`~fatiando.seismic.profile`: Modeling and inversion of seismic profiling
 * :mod:`~fatiando.seismic.wavefd`: Finite difference solution of the 2D elastic
   wave equation
+* :mod:`~fatiando.seismic.conv`: Convolutional seismic modeling
 
 Tomography
 ----------
