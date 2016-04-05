@@ -3,17 +3,9 @@
 Changelog
 =========
 
-Version (development)
----------------------
 
-**Release date**:
-
-**Changes**:
-
-
-
-Version (0.4)
--------------
+Version 0.4
+-----------
 
 **Release date**: 2016-04-05
 
