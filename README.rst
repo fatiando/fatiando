@@ -9,10 +9,10 @@ An open-source Python library for modeling and inversion in geophysics.
 
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
-    :target: https://crate.io/packages/fatiando
+    :target: https://pypi.python.org/pypi/fatiando/
 .. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat-square
     :alt: Number of PyPI downloads
-    :target:  https://crate.io/packages/fatiando/
+    :target: https://pypi.python.org/pypi/fatiando/
 .. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat-square
     :alt: Travis CI build status
     :target: https://travis-ci.org/fatiando/fatiando
@@ -20,8 +20,8 @@ An open-source Python library for modeling and inversion in geophysics.
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
 .. image:: https://landscape.io/github/fatiando/fatiando/master/landscape.svg?style=flat-square
-   :target: https://landscape.io/github/fatiando/fatiando/master
-   :alt: Code Health from landscape.io
+    :alt: Code Health from landscape.io
+    :target: https://landscape.io/github/fatiando/fatiando/master
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.49087-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.49087
     :target: http://dx.doi.org/10.5281/zenodo.49087
