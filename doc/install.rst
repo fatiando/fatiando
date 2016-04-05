@@ -74,6 +74,18 @@ To uninstall simply run::
 
     pip uninstall fatiando
 
+.. note::
+
+    On **Windows** you might get an error saying that ``Microsoft Visual C++
+    is required (Unable to find vsvarsall.bat).`` like the following:
+
+    .. figure:: _static/images/windows-compile-error-visual-studio.png
+
+    This is beacuse you don't have the Microsoft C compiler installed. Follow
+    the link in the error message (`http://aka.ms/vcpython27
+    <http://aka.ms/vcpython27>`__) to download the Microsoft Visual C++
+    Compiler for Python 2.7. Install it and install Fatiando again.
+
 
 Installing the latest development version
 -----------------------------------------
