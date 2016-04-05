@@ -156,17 +156,9 @@ for a detailed tour of the library.
 You can also browse the :ref:`Cookbook <cookbook>`
 for examples of what Fatiando can do.
 
-.. raw:: html
-
-    <div class="alert alert-success">
-    <h4><strong>Support us!</strong></h4>
-
-Fatiando is research software **made by scientists**.
-See :ref:`Citing <cite>` to find out how to cite it in your publications.
-
-.. raw:: html
-
-    </div> <!-- Alert bubble -->
+Keep up-to-date with the project by signing up to our `mailing list`_.
+New releases, events, and user feedback requests are all communicated through
+the list.
 
 .. raw:: html
 
@@ -222,6 +214,18 @@ Don't be afraid to ask for help getting started!
 .. _Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
 .. _Gitter chat room: https://gitter.im/fatiando/fatiando
+
+.. raw:: html
+
+    <div class="alert alert-success">
+    <h4><strong>Support us!</strong></h4>
+
+Fatiando is research software **made by scientists**.
+See :ref:`Citing <cite>` to find out how to cite it in your publications.
+
+.. raw:: html
+
+    </div> <!-- Alert bubble -->
 
 .. raw:: html
 
