@@ -3,8 +3,10 @@
 Changelog
 =========
 
-Version (development)
----------------------
+Version 0.5
+-----------
+
+**Release date**: yyyy-mm-dd
 
 **Changes**:
 
