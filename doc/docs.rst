@@ -64,6 +64,7 @@ Other versions
 --------------
 
 * `Development version <http://www.fatiando.org/dev>`__
-* `Version 0.3 (stable) <http://www.fatiando.org/v0.3>`__
+* `Version 0.4 (stable) <http://www.fatiando.org>`__
+* `Version 0.3 <http://www.fatiando.org/v0.3>`__
 * `Version 0.2 <http://www.fatiando.org/v0.2>`__
 * `Version 0.1 <http://www.fatiando.org/v0.1>`__
