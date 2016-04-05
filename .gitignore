@@ -18,3 +18,5 @@ notebooks/_tmp*.png
 *.py~
 fatiando.egg-info
 .env
+MANIFEST
+dist/
