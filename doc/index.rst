@@ -130,6 +130,32 @@ documents. Great for teaching fundamental concepts of geophysics.
             </em>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3><a href="api/gridder.html">Grid manipulation</a></h3>
+            <p>
+            Functions for generating and operating on regular grids and data
+            that is on a map.
+            </p>
+            <em>
+            Generate regular grids and point scatters.
+            Cut grids and extract profiles.
+            Interpolate irregular data.
+            </em>
+        </div>
+        <div class="col-md-6">
+            <h3><a href="api/mesher.html">Geometric objects and meshes</a></h3>
+            <p>
+            Classes that represent geometric objects (points, prisms, polygons,
+            tesseroids) and meshes (regular prism mesh, points on a grid).
+            </p>
+            <em>
+            Standard classes used in all of Fatiando.
+            Efficient classes for meshes that save storage and behave as
+            <a href="https://docs.python.org/2/library/stdtypes.html#iterator-types">iterators</a>.
+            </em>
+        </div>
+    </div>
     </div>
 
 .. raw:: html
