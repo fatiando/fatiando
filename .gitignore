@@ -16,3 +16,5 @@ cookbook/_tmp*.png
 notebooks/_tmp*.png
 .ipynb_checkpoints
 *.py~
+fatiando.egg-info
+.env
