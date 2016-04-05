@@ -10,8 +10,17 @@ Version (development)
 
 **Changes**:
 
+
+
+Version (0.4)
+-------------
+
+**Release date**: 2016-04-05
+
+**Changes**:
+
 * **New** obtain a synthetic convolutional seismogram in
-  ``fatiando.seismic.conv``. It can be given a depth model that will be 
+  ``fatiando.seismic.conv``. It can be given a depth model that will be
   converted to a time model before generating the synthetic seismogram.
   (`PR 190 <https://github.com/fatiando/fatiando/pull/190>`__)
 * **Refactor** ``fatiando.inversion``. Completely redesigned classes make
