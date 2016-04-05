@@ -232,6 +232,9 @@ Don't be afraid to ask for help getting started!
     <div class="col-md-6">
     <h2>Announcements</h2>
 
+* **April 2016**: Fatiando a Terra v0.4 released! See what is new in this
+  released in the :ref:`changelog`.
+
 * **October 2014**: Fatiando was featured on volume 89 of the bulletin of the
   Brazilian Geophysical Society (SBGf). Read it on page 13 of the `PDF file
   <http://sys2.sbgf.org.br/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
@@ -241,11 +244,6 @@ Don't be afraid to ask for help getting started!
   ``fatiando.inversion`` package. See the
   `Github repo <https://github.com/leouieda/scipy2014>`__ for the poster and
   source code behind it.
-
-* **June 2013**: Fatiando a Terra was presented at SciPy 2013.
-  `Slides and source code <https://github.com/leouieda/scipy2013>`__
-  of the presentation and proceedings are on Github.
-  Watch a recorded version `on Youtube <http://youtu.be/Ec38h1oB8cc>`__.
 
 Read :ref:`all announcements <news>`.
 

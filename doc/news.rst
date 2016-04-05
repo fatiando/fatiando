@@ -3,8 +3,11 @@
 Announcements
 =============
 
-2015
+2016
 ----
+
+* **April 2016**: Fatiando a Terra v0.4 released! See what is new in this
+  released in the :ref:`changelog`.
 
 2014
 ----
