@@ -11,6 +11,7 @@ Potential field transformations, like upward continuation and derivatives.
   magnetic anomaly to the pole.
 * :func:`~fatiando.gravmag.transform.tga`: Calculate the amplitude of the
   total gradient (also called the analytic signal)
+* :func:`~fatiando.gravmag.transform.tilt`: Calculates the tilt angle
 
 **Derivatives**
 
@@ -260,6 +261,36 @@ def tga(x, y, data, shape, method='fd'):
     dz = derivz(x, y, data, shape)
     res = numpy.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
     return res
+
+
+def tilt(x, y, data, shape):
+    """
+    Calculates the magnetic tilt, as defined by Miller and Singh (1994):
+    .. math::
+    tilt(f) = tan^{-1}(\\frac{\\frac{dT}{dz}}{\\sqrt{\\frac{dT}{dx}^2 +
+    \\frac{dT}{dy}^2}})
+    Parameters:
+    * x, y : 1D-arrays
+        The x and y coordinates of the grid points
+    * data : 1D-array
+        The potential field at the grid points
+    * shape : tuple = (ny, nx)
+        The shape of the grid
+    Returns:
+    * tilt : 1D-array
+        The tilt angle of the total field.
+    **References**
+    Miller, Hugh G, and Vijay Singh. 1994. "Potential Field Tilt --- a New
+    Concept for Location of Potential Field Sources."
+    Journal of Applied Geophysics 32 (2--3): 213-17.
+    doi:10.1016/0926-9851(94)90022-1.
+    """
+    horiz_deriv = numpy.sqrt( derivx(x, y, data, shape) +\
+    derivy(x, y, data, shape)
+    vert_deriv = derivz(x, y, data, shape)
+    tilt = numpy.arctan2( vert_deriv, horiz_deriv )
+
+    return tilt
 
 
 def derivx(x, y, data, shape, order=1, method='fd'):
