@@ -27,12 +27,8 @@ install:
   - cp ci-tools/matplotlibrc .
   # Create a conda env to install required libraries
   - conda update --yes conda
-  - conda create -n testenv --yes pip python=$PYTHON
-  - conda update conda --yes
-  - source activate testenv
-  - conda install --yes --file requirements.txt
-  - conda install --yes --file test/requirements-conda.txt
-  - pip install -r test/requirements-pip.txt
+  - conda env create
+  - source activate fatiando
   # Show installed pkg information for postmortem diagnostic
   - conda list
   # Package Fatiando and install
