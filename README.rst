@@ -22,9 +22,9 @@ An open-source Python library for modeling and inversion in geophysics.
 .. image:: https://landscape.io/github/fatiando/fatiando/master/landscape.svg?style=flat-square
    :target: https://landscape.io/github/fatiando/fatiando/master
    :alt: Code Health from landscape.io
-.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.16205-blue.svg?style=flat-square
-    :alt: doi:10.5281/zenodo.16205
-    :target: http://dx.doi.org/10.5281/zenodo.16205
+.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.49087-blue.svg?style=flat-square
+    :alt: doi:10.5281/zenodo.49087
+    :target: http://dx.doi.org/10.5281/zenodo.49087
 .. image:: http://img.shields.io/badge/GITTER-JOIN_CHAT-brightgreen.svg?style=flat-square
     :alt: gitter chat room at https://gitter.im/fatiando/fatiando
     :target: https://gitter.im/fatiando/fatiando
