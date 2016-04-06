@@ -305,8 +305,9 @@ For non-linear problems, we **have** to configure the optimization method.
 Lets use Levemberg-Marquardt because it generally offers good convergence.
 
 >>> solver = GaussianFit(x, y).config('levmarq', initial=[1, 1, 1]).fit()
->>> solver.estimate_
-array([ 100. ,    0.1,   -2. ])
+>>> # Print the estimated coefficients
+>>> print(', '.join(['{:.1f}'.format(i) for i in solver.estimate_]))
+100.0, 0.1, -2.0
 >>> np.all(np.abs(solver.residuals()) < 10**-10)
 True
 
@@ -316,8 +317,8 @@ Continuous Domains (ACO-R) does for this problem:
 
 >>> # bounds are the min, max values of the search domain for each parameter
 >>> _ = solver.config('acor', bounds=[50, 500, 0, 1, -20, 0], seed=0).fit()
->>> print(np.array_repr(solver.estimate_, precision=3))
-array([100. ,   0.1,  -2. ])
+>>> print(', '.join(['{:.1f}'.format(i) for i in solver.estimate_]))
+100.0, 0.1, -2.0
 
 For non-linear problems, the Jacobian and Hessian are cached but not
 permanently. Calling ``jacobian`` twice in a row with the same parameter vector
