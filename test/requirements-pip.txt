@@ -1,2 +1,0 @@
-coveralls==0.5
-sphinx_bootstrap_theme==0.4.5
