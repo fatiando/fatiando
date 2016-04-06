@@ -265,28 +265,45 @@ def tga(x, y, data, shape, method='fd'):
 
 def tilt(x, y, data, shape):
     """
-    Calculates the magnetic tilt, as defined by Miller and Singh (1994):
+    Calculates the potential field tilt, as defined by Miller and Singh (1994):
+
     .. math::
-    tilt(f) = tan^{-1}(\\frac{\\frac{dT}{dz}}{\\sqrt{\\frac{dT}{dx}^2 +
-    \\frac{dT}{dy}^2}})
+        tilt(f) = tan^{-1}(\\frac{\\frac{dT}{dz}}{\\sqrt{\\frac{dT}{dx}^2 +
+        \\frac{dT}{dy}^2}})
+
+    .. note:: Requires gridded data.
+
+    .. warning::
+
+        If the data is not in SI units, the derivatives will be in
+        strange units and so will the potential field tilt! I strongly
+        recommend converting the data to SI **before** calculating the
+        TGA is you need the gradient in Eotvos (use one of the unit conversion
+        functions of :mod:`fatiando.utils`).
+
     Parameters:
+
     * x, y : 1D-arrays
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
     * shape : tuple = (ny, nx)
         The shape of the grid
+
     Returns:
+
     * tilt : 1D-array
         The tilt angle of the total field.
-    **References**
+
+    References:
+
     Miller, Hugh G, and Vijay Singh. 1994. "Potential Field Tilt --- a New
     Concept for Location of Potential Field Sources."
     Journal of Applied Geophysics 32 (2--3): 213-17.
     doi:10.1016/0926-9851(94)90022-1.
     """
-    horiz_deriv = numpy.sqrt( derivx(x, y, data, shape) +\
-    derivy(x, y, data, shape)
+    horiz_deriv = numpy.sqrt( derivx(x, y, data, shape) +
+                              derivy(x, y, data, shape) )
     vert_deriv = derivz(x, y, data, shape)
     tilt = numpy.arctan2( vert_deriv, horiz_deriv )
 
