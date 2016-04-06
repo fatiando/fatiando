@@ -3,8 +3,11 @@
 from __future__ import division, unicode_literals, print_function
 from future.builtins import super, object, range
 import numpy as np
+import bisect
+import math
 
 from ..inversion import Misfit
+from . import prism as prism_kernel
 
 
 class PlantingMagnetic(object):
@@ -40,7 +43,12 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
         self.seeds = None
         self.mu = None
         self.tol = None
-        self.effects = None
+        self.effects = {}
+        self.kernel = prism_kernel.gz
+        self.dnorm = np.linalg.norm(data)
+
+    def jacobian(self, p):
+        pass
 
     def predicted(self, p):
         pred = np.zeros(self.ndata)
@@ -51,13 +59,22 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
             pred += self.effects[i]
         return pred
 
+    def shape_of_anomaly(self, p):
+        predicted = self.predicted(p)
+        alpha = np.sum(self.data*predicted)/self.dnorm**2
+        return np.linalg.norm(alpha*self.data - predicted)
+
     def config(self, seeds, compactness, tol):
         """
         """
         self.seeds = _sow(seeds, self.mesh)
         self.compactness = compactness
-        self.mu = compactness/(sum(mesh.shape)/3)
+        self.mu = compactness/(sum(self.mesh.shape)/3)
         self.tol = tol
+        # The prism effects change when seeds change because they include the
+        # physical property of each neighbor, which are inherited from the
+        # seeds
+        self.effects = {}
         return self
 
     def fit(self):
@@ -72,9 +89,9 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
         allneighbors = set()
         for s in self.seeds:
             tmp = s.neighbors.difference(allneighbors).difference(added)
-            all_neighbors.add(tmp)
+            allneighbors.update(tmp)
             neighbors[s] = tmp
-        misfit = self.value(p)
+        misfit = math.sqrt(self.value(p))
         compactness = 0
         goal = self.shape_of_anomaly(p) + self.mu*compactness
         for iteration in range(self.nparams - len(self.seeds)):
@@ -82,15 +99,14 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
             for s in self.seeds:
                 best = None
                 for n in neighbors[s]:
-                    p[n.i] = n.prop
-                    newmisfit = self.value(p)
+                    p[n.index] = n.prop
+                    newmisfit = math.sqrt(self.value(p))
                     if (newmisfit >= misfit or
                         abs(newmisfit - misfit)/misfit < self.tol):
-                        goals.append(np.inf)
                         continue
                     newcompactness = compactness + n.distance_to(s)
-                    newgoal = self.shape_of_anomaly(p) + mu*compactness
-                    p[n.i] = 0
+                    newgoal = self.shape_of_anomaly(p) + self.mu*compactness
+                    p[n.index] = 0
                     if best is None or newgoal < bestgoal:
                         best = n
                         bestgoal = newgoal
@@ -101,21 +117,22 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
                     goal = bestgoal
                     misfit = bestmisfit
                     compactness = bestcompactness
-                    p[best.i] = best.prop
-                    added.add(best.i)
+                    p[best.index] = best.prop
+                    added.add(best.index)
                     neighbors[s].remove(best)
                     allneighbors.remove(best)
                     tmp = best.neighbors.difference(allneighbors).difference(added)
-                    neighbors[s].add(tmp)
-                    allneighbors.add(tmp)
+                    neighbors[s].update(tmp)
+                    allneighbors.update(tmp)
             if not grew:
                 break
         self.p_ = p
         return self
 
 
-class _Neighbor(object):
+class _Cell(object):
     """
+    A cell in a mesh.
     """
 
     def __init__(self, index, prop, mesh):
@@ -139,6 +156,14 @@ class _Neighbor(object):
     def __hash__(self):
         "A unique value identifying this neighbor (it's index in the mesh)"
         return self.index
+
+    def distance_to(self, other):
+        """
+        Calculate the distance between this cell and another in the mesh.
+        """
+        ni, nj, nk = np.unravel_index(self.index, self.mesh.shape)
+        mi, mj, mk = np.unravel_index(other.index, self.mesh.shape)
+        return math.sqrt((ni - mi)**2 + (nj - mj)**2 + (nk - mk)**2)
 
     @property
     def neighbors(self):
@@ -171,9 +196,40 @@ class _Neighbor(object):
         if n % (nx*ny) >= nx:
             indexes.append(tmp)
         # Filter out the ones that are masked (topography)
-        return set([_Neighbor(i, self.prop, self.mesh)
+        return set([self.__class__(i, self.prop, self.mesh)
                     for i in indexes if self.mesh[i] is not None])
 
 
-def _sow(seeds, mesh):
-    pass
+def _sow(locations, mesh):
+    seeds = []
+    for x, y, z, props in locations:
+        index = _find_index((x, y, z), mesh)
+        # Check for duplicates
+        if index not in (s for s in seeds):
+            seeds.append(_Cell(index, props['density'], mesh))
+    return seeds
+
+
+def _find_index(point, mesh):
+    """
+    Find the index of the cell that has point inside it.
+    """
+    x1, x2, y1, y2, z1, z2 = mesh.bounds
+    nz, ny, nx = mesh.shape
+    xs = mesh.get_xs()
+    ys = mesh.get_ys()
+    zs = mesh.get_zs()
+    x, y, z = point
+    if (x <= x2 and x >= x1 and y <= y2 and y >= y1 and
+        ((z <= z2 and z >= z1 and mesh.zdown) or
+         (z >= z2 and z <= z1 and not mesh.zdown))):
+        # -1 because bisect gives the index z would have. I want to know
+        # what index z comes after
+        k = bisect.bisect_left(zs, z) - 1
+        j = bisect.bisect_left(ys, y) - 1
+        i = bisect.bisect_left(xs, x) - 1
+        seed = i + j*nx + k*nx*ny
+        # Check if the cell is not masked (topography)
+        if mesh[seed] is not None:
+            return seed
+    return None
