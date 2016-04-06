@@ -55,7 +55,7 @@ rst_epilog = """
 """.format(doi=doi, year=year)
 
 html_last_updated_fmt = '%b %d, %Y'
-html_title = 'fatiando {} documentation'.format(version)
+html_title = 'Fatiando {}'.format(version)
 html_short_title = 'Fatiando a Terra'
 html_logo = '_static/fatiando-logo.png'
 html_favicon = u'favicon.ico'
