@@ -4,7 +4,7 @@ from __future__ import division, unicode_literals, print_function
 from future.builtins import super, object, range
 import numpy as np
 
-from ..inversion.base import OperatorMixin
+from ..inversion import Misfit
 
 
 class PlantingMagnetic(object):
@@ -26,14 +26,12 @@ class _PlantingAlgorithm(object):
         pass
 
 
-class PlantingGravity(OperatorMixin, _PlantingAlgorithm):
+class PlantingGravity(Misfit, _PlantingAlgorithm):
     """
     """
 
     def __init__(self, x, y, z, data, mesh, field='gz'):
-        self.data = data
-        self.ndata = data.size
-        self.nparams = mesh.size
+        super().__init__(data=data, nparams=mesh.size, islinear=False)
         self.x = x
         self.y = y
         self.z = z
@@ -42,9 +40,16 @@ class PlantingGravity(OperatorMixin, _PlantingAlgorithm):
         self.seeds = None
         self.mu = None
         self.tol = None
+        self.effects = None
 
     def predicted(self, p):
-        pass
+        pred = np.zeros(self.ndata)
+        for i in np.nonzero(p)[0]:
+            if i not in self.effects:
+                self.effects[i] = self.kernel(self.x, self.y, self.z,
+                                              [self.mesh[i]], dens=p[i])
+            pred += self.effects[i]
+        return pred
 
     def config(self, seeds, compactness, tol):
         """
@@ -109,17 +114,17 @@ class PlantingGravity(OperatorMixin, _PlantingAlgorithm):
         return self
 
 
-
-
-
-
 class _Neighbor(object):
     """
     """
 
-    def __init__(self, index, prop):
+    def __init__(self, index, prop, mesh):
         self.index = index
         self.prop = prop
+        self.mesh = mesh
+
+    def __repr__(self):
+        return str(self.index)
 
     def __eq__(self, other):
         "Compare if another neighbor (or an index in the mesh) is this one."
@@ -134,6 +139,41 @@ class _Neighbor(object):
     def __hash__(self):
         "A unique value identifying this neighbor (it's index in the mesh)"
         return self.index
+
+    @property
+    def neighbors(self):
+        "Find the neighboring prisms in the mesh."
+        nz, ny, nx = self.mesh.shape
+        n = self.index
+        indexes = []
+        # The guy above
+        tmp = n - nx*ny
+        if tmp > 0:
+            indexes.append(tmp)
+        # The guy below
+        tmp = n + nx*ny
+        if tmp < self.mesh.size:
+            indexes.append(tmp)
+        # The guy in front
+        tmp = n + 1
+        if n % nx < nx - 1:
+            indexes.append(tmp)
+        # The guy in the back
+        tmp = n - 1
+        if n % nx != 0:
+            indexes.append(tmp)
+        # The guy to the left
+        tmp = n + nx
+        if n % (nx*ny) < nx*(ny - 1):
+            indexes.append(tmp)
+        # The guy to the right
+        tmp = n - nx
+        if n % (nx*ny) >= nx:
+            indexes.append(tmp)
+        # Filter out the ones that are masked (topography)
+        return set([_Neighbor(i, self.prop, self.mesh)
+                    for i in indexes if self.mesh[i] is not None])
+
 
 def _sow(seeds, mesh):
     pass

@@ -32,14 +32,14 @@ def test_gravity_inversion():
 
 def test_neighbor_comparison_to_int():
     "gravmag.planting Neighbor class can be compared (==) to ints"
-    n = _Neighbor(index=42, prop=1244)
+    n = _Neighbor(42, None, None)
     assert n == 42, "Failed comparison with integer"
 
 
 def test_neighbor_set():
     "gravmag.planting Neighbor classes can be used in a set"
-    set1 = set([_Neighbor(index=i, prop=i) for i in range(5)])
-    set2 = set([_Neighbor(index=i, prop=i) for i in range(3, 8)])
+    set1 = set([_Neighbor(i, None, None) for i in range(5)])
+    set2 = set([_Neighbor(i, None, None) for i in range(3, 8)])
     union = set1.union(set2)
     diff = set1.difference(set2)
     assert union == {0, 1, 2, 3, 4, 5, 6, 7}, 'Wrong union'
@@ -48,7 +48,7 @@ def test_neighbor_set():
 
 def test_neighbor_set_difference_with_ints():
     "gravmag.planting Neighbor can be used in set and compared to set of ints"
-    set1 = set([_Neighbor(index=i, prop=i) for i in range(5)])
+    set1 = set([_Neighbor(i, None, None) for i in range(5)])
     set2 = set(range(3, 8))
     union = set1.union(set2)
     diff = set1.difference(set2)
@@ -56,3 +56,26 @@ def test_neighbor_set_difference_with_ints():
     assert diff == {0, 1, 2}, 'Wrong difference'
 
 
+def test_finding_neighbors():
+    "gravmag.planting Neighbor class can find its neighbors in the mesh"
+    mesh = PrismMesh([0, 10, 0, 10, 0, 10], (3, 4, 5))
+    neighbors = [
+        # Top corners
+        [0,  {1, 5, 20}],
+        [4,  {3, 9, 24}],
+        [15, {10, 16, 35}],
+        [19, {18, 14, 39}],
+        # Bottom corners
+        [40, {45, 41, 20}],
+        [44, {43, 49, 24}],
+        [55, {50, 56, 35}],
+        [59, {58, 54, 39}],
+        # In the middle
+        [32, {31, 37, 33, 27, 52, 12}],
+        [26, {25, 31, 27, 21, 6, 46}],
+    ]
+    for i, true_neighbors in neighbors:
+        n = _Neighbor(i, 200, mesh)
+        msg = 'Failed neighbor {}: true = {} calculated = {}'.format(
+            i, true_neighbors, n.neighbors)
+        assert n.neighbors == true_neighbors, msg
