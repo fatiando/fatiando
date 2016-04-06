@@ -68,6 +68,7 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
         """
         """
         self.seeds = _sow(seeds, self.mesh)
+        self.nseeds = len(seeds)
         self.compactness = compactness
         self.mu = compactness/(sum(self.mesh.shape)/3)
         self.tol = tol
@@ -77,26 +78,32 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
         self.effects = {}
         return self
 
-    def fit(self):
+    def _init_planting(self):
         """
+        Initialize the planting inversion.
         """
         p = np.zeros(self.nparams, dtype=np.float)
-        added = set()
         for s in self.seeds:
             p[s.index] = s.prop
-            added.add(s.index)
-        neighbors = {}
-        allneighbors = set()
-        for s in self.seeds:
-            tmp = s.neighbors.difference(allneighbors).difference(added)
-            allneighbors.update(tmp)
-            neighbors[s] = tmp
+        neighbors = []
+        nonzero = np.nonzero(p)[0]
+        for s, seed in enumerate(self.seeds):
+            tmp = seed.neighbors.difference(nonzero)
+            for i in range(s):
+                tmp = tmp.difference(neighbors[i])
+            neighbors.append(tmp)
         misfit = math.sqrt(self.value(p))
         compactness = 0
         goal = self.shape_of_anomaly(p) + self.mu*compactness
+        return p, neighbors, misfit, compactness, goal
+
+    def fit(self):
+        """
+        """
+        p, neighbors, misfit, compactness, goal = self._init_planting()
         for iteration in range(self.nparams - len(self.seeds)):
             grew = False
-            for s in self.seeds:
+            for s, seed in enumerate(self.seeds):
                 best = None
                 for n in neighbors[s]:
                     p[n.index] = n.prop
@@ -104,7 +111,7 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
                     if (newmisfit >= misfit or
                         abs(newmisfit - misfit)/misfit < self.tol):
                         continue
-                    newcompactness = compactness + n.distance_to(s)
+                    newcompactness = compactness + n.distance_to(seed)
                     newgoal = self.shape_of_anomaly(p) + self.mu*compactness
                     p[n.index] = 0
                     if best is None or newgoal < bestgoal:
@@ -118,12 +125,11 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
                     misfit = bestmisfit
                     compactness = bestcompactness
                     p[best.index] = best.prop
-                    added.add(best.index)
                     neighbors[s].remove(best)
-                    allneighbors.remove(best)
-                    tmp = best.neighbors.difference(allneighbors).difference(added)
+                    tmp = best.neighbors.difference(np.nonzero(p)[0])
+                    for i in range(self.nseeds):
+                        tmp = tmp.difference(neighbors[i])
                     neighbors[s].update(tmp)
-                    allneighbors.update(tmp)
             if not grew:
                 break
         self.p_ = p

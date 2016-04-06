@@ -27,14 +27,26 @@ def test_gravity_inversion():
     "gravmag.planting gravity inversion recovers correct model"
     x, y, z, data, model = make_model_n_data()
     # Setup the inversion by creating a mesh and seeds
-    seeds = [[5000, 5000, 2000, {'density':500}]]
+    seeds = [[5500, 5500, 2500, {'density': 500}]]
     solver = PlantingGravity(x, y, z, data, model).config(
         seeds=seeds, compactness=1, tol=0.001)
     # Run the inversion
     solver.fit()
     # Check if the estimated
-    # print solver.p_
+    print solver.p_.reshape(model.shape)
     assert_allclose(solver.p_, model.props['density'])
+
+
+def test_planting_init():
+    "gravmag.planting inversion initialization is working properly"
+    x, y, z, data, model = make_model_n_data()
+    # Setup the inversion by creating a mesh and seeds
+    seeds = [[5500, 5500, 2500, {'density': 500}]]
+    solver = PlantingGravity(x, y, z, data, model).config(
+        seeds=seeds, compactness=1, tol=0.001)
+    print solver.seeds
+    p, neighbors, misfit, compactness, goal = solver._init_planting()
+    assert False
 
 
 def test_classes_can_be_pickled():
