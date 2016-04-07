@@ -273,21 +273,13 @@ def tilt(x, y, data, shape):
 
     .. note:: Requires gridded data.
 
-    .. warning::
-
-        If the data is not in SI units, the derivatives will be in
-        strange units and so will the potential field tilt! I strongly
-        recommend converting the data to SI **before** calculating the
-        TGA is you need the gradient in Eotvos (use one of the unit conversion
-        functions of :mod:`fatiando.utils`).
-
     Parameters:
 
     * x, y : 1D-arrays
         The x and y coordinates of the grid points
     * data : 1D-array
         The potential field at the grid points
-    * shape : tuple = (ny, nx)
+    * shape : tuple = (nx, ny)
         The shape of the grid
 
     Returns:
@@ -306,7 +298,6 @@ def tilt(x, y, data, shape):
                               (derivy(x, y, data, shape))**2 )
     vert_deriv = derivz(x, y, data, shape)
     tilt = numpy.arctan2( vert_deriv, horiz_deriv )
-
     return tilt
 
 
