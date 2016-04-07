@@ -1,4 +1,26 @@
 """
+3D potential field inversion by planting anomalous densities.
+
+Implements the method of Uieda and Barbosa (2012a) with improvements by
+Uieda and Barbosa (2012b).
+
+A "heuristic" inversion for compact 3D geologic bodies. Performs the inversion
+by iteratively growing the estimate around user-specified "seeds". Supports
+various kinds of data (gravity, gravity tensor).
+
+**References**
+
+Uieda, L., and V. C. F. Barbosa (2012a), Robust 3D gravity gradient inversion
+by planting anomalous densities, Geophysics, 77(4), G55-G66,
+doi:10.1190/geo2011-0388.1
+
+Uieda, L., and V. C. F. Barbosa (2012b),
+Use of the "shape-of-anomaly" data misfit in 3D inversion by planting anomalous
+densities, SEG Technical Program Expanded Abstracts, 1-6,
+doi:10.1190/segam2012-0383.1
+
+----
+
 """
 from __future__ import division, unicode_literals, print_function
 from future.builtins import super, object, range
@@ -62,11 +84,18 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
     def shape_of_anomaly(self, p):
         predicted = self.predicted(p)
         alpha = np.sum(self.data*predicted)/self.dnorm**2
-        return np.linalg.norm(alpha*self.data - predicted)
+        return self.regul_param*np.linalg.norm(alpha*self.data - predicted)
+
+    def value(self, p):
+        residuals = self.data - self.predicted(p)
+        return np.linalg.norm(residuals)/self.dnorm
 
     def config(self, seeds, compactness, tol):
         """
         """
+        assert len(seeds) > 0, "No seeds provided."
+        assert compactness >= 0, "Compactness parameter must be positive."
+        assert tol >= 0, 'tol parameter must be positive.'
         self.seeds = _sow(seeds, self.mesh)
         self.nseeds = len(seeds)
         self.compactness = compactness
@@ -76,6 +105,34 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
         # physical property of each neighbor, which are inherited from the
         # seeds
         self.effects = {}
+        return self
+
+    def fit(self):
+        """
+        Run the planting algorithm on the given data.
+
+        The estimated parameter vector can be accessed through the
+        ``p_`` attribute.
+
+        The ``estimate_`` attribute is a list the mesh elements with non-zero
+        physical properties (according to ``p_``).
+        """
+        p, neighbors, misfit, compactness, goal = self._init_planting()
+        for iteration in range(self.nparams - len(self.seeds)):
+            grew = False
+            for s in range(self.nseeds):
+                new = self._grow(s, neighbors, p, misfit, compactness, goal)
+                if new is not None:
+                    grew = True
+                    goal = new['goal']
+                    misfit = new['misfit']
+                    compactness = new['compactness']
+                    n = new['neighbor']
+                    p[n.index] = n.prop
+                    self._update_neighbors(n, s, neighbors, p)
+            if not grew:
+                break
+        self.p_ = p
         return self
 
     def _init_planting(self):
@@ -92,53 +149,64 @@ class PlantingGravity(Misfit, _PlantingAlgorithm):
             for i in range(s):
                 tmp = tmp.difference(neighbors[i])
             neighbors.append(tmp)
-        misfit = math.sqrt(self.value(p))
+        misfit = self.value(p)
         compactness = 0
         goal = self.shape_of_anomaly(p) + self.mu*compactness
         return p, neighbors, misfit, compactness, goal
 
-    def fit(self):
+    def _update_neighbors(self, n, seed, neighbors, p):
         """
+        Remove n from the list of neighbors and add it's neighbors.
+
+        WARNING: Changes 'neighbors' in place.
         """
-        p, neighbors, misfit, compactness, goal = self._init_planting()
-        for iteration in range(self.nparams - len(self.seeds)):
-            grew = False
-            for s, seed in enumerate(self.seeds):
-                best = None
-                for n in neighbors[s]:
-                    p[n.index] = n.prop
-                    newmisfit = math.sqrt(self.value(p))
-                    if (newmisfit >= misfit or
-                        abs(newmisfit - misfit)/misfit < self.tol):
-                        continue
-                    newcompactness = compactness + n.distance_to(seed)
-                    newgoal = self.shape_of_anomaly(p) + self.mu*compactness
-                    p[n.index] = 0
-                    if best is None or newgoal < bestgoal:
-                        best = n
-                        bestgoal = newgoal
-                        bestmisfit = newmisfit
-                        bestcompactness = newcompactness
-                if best is not None:
-                    grew = True
-                    goal = bestgoal
-                    misfit = bestmisfit
-                    compactness = bestcompactness
-                    p[best.index] = best.prop
-                    neighbors[s].remove(best)
-                    tmp = best.neighbors.difference(np.nonzero(p)[0])
-                    for i in range(self.nseeds):
-                        tmp = tmp.difference(neighbors[i])
-                    neighbors[s].update(tmp)
-            if not grew:
-                break
-        self.p_ = p
-        return self
+        neighbors[seed].remove(n)
+        tmp = n.neighbors
+        # Remove the ones that are already in the estimate
+        tmp = tmp.difference(np.nonzero(p)[0])
+        for already_neighbors in neighbors:
+            tmp = tmp.difference(already_neighbors)
+        neighbors[seed].update(tmp)
+
+    def _grow(self, seed, neighbors, p, misfit, compactness, goal):
+        """
+        Grow the given seed through the accretion of one of it's neighbors.
+
+        Returns the best neighbor in a dictionary. None if no neighbors are
+        good enough.
+        """
+        best = None
+        for n in neighbors[seed]:
+            p[n.index] = n.prop
+            newmisfit = self.value(p)
+            if (newmisfit >= misfit or
+                abs(newmisfit - misfit)/misfit < self.tol):
+                p[n.index] = 0
+                continue
+            newcompactness = compactness + n.distance_to(self.seeds[seed])
+            newgoal = self.shape_of_anomaly(p) + self.mu*compactness
+            p[n.index] = 0
+            if best is None or newgoal < bestgoal:
+                best = n
+                bestgoal = newgoal
+                bestmisfit = newmisfit
+                bestcompactness = newcompactness
+        if best is not None:
+            best = dict(neighbor=best, goal=bestgoal, misfit=bestmisfit,
+                        compactness=bestcompactness)
+        return best
 
 
 class _Cell(object):
     """
     A cell in a mesh.
+
+    Knows its index in the mesh and holds a physical property value. Can
+    calculate who it's neighbors are in the mesh and the distance to a given
+    cell.
+
+    Can be compared with equality (==) to an integer, assuming that the integer
+    is an index of the mesh, or another _Cell instance.
     """
 
     def __init__(self, index, prop, mesh):
@@ -153,7 +221,7 @@ class _Cell(object):
         "Compare if another neighbor (or an index in the mesh) is this one."
         if isinstance(other, int):
             return self.index == other
-        elif hasattr(other, 'index'):
+        elif isinstance(other, _Cell):
             return self.index == other.index
         else:
             raise ValueError("Can't compare Neighbor object to {} type".format(
@@ -161,6 +229,7 @@ class _Cell(object):
 
     def __hash__(self):
         "A unique value identifying this neighbor (it's index in the mesh)"
+        # This is needed to put _Cell objects in a set or dict
         return self.index
 
     def distance_to(self, other):
