@@ -11,7 +11,6 @@ Gravity and magnetics (``fatiando.gravmag``)
 .. toctree::
     :hidden:
 
-    gravmag.harvester.rst
     gravmag.prism.rst
     gravmag.polyprism.rst
     gravmag.sphere.rst

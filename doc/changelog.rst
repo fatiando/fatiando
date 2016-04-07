@@ -247,9 +247,9 @@ Version 0.2
 * Refactored all magnetic modeling and inversion to use either scalar or vector
   magnetization.
 * ``Seed`` class of
-  :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` can now be
+  ``fatiando.gravmag.harvester`` can now be
   used as a ``Prism`` object.
-* :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>` now supports
+* ``fatiando.gravmag.harvester`` now supports
   data weights and magnetic data inversion.
 * Removed module ``fatiando.logger``. (`PR 30
   <https://github.com/fatiando/fatiando/pull/30>`_)
@@ -267,7 +267,7 @@ Version 0.1
   sample scripts from the cookbook folder.
 * Implemented "Robust 3D gravity gradient inversion by planting anomalous
   densities" by Uieda and Barbosa (2012) in
-  :ref:`fatiando.gravmag.harvester <fatiando_gravmag_harvester>`
+  ``fatiando.gravmag.harvester``
 * Added harvester command line program that runs this new inversion
 * Added magnetic total field anomaly function to
   :ref:`fatiando.gravmag.prism <fatiando_gravmag_prism>`
