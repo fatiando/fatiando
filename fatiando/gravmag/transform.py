@@ -302,8 +302,8 @@ def tilt(x, y, data, shape):
     Journal of Applied Geophysics 32 (2--3): 213-17.
     doi:10.1016/0926-9851(94)90022-1.
     """
-    horiz_deriv = numpy.sqrt( derivx(x, y, data, shape) +
-                              derivy(x, y, data, shape) )
+    horiz_deriv = numpy.sqrt( (derivx(x, y, data, shape))**2 +
+                              (derivy(x, y, data, shape))**2 )
     vert_deriv = derivz(x, y, data, shape)
     tilt = numpy.arctan2( vert_deriv, horiz_deriv )
 
