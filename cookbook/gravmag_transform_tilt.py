@@ -10,7 +10,7 @@ area = (-5000, 5000, -5000, 5000)
 shape = (100, 100)
 z0 = -500
 x, y, z = gridder.regular(area, shape, z=z0)
-inc, dec = 90, 0
+inc, dec = -30, 0
 tf = prism.tf(x, y, z, model, inc, dec)
 
 # Need to convert gz to SI units so that the result is also in SI
@@ -26,7 +26,7 @@ mpl.m2km()
 mpl.subplot(1, 2, 2)
 mpl.title("Tilt Angle of Potential Field")
 mpl.axis('scaled')
-mpl.contourf(y, x, np.degrees(tilt_angle), shape, 30, cmap=mpl.cm.RdBu_r)
+mpl.contourf(y, x, tilt_angle, shape, 30, cmap=mpl.cm.RdBu_r)
 mpl.colorbar(orientation='horizontal').set_label('nT/m')
 mpl.m2km()
 mpl.show()
