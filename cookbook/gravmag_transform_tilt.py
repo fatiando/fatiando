@@ -1,20 +1,20 @@
 """
-GravMag: Calculate the analytic signal of a total field anomaly using FFT
+GravMag: Calculate the tilt angle of a total field anomaly
 """
 from fatiando import mesher, gridder, utils
 from fatiando.gravmag import prism, transform
 from fatiando.vis import mpl
 
-model = [mesher.Prism(-100, 100, -100, 100, 0, 2000, {'magnetization': 10})]
+model = [mesher.Prism(-200, 200, -200, 200, 0, 2000, {'magnetization': 10})]
 area = (-5000, 5000, -5000, 5000)
-shape = (100, 100)
+shape = (200, 200)
 z0 = -500
 x, y, z = gridder.regular(area, shape, z=z0)
 inc, dec = -30, 0
 tf = prism.tf(x, y, z, model, inc, dec)
-
+pole = transform.reduce_to_pole(x, y, tf, shape, inc, dec, sinc=inc, sdec=dec)
 # Need to convert gz to SI units so that the result is also in SI
-tilt_angle = transform.tilt(x, y, tf, shape)
+tilt_angle = transform.tilt(x, y, pole, shape)
 
 mpl.figure()
 mpl.subplot(1, 2, 1)
