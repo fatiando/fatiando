@@ -59,7 +59,7 @@ Dependencies
 
 For the moment, Fatiando runs and is tested in **Python 2.7**.
 To install and run Fatiando, you'll need the following Python packages:
-``numpy``, ``scipy``, ``matplotlib``, ``ipython``, ``pillow``,
+``numpy``, ``scipy``, ``matplotlib``, ``jupyter``, ``pillow``,
 ``basemap``, ``numba``, ``future``, ``mayavi``.
 You'll also need a C compiler, preferably ``gcc``.
 

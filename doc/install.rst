@@ -34,7 +34,7 @@ Fatiando requires the following packages:
 * `numpy <http://numpy.scipy.org/>`_
 * `scipy <http://scipy.org/>`_
 * `matplotlib <http://matplotlib.sourceforge.net/>`_
-* `IPython <http://ipython.org/>`__
+* `Jupyter <http://jupyter.org/>`__
 * `numba <http://numba.pydata.org/>`__
 * `pillow <https://python-pillow.github.io/>`_
 * `future <http://python-future.org/>`_
@@ -51,7 +51,7 @@ the many, many, many issues of compiling under Windows.
 Once you have downloaded and installed Anaconda_,
 open a terminal (or ``cmd.exe`` on Windows) and run::
 
-    conda install numpy scipy matplotlib numba ipython basemap pillow mayavi pip future
+    conda install numpy scipy matplotlib numba jupyter basemap pillow mayavi pip future
 
 
 Installing Fatiando

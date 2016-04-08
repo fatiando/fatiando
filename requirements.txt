@@ -5,5 +5,5 @@ numba
 future
 basemap
 pillow
-ipython
+jupyter
 mayavi
