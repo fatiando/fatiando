@@ -21,11 +21,11 @@ before_install:
     # isn't enough to get the git tags so versioneer can't find the correct
     # version number.
     - git fetch --depth=100
+
+install:
     # Get Miniconda from Continuum
     - bash ci-tools/install-miniconda.sh
     - cp ci-tools/matplotlibrc .
-
-install:
     # Create a conda env to install required libraries
     - conda update --yes conda
     - conda create -n testenv --yes pip python=$PYTHON
