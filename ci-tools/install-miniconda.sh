@@ -10,4 +10,4 @@ else
     export PATH=/home/travis/miniconda2/bin:$PATH
 fi
 wget $MINICONDA_URL/$MINICONDA_FILE -O miniconda.sh
-miniconda.sh -b
+bash miniconda.sh -b
