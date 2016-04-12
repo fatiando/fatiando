@@ -1,57 +1,55 @@
-# Miniconda stuff shamelessly copied from
-# https://gist.github.com/dan-blanchard/7045057
-# https://github.com/Jorge-C/ordination/blob/master/.travis.yml
-# and the seaborn package
-language: python
+language: generic
 
 sudo: false
 
+os:
+    - linux
+    - osx
+
 env:
-  global: # For pushing the built docs to the fatiando.github.io repo
-    - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
-  matrix:
-    - PYTHON=2.7
+    global: # For pushing the built docs to the fatiando.github.io repo
+        - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
+    matrix:
+        - PYTHON=2.7
 
 before_install:
-  # Need to fetch a deeper clone because the default depth Travis uses (50)
-  # isn't enough to get the git tags so versioneer can't find the correct
-  # version number.
-  - git fetch --depth=100
+    # Need to fetch a deeper clone because the default depth Travis uses (50)
+    # isn't enough to get the git tags so versioneer can't find the correct
+    # version number.
+    - git fetch --depth=100
 
 install:
-  # Get Miniconda from Continuum
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda2/bin:$PATH
-  - cp ci-tools/matplotlibrc .
-  # Create a conda env to install required libraries
-  - conda update --yes conda
-  - conda create -n testenv --yes pip python=$PYTHON
-  - conda update conda --yes
-  - source activate testenv
-  - conda install --yes --file requirements.txt
-  - conda install --yes --file test/requirements-conda.txt
-  - pip install -r test/requirements-pip.txt
-  # Show installed pkg information for postmortem diagnostic
-  - conda list
-  # Package Fatiando and install
-  - python setup.py sdist  --formats=gztar
-  - pip install dist/fatiando-*.tar.gz
-  # Check that versioneer got the correct version
-  - python -c "import fatiando; print(fatiando.__version__)"
-  - python setup.py build_ext --inplace
+    # Get Miniconda from Continuum
+    # Need to source the script to set the PATH variable in this environment
+    # (not the scripts environment)
+    - source ci-tools/install-miniconda.sh
+    - cp ci-tools/matplotlibrc .
+    # Create a conda env to install required libraries
+    - conda update --yes conda
+    - conda create -n testenv --yes pip python=$PYTHON
+    - source activate testenv
+    - conda install --yes --file requirements.txt
+    - conda install --yes --file test/requirements-conda.txt
+    - pip install -r test/requirements-pip.txt
+    # Show installed pkg information for postmortem diagnostic
+    - conda list
+    # Package Fatiando and install
+    - python setup.py sdist --formats=gztar
+    - pip install dist/fatiando-*.tar.gz
+    # Check that versioneer got the correct version
+    - python -c "import fatiando; print(fatiando.__version__)"
+    - pip install -e .
 
 script:
-  - nosetests -v --with-doctest --with-coverage --cover-package=fatiando fatiando test/
-  - make -C doc all
+    - nosetests -v --with-doctest --with-coverage --cover-package=fatiando fatiando test/
+    - make -C doc all
 
 after_success:
-  - coveralls
-  - bash ci-tools/update-website.sh
+    - coveralls
+    - bash ci-tools/update-website.sh
 
 after_failure:
-  - make pep8
+    - make pep8
 
 notifications:
-  email: false
+    email: false
