@@ -297,7 +297,7 @@ Documentation
 -------------
 
 The documentation for Fatiando is built using
-`sphinx <http://sphinx-doc.org/>`__.
+`sphinx <http://sphinx-doc.org/>`__. The documentation audience is the end-user.
 The source files for the documentation are in the ``doc`` folder of the
 repository.
 The most sections of the docs are built from the ``doc/*.rst`` files.
@@ -372,9 +372,11 @@ Some brief guidelines:
             Bla B., and Meh M. (2014). Some relevant article describing the
             methods. Journal. doi:82e1hd1puhd7
             """
+
 * Class docstrings will contain a description of the class and the parameters
   that `__init__` takes. It should also include examples (as doctests when
   possible) and references. Pretty much like function docstrings.
+  Private methods will be hiden by sphinx on porpouse.
 
 
 You'll need to install the `Sphinx bootstrap theme
