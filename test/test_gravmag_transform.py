@@ -3,7 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 from fatiando.gravmag import transform, prism
 from fatiando import gridder, utils
-from fatiando.mesher import Prism
+from fatiando.mesher import Prism,PrismRelief
 
 
 def _trim(array, shape, d=20):
@@ -61,7 +61,7 @@ def test_upcontinue():
         100*(check.size - check.sum())/check.size)
 
 
-def test_secont_horizontal_derivatives_fd():
+def test_second_horizontal_derivatives_fd():
     "gravmag.transform 2nd xy derivatives by finite diff against analytical"
     model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
     shape = (300, 300)
@@ -198,3 +198,18 @@ def test_laplace_from_potential():
     assert np.all(np.abs(laplace) <= 1e-10), \
         "Max: {} Mean: {} STD: {}".format(
             laplace.max(), laplace.mean(), laplace.std())
+
+
+def test_transform_tilt():
+    "gravmag.transform tilt returns gradient correctly."
+    pass
+    area = (-150, 150, -300, 300)
+    shape = (100, 50)
+    x, y = gridder.regular(area, shape)
+    height = (np.arange(0,50,0.01))
+
+    nodes = (x, y, -1 * height)  # -1 is to convert height to z coordinate
+    reference = 0  # z coordinate of the reference surface
+    relief = PrismRelief(reference, gridder.spacing(area, shape), nodes)
+
+    tilt(x, y, relief, shape)
