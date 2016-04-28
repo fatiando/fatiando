@@ -166,7 +166,7 @@ unit tests and doc tests.
 
 .. note::
 
-    If you are new to automated tests, see the Software Carpentry lessons on 
+    If you are new to automated tests, see the Software Carpentry lessons on
     `Testing: Unit Testing
     <http://software-carpentry.org/>`__.
 
@@ -301,7 +301,7 @@ The documentation for Fatiando is built using
 The source files for the documentation are in the ``doc`` folder of the
 repository.
 The most sections of the docs are built from the ``doc/*.rst`` files.
-The :ref:`API <fatiando>` section is automatically built from the
+The :ref:`API <api>` section is automatically built from the
 `docstrings <http://legacy.python.org/dev/peps/pep-0257/>`__ of
 packages, modules, functions, and classes.
 

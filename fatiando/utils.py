@@ -1,56 +1,5 @@
 """
 Miscellaneous utility functions and classes.
-
-**Mathematical functions**
-
-* :func:`~fatiando.utils.normal`
-* :func:`~fatiando.utils.gaussian`
-* :func:`~fatiando.utils.gaussian2d`
-* :func:`~fatiando.utils.safe_solve`
-* :func:`~fatiando.utils.safe_dot`
-* :func:`~fatiando.utils.safe_diagonal`
-* :func:`~fatiando.utils.safe_inverse`
-
-**Point scatter generation**
-
-* :func:`~fatiando.utils.random_points`
-* :func:`~fatiando.utils.circular_points`
-* :func:`~fatiando.utils.connect_points`
-
-**Unit conversion**
-
-* :func:`~fatiando.utils.si2mgal`
-* :func:`~fatiando.utils.mgal2si`
-* :func:`~fatiando.utils.si2eotvos`
-* :func:`~fatiando.utils.eotvos2si`
-* :func:`~fatiando.utils.si2nt`
-* :func:`~fatiando.utils.nt2si`
-
-**Coordinate system conversions**
-
-* :func:`~fatiando.utils.sph2cart`
-
-**Others**
-
-* :func:`~fatiando.utils.fromimage`: Load a matrix from an image file
-* :func:`~fatiando.utils.contaminate`: Contaminate a vector with pseudo-random
-  Gaussian noise
-* :func:`~fatiando.utils.dircos`: Get the 3 coordinates of a unit vector
-* :func:`~fatiando.utils.ang2vec`: Convert intensity, inclination and
-  declination to a 3-component vector
-* :func:`~fatiando.utils.vecnorm`: Get the norm of a vector or list of vectors
-* :func:`~fatiando.utils.vecmean`: Take the mean array out of a list of arrays
-* :func:`~fatiando.utils.vecstd`: Take the standard deviation array out of a
-  list of arrays
-* :class:`~fatiando.utils.SparseList`: Store only non-zero elements on an
-  immutable list
-* :func:`~fatiando.utils.sec2hms`: Convert seconds to hours, minutes, and
-  seconds
-* :func:`~fatiando.utils.sec2year`: Convert seconds to Julian years
-* :func:`~fatiando.utils.year2sec`: Convert Julian years to seconds
-
-----
-
 """
 import math
 

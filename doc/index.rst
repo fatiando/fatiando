@@ -80,80 +80,86 @@ documents. Great for teaching fundamental concepts of geophysics.
     <div class="col-md-12">
     <div class="row">
         <div class="col-md-6">
-            <h3><a href="api/gravmag.html">Gravity and magnetics</a></h3>
-            <p>
-            Modeling, inversion, and processing for potential field methods.
-            </p>
-            <em>
-            3D forward modeling with prisms,
-            polygonal prisms, spheres, and tesseroids.
-            Handles the potential, acceleration,
-            gradient tensor, magnetic induction, total field magnetic anomaly.
-            </em>
+            <h3><a href="userguide/gravmag.html">Gravity and magnetics</a></h3>
+
+Modeling, inversion, and processing for potential field methods.
+
+*3D forward modeling with prisms,
+polygonal prisms, spheres, and tesseroids.
+Handles the potential, acceleration,
+gradient tensor, magnetic induction, total field magnetic anomaly.*
+
+.. raw:: html
+
         </div>
         <div class="col-md-6">
-            <h3><a href="api/seismic.html">Seismology and Seismics</a></h3>
-            <p>
-            Simple modeling functions for seismics and seismology.
-            </p>
-            <em>
-            Toy problems for: Cartesian straight-ray tomography,
-            VSP, epicenter estimation.
-            Experimental finite-difference wave propagation.
-            </em>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <h3><a href="api/inversion.html">Inverse Problems</a></h3>
-            <p>
-            API for building inverse problem solvers.
-            </p>
-            <em>
-            Easily prototype a new inversion.
-            Simple and uniform sintax for running invsersions.
-            Ready-made regularization (damping, smoothness, total variation).
-            </em>
-        </div>
-        <div class="col-md-6">
-            <h3><a href="api/vis.html">2D and 3D plotting</a></h3>
-            <p>
-            Utilities for plotting with
-            <a href="http://matplotlib.org/">matplotlib</a>
-            and
-            <a href="http://code.enthought.com/projects/mayavi/">Mayavi</a>.
-            </p>
-            <em>
-            Better defaults for some matplotlib functions,
-            plot 3D objects from <code>fatiando.mesher</code> in Mayavi,
-            automate common plotting tasks.
-            </em>
+            <h3><a href="userguide/seismic.html">Seismology and Seismics</a></h3>
+
+Simple modeling functions for seismics and seismology.
+
+*Toy problems for: Cartesian straight-ray tomography,
+VSP, epicenter estimation.
+Experimental finite-difference wave propagation.*
+
+.. raw:: html
+
         </div>
     </div>
     <div class="row">
         <div class="col-md-6">
-            <h3><a href="api/gridder.html">Grid manipulation</a></h3>
-            <p>
-            Functions for generating and operating on regular grids and data
-            that is on a map.
-            </p>
-            <em>
-            Generate regular grids and point scatters.
-            Cut grids and extract profiles.
-            Interpolate irregular data.
-            </em>
+            <h3><a href="userguide/inversion.html">Inverse Problems</a></h3>
+
+API for building inverse problem solvers.
+
+*Easily prototype a new inversion.
+Simple and uniform sintax for running invsersions.
+Ready-made regularization (damping, smoothness, total variation).*
+
+.. raw:: html
+
         </div>
         <div class="col-md-6">
-            <h3><a href="api/mesher.html">Geometric objects and meshes</a></h3>
-            <p>
-            Classes that represent geometric objects (points, prisms, polygons,
-            tesseroids) and meshes (regular prism mesh, points on a grid).
-            </p>
-            <em>
-            Standard classes used in all of Fatiando.
-            Efficient classes for meshes that save storage and behave as
-            <a href="https://docs.python.org/2/library/stdtypes.html#iterator-types">iterators</a>.
-            </em>
+            <h3><a href="userguide/vis.html">2D and 3D plotting</a></h3>
+
+Utilities for plotting with
+`matplotlib <http://matplotlib.org/>`__
+and
+`Mayavi <http://code.enthought.com/projects/mayavi/>`__.
+
+*Better defaults for some matplotlib functions,
+plot 3D objects from* :mod:`fatiando.mesher` *in Mayavi,
+automate common plotting tasks.*
+
+.. raw:: html
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3><a href="userguide/gridder.html">Grid manipulation</a></h3>
+
+Functions for generating and operating on regular grids and data
+that is on a map.
+
+*Generate regular grids and point scatters.
+Cut grids and extract profiles.
+Interpolate irregular data.*
+
+.. raw:: html
+
+        </div>
+        <div class="col-md-6">
+            <h3><a href="userguide/mesher.html">Geometric objects and meshes</a></h3>
+
+Classes that represent geometric objects (points, prisms, polygons,
+tesseroids) and meshes (regular prism mesh, points on a grid).
+
+*Standard classes used in all of Fatiando.
+Efficient classes for meshes that save storage and behave as
+Python iterators.*
+
+.. raw:: html
+
         </div>
     </div>
     </div>
@@ -309,12 +315,13 @@ Read :ref:`all announcements <news>`.
     :hidden:
 
     news.rst
-    license.rst
     cite.rst
     changelog.rst
     install.rst
-    api/fatiando.rst
+    docs.rst
+    cookbook.rst
+    userguide.rst
+    api.rst
     develop.rst
     contributors.rst
-    cookbook.rst
-    docs.rst
+    license.rst

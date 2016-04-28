@@ -1,34 +1,5 @@
 """
 Generate and operate on various kinds of meshes and geometric elements
-
-**Geometric elements**
-
-* :class:`~fatiando.mesher.Polygon`
-* :class:`~fatiando.mesher.Square`
-* :class:`~fatiando.mesher.Prism`
-* :class:`~fatiando.mesher.PolygonalPrism`
-* :class:`~fatiando.mesher.Sphere`
-* :class:`~fatiando.mesher.Tesseroid`
-
-**Meshes**
-
-* :class:`~fatiando.mesher.SquareMesh`
-* :class:`~fatiando.mesher.PrismMesh`
-* :class:`~fatiando.mesher.PrismRelief`
-* :class:`~fatiando.mesher.TesseroidMesh`
-* :class:`~fatiando.mesher.PointGrid`
-
-**Utility functions**
-
-* :func:`~fatiando.mesher.extract`: Extract the values of a physical
-  property from the cells in a list
-* :func:`~fatiando.mesher.vfilter`: Remove cells whose physical property
-  value falls outside a given range
-* :func:`~fatiando.mesher.vremove`: Remove the cells with a given physical
-  property value
-
-----
-
 """
 from __future__ import division
 import numpy

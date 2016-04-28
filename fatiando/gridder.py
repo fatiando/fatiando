@@ -1,33 +1,5 @@
 """
 Create and operate on grids and profiles.
-
-**Grid generation**
-
-* :func:`~fatiando.gridder.regular`
-* :func:`~fatiando.gridder.scatter`
-
-**Grid operations**
-
-* :func:`~fatiando.gridder.cut`
-* :func:`~fatiando.gridder.profile`
-
-**Interpolation**
-
-* :func:`~fatiando.gridder.interp`
-* :func:`~fatiando.gridder.interp_at`
-* :func:`~fatiando.gridder.extrapolate_nans`
-
-**Input/Output**
-
-* :func:`~fatiando.gridder.load_surfer`: Read a Surfer grid file and return
-  three 1d numpy arrays and the grid shape
-
-**Misc**
-
-* :func:`~fatiando.gridder.spacing`
-
-----
-
 """
 from __future__ import division
 import numpy
@@ -378,7 +350,7 @@ def profile(x, y, v, point1, point2, size, extrapolate=False):
 
 
 def extrapolate_nans(x, y, v):
-    """"
+    """
     Extrapolate the NaNs or masked values in a grid INPLACE using nearest
     value.
 

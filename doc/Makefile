@@ -14,9 +14,9 @@ endif
 # Internal variables.
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees  $(SPHINXOPTS) .
 
-.PHONY: help clean html linkcheck doctest cookbook
+.PHONY: help clean html linkcheck doctest cookbook userguide
 
-all: cookbook html
+all: userguide cookbook html
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -39,8 +39,18 @@ cookbook:
 	@echo
 	@echo "Build finished."
 
+userguide:
+	@echo
+	@echo "Building userguide rst files."
+	@echo
+	bash tools/nb2rst.sh userguide/
+
 clean:
-	rm -rf $(BUILDDIR)/html/* $(CBDIR) cookbook $(BUILDDIR)/plot_directive
+	rm -rf $(BUILDDIR)/html/*
+	rm -rf $(CBDIR) cookbook
+	rm -rf $(BUILDDIR)/plot_directive
+	rm -rf api/*.rst
+	rm -rf userguide/*_files/ userguide/*.rst userguide/*.png
 
 html:
 	@echo

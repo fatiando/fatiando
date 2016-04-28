@@ -12,6 +12,10 @@ env:
     matrix:
         - PYTHON=2.7
 
+addons:
+  apt_packages:
+    - pandoc
+
 before_install:
     # Need to fetch a deeper clone because the default depth Travis uses (50)
     # isn't enough to get the git tags so versioneer can't find the correct
