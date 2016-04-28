@@ -9,6 +9,7 @@ Create and operate on grids and profiles.
 **Grid operations**
 
 * :func:`~fatiando.gridder.cut`
+* :func:`~fatiando.gridder.cut_regular`
 * :func:`~fatiando.gridder.profile`
 
 **Interpolation**
@@ -439,3 +440,58 @@ def cut(x, y, scalars, area):
               if x[i] >= xmin and x[i] <= xmax
               and y[i] >= ymin and y[i] <= ymax]
     return [x[inside], y[inside], [s[inside] for s in scalars]]
+
+
+def cut_regular(x, y, scalars, shape, area):
+    """
+    Return a subsection of a regular grid.
+
+    The returned subsection is not a copy! In technical terms, returns a slice
+    of the numpy arrays. So changes made to the subsection reflect on the
+    original grid. Use numpy.copy to make copies of the subsections and avoid
+    this.
+
+    Parameters:
+
+    * x, y
+        Arrays with the x and y coordinates of the data points.
+    * scalars
+        List of arrays with the scalar values assigned to the grid points.
+    * shape: tuple(ny,nx)
+        Shape of the original data points.
+    * area
+        ``(x1, x2, y1, y2)``: Borders of the subsection
+
+    Returns:
+
+    * ``[subx, suby, subscalars,shape_subgrid]``
+        Arrays with x and y coordinates and scalar values of the subgrid.
+    shape_subgrid: tuple(ny,nx)
+        Shape of the subgrid.
+
+    """
+    assert len(x) == len(y), \
+        "x and y must have the same length"
+    assert len(x) == len(y) == shape[0]*shape[1], \
+        "The shape isn't the shape of the x and y arrays."
+    for s in scalars:
+        assert len(s) == shape[0]*shape[1], \
+            "All or some scalars haven't the right shape."
+
+    xmin, xmax, ymin, ymax = area
+    if xmin > xmax:
+        xmin, xmax = xmax, xmin
+    if ymin > ymax:
+        ymin, ymax = ymax, ymin
+
+    # Calculates the distance between neighbour points
+    distance_x = abs(max(x)-min(x)) / (shape[1]-1)
+    distance_y = abs(max(y)-min(y)) / (shape[0]-1)
+    shape_subgrid = (int(abs(ymax-ymin)/distance_y + 1),
+                     int(abs(xmax-xmin)/distance_x + 1))
+
+    inside = [i for i in xrange(len(x))
+              if x[i] >= xmin and x[i] <= xmax
+              and y[i] >= ymin and y[i] <= ymax]
+
+    return [x[inside], y[inside], [s[inside] for s in scalars], shape_subgrid]
