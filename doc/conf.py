@@ -65,7 +65,13 @@ html_use_smartypants = True
 pygments_style = 'default'
 add_function_parentheses = False
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {'**': ['localtoc.html'],
+                 'index': [],
+                 'docs': [],
+                 'cite': [],
+                 'license': [],
+                 'contributors': [],
+                 }
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 #html_additional_pages = {}
@@ -110,7 +116,7 @@ html_theme_options = {
     # Render the current pages TOC in the navbar. (Default: true)
     'navbar_pagenav': False,
     # Tab name for the current pages TOC. (Default: "Page")
-    'navbar_pagenav_name': "Page",
+    'navbar_pagenav_name': "This page",
     # Global TOC depth for "site" navbar tab. (Default: 1)
     # Switching to -1 shows all levels.
     'globaltoc_depth': 1,

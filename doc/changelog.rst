@@ -10,6 +10,10 @@ Version 0.5
 
 **Changes**:
 
+* Better navigation for long pages in the docs by adding a sidebar with links
+  to subsections.
+  (`PR 275 <https://github.com/fatiando/fatiando/pull/275>`__)
+
 
 
 Version 0.4
