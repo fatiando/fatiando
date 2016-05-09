@@ -86,14 +86,23 @@ First, make sure you have uninstalled Fatiando::
     pip uninstall fatiando
 
 You will need some extra dependencies installed for development.
-If you are using Anaconda (and you should) run the following from the
-repository base directory::
+If you are using Anaconda (and you should),
+the repository provides an `environment.yml` file that specifies a `conda`
+virtual environment with all packages that you'll need.
+This will keep the Fatiando development related installation from you main
+Python.
+Run the following from the repository base directory to create the environment::
 
-    conda install --file test/requirements-conda.txt
+    conda env create
 
-and::
+Now, whenever you want to run code using the `fatiando-dev` environment we just
+created, you must run this first to activate the environment::
 
-    pip install -r test/requirements-pip.txt
+    source activate fatiando-dev
+
+or on Windows::
+
+    activate fatiando-dev
 
 You will also need `make <http://www.gnu.org/software/make/>`__, which usually
 comes with GNU/Linux by default. On windows, you can get it through
