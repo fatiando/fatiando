@@ -1,0 +1,21 @@
+name: fatiando-dev
+dependencies:
+    - python=2.7
+    - pip
+    - numpy
+    - scipy
+    - matplotlib
+    - numba
+    - future
+    - basemap
+    - pillow
+    - jupyter
+    - mayavi
+    - sphinx
+    - nose
+    - pep8=1.6.2
+    - coverage=3.7.1
+    - cython
+    - pip:
+        - coveralls==0.5
+        - sphinx_bootstrap_theme==0.4.5
