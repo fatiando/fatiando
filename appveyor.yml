@@ -7,7 +7,7 @@ environment:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "latest"
       CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-tools\\appveyor\\windows_sdk.cmd"
-      TEST_CMD: "nosetests -v --with-doctests fatiando test"
+      TEST_CMD: "nosetests -v --with-doctest fatiando test"
 
   matrix:
       - PYTHON_ARCH: "64"
