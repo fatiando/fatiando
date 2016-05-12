@@ -35,7 +35,7 @@ install:
     - "%CMD_IN_ENV% python setup.py sdist --formats=zip"
     - ps: "ls dist"
     - "%CMD_IN_ENV% pip install --pre --find-links dist/ fatiando"
-    - "%CMD_IN_ENV% python -c 'import fatiando; print(fatiando.__version__)'"
+    - "%CMD_IN_ENV% python -c \"import fatiando; print(fatiando.__version__)\""
 
 test_script:
     - "%CMD_IN_ENV% %TEST_CMD%"
