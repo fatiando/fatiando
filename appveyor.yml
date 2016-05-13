@@ -7,13 +7,13 @@ environment:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "latest"
       CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-tools\\appveyor\\windows_sdk.cmd"
-      TEST_CMD: "nosetests -v --with-doctest fatiando test"
+      TEST_CMD: "nosetests -v --with-coverage --cover-package=fatiando --with-doctest fatiando test"
 
   matrix:
       - PYTHON_ARCH: "64"
         PYTHON_VERSION: "2.7"
-      - PYTHON_ARCH: "32"
-        PYTHON_VERSION: "2.7"
+      #- PYTHON_ARCH: "32"
+        #PYTHON_VERSION: "2.7"
 
 platform:
     -x64
@@ -28,8 +28,8 @@ install:
     - "conda --version"
     - "python --version"
     # Install dependencies
-    - "%CMD_IN_ENV% conda install --yes --file requirements.txt"
-    - "%CMD_IN_ENV% conda install --yes --file test\\requirements-conda.txt"
+    - "%CMD_IN_ENV% conda install --yes --quiet --file requirements.txt"
+    - "%CMD_IN_ENV% conda install --yes --quiet --file test\\requirements-conda.txt"
     - "%CMD_IN_ENV% pip install -r test\\requirements-pip.txt"
     # Build and install the Fatiando package
     # Note: Don't use installed version until we have tests embedded in the
