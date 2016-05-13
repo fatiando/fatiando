@@ -32,9 +32,12 @@ install:
     - "%CMD_IN_ENV% conda install --yes --file test\\requirements-conda.txt"
     - "%CMD_IN_ENV% pip install -r test\\requirements-pip.txt"
     # Build and install the Fatiando package
-    - "%CMD_IN_ENV% python setup.py sdist --formats=zip"
-    - ps: "ls dist"
-    - "%CMD_IN_ENV% pip install --pre --find-links dist/ fatiando"
+    # Note: Don't use installed version until we have tests embedded in the
+    #       source code.
+    #- "%CMD_IN_ENV% python setup.py sdist --formats=zip"
+    #- ps: "ls dist"
+    #- "%CMD_IN_ENV% pip install --pre --find-links dist/ fatiando"
+    - "%CMD_IN_ENV% pip install -e ."
     - "%CMD_IN_ENV% python -c \"import fatiando; print(fatiando.__version__)\""
 
 test_script:
