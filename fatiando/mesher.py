@@ -937,12 +937,12 @@ class PointGrid(object):
             >>> grids = g.split((2, 3))
             >>> for s in grids:
             ...     s.props['bla']
-            array[1, 4]
-            array[2, 5]
-            array[3, 6]
-            array[ 7, 10]
-            array[ 8, 11]
-            array[ 9, 12]
+            array([1, 4])
+            array([2, 5])
+            array([3, 6])
+            array([ 7, 10])
+            array([ 8, 11])
+            array([ 9, 12])
             >>> for s in grids:
             ...     s.x
             array([ 0.,  1.])
@@ -961,12 +961,12 @@ class PointGrid(object):
             array([ 2.,  2.])
             >>> for s in grids:
             ...     s.z
-            array([ 0., 300.])
-            array([ 100., 400.])
-            array([ 200., 500.])
-            array([ 600., 900.])
-            array([ 700., 1000.])
-            array([ 800., 1100.])
+            array([   0.,  300.])
+            array([ 100.,  400.])
+            array([ 200.,  500.])
+            array([ 600.,  900.])
+            array([  700.,  1000.])
+            array([  800.,  1100.])
 
         """
         nx, ny = shape
