@@ -927,7 +927,9 @@ class PointGrid(object):
 
         Examples::
 
-            >>> g = PointGrid((0, 3, 0, 2), 10, (4, 3))
+            >>> import numpy
+            >>> z = numpy.linspace(0, 1100, 12)
+            >>> g = PointGrid((0, 3, 0, 2), z, (4, 3))
             >>> g.addprop('bla', [1,   2,  3,
             ...                   4,   5,  6,
             ...                   7,   8,  9,
@@ -935,12 +937,12 @@ class PointGrid(object):
             >>> grids = g.split((2, 3))
             >>> for s in grids:
             ...     s.props['bla']
-            array([1, 4])
-            array([2, 5])
-            array([3, 6])
-            array([ 7, 10])
-            array([ 8, 11])
-            array([ 9, 12])
+            array[1, 4]
+            array[2, 5]
+            array[3, 6]
+            array[ 7, 10]
+            array[ 8, 11]
+            array[ 9, 12]
             >>> for s in grids:
             ...     s.x
             array([ 0.,  1.])
@@ -957,6 +959,14 @@ class PointGrid(object):
             array([ 0.,  0.])
             array([ 1.,  1.])
             array([ 2.,  2.])
+            >>> for s in grids:
+            ...     s.z
+            array([ 0., 300.])
+            array([ 100., 400.])
+            array([ 200., 500.])
+            array([ 600., 900.])
+            array([ 700., 1000.])
+            array([ 800., 1100.])
 
         """
         nx, ny = shape
