@@ -860,7 +860,7 @@ class PointGrid(object):
             self.props = props
         nx, ny = shape
         self.size = nx*ny
-        self.z = np.zeros(self.size) + z
+        self.z = numpy.zeros(self.size) + z
         self.radius = scipy.special.cbrt(3. / (4. * numpy.pi))
         self.x, self.y = gridder.regular(area, shape)
         # The spacing between points
@@ -978,7 +978,10 @@ class PointGrid(object):
                     pmatrix = numpy.reshape(self.props[p], self.shape)
                     props[p] = pmatrix[i*mx:(i + 1)*mx,
                                        j*my:(j + 1)*my].ravel()
-                subs.append(PointGrid(area, self.z, (mx, my), props))
+                zmatrix = numpy.reshape(self.z, self.shape)
+                zs = zmatrix[i*mx:(i + 1)*mx,
+                             j*my:(j + 1)*my].ravel()
+                subs.append(PointGrid(area, zs, (mx, my), props))
         return subs
 
 
