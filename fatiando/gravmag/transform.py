@@ -263,7 +263,7 @@ def tga(x, y, data, shape, method='fd'):
     return res
 
 
-def tilt(x, y, data, shape):
+def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
     """
     Calculates the potential field tilt, as defined by Miller and Singh (1994):
 
@@ -281,6 +281,12 @@ def tilt(x, y, data, shape):
         The potential field at the grid points
     * shape : tuple = (nx, ny)
         The shape of the grid
+    * xderiv : 1D-array
+        Optional. Values of the derivative in the x direction
+    * yderiv : 1D-array
+        Optional. Values of the derivative in the y direction
+    * zderiv : 1D-array
+        Optional. Values of the derivative in the z direction
 
     Returns:
 
@@ -294,9 +300,18 @@ def tilt(x, y, data, shape):
     Journal of Applied Geophysics 32 (2--3): 213-17.
     doi:10.1016/0926-9851(94)90022-1.
     """
-    horiz_deriv = numpy.sqrt( (derivx(x, y, data, shape))**2 +
-                              (derivy(x, y, data, shape))**2 )
-    vert_deriv = derivz(x, y, data, shape)
+    #Deal with horizontal derivatives.
+    if xderiv == None:
+        xderiv = (derivx(x, y, data, shape))
+    if yderiv == None:
+        yderiv = derivy(x, y, data, shape))
+    horiz_deriv = numpy.sqrt( xderiv**2 + yderiv**2 )
+
+    #Deal with vertical derivative
+    if zderiv == None:
+        vert_deriv = derivz(x, y, data, shape)
+    else:
+        vert_deriv = zderiv
     tilt = numpy.arctan2( vert_deriv, horiz_deriv )
     return tilt
 
