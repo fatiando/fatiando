@@ -199,7 +199,6 @@ def test_laplace_from_potential():
         "Max: {} Mean: {} STD: {}".format(
             laplace.max(), laplace.mean(), laplace.std())
 
-
 def test_potential_field_tilt():
     "gravmag.transform tilt returns sane values"
     pass
