@@ -302,9 +302,9 @@ def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
     """
     #Deal with horizontal derivatives.
     if xderiv == None:
-        xderiv = (derivx(x, y, data, shape))
+        xderiv = derivx(x, y, data, shape)
     if yderiv == None:
-        yderiv = derivy(x, y, data, shape))
+        yderiv = derivy(x, y, data, shape)
     horiz_deriv = numpy.sqrt( xderiv**2 + yderiv**2 )
 
     #Deal with vertical derivative
