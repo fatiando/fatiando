@@ -300,14 +300,16 @@ def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
     Journal of Applied Geophysics 32 (2--3): 213-17.
     doi:10.1016/0926-9851(94)90022-1.
     """
-    #Deal with horizontal derivatives.
+    #Deal with horizontal derivatives. If we have not been given an array
+    #with either, we will calculate them first, then get the horizontal
+    #derivative.
     if xderiv == None:
         xderiv = derivx(x, y, data, shape)
     if yderiv == None:
         yderiv = derivy(x, y, data, shape)
     horiz_deriv = numpy.sqrt( xderiv**2 + yderiv**2 )
 
-    #Deal with vertical derivative
+    #Deal with vertical derivative, similar to the previous.
     if zderiv == None:
         vert_deriv = derivz(x, y, data, shape)
     else:
