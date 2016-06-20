@@ -41,6 +41,7 @@ cookbook:
 
 clean:
 	rm -rf $(BUILDDIR)/html/* $(CBDIR) cookbook $(BUILDDIR)/plot_directive
+	rm -rf gallery modules
 
 html:
 	@echo

@@ -9,6 +9,8 @@ doc/_build
 doc/_static/cookbook
 doc/cookbook
 doc/fatiando*.pdf
+doc/gallery
+doc/modules
 benchmarks/*.tmp
 benchmarks/*.profile
 benchmarks/.ipynb_checkpoints

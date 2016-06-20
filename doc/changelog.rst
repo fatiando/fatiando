@@ -10,6 +10,10 @@ Version 0.5
 
 **Changes**:
 
+* Started an example gallery (`matplotlib style
+  <http://matplotlib.org/gallery.html>`__) using the Sphinx plug-in
+  `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`__.
+  (`PR 282 <https://github.com/fatiando/fatiando/pull/282>`__)
 * Added several functions for padding arrays of arbitrary dimension.
   ``fatiando.gridder.pad_array`` pads an array with a variety of padding and
   taper options.  ``fatiando.gridder.unpad_array`` returns the original,

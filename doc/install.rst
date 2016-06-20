@@ -117,7 +117,8 @@ or if you have git installed and want to see the code::
 Testing the install
 -------------------
 
-Try running one of the recipes from the :ref:`Cookbook <cookbook>`.
+Try running one of the recipes from the :ref:`Gallery <gallery>` or
+:ref:`Cookbook <cookbook>`.
 If you get an error message or weird result,
 please write to the `mailing list`_.
 To make it easier for us to debug you problem, please include the following

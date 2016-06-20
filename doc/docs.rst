@@ -20,16 +20,16 @@ Documentation (version |version|)
             </em>
         </div>
         <div class="col-md-3">
-            <h3><a href="cookbook.html">Cookbook</a></h3>
+            <h3><a href="gallery/index.html">Gallery</a></h3>
             <em>
-            Recipes showing how to use our modules and functions.
+            Collection of plots and the code that generates them showcasing
+            what Fatiando can do.
             </em>
         </div>
         <div class="col-md-3">
-            <h3><a href="cite.html">Citing</a></h3>
+            <h3><a href="cookbook.html">Cookbook</a></h3>
             <em>
-            Fatiando is research software <strong>made by scientists</strong>.
-            See how to cite it in your publications.
+            Recipes showing how to use our modules and functions.
             </em>
         </div>
     </div>
@@ -52,6 +52,15 @@ Documentation (version |version|)
             List of changes for each release.
             </em>
         </div>
+        <div class="col-md-3">
+            <h3><a href="cite.html">Citing</a></h3>
+            <em>
+            Fatiando is research software <strong>made by scientists</strong>.
+            See how to cite it in your publications.
+            </em>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-3">
             <h3><a href="license.html">License</a></h3>
             <em>

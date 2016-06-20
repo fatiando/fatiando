@@ -20,7 +20,19 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.extlinks',
     'matplotlib.sphinxext.plot_directive',
+    'sphinx_gallery.gen_gallery',
 ]
+
+from mayavi import mlab
+mlab.options.offscreen = True
+
+# Configure the sphinx-gallery plugin
+sphinx_gallery_conf = {
+    'examples_dirs': ['../gallery'],
+    'gallery_dirs': ['gallery'],
+    'filename_pattern': os.sep + '*', # Match any .py file
+    'find_mayavi_figures': True,
+}
 
 # Configure the inline plots from matplotlib plot_directive
 plot_formats = [("png", 90)]
@@ -65,13 +77,14 @@ html_use_smartypants = True
 pygments_style = 'default'
 add_function_parentheses = False
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'**': ['localtoc.html'],
-                 'index': [],
-                 'docs': [],
-                 'cite': [],
-                 'license': [],
-                 'contributors': [],
-                 }
+html_sidebars = {
+    'install': ['localtoc.html'],
+    'develop': ['localtoc.html'],
+    'cookbook': ['localtoc.html'],
+    'changelog': ['localtoc.html'],
+    'api/**': ['localtoc.html'],
+    'gallery/index': ['localtoc.html'],
+     }
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 #html_additional_pages = {}
@@ -107,6 +120,7 @@ html_theme_options = {
         ("Installing", "install"),
         ("Documentation", "docs"),
         ("Cookbook", "cookbook"),
+        ("Gallery", "gallery/index"),
         ("Developer Guide", "develop"),
         ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
             "https://github.com/fatiando/fatiando", True),

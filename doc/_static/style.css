@@ -81,3 +81,22 @@ blockquote {
     padding-top: 10px;
     margin-left: 30px;
 }
+
+/* Gallery images */
+div.figure p.caption {
+    text-align: center;
+}
+div.figure {
+    padding: 0px;
+    margin: 0px;
+}
+.sphx-glr-thumbcontainer .figure {
+    padding: 0px;
+    margin: 0px;
+    width: 200px;
+}
+
+.sphx-glr-thumbcontainer img {
+    width: 200px;
+    max-height: 200px;
+}
