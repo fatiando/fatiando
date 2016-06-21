@@ -10,6 +10,11 @@ Version 0.5
 
 **Changes**:
 
+* Remove unused module ``fatiando.gravmag.half_sph_shell``. It was used to test
+  ``fatiando.gravmag.tesseroid`` but has been replaced by a full spherical
+  shell solution that is coded in the tests. It serves no purpose so it should
+  be removed to avoid having to maintain it.
+  (`PR 288 <https://github.com/fatiando/fatiando/pull/288>`__)
 * Rename the Euler deconvolution classes to ``EulerDeconv`` (old ``Classic``
   class, a terrible name choice in retrospect), ``EulerDeconvMW`` for the
   moving window solver, and ``EulerDeconvEW`` for the expanding window solver.
