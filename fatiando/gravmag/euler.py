@@ -215,9 +215,12 @@ class EulerDeconvEW(EulerDeconv):
     Uses data inside a window of growing size to perform the Euler
     deconvolution. Keeps the best result, judged by the estimated error.
 
-    Use the :meth:`~fatiando.gravmag.euler.ExpandingWindow.fit` method to
-    produce an estimate. The estimated point is stored in ``estimate_``, the
-    base level in ``baselevel_``.
+    The deconvolution is performed as in
+    :class:`~fatiando.gravmag.euler.EulerDeconv`.
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconvEW.fit` method to produce
+    an estimate. The estimated point is stored in the attribute ``estimate_``
+    and the base level in ``baselevel_``.
 
     Parameters:
 
@@ -275,11 +278,15 @@ class EulerDeconvMW(EulerDeconv):
     Solve an Euler deconvolution problem using a moving window scheme.
 
     Uses data inside a window moving to perform the Euler deconvolution. Keeps
-    the estimate from all windows.
+    only a top percentage of the estimates from all windows.
 
-    Use the :meth:`~fatiando.gravmag.euler.MovingWindow.fit` method to produce
-    an estimate. The estimated points are stored in ``estimate_``, the base
-    levels in ``baselevel_``.
+    The deconvolution is performed as in
+    :class:`~fatiando.gravmag.euler.EulerDeconv`.
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconvMW.fit` method to produce
+    an estimate. The estimated points are stored in ``estimate_`` as a 2D numpy
+    array. Each line in the array is an [x, y, z] coordinate of a point. The
+    base levels are stored in ``baselevel_``.
 
     Parameters:
 
