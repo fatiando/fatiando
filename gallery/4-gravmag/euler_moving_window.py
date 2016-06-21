@@ -8,8 +8,10 @@ the sources have simple geometries, like spheres, vertical pipes, vertical
 planes, etc. So it wouldn't be much of a surprise if the solutions aren't great
 when sources are complex.
 
-Let's test the Euler deconvolution in :mod:`fatiando.gravmag.euler` using a
-moving window scheme, a very common approach used in all industry software.
+Let's test the Euler deconvolution using a moving window scheme, a very common
+approach used in all industry software. This is implemented in
+:class:`fatiando.gravmag.euler.EulerDeconvMW`.
+
 
 """
 from __future__ import print_function
@@ -44,11 +46,10 @@ zderiv = transform.derivz(x, y, data, shape)
 # spheres.
 
 # Run the Euler deconvolution on moving windows to produce a set of solutions
-euler_solver = euler.Classic(x, y, z, data, xderiv, yderiv, zderiv,
-                      structural_index=3)
-# We pass the Euler solver to the MovingWindow class, which will take care of
-# running the solver on 10 x 10 windows of size 1000 x 1000 m
-solver = euler.MovingWindow(euler_solver, windows=(10, 10), size=(1000, 1000))
+# by running the solver on 10 x 10 windows of size 1000 x 1000 m
+solver = euler.EulerDeconvMW(x, y, z, data, xderiv, yderiv, zderiv,
+                             structural_index=3, windows=(10, 10),
+                             size=(1000, 1000))
 # Use the fit() method to obtain the estimates
 solver.fit()
 # The estimated positions are stored as a list of [x, y, z] coordinates
