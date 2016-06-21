@@ -16,8 +16,6 @@ magnetic field of various types of geometric objects:
   modeling in spherical coordinates
 * :mod:`~fatiando.gravmag.talwani`: 2D bodies with polygonal vertical
   cross-sections
-* :mod:`~fatiando.gravmag.half_sph_shell`: Gravity fields of half a spherical
-  shell. Useful for benchmarking and testing.
 
 Inversion
 ---------
