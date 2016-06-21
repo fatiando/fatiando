@@ -27,6 +27,7 @@ PACKAGES = ['fatiando',
             'fatiando.tests.gridder',
             'fatiando.tests.seismic',
             'fatiando.gravmag',
+            'fatiando.gravmag.forward',
             'fatiando.seismic',
             'fatiando.geothermal',
             'fatiando.vis',
@@ -60,9 +61,6 @@ if os.name == 'posix':
     libs.append('m')
 C_EXT = [[['fatiando', 'seismic', '_ttime2d'], {}],
          [['fatiando', 'seismic', '_wavefd'], {}],
-         [['fatiando', 'gravmag', '_polyprism'], {}],
-         [['fatiando', 'gravmag', '_sphere'], {}],
-         [['fatiando', 'gravmag', '_prism'], {}],
          ]
 extensions = []
 for e, extra_args in C_EXT:

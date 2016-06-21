@@ -127,9 +127,12 @@ def gz(xp, yp, zp, spheres, dens=None):
         dx = sphere.x - xp
         dy = sphere.y - yp
         dz = sphere.z - zp
-        r_cb = (dx ** 2 + dy ** 2 + dz ** 2) ** (1.5)
-        mass = density * 4. * numpy.pi * (radius ** 3) / 3.
-        res += mass * dz / r_cb
+        # Turns out that taking the sqrt and multiplying is ~4 times faster
+        # than raising to 1.5 power.
+        r = numpy.sqrt(dx*dx + dy*dy + dz*dz)
+        r_cb = r*r*r
+        mass = density*4*numpy.pi*(radius**3)/3
+        res += mass*dz/r_cb
     res *= G * SI2MGAL
     return res
 

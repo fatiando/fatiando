@@ -1,243 +1,128 @@
 import numpy as np
-from numpy.testing import assert_array_almost_equal as assert_almost
+from numpy.testing import assert_array_almost_equal as assert_almost, \
+                          assert_allclose
 from pytest import raises
 
 from fatiando.mesher import Prism
-from fatiando.gravmag import _prism_numpy, prism
+from fatiando.gravmag.forward import prism
 from fatiando import utils, gridder
+
+
+def test_potential_around():
+    'gravmag.prism potential is the same all around the prism'
+    # Prism must be a cube for this to work
+    model = Prism(-6000, -2000, 1000, 5000, -1000, 3000, {'density': 1000})
+    n = 100
+    xc, yc, zc = model.center()
+    x = xc*np.ones(n)
+    y = yc*np.ones(n)
+    z = zc*np.ones(n)
+    dist = np.linspace(1, 5000, n)
+    sides = [
+        prism.potential(model.x1 - dist, y, z, model),
+        prism.potential(model.x2 + dist, y, z, model),
+        prism.potential(x, model.y1 - dist, z, model),
+        prism.potential(x, model.y2 + dist, z, model),
+        prism.potential(x, y, model.z1 - dist, model),
+        prism.potential(x, y, model.z2 + dist, model),
+        ]
+    for s1 in sides:
+        for s2 in sides:
+            assert_allclose(s1, s2)
+
+
+def test_g_around():
+    'gravmag.prism amplitude of g is the same all around the prism'
+    # Prism must be a cube for this to work
+    model = Prism(-6000, -2000, 1000, 5000, -1000, 3000, {'density': 1000})
+    n = 100
+    xc, yc, zc = model.center()
+    x = xc*np.ones(n)
+    y = yc*np.ones(n)
+    z = zc*np.ones(n)
+    dist = np.linspace(1, 5000, n)
+    def amp(x, y, z, model):
+        gx = prism.gx(x, y, z, model)
+        gy = prism.gy(x, y, z, model)
+        gz = prism.gz(x, y, z, model)
+        return np.sqrt(gx**2 + gy**2 + gz**2)
+    sides = [
+        amp(model.x1 - dist, y, z, model),
+        amp(model.x2 + dist, y, z, model),
+        amp(x, model.y1 - dist, z, model),
+        amp(x, model.y2 + dist, z, model),
+        amp(x, y, model.z1 - dist, model),
+        amp(x, y, model.z2 + dist, model),
+        ]
+    for s1 in sides:
+        for s2 in sides:
+            assert_allclose(s1, s2)
 
 
 def test_fails_if_shape_mismatch():
     'gravmag.prism fails if given computation points with different shapes'
     inc, dec = 10, 0
-    model = [Prism(-6000, -2000, 2000, 4000, 0, 3000,
-                   {'density': 1000,
-                    'magnetization': utils.ang2vec(10, inc, dec)})]
+    model = Prism(-6000, -2000, 2000, 4000, 0, 3000,
+                  {'density': 1000,
+                   'magnetization': utils.ang2vec(10, inc, dec)})
     area = [-5000, 5000, -10000, 10000]
     x, y, z = gridder.regular(area, (101, 51), z=-1)
 
-    raises(ValueError, prism.potential, x[:-2], y, z, model)
-    raises(ValueError, prism.potential, x, y[:-2], z, model)
-    raises(ValueError, prism.potential, x, y, z[:-2], model)
-    raises(ValueError, prism.potential, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gx, x[:-2], y, z, model)
-    raises(ValueError, prism.gx, x, y[:-2], z, model)
-    raises(ValueError, prism.gx, x, y, z[:-2], model)
-    raises(ValueError, prism.gx, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gy, x[:-2], y, z, model)
-    raises(ValueError, prism.gy, x, y[:-2], z, model)
-    raises(ValueError, prism.gy, x, y, z[:-2], model)
-    raises(ValueError, prism.gy, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gz, x[:-2], y, z, model)
-    raises(ValueError, prism.gz, x, y[:-2], z, model)
-    raises(ValueError, prism.gz, x, y, z[:-2], model)
-    raises(ValueError, prism.gz, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gxx, x[:-2], y, z, model)
-    raises(ValueError, prism.gxx, x, y[:-2], z, model)
-    raises(ValueError, prism.gxx, x, y, z[:-2], model)
-    raises(ValueError, prism.gxx, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gxy, x[:-2], y, z, model)
-    raises(ValueError, prism.gxy, x, y[:-2], z, model)
-    raises(ValueError, prism.gxy, x, y, z[:-2], model)
-    raises(ValueError, prism.gxy, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gxz, x[:-2], y, z, model)
-    raises(ValueError, prism.gxz, x, y[:-2], z, model)
-    raises(ValueError, prism.gxz, x, y, z[:-2], model)
-    raises(ValueError, prism.gxz, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gyy, x[:-2], y, z, model)
-    raises(ValueError, prism.gyy, x, y[:-2], z, model)
-    raises(ValueError, prism.gyy, x, y, z[:-2], model)
-    raises(ValueError, prism.gyy, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gyz, x[:-2], y, z, model)
-    raises(ValueError, prism.gyz, x, y[:-2], z, model)
-    raises(ValueError, prism.gyz, x, y, z[:-2], model)
-    raises(ValueError, prism.gyz, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.gzz, x[:-2], y, z, model)
-    raises(ValueError, prism.gzz, x, y[:-2], z, model)
-    raises(ValueError, prism.gzz, x, y, z[:-2], model)
-    raises(ValueError, prism.gzz, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.bx, x[:-2], y, z, model)
-    raises(ValueError, prism.bx, x, y[:-2], z, model)
-    raises(ValueError, prism.bx, x, y, z[:-2], model)
-    raises(ValueError, prism.bx, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.by, x[:-2], y, z, model)
-    raises(ValueError, prism.by, x, y[:-2], z, model)
-    raises(ValueError, prism.by, x, y, z[:-2], model)
-    raises(ValueError, prism.by, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.bz, x[:-2], y, z, model)
-    raises(ValueError, prism.bz, x, y[:-2], z, model)
-    raises(ValueError, prism.bz, x, y, z[:-2], model)
-    raises(ValueError, prism.bz, x[:-5], y, z[:-2], model)
-
-    raises(ValueError, prism.tf, x[:-2], y, z, model, inc, dec)
-    raises(ValueError, prism.tf, x, y[:-2], z, model, inc, dec)
-    raises(ValueError, prism.tf, x, y, z[:-2], model, inc, dec)
-    raises(ValueError, prism.tf, x[:-5], y, z[:-2], model, inc, dec)
-
-    raises(ValueError, prism.kernelxx, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelxx, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelxx, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelxx, x[:-5], y, z[:-2], model[0])
-
-    raises(ValueError, prism.kernelxy, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelxy, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelxy, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelxy, x[:-5], y, z[:-2], model[0])
-
-    raises(ValueError, prism.kernelxz, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelxz, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelxz, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelxz, x[:-5], y, z[:-2], model[0])
-
-    raises(ValueError, prism.kernelyy, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelyy, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelyy, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelyy, x[:-5], y, z[:-2], model[0])
-
-    raises(ValueError, prism.kernelyz, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelyz, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelyz, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelyz, x[:-5], y, z[:-2], model[0])
-
-    raises(ValueError, prism.kernelzz, x[:-2], y, z, model[0])
-    raises(ValueError, prism.kernelzz, x, y[:-2], z, model[0])
-    raises(ValueError, prism.kernelzz, x, y, z[:-2], model[0])
-    raises(ValueError, prism.kernelzz, x[:-5], y, z[:-2], model[0])
+    funcs = ['potential', 'gx', 'gy', 'gz',
+             'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz'
+             'bx', 'by', 'bz',
+             'kernelxx', 'kernelxy', 'kernelxz', 'kernelyy', 'kernelyz',
+             'kernelzz', 'tf']
+    for f in funcs:
+        if f == 'tf':
+            kwargs = dict(inc=inc, dec=dec)
+        else:
+            kwargs = {}
+        func = getattr(prism, f)
+        assert_raises(AssertionError, func, x[:-2], y, z, model, **kwargs)
+        assert_raises(AssertionError, func, x, y[:-2], z, model, **kwargs)
+        assert_raises(AssertionError, func, x, y, z[:-2], model, **kwargs)
+        assert_raises(AssertionError, func, x[:-5], y, z[:-2], model, **kwargs)
 
 
 def test_force_physical_property():
     'gravmag.prism gives correct results when passed a property value as arg'
     inc, dec = 10, 0
-    model = [Prism(-6000, -2000, 2000, 4000, 0, 3000,
-                   {'density': 1000,
-                    'magnetization': utils.ang2vec(10, inc, dec)}),
-             Prism(2000, 6000, 2000, 4000, 0, 1000,
-                   {'density': -1000,
-                    'magnetization': utils.ang2vec(15, inc, dec)})]
+    model = Prism(-6000, -2000, 2000, 4000, 0, 3000,
+                  {'density': 1000,
+                   'magnetization': utils.ang2vec(10, inc, dec)}),
     density = -500
     mag = utils.ang2vec(-5, -30, 15)
-    reference = [
-        Prism(-6000, -2000, 2000, 4000, 0, 3000,
-              {'density': density, 'magnetization': mag}),
-        Prism(2000, 6000, 2000, 4000, 0, 1000,
-              {'density': density, 'magnetization': mag})]
+    reference = Prism(-6000, -2000, 2000, 4000, 0, 3000,
+                      {'density': density, 'magnetization': mag})
     area = [-10000, 10000, -5000, 5000]
     x, y, z = gridder.regular(area, (51, 101), z=-1)
-    for mod in [prism, _prism_numpy]:
-        # Test gravity functions
-        funcs = ['potential', 'gx', 'gy', 'gz',
-                 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
-        for f in funcs:
-            forced = getattr(mod, f)(x, y, z, model, dens=density)
-            ref = getattr(mod, f)(x, y, z, reference)
-            precision = 10
-            assert_almost(forced, ref, precision, 'Field = %s' % (f))
-        # Test magnetic functions
-        funcs = ['tf', 'bx', 'by', 'bz']
-        for f in funcs:
-            if f == 'tf':
-                forced = getattr(mod, f)(x, y, z, model, inc, dec, pmag=mag)
-                ref = getattr(mod, f)(x, y, z, reference, inc, dec)
-            else:
-                forced = getattr(mod, f)(x, y, z, model, pmag=mag)
-                ref = getattr(mod, f)(x, y, z, reference)
-            precision = 10
-            assert_almost(forced, ref, precision, 'Field = %s' % (f))
-
-
-def test_ignore_none_and_missing_properties():
-    'gravmag.prism ignores None and prisms without the required property'
-    inc, dec = 50, -30
-    model = [None,
-             Prism(-6000, -2000, 2000, 4000, 0, 3000,
-                   {'density': 1000,
-                    'magnetization': utils.ang2vec(10, inc, dec)}),
-             Prism(2000, 6000, 2000, 4000, 0, 1000,
-                   {'magnetization': utils.ang2vec(15, inc, dec)}),
-             None,
-             Prism(-6000, -2000, -4000, -2000, 500, 2000,
-                   {'density': -1000})]
-    area = [-10000, 10000, -5000, 5000]
-    x, y, z = gridder.regular(area, (101, 51), z=-1)
-    for mod in [prism, _prism_numpy]:
-        # Test gravity functions
-        funcs = ['potential', 'gx', 'gy', 'gz',
-                 'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
-        for f in funcs:
-            combined = getattr(mod, f)(x, y, z, model)
-            separate = getattr(mod, f)(x, y, z, [model[1], model[4]])
-            precision = 10
-            assert_almost(separate, combined, precision, 'Field = %s' % (f))
-        # Test magnetic functions
-        funcs = ['tf', 'bx', 'by', 'bz']
-        for f in funcs:
-            mag_only = [model[1], model[2]]
-            if f == 'tf':
-                combined = getattr(mod, f)(x, y, z, model, inc, dec)
-                separate = getattr(mod, f)(x, y, z, mag_only, inc, dec)
-            else:
-                combined = getattr(mod, f)(x, y, z, model)
-                separate = getattr(mod, f)(x, y, z, mag_only)
-            precision = 10
-            assert_almost(separate, combined, precision, 'Field = %s' % (f))
-
-
-def test_cython_agains_numpy():
-    "gravmag.prism numpy and cython implementations give same result"
-    inc, dec = -30, 50
-    model = [
-        Prism(100, 300, -100, 100, 0, 400,
-              {'density': -1000,
-               'magnetization': utils.ang2vec(-2, inc, dec)}),
-        Prism(-300, -100, -100, 100, 0, 200,
-              {'density': 2000, 'magnetization': utils.ang2vec(5, 25, -10)})]
-    tmp = np.linspace(-500, 500, 101)
-    xp, yp = [i.ravel() for i in np.meshgrid(tmp, tmp)]
-    zp = -1 * np.ones_like(xp)
-    kernels = ['xx', 'xy', 'xz', 'yy', 'yz', 'zz']
-    for comp in kernels:
-        for p in model:
-            py = getattr(_prism_numpy, 'kernel' + comp)(xp, yp, zp, p)
-            cy = getattr(prism, 'kernel' + comp)(xp, yp, zp, p)
-            assert_almost(py, cy, 10,
-                          'Kernel = %s, max field %.15g max diff %.15g'
-                          % (comp, np.abs(cy).max(), np.abs(py - cy).max()))
+    # Test gravity functions
     funcs = ['potential', 'gx', 'gy', 'gz',
-             'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz',
-             'bx', 'by', 'bz', 'tf']
+             'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
+    for f in funcs:
+        forced = getattr(prism, f)(x, y, z, model, dens=density)
+        ref = getattr(prism, f)(x, y, z, reference)
+        precision = 10
+        assert_almost(forced, ref, precision, 'Field = %s' % (f))
+    # Test magnetic functions
+    funcs = ['tf', 'bx', 'by', 'bz']
     for f in funcs:
         if f == 'tf':
-            py = getattr(_prism_numpy, f)(xp, yp, zp, model, inc, dec)
-            cy = getattr(prism, f)(xp, yp, zp, model, inc, dec)
+            forced = getattr(prism, f)(x, y, z, model, inc, dec, pmag=mag)
+            ref = getattr(prism, f)(x, y, z, reference, inc, dec)
         else:
-            py = getattr(_prism_numpy, f)(xp, yp, zp, model)
-            cy = getattr(prism, f)(xp, yp, zp, model)
-        if f in ['bx', 'by', 'bz', 'tf']:
-            precision = 8
-        else:
-            precision = 10
-        assert_almost(py, cy, precision,
-                      'Field = %s, max field %.15g max diff %.15g'
-                      % (f, np.abs(cy).max(), np.abs(py - cy).max()))
+            forced = getattr(prism, f)(x, y, z, model, pmag=mag)
+            ref = getattr(prism, f)(x, y, z, reference)
+        precision = 10
+        assert_almost(forced, ref, precision, 'Field = %s' % (f))
 
 
 def test_around():
     "gravmag.prism gravitational results are consistent around the prism"
     funcs = ['potential', 'gx', 'gy', 'gz',
              'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
-    model = [Prism(-300, 300, -300, 300, -300, 300, {'density': 1000})]
+    model = Prism(-300, 300, -300, 300, -300, 300, {'density': 1000})
     # Make the computation points surround the prism
     shape = (101, 101)
     area = [-600, 600, -600, 600]

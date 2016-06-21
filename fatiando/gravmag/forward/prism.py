@@ -8,21 +8,8 @@ Calculate the potential fields of the 3D right rectangular prism.
 .. note:: The coordinate system of the input parameters is x -> North,
     y -> East and z -> Down.
 
-**Gravity**
-
 The gravitational fields are calculated using the formula of Nagy et al.
-(2000). Available functions are:
-
-* :func:`~fatiando.gravmag.prism.potential`
-* :func:`~fatiando.gravmag.prism.gx`
-* :func:`~fatiando.gravmag.prism.gy`
-* :func:`~fatiando.gravmag.prism.gz`
-* :func:`~fatiando.gravmag.prism.gxx`
-* :func:`~fatiando.gravmag.prism.gxy`
-* :func:`~fatiando.gravmag.prism.gxz`
-* :func:`~fatiando.gravmag.prism.gyy`
-* :func:`~fatiando.gravmag.prism.gyz`
-* :func:`~fatiando.gravmag.prism.gzz`
+(2000).
 
 .. warning::
 
@@ -33,17 +20,10 @@ The gravitational fields are calculated using the formula of Nagy et al.
     this means that the result will not be as accurate **on those points**.
 
 
-**Magnetic**
 
 Available fields are the total-field anomaly (using the formula of
-Bhattacharyya, 1964) and x, y, z components of the magnetic induction:
+Bhattacharyya, 1964) and x, y, z components of the magnetic induction.
 
-* :func:`~fatiando.gravmag.prism.tf`
-* :func:`~fatiando.gravmag.prism.bx`
-* :func:`~fatiando.gravmag.prism.by`
-* :func:`~fatiando.gravmag.prism.bz`
-
-**Auxiliary Functions**
 
 Calculates the second derivatives of the function
 
@@ -85,38 +65,53 @@ doi: 10.1007/s001900000116.
 """
 from __future__ import division
 
-import numpy
+import numpy as np
 
-from .. import utils
-from ..constants import G, SI2EOTVOS, CM, T2NT, SI2MGAL
-try:
-    from . import _prism
-except ImportError:
-    _prism = None
+from ... import utils
+from ...constants import G, SI2EOTVOS, CM, T2NT, SI2MGAL
 
-
-def potential(xp, yp, zp, prisms, dens=None):
+def safe_atan(y, x):
     """
-    Calculates the gravitational potential.
+    Correct the value of the angle returned by arctan2 to match the sign of the
+    tangent. Also return 0 instead of 2Pi for 0 tangent.
+    """
+    res = np.arctan2(y, x)
+    res[y == 0] = 0
+    res[(y > 0) & (x < 0)] -= np.pi
+    res[(y < 0) & (x < 0)] += np.pi
+    return res
+
+
+def safe_log(x):
+    """
+    Return 0 for log(0) because the limits in the formula terms tend to 0
+    (see Nagy et al., 2000)
+    """
+    res = np.log(x)
+    res[x == 0] = 0
+    return res
+
+
+def potential(xp, yp, zp, prism, dens=None):
+    """
+    Calculates the gravitational potential of a prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> **DOWN**.
 
-    .. note:: All input and output values in **SI** units(!)!
+    .. note:: All input and output values in **SI** units!
 
     Parameters:
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have
-        this property will be ignored in the computations. Elements of *prisms*
-        that are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
+    * prism : :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect. Prism
+        must have the property ``'density'`` in it's ``props`` dictionary.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
+        of the prism. Use this when you need to overwrite the prism's physical
+        properties, like for sensitivity (Jacobian) matrix building.
 
     Returns:
 
@@ -124,47 +119,55 @@ def potential(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same length!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
-    for prism in prisms:
-        if prism is None or ('density' not in prism.props and dens is None):
-            continue
-        if dens is None:
-            density = prism.props['density']
-        else:
-            density = dens
-        x1, x2 = prism.x1, prism.x2
-        y1, y2 = prism.y1, prism.y2
-        z1, z2 = prism.z1, prism.z2
-        _prism.potential(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
+    assert xp.shape == yp.shape == zp.shape, \
+        "Input arrays x, y, z must have same shape"
+    res = np.zeros_like(xp)
+    if dens is None:
+        density = prism.props['density']
+    else:
+        density = dens
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    limits_x = [prism.x2 - xp, prism.x1 - xp]
+    limits_y = [prism.y2 - yp, prism.y1 - yp]
+    limits_z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k, z in enumerate(limits_z):
+        for j, y in enumerate(limits_y):
+            for i, x in enumerate(limits_x):
+                r = np.sqrt(x*x + y*y + z*z)
+                kernel = (x*y*safe_log(z + r)
+                          + y*z*safe_log(x + r)
+                          + x*z*safe_log(y + r)
+                          - (0.5*x*x)*safe_atan(z*y, x*r)
+                          - (0.5*y*y)*safe_atan(z*x, y*r)
+                          - (0.5*z*z)*safe_atan(x*y, z*r))
+                res += ((-1.)**(i + j + k))*kernel*density
+    # Now all that is left is to multiply res by the gravitational constant
     res *= G
     return res
 
 
-def gx(xp, yp, zp, prisms, dens=None):
+def gx(xp, yp, zp, prism, dens=None):
     """
-    Calculates the :math:`g_x` gravity acceleration component.
+    Calculates the :math:`g_x` gravity acceleration component of a prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> **DOWN**.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in **SI** units and output in **mGal**
 
     Parameters:
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have
-        this property will be ignored in the computations. Elements of *prisms*
-        that are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
+    * prism : :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect. Prism
+        must have the property ``'density'`` in it's ``props`` dictionary.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
+        of the prism. Use this when you need to overwrite the prism's physical
+        properties, like for sensitivity (Jacobian) matrix building.
 
     Returns:
 
@@ -172,47 +175,109 @@ def gx(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same length!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
-    for prism in prisms:
-        if prism is None or ('density' not in prism.props and dens is None):
-            continue
-        if dens is None:
-            density = prism.props['density']
-        else:
-            density = dens
-        x1, x2 = prism.x1, prism.x2
-        y1, y2 = prism.y1, prism.y2
-        z1, z2 = prism.z1, prism.z2
-        _prism.gx(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G * SI2MGAL
+    assert xp.shape == yp.shape == zp.shape, \
+        "Input arrays x, y, z must have same shape"
+    res = np.zeros_like(xp)
+    if dens is None:
+        density = prism.props['density']
+    else:
+        density = dens
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    limits_x = [prism.x2 - xp, prism.x1 - xp]
+    limits_y = [prism.y2 - yp, prism.y1 - yp]
+    limits_z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k, z in enumerate(limits_z):
+        for j, y in enumerate(limits_y):
+            for i, x in enumerate(limits_x):
+                r = np.sqrt(x*x + y*y + z*z)
+                # Minus because Nagy et al (2000) give the formula for the
+                # gradient of the potential. Gravity is -grad(V)
+                kernel = -(y*safe_log(z + r)
+                           + z*safe_log(y + r)
+                           - x*safe_atan(z*y, x*r))
+                res += ((-1)**(i + j + k))*kernel*density
+    # Now all that is left is to multiply res by the gravitational constant
+    res *= G*SI2MGAL
+    return re
+
+
+def gy(xp, yp, zp, prism, dens=None):
+    """
+    Calculates the :math:`g_y` gravity acceleration component of a prism.
+
+    .. note:: The coordinate system of the input parameters is to be
+        x -> North, y -> East and z -> **DOWN**.
+
+    .. note:: All input values in **SI** units and output in **mGal**
+
+    Parameters:
+
+    * xp, yp, zp : arrays
+        Arrays with the x, y, and z coordinates of the computation points.
+    * prism : :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect. Prism
+        must have the property ``'density'`` in it's ``props`` dictionary.
+    * dens : float or None
+        If not None, will use this value instead of the ``'density'`` property
+        of the prism. Use this when you need to overwrite the prism's physical
+        properties, like for sensitivity (Jacobian) matrix building.
+
+    Returns:
+
+    * res : array
+        The field calculated on xp, yp, zp
+
+    """
+    assert xp.shape == yp.shape == zp.shape, \
+        "Input arrays x, y, z must have same shape"
+    res = np.zeros_like(xp)
+    if dens is None:
+        density = prism.props['density']
+    else:
+        density = dens
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    limits_x = [prism.x2 - xp, prism.x1 - xp]
+    limits_y = [prism.y2 - yp, prism.y1 - yp]
+    limits_z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k, z in enumerate(limits_z):
+        for j, y in enumerate(limits_y):
+            for i, x in enumerate(limits_x):
+                r = np.sqrt(x*x + y*y + z*z)
+                # Minus because Nagy et al (2000) give the formula for the
+                # gradient of the potential. Gravity is -grad(V)
+                kernel = -(z*safe_log(x + r)
+                           + x*safe_log(z + r)
+                           - y*safe_atan(x*z, y*r))
+                res += ((-1)**(i + j + k))*kernel*density
+    # Now all that is left is to multiply res by the gravitational constant
+    res *= G*SI2MGAL
     return res
 
 
-def gy(xp, yp, zp, prisms, dens=None):
+def gz(xp, yp, zp, prism, dens=None):
     """
-    Calculates the :math:`g_y` gravity acceleration component.
+    Calculates the :math:`g_z` gravity acceleration component of a prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> **DOWN**.
 
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
+    .. note:: All input values in **SI** units and output in **mGal**
 
     Parameters:
 
     * xp, yp, zp : arrays
         Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have
-        this property will be ignored in the computations. Elements of *prisms*
-        that are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
+    * prism : :class:`~fatiando.mesher.Prism`
+        The density model used to calculate the gravitational effect. Prism
+        must have the property ``'density'`` in it's ``props`` dictionary.
     * dens : float or None
         If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
+        of the prism. Use this when you need to overwrite the prism's physical
+        properties, like for sensitivity (Jacobian) matrix building.
 
     Returns:
 
@@ -220,70 +285,31 @@ def gy(xp, yp, zp, prisms, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same length!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
-    for prism in prisms:
-        if prism is None or ('density' not in prism.props and dens is None):
-            continue
-        if dens is None:
-            density = prism.props['density']
-        else:
-            density = dens
-        x1, x2 = prism.x1, prism.x2
-        y1, y2 = prism.y1, prism.y2
-        z1, z2 = prism.z1, prism.z2
-        _prism.gy(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G * SI2MGAL
-    return res
-
-
-def gz(xp, yp, zp, prisms, dens=None):
-    """
-    Calculates the :math:`g_z` gravity acceleration component.
-
-    .. note:: The coordinate system of the input parameters is to be
-        x -> North, y -> East and z -> **DOWN**.
-
-    .. note:: All input values in **SI** units(!) and output in **mGal**!
-
-    Parameters:
-
-    * xp, yp, zp : arrays
-        Arrays with the x, y, and z coordinates of the computation points.
-    * prisms : list of :class:`~fatiando.mesher.Prism`
-        The density model used to calculate the gravitational effect.
-        Prisms must have the property ``'density'``. Prisms that don't have
-        this property will be ignored in the computations. Elements of *prisms*
-        that are None will also be ignored. *prisms* can also be a
-        :class:`~fatiando.mesher.PrismMesh`.
-    * dens : float or None
-        If not None, will use this value instead of the ``'density'`` property
-        of the prisms. Use this, e.g., for sensitivity matrix building.
-
-    Returns:
-
-    * res : array
-        The field calculated on xp, yp, zp
-
-    """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same length!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
-    for prism in prisms:
-        if prism is None or ('density' not in prism.props and dens is None):
-            continue
-        if dens is None:
-            density = prism.props['density']
-        else:
-            density = dens
-        x1, x2 = prism.x1, prism.x2
-        y1, y2 = prism.y1, prism.y2
-        z1, z2 = prism.z1, prism.z2
-        _prism.gz(xp, yp, zp, x1, x2, y1, y2, z1, z2, density, res)
-    res *= G * SI2MGAL
+    assert xp.shape == yp.shape == zp.shape, \
+        "Input arrays x, y, z must have same shape"
+    res = np.zeros_like(xp)
+    if dens is None:
+        density = prism.props['density']
+    else:
+        density = dens
+    # First thing to do is make the computation point P the origin of the
+    # coordinate system
+    limits_x = [prism.x2 - xp, prism.x1 - xp]
+    limits_y = [prism.y2 - yp, prism.y1 - yp]
+    limits_z = [prism.z2 - zp, prism.z1 - zp]
+    # Evaluate the integration limits
+    for k, z in enumerate(limits_z):
+        for j, y in enumerate(limits_y):
+            for i, x in enumerate(limits_x):
+                r = np.sqrt(x*x + y*y + z*z)
+                # Minus because Nagy et al (2000) give the formula for the
+                # gradient of the potential. Gravity is -grad(V)
+                kernel = -(x*safe_log(y + r)
+                           + y*safe_log(x + r)
+                           - z*safe_atan(x*y, z*r))
+                res += ((-1)**(i + j + k))*kernel*density
+    # Now all that is left is to multiply res by the gravitational constant
+    res *= G*SI2MGAL
     return res
 
 
