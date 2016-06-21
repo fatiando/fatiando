@@ -60,3 +60,4 @@ functions.
 ----
 
 """
+from .euler import EulerDeconv, EulerDeconvMW, EulerDeconvEW

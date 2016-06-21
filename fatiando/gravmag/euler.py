@@ -1,24 +1,21 @@
+# coding: utf-8
 """
 Euler deconvolution methods for potential fields.
 
-**Implementations**
 
-* :class:`~fatiando.gravmag.euler.Classic`: The classic 3D solution to Euler's
-  equation for potential fields (Reid et al., 1990). Runs on the whole dataset.
-
-**Solution selection procedures**
-
-* :class:`~fatiando.gravmag.euler.ExpandingWindow`: Run a given Euler
-  deconvolution on an expanding window and keep the best estimate.
-* :class:`~fatiando.gravmag.euler.MovingWindow`: Run a given Euler
-  deconvolution on a moving window to produce a set of estimates.
+* :class:`~fatiando.gravmag.euler.EulerDeconv`: The classic 3D solution to
+  Euler's equation for potential fields (Reid et al., 1990). Runs on the whole
+  dataset.
+* :class:`~fatiando.gravmag.euler.EulerDeconvEW`: Run Euler deconvolution on an
+  expanding window over the data set and keep the best estimate.
+* :class:`~fatiando.gravmag.euler.EulerDeconvMW`: Run Euler deconvolution on a
+  moving window over the data set to produce a set of estimates.
 
 **References**
 
 Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
 (1990), Magnetic interpretation in three dimensions using Euler deconvolution,
 Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
-
 
 ----
 
@@ -32,18 +29,63 @@ from ..inversion import Misfit
 from ..utils import safe_inverse, safe_dot, safe_diagonal
 
 
-class Classic(Misfit):
+class EulerDeconv(Misfit):
     """
     Classic 3D Euler deconvolution of potential field data.
 
     Follows the formulation of Reid et al. (1990). Performs the deconvolution
     on the whole data set. For windowed approaches, use
-    :class:`~fatiando.gravmag.euler.ExpandingWindow`.
+    :class:`~fatiando.gravmag.euler.EulerDeconvMW` (moving window)
+    and
+    :class:`~fatiando.gravmag.euler.EulerDeconvEW` (expanding window).
 
-    Works on any potential field that satisfies Euler's homogeneity equation.
+    Works on any potential field that satisfies Euler's homogeneity equation
+    (both gravity and magnetic, assuming simple sources):
 
-    Estimated coordinates are stored in ``estimate_`` attribute and the
-    estimated base level is stored in ``baselevel_``.
+    .. math::
+
+        (x_i - x_0)\dfrac{\partial f_i}{\partial x} +
+        (y_i - y_0)\dfrac{\partial f_i}{\partial y} +
+        (z_i - z_0)\dfrac{\partial f_i}{\partial z} =
+        \eta (b - f_i),
+
+    in which :math:`f_i` is the given potential field observation at point
+    :math:`(x_i, y_i, z_i)`, :math:`b` is the base level (a constant shift of
+    the field, like a regional field), :math:`\eta` is the structural index,
+    and :math:`(x_0, y_0, z_0)` are the coordinates of a point on the source
+    (for a sphere, this is the center point).
+
+    The Euler deconvolution estimates :math:`(x_0, y_0, z_0)` and :math:`b`
+    given a potential field and its x, y, z derivatives and the structural
+    index. However, **this assumes that the sources are ideal** (see the table
+    below). We recommend reading Reid and Thurston (2014) for a discussion on
+    what the structural index means and what it does not mean.
+
+    .. warning::
+
+        Please read the paper Reid et al. (2014)  to avoid doing **horrible
+        things** with Euler deconvolution. Uieda et al. (2014) offer a
+        practical tutorial using Fatiando code and show some common
+        misinterpretations.
+
+    After Reid et al. (2014), values of the structural index (SI) can be:
+
+    ===================================== ======== =========
+    Source type                           SI (Mag) SI (Grav)
+    ===================================== ======== =========
+    Point, sphere                            3         2
+    Line, cylinder, thin bed fault           2         1
+    Thin sheet edge, thin sill, thin dyke    1         0
+    ===================================== ======== =========
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconv.fit` method to run the
+    deconvolution. The estimated coordinates :math:`(x_0, y_0, z_0)` are stored
+    in the ``estimate_`` attribute and the estimated base level :math:`b` is
+    stored in ``baselevel_``.
+
+    .. note::
+
+        Using structural index of 0 is not supported yet.
 
     .. note::
 
@@ -53,7 +95,7 @@ class Classic(Misfit):
 
     .. note:: x is North, y is East, and z is down.
 
-    .. warning::
+    .. note::
 
         Units of the input data (x, y, z, field, derivatives) must be in SI
         units! Otherwise, the results will be in strange units. Use functions
@@ -71,6 +113,27 @@ class Classic(Misfit):
     * index : float
         The structural index of the source
 
+    References:
+
+    Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
+    (1990), Magnetic interpretation in three dimensions using Euler
+    deconvolution, Geophysics, 55(1), 80-91, doi:`10.1190/1.1442774
+    <http://dx.doi.org/10.1190/1.1442774>`__.
+
+    Reid, A. B., J. Ebbing, and S. J. Webb (2014), Avoidable Euler Errors – the
+    use and abuse of Euler deconvolution applied to potential fields,
+    Geophysical Prospecting, doi:`10.1111/1365-2478.12119
+    <http://dx.doi.org/10.1111/1365-2478.12119>`__.
+
+    Reid, A., and J. Thurston (2014), The structural index in gravity and
+    magnetic interpretation: Errors, uses, and abuses, GEOPHYSICS, 79(4),
+    J61-J66, doi:`10.1190/geo2013-0235.1
+    <http://dx.doi.org/10.1190/geo2013-0235.1>`__.
+
+    Uieda, L., V. C. Oliveira Jr., and V. C. F. Barbosa (2014), Geophysical
+    tutorial: Euler deconvolution of potential-field data, The Leading Edge,
+    33(4), 448-450, doi:`10.1190/tle33040448.1
+    <http://dx.doi.org/10.1190/tle33040448.1>`__.
 
     """
 
@@ -119,9 +182,11 @@ class Classic(Misfit):
         """
         return p[:3]
 
-    def cut_window(self, area):
+    def _cut_window(self, area):
         """
-        Return a copy of self with only data that falls inside the given area
+        Return a copy of self with only data that falls inside the given area.
+
+        Used by the windowed versions of Euler deconvolution.
 
         Parameters:
 
@@ -140,26 +205,34 @@ class Classic(Misfit):
         slices = [i[indices] for i in [self.x, self.y, self.z, self.field,
                                        self.xderiv, self.yderiv, self.zderiv]]
         slices.append(self.structural_index)
-        return self.__class__(*slices)
+        return EulerDeconv(*slices)
 
 
-class ExpandingWindow(object):
+class EulerDeconvEW(EulerDeconv):
     """
-    Solve an Euler deconvolution problem using an expanding window scheme.
+    Euler deconvolution using an expanding window scheme.
 
     Uses data inside a window of growing size to perform the Euler
     deconvolution. Keeps the best result, judged by the estimated error.
 
-    Like any other Euler solver, use the
-    :meth:`~fatiando.gravmag.euler.ExpandingWindow.fit` method to produce an
-    estimate. The estimated point is stored in ``estimate_``, the base level in
-    ``baselevel_``.
+    The deconvolution is performed as in
+    :class:`~fatiando.gravmag.euler.EulerDeconv`.
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconvEW.fit` method to produce
+    an estimate. The estimated point is stored in the attribute ``estimate_``
+    and the base level in ``baselevel_``.
 
     Parameters:
 
-    * euler : Euler solver
-        An instance of an Euler deconvolution solver, like
-        :class:`~fatiando.gravmag.euler.Classic`.
+    * x, y, z : 1d-arrays
+        The x, y, and z coordinates of the observation points
+    * field : 1d-array
+        The potential field measured at the observation points
+    * xderiv, yderiv, zderiv : 1d-arrays
+        The x-, y-, and z-derivatives of the potential field (measured or
+        calculated) at the observation points
+    * index : float
+        The structural index of the source
     * center : [x, y]
         The x, y coordinates of the center of the expanding windows.
     * sizes : list or 1d-array
@@ -167,12 +240,12 @@ class ExpandingWindow(object):
 
     """
 
-    def __init__(self, euler, center, sizes):
-        self.euler = euler
+    def __init__(self, x, y, z, field, xderiv, yderiv, zderiv,
+                 structural_index, center, sizes):
+        super().__init__(x, y, z, field, xderiv, yderiv, zderiv,
+                         structural_index)
         self.center = center
         self.sizes = sizes
-        self.estimate_ = None
-        self.p_ = None
 
     def fit(self):
         """
@@ -188,7 +261,7 @@ class ExpandingWindow(object):
         for size in self.sizes:
             ds = 0.5*size
             window = [xc - ds, xc + ds, yc - ds, yc + ds]
-            solver = self.euler.cut_window(window).fit()
+            solver = self._cut_window(window).fit()
             # Don't really know why dividing by ndata makes this better but it
             # does.
             cov = safe_inverse(solver.hessian(solver.p_)/solver.ndata)
@@ -197,28 +270,35 @@ class ExpandingWindow(object):
             errors.append(mean_error)
             results.append(solver.p_)
         self.p_ = results[np.argmin(errors)]
-        self.estimate_ = self.p_[:3]
-        self.baselevel_ = self.p_[3]
         return self
 
 
-class MovingWindow(object):
+class EulerDeconvMW(EulerDeconv):
     """
     Solve an Euler deconvolution problem using a moving window scheme.
 
     Uses data inside a window moving to perform the Euler deconvolution. Keeps
-    the estimate from all windows.
+    only a top percentage of the estimates from all windows.
 
-    Like any other Euler solver, use the
-    :meth:`~fatiando.gravmag.euler.MovingWindow.fit` method to produce an
-    estimate. The estimated points are stored in ``estimate_``, the base levels
-    in ``baselevel_``.
+    The deconvolution is performed as in
+    :class:`~fatiando.gravmag.euler.EulerDeconv`.
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconvMW.fit` method to produce
+    an estimate. The estimated points are stored in ``estimate_`` as a 2D numpy
+    array. Each line in the array is an [x, y, z] coordinate of a point. The
+    base levels are stored in ``baselevel_``.
 
     Parameters:
 
-    * euler : Euler solver
-        An instance of an Euler deconvolution solver, like
-        :class:`~fatiando.gravmag.euler.Classic`.
+    * x, y, z : 1d-arrays
+        The x, y, and z coordinates of the observation points
+    * field : 1d-array
+        The potential field measured at the observation points
+    * xderiv, yderiv, zderiv : 1d-arrays
+        The x-, y-, and z-derivatives of the potential field (measured or
+        calculated) at the observation points
+    * index : float
+        The structural index of the source
     * windows : (ny, nx)
         The number of windows in the y and x directions
     * size : (dy, dx)
@@ -229,16 +309,16 @@ class MovingWindow(object):
 
     """
 
-    def __init__(self, euler, windows, size, keep=0.2):
-        self.euler = euler
+    def __init__(self, x, y, z, field, xderiv, yderiv, zderiv,
+                 structural_index, windows, size, keep=0.2):
+        super().__init__(x, y, z, field, xderiv, yderiv, zderiv,
+                         structural_index)
         self.windows = windows
         self.size = size
         self.keep = keep
-        self.window_centers = self.get_window_centers()
-        self.estimate_ = None
-        self.p_ = None
+        self.window_centers = self._get_window_centers()
 
-    def get_window_centers(self):
+    def _get_window_centers(self):
         """
         Calculate the center coordinates of the windows.
 
@@ -252,7 +332,7 @@ class MovingWindow(object):
         """
         ny, nx = self.windows
         dy, dx = self.size
-        x, y = self.euler.x, self.euler.y
+        x, y = self.x, self.y
         x1, x2, y1, y2 = x.min(), x.max(), y.min(), y.max()
         centers = []
         xmidpoints = np.linspace(x1 + 0.5 * dx, x2 - 0.5 * dx, nx)
@@ -271,7 +351,6 @@ class MovingWindow(object):
 
         """
         dy, dx = self.size
-        euler = self.euler
         paramvecs = []
         estimates = []
         baselevels = []
@@ -281,7 +360,7 @@ class MovingWindow(object):
         for xc, yc in self.window_centers:
                 window = [xc - 0.5 * dx, xc + 0.5 * dx,
                           yc - 0.5 * dy, yc + 0.5 * dy]
-                solver = euler.cut_window(window).fit()
+                solver = self._cut_window(window).fit()
                 cov = safe_inverse(solver.hessian(solver.p_))
                 uncertainty = np.sqrt(safe_diagonal(cov)[0:3])
                 mean_error = np.linalg.norm(uncertainty)
@@ -291,6 +370,18 @@ class MovingWindow(object):
                 baselevels.append(solver.baselevel_)
         best = np.argsort(errors)[:int(self.keep * len(errors))]
         self.p_ = np.array(paramvecs)[best]
-        self.estimate_ = np.array(estimates)[best]
-        self.baselevel_ = np.array(baselevels)[best]
         return self
+
+    @property
+    def baselevel_(self):
+        assert self.p_ is not None, "No estimates found. Run 'fit' first."
+        return self.p_[:, 3]
+
+    def fmt_estimate(self, p):
+        """
+        Separate the (x, y, z) point coordinates from the baselevel.
+
+        Coordinates are stored in ``estimate_`` and a base level is stored in
+        ``baselevel_``.
+        """
+        return p[:, :3]
