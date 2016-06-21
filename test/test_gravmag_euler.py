@@ -55,7 +55,7 @@ def test_euler_sphere_mag():
 
 def test_euler_expandingwindow_sphere_mag():
     "gravmag.EulerDeconvEW estimates center for sphere model and magnetic data"
-    euler = EulerDeconvEW( x, y, z, field, dx, dy, dz, struct_ind,
+    euler = EulerDeconvEW(x, y, z, field, dx, dy, dz, struct_ind,
                           center=[1000, 1000],
                           sizes=np.linspace(100, 2000, 20))
     euler.fit()
