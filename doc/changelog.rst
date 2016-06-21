@@ -10,6 +10,12 @@ Version 0.5
 
 **Changes**:
 
+* Rename the Euler deconvolution classes to ``EulerDeconv`` (old ``Classic``
+  class, a terrible name choice in retrospect), ``EulerDeconvMW`` for the
+  moving window solver, and ``EulerDeconvEW`` for the expanding window solver.
+  These names are more unique and will not clash with any other class. This is
+  crucial to establish a nice API for ``fatiando.gravmag``.
+  (`PR 286 <https://github.com/fatiando/fatiando/pull/286>`__)
 * Started an example gallery (`matplotlib style
   <http://matplotlib.org/gallery.html>`__) using the Sphinx plug-in
   `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`__.
