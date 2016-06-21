@@ -43,6 +43,14 @@ def test_euler_sphere_mag():
         'baselevel: %g estimated: %g' % (base, euler.baselevel_)
     assert np.all((pos - euler.estimate_) / pos <= precision), \
         'position: %s estimated: %s' % (str(pos), str(euler.estimate_))
+    # Check if the R^2 metric (how good the fit is) is reasonably high
+    # (best score is 1)
+    data = -x*dx - y*dy - z*dz - struct_ind*field
+    pred = euler.predicted()
+    u = ((data - pred)**2).sum()
+    v = ((data - data.mean())**2).sum()
+    R2 = 1 - u/v
+    assert R2 >= 0.999, "R^2 too low: {}".format(R2)
 
 
 def test_euler_expandingwindow_sphere_mag():
