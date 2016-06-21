@@ -1,3 +1,4 @@
+# coding: utf-8
 """
 Euler deconvolution methods for potential fields.
 
@@ -39,10 +40,52 @@ class EulerDeconv(Misfit):
     :class:`~fatiando.gravmag.euler.EulerDeconvEW` (expanding window).
 
     Works on any potential field that satisfies Euler's homogeneity equation
-    (both gravity and magnetic, assuming simple sources).
+    (both gravity and magnetic, assuming simple sources):
 
-    Estimated coordinates are stored in ``estimate_`` attribute and the
-    estimated base level is stored in ``baselevel_``.
+    .. math::
+
+        (x_i - x_0)\dfrac{\partial f_i}{\partial x} +
+        (y_i - y_0)\dfrac{\partial f_i}{\partial y} +
+        (z_i - z_0)\dfrac{\partial f_i}{\partial z} =
+        \eta (b - f_i),
+
+    in which :math:`f_i` is the given potential field observation at point
+    :math:`(x_i, y_i, z_i)`, :math:`b` is the base level (a constant shift of
+    the field, like a regional field), :math:`\eta` is the structural index,
+    and :math:`(x_0, y_0, z_0)` are the coordinates of a point on the source
+    (for a sphere, this is the center point).
+
+    The Euler deconvolution estimates :math:`(x_0, y_0, z_0)` and :math:`b`
+    given a potential field and its x, y, z derivatives and the structural
+    index. However, **this assumes that the sources are ideal** (see the table
+    below). We recommend reading Reid and Thurston (2014) for a discussion on
+    what the structural index means and what it does not mean.
+
+    .. warning::
+
+        Please read the paper Reid et al. (2014)  to avoid doing **horrible
+        things** with Euler deconvolution. Uieda et al. (2014) offer a
+        practical tutorial using Fatiando code and show some common
+        misinterpretations.
+
+    After Reid et al. (2014), values of the structural index (SI) can be:
+
+    ===================================== ======== =========
+    Source type                           SI (Mag) SI (Grav)
+    ===================================== ======== =========
+    Point, sphere                            3         2
+    Line, cylinder, thin bed fault           2         1
+    Thin sheet edge, thin sill, thin dyke    1         0
+    ===================================== ======== =========
+
+    Use the :meth:`~fatiando.gravmag.euler.EulerDeconv.fit` method to run the
+    deconvolution. The estimated coordinates :math:`(x_0, y_0, z_0)` are stored
+    in the ``estimate_`` attribute and the estimated base level :math:`b` is
+    stored in ``baselevel_``.
+
+    .. note::
+
+        Using structural index of 0 is not supported yet.
 
     .. note::
 
@@ -52,7 +95,7 @@ class EulerDeconv(Misfit):
 
     .. note:: x is North, y is East, and z is down.
 
-    .. warning::
+    .. note::
 
         Units of the input data (x, y, z, field, derivatives) must be in SI
         units! Otherwise, the results will be in strange units. Use functions
@@ -70,6 +113,23 @@ class EulerDeconv(Misfit):
     * index : float
         The structural index of the source
 
+    References:
+
+    Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
+    (1990), Magnetic interpretation in three dimensions using Euler
+    deconvolution, Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
+
+    Reid, A. B., J. Ebbing, and S. J. Webb (2014), Avoidable Euler Errors – the
+    use and abuse of Euler deconvolution applied to potential fields,
+    Geophysical Prospecting, doi:10.1111/1365-2478.12119.
+
+    Reid, A., and J. Thurston (2014), The structural index in gravity and
+    magnetic interpretation: Errors, uses, and abuses, GEOPHYSICS, 79(4),
+    J61-J66, doi:10.1190/geo2013-0235.1.
+
+    Uieda, L., V. C. Oliveira Jr., and V. C. F. Barbosa (2014), Geophysical
+    tutorial: Euler deconvolution of potential-field data, The Leading Edge,
+    33(4), 448-450, doi:10.1190/tle33040448.1.
 
     """
 
