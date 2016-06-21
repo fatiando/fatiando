@@ -117,19 +117,23 @@ class EulerDeconv(Misfit):
 
     Reid, A. B., J. M. Allsop, H. Granser, A. J. Millett, and I. W. Somerton
     (1990), Magnetic interpretation in three dimensions using Euler
-    deconvolution, Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
+    deconvolution, Geophysics, 55(1), 80-91, doi:`10.1190/1.1442774
+    <http://dx.doi.org/10.1190/1.1442774>`__.
 
     Reid, A. B., J. Ebbing, and S. J. Webb (2014), Avoidable Euler Errors – the
     use and abuse of Euler deconvolution applied to potential fields,
-    Geophysical Prospecting, doi:10.1111/1365-2478.12119.
+    Geophysical Prospecting, doi:`10.1111/1365-2478.12119
+    <http://dx.doi.org/10.1111/1365-2478.12119>`__.
 
     Reid, A., and J. Thurston (2014), The structural index in gravity and
     magnetic interpretation: Errors, uses, and abuses, GEOPHYSICS, 79(4),
-    J61-J66, doi:10.1190/geo2013-0235.1.
+    J61-J66, doi:`10.1190/geo2013-0235.1
+    <http://dx.doi.org/10.1190/geo2013-0235.1>`__.
 
     Uieda, L., V. C. Oliveira Jr., and V. C. F. Barbosa (2014), Geophysical
     tutorial: Euler deconvolution of potential-field data, The Leading Edge,
-    33(4), 448-450, doi:10.1190/tle33040448.1.
+    33(4), 448-450, doi:`10.1190/tle33040448.1
+    <http://dx.doi.org/10.1190/tle33040448.1>`__.
 
     """
 
