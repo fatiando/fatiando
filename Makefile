@@ -19,11 +19,11 @@ cython:
 	python setup.py build_ext --inplace --cython
 
 .PHONY: test
-test: develop
-	nosetest --with-doctest -v fatiando test/
+test:
+	nosetests --with-doctest -v fatiando test/
 
-coverage: develop
-	nosetest --with-doctest --with-coverage --cover-package=fatiando fatiando/ test/
+coverage:
+	nosetests --with-doctest --with-coverage --cover-package=fatiando fatiando/ test/
 
 pep8:
 	pep8 --show-source --ignore=W503,E226,E241\
