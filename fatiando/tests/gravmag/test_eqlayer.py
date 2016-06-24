@@ -9,6 +9,37 @@ from fatiando.mesher import PointGrid, Prism
 from fatiando import utils, gridder
 
 
+def test_eql_grav_jacobian():
+    "EQLGravity produces the right Jacobian matrix for single source"
+    model = PointGrid([-10, 10, -10, 10], 500, (2, 2))[0]
+    model.addprop('density', 1)
+    n = 1000
+    x, y, z = gridder.scatter([-10, 10, -10, 10], n, z=-100, seed=42)
+    data = sphere.gz(x, y, z, [model])
+
+    eql = EQLGravity(x, y, z, data, [model])
+    A = eql.jacobian(None)
+
+    assert A.shape == (n, 1)
+    assert_allclose(A[:, 0], data, rtol=0.01)
+
+
+def test_eql_mag_jacobian():
+    "EQLTotalField produces the right Jacobian matrix for single source"
+    inc, dec = -30, 20
+    model = PointGrid([-10, 10, -10, 10], 500, (2, 2))[0]
+    model.addprop('magnetization', utils.ang2vec(1, inc, dec))
+    n = 1000
+    x, y, z = gridder.scatter([-10, 10, -10, 10], n, z=-100, seed=42)
+    data = sphere.tf(x, y, z, [model], inc, dec)
+
+    eql = EQLTotalField(x, y, z, data, inc, dec, [model])
+    A = eql.jacobian(None)
+
+    assert A.shape == (n, 1)
+    assert_allclose(A[:, 0], data, rtol=0.01)
+
+
 def test_eqlgrav_prism_interp():
     "EQLGravity can interpolate data from a prism"
     model = [Prism(-300, 300, -500, 500, 100, 600, {'density': 400})]
@@ -56,4 +87,3 @@ def test_eqlayer_polereduce():
     calc = sphere.tf(x, y, z, layer, inc=-90, dec=0)
 
     assert_allclose(calc, true, atol=10, rtol=0.05)
-

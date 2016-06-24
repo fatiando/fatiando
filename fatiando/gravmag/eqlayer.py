@@ -46,7 +46,7 @@ class EQLBase(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid):
-        super().__init__(data=data, nparams=grid.size, islinear=True)
+        super().__init__(data=data, nparams=len(grid), islinear=True)
         self.x = x
         self.y = y
         self.z = z
