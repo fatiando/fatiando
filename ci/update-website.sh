@@ -58,7 +58,7 @@ then
         # add, commit, and push files
         echo -e "Add and commit changes"
         git add -f .
-            git commit -m "Push from Travis build $TRAVIS_BUILD_NUMBER"
+        git commit -m "Push from Travis build $TRAVIS_BUILD_NUMBER"
         echo -e "Pushing..."
         git push -fq origin ${BRANCH} > /dev/null
         echo -e "Finished uploading generated files."
