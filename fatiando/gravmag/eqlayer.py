@@ -31,7 +31,7 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 
 """
 from __future__ import division
-from future.builtins import super
+from future.builtins import super, range
 import numpy
 import scipy.sparse
 
@@ -197,10 +197,10 @@ class PELBase(EQLBase):
         k = 0
         ystart = 0
         gny, gnx = grids[0].shape
-        for i in xrange(ny):
+        for i in range(ny):
             yend = ystart + gny
             xstart = 0
-            for j in xrange(nx):
+            for j in range(nx):
                 xend = xstart + gnx
                 g = grids[k]
                 bk = _bkmatrix(g, self.degree)
@@ -256,8 +256,8 @@ def _bkmatrix(grid, degree):
     """
     bmatrix = numpy.transpose(
         [(grid.x**i)*(grid.y**j)
-         for l in xrange(1, degree + 2)
-         for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
+         for l in range(1, degree + 2)
+         for i, j in zip(range(l), range(l - 1, -1, -1))])
     return bmatrix
 
 
@@ -287,7 +287,7 @@ def ncoeffs(degree):
     15
 
     """
-    return sum(xrange(1, degree + 2))
+    return sum(range(1, degree + 2))
 
 
 class PELGravity(PELBase):
@@ -440,20 +440,20 @@ def _pel_fdmatrix(windows, grid, degree):
     rmatrix = scipy.sparse.lil_matrix((nderivs, grid.size))
     deriv = 0
     # derivatives in x
-    for k in xrange(0, len(grids) - ny):
+    for k in range(0, len(grids) - ny):
         bottom = k * gsize + gny * (gnx - 1)
         top = (k + ny) * gsize
-        for i in xrange(gny):
+        for i in range(gny):
             rmatrix[deriv, bottom + i] = -1.
             rmatrix[deriv, top + 1] = 1.
             deriv += 1
     # derivatives in y
-    for k in xrange(0, len(grids)):
+    for k in range(0, len(grids)):
         if (k + 1) % ny == 0:
             continue
         right = k * gsize + gny - 1
         left = (k + 1) * gsize
-        for i in xrange(gnx):
+        for i in range(gnx):
             rmatrix[deriv, right + i * gny] = -1.
             rmatrix[deriv, left + i * gny] = 1.
             deriv += 1
