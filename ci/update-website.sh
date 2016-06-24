@@ -28,7 +28,10 @@ then
        [ "$TRAVIS_BRANCH" == "master" ] ||
        [ "$BUILD_PR" == "true" ];
     then
-        echo "PR ${TRAVIS_PULL_REQUEST} will push HTML to ${USER}/${REPO}"
+        if [ "$BUILD_PR" == "true" ];
+        then
+            echo "PR ${TRAVIS_PULL_REQUEST} will push HTML to ${USER}/${REPO}"
+        fi
         echo -e "Copying generated files."
         cp -R doc/_build/html/ $HOME/keep
         # Go to home and setup git
@@ -39,7 +42,7 @@ then
         echo -e "Cloning ${USER}/${REPO}"
         # Clone the project, using the secret token.
         # Uses /dev/null to avoid leaking decrypted key.
-        git clone ${CLONE_ARGS} ${REPO_URL} deploy-repo > /dev/null
+        git clone ${CLONE_ARGS} ${REPO_URL} deploy > /dev/null
         cd deploy
         # Move the old branch out of the way and create a new one:
         echo -e "Create an empty ${BRANCH} branch"
