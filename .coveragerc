@@ -1,4 +1,0 @@
-[run]
-omit =
-    fatiando/_version.py
-    fatiando/tests/*
