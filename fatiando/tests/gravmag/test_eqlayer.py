@@ -1,8 +1,8 @@
 from __future__ import division
 import numpy as np
 from numpy.testing import assert_allclose
-from fatiando.gravmag.eqlayer import EQLGravity, EQLTotalField, \
-                                     PELGravity, PELTotalField
+from fatiando.gravmag.eqlayer import (EQLGravity, EQLTotalField,
+                                      PELGravity, PELTotalField)
 from fatiando.inversion import Damping
 from fatiando.gravmag import sphere, prism
 from fatiando.mesher import PointGrid, Prism
@@ -29,6 +29,3 @@ def test_eqlgrav_prism_interp():
     max_diff = np.abs(calc - true).max()
     assert_allclose(calc, true, rtol=0.05,
                     err_msg='max diff: {}'.format(max_diff))
-
-
-
