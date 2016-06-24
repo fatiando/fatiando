@@ -21,7 +21,7 @@ def test_pole_reduce():
     # Use low latitudes to make sure that there are no problems with FFT
     # instability.
     inc, dec = -60, -15
-    shape = (100, 100)
+    shape = (50, 50)
     x, y, z = gridder.regular([-2000, 2000, -2000, 2000], shape, z=-100)
     data = prism.tf(x, y, z, model, inc, dec)
     pole = transform.reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec)
