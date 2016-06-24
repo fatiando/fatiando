@@ -1,5 +1,5 @@
 """
-Griding and upward-continuing gravity data with the equivalent layer
+Equivalent layer for griding and upward-continuing gravity data
 -------------------------------------------------------------------------
 
 The equivalent layer is one of the best methods for griding and upward
