@@ -117,10 +117,27 @@ or if you have git installed and want to see the code::
 Testing the install
 -------------------
 
-Try running one of the recipes from the :ref:`Gallery <gallery>` or
-:ref:`Cookbook <cookbook>`.
-If you get an error message or weird result,
-please write to the `mailing list`_.
+You can test your install by running our test suite. We use `py.test`_ to
+manage our tests, so you'll need to have it installed. You can do this by
+running ``conda install pytest`` if you use ``conda`` or ``pip install pytest``
+if you use ``pip``. After that, you can run the tests by running the following
+in the Python (or IPython) interpreter::
+
+    import fatiando
+    fatiando.test()
+
+Alternatively, you can run the following from the command line (or
+``cmd.exe``)::
+
+    python -c "import fatiando; fatiando.test()"
+
+That should run all our automated tests (it might take a few minutes).
+
+Another way to test that Fatiando is working is to try running one of the
+recipes from the :ref:`Gallery <gallery>` or :ref:`Cookbook <cookbook>`.
+
+If any of the tests fail or you get an error message or weird result from a
+recipe, please write to the `mailing list`_.
 To make it easier for us to debug you problem, please include the following
 information:
 
@@ -132,6 +149,10 @@ information:
 * The error message (the part that says ``Traceback: ...``) or result (figure,
   numbers, etc)
 
+**We really appreciate the feedback**! Reporting problems helps us try to make
+Fatiando better and easier to install.
+
+.. _py.test: http://pytest.org/
 .. _submit a bug report on Github: https://github.com/fatiando/fatiando/issues
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/fatiando/fatiando
