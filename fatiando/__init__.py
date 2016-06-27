@@ -79,12 +79,12 @@ def test(doctest=True, verbose=False, coverage=False):
 
     """
     import pytest
-    args = ['--pyargs']
+    args = []
     if verbose:
         args.append('-v')
     if coverage:
-        args.append('--cov=fatiando')
+        args.append('--cov-report term-missing --cov=fatiando')
     if doctest:
         args.append('--doctest-modules')
-    args.append('fatiando')
-    return pytest.main(args)
+    args.append('--pyargs fatiando')
+    return pytest.main(' '.join(args))
