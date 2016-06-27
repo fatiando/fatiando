@@ -9,12 +9,12 @@
 # Only works if the branch is created from the fatiando/fatiando repository
 # (not on a fork).
 
-#REPO=dev
-#BUILD_PR=false
+REPO=dev
+BUILD_PR=false
 
 # Use these values for testing if making serious changes to the docs
-REPO=tmp-docs   # Push to the tmp-docs repo instead
-BUILD_PR=true   # Force building even if in a PR
+#REPO=tmp-docs   # Push to the tmp-docs repo instead
+#BUILD_PR=true   # Force building even if in a PR
 
 USER=fatiando
 BRANCH=gh-pages
