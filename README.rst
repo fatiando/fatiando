@@ -62,12 +62,11 @@ Participating and asking for help
 
 **Subscribe** to our Google Groups mailing list to stay informed and ask for
 help:
-
 `groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
 
-We'll post updates about new releases and features, events, and future plans
-for the project. **Get involved** to help us shape the project and make it even
-better!
+We'll post updates to the list about new releases and features, events, and
+future plans for the project.
+**Get involved** to help us shape the project and make it even better!
 
 Another option for reaching out and reporting bugs is to
 `open an issue on Github <https://github.com/fatiando/fatiando/issues>`__.
