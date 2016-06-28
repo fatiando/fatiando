@@ -199,15 +199,29 @@ def test_laplace_from_potential():
         "Max: {} Mean: {} STD: {}".format(
             laplace.max(), laplace.mean(), laplace.std())
 
+
 def test_potential_field_tilt_values():
     "gravmag.transform tilt returns sane values"
-    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 200})]
+    model = [Prism(-500, 500, -500, 500, 0, 2000, {'magnetization': 200})]
     shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
-    inc, dec = -30, 0
-    potential = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 0.001)
-    tilt_angle = transform.tilt(x, y, potential, shape)
+    inc, dec = -30, 15
+    potential = prism.tf(x, y, z, model, inc, dec)
+    pole = transform.reduce_to_pole(x, y, potential, shape, inc, dec,
+        sinc=inc, sdec=dec)
+    tilt_angle = transform.tilt(x, y, pole, shape)
     assert max(np.degrees(tilt_angle)) < 90, \
         "Maximum tilt greater than 90: {}".format(max(np.degrees(tilt_angle)))
     assert min(np.degrees(tilt_angle)) > -90, \
-        "Maximum tilt less than -90: {}".format(min(np.degrees(tilt_angle)))
+        "Minimum tilt less than -90: {}".format(min(np.degrees(tilt_angle)))
+    assert
+
+
+def test_potential_field_tilt_works():
+    "gravmag.transform tilt returns sane values"
+    model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'magnetization': 3200})]
+    shape = (300, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    inc, dec = -30, 0
+    potential = prism.tf(x, y, z, model, inc, dec)
+    tilt_angle = transform.tilt(x, y, potential, shape)
