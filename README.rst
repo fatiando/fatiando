@@ -1,17 +1,9 @@
-.. image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-long.png
+.. image:: https://raw.githubusercontent.com/fatiando/logo/master/fatiando-banner-homepage.png
     :alt: Fatiando a Terra
-
-`Website <http://www.fatiando.org>`__ |
-`Docs <http://www.fatiando.org/docs.html>`__ |
-`Mailing list <https://groups.google.com/d/forum/fatiando>`__
-
-An open-source Python library for modeling and inversion in geophysics.
+    :target: http://www.fatiando.org
 
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
-    :target: https://pypi.python.org/pypi/fatiando/
-.. image:: http://img.shields.io/pypi/dm/fatiando.svg?style=flat-square
-    :alt: Number of PyPI downloads
     :target: https://pypi.python.org/pypi/fatiando/
 .. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat-square
     :alt: Travis CI build status
@@ -19,15 +11,16 @@ An open-source Python library for modeling and inversion in geophysics.
 .. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
-.. image:: https://landscape.io/github/fatiando/fatiando/master/landscape.svg?style=flat-square
-    :alt: Code Health from landscape.io
-    :target: https://landscape.io/github/fatiando/fatiando/master
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.49087-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.49087
     :target: http://dx.doi.org/10.5281/zenodo.49087
-.. image:: http://img.shields.io/badge/GITTER-JOIN_CHAT-brightgreen.svg?style=flat-square
-    :alt: gitter chat room at https://gitter.im/fatiando/fatiando
-    :target: https://gitter.im/fatiando/fatiando
+
+**Official website and documentation**: `fatiando.org <http://www.fatiando.org>`__
+
+**Development documentation (reflects ``master`` branch)**: `fatiando.org/dev <http://www.fatiando.org/dev>`__
+
+**Mailing list (get updates and ask for help)**: `groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
+
 
 Overview
 --------
@@ -36,23 +29,45 @@ Our goal is provide a comprehensive and extensible framework
 for geophysical data analysis and the development of new methodologies.
 
 **Research:** Fatiando allows you to write Python scripts to
-perform your data analysis and generate figures in a reproducible way.
+perform your data analysis and generate figures in a **reproducible** way.
 
 **Development:** Designed for extensibility, Fatiando offers tools for users to
-build upon the existing infrastructure and develop new inversion methods.
+build upon the existing infrastructure and **develop new methods**.
 We take care of the boilerplate.
 
 **Teaching:** Fatiando can be combined with the `Jupyter notebook
-<https://jupyter.org/>`__ to make rich, interactive documents. Great for
+<https://jupyter.org/>`__ to make rich, **interactive documents**. Great for
 teaching fundamental concepts of geophysics.
+
 
 Getting started
 ---------------
 
-Take a look at the `Documentation <http://www.fatiando.org/docs.html>`__ for a
-detailed tour of the library.  You can also browse the `Cookbook
+Take a look at the `Documentation <http://www.fatiando.org>`__ for a
+detailed tour of the library and install instructions.  You can also browse the
+`Gallery
+<http://www.fatiando.org/dev/gallery/index.html>`__
+and
+`Cookbook
 <http://www.fatiando.org/cookbook.html>`__ for examples of what Fatiando can
 do.
+
+
+Participating and asking for help
+---------------------------------
+
+**Subscribe** to our Google Groups mailing list to stay informed and ask for
+help:
+
+`groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
+
+We'll post updates about new releases and features, events, and future plans
+for the project. **Get involved** to help us shape the project and make it even
+better!
+
+Another option for reaching out and reporting bugs is to
+`open an issue on Github <https://github.com/fatiando/fatiando/issues>`__.
+
 
 Dependencies
 ------------
@@ -66,6 +81,7 @@ You'll also need a C compiler, preferably ``gcc``.
 You can get all of these on Linux, Mac, and Windows through
 the `Anaconda distribution <http://continuum.io/downloads>`__.
 See file ``requirements.txt``.
+
 
 Installing
 ----------
@@ -84,8 +100,9 @@ install from PyPI, this will be something like ``'0.2'``. If you installed from
 Github, this will be the latest commit hash. This way you can track exactly
 what version of Fatiando generated your results.
 
-See the `documentation <http://www.fatiando.org/docs.html>`__ for detailed
-instructions.
+See the `Installing documentation <http://www.fatiando.org/install.html>`__ for
+detailed instructions.
+
 
 Citing
 ------
@@ -104,18 +121,6 @@ See the `CITATION.rst
 `Citing section <http://www.fatiando.org/cite.html>`__ of the docs for more
 information.
 
-Read `this blog post by Robin Wilson
-<http://www.software.ac.uk/blog/2013-09-02-encouraging-citation-software-introducing-citation-files>`__
-if you haven't heard of CITATION files.
-
-Getting help
-------------
-
-Here are a few option to get in touch with us:
-
-* `Open an issue on Github <https://github.com/fatiando/fatiando/issues>`__
-* `Write to the mailing list <https://groups.google.com/d/forum/fatiando>`__
-* `Ask on the Gitter chat room <https://gitter.im/fatiando/fatiando>`__
 
 License
 -------
