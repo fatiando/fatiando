@@ -31,7 +31,7 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 
 """
 from __future__ import division
-from future.builtins import super
+from future.builtins import super, range
 import numpy
 import scipy.sparse
 
@@ -46,7 +46,7 @@ class EQLBase(Misfit):
     """
 
     def __init__(self, x, y, z, data, grid):
-        super().__init__(data=data, nparams=grid.size, islinear=True)
+        super().__init__(data=data, nparams=len(grid), islinear=True)
         self.x = x
         self.y = y
         self.z = z
@@ -91,135 +91,6 @@ class EQLGravity(EQLBase):
         anomaly), ``'gxx'``, ``'gxy'``, ..., ``'gzz'`` (gravity gradient
         tensor). Defaults to ``'gz'``.
 
-    Examples:
-
-    Use the layer to fit some gravity data and check if our layer is able to
-    produce data at a different locations (i.e., interpolate, upward continue)
-
-    .. plot::
-        :include-source:
-        :context:
-
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> from fatiando import gridder
-        >>> from fatiando.gravmag import sphere, prism
-        >>> from fatiando.gravmag.eqlayer import EQLGravity
-        >>> from fatiando.mesher import Prism, PointGrid
-        >>> from fatiando.inversion.regularization import Damping
-        >>> # Produce some gravity data
-        >>> area = (0, 10000, 0, 10000)
-        >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
-        >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000,
-        ...                {'density': 1000})]
-        >>> gz = prism.gz(x, y, z, model)
-        >>> # Plot the data
-        >>> fig = plt.figure(figsize=(6, 5))
-        >>> _ = plt.tricontourf(y, x, gz, 30, cmap='Reds')
-        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
-        >>> _ = plt.plot(y, x, '.k')
-
-    .. plot::
-        :include-source:
-        :context:
-
-        >>> # Setup a layer
-        >>> layer = PointGrid(area, 500, (25, 25))
-        >>> solver = (EQLGravity(x, y, z, gz, layer) +
-        ...           10**-24*Damping(layer.size)).fit()
-        >>> # Check that the predicted data fits the observations
-        >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
-        True
-        >>> # Add the densities to the layer
-        >>> layer.addprop('density', solver.estimate_)
-        >>> # Make a regular grid
-        >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
-        >>> # Interpolate and check against the model
-        >>> gz_layer = sphere.gz(x, y, z, layer)
-        >>> gz_model = prism.gz(x, y, z, model)
-        >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
-        True
-        >>> # Upward continue and check against model data
-        >>> zup = z - 500
-        >>> gz_layer_up = sphere.gz(x, y, zup, layer)
-        >>> gz_model_up = prism.gz(x, y, zup, model)
-        >>> np.allclose(gz_layer_up, gz_model_up, rtol=0.01, atol=0.1)
-        True
-        >>> # Plot the interpolated and upward continued data
-        >>> plt.close()
-        >>> fig = plt.figure(figsize=(6, 5))
-        >>> _ = plt.tricontourf(y, x, gz_layer_up, 30, cmap='Reds')
-        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
-
-    If you have multiple types of gravity data (like gravity anomaly and
-    gradient tensor components), you can add ``EQLGravity`` instances together
-    for a joint inversion:
-
-    .. plot::
-        :include-source:
-        :context:
-
-        >>> x1, y1, z1 = gridder.scatter(area, 200, z=-400, seed=0)
-        >>> gz = prism.gz(x1, y1, z1, model)
-        >>> x2, y2, z2 = gridder.scatter(area, 400, z=-150, seed=2)
-        >>> gxy = prism.gxy(x2, y2, z2, model)
-        >>> # Plot the gz and gxy data
-        >>> plt.close()
-        >>> fig = plt.figure(figsize=(12, 5))
-        >>> ax = plt.subplot(121, aspect='equal')
-        >>> _ = plt.title('gz')
-        >>> _ = plt.tricontourf(y1, x1, gz, 30, cmap='Reds')
-        >>> plt.colorbar(pad=0, aspect=30).set_label('mGal')
-        >>> _ = plt.plot(y1, x1, '.k')
-        >>> ax = plt.subplot(122)
-        >>> _ = plt.title('gxy')
-        >>> _ = plt.tricontourf(y2, x2, gxy, 30, cmap='RdBu_r')
-        >>> plt.colorbar(pad=0, aspect=30).set_label('Eotvos')
-        >>> _ = plt.plot(y2, x2, '.k')
-        >>> plt.tight_layout()
-
-    .. plot::
-        :include-source:
-        :context:
-        :nofigs:
-
-        >>> # Setup a layer
-        >>> layer = PointGrid(area, 500, (25, 25))
-        >>> solver = (EQLGravity(x1, y1, z1, gz, layer, field='gz') +
-        ...           EQLGravity(x2, y2, z2, gxy, layer, field='gxy') +
-        ...           10**-24*Damping(layer.size)).fit()
-        >>> # Check the fit
-        >>> gz_pred = solver[0].predicted()
-        >>> gxy_pred = solver[1].predicted()
-        >>> np.allclose(gz, gz_pred, rtol=0.01, atol=0.5)
-        True
-        >>> np.allclose(gxy, gxy_pred, rtol=0.01, atol=0.5)
-        True
-        >>> # Add the densities to the layer
-        >>> layer.addprop('density', solver.estimate_)
-
-    Now that we have the layer, we can do any operation by forward modeling the
-    layer. For example, lets just upward continue gxy (without interpolation).
-
-    .. plot::
-        :include-source:
-        :context:
-
-        >>> # Upward continue gxy only without interpolation
-        >>> zup = z2 - 500
-        >>> gxy_layer = sphere.gxy(x2, y2, zup, layer)
-        >>> # Check against model data
-        >>> gxy_model = prism.gxy(x2, y2, zup, model)
-        >>> np.allclose(gxy_layer, gxy_model, rtol=0.01, atol=0.5)
-        True
-        >>> # Plot the upward continued gxy
-        >>> plt.close()
-        >>> fig = plt.figure(figsize=(6, 5))
-        >>> _ = plt.title('Upward continued gxy')
-        >>> _ = plt.tricontourf(y2, x2, gxy_layer, 30, cmap='RdBu_r')
-        >>> plt.colorbar(pad=0, aspect=30).set_label('Eotvos')
-        >>> _ = plt.plot(y2, x2, '.k')
-
     """
 
     def __init__(self, x, y, z, data, grid, field='gz'):
@@ -262,52 +133,6 @@ class EQLTotalField(EQLBase):
         there is remanent magnetization and the total magnetization of the
         layer if different from the induced magnetization.
         If there is only induced magnetization, use None
-
-    Examples:
-
-    Use the layer to fit some synthetic data and check is our layer is able to
-    produce data at a different locations (i.e., interpolate, upward continue,
-    reduce to the pole)
-
-
-    >>> import numpy as np
-    >>> from fatiando import gridder
-    >>> from fatiando.gravmag import sphere, prism
-    >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> from fatiando.inversion import Damping
-    >>> # Produce some synthetic data
-    >>> area = (0, 1000, 0, 1000)
-    >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
-    >>> model = [Prism(450, 550, 450, 550, 100, 500, {'magnetization':5})]
-    >>> inc, dec = 10, 23
-    >>> tf = prism.tf(x, y, z, model, inc, dec)
-    >>> # Setup a layer
-    >>> layer = PointGrid(area, 200, (25, 25))
-    >>> solver = (EQLTotalField(x, y, z, tf, inc, dec, layer) +
-    ...           10**-17*Damping(layer.size)).fit()
-    >>> # Check the fit
-    >>> np.allclose(tf, solver[0].predicted(), rtol=0.01, atol=0.5)
-    True
-    >>> # Add the magnetization to the layer
-    >>> layer.addprop('magnetization', solver.estimate_)
-    >>> # Make a regular grid
-    >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
-    >>> # Interpolate and check agains the model
-    >>> tf_layer = sphere.tf(x, y, z, layer, inc, dec)
-    >>> tf_model = prism.tf(x, y, z, model, inc, dec)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=0.5)
-    True
-    >>> # Upward continue and check agains model data
-    >>> zup = z - 50
-    >>> tf_layer = sphere.tf(x, y, zup, layer, inc, dec)
-    >>> tf_model = prism.tf(x, y, zup, model, inc, dec)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=0.5)
-    True
-    >>> # Reduce to the pole and check agains model data
-    >>> tf_layer = sphere.tf(x, y, zup, layer, 90, 0)
-    >>> tf_model = prism.tf(x, y, zup, model, 90, 0)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=2)
-    True
 
     """
 
@@ -372,10 +197,10 @@ class PELBase(EQLBase):
         k = 0
         ystart = 0
         gny, gnx = grids[0].shape
-        for i in xrange(ny):
+        for i in range(ny):
             yend = ystart + gny
             xstart = 0
-            for j in xrange(nx):
+            for j in range(nx):
                 xend = xstart + gnx
                 g = grids[k]
                 bk = _bkmatrix(g, self.degree)
@@ -431,8 +256,8 @@ def _bkmatrix(grid, degree):
     """
     bmatrix = numpy.transpose(
         [(grid.x**i)*(grid.y**j)
-         for l in xrange(1, degree + 2)
-         for i, j in zip(xrange(l), xrange(l - 1, -1, -1))])
+         for l in range(1, degree + 2)
+         for i, j in zip(range(l), range(l - 1, -1, -1))])
     return bmatrix
 
 
@@ -462,7 +287,7 @@ def ncoeffs(degree):
     15
 
     """
-    return sum(xrange(1, degree + 2))
+    return sum(range(1, degree + 2))
 
 
 class PELGravity(PELBase):
@@ -489,45 +314,6 @@ class PELGravity(PELBase):
         Which gravitational field is the data. Options are: ``'gz'`` (gravity
         anomaly), ``'gxx'``, ``'gxy'``, ..., ``'gzz'`` (gravity gradient
         tensor). Defaults to ``'gz'``.
-
-    Examples:
-
-    Use the layer to fit some gravity data and check is our layer is able to
-    produce data at a different locations (i.e., interpolate, upward continue)
-
-    >>> import numpy as np
-    >>> from fatiando import gridder
-    >>> from fatiando.gravmag import sphere, prism
-    >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> # Produce some gravity data
-    >>> area = (0, 10000, 0, 10000)
-    >>> x, y, z = gridder.scatter(area, 500, z=-150, seed=0)
-    >>> model = [Prism(4500, 5500, 4500, 5500, 200, 5000, {'density':1000})]
-    >>> gz = prism.gz(x, y, z, model)
-    >>> # Setup a layer
-    >>> layer = PointGrid(area, 500, (48, 48))
-    >>> windows = (12, 12)
-    >>> degree = 1
-    >>> solver = (PELGravity(x, y, z, gz, layer, windows, degree) +
-    ...           10**-24*PELSmoothness(layer, windows, degree)).fit()
-    >>> # Check the fit
-    >>> np.allclose(gz, solver[0].predicted(), rtol=0.01, atol=0.5)
-    True
-    >>> # Add the densities to the layer
-    >>> layer.addprop('density', solver.estimate_)
-    >>> # Upward continue and check agains model data
-    >>> zup = z - 50
-    >>> gz_layer = sphere.gz(x, y, zup, layer)
-    >>> gz_model = prism.gz(x, y, zup, model)
-    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
-    True
-    >>> # Make a regular grid
-    >>> x, y, z = gridder.regular(area, (30, 30), z=-150)
-    >>> # Interpolate and check agains the model
-    >>> gz_layer = sphere.gz(x, y, z, layer)
-    >>> gz_model = prism.gz(x, y, z, model)
-    >>> np.allclose(gz_layer, gz_model, rtol=0.01, atol=0.5)
-    True
 
     """
 
@@ -582,52 +368,6 @@ class PELTotalField(PELBase):
         there is remanent magnetization and the total magnetization of the
         layer if different from the induced magnetization.
         If there is only induced magnetization, use None
-
-    Examples:
-
-    Use the layer to fit some synthetic data and check is our layer is able to
-    produce data at a different locations (i.e., interpolate, upward continue,
-    reduce to the pole)
-
-    >>> import numpy as np
-    >>> from fatiando import gridder
-    >>> from fatiando.gravmag import sphere, prism
-    >>> from fatiando.mesher import Sphere, Prism, PointGrid
-    >>> # Produce some synthetic data
-    >>> area = (0, 1000, 0, 1000)
-    >>> x, y, z = gridder.scatter(area, 500, z=-1, seed=0)
-    >>> model = [Prism(450, 550, 450, 550, 100, 500, {'magnetization':5})]
-    >>> inc, dec = 10, 23
-    >>> tf = prism.tf(x, y, z, model, inc, dec)
-    >>> # Setup a layer
-    >>> layer = PointGrid(area, 200, (60, 60))
-    >>> windows = (12, 12)
-    >>> degree = 1
-    >>> solver = (PELTotalField(x, y, z, tf, inc, dec, layer, windows, degree)
-    ...           + 10**-15*PELSmoothness(layer, windows, degree)).fit()
-    >>> # Check the fit
-    >>> np.allclose(tf, solver[0].predicted(), rtol=0.01, atol=0.5)
-    True
-    >>> # Add the magnetization to the layer
-    >>> layer.addprop('magnetization', solver.estimate_)
-    >>> # Upward continue and check agains model data
-    >>> zup = z - 50
-    >>> tf_layer = sphere.tf(x, y, zup, layer, inc, dec)
-    >>> tf_model = prism.tf(x, y, zup, model, inc, dec)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=0.5)
-    True
-    >>> # Reduce to the pole and check agains model data
-    >>> tf_layer = sphere.tf(x, y, zup, layer, 90, 0)
-    >>> tf_model = prism.tf(x, y, zup, model, 90, 0)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=5)
-    True
-    >>> # Interpolate and check agains the model
-    >>> x, y, z = gridder.regular(area, (30, 30), z=-1)
-    >>> tf_layer = sphere.tf(x, y, z, layer, inc, dec)
-    >>> tf_model = prism.tf(x, y, z, model, inc, dec)
-    >>> np.allclose(tf_layer, tf_model, rtol=0.01, atol=5)
-    True
-
 
     """
 
@@ -700,20 +440,20 @@ def _pel_fdmatrix(windows, grid, degree):
     rmatrix = scipy.sparse.lil_matrix((nderivs, grid.size))
     deriv = 0
     # derivatives in x
-    for k in xrange(0, len(grids) - ny):
+    for k in range(0, len(grids) - ny):
         bottom = k * gsize + gny * (gnx - 1)
         top = (k + ny) * gsize
-        for i in xrange(gny):
+        for i in range(gny):
             rmatrix[deriv, bottom + i] = -1.
             rmatrix[deriv, top + 1] = 1.
             deriv += 1
     # derivatives in y
-    for k in xrange(0, len(grids)):
+    for k in range(0, len(grids)):
         if (k + 1) % ny == 0:
             continue
         right = k * gsize + gny - 1
         left = (k + 1) * gsize
-        for i in xrange(gnx):
+        for i in range(gnx):
             rmatrix[deriv, right + i * gny] = -1.
             rmatrix[deriv, left + i * gny] = 1.
             deriv += 1

@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
-from nose.tools import assert_raises
+from pytest import raises
 
 from fatiando.seismic import conv
 
@@ -42,10 +42,10 @@ def test_reflectivity_wrong_dimensions():
     """
     vel = np.ones((10, 10))
     dens = np.ones((11, 11))
-    assert_raises(AssertionError, conv.reflectivity, vel, dens)
+    raises(AssertionError, conv.reflectivity, vel, dens)
     vel = np.ones((10))
     dens = np.ones((11))
-    assert_raises(AssertionError, conv.reflectivity, vel, dens)
+    raises(AssertionError, conv.reflectivity, vel, dens)
 
 
 def test_depth_2_time_wrong_dimensions():
@@ -57,7 +57,7 @@ def test_depth_2_time_wrong_dimensions():
     dens = np.ones((11, 11))
     dt = 2.e-3
     dz = 1.
-    assert_raises(AssertionError, conv.depth_2_time, vel, dens, dt, dz)
+    raises(AssertionError, conv.depth_2_time, vel, dens, dt, dz)
 
 
 def test_ricker():
@@ -67,4 +67,4 @@ def test_ricker():
     """
     f = 50.
     dt = 2.e-3
-    assert_raises(AssertionError, conv.rickerwave, f, dt)
+    raises(AssertionError, conv.rickerwave, f, dt)

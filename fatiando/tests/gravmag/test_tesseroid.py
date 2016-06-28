@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
-from nose.tools import assert_raises
+from pytest import raises
 import multiprocessing
 import warnings
 
@@ -89,7 +89,7 @@ def test_pool_as_argument():
         f2 = func(lon, lat, height, model, njobs=njobs, pool=pool)
         assert_allclose(f1, f2, err_msg="Mismatch for {}".format(f))
         assert pool.used, "The given pool was not used in {}".format(f)
-        with assert_raises(AssertionError):
+        with raises(AssertionError):
             func(lon, lat, height, model, njobs=1, pool=pool)
 
 
@@ -120,7 +120,7 @@ def test_detect_invalid_tesseroid_dimensions():
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
         func = getattr(tesseroid, f)
         for t in model:
-            assert_raises(AssertionError, func, lon, lat, height, [t])
+            raises(AssertionError, func, lon, lat, height, [t])
 
 
 def test_serial_vs_parallel():
@@ -158,10 +158,10 @@ def test_fails_if_shape_mismatch():
 
     for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
         func = getattr(tesseroid, f)
-        assert_raises(AssertionError, func, lon[:-2], lat, h, model)
-        assert_raises(AssertionError, func, lon, lat[:-2], h, model)
-        assert_raises(AssertionError, func, lon, lat, h[:-2], model)
-        assert_raises(AssertionError, func, lon[:-5], lat, h[:-2], model)
+        raises(AssertionError, func, lon[:-2], lat, h, model)
+        raises(AssertionError, func, lon, lat[:-2], h, model)
+        raises(AssertionError, func, lon, lat, h[:-2], model)
+        raises(AssertionError, func, lon[:-5], lat, h[:-2], model)
 
 
 def calc_shell_effect(height, top, bottom, density):
@@ -292,12 +292,12 @@ def test_stack_overflow():
     backup = tesseroid.STACK_SIZE
     tesseroid.STACK_SIZE = 5
     for f in fields:
-        assert_raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
+        raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
     # Check if overflows on normal queue size when trying to calculated on top
     # of the tesseroid
     tesseroid.STACK_SIZE = 20
     lon, lat, h = np.array([0.5]), np.array([0.5]), np.array([0])
     for f in fields:
-        assert_raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
+        raises(OverflowError, getattr(tesseroid, f), lon, lat, h, model)
     # Restore the module default queue size
     tesseroid.STACK_SIZE = backup

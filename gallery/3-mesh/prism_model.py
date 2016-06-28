@@ -18,8 +18,7 @@ model = [
     Prism(-1500, -500, -1500, -500, 1000, 2000,
           {'magnetization': [3, 5, 4], 'density': 500}),
     Prism(500, 1500, 1000, 2000, 500, 1500,
-          {'magnetization': [10, 2, 1], 'density': -250}),
-    ]
+          {'magnetization': [10, 2, 1], 'density': -250})]
 
 # Create a 3D figure in Mayavi
 myv.figure()

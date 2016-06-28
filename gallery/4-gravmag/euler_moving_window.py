@@ -29,8 +29,8 @@ model = [
     mesher.Sphere(x=-1000, y=-1000, z=1500, radius=1000,
                   props={'magnetization': utils.ang2vec(2, inc, dec)}),
     mesher.Sphere(x=1000, y=1500, z=1000, radius=1000,
-                  props={'magnetization': utils.ang2vec(1, inc, dec)}),
-    ]
+                  props={'magnetization': utils.ang2vec(1, inc, dec)})]
+
 print("Centers of the model spheres:")
 print(model[0].center)
 print(model[1].center)
@@ -71,8 +71,8 @@ plt.figure(figsize=(6, 5))
 plt.title('Euler deconvolution with a moving window')
 plt.contourf(y.reshape(shape), x.reshape(shape), data.reshape(shape), 30,
              cmap="RdBu_r")
-plt.scatter(solver.estimate_[:,1], solver.estimate_[:,0],
-            s=50, c=solver.estimate_[:,2], cmap='cubehelix')
+plt.scatter(solver.estimate_[:, 1], solver.estimate_[:, 0],
+            s=50, c=solver.estimate_[:, 2], cmap='cubehelix')
 plt.colorbar(pad=0).set_label('Depth (m)')
 plt.xlim(area[2:])
 plt.ylim(area[:2])

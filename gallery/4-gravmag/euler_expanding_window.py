@@ -33,8 +33,7 @@ model = [
     mesher.Sphere(x=-1000, y=-1000, z=1500, radius=1000,
                   props={'magnetization': utils.ang2vec(2, inc, dec)}),
     mesher.Sphere(x=1000, y=1500, z=1000, radius=1000,
-                  props={'magnetization': utils.ang2vec(1, inc, dec)}),
-    ]
+                  props={'magnetization': utils.ang2vec(1, inc, dec)})]
 # Generate some magnetic data from the model
 shape = (100, 100)
 area = [-5000, 5000, -5000, 5000]

@@ -10,6 +10,12 @@ Version 0.5
 
 **Changes**:
 
+* Replace `nose <http://nose.readthedocs.io/>`__ with `py.test
+  <http://pytest.org/>`__ as our unit testing framework. Tests are now located
+  in the package ``fatiando.tests`` and installed with Fatiando. This means
+  that we can test an installed version of Fatiando, not just the code in the
+  repository.
+  (`PR 290 <https://github.com/fatiando/fatiando/pull/290>`__)
 * Remove unused module ``fatiando.gravmag.half_sph_shell``. It was used to test
   ``fatiando.gravmag.tesseroid`` but has been replaced by a full spherical
   shell solution that is coded in the tests. It serves no purpose so it should

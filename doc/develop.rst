@@ -77,26 +77,25 @@ Once you have your fork, clone a copy to your computer::
 Setting up
 ----------
 
-Once you have your fork and local clone, you should add it to your
-``PYTHONPATH`` environment variable so that you can ``import fatiando``
-directly from the source, without installing it in your system.
-
-First, make sure you have uninstalled Fatiando::
-
-    pip uninstall fatiando
-
 You will need some extra dependencies installed for development.
+See files ``ci/requirements-conda.txt`` and ``ci/requirements-pip.txt``.
 If you are using Anaconda (and you should),
-the repository provides an `environment.yml` file that specifies a `conda`
+the repository provides an ``environment.yml`` file that specifies a ``conda``
 virtual environment with all packages that you'll need.
 This will keep the Fatiando development related installation from you main
 Python.
-Run the following from the repository base directory to create the environment::
+The main advantage is that you can make changes to Fatiando and test them while
+still using a stable release (like 0.4) for your main work.
+Otherwise, changes to the code would likely break everything else you're
+working on.
+
+Run the following from the repository base directory to create the environment
+using the specification in the ``environment.yml`` file::
 
     conda env create
 
-Now, whenever you want to run code using the `fatiando-dev` environment we just
-created, you must run this first to activate the environment::
+Now, whenever you want to run code using the ``fatiando-dev`` environment we
+just created, you must run this first to activate the environment::
 
     source activate fatiando-dev
 
@@ -104,57 +103,35 @@ or on Windows::
 
     activate fatiando-dev
 
-You will also need `make <http://www.gnu.org/software/make/>`__, which usually
-comes with GNU/Linux by default. On windows, you can get it through
-`msysGit <http://msysgit.github.io/>`__.
-**Don't use the first "Download" button**.
-That will get you "Git for Windows".
-What you want is "msysGit" (download link at the bottom of the page).
-That will give you a
-`bash shell <http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29>`__,
-git, and make.
+Optionally, you can use `make <http://www.gnu.org/software/make/>`__ to take
+advantage of the project ``Makefile`` to compile and run tests.
 
-
-Building
---------
-
-The `Makefile <https://github.com/fatiando/fatiando/blob/master/Makefile>`__
-contains all the commands for building the C extensions, testing, checking code
-style, building the documentation, etc.
+Once you have your fork and local clone as well as the environment created and
+activated, you need to make sure that Python can import the ``fatiando`` code
+from your fork. This way, you can make changes and run code to test that your
+changes work.
 
 .. note::
 
-    If you don't know what ``make`` is or need a quick start, read the
-    `Software Carpentry lessons on Automation and Make
-    <http://software-carpentry.org/>`__.
+    **Don't** set the ``PYTHONPATH`` environment variable. This can be tricky
+    under Windows. It's better to use ``pip`` in editable mode (below).
 
+First, make sure you have uninstalled Fatiando from your environment (just to
+be sure)::
 
-We need to make Python use our source files from the repository, not an
-installed version.
-To do this, we can install Fatiando in editable mode::
+    pip uninstall fatiando
 
-    make develop
-
-or running directly::
+To make it so that Python can find the code in the repository, run ``pip
+install`` in `editable mode
+<https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`__::
 
     pip install -e .
 
-You will now be able to ``import fatiando`` and use it directly from the
-repository.  This is important for running and testing the new code you are
-making (that is why you can't use the installed version of Fatiando).
+If you're using the ``Makefile`` you can run ``make develop`` to do this.
 
-The ``.c`` files were automatically generated using
-`Cython <http://cython.org/>`__ from the ``.pyx`` files.
-If you don't change the ``.pyx``  files, you have nothing to worry about.
-If you make changes to the Cython code, then you'll need to re-generate the
-corresponding ``.c`` files.
-To do that, run::
+Now, changes to the repository code will be accessible from your installed
+Fatiando.
 
-    make cython
-
-This will also compile the newly generated C code.
-Once you are done editing the ``.pyx`` files, make sure to commit the generated
-``.c`` file as well.
 
 .. _develop_test:
 
@@ -172,18 +149,38 @@ unit tests and doc tests.
     `Testing: Unit Testing
     <http://software-carpentry.org/>`__.
 
-Unit tests are implemented in the ``test/test_*.py`` files of the repository.
+Unit tests are implemented in the ``fatiando/tests`` folder of the repository.
 Doctests are part of the docstrings of functions and modules.
 You'll recognize them by the ``>>>`` in each line of code.
 Both tests are found and run automatically by
-`nose <https://nose.readthedocs.org/en/latest/>`__.
+`py.test <http://pytest.org/>`__.
 
-To run all tests and check that your build was successful::
+There are different ways of running the tests. From the command line using the
+``py.test`` app::
 
-    make test
+    py.test --doctest-modules --pyargs fatiando
 
-This will also build the extensions if they are not built. Failures will
-indicate which test failed and print some useful information.
+Or from Python using the ``fatiando.test`` function::
+
+    import fatiando
+    fatiando.test()
+
+Or from the command line using the function::
+
+    python -c "import fatiando; fatiando.test()"
+
+
+If you use the ``Makefile``, running ``make test`` will perform the above in a
+temporary folder.
+
+You can also check the test coverage (how much of each module is tested) by::
+
+    py.test --cov=fatiando --doctest-modules --pyargs fatiando
+
+or passing ``coverage=True`` to the ``fatiando.test`` function::
+
+    python -c "import fatiando; fatiando.test(coverage=True)"
+
 
 .. important::
 
@@ -264,33 +261,18 @@ Code Style
 Fatiando follows the `PEP8 <http://legacy.python.org/dev/peps/pep-0008/>`__
 conventions for code style.
 
-Conformance to PEP8 is checked automatically using the
+Conformance to PEP8 can be checked automatically using the
 `pep8 <https://pypi.python.org/pypi/pep8>`__ package.
-The check is part of the unit tests and will report a test failure when new
-code is incorrectly formatted.
-The test failure message will be something like this::
+To see which if any code is not following the standard, run::
 
-    ======================================================================
-    FAIL: all packages, tests, and cookbook conform to PEP8
-    ----------------------------------------------------------------------
-    Traceback (most recent call last):
-      File "/home/leo/src/fatiando/test/test_pep8.py", line 13, in test_pep8_conformance
-        "Found code style errors (and warnings).")
-    AssertionError: Found code style errors (and warnings).
+	pep8 --show-source --ignore=W503,E226,E241 --exclude=_version.py fatiando cookbook gallery
 
-    ----------------------------------------------------------------------
+or::
 
-To see which files/lines caused the error, run::
-
-    $ make pep8
-    pep8 --exclude=_version.py fatiando test cookbook
-    fatiando/gravmag/prism.py:977:1: E302 expected 2 blank lines, found 1
-    make: *** [pep8] Error 1
+    make pep8
 
 This command will tell you exactly which file and line broke PEP8 compliance
 and what was wrong with it.
-In this case, line 977 of ``fatiando/gravmag/prism.py`` needs to have an extra
-blank line.
 
 
 .. _develop_docs:

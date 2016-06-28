@@ -12,16 +12,16 @@ dependencies:
     - jupyter
     - mayavi
     - sphinx
-    - nose
+    - pytest
+    - pytest-cov
+    - coverage
     - pep8=1.6.2
-    - coverage=3.7.1
     - cython
     - pip:
-        - coveralls==0.5
-        - sphinx_bootstrap_theme==0.4.5
-        # Need the dev version of sphinx-gallery for the Mayavi plot thumbnails
-        - https://github.com/sphinx-gallery/sphinx-gallery/archive/master.zip
         # Need a newer version of pyface and traits than is in conda for the
         # mayavi plots
         - pyface==5.1.0
         - traits==4.5.0
+        # Need the dev version of sphinx-gallery for the Mayavi plot thumbnails
+        - https://github.com/sphinx-gallery/sphinx-gallery/archive/master.zip
+        - sphinx_bootstrap_theme==0.4.5

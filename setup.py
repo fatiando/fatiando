@@ -22,6 +22,10 @@ CMDCLASS = versioneer.get_cmdclass()
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = ['fatiando',
+            'fatiando.tests',
+            'fatiando.tests.gravmag',
+            'fatiando.tests.gridder',
+            'fatiando.tests.seismic',
             'fatiando.gravmag',
             'fatiando.seismic',
             'fatiando.geothermal',

@@ -70,8 +70,8 @@ vmin, vmax = vel.min(), vel.max()
 ax = axes[0, 0]
 ax.set_title('True model')
 ax.pcolormesh(x, y, vel, cmap='Greens', vmin=vmin, vmax=vmax)
-ax.plot(src_loc[:,0]/1000, src_loc[:,1]/1000, '+k', label='Earthquakes')
-ax.plot(rec_loc[:,0]/1000, rec_loc[:,1]/1000, '^k', label='Receivers')
+ax.plot(src_loc[:, 0]/1000, src_loc[:, 1]/1000, '+k', label='Earthquakes')
+ax.plot(rec_loc[:, 0]/1000, rec_loc[:, 1]/1000, '^k', label='Receivers')
 ax.legend(loc='upper right', numpoints=1)
 
 ax = axes[0, 1]

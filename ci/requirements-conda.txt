@@ -1,0 +1,13 @@
+numpy
+scipy
+matplotlib
+numba
+future
+pillow
+jupyter
+mayavi
+sphinx
+pytest
+pytest-cov
+coverage
+pep8=1.6.2

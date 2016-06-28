@@ -2,72 +2,66 @@ language: generic
 
 sudo: false
 
-addons:
-    apt:
-        packages:
-            - xvfb # For mayavi headless
+notifications:
+    email: false
 
 os:
     - linux
-    #- osx
+    - osx
+
+addons:
+    apt:
+        packages:
+            - xvfb  # For mayavi headless (needed to build the gallery)
+
+# Need to fetch a deeper clone because the default depth Travis uses (50) isn't
+# enough to get the git tags so versioneer can't find the correct version
+# number.
+git:
+    depth: 100
 
 env:
-    global: # For pushing the built docs to the fatiando.github.io repo
+    global: # For pushing the built docs to the fatiando/dev repo
         - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
     matrix:
         - PYTHON=2.7
 
 before_install:
-    # Need to fetch a deeper clone because the default depth Travis uses (50)
-    # isn't enough to get the git tags so versioneer can't find the correct
-    # version number.
-    - git fetch --depth=100
-
-install:
     # Get Miniconda from Continuum
     # Need to source the script to set the PATH variable in this environment
     # (not the scripts environment)
-    - source ci-tools/install-miniconda.sh
-    - cp ci-tools/matplotlibrc .
+    - source ci/install-miniconda.sh
+    - cp ci/matplotlibrc .
     # Create a conda env to install required libraries
     - conda update --yes conda
     - conda create -n testenv --yes pip python=$PYTHON
     - source activate testenv
-    - conda install --yes --file requirements.txt
-    - conda install --yes --file test/requirements-conda.txt
-    - pip install -r test/requirements-pip.txt
+
+install:
+    - conda install --yes --file ci/requirements-conda.txt
+    - pip install -r ci/requirements-pip.txt
     # Show installed pkg information for postmortem diagnostic
     - conda list
     # Package Fatiando and install
     - python setup.py sdist --formats=gztar
     - pip install dist/fatiando-*.tar.gz
-    # Check that versioneer got the correct version
-    - python -c "import fatiando; print(fatiando.__version__)"
-    - pip install -e .
+    # Check that versioneer got the correct version. Do this in a tmp dir to
+    # make sure I'm importing the installed version.
+    - mkdir -p tmp
+    - cd tmp; pwd
+    - pwd; python -c "import fatiando; print(fatiando.__version__)"
+    - cd ..; pwd
 
 script:
-    - nosetests -v --with-doctest --with-coverage --cover-package=fatiando fatiando test/
-    - make -C doc all
+    - mkdir -p tmp
+    - cd tmp; pwd
+    # Use the 'fatiando.test()' command to make sure we're testing an installed
+    # version of the package.
+    - pwd; python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0, 'Tests failed'" && cp .coverage ..
+    - cd ..; pwd
+    - make pep8
+    - bash ci/build-docs.sh
 
 after_success:
     - coveralls
-    - bash ci-tools/update-website.sh
-    # Uncomment this to push the built site to fatiando/tmp-docs
-    # Does not work on forks! Only the fatiando/fatiando repo.
-    #- bash ci-tools/push-tmp-docs.sh
-
-after_failure:
-    - make pep8
-
-notifications:
-    email: false
-
-# To be able to run mayavi in headless mode (no windows) follow the
-# instructions at:
-# https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
-# Copied from the sphinx-gallery config file:
-# https://github.com/sphinx-gallery/sphinx-gallery/blob/master/.travis.yml
-before_script:
-    - "export DISPLAY=:99.0"
-    - "sh -e /etc/init.d/xvfb start"
-    - sleep 3 # give xvfb some time to start
+    - bash ci/update-website.sh
