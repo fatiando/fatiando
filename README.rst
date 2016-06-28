@@ -2,6 +2,15 @@
     :alt: Fatiando a Terra
     :target: http://www.fatiando.org
 
+----
+
+**Website and documentation**: `http://www.fatiando.org <http://www.fatiando.org>`__
+
+**Development documentation**: `http://www.fatiando.org/dev <http://www.fatiando.org/dev>`__
+
+**Mailing list (get updates and ask for help)**: `https://groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
+
+
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest PyPI version
     :target: https://pypi.python.org/pypi/fatiando/
@@ -14,12 +23,6 @@
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.49087-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.49087
     :target: http://dx.doi.org/10.5281/zenodo.49087
-
-**Official website and documentation**: `fatiando.org <http://www.fatiando.org>`__
-
-**Development documentation (reflects ``master`` branch)**: `fatiando.org/dev <http://www.fatiando.org/dev>`__
-
-**Mailing list (get updates and ask for help)**: `groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
 
 
 Overview
