@@ -1,8 +1,8 @@
 Fixes #ISSUE_NUMBER_HERE
 
-Implements this and that using such and such algorithm / fixes this and that.
-If possible, insert an image of the results.  Write here any help or specific
-feed back that you need.
+Explain here what the PR does and why this is good/necessary/desirable. If
+possible, insert an image of the results. Write here any help or specific feed
+back that you need from the other developers.
 
 ### Checklist:
 
@@ -12,9 +12,7 @@ feed back that you need.
 - [ ] Docstrings follow the style conventions
 - [ ] Code follows PEP8 style conventions
 - [ ] Code and docs have been spellchecked
-- [ ] Include new dependencies in `doc/install.rst`, `requirements.txt`, `environment.yml`, and `README.rst`
-- [ ] Documentation builds properly (run `make docs` locally)
-- [ ] Changelog entry (leave for last)
-- [ ] Firt-time contributor? Add yourself to `doc/contributors.rst` (leave for last)
-
-Notification for @fatiando/core-devs
+- [ ] Include new dependencies in `doc/install.rst`, `requirements.txt`, `environment.yml`, `ci/requirements-conda.txt` and `ci/requirements-pip.txt`.
+- [ ] Documentation builds properly (run `cd doc; make` locally)
+- [ ] Changelog entry (leave for last to avoid conflicts)
+- [ ] Firt-time contributor? Add yourself to `doc/contributors.rst` (leave for last to avoid conflicts)
