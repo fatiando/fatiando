@@ -79,10 +79,10 @@ def test_fails_if_shape_mismatch():
         else:
             kwargs = {}
         func = getattr(prism, f)
-        assert_raises(AssertionError, func, x[:-2], y, z, model, **kwargs)
-        assert_raises(AssertionError, func, x, y[:-2], z, model, **kwargs)
-        assert_raises(AssertionError, func, x, y, z[:-2], model, **kwargs)
-        assert_raises(AssertionError, func, x[:-5], y, z[:-2], model, **kwargs)
+        raises(AssertionError, func, x[:-2], y, z, model, **kwargs)
+        raises(AssertionError, func, x, y[:-2], z, model, **kwargs)
+        raises(AssertionError, func, x, y, z[:-2], model, **kwargs)
+        raises(AssertionError, func, x[:-5], y, z[:-2], model, **kwargs)
 
 
 def test_force_physical_property():

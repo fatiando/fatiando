@@ -70,6 +70,7 @@ import numpy as np
 from ... import utils
 from ...constants import G, SI2EOTVOS, CM, T2NT, SI2MGAL
 
+
 def safe_atan(y, x):
     """
     Correct the value of the angle returned by arctan2 to match the sign of the
@@ -200,7 +201,7 @@ def gx(xp, yp, zp, prism, dens=None):
                 res += ((-1)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G*SI2MGAL
-    return re
+    return res
 
 
 def gy(xp, yp, zp, prism, dens=None):
