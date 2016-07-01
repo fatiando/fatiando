@@ -201,7 +201,7 @@ def test_laplace_from_potential():
 
 
 def test_potential_field_tilt_values():
-    "gravmag.transform tilt returns sane values"
+    "gravmag.transform tilt returns sane values, between -90 and 90 degrees"
     model = [Prism(-500, 500, -500, 500, 0, 2000, {'magnetization': 200})]
     shape = (300, 300)
     x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
@@ -214,7 +214,6 @@ def test_potential_field_tilt_values():
         "Maximum tilt greater than 90: {}".format(max(np.degrees(tilt_angle)))
     assert min(np.degrees(tilt_angle)) > -90, \
         "Minimum tilt less than -90: {}".format(min(np.degrees(tilt_angle)))
-    assert
 
 
 def test_potential_field_tilt_works():
