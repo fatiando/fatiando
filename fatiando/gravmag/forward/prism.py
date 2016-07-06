@@ -199,16 +199,16 @@ def kernelxy(xp, yp, zp, prism):
     # the vertical edges and is below the prism. In such cases, will move the
     # computation point (shift r) by a percentage of the dimensions of the
     # prism.
-    dx = 0.01*abs(prism.x2 - prism.x1)
-    dy = 0.01*abs(prism.y2 - prism.y1)
+    # dx = 0.001*abs(prism.x2 - prism.x1)
+    # dy = 0.001*abs(prism.y2 - prism.y1)
     # Evaluate the integration limits
     for k, z in enumerate(limits_z):
         for j, y in enumerate(limits_y):
             for i, x in enumerate(limits_x):
                 r = np.sqrt(x*x + y*y + z*z)
-                corner = (np.abs(x) < dx) & (np.abs(y) < dy) & (z < 0)
-                if np.any(corner):
-                    r[corner] = np.sqrt(dx**2 + dy**2 + z[corner]**2)
+                # corner = (np.abs(x) < dx) & (np.abs(y) < dy) & (z < 0)
+                # if np.any(corner):
+                    # r[corner] = np.sqrt(dx**2 + dy**2 + z[corner]**2)
                 kernel = safe_log(z + r)
                 res += ((-1)**(i + j + k))*kernel
     return res

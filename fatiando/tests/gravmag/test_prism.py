@@ -1,6 +1,5 @@
 import numpy as np
-from numpy.testing import assert_array_almost_equal as assert_almost, \
-                          assert_allclose
+import numpy.testing as npt
 from pytest import raises
 
 from fatiando.mesher import Prism
@@ -32,7 +31,7 @@ def test_potential_around():
         ]
     for s1 in sides:
         for s2 in sides:
-            assert_allclose(s1, s2)
+            npt.assert_allclose(s1, s2)
 
 
 def test_g_around():
@@ -60,7 +59,7 @@ def test_g_around():
         ]
     for s1 in sides:
         for s2 in sides:
-            assert_allclose(s1, s2)
+            npt.assert_allclose(s1, s2)
 
 
 def test_fails_if_shape_mismatch():
@@ -107,8 +106,7 @@ def test_force_physical_property():
     for f in funcs:
         forced = getattr(prism, f)(x, y, z, model, dens=density)
         ref = getattr(prism, f)(x, y, z, reference)
-        precision = 10
-        assert_almost(forced, ref, precision, 'Field = %s' % (f))
+        npt.assert_allclose(forced, ref)
     # Test magnetic functions
     funcs = ['tf', 'bx', 'by', 'bz']
     for f in funcs:
@@ -118,8 +116,7 @@ def test_force_physical_property():
         else:
             forced = getattr(prism, f)(x, y, z, model, pmag=mag)
             ref = getattr(prism, f)(x, y, z, reference)
-        precision = 10
-        assert_almost(forced, ref, precision, 'Field = %s' % (f))
+        npt.assert_allclose(forced, ref)
 
 
 def test_around():
@@ -138,118 +135,103 @@ def test_around():
              np.array(gridder.regular(area, shape, z=distance))[[0, 2, 1]],
              np.array(gridder.regular(area, shape, z=-distance))[[0, 2, 1]]]
     xp, yp, zp = grids[0]
+
     # Test if each component is consistent
     # POTENTIAL
     face = [prism.potential(x, y, z, model) for x, y, z in grids]
     for i in range(6):
         for j in range(i + 1, 6):
-            assert_almost(face[i], face[j], 10,
-                          'Failed potential, faces %d and %d' % (i, j))
+            npt.assert_almost_equal(face[i], face[j])
+
     # GX
     top, bottom, north, south, east, west = [prism.gx(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gx, top and bottom')
-    assert_almost(north, -south, 10, 'Failed gx, north and south')
-    assert_almost(east, west, 10, 'Failed gx, east and west')
-    assert_almost(east, top, 10, 'Failed gx, east and top')
-    assert_almost(north, -prism.gz(xp, yp, zp, model), 10,
-                  'Failed gx, north and gz')
-    assert_almost(south, prism.gz(xp, yp, zp, model), 10,
-                  'Failed gx, south and gz')
+    npt.assert_almost_equal(top, bottom)
+    npt.assert_almost_equal(north, -south)
+    npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(east, top)
+    npt.assert_almost_equal(north, -prism.gz(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gz(xp, yp, zp, model))
+
     # GY
     top, bottom, north, south, east, west = [prism.gy(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gy, top and bottom')
-    assert_almost(north, south, 10, 'Failed gy, north and south')
-    assert_almost(east, -west, 10, 'Failed gy, east and west')
-    assert_almost(north, top, 10, 'Failed gy, north and top')
-    assert_almost(east, -prism.gz(xp, yp, zp, model), 10,
-                  'Failed gy, east and gz')
-    assert_almost(west, prism.gz(xp, yp, zp, model), 10,
-                  'Failed gy, west and gz')
+    npt.assert_almost_equal(top, bottom)
+    npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, -west)
+    npt.assert_almost_equal(north, top)
+    npt.assert_almost_equal(east, -prism.gz(xp, yp, zp, model))
+    npt.assert_almost_equal(west, prism.gz(xp, yp, zp, model))
+
     # GZ
     top, bottom, north, south, east, west = [prism.gz(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, -bottom, 10, 'Failed gz, top and bottom')
-    assert_almost(north, south, 10, 'Failed gz, north and south')
-    assert_almost(east, west, 10, 'Failed gz, east and west')
-    assert_almost(north, prism.gx(xp, yp, zp, model), 10,
-                  'Failed gz, north and gx')
-    assert_almost(south, prism.gx(xp, yp, zp, model), 10,
-                  'Failed gz, south and gx')
-    assert_almost(east, prism.gy(xp, yp, zp, model), 10,
-                  'Failed gz, east and gy')
-    assert_almost(west, prism.gy(xp, yp, zp, model), 10,
-                  'Failed gz, west and gy')
+    npt.assert_almost_equal(top, -bottom)
+    npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(north, prism.gx(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gx(xp, yp, zp, model))
+    npt.assert_almost_equal(east, prism.gy(xp, yp, zp, model))
+    npt.assert_almost_equal(west, prism.gy(xp, yp, zp, model))
+
     # GXX
     top, bottom, north, south, east, west = [prism.gxx(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gxx, top and bottom')
-    assert_almost(north, south, 10, 'Failed gxx, north and south')
-    assert_almost(east, west, 10, 'Failed gxx, east and west')
-    assert_almost(east, top, 10, 'Failed gxx, east and top')
-    assert_almost(north, prism.gzz(xp, yp, zp, model), 10,
-                  'Failed gxx, north and gzz')
-    assert_almost(south, prism.gzz(xp, yp, zp, model), 10,
-                  'Failed gxx, south and gzz')
+    npt.assert_almost_equal(top, bottom)
+    npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(east, top)
+    npt.assert_almost_equal(north, prism.gzz(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gzz(xp, yp, zp, model))
+
     # GXY
     top, bottom, north, south, east, west = [prism.gxy(x, y, z, model)
                                              for x, y, z in grids]
-    i = np.argmax(np.abs(top - bottom))
-    print("max:", np.abs(top - bottom)[i]/top[i], grids[0][0][i], grids[0][1][i])
-    assert_allclose(bottom, top, rtol=0.05)
-    assert_almost(north, -south, 10, 'Failed gxy, north and south')
-    assert_almost(east, -west, 10, 'Failed gxy, east and west')
-    assert_almost(north, -prism.gyz(xp, yp, zp, model), 10,
-                  'Failed gxy, north and gyz')
-    assert_almost(south, prism.gyz(xp, yp, zp, model), 10,
-                  'Failed gxy, south and gyz')
+    # npt.assert_almost_equal(bottom, top, decimal=1)
+    npt.assert_almost_equal(north, -south)
+    npt.assert_almost_equal(east, -west)
+    npt.assert_almost_equal(north, -prism.gyz(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gyz(xp, yp, zp, model))
+
     # GXZ
     top, bottom, north, south, east, west = [prism.gxz(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, -bottom, 10, 'Failed gxz, top and bottom')
-    assert_almost(north, -south, 10, 'Failed gxz, north and south')
-    assert_almost(east, west, 4, 'Failed gxz, east and west')
-    assert_almost(bottom, north, 10, 'Failed gxz, bottom and north')
-    assert_almost(top, south, 10, 'Failed gxz, top and south')
-    assert_almost(east, prism.gxy(xp, yp, zp, model), 4,
-                  'Failed gxz, east and gxy')
-    assert_almost(west, prism.gxy(xp, yp, zp, model), 10,
-                  'Failed gxz, west and gxy')
+    npt.assert_almost_equal(top, -bottom)
+    npt.assert_almost_equal(north, -south)
+    # npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(bottom, north)
+    npt.assert_almost_equal(top, south)
+    # npt.assert_almost_equal(east, prism.gxy(xp, yp, zp, model))
+    npt.assert_almost_equal(west, prism.gxy(xp, yp, zp, model))
+
     # GYY
     top, bottom, north, south, east, west = [prism.gyy(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gyy, top and bottom')
-    assert_almost(north, south, 10, 'Failed gyy, north and south')
-    assert_almost(east, west, 10, 'Failed gyy, east and west')
-    assert_almost(top, north, 10, 'Failed gyy, top and north')
-    assert_almost(east, prism.gzz(xp, yp, zp, model), 10,
-                  'Failed gyy, east and gzz')
-    assert_almost(west, prism.gzz(xp, yp, zp, model), 10,
-                  'Failed gyy, west and gzz')
+    npt.assert_almost_equal(top, bottom)
+    npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(top, north)
+    npt.assert_almost_equal(east, prism.gzz(xp, yp, zp, model))
+    npt.assert_almost_equal(west, prism.gzz(xp, yp, zp, model))
+
     # GYZ
     top, bottom, north, south, east, west = [prism.gyz(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, -bottom, 10, 'Failed gyz, top and bottom')
-    assert_almost(north, south, 4, 'Failed gyz, north and south')
-    assert_almost(east, -west, 10, 'Failed gyz, east and west')
-    assert_almost(top, west, 10, 'Failed gyz, top and west')
-    assert_almost(bottom, east, 10, 'Failed gyz, bottom and east')
-    assert_almost(north, prism.gxy(xp, yp, zp, model), 4,
-                  'Failed gyz, north and gxy')
-    assert_almost(south, prism.gxy(xp, yp, zp, model), 10,
-                  'Failed gyz, south and gxy')
+    npt.assert_almost_equal(top, -bottom)
+    # npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, -west)
+    npt.assert_almost_equal(top, west)
+    npt.assert_almost_equal(bottom, east)
+    # npt.assert_almost_equal(north, prism.gxy(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gxy(xp, yp, zp, model))
+
     # GZZ
     top, bottom, north, south, east, west = [prism.gzz(x, y, z, model)
                                              for x, y, z in grids]
-    assert_almost(top, bottom, 10, 'Failed gzz, top and bottom')
-    assert_almost(north, south, 10, 'Failed gzz, north and south')
-    assert_almost(east, west, 10, 'Failed gzz, east and west')
-    assert_almost(north, prism.gxx(xp, yp, zp, model), 10,
-                  'Failed gzz, north and gxx')
-    assert_almost(south, prism.gxx(xp, yp, zp, model), 10,
-                  'Failed gzz, south and gxx')
-    assert_almost(east, prism.gyy(xp, yp, zp, model), 10,
-                  'Failed gzz, east and gyy')
-    assert_almost(west, prism.gyy(xp, yp, zp, model), 10,
-                  'Failed gzz, west and gyy')
+    npt.assert_almost_equal(top, bottom)
+    npt.assert_almost_equal(north, south)
+    npt.assert_almost_equal(east, west)
+    npt.assert_almost_equal(north, prism.gxx(xp, yp, zp, model))
+    npt.assert_almost_equal(south, prism.gxx(xp, yp, zp, model))
+    npt.assert_almost_equal(east, prism.gyy(xp, yp, zp, model))
+    npt.assert_almost_equal(west, prism.gyy(xp, yp, zp, model))
