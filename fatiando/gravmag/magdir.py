@@ -24,8 +24,11 @@ from .. import mesher
 from ..utils import ang2vec, vec2ang, safe_dot
 from . import sphere
 from ..constants import G, CM, T2NT, SI2EOTVOS
+from ..our_duecredit import due, Doi, BibTeX
 
 
+@due.dcite(Doi("10.5194/npg-22-215-2015"),
+           description='Estimates total mag. dir. of approx. spherical bodies')
 class DipoleMagDir(Misfit):
     """
     Estimate the magnetization vector of a set of dipoles from magnetic
