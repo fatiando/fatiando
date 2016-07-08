@@ -811,7 +811,8 @@ class PointGrid(object):
     * area : list = [x1, x2, y1, y2]
         The area where the grid will be spread out
     * z : float or 1d-array
-        The z coordinates of each point in the grid (remember, z is positive downward).
+        The z coordinates of each point in the grid (remember, z is positive
+        downward).
     * shape : tuple = (nx, ny)
         The number of points in the x and y directions
     * props :  dict
@@ -876,8 +877,8 @@ class PointGrid(object):
         if index < 0:
             index = self.size + index
         props = dict([p, self.props[p][index]] for p in self.props)
-        sphere = Sphere(self.x[index], self.y[index], self.z[index], self.radius,
-                        props=props)
+        sphere = Sphere(self.x[index], self.y[index], self.z[index],
+                        self.radius, props=props)
         return sphere
 
     def __iter__(self):
@@ -918,7 +919,7 @@ class PointGrid(object):
         Parameters:
 
         * shape : tuple = (nx, ny)
-            Number of subgrids in the x and y directions, respectively.
+            Number of subgrids along the x and y directions, respectively.
 
         Returns:
 
