@@ -1,47 +1,49 @@
-# Continuous integration for Windows.
-# Based on https://github.com/astropy/ci-helpers
-
-environment:
-
-  global:
-      PYTHON: "C:\\conda"
-      MINICONDA_VERSION: "latest"
-      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-tools\\appveyor\\windows_sdk.cmd"
-      TEST_CMD: "nosetests -v --with-coverage --cover-package=fatiando --with-doctest fatiando test"
-
-  matrix:
-      - PYTHON_ARCH: "64"
-        PYTHON_VERSION: "2.7"
-      - PYTHON_ARCH: "32"
-        PYTHON_VERSION: "2.7"
-
-platform:
-    -x64
-
-install:
-    # Install Miniconda
-    - "powershell ci-tools/appveyor/install-miniconda.ps1"
-    # Set path again, need to find a way to avoid doing this again
-    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
-    # Test that PATH is set correctly
-    - "conda --version"
-    - "python --version"
-    # Install dependencies
-    - "%CMD_IN_ENV% conda install --yes --quiet --file requirements.txt"
-    - "%CMD_IN_ENV% conda install --yes --quiet --file test\\requirements-conda.txt"
-    - "%CMD_IN_ENV% pip install -r test\\requirements-pip.txt"
-    # Build and install the Fatiando package
-    # Note: Don't use installed version until we have tests embedded in the
-    #       source code.
-    #- "%CMD_IN_ENV% python setup.py sdist --formats=zip"
-    #- ps: "ls dist"
-    #- "%CMD_IN_ENV% pip install --pre --find-links dist/ fatiando"
-    - "%CMD_IN_ENV% pip install -e ."
-    - "%CMD_IN_ENV% python -c \"import fatiando; print(fatiando.__version__)\""
-
-test_script:
-    - "%CMD_IN_ENV% %TEST_CMD%"
+# Continuous integration for Windows using http://appveyor.com/
 
 # Not a .NET project, we build ci-helpers in the install step instead
 build: false
+
+environment:
+    global:
+        TEST_CMD: "python -c \"import fatiando; fatiando.test(coverage=True, verbose=True)\""
+        CHECK_VERSION: "python -c \"import fatiando; print('\nInstalled version:'); print(fatiando.__file__); print(fatiando.__version__); print()\""
+
+    matrix:
+        - PYTHON: "C:\\Python27"
+          PYTHON_VERSION: "2.7"
+          PYTHON_ARCH: "32"
+          MINICONDA: C:\Miniconda
+
+        - PYTHON: "C:\\Python27"
+          PYTHON_VERSION: "2.7"
+          PYTHON_ARCH: "64"
+          MINICONDA: C:\Miniconda-x64
+
+        #- PYTHON: "C:\\Python35"
+          #PYTHON_VERSION: "3.5"
+          #PYTHON_ARCH: "32"
+          #MINICONDA: C:\Miniconda35
+            #
+        #- PYTHON: "C:\\Python35"
+          #PYTHON_VERSION: "3.5"
+          #PYTHON_ARCH: "64"
+          #MINICONDA: C:\Miniconda35-x64
+
+init:
+    - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH% %MINICONDA%"
+
+install:
+    - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda info -a
+    - "conda create -q -n testenv python=%PYTHON_VERSION%"
+    - activate testenv
+    - "conda install --file ci\\requirements-conda.txt"
+    - "pip install -r ci\\requirements-pip.txt"
+    - "pip install ."
+
+
+test_script:
+    - mkdir testing_folder
+    - cd testing_folder; "%CHECK_VERSION%"; "%TEST_CMD%"
