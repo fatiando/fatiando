@@ -1,6 +1,6 @@
 import numpy as np
 
-from fatiando.mesher import Pointgrid
+from fatiando.mesher import PointGrid
 from fatiando import gridder
 
 model = None
