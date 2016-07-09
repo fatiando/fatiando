@@ -45,5 +45,4 @@ install:
 
 
 test_script:
-    - mkdir -p testing_folder
-    - "cd testing_folder; %CHECK_VERSION%; %TEST_CMD%"
+    - "%CHECK_VERSION%; %TEST_CMD%"
