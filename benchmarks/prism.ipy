@@ -1,0 +1,26 @@
+# Get processor information
+tmp = !cat /proc/cpuinfo | grep "model name"
+processor = tmp[0].split(':')[1].strip()
+print(processor)
+# Make a model for testing
+from __future__ import division, print_function
+import numpy as np
+from fatiando import gridder, utils
+from fatiando.mesher import PrismMesh
+model = PrismMesh((-200, 200, -200, 200, 0, 400), (10, 10, 10))
+model.addprop('density', np.ones(model.size))
+model.addprop('magnetization', utils.ang2vec(2*np.ones(model.size), 25, -10))
+inc, dec = -30, 50
+x, y, z = gridder.regular((-500, 500, -500, 500), (50, 50), z=-1)
+print('Model size: {}'.format(model.size))
+print('Grid size: {}'.format(x.size))
+# Time the forward modeling of gravity, gradients and mag
+from fatiando.gravmag.forward import prism
+print('Times:')
+print('   gz: ', end='')
+%timeit np.sum(prism.gz(x, y, z, p) for p in model)
+print('   gzz: ', end='')
+%timeit np.sum(prism.gzz(x, y, z, p) for p in model)
+# print('   tf: ', end='')
+# %timeit np.sum(prism.gz(x, y, z, p) for p in model)
+# %timeit prism.tf(x, y, z, model, inc, dec)

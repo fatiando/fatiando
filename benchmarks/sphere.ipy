@@ -1,0 +1,25 @@
+# Get processor information
+tmp = !cat /proc/cpuinfo | grep "model name"
+processor = tmp[0].split(':')[1].strip()
+print(processor)
+# Make a model for testing
+from __future__ import division, print_function
+import numpy as np
+from fatiando import gridder, utils
+from fatiando.mesher import PointGrid
+model = PointGrid((-200, 200, -200, 200), 100, (50, 50))
+model.addprop('density', np.ones(model.size))
+model.addprop('magnetization', utils.ang2vec(2*np.ones(model.size), 25, -10))
+inc, dec = -30, 50
+x, y, z = gridder.regular((-500, 500, -500, 500), (100, 100), z=-1)
+print('Model size: {}'.format(model.size))
+print('Grid size: {}'.format(x.size))
+# Time the forward modeling of gravity, gradients and mag
+from fatiando.gravmag import sphere
+print('Times:')
+print('   gz: ', end='')
+%timeit sphere.gz(x, y, z, model)
+print('   gzz: ', end='')
+%timeit sphere.gzz(x, y, z, model)
+print('   tf: ', end='')
+%timeit sphere.tf(x, y, z, model, inc, dec)
