@@ -45,4 +45,4 @@ install:
 
 
 test_script:
-    - "%CHECK_VERSION%; %TEST_CMD%"
+    - ps: mkdir -p tmp; cd tmp; python -c "import fatiando; print('Installed:', fatiando.__file__, 'and', fatiando.__version__); fatiando.test(coverage=True, verbose=True)"
