@@ -6,7 +6,7 @@ build: false
 environment:
     global:
         TEST_CMD: "python -c \"import fatiando; fatiando.test(coverage=True, verbose=True)\""
-        CHECK_VERSION: "python -c \"import fatiando; print('\nInstalled version:'); print(fatiando.__file__); print(fatiando.__version__); print()\""
+        CHECK_VERSION: "python -c \"import fatiando; print('Installed file:', fatiando.__file__); print('Installed version:', fatiando.__version__)\""
 
     matrix:
         - PYTHON: "C:\\Python27"
