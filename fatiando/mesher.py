@@ -871,8 +871,10 @@ class PointGrid(object):
         return self.size
 
     def __getitem__(self, index):
+        if not isinstance(index, int):
+            raise IndexError('Invalid index type. Should be int.')
         if index >= self.size or index < -self.size:
-            raise IndexError('grid index out of range')
+            raise IndexError('Grid index out of range.')
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
