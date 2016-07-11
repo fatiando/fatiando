@@ -32,7 +32,7 @@ from ..our_duecredit import due, Doi, BibTeX
 class DipoleMagDir(Misfit):
     """
     Estimate the magnetization vector of a set of dipoles from magnetic
-    total field anomaly.
+    total field anomaly using the method of Oliveira Jr. et al. (2015).
 
     By using the well-known first-order approximation of the total field
     anomaly (Blakely, 1996, p. 179) produced by a set of dipoles, the
@@ -69,6 +69,11 @@ class DipoleMagDir(Misfit):
 
     Blakely, R. (1996), Potential theory in gravity and magnetic applications:
     CUP
+
+    Oliveira Jr., V. C., D. P. Sales, V. C. F. Barbosa, and L. Uieda (2015),
+    Estimation of the total magnetization direction of approximately spherical
+    bodies, Nonlin. Processes Geophys., 22(2), 215–232,
+    doi:10.5194/npg-22-215-2015.
 
     Examples:
 
