@@ -40,6 +40,12 @@ Version 0.5
 * Better navigation for long pages in the docs by adding a sidebar with links
   to subsections.
   (`PR 275 <https://github.com/fatiando/fatiando/pull/275>`__)
+* Added back-end support for decorators from `duecredit
+  <https://github.com/duecredit/duecredit/>`__ to be added to methods. This
+  allows a report for per-method citations based on the methods used in a given
+  script. Currently only implemented for `gravmag/magdir` but will be added to
+  all methods in time.
+  (`PR 293 <https://github.com/fatiando/fatiando/pull/293>`__)
 
 
 
