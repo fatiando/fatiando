@@ -10,6 +10,9 @@ Version 0.5
 
 **Changes**:
 
+* Enable ``fatiando.mesher.PointGrid`` to have points at different depths by
+  passing it an array as the ``z`` argument.
+  (`PR 283 <https://github.com/fatiando/fatiando/pull/283>`__)
 * Replace `nose <http://nose.readthedocs.io/>`__ with `py.test
   <http://pytest.org/>`__ as our unit testing framework. Tests are now located
   in the package ``fatiando.tests`` and installed with Fatiando. This means
