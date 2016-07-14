@@ -810,8 +810,9 @@ class PointGrid(object):
 
     * area : list = [x1, x2, y1, y2]
         The area where the grid will be spread out
-    * z : float
-        The z coordinate of the grid (remember, z is positive downward)
+    * z : float or 1d-array
+        The z coordinates of each point in the grid (remember, z is positive
+        downward).
     * shape : tuple = (nx, ny)
         The number of points in the x and y directions
     * props :  dict
@@ -853,7 +854,6 @@ class PointGrid(object):
     def __init__(self, area, z, shape, props=None):
         object.__init__(self)
         self.area = area
-        self.z = z
         self.shape = shape
         if props is None:
             self.props = {}
@@ -861,6 +861,7 @@ class PointGrid(object):
             self.props = props
         nx, ny = shape
         self.size = nx*ny
+        self.z = numpy.zeros(self.size) + z
         self.radius = scipy.special.cbrt(3. / (4. * numpy.pi))
         self.x, self.y = gridder.regular(area, shape)
         # The spacing between points
@@ -870,14 +871,16 @@ class PointGrid(object):
         return self.size
 
     def __getitem__(self, index):
+        if not isinstance(index, int):
+            raise IndexError('Invalid index type. Should be int.')
         if index >= self.size or index < -self.size:
-            raise IndexError('grid index out of range')
+            raise IndexError('Grid index out of range.')
         # To walk backwards in the list
         if index < 0:
             index = self.size + index
         props = dict([p, self.props[p][index]] for p in self.props)
-        sphere = Sphere(self.x[index], self.y[index], self.z, self.radius,
-                        props=props)
+        sphere = Sphere(self.x[index], self.y[index], self.z[index],
+                        self.radius, props=props)
         return sphere
 
     def __iter__(self):
@@ -918,7 +921,7 @@ class PointGrid(object):
         Parameters:
 
         * shape : tuple = (nx, ny)
-            Number of subgrids in the x and y directions, respectively.
+            Number of subgrids along the x and y directions, respectively.
 
         Returns:
 
@@ -927,7 +930,9 @@ class PointGrid(object):
 
         Examples::
 
-            >>> g = PointGrid((0, 3, 0, 2), 10, (4, 3))
+            >>> import numpy
+            >>> z = numpy.linspace(0, 1100, 12)
+            >>> g = PointGrid((0, 3, 0, 2), z, (4, 3))
             >>> g.addprop('bla', [1,   2,  3,
             ...                   4,   5,  6,
             ...                   7,   8,  9,
@@ -957,6 +962,14 @@ class PointGrid(object):
             array([ 0.,  0.])
             array([ 1.,  1.])
             array([ 2.,  2.])
+            >>> for s in grids:
+            ...     s.z
+            array([   0.,  300.])
+            array([ 100.,  400.])
+            array([ 200.,  500.])
+            array([ 600.,  900.])
+            array([  700.,  1000.])
+            array([  800.,  1100.])
 
         """
         nx, ny = shape
@@ -978,7 +991,10 @@ class PointGrid(object):
                     pmatrix = numpy.reshape(self.props[p], self.shape)
                     props[p] = pmatrix[i*mx:(i + 1)*mx,
                                        j*my:(j + 1)*my].ravel()
-                subs.append(PointGrid(area, self.z, (mx, my), props))
+                zmatrix = numpy.reshape(self.z, self.shape)
+                zs = zmatrix[i*mx:(i + 1)*mx,
+                             j*my:(j + 1)*my].ravel()
+                subs.append(PointGrid(area, zs, (mx, my), props))
         return subs
 
 

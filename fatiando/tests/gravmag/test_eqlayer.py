@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_almost_equal
 from fatiando.gravmag.eqlayer import (EQLGravity, EQLTotalField,
                                       PELGravity, PELTotalField, PELSmoothness)
 from fatiando.inversion import Damping
@@ -30,7 +30,7 @@ def test_pel_polereduce():
     eql = pel + 1e-25*PELSmoothness(layer, windows, degree)
     eql.fit()
 
-    assert_allclose(eql[0].predicted(), data, atol=0.1, rtol=0.01)
+    assert_array_almost_equal(eql[0].predicted(), data, decimal=1)
 
     layer.addprop('magnetization',
                   utils.ang2vec(eql.estimate_, inc=-90, dec=0))

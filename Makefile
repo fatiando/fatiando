@@ -24,14 +24,14 @@ cython:
 test:
 	# Run a tmp folder to make sure the tests are run on the installed version
 	# of Fatiando
-	mkdir $(TESTDIR)
+	mkdir -p $(TESTDIR)
 	cd $(TESTDIR); python -c "import fatiando; fatiando.test()"
 	rm -r $(TESTDIR)
 
 coverage:
 	# Run a tmp folder to make sure the tests are run on the installed version
 	# of Fatiando
-	mkdir $(TESTDIR)
+	mkdir -p $(TESTDIR)
 	cd $(TESTDIR); python -c "import fatiando; fatiando.test(coverage=True)"
 	rm -r $(TESTDIR)
 
