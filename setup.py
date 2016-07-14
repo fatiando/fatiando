@@ -3,10 +3,10 @@ Build extension modules, package and install Fatiando.
 """
 import sys
 import os
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup, Extension, find_packages
 import numpy
 
+# Get the version number and setup versioneer
 import versioneer
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'fatiando/_version.py'
@@ -17,39 +17,30 @@ versioneer.parentdir_prefix = '.'
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Modeling and inversion for geophysics"
+AUTHOR = "Leonardo Uieda"
+AUTHOR_EMAIL = 'leouieda@gmail.com'
+MAINTAINER = AUTHOR
+MAINTAINER_EMAIL = AUTHOR_EMAIL
 VERSION = versioneer.get_version()
 CMDCLASS = versioneer.get_cmdclass()
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
-PACKAGES = ['fatiando',
-            'fatiando.tests',
-            'fatiando.tests.gravmag',
-            'fatiando.tests.gridder',
-            'fatiando.tests.seismic',
-            'fatiando.tests.mesher',
-            'fatiando.gravmag',
-            'fatiando.seismic',
-            'fatiando.geothermal',
-            'fatiando.vis',
-            'fatiando.inversion']
-AUTHOR = "Leonardo Uieda"
-AUTHOR_EMAIL = 'leouieda@gmail.com'
-LICENSE = "BSD License"
+PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
+LICENSE = "BSD 3-clause"
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
 SCRIPTS = []
-CLASSIFIERS = ["Intended Audience :: End Users/Desktop",
-               "Intended Audience :: Science/Research",
-               "Intended Audience :: Developers",
-               "Intended Audience :: Education",
-               "Topic :: Scientific/Engineering",
-               "Topic :: Software Development :: Libraries",
-               "Environment :: Console",
-               "Programming Language :: Python :: 2.7",
-               "Programming Language :: Cython",
-               "License :: OSI Approved :: BSD License",
-               "Development Status :: 3 - Alpha",
-               "Natural Language :: English"]
+PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
+CLASSIFIERS = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python :: 2.7",
+    "License :: OSI Approved :: {}".format(LICENSE),
+]
 KEYWORDS = 'geophysics modeling inversion gravimetry seismic magnetometry'
 
 # The running setup.py with --cython, then set things up to generate the Cython
@@ -86,6 +77,8 @@ if __name__ == '__main__':
           version=VERSION,
           author=AUTHOR,
           author_email=AUTHOR_EMAIL,
+          maintainer=MAINTAINER,
+          maintainer_email=MAINTAINER_EMAIL,
           license=LICENSE,
           url=URL,
           platforms=PLATFORMS,

@@ -1,0 +1,25 @@
+# Get processor information
+tmp = !cat /proc/cpuinfo | grep "model name"
+processor = tmp[0].split(':')[1].strip()
+print(processor)
+# Make a model for testing
+from __future__ import division, print_function
+import numpy as np
+from fatiando import gridder, utils
+from fatiando.mesher import PolygonalPrism
+vertices = utils.circular_points([-300, 300, -300, 300], 1000)[::-1]
+props = {'density': 1000, 'magnetization': utils.ang2vec(2, 25, -10)}
+model = [PolygonalPrism(vertices, 0, 2000, props)]
+inc, dec = -30, 50
+x, y, z = gridder.regular((-500, 500, -500, 500), (50, 50), z=-1)
+print('Model size: {}'.format(len(vertices)))
+print('Grid size: {}'.format(x.size))
+# Time the forward modeling of gravity, gradients and mag
+from fatiando.gravmag import polyprism
+print('Times:')
+print('   gz: ', end='')
+%timeit polyprism.gz(x, y, z, model)
+print('   gzz: ', end='')
+%timeit polyprism.gzz(x, y, z, model)
+print('   tf: ', end='')
+%timeit polyprism.tf(x, y, z, model, inc, dec)
