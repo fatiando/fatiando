@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from numpy.testing import assert_allclose
+import numpy.testing as npt
 from fatiando.gravmag import transform, prism
 from fatiando import gridder, utils
 from fatiando.mesher import Prism
@@ -26,7 +26,7 @@ def test_pole_reduce():
     data = prism.tf(x, y, z, model, inc, dec)
     pole = transform.reduce_to_pole(x, y, data, shape, inc, dec, sinc, sdec)
     pole_true = prism.tf(x, y, z, model, -90, 0, pmag=utils.ang2vec(5, -90, 0))
-    assert_allclose(pole, pole_true, atol=10, rtol=0.01)
+    npt.assert_allclose(pole, pole_true, atol=10, rtol=0.01)
 
 
 def test_upcontinue():
@@ -54,7 +54,6 @@ def test_upcontinue():
     analytical = prism.tf(x, y, z + dz, model, inc, dec)
     up = transform.upcontinue(x, y, data, shape, dz)
     diff = np.abs(up - analytical)
-    print up.max(), diff.max()
     check = diff <= 15
     assert np.all(check), \
         'Failed for tf (mismatch {:.2f}%)'.format(
@@ -198,3 +197,32 @@ def test_laplace_from_potential():
     assert np.all(np.abs(laplace) <= 1e-10), \
         "Max: {} Mean: {} STD: {}".format(
             laplace.max(), laplace.mean(), laplace.std())
+
+
+def test_tilt_sane_values():
+    "gravmag.transform tilt returns sane values, between -90 and 90 degrees"
+    inc, dec = 90, 0
+    mag = utils.ang2vec(200, inc, dec)
+    model = [Prism(-500, 500, -500, 500, 0, 2000, {'magnetization': mag})]
+    shape = (300, 300)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    data = prism.tf(x, y, z, model, inc, dec)
+    tilt = np.degrees(transform.tilt(x, y, data, shape))
+    assert tilt.max() < 90, \
+        "Maximum tilt greater than 90: {}".format(tilt.max())
+    assert tilt.min > -90, \
+        "Minimum tilt less than -90: {}".format(tilt.min())
+
+
+def test_tilt_analytical_derivatives():
+    "gravmag.transform tilt returns same values given analytical derivatives"
+    model = [Prism(-100, 100, -100, 100, 0, 100, {'density': 1000})]
+    shape = (400, 400)
+    x, y, z = gridder.regular([-10000, 10000, -10000, 10000], shape, z=-100)
+    data = utils.mgal2si(prism.gz(x, y, z, model))
+    dx = utils.eotvos2si(prism.gxz(x, y, z, model))
+    dy = utils.eotvos2si(prism.gyz(x, y, z, model))
+    dz = utils.eotvos2si(prism.gzz(x, y, z, model))
+    tilt_analytical = transform.tilt(x, y, data, shape, dx, dy, dz)
+    tilt_numerical = transform.tilt(x, y, data, shape)
+    npt.assert_allclose(tilt_numerical, tilt_analytical, rtol=0.10)

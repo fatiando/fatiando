@@ -52,6 +52,11 @@ Version 0.5
   script. Currently only implemented for `gravmag/magdir` but will be added to
   all methods in time.
   (`PR 293 <https://github.com/fatiando/fatiando/pull/293>`__)
+* Added function for tilt derivative filter for gravmag data.
+  ``fatiando.gravmag.transform.tilt`` returns a value between -90 and 90
+  degrees, with the 0 value being located over or nearly over the edge of a
+  given anomaly.
+  (`PR 261 <https://github.com/fatiando/fatiando/pull/261>`__)
 
 
 
@@ -96,12 +101,12 @@ Version 0.4
   now should catch any future problems.
   (`PR 209 <https://github.com/fatiando/fatiando/pull/209>`__)
 * **IMPORTANT BUG FIX**: ``fatiando.gridder.regular`` and many other places in
-  Fatiando where using the wrong convention for x, y dimensions.
+  Fatiando were using the wrong convention for x, y dimensions.
   x should point North and y East. Thus, a data matrix (regular grid) should
-  have x varying in the lines and y varying in the columns. This is **oposite**
-  what we had. This fix also changes the ``shape`` argument to be ``(nx, ny)``
-  instead of ``(ny, nx)``. **Users should be aware of this and double check
-  their code.**
+  have x varying in the lines and y varying in the columns. This is
+  **opposite** what we had. This fix also changes the ``shape`` argument to be
+  ``(nx, ny)`` instead of ``(ny, nx)``. **Users should be aware of this and
+  double check their code.**
   (`PR 196 <https://github.com/fatiando/fatiando/pull/196>`__)
 * More stable derivatives in ``fatiando.gravamag.transform``. The horizontal
   derivatives default to central finite-differences for greater stability. The
