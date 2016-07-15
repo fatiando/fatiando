@@ -61,7 +61,7 @@ def test_upcontinue():
         100*(check.size - check.sum())/check.size)
 
 
-def test_secont_horizontal_derivatives_fd():
+def test_second_horizontal_derivatives_fd():
     "gravmag.transform 2nd xy derivatives by finite diff against analytical"
     model = [Prism(-1000, 1000, -500, 500, 0, 2000, {'density': 100})]
     shape = (300, 300)
