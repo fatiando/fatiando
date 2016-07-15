@@ -203,6 +203,10 @@ class Square(Polygon):
         names.extend((p, self.props[p]) for p in sorted(self.props))
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
 
+    def copy(self):
+        return cp.deepcopy(self)
+    
+
 
 class SquareMesh(object):
 
