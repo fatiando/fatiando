@@ -34,6 +34,7 @@ from __future__ import division
 import numpy
 import scipy.special
 import scipy.interpolate
+import copy as cp
 
 from . import gridder
 from . import utils
@@ -121,6 +122,11 @@ class Polygon(GeometricElement):
     @property
     def y(self):
         return self.vertices[:, 1]
+
+    def copy(self):
+        return cp.deepcopy(self)
+
+
 
 
 class Square(Polygon):
