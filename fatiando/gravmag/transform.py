@@ -264,14 +264,29 @@ def tga(x, y, data, shape, method='fd'):
 
 
 def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
-    """
-    Calculates the potential field tilt, as defined by Miller and Singh (1994):
+    r"""
+    Calculates the potential field tilt, as defined by Miller and Singh (1994)
 
     .. math::
-        tilt(f) = tan^{-1}(\\frac{\\frac{dT}{dz}}{\\sqrt{\\frac{dT}{dx}^2 +
-        \\frac{dT}{dy}^2}})
 
-    .. note:: Requires gridded data.
+        tilt(f) = tan^{-1}\left(
+            \frac{
+                \frac{\partial T}{\partial z}}{
+                \sqrt{\frac{\partial T}{\partial x}^2 +
+                      \frac{\partial T}{\partial y}^2}}
+            \right)
+
+    When used on magnetic total field anomaly data, works best if the data is
+    reduced to the pole.
+
+    It's useful to plot the zero contour line of the tilt to represent possible
+    outlines of the source bodies. Use matplotlib's ``pyplot.contour`` or
+    ``pyplot.tricontour`` for this.
+
+    .. note::
+
+        Requires gridded data if ``xderiv``, ``yderiv`` and ``zderiv`` are not
+        given.
 
     Parameters:
 
@@ -280,18 +295,25 @@ def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
     * data : 1D-array
         The potential field at the grid points
     * shape : tuple = (nx, ny)
-        The shape of the grid
-    * xderiv : 1D-array
-        Optional. Values of the derivative in the x direction
-    * yderiv : 1D-array
-        Optional. Values of the derivative in the y direction
-    * zderiv : 1D-array
-        Optional. Values of the derivative in the z direction
+        The shape of the grid. Ignored if *xderiv*, *yderiv* and *zderiv* are
+        given.
+    * xderiv : 1D-array or None
+        Optional. Values of the derivative in the x direction.
+        If ``None``, will calculated using the default options of
+        :func:`~fatiando.gravmag.transform.derivx`
+    * yderiv : 1D-array or None
+        Optional. Values of the derivative in the y direction.
+        If ``None``, will calculated using the default options of
+        :func:`~fatiando.gravmag.transform.derivy`
+    * zderiv : 1D-array or None
+        Optional. Values of the derivative in the z direction.
+        If ``None``, will calculated using the default options of
+        :func:`~fatiando.gravmag.transform.derivz`
 
     Returns:
 
     * tilt : 1D-array
-        The tilt angle of the total field.
+        The tilt angle of the total field in radians.
 
     References:
 
@@ -299,22 +321,16 @@ def tilt(x, y, data, shape, xderiv=None, yderiv=None, zderiv=None):
     Concept for Location of Potential Field Sources."
     Journal of Applied Geophysics 32 (2--3): 213-17.
     doi:10.1016/0926-9851(94)90022-1.
-    """
-    #Deal with horizontal derivatives. If we have not been given an array
-    #with either, we will calculate them first, then get the horizontal
-    #derivative.
-    if xderiv == None:
-        xderiv = derivx(x, y, data, shape)
-    if yderiv == None:
-        yderiv = derivy(x, y, data, shape)
-    horiz_deriv = numpy.sqrt( xderiv**2 + yderiv**2 )
 
-    #Deal with vertical derivative, similar to the previous.
-    if zderiv == None:
-        vert_deriv = derivz(x, y, data, shape)
-    else:
-        vert_deriv = zderiv
-    tilt = numpy.arctan2( vert_deriv, horiz_deriv )
+    """
+    if xderiv is None:
+        xderiv = derivx(x, y, data, shape)
+    if yderiv is None:
+        yderiv = derivy(x, y, data, shape)
+    if zderiv is None:
+        zderiv = derivz(x, y, data, shape)
+    horiz_deriv = numpy.sqrt(xderiv**2 + yderiv**2)
+    tilt = numpy.arctan2(zderiv, horiz_deriv)
     return tilt
 
 
