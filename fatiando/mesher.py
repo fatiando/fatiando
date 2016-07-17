@@ -205,7 +205,7 @@ class Square(Polygon):
 
     def copy(self):
         return cp.deepcopy(self)
-    
+
 
 
 class SquareMesh(object):
