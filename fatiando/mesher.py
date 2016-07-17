@@ -123,11 +123,6 @@ class Polygon(GeometricElement):
     def y(self):
         return self.vertices[:, 1]
 
-    def copy(self):
-        return cp.deepcopy(self)
-
-
-
 
 class Square(Polygon):
 
