@@ -149,7 +149,8 @@ unit tests and doc tests.
     `Testing: Unit Testing
     <http://software-carpentry.org/>`__.
 
-Unit tests are implemented in the ``fatiando/tests`` folder of the repository.
+Unit tests are implemented in ``tests`` folders inside each subpackage of
+``fatiando``.
 Doctests are part of the docstrings of functions and modules.
 You'll recognize them by the ``>>>`` in each line of code.
 Both tests are found and run automatically by
