@@ -537,7 +537,7 @@ def power_density_spectra(x, y, data, shape):
         The Power Density Spectra of the data
     """
     kx, ky = _fftfreqs(x, y, shape, shape)
-    pds = abs(numpy.fft.fft2(numpy.reshape(data, shape))) ** 2
+    pds = abs(numpy.fft.fft2(numpy.reshape(data, shape)))**2
     return kx, ky, pds
 
 
@@ -587,22 +587,22 @@ def radial_average(kx, ky, pds, max_radius=None, ring_width=None):
         max_radius = min(kx.max(), ky.max())
     if ring_width is None:
         ring_width = max(kx[1, 0], ky[0, 1])
-    k = numpy.sqrt(kx ** 2 + ky ** 2)
+    k = numpy.sqrt(kx**2 + ky**2)
     pds_radial = []
     k_radial = []
     radius_i = -1
     while True:
         radius_i += 1
-        if radius_i * ring_width > max_radius:
+        if radius_i*ring_width > max_radius:
             break
         else:
             if radius_i == 0:
-                inside = k <= 0.5 * ring_width
+                inside = k <= 0.5*ring_width
             else:
-                inside = numpy.logical_and(k > (radius_i - 0.5) * ring_width,
-                                           k <= (radius_i + 0.5) * ring_width)
+                inside = numpy.logical_and(k > (radius_i - 0.5)*ring_width,
+                                           k <= (radius_i + 0.5)*ring_width)
             pds_radial.append(pds[inside].mean())
-            k_radial.append(radius_i * ring_width)
+            k_radial.append(radius_i*ring_width)
     return numpy.array(k_radial), numpy.array(pds_radial)
 
 
