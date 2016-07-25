@@ -546,7 +546,7 @@ def radial_average(kx, ky, pds, max_radius=None, ring_width=None):
     Calculates the average of the Power Density Spectra points that falls
     inside concentric rings around the zero wavenumber. By default, the
     biggest ring is the bigger one to have at least one point of both axes,
-    and the rings' width is set as the maximum of :math:`\Dekta k_x` and
+    and the rings' width is set as the maximum of :math:`\Delta k_x` and
     :math:`\Delta k_y`, being them the equidistances of the kx and ky arrays.
 
     The width of the rings and the inner radius of the biggest ring can be
