@@ -544,17 +544,16 @@ def power_density_spectra(x, y, data, shape):
 def radial_average(kx, ky, pds, max_radius=None, ring_width=None):
     r"""
     Calculates the average of the Power Density Spectra points that falls
-    inside concentric rings around the zero wavenumber. By default, the
-    biggest ring is the bigger one to have at least one point of both axes,
-    and the rings' width is set as the maximum of :math:`\Delta k_x` and
-    :math:`\Delta k_y`, being them the equidistances of the kx and ky arrays.
+    inside concentric rings built around the origin of the wavenumber
+    coordinate system with constant width.
 
     The width of the rings and the inner radius of the biggest ring can be
     changed by setting the optional parameters ring_width and max_radius,
     respectively.
 
-    .. note:: It's recommended to use the outputs of the
-              power_density_spectra function as input of this one.
+    .. note:: To calculate the radially averaged power density spectra
+              use the outputs of the function power_density_spectra as
+              input of this one.
 
     Parameters:
 
@@ -565,11 +564,15 @@ def radial_average(kx, ky, pds, max_radius=None, ring_width=None):
     * shape : tuple = (nx, ny)
         The shape of the grid
     * max_radius : float (optional)
-        Changes the default inner radius of the biggest ring.
+        Inner radius of the biggest ring.
+        By default it's set as the minimum of kx.max() and ky.max().
         Making it smaller leaves points outside of the averaging,
         and making it bigger includes points nearer to the boundaries.
     * ring_width : float (optional)
-        Changes the default ring width.
+        Width of the rings.
+        By default it's set as the largest value of :math:`\Delta k_x` and
+        :math:`\Delta k_y`, being them the equidistances of the kx and ky
+        arrays.
         Making it bigger gives more populated averages, and
         making it smaller lowers the ammount of points per ring
         (use it carefully).
