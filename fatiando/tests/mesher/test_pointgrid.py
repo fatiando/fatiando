@@ -141,4 +141,3 @@ def test_point_grid_copy():
     p1.addprop('density', 3200)
     p2.addprop('density', 2000)
     assert p1.props['density'] != p2.props['density']
-

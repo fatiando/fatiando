@@ -2,7 +2,7 @@ from ...mesher import GeometricElement
 
 
 def test_geometric_element_copy():
-    orig = GeometricElement({'density':5000})
+    orig = GeometricElement({'density': 5000})
     cp = orig.copy()
     assert orig.props == cp.props
     assert orig is not cp
