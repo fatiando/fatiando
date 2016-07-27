@@ -69,6 +69,10 @@ class GeometricElement(object):
         """
         self.props[prop] = value
 
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
+
 
 class Polygon(GeometricElement):
 
@@ -122,6 +126,10 @@ class Polygon(GeometricElement):
     @property
     def y(self):
         return self.vertices[:, 1]
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class Square(Polygon):
@@ -199,8 +207,8 @@ class Square(Polygon):
         return ' | '.join('%s:%g' % (n, v) for n, v in names)
 
     def copy(self):
+        """ Return a deep copy of the current instance."""
         return cp.deepcopy(self)
-
 
 
 class SquareMesh(object):
@@ -396,6 +404,10 @@ class SquareMesh(object):
         else:
             return ys
 
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
+
 
 class Prism(GeometricElement):
 
@@ -489,6 +501,10 @@ class Prism(GeometricElement):
         yc = 0.5 * (self.y1 + self.y2)
         zc = 0.5 * (self.z1 + self.z2)
         return numpy.array([xc, yc, zc])
+
+    def copy(self):
+        """Returns copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class Tesseroid(GeometricElement):
@@ -678,6 +694,14 @@ class Tesseroid(GeometricElement):
             Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
             for i in wests[:-1] for j in souths[:-1] for k in bottoms[:-1]]
         return tesseroids
+
+        def copy(self):
+            """Return copy of the current instance"""
+            return cp.deepcopy(self)
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class Sphere(GeometricElement):
@@ -1001,6 +1025,10 @@ class PointGrid(object):
                              j*my:(j + 1)*my].ravel()
                 subs.append(PointGrid(area, zs, (mx, my), props))
         return subs
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class PrismRelief(object):
@@ -1496,6 +1524,10 @@ class PrismMesh(object):
         reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
         numpy.savetxt(propfile, reordered, fmt='%.4f')
 
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
+
 
 class TesseroidMesh(PrismMesh):
 
@@ -1608,6 +1640,10 @@ class TesseroidMesh(PrismMesh):
         PrismMesh.__init__(self, bounds, shape, props)
         self.zdown = False
         self.dump = None
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 def extract(prop, prisms):

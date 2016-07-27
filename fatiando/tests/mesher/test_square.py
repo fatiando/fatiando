@@ -1,4 +1,3 @@
-import numpy as np
 from ...mesher import Square
 
 
@@ -18,3 +17,4 @@ def test_square_copy():
     cp.props['density'] = 850
     assert orig.props['density'] != cp.props['density']
     assert orig.nverts == cp.nverts
+    assert cp is not orig
