@@ -63,5 +63,5 @@ script:
     - bash ci/build-docs.sh
 
 after_success:
-    - coveralls
+    - bash ci/submit-coverage.sh
     - bash ci/update-website.sh
