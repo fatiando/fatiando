@@ -130,20 +130,7 @@ import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 
-try:
-    from fatiando.seismic._wavefd import *
-except:
-    def not_implemented(*args, **kwargs):
-        raise NotImplementedError(
-            "Couldn't load C coded extension module.")
-    _apply_damping = not_implemented
-    _step_elastic_sh = not_implemented
-    _step_elastic_psv = not_implemented
-    _xz2ps = not_implemented
-    _nonreflexive_sh_boundary_conditions = not_implemented
-    _nonreflexive_psv_boundary_conditions = not_implemented
-    _step_scalar = not_implemented
-    _reflexive_scalar_boundary_conditions = not_implemented
+from ._timesteps import *
 
 
 class MexHatSource(object):

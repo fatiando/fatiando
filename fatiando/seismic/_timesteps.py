@@ -1,16 +1,6 @@
-"""
-Cython implementation of the time stepping functions for
-fatiando.seismic.wavefd
-"""
-import numpy
-
-from libc.math cimport exp, sqrt
-# Import Cython definitions for numpy
-cimport numpy
-cimport cython
-
-DTYPE = numpy.float
-ctypedef numpy.float_t double
+from __future__ import division
+from numpy import exp, sqrt
+import numba
 
 __all__ = [
     '_apply_damping',
@@ -22,21 +12,12 @@ __all__ = [
     '_reflexive_scalar_boundary_conditions',
     '_step_scalar']
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _xz2ps(
-    numpy.ndarray[double, ndim=2] ux not None,
-    numpy.ndarray[double, ndim=2] uz not None,
-    double[:,::1] p not None,
-    double[:,::1] s not None,
-    unsigned int nx, unsigned int nz,
-    double dx, double dz):
+
+@numba.jit(nopython=True, nogil=True)
+def _xz2ps(ux, uz, p, s, nx, nz, dx, dz):
     """
     Convert ux and uz to P and S waves.
     """
-    cdef:
-        unsigned int i, j
-        double tmpx, tmpz
     tmpx = dx*12.
     tmpz = dz*12.
     for i in range(2, nz - 2):
@@ -67,15 +48,12 @@ def _xz2ps(
         s[1,j] = s[2,j]
         s[0,j] = s[1,j]
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _apply_damping(double[:,::1] array not None,
-    unsigned int nx, unsigned int nz, unsigned int pad, double decay):
+
+@numba.jit(nopython=True, nogil=True)
+def _apply_damping(array, nx, nz, pad, decay):
     """
     Apply a decay factor to the values of the array in the padding region.
     """
-    cdef:
-        unsigned int i, j
     # Damping on the left
     for i in range(nz):
         for j in range(pad):
@@ -89,22 +67,12 @@ def _apply_damping(double[:,::1] array not None,
         for j in range(nx):
             array[i,j] *= exp(-((decay*(i - nz + pad))**2))
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _nonreflexive_psv_boundary_conditions(
-    double[:,:,::1] ux not None,
-    double[:,:,::1] uz not None,
-    int tp1, int t, int tm1,
-    unsigned int nx, unsigned int nz,
-    double dt, double dx, double dz,
-    double[:,::1] mu not None,
-    double[:,::1] lamb not None,
-    double[:,::1] dens not None):
+
+@numba.jit(nopython=True, nogil=True)
+def _nonreflexive_psv_boundary_conditions(ux, uz, tp1, t, tm1, nx, nz, dt, dx, dz, mu, lamb, dens):
     """
     Apply nonreflexive boundary contitions to elastic P-SV waves.
     """
-    cdef:
-        unsigned int i, j
     for i in range(nz):
         # Left
         j = 0
@@ -126,20 +94,12 @@ def _nonreflexive_psv_boundary_conditions(
         uz[tp1,i,j] = uz[t,i,j] - dt*sqrt((lamb[i,j] + 2*mu[i,j])/dens[i,j])*(
             uz[t,i,j] - uz[t,i-1,j])/dz
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _nonreflexive_sh_boundary_conditions(
-    double[:,::1] u_tp1 not None,
-    double[:,::1] u_t not None,
-    unsigned int nx, unsigned int nz,
-    double dt, double dx, double dz,
-    double[:,::1] mu not None,
-    double[:,::1] dens not None):
+
+@numba.jit(nopython=True, nogil=True)
+def _nonreflexive_sh_boundary_conditions(u_tp1, u_t, nx, nz, dt, dx, dz, mu, dens):
     """
     Apply nonreflexive boundary contitions to elastic SH waves.
     """
-    cdef:
-        unsigned int i, j
     # Left
     for i in range(nz):
         for j in range(3):
@@ -161,23 +121,13 @@ def _nonreflexive_sh_boundary_conditions(
         u_tp1[1,j] = u_tp1[2,j]
         u_tp1[0,j] = u_tp1[1,j]
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _step_elastic_sh(
-    double[:,::1] u_tp1 not None,
-    double[:,::1] u_t not None,
-    double[:,::1] u_tm1 not None,
-    unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
-    double dt, double dx, double dz,
-    double[:,::1] mu not None,
-    double[:,::1] dens not None):
+
+@numba.jit(nopython=True, nogil=True)
+def _step_elastic_sh(u_tp1, u_t, u_tm1, x1, x2, z1, z2, dt, dx, dz, mu, dens):
     """
     Perform a single time step in the Finite Difference solution for elastic
     SH waves.
     """
-    cdef:
-        unsigned int i, j
-        double dt2, dx2, dz2
     dt2 = dt**2
     dx2 = dx**2
     dz2 = dz**2
@@ -213,24 +163,13 @@ def _step_elastic_sh(
                         1.125*(u_t[i,j-1] - u_t[i,j-2])
                         - (u_t[i,j] - u_t[i,j-3])/24.)))
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _step_elastic_psv(
-    double[:,:,::1] ux not None,
-    double[:,:,::1] uz not None,
-    unsigned int tp1, unsigned int t, unsigned int tm1,
-    unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
-    double dt, double dx, double dz,
-    double[:,::1] mu not None,
-    double[:,::1] lamb not None,
-    double[:,::1] dens not None):
+
+@numba.jit(nopython=True, nogil=True)
+def _step_elastic_psv(ux, uz, tp1, t, tm1, x1, x2, z1, z2, dt, dx, dz, mu, lamb, dens):
     """
     Perform a single time step in the Finite Difference solution for P-SV
     elastic waves.
     """
-    cdef:
-        unsigned int i, j
-        double dt2, tauzz_p, tauzz_m, tauxx_p, tauxx_m, tauxz_p, tauxz_m, l, m
     dt2 = dt**2
     for i in range(z1, z2):
         for j in range(x1, x2):
@@ -269,45 +208,35 @@ def _step_elastic_psv(
             uz[tp1,i,j] = 2*uz[t,i,j] - uz[tm1,i,j] + (dt2/dens[i,j])*(
                 (tauzz_p - tauzz_m)/dz + (tauxz_p - tauxz_m)/dx)
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _reflexive_scalar_boundary_conditions(
-    double[:,::1] u not None,
-    unsigned int nx, unsigned int nz):
+
+@numba.jit(nopython=True, nogil=True)
+def _reflexive_scalar_boundary_conditions(u, nx, nz):
     """
     Apply the boundary conditions: free-surface at top, fixed on the others.
     4th order (+2-2) indexes
     """
-    cdef unsigned int i
     # Top
-    for i in xrange(nx):
+    for i in range(nx):
         u[1, i] = u[2, i] #up
         u[0, i] = u[1, i]
         u[nz - 1, i] *= 0 #down
         u[nz - 2, i] *= 0
     # Sides
-    for i in xrange(nz):
+    for i in range(nz):
         u[i, 0] *= 0 #left
         u[i, 1] *= 0
         u[i, nx - 1] *= 0 #right
         u[i, nx - 2] *= 0
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _step_scalar(
-    double[:,::1] u_tp1 not None,
-    double[:,::1] u_t not None,
-    double[:,::1] u_tm1 not None,
-    unsigned int x1, unsigned int x2, unsigned int z1, unsigned int z2,
-    double dt, double ds,
-    double[:,::1] vel not None):
+
+@numba.jit(nopython=True, nogil=True)
+def _step_scalar(u_tp1, u_t, u_tm1, x1, x2, z1, z2, dt, ds, vel):
     """
     Perform a single time step in the Finite Difference solution for scalar
     waves 4th order in space
     """
-    cdef unsigned int i, j
-    for i in xrange(z1, z2):
-        for j in xrange(x1, x2):
+    for i in range(z1, z2):
+        for j in range(x1, x2):
             u_tp1[i,j] = (2.*u_t[i,j] - u_tm1[i,j]
                 + ((vel[i,j]*dt/ds)**2)*(
                     (-u_t[i,j + 2] + 16.*u_t[i,j + 1] - 30.*u_t[i,j] +
