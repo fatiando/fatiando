@@ -12,4 +12,4 @@ def test_tesseroid_mesh_copy():
     assert orig.dump == cp.dump
     orig.addprop('density', 3300 + np.zeros(orig.size))
     cp = orig.copy()
-    assert np.array_equal(orig.props['density'], cp.props['density']) == True
+    assert np.array_equal(orig.props['density'], cp.props['density'])

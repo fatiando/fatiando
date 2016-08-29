@@ -10,7 +10,8 @@ def test_sphere_copy():
     assert orig.y == cp.y
     assert orig.z == cp.z
     assert orig.props == cp.props
-    assert np.array_equal(orig.center, cp.center) == True
+    assert np.array_equal(orig.center, cp.center)
+
     cp.x = 4
     cp.y = 6
     cp.z = 7
