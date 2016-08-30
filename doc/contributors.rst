@@ -14,7 +14,7 @@ A (hopefully) updated list of people who contributed to Fatiando a Terra:
 * `Martin Bentley`_ - Nelson Mandela Metropolitan University, South Africa and AEON, South Africa
 * `Victor Almeida`_ - UERJ, Brazil.
 * `M. Andy Kass`_ - United States Geological Survey, USA
-* `Piotr Kurnik`_ - United Kingdom
+* Piotr Kurnik - United Kingdom
 
 .. _Leonardo Uieda: http://www.leouieda.com
 .. _Vanderlei Coelho de Oliveira Junior: http://fatiando.org/people/oliveira-jr
