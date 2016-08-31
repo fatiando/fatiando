@@ -15,7 +15,7 @@ Version 0.5
 * Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
   the `Python Packaging User Guide <https://packaging.python.org/>`__.
   (`PR 294 <https://github.com/fatiando/fatiando/pull/294>`__)
-* Enable ``fatiando.mesher.PointGrid`a` to have points at different depths by
+* Enable ``fatiando.mesher.PointGrid`` to have points at different depths by
   passing it an array as the ``z`` argument.
   (`PR 283 <https://github.com/fatiando/fatiando/pull/283>`__)
 * Replace `nose <http://nose.readthedocs.io/>`__ with `py.test
