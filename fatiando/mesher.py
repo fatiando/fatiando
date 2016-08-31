@@ -34,6 +34,7 @@ from __future__ import division
 import numpy
 import scipy.special
 import scipy.interpolate
+import copy as cp
 
 from . import gridder
 from . import utils
@@ -67,6 +68,10 @@ class GeometricElement(object):
 
         """
         self.props[prop] = value
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class Polygon(GeometricElement):
@@ -390,6 +395,10 @@ class SquareMesh(object):
             return numpy.array(ys)
         else:
             return ys
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class Prism(GeometricElement):
@@ -997,6 +1006,10 @@ class PointGrid(object):
                 subs.append(PointGrid(area, zs, (mx, my), props))
         return subs
 
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
+
 
 class PrismRelief(object):
 
@@ -1098,6 +1111,10 @@ class PrismRelief(object):
                 return -v
             return v
         self.props[prop] = [correct(v, i) for i, v in enumerate(values)]
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class PrismMesh(object):
@@ -1490,6 +1507,10 @@ class PrismMesh(object):
         values[self.mask] = -10000000
         reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
         numpy.savetxt(propfile, reordered, fmt='%.4f')
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
 
 
 class TesseroidMesh(PrismMesh):

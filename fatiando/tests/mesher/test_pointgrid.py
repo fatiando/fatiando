@@ -132,3 +132,12 @@ def test_z_split_y():
     for i in range(subshape[1]):
         diff.append(np.all((submodels[i].z - temp[i].ravel()) == 0.))
     assert np.alltrue(diff)
+
+
+def test_point_grid_copy():
+    p1 = PointGrid([0, 10, 2, 6], 200, (2, 3))
+    p2 = p1.copy()
+    assert p1 is not p2
+    p1.addprop('density', 3200)
+    p2.addprop('density', 2000)
+    assert p1.props['density'] != p2.props['density']

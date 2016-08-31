@@ -10,6 +10,8 @@ Version 0.5
 
 **Changes**:
 
+* Add copy method to ``fatiando.mesher`` objects.
+  (`PR 301  <https://github.com/fatiando/fatiando/pull/301>`__)
 * Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
   the `Python Packaging User Guide <https://packaging.python.org/>`__.
   (`PR 294 <https://github.com/fatiando/fatiando/pull/294>`__)
