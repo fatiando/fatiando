@@ -1290,7 +1290,7 @@ class PrismMesh(object):
         """
         self.props[prop] = values
 
-    def carvetopo(self, x, y, height):
+    def carvetopo(self, x, y, height, below=False):
         """
         Mask (remove) prisms from the mesh that are above the topography.
 
@@ -1306,6 +1306,8 @@ class PrismMesh(object):
             x and y coordinates of the grid points
         * height : list or array
             Array with the height of the topography
+        * below : boolean
+            Will mask prisms below the input surface if set to *True*.
 
         """
         nz, ny, nx = self.shape
@@ -1338,10 +1340,16 @@ class PrismMesh(object):
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
-                if (masked or
-                        (cellz < h and self.zdown) or
-                        (cellz > h and not self.zdown)):
-                    self.mask.append(c)
+                if below:
+                    if (masked or
+                            (cellz > h and self.zdown) or
+                            (cellz < h and not self.zdown)):
+                        self.mask.append(c)
+                else:
+                    if (masked or
+                            (cellz < h and self.zdown) or
+                            (cellz > h and not self.zdown)):
+                        self.mask.append(c)
                 c += 1
 
     def get_xs(self):
