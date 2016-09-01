@@ -20,3 +20,5 @@ Tomography
 ----
 
 """
+from .wavefd import FDAcoustic2D, FDElasticSH, FDElasticPSV
+from .wavelets import RickerWavelet, GaussianWavelet

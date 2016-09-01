@@ -124,3 +124,6 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 ----
 
 """
+from .acoustic2d import FDAcoustic2D
+from .elastic_sh import FDElasticSH
+from .elastic_psv import FDElasticPSV

@@ -1,6 +1,14 @@
-from __future__ import division
+from __future__ import division, print_function
+from future.builtins import super, object, range
+
+import numpy as np
 from numpy import sqrt
 import numba
+
+
+class FDElasticSH(object):
+    def __init__(self, velocity, density):
+        pass
 
 
 def maxdt(area, shape, maxvel):

@@ -1,5 +1,13 @@
-from __future__ import division
+from __future__ import division, print_function
+from future.builtins import super, object, range
+
+import numpy as np
 import numba
+
+
+class FDAcoustic2D(object):
+    def __init__(self, velocity, density):
+        pass
 
 
 @numba.jit(nopython=True, nogil=True)
