@@ -203,7 +203,7 @@ class FDAcoustic2D(WaveFD2D):
     def _plot_snapshot(self, frame, **kwargs):
         with h5py.File(self.cachefile) as f:
             data = f['panels'][frame]
-        scale = np.abs(data).max()
+        scale = kwargs.pop('cutoff', np.abs(data).max())
         nz, nx = self.shape
         dx, dz = nx*self.dx, nz*self.dz
         if 'extent' not in kwargs:
