@@ -17,7 +17,7 @@ from .base import WaveFD2D
 class FDAcoustic2D(WaveFD2D):
 
     def __init__(self, velocity, density, spacing, cachefile=None, dt=None,
-                 padding=50, taper=0.007, verbose=True):
+                 padding=50, taper=0.005, verbose=True):
         super().__init__(cachefile, spacing, velocity.shape, dt, padding,
                          taper, verbose)
         self.density = density

@@ -56,3 +56,78 @@ def xz2ps(ux, uz, p, s, nx, nz, dx, dz):
         s[nz-1,j] = s[nz-2,j]
         s[1,j] = s[2,j]
         s[0,j] = s[1,j]
+
+
+def lame_lamb(pvel, svel, dens):
+    r"""
+    Calculate the Lame parameter :math:`\lambda` P and S wave velocities
+    (:math:`\alpha` and :math:`\beta`) and the density (:math:`\rho`).
+
+    .. math::
+
+        \lambda = \alpha^2 \rho - 2\beta^2 \rho
+
+    Parameters:
+
+    * pvel : float or array
+        The P wave velocity
+    * svel : float or array
+        The S wave velocity
+    * dens : float or array
+        The density
+
+    Returns:
+
+    * lambda : float or array
+        The Lame parameter
+
+    Examples::
+
+        >>> print lame_lamb(2000, 1000, 2700)
+        5400000000
+        >>> import numpy as np
+        >>> pv = np.array([2000, 3000])
+        >>> sv = np.array([1000, 1700])
+        >>> dens = np.array([2700, 3100])
+        >>> print lame_lamb(pv, sv, dens)
+        [5400000000 9982000000]
+
+    """
+    lamb = dens * pvel ** 2 - 2 * dens * svel ** 2
+    return lamb
+
+
+def lame_mu(svel, dens):
+    r"""
+    Calculate the Lame parameter :math:`\mu` from S wave velocity
+    (:math:`\beta`) and the density (:math:`\rho`).
+
+    .. math::
+
+        \mu = \beta^2 \rho
+
+    Parameters:
+
+    * svel : float or array
+        The S wave velocity
+    * dens : float or array
+        The density
+
+    Returns:
+
+    * mu : float or array
+        The Lame parameter
+
+    Examples::
+
+        >>> print lame_mu(1000, 2700)
+        2700000000
+        >>> import numpy as np
+        >>> sv = np.array([1000, 1700])
+        >>> dens = np.array([2700, 3100])
+        >>> print lame_mu(sv, dens)
+        [2700000000 8959000000]
+
+    """
+    mu = dens * svel ** 2
+    return mu

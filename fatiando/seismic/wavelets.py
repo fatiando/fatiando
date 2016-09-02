@@ -2,6 +2,7 @@ from __future__ import division, print_function
 from future.utils import with_metaclass
 from future.builtins import super, object, range
 from abc import ABCMeta, abstractmethod
+import copy
 
 import numpy as np
 
@@ -14,6 +15,9 @@ class BaseWavelet(with_metaclass(ABCMeta)):
     @abstractmethod
     def __call__(self, time):
         pass
+
+    def copy(self):
+        return copy.deepcopy(self)
 
 
 class GaussianWavelet(BaseWavelet):
