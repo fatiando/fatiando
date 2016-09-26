@@ -3,13 +3,13 @@
 .. raw:: html
 
     <div class="row" style="margin-top: 60px">
-        <div class="col-md-2">
+        <div class="col-md-1">
         </div>
-        <div class="col-md-8">
+        <div class="col-md-10">
             <img src="_static/fatiando-banner-homepage.png" width="100%"
                 style="margin-bottom: 50px;"></img>
             </div>
-        <div class="col-md-2">
+        <div class="col-md-1">
         </div>
     </div>
 
@@ -31,25 +31,32 @@ for geophysical data analysis and the development of new methodologies.
 
     <div class="col-md-4">
 
-**Research:** Fatiando allows you to write Python scripts to
-perform your data analysis and generate figures in a reproducible way.
+    <h3 class="text-center">Research</h3>
+
+Make your research more **reproducible** by writing a Python script or
+`Jupyter notebook`_ instead of clicking through complicated menus.
 
 .. raw:: html
 
     </div>
+
     <div class="col-md-4">
 
-**Development:** Designed for extensibility, Fatiando offers tools for users to
-build upon the existing infrastructure and develop new inversion methods.
-We take care of the boilerplate.
+    <h3 class="text-center">Development</h3>
+
+Don't start from scratch! Build upon the existing tools in Fatiando to develop
+new methods.
 
 .. raw:: html
 
     </div>
+
     <div class="col-md-4">
 
-**Teaching:** Fatiando can be combined with the `Jupyter notebook`_ to make rich, interactive
-documents. Great for teaching fundamental concepts of geophysics.
+    <h3 class="text-center">Teaching</h3>
+
+Combine Fatiando with the `Jupyter notebook`_ to make rich, interactive
+documents. Great for teaching fundamental concepts of geophysics!
 
 .. raw:: html
 
@@ -288,19 +295,20 @@ Read :ref:`all announcements <news>`.
 .. raw:: html
 
     <div class="row" style="margin-top: 50px;">
-        <div class="col-md-3">
+        <div class="col-md-1">
         </div>
-        <div class="col-md-6">
+        <div class="col-md-9">
             <div class="text-center" style="margin-bottom: 20px;">
-                Watch Leo give a presentation about Fatiando at Scipy 2013.
+                Watch an introduction to what Fatiando is all about
+                in this presentation from Scipy 2013.
             </div>
             <div class="responsive-embed">
-                <iframe width="100%" height="400"
+                <iframe width="100%" height="600"
                 src="https://www.youtube.com/embed/Ec38h1oB8cc" frameborder="0"
                 allowfullscreen></iframe>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-1">
         </div>
     </div>
 
