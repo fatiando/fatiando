@@ -511,15 +511,15 @@ def pad_array(a, npd=None, padtype='OddReflectionTaper'):
         >>> zpad, nps = pad_array(z)
         >>> zpad
         array([ 4.4,  3.2,  3. ,  4. ,  4. ,  5. ,  6. ,  4.4])
-        >>> nps
+        >>> print(nps)
         [(2, 1)]
 
         >>> shape = (5, 6)
         >>> z = numpy.ones(shape)
         >>> zpad, nps = pad_array(z, padtype='5')
-        >>> zpad.shape
+        >>> print(zpad.shape)
         (8, 8)
-        >>> nps
+        >>> print(nps)
         [(2, 1), (1, 1)]
 
     """
