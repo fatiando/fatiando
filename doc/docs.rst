@@ -13,9 +13,9 @@ Documentation (version |version|)
             </em>
         </div>
         <div class="col-md-3">
-            <h3><a href="api/fatiando.html">Library reference</a></h3>
+            <h3><a href="api/fatiando.html">API Reference</a></h3>
             <em>
-            The modules and packages of the
+            Documentation for all classes and functions in the
             <code class="docutils literal">fatiando</code> package.
             </em>
         </div>
