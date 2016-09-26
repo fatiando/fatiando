@@ -17,7 +17,7 @@ Most, if not all, of the scientific Python packages that Fatiando relies on
 support both versions of the language.
 However, while it is possible (and not that difficult) to
 `support both versions simultaneously
-<http://docs.python.org/3.4/howto/pyporting.html>`__,
+<https://docs.python.org/3.4/howto/pyporting.html>`__,
 it does take work.
 And work takes time.
 
@@ -31,12 +31,12 @@ Installing the dependencies
 
 Fatiando requires the following packages:
 
-* `numpy <http://numpy.scipy.org/>`_
+* `numpy <http://www.numpy.org/>`_
 * `scipy <http://scipy.org/>`_
-* `matplotlib <http://matplotlib.sourceforge.net/>`_
+* `matplotlib <http://matplotlib.org/>`_
 * `Jupyter <http://jupyter.org/>`__
 * `numba <http://numba.pydata.org/>`__
-* `pillow <https://python-pillow.github.io/>`_
+* `pillow <http://python-pillow.org/>`_
 * `future <http://python-future.org/>`_
 * `mayavi <http://code.enthought.com/projects/mayavi/>`_
 * A C compiler (preferably GCC or MinGW_ on Windows)
@@ -143,7 +143,7 @@ information:
 
 * Operating system
 * Version of Fatiando you installed
-* Python distribution (Anaconda_, PythonXY_, `ETS/Canopy`_, own install)
+* Python distribution (Anaconda_, `ETS/Canopy`_, own install)
 * Python version (2.6, 2.7, 3.3, 3.4, etc)
 * The script you ran (and gave you an error/weird result)
 * The error message (the part that says ``Traceback: ...``) or result (figure,
@@ -156,14 +156,13 @@ Fatiando better and easier to install.
 .. _submit a bug report on Github: https://github.com/fatiando/fatiando/issues
 .. _install git: http://git-scm.com/
 .. _Github: https://github.com/fatiando/fatiando
-.. _Python: http://www.python.org/
-.. _pip: http://www.pip-installer.org
+.. _Python: https://www.python.org/
+.. _pip: https://pip.pypa.io/en/stable/
 .. _MinGW: http://www.mingw.org/
 .. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _Leonardo Uieda: http://fatiando.org/people/uieda/
-.. _Continuum Analytics: http://continuum.io/
-.. _Anaconda: http://continuum.io/downloads
-.. _PythonXY: http://code.google.com/p/pythonxy/
+.. _Continuum Analytics: https://www.continuum.io/
+.. _Anaconda: https://www.continuum.io/downloads
 .. _ETS/Canopy: http://code.enthought.com/projects/index.php
 .. _OpenMP: http://openmp.org/
 .. _TDM-GCC: http://tdm-gcc.tdragon.net/
