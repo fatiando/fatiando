@@ -194,7 +194,7 @@ for examples of what Fatiando can do.
     <div class="alert alert-success">
     <h4><strong>Stay informed</strong></h4>
 
-Signing up to our `mailing list`_ to keep up-to-date with new releases and
+Sign up to our `mailing list`_ to keep up-to-date with new releases and
 events and give your feedback.
 
 .. raw:: html
