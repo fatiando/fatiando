@@ -10,6 +10,9 @@ Version 0.5
 
 **Changes**:
 
+* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
+  may not provide accurate results.
+  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
 * Add copy method to ``fatiando.mesher`` objects.
   (`PR 301  <https://github.com/fatiando/fatiando/pull/301>`__)
 * Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
