@@ -14,12 +14,12 @@ h2 {
     border-radius: 0px;
 }
 .navbar-brand  img {
-    height: 40px;
+    height: 30px;
     margin: 0px 10px;
 }
 .navbar-brand {
-    padding-top: 10px;
-    font-size: 20pt;
+    padding-top: 16px;
+    font-size: 16pt;
 }
 blockquote {
     font-size: 12pt;

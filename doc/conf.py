@@ -117,13 +117,12 @@ html_theme_options = {
     'navbar_title': 'fatiando',
     'navbar_site_name': "Site",
     'navbar_links': [
-        ("Installing", "install"),
-        ("Documentation", "docs"),
-        ("Cookbook", "cookbook"),
+        ("Install", "install"),
         ("Gallery", "gallery/index"),
-        ("Developer Guide", "develop"),
-        ('<i class="fa fa-github-square fa-lg" title="Source code on Github"></i>',
-            "https://github.com/fatiando/fatiando", True),
+        # ("Tutorials", ""),
+        ("API", "api/fatiando"),
+        ("Contribute", "develop"),
+        ("Docs", "docs"),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
