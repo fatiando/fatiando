@@ -1,0 +1,48 @@
+# Continuous integration for Windows using http://appveyor.com/
+
+# Not a .NET project, we build ci-helpers in the install step instead
+build: false
+
+environment:
+    global:
+        TEST_CMD: "python -c \"import fatiando; fatiando.test(coverage=True, verbose=True)\""
+        CHECK_VERSION: "python -c \"import fatiando; print('Installed file:', fatiando.__file__); print('Installed version:', fatiando.__version__)\""
+
+    matrix:
+        - PYTHON: "C:\\Python27"
+          PYTHON_VERSION: "2.7"
+          PYTHON_ARCH: "32"
+          MINICONDA: C:\Miniconda
+
+        - PYTHON: "C:\\Python27"
+          PYTHON_VERSION: "2.7"
+          PYTHON_ARCH: "64"
+          MINICONDA: C:\Miniconda-x64
+
+        #- PYTHON: "C:\\Python35"
+          #PYTHON_VERSION: "3.5"
+          #PYTHON_ARCH: "32"
+          #MINICONDA: C:\Miniconda35
+            #
+        #- PYTHON: "C:\\Python35"
+          #PYTHON_VERSION: "3.5"
+          #PYTHON_ARCH: "64"
+          #MINICONDA: C:\Miniconda35-x64
+
+init:
+    - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH% %MINICONDA%"
+
+install:
+    - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda info -a
+    - "conda create -q -n testenv python=%PYTHON_VERSION%"
+    - activate testenv
+    - "conda install --file ci\\requirements-conda.txt"
+    - "pip install -r ci\\requirements-pip.txt"
+    - "pip install ."
+
+
+test_script:
+    - ps: mkdir -p tmp; cd tmp; python -c "import fatiando; print('Installed:', fatiando.__file__, 'and', fatiando.__version__); fatiando.test(coverage=True, verbose=True)"
