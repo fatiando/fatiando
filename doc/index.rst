@@ -178,7 +178,7 @@ documents. Great for teaching fundamental concepts of geophysics!
     <div class="row">
 
     <div class="col-md-6">
-    <h2>Getting started</h2>
+    <h2>Get started</h2>
 
 See the :ref:`install instructions <install>` to set up your computer and
 install Fatiando.
@@ -189,9 +189,17 @@ for a detailed tour of the library.
 You can also browse the :ref:`Gallery <gallery>` and :ref:`Cookbook <cookbook>`
 for examples of what Fatiando can do.
 
-Keep up-to-date with the project by signing up to our `mailing list`_.
-New releases, events, and user feedback requests are all communicated through
-the list.
+.. raw:: html
+
+    <div class="alert alert-success">
+    <h4><strong>Stay informed</strong></h4>
+
+Signing up to our `mailing list`_ to keep up-to-date with new releases and
+events and give your feedback.
+
+.. raw:: html
+
+    </div> <!-- Alert bubble -->
 
 .. raw:: html
 
@@ -200,7 +208,7 @@ the list.
 .. raw:: html
 
     <div class="col-md-6">
-    <h2>Getting help</h2>
+    <h2>Get help</h2>
 
 There are many ways to contact us:
 
@@ -227,7 +235,7 @@ full error message.
 .. raw:: html
 
     <div class="col-md-6">
-    <h2>Contributing</h2>
+    <h2>Contribute</h2>
 
 **You don't need to be a programmer to contribute.**
 You can start by sending us your
@@ -247,18 +255,6 @@ Don't be afraid to ask for help getting started!
 .. _Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
 .. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
 .. _Gitter chat room: https://gitter.im/fatiando/fatiando
-
-.. raw:: html
-
-    <div class="alert alert-success">
-    <h4><strong>Support us!</strong></h4>
-
-Fatiando is research software **made by scientists**.
-See :ref:`Citing <cite>` to find out how to cite it in your publications.
-
-.. raw:: html
-
-    </div> <!-- Alert bubble -->
 
 .. raw:: html
 
@@ -290,27 +286,64 @@ Read :ref:`all announcements <news>`.
 
 .. raw:: html
 
-    </div> <!-- Row -->
+    </div><!-- Row -->
 
 .. raw:: html
 
-    <div class="row" style="margin-top: 50px;">
-        <div class="col-md-1">
-        </div>
-        <div class="col-md-9">
-            <div class="text-center" style="margin-bottom: 20px;">
-                Watch an introduction to what Fatiando is all about
-                in this presentation from Scipy 2013.
-            </div>
-            <div class="responsive-embed">
-                <iframe width="100%" height="600"
-                src="https://www.youtube.com/embed/Ec38h1oB8cc" frameborder="0"
-                allowfullscreen></iframe>
-            </div>
-        </div>
-        <div class="col-md-1">
-        </div>
+    <div class="row">
+
+.. raw:: html
+
+    <div class="col-md-6">
+    <h2>Cite us</h2>
+
+Fatiando is research software **made by scientists**.
+Your citations help us justify the effort that goes into building and
+maintaining Fatiando.
+
+**TL;DR**: If you just want to copy and paste something, include the following
+in your Methods or Acknowledgments:
+
+    The results presented here were obtained with the help of the open-source
+    software Fatiando a Terra by Uieda et al. (2013).
+
+and the reference:
+
+    Uieda, L., V. C. Oliveira Jr, and V. C. F. Barbosa (2013), Modeling the
+    Earth with Fatiando a Terra, Proceedings of the 12th Python in Science
+    Conference, pp. 91 - 98.
+
+See :ref:`Citing <cite>` for more details on how to cite Fatiando in your
+publications.
+
+
+.. raw:: html
+
     </div>
+
+.. raw:: html
+
+    <div class="col-md-6">
+    <h2>Watch</h2>
+
+Watch an introduction to what Fatiando is all about in this presentation from
+`Scipy 2013 <https://github.com/leouieda/scipy2013>`__.
+
+.. raw:: html
+
+    <div class="responsive-embed">
+        <iframe width="100%" height="400"
+        src="https://www.youtube.com/embed/Ec38h1oB8cc" frameborder="0"
+        allowfullscreen></iframe>
+    </div>
+
+.. raw:: html
+
+    </div>
+
+.. raw:: html
+
+    </div> <!-- Row -->
 
 .. toctree::
     :maxdepth: 2
