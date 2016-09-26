@@ -388,14 +388,15 @@ def lame_lamb(pvel, svel, dens):
         >>> print lame_lamb(2000, 1000, 2700)
         5400000000
         >>> import numpy as np
-        >>> pv = np.array([2000, 3000])
-        >>> sv = np.array([1000, 1700])
-        >>> dens = np.array([2700, 3100])
-        >>> print lame_lamb(pv, sv, dens)
-        [5400000000 9982000000]
+        >>> pv = np.array([2000, 3000], dtype='float64')
+        >>> sv = np.array([1000, 1700], dtype='float64')
+        >>> dens = np.array([2700, 3100], dtype='float64')
+        >>> lamb = lame_lamb(pv, sv, dens)
+        >>> print "[ {:g}  {:g} ]".format(lamb[0], lamb[1])
+        [ 5.4e+09  9.982e+09 ]
 
     """
-    lamb = dens * pvel ** 2 - 2 * dens * svel ** 2
+    lamb = dens*pvel**2 - 2*dens*svel**2
     return lamb
 
 
@@ -425,10 +426,11 @@ def lame_mu(svel, dens):
         >>> print lame_mu(1000, 2700)
         2700000000
         >>> import numpy as np
-        >>> sv = np.array([1000, 1700])
-        >>> dens = np.array([2700, 3100])
-        >>> print lame_mu(sv, dens)
-        [2700000000 8959000000]
+        >>> sv = np.array([1000, 1700], dtype='float64')
+        >>> dens = np.array([2700, 3100], dtype='float64')
+        >>> mu = lame_mu(sv, dens)
+        >>> print "[ {:g}  {:g} ]".format(mu[0], mu[1])
+        [ 2.7e+09  8.959e+09 ]
 
     """
     mu = dens * svel ** 2
