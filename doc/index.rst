@@ -270,7 +270,7 @@ Don't be afraid to ask for help getting started!
 
 * **October 2014**: Fatiando was featured on volume 89 of the bulletin of the
   Brazilian Geophysical Society (SBGf). Read it on page 13 of the `PDF file
-  <http://sys2.sbgf.org.br/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
+  <http://sbgfisica.org/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
   (in Portuguese).
 
 * **July 2014**: We presented a poster at Scipy 2014 about the

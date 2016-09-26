@@ -123,7 +123,7 @@ of the computation point P,
 :math:`\lambda` is longitude, and
 :math:`r` is radius.
 
-.. _Kronecker delta: http://en.wikipedia.org/wiki/Kronecker_delta
+.. _Kronecker delta: https://en.wikipedia.org/wiki/Kronecker_delta
 
 Numerical integration
 +++++++++++++++++++++

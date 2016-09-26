@@ -6,7 +6,7 @@ Developer guide
 Getting started
 ---------------
 
-The first thing you'll need is a `Github <http://github.com/>`__ account.
+The first thing you'll need is a `Github <https://github.com/>`__ account.
 You can sign up for free.
 If you are an academic or student,
 `request a free pro-account <https://education.github.com/>`__ to get access to
@@ -42,8 +42,8 @@ Code that is in `other branches
 are things that are under development by the
 `main developers <https://github.com/fatiando/fatiando/graphs/contributors>`__.
 
-To contribute some code/fix/documentation, start by
-`forking fatiando/fatiando <https://github.com/fatiando/fatiando/fork>`__
+To contribute some code/fix/documentation, start by forking
+`fatiando/fatiando <https://github.com/fatiando/fatiando/>`__
 (click the "Fork" button).
 This will grab a complete copy of the code repository and add it to your
 account.
@@ -453,7 +453,7 @@ To help keep track of what you need to do,
 a checklist will be automatically inserted into the pull request description
 (adapted from the
 `khmer docs
-<http://khmer.readthedocs.org/en/v1.1/development.html#checklist>`__)::
+<http://khmer.readthedocs.io/en/v1.1/development.html#checklist>`__)::
 
     ## Checklist:
 
