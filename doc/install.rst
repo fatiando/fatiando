@@ -3,88 +3,71 @@
 Installing Fatiando
 ===================
 
-.. note:: If you have any trouble installing please
-    `submit a bug report on Github`_
+.. note::
+
+    If you have any trouble installing please `submit a bug report on Github`_
     or write to the `mailing list`_.
+
 
 Which Python?
 -------------
 
-There are many versions of the Python_ language in
-`use today <https://wiki.python.org/moin/Python2orPython3>`__.
-The main ones are Python 2.7 and Python 3.x.
-Most, if not all, of the scientific Python packages that Fatiando relies on
-support both versions of the language.
-However, while it is possible (and not that difficult) to
-`support both versions simultaneously
-<https://docs.python.org/3.4/howto/pyporting.html>`__,
-it does take work.
-And work takes time.
-
-For the moment, **Fatiando is tested and works on Python 2.7**.
-
+For the moment, Fatiando is only tested on **Python 2.7**.
+Support for Python >= 3.5 is planned for future releases.
 If you'd like to help us add support for Python 3, please get in touch through
 the `mailing list`_.
 
-Installing the dependencies
----------------------------
-
-Fatiando requires the following packages:
-
-* `numpy <http://www.numpy.org/>`_
-* `scipy <http://scipy.org/>`_
-* `matplotlib <http://matplotlib.org/>`_
-* `Jupyter <http://jupyter.org/>`__
-* `numba <http://numba.pydata.org/>`__
-* `pillow <http://python-pillow.org/>`_
-* `future <http://python-future.org/>`_
-* `mayavi <http://code.enthought.com/projects/mayavi/>`_
-* A C compiler (preferably GCC or MinGW_ on Windows)
-
-The easiest and **preferred** way to get all dependencies in the latest
-version is using the Anaconda_ Python distribution by `Continuum Analytics`_.
-It does not require administrative rights to your computer and doesn't
-interfere with the Python installed in your system.
-For Windows users, it even comes with MinGW_ so you don't have to worry about
-the many, many, many issues of compiling under Windows.
-
-Once you have downloaded and installed Anaconda_,
-open a terminal (or ``cmd.exe`` on Windows) and run::
-
-    conda install numpy scipy matplotlib numba jupyter basemap pillow mayavi pip future
+We recommend using the Anaconda_ Python distribution to ensure you have all
+dependencies installed and the ``conda`` package manager available.
+Installing Anaconda does not require administrative rights to your computer and
+doesn't interfere with any other Python installations in your system.
 
 
-Installing Fatiando
+Installing with conda
+---------------------
+
+You can install Fatiando and all it's dependencies using the ``conda`` package
+manager by running::
+
+   conda install fatiando --channel conda-forge
+
+This command will automatically install a pre-compiled version of Fatiando and
+all required :ref:`dependencies <dependencies>`.
+The compiled ``conda`` packages are made through the conda-forge_ community-led
+organization.
+
+
+The above command will not install Mayavi automatically because it requires an
+older version of numpy (1.9). This means that, if you want to install Mayavi,
+you won't be able to use the latest versions of most libraries, particularly
+matplotlib > 1.4. However, if you do want Mayavi, you can install Fatiando
+compatible numpy 1.9 by using::
+
+    conda install fatiando mayavi --channel conda-forge
+
+Be aware that this will likely downgrade your installed libraries to be
+compatible.
+
+
+Installing with pip
 -------------------
 
-After you've installed the dependencies you can proceed to install Fatiando
-using pip_.
-Open a terminal (or ``cmd.exe`` on Windows) and run::
+You can also install Fatiando using the pip_ package manager::
 
     pip install fatiando
 
-and that's it!
+However, this will require that you already have all :ref:`dependencies
+<dependencies>` installed as well as a C compiler.
 
-If you already have Fatiando installed and want to **upgrade** to a newer
-version, use::
+On **Windows** you might get an error saying that ``Microsoft Visual C++
+is required (Unable to find vsvarsall.bat).`` like the following:
 
-    pip install fatiando --upgrade
+.. figure:: _static/images/windows-compile-error-visual-studio.png
 
-To uninstall simply run::
-
-    pip uninstall fatiando
-
-.. note::
-
-    On **Windows** you might get an error saying that ``Microsoft Visual C++
-    is required (Unable to find vsvarsall.bat).`` like the following:
-
-    .. figure:: _static/images/windows-compile-error-visual-studio.png
-
-    This is beacuse you don't have the Microsoft C compiler installed. Follow
-    the link in the error message (`http://aka.ms/vcpython27
-    <http://aka.ms/vcpython27>`__) to download the Microsoft Visual C++
-    Compiler for Python 2.7. Install it and install Fatiando again.
+This is because you don't have the Microsoft C compiler installed. Follow
+the link in the error message (`http://aka.ms/vcpython27
+<http://aka.ms/vcpython27>`__) to download the Microsoft Visual C++
+Compiler for Python 2.7. Install it and install Fatiando again.
 
 
 Installing the latest development version
@@ -96,22 +79,51 @@ We try to maintain the *master* branch stable and
 `passing all tests <https://travis-ci.org/fatiando/fatiando/branches>`__,
 so it should be safe to use.
 
+First, make sure you have all dependencies installed and a C compiler
+available (see the pip instructions above).
 To install the latest version from Github::
 
-    pip install --upgrade https://github.com/fatiando/fatiando/archive/master.zip
+    pip install https://github.com/fatiando/fatiando/archive/master.zip
 
 or if you have git installed and want to see the code::
 
     git clone https://github.com/fatiando/fatiando.git
     cd fatiando
-    pip install --upgrade .
+    pip install -e .
 
-.. note::
 
-    ``fatiando.__version__`` has the current version number. If you install
-    from PyPI, this will be something like ``'0.2'``. If you installed from
-    Github, this will be the latest commit hash. This way you can track exactly
-    what version of Fatiando generated your results.
+Note that the ``fatiando.__version__``  variable has the current version
+number. If you install from PyPI or conda-forge, this will be something like
+``'0.2'``. If you installed from Github, this will be the latest commit hash.
+This way you can track exactly what version of Fatiando generated your results.
+
+
+.. _dependencies:
+
+Dependencies
+------------
+
+Fatiando requires the following dependencies for running:
+
+* `numpy <http://www.numpy.org/>`_
+* `scipy <http://scipy.org/>`_
+* `numba <http://numba.pydata.org/>`__
+* `future <http://python-future.org/>`_
+* `matplotlib <http://matplotlib.org/>`_
+* `pillow <http://python-pillow.org/>`_
+
+The following are also recommended but optional:
+
+* `Jupyter <http://jupyter.org/>`__: for running the Jupyter notebook and
+  interactive widgets.
+* `basemap <http://matplotlib.org/basemap/index.html>`__: matplotlib toolkit
+  for plotting maps with projections.
+* `mayavi <http://code.enthought.com/projects/mayavi/>`_: for 3D plotting.
+
+You can install all of these dependencies using ``conda`` by running the
+following command on a terminal (or ``cmd.exe`` on Windows)::
+
+    conda install numpy scipy numba future matplotlib pillow jupyter basemap mayavi
 
 
 Testing the install
@@ -167,3 +179,4 @@ Fatiando better and easier to install.
 .. _OpenMP: http://openmp.org/
 .. _TDM-GCC: http://tdm-gcc.tdragon.net/
 .. _excellent documentation for Windows users: http://docs-windows.readthedocs.org/en/latest/devel.html#mingw-with-openmp-support
+.. _conda-forge: https://conda-forge.github.io/
