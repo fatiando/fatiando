@@ -10,6 +10,9 @@ Version 0.5
 
 **Changes**:
 
+* Implement unit tests for the ``fatiando.seismic.srtomo`` module. Reached 100%
+  test coverage. Now examples are only in the cookbook.
+  (`PR 316  <https://github.com/fatiando/fatiando/pull/316>`__)
 * Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
   may not provide accurate results.
   (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)

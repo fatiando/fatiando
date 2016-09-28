@@ -12,11 +12,7 @@ refraction)
 * :func:`~fatiando.seismic.srtomo.slowness2vel`: Safely convert slowness to
   velocity (avoids zero division)
 
-**Examples**
-
-
 ----
-
 """
 from __future__ import division
 from future.builtins import super
@@ -53,36 +49,6 @@ class SRTomo(Misfit):
 
     The ith travel-time is the time between the ith element in *srcs* and the
     ith element in *recs*.
-
-    Examples:
-
-    Using simple synthetic data:
-
-    >>> from fatiando.mesher import Square, SquareMesh
-    >>> from fatiando.seismic import ttime2d
-    >>> # One source was recorded at 3 receivers.
-    >>> # The medium has 2 velocities: 2 and 5
-    >>> model = [Square([0, 10, 0, 5], {'vp':2}),
-    ...          Square([0, 10, 5, 10], {'vp':5})]
-    >>> src = (5, 0)
-    >>> srcs = [src, src, src]
-    >>> recs = [(0, 0), (5, 10), (10, 0)]
-    >>> # Calculate the synthetic travel-times
-    >>> ttimes = ttime2d.straight(model, 'vp', srcs, recs)
-    >>> print ttimes
-    [ 2.5  3.5  2.5]
-    >>> # Make a mesh to represent the two blocks
-    >>> mesh = SquareMesh((0, 10, 0, 10), shape=(2, 1))
-    >>> # Run the tomography
-    >>> tomo = SRTomo(ttimes, srcs, recs, mesh)
-    >>> tomo.fit().estimate_
-    array([ 2.,  5.])
-
-    Using the steepest descent method to solve (no linear systems):
-
-    >>> # Use steepest descent to solve this (requires an initial guess)
-    >>> tomo.config(method='steepest', initial=[0, 0]).fit().estimate_
-    array([ 2.,  5.])
 
     .. note::
 
@@ -143,8 +109,6 @@ class SRTomo(Misfit):
 
         """
         pred = safe_dot(self.jacobian(p), p)
-        if len(pred.shape) > 1:
-            pred = np.array(pred.T).ravel()
         return pred
 
     def fmt_estimate(self, p):
