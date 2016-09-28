@@ -235,66 +235,6 @@ full error message.
 .. raw:: html
 
     <div class="col-md-6">
-    <h2>Contribute</h2>
-
-**You don't need to be a programmer to contribute.**
-You can start by sending us your
-**feedback**: bug reports, feature requests, code contributions,
-spelling corrections, usage examples, etc.
-
-We need a lot of help improving the **documentation**.
-You can help by reporting typos, suggesting new sections and improvements,
-and anything that you think would make the docs better in any way.
-
-If you  want to mess with the **code**,
-take a look at our :ref:`Developer Guide <develop>`.
-Don't be afraid to ask for help getting started!
-
-.. _mailing list: https://groups.google.com/d/forum/fatiando
-.. _issues on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
-.. _Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
-.. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
-.. _Gitter chat room: https://gitter.im/fatiando/fatiando
-
-.. raw:: html
-
-    </div>
-
-.. raw:: html
-
-    <div class="col-md-6">
-    <h2>Announcements</h2>
-
-* **October 2016**: Fatiando a Terra v0.5 was released!
-  This version introduces some new features, breaking changes, and starts a
-  major refactoring of the library that will span the next few releases.
-  See what is new in this released in the :ref:`Changelog <changelog-0.5>`.
-
-* **April 2016**: Fatiando a Terra v0.4 was released! See what is new in this
-  released in the :ref:`Changelog <changelog-0.4>`.
-
-* **October 2014**: Fatiando was featured on volume 89 of the bulletin of the
-  Brazilian Geophysical Society (SBGf). Read it on page 13 of the `PDF file
-  <http://sbgfisica.org/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
-  (in Portuguese).
-
-Read :ref:`all announcements <news>`.
-
-.. raw:: html
-
-    </div>
-
-.. raw:: html
-
-    </div><!-- Row -->
-
-.. raw:: html
-
-    <div class="row">
-
-.. raw:: html
-
-    <div class="col-md-6">
     <h2>Cite us</h2>
 
 Fatiando is research software **made by scientists**.
@@ -324,6 +264,79 @@ publications.
 .. raw:: html
 
     <div class="col-md-6">
+    <h2>Contribute</h2>
+
+There are many ways you can contribute **without writing code**.
+
+You can start by sending us your **feedback**: bug reports, feature requests,
+spelling corrections, usage examples, etc.
+
+We need a lot of help improving the **documentation**.
+You can report typos, suggest new sections and improvements,
+and anything that you think would make the docs better in any way.
+
+If you  want to get involved with the **code**,
+take a look at our :ref:`Developer Guide <develop>`.
+All source code development is done in the open on the Github repository
+`fatiando/fatiando <https://github.com/fatiando/fatiando>`__.
+A good place to start is with our `curated list of low-hanging fruit
+<https://github.com/fatiando/fatiando/issues?q=is%3Aissue+is%3Aopen+label%3A%22low-hanging+fruit%22>`__.
+
+If you want to help but are not sure how, ask on the `Gitter chat room`_ and
+we'll help you get started.
+
+Don't be afraid to ask for help!
+
+.. _mailing list: https://groups.google.com/d/forum/fatiando
+.. _issues on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
+.. _Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
+.. _+Fatiando a Terra: https://plus.google.com/+FatiandoOrg
+.. _Gitter chat room: https://gitter.im/fatiando/fatiando
+
+.. raw:: html
+
+    </div>
+
+.. raw:: html
+
+    </div><!-- Row -->
+
+.. raw:: html
+
+    <div class="row">
+
+.. raw:: html
+
+    <div class="col-md-6">
+    <h2>Announcements</h2>
+
+* **October 2016**: Fatiando a Terra v0.5 was released!
+  This version introduces some new features, breaking changes, and starts a
+  major refactoring of the library that will span the next few releases.
+  See what is new in this released in the :ref:`Changelog <changelog-0.5>`.
+
+* **April 2016**: Fatiando a Terra v0.4 was released! See what is new in this
+  released in the :ref:`Changelog <changelog-0.4>`.
+
+* **October 2014**: Fatiando was featured on volume 89 of the bulletin of the
+  Brazilian Geophysical Society (SBGf). Read it on page 13 of the `PDF file
+  <http://sbgfisica.org/portal/images/stories/Arquivos/Boletim_89-2014.pdf>`__
+  (in Portuguese).
+
+* **July 2014**: We presented a poster at Scipy 2014 about the
+  ``fatiando.inversion`` package. See the
+  `Github repo <https://github.com/leouieda/scipy2014>`__ for the poster and
+  source code behind it.
+
+Read :ref:`all announcements <news>`.
+
+.. raw:: html
+
+    </div>
+
+.. raw:: html
+
+    <div class="col-md-6">
     <h2>Watch</h2>
 
 Watch an introduction to what Fatiando is all about in this presentation from
@@ -332,7 +345,7 @@ Watch an introduction to what Fatiando is all about in this presentation from
 .. raw:: html
 
     <div class="responsive-embed">
-        <iframe width="100%" height="400"
+        <iframe width="100%" height="350"
         src="https://www.youtube.com/embed/Ec38h1oB8cc" frameborder="0"
         allowfullscreen></iframe>
     </div>
