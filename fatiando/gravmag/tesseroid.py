@@ -189,12 +189,7 @@ import multiprocessing
 import warnings
 
 import numpy as np
-try:
-    import numba
-    from . import _tesseroid_numba
-except ImportError:
-    numba = None
-from . import _tesseroid_numpy
+from . import _tesseroid_numba
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
 
 RATIO_V = 1
@@ -239,26 +234,6 @@ def _convert_coords(lon, lat, height):
     return lon, sinlat, coslat, radius
 
 
-def _get_engine(engine):
-    """
-    Get the correct module to perform the computations.
-
-    Options are the Cython version, a pure Python version, and a numba version.
-    """
-    if engine == 'default':
-        if numba is None:
-            engine = 'numpy'
-        else:
-            engine = 'numba'
-    assert engine in ['numpy', 'numba'], \
-        "Invalid compute module {}".fotmat(engine)
-    if engine == 'numba':
-        module = _tesseroid_numba
-    elif engine == 'numpy':
-        module = _tesseroid_numpy
-    return module
-
-
 def _check_tesseroid(tesseroid, dens):
     """
     Check if the tesseroid is valid and get the right density to use.
@@ -299,7 +274,6 @@ def _dispatcher(field, lon, lat, height, model, **kwargs):
     """
     njobs = kwargs.get('njobs', 1)
     pool = kwargs.get('pool', None)
-    engine = kwargs['engine']
     dens = kwargs['dens']
     ratio = kwargs['ratio']
     result = _check_input(lon, lat, height, model, ratio, njobs, pool)
@@ -309,11 +283,11 @@ def _dispatcher(field, lon, lat, height, model, **kwargs):
     else:
         created_pool = False
     if pool is None:
-        _forward_model([lon, lat, height, result, model, dens, ratio, engine,
+        _forward_model([lon, lat, height, result, model, dens, ratio,
                         field])
     else:
         chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
+                               extra_args=[model, dens, ratio, field],
                                nparts=njobs)
         result = np.hstack(pool.map(_forward_model, chunks))
     if created_pool:
@@ -330,23 +304,30 @@ def _forward_model(args):
 
     Arguments should be, in order:
 
-    lon, lat, height, result, model, dens, ratio, engine, field
+    lon, lat, height, result, model, dens, ratio, field
     """
-    lon, lat, height, result, model, dens, ratio, engine, field = args
+    lon, lat, height, result, model, dens, ratio, field = args
     lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
-    module = _get_engine(engine)
-    func = getattr(module, field)
+    func = getattr(_tesseroid_numba, field)
     warning_msg = (
         "Stopped dividing a tesseroid because it's dimensions would be below "
         + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
         + "Will compute without division. Cannot guarantee the accuracy of "
         + "the solution.")
+    # Arrays needed by the kernel. Can't allocate them inside the kernel
+    # because numba doesn't like that.
+    stack = np.empty((STACK_SIZE, 6), dtype='float')
+    lonc = np.empty(2, dtype='float')
+    sinlatc = np.empty(2, dtype='float')
+    coslatc = np.empty(2, dtype='float')
+    rc = np.empty(2)
     for tesseroid in model:
         density = _check_tesseroid(tesseroid, dens)
         if density is None:
             continue
-        error = func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-                     STACK_SIZE, result)
+        bounds = np.array(tesseroid.get_bounds())
+        error = func(lon, sinlat, coslat, radius, bounds, density, ratio,
+                     stack, lonc, sinlatc, coslatc, rc, result)
         if error != 0:
             warnings.warn(warning_msg, RuntimeWarning)
     return result
@@ -377,7 +358,7 @@ def _split_arrays(arrays, extra_args, nparts):
 
 
 def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
-              engine='default', njobs=1, pool=None):
+              njobs=1, pool=None):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
@@ -401,11 +382,6 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -423,12 +399,12 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     """
     field = 'potential'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= G
     return result
 
 
-def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gx(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the North component of the gravitational attraction.
@@ -453,11 +429,6 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -475,12 +446,12 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     """
     field = 'gx'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gy(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the East component of the gravitational attraction.
@@ -505,11 +476,6 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -527,12 +493,12 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     """
     field = 'gy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gz(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the radial component of the gravitational attraction.
@@ -562,11 +528,6 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -584,12 +545,12 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     """
     field = 'gz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xx component of the gravity gradient tensor.
@@ -614,11 +575,6 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -636,12 +592,12 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gxx'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xy component of the gravity gradient tensor.
@@ -666,11 +622,6 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -688,12 +639,12 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gxy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xz component of the gravity gradient tensor.
@@ -718,11 +669,6 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -740,12 +686,12 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gxz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the yy component of the gravity gradient tensor.
@@ -770,11 +716,6 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -792,12 +733,12 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gyy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the yz component of the gravity gradient tensor.
@@ -822,11 +763,6 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -844,12 +780,12 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gyz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the zz component of the gravity gradient tensor.
@@ -874,11 +810,6 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -896,6 +827,6 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     """
     field = 'gzz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result

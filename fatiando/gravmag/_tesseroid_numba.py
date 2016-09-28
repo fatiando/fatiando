@@ -53,17 +53,9 @@ def engine_factory(kernel):
     The call signature is the same as the engine functions in the pure Python
     implementation (fatiando.gravmag._tesseroid_numpy).
     """
-    @numba.jit(looplift=True)
-    def engine(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-               stack_size, result):
-        # Create the buffer arrays outside of the for loops so numba can remove
-        # them from the jit compilation
-        bounds = np.array(tesseroid.get_bounds())
-        stack = np.empty((stack_size, 6))
-        lonc = np.empty_like(nodes)
-        sinlatc = np.empty_like(nodes)
-        coslatc = np.empty_like(nodes)
-        rc = np.empty_like(nodes)
+    @numba.jit(nopython=True)
+    def engine(lon, sinlat, coslat, radius, bounds, density, ratio,
+               stack, lonc, sinlatc, coslatc, rc, result):
         error_code = 0
         for l in range(result.size):
             for i in range(6):
@@ -79,7 +71,7 @@ def engine_factory(kernel):
                     distance, Llon, Llat, Lr, ratio)
                 error_code += err
                 if new_cells > 1:
-                    if new_cells + (stktop + 1) > stack_size:
+                    if new_cells + (stktop + 1) > stack.shape[0]:
                         raise OverflowError
                     stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr,
                                    stack, stktop)
