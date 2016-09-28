@@ -23,11 +23,11 @@ env:
 matrix:
     include:
         - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=true
+          env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=false
         - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=false
+          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=true
         - os: osx
-          env: PYTHON=2.7 BUILD_DOCS=false
+          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false
 
 before_install:
     # Get Miniconda from Continuum
@@ -48,20 +48,9 @@ install:
     # Package Fatiando and install
     - python setup.py sdist --formats=gztar
     - pip install dist/fatiando-*.tar.gz
-    # Check that versioneer got the correct version. Do this in a tmp dir to
-    # make sure I'm importing the installed version.
-    - mkdir -p tmp
-    - cd tmp; pwd
-    - pwd; python -c "import fatiando; print(fatiando.__version__)"
-    - cd ..; pwd
 
 script:
-    - mkdir -p tmp
-    - cd tmp; pwd
-    # Use the 'fatiando.test()' command to make sure we're testing an installed
-    # version of the package.
-    - pwd; python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0, 'Tests failed'" && cp .coverage ..
-    - cd ..; pwd
+    - bash ci/run-tests.sh
     - make pep8
     - bash ci/build-docs.sh
 

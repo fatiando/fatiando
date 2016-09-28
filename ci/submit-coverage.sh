@@ -5,8 +5,7 @@
 # To return a failure if any commands inside fail
 set -e
 
-if [ "$TRAVIS_OS_NAME" == "linux" ] &&
-   ([ "$TRAVIS_PULL_REQUEST" == "true" ] || [ "$TRAVIS_BRANCH" == "master" ]);
+if [ "$COVERAGE" == "true" ];
 then
     pip install coveralls==0.5
     echo "Pushing coverage to coveralls."
