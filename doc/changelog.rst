@@ -4,6 +4,8 @@ Changelog
 =========
 
 
+.. _changelog-0.5:
+
 Version 0.5
 -----------
 
@@ -91,6 +93,8 @@ Version 0.5
   (`PR 261 <https://github.com/fatiando/fatiando/pull/261>`__)
 
 
+
+.. _changelog-0.4:
 
 Version 0.4
 -----------
