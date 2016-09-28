@@ -40,7 +40,6 @@ install:
     - "conda create -q -n testenv python=%PYTHON_VERSION%"
     - activate testenv
     - "conda install --file ci\\requirements-conda.txt"
-    - "pip install -r ci\\requirements-pip.txt"
     - "pip install ."
 
 

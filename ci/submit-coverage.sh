@@ -5,6 +5,7 @@
 if [ "$TRAVIS_OS_NAME" == "linux" ] &&
    ([ "$TRAVIS_PULL_REQUEST" == "true" ] || [ "$TRAVIS_BRANCH" == "master" ]);
 then
+    pip install coveralls==0.5
     echo "Pushing coverage to coveralls."
     coveralls
 else

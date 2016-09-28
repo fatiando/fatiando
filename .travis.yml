@@ -5,10 +5,6 @@ sudo: false
 notifications:
     email: false
 
-os:
-    - linux
-    - osx
-
 addons:
     apt:
         packages:
@@ -20,11 +16,19 @@ addons:
 git:
     depth: 100
 
+
 env:
     global: # For pushing the built docs to the fatiando/dev repo
         - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
-    matrix:
-        - PYTHON=2.7
+
+matrix:
+    include:
+        - os: linux
+          env: PYTHON=2.7 BUILD_DOCS=true
+        - os: linux
+          env: PYTHON=2.7 BUILD_DOCS=false
+        - os: osx
+          env: PYTHON=2.7 BUILD_DOCS=false
 
 before_install:
     # Get Miniconda from Continuum
@@ -38,8 +42,11 @@ before_install:
     - source activate testenv
 
 install:
-    - conda install --yes --file ci/requirements-conda.txt
+    - if [ "$BUILD_DOCS" == "true" ]; then
+      conda install --yes mayavi
     - pip install -r ci/requirements-pip.txt
+      fi
+    - conda install --yes --file ci/requirements-conda.txt
     # Show installed pkg information for postmortem diagnostic
     - conda list
     # Package Fatiando and install
