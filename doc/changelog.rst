@@ -3,14 +3,15 @@
 Changelog
 =========
 
+
 Version 0.5
 -----------
 
 **Release date**: yyyy-mm-dd
 
-**Changes**:
+**doi**: `10.5281/zenodo.157746 <https://doi.org/10.5281/zenodo.157746>`__
 
-* Fixes bug ``fatiando.gravmag.tesseroid`` when running with the latest numba
+* Fixes bug in ``fatiando.gravmag.tesseroid`` when running with the latest numba
   (0.28). The ``looplift`` argument to ``numba.jit`` doesn't seem to work
   anymore. The workaround was to move array allocations out of the jit compiled
   functions.
@@ -95,6 +96,8 @@ Version 0.4
 -----------
 
 **Release date**: 2016-04-05
+
+**doi**: `10.5281/zenodo.49087 <https://doi.org/10.5281/zenodo.49087>`__
 
 **Changes**:
 
@@ -205,10 +208,13 @@ Version 0.4
   etc.
   (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
 
+
 Version 0.3
 -----------
 
 **Release date**: 2014-10-28
+
+**doi**: `10.5281/zenodo.16205 <https://doi.org/10.5281/zenodo.16205>`__
 
 **Changes**:
 
@@ -257,10 +263,13 @@ Version 0.3
   estimating the total magnetization vector of multiple sources.
   (`PR 87 <https://github.com/fatiando/fatiando/pull/87>`_)
 
+
 Version 0.2
 -----------
 
 **Release date**: 2014-01-15
+
+**doi**: `10.6084/m9.figshare.1115194 <https://doi.org/10.6084/m9.figshare.1115194>`__
 
 **Changes**:
 
@@ -330,10 +339,13 @@ Version 0.2
 * Removed module ``fatiando.logger``. (`PR 30
   <https://github.com/fatiando/fatiando/pull/30>`_)
 
+
 Version 0.1
 -----------
 
 **Release date**: 2013-04-12
+
+**doi**: `10.5281/zenodo.16207 <https://doi.org/10.5281/zenodo.16207>`__
 
 **Changes**:
 
