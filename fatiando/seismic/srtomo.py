@@ -50,11 +50,6 @@ class SRTomo(Misfit):
     The ith travel-time is the time between the ith element in *srcs* and the
     ith element in *recs*.
 
-    .. note::
-
-        A simple way to plot the results is to use the ``addprop`` method of
-        the mesh and then pass the mesh to :func:`fatiando.vis.map.squaremesh`.
-
     """
 
     def __init__(self, ttimes, srcs, recs, mesh):
