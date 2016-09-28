@@ -9,13 +9,16 @@
 # Only build the docs on Linux and Python 2,7. Mayavi won't work in Python 3
 # yet or on OS X in headless mode (it might, but I don't want to find out how)
 
-if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$PYTHON" == "2.7" ];
+# To return a failure if any commands inside fail
+set -e
+
+if [ "$BUILD_DOCS" == "true" ];
 then
     export DISPLAY=:99.0
     sh -e /etc/init.d/xvfb start
     sleep 3  # give xvfb some time to start
     make -C doc
-    echo "Finished building documentation"
+    echo "Finished building documentation."
 else
-    echo "Not building docs. Only build on Linux and Python 2.7"
+    echo "Not building documentation."
 fi

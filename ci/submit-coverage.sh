@@ -2,6 +2,9 @@
 # Submit coverage information to coveralls from TravisCI builds
 # Only do this for PRs and pushes to the master branch on Linux
 
+# To return a failure if any commands inside fail
+set -e
+
 if [ "$TRAVIS_OS_NAME" == "linux" ] &&
    ([ "$TRAVIS_PULL_REQUEST" == "true" ] || [ "$TRAVIS_BRANCH" == "master" ]);
 then

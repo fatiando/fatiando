@@ -9,13 +9,10 @@
 # Only works if the branch is created from the fatiando/fatiando repository
 # (not on a fork).
 
+# To return a failure if any commands inside fail
+set -e
+
 REPO=dev
-BUILD_PR=false
-
-# Use these values for testing if making serious changes to the docs
-#REPO=tmp-docs   # Push to the tmp-docs repo instead
-#BUILD_PR=true   # Force building even if in a PR
-
 USER=fatiando
 BRANCH=gh-pages
 CLONE_ARGS="--quiet --branch=$BRANCH --single-branch"
@@ -23,16 +20,11 @@ REPO_URL=https://${GH_TOKEN}@github.com/${USER}/${REPO}.git
 
 echo "Preparing to push HTML to branch ${BRANCH} of ${USER}/${REPO}"
 
-if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$PYTHON" == "2.7" ];
+if [ "$BUILD_DOCS" == "true" ];
 then
     if [ "$TRAVIS_PULL_REQUEST" == "false" ] &&
-       [ "$TRAVIS_BRANCH" == "master" ] ||
-       [ "$BUILD_PR" == "true" ];
+       [ "$TRAVIS_BRANCH" == "master" ];
     then
-        if [ "$BUILD_PR" == "true" ];
-        then
-            echo "PR ${TRAVIS_PULL_REQUEST} will push HTML to ${USER}/${REPO}"
-        fi
         echo -e "Copying generated files."
         cp -R doc/_build/html/ $HOME/keep
         # Go to home and setup git
@@ -64,9 +56,9 @@ then
         git push -fq origin ${BRANCH} > /dev/null
         echo -e "Finished uploading generated files."
     else
-        echo -e "Not updating website. This is either a PR or not master"
+        echo -e "Not updating website. This is either a PR or not master."
     fi
 else
-    echo -e "Not updating website. Only update from Linux and Python 2.7"
+    echo -e "Not updating website. Documentation was not built."
 fi
 echo -e "Done"

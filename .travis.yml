@@ -41,10 +41,7 @@ before_install:
     - source activate testenv
 
 install:
-    - if [ "$BUILD_DOCS" == "true" ]; then
-          conda install --yes mayavi
-          pip install -r ci/requirements-pip.txt
-      fi
+    - if [ "$BUILD_DOCS" == "true" ]; then conda install --yes mayavi && pip install -r ci/requirements-pip.txt; fi
     - conda install --yes --file ci/requirements-conda.txt
     # Show installed pkg information for postmortem diagnostic
     - conda list
