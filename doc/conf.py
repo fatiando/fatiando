@@ -117,8 +117,8 @@ html_theme_options = {
         ("Gallery", "gallery/index"),
         # ("Tutorials", ""),
         ("API", "api/fatiando"),
-        ("Contribute", "develop"),
         ("Docs", "docs"),
+        ("Contribute", "develop"),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
