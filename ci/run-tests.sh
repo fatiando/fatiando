@@ -17,7 +17,8 @@ python -c "import fatiando; print('Fatiando version:', fatiando.__version__)"
 # version of the package.
 if [ "$COVERAGE" == "true" ];
 then
-    python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0" && cp .coverage ..
+    python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0"
+    cp .coverage* ..
 else
     python -c "import fatiando; assert fatiando.test(verbose=True) == 0"
 fi

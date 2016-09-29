@@ -7,7 +7,6 @@ set -e
 
 if [ "$COVERAGE" == "true" ];
 then
-    pip install coveralls==0.5
     echo "Pushing coverage to coveralls."
     coveralls
 else
