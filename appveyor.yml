@@ -44,4 +44,4 @@ install:
 
 
 test_script:
-    - ps: mkdir -p tmp; cd tmp; python -c "import fatiando; print('Installed:', fatiando.__file__, 'and', fatiando.__version__); assert fatiando.test(verbose=True) == 0"
+    - ps: mkdir -p tmp; cd tmp; python -c "import fatiando; print('Installed:', fatiando.__file__, 'and', fatiando.__version__); assert fatiando.test(verbose=True) == 0, 'Tests failed.'"
