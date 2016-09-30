@@ -6,7 +6,7 @@ from fatiando.mesher import SquareMesh
 from fatiando.seismic import ttime2d, srtomo
 from fatiando.inversion import Damping
 from fatiando.vis import mpl
-from fatiando import utils
+from fatiando import utils, gridder
 
 area = (0, 500000, 0, 500000)
 shape = (30, 30)
@@ -17,9 +17,13 @@ model.addprop('vp', vel.ravel())
 
 # Make some travel time data and add noise
 seed = 0  # Set the random seed so that points are the same every time
-src_loc = utils.random_points(area, 80, seed=seed)
-rec_loc = utils.circular_points(area, 30, random=True, seed=seed)
-srcs, recs = utils.connect_points(src_loc, rec_loc)
+src_loc_x, src_loc_y = gridder.scatter(area, 80, seed=seed)
+src_loc = np.transpose([src_loc_x, src_loc_y])
+rec_loc_x, rec_loc_y = gridder.circular_scatter(area, 30,
+                                                random=True, seed=seed)
+rec_loc = np.transpose([rec_loc_x, rec_loc_y])
+srcs = [src for src in src_loc for _ in rec_loc]
+recs = [rec for _ in src_loc for rec in rec_loc]
 tts = ttime2d.straight(model, 'vp', srcs, recs)
 tts, error = utils.contaminate(tts, 0.01, percent=True, return_stddev=True,
                                seed=seed)

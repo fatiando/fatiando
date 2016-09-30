@@ -32,12 +32,17 @@ Create and operate on grids and profiles.
 
 * :func:`~fatiando.gridder.spacing`
 
+**Point scatter generation**
+
+* :func:`~fatiando.gridder.circular_scatter`
+
 ----
 
 """
 from __future__ import division
 import numpy
 import scipy.interpolate
+import math
 
 
 def load_surfer(fname, fmt='ascii'):
@@ -233,6 +238,53 @@ def scatter(area, n, z=None, seed=None):
     return arrays
 
 
+def circular_scatter(area, n, z=None, random=False, seed=None):
+    """
+    Generate a set of n points positioned in a circular array.
+
+    The diameter of the circle is equal to the smallest dimension of the area
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        Area inside of which the points are contained
+    * n : int
+        Number of points
+    * z
+        Optional. z coordinate of the points. If given, will return an
+        array with the value *z*.
+    * random : True or False
+        If True, positions of the points on the circle will be chosen at random
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers if `random==True`.
+        If `None`, will use a different seed every time.
+        Use the same seed to generate the same random sequence.
+
+    Returns:
+
+    * ``[x, y]``
+        Numpy arrays with the x and y coordinates of the points
+    * ``[x, y, z]``
+        If *z* given. Arrays with the x, y, and z coordinates of the points
+
+    """
+    x1, x2, y1, y2 = area
+    radius = 0.5 * min(x2 - x1, y2 - y1)
+    if random:
+        numpy.random.seed(seed)
+        angles = numpy.random.uniform(0, 2 * math.pi, n)
+        numpy.random.seed()
+    else:
+        da = 2. * math.pi / float(n)
+        angles = numpy.arange(0., 2. * math.pi, da)
+    xs = 0.5 * (x1 + x2) + radius * numpy.cos(angles)
+    ys = 0.5 * (y1 + y2) + radius * numpy.sin(angles)
+    arrays = [xs, ys]
+    if z is not None:
+        arrays.append(z*numpy.ones(n))
+    return arrays
+
+
 def spacing(area, shape):
     """
     Returns the spacing between grid nodes
@@ -384,7 +436,7 @@ def profile(x, y, v, point1, point2, size, extrapolate=False):
 
 
 def extrapolate_nans(x, y, v):
-    """"
+    """
     Extrapolate the NaNs or masked values in a grid INPLACE using nearest
     value.
 
