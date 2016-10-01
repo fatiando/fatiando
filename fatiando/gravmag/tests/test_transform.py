@@ -228,18 +228,18 @@ def test_tilt_analytical_derivatives():
     npt.assert_allclose(tilt_numerical, tilt_analytical, rtol=0.10)
 
 
-def test_radial_average_distances():
+def test_radial_average_spectrum_distances():
     shape = (201, 201)
     area = (-100, 100, -100, 100)
     x, y = gridder.regular(area, shape)
     x, y = x.reshape(shape), y.reshape(shape)
     x, y = np.fft.ifftshift(x), np.fft.ifftshift(y)
     distances = np.sqrt(x**2 + y**2)
-    k, radial_distances = transform.radial_average(x, y, distances)
+    k, radial_distances = transform.radial_average_spectrum(x, y, distances)
     npt.assert_allclose(k[2:], radial_distances[2:], rtol=0.1)  # doesn't fail
 
 
-def test_radial_average_integers():
+def test_radial_average_spectrum_integers():
     x = np.arange(-10, 11, 1)
     y = np.arange(-10, 11, 1)
     y, x = np.meshgrid(y, x)
@@ -253,5 +253,5 @@ def test_radial_average_integers():
         else:
             inside = np.logical_and(r > i - 0.5, r <= i + 0.5)
         z[inside] = i
-    k, radial_z = transform.radial_average(x, y, z)
+    k, radial_z = transform.radial_average_spectrum(x, y, z)
     npt.assert_allclose(integers, radial_z, rtol=0.1)

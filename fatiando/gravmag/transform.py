@@ -541,7 +541,7 @@ def power_density_spectra(x, y, data, shape):
     return kx, ky, pds
 
 
-def radial_average(kx, ky, pds, max_radius=None, ring_width=None):
+def radial_average_spectrum(kx, ky, pds, max_radius=None, ring_width=None):
     r"""
     Calculates the average of the Power Density Spectra points that falls
     inside concentric rings built around the origin of the wavenumber
