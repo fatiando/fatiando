@@ -52,10 +52,7 @@ class WaveFD2D(with_metaclass(ABCMeta)):
         else:
             self.dx, self.dz = spacing
         self.shape = shape  # 2D panel shape without padding
-        if verbose:
-            self.stream = sys.stdout
-        else:
-            self.stream = None
+        self.verbose = verbose
         self.sources = []
         # simsize stores the total size of this simulation
         # after some or many runs
@@ -258,7 +255,11 @@ class WaveFD2D(with_metaclass(ABCMeta)):
         else:   # increase cache size by iterations
             self._expand_cache(iterations)
 
-        for iteration in progressbar(xrange(iterations), self.stream):
+        iterator = range(iterations)
+        if self.verbose:
+            iterator = progressbar(iterator)
+
+        for iteration in iterator:
             t, tm1 = iteration % 2, (iteration + 1) % 2
             tp1 = tm1
             self.it += 1
