@@ -1,6 +1,15 @@
 r"""
 Finite difference solution of the 2D wave equation for isotropic media.
 
+.. warning::
+
+    This code is experimental and poorly tested! We cannot guarantee that the
+    results are accurate. **We strongly discourage use of this code for
+    research purposes.** Still, the general behaviour of the waves seems
+    consistent with theory and can be useful for illustrating how seismic waves
+    behave (reflection and refraction, for example).
+
+
 * :func:`~fatiando.seismic.wavefd.elastic_psv`: Simulates the coupled P and SV
   elastic waves using the Parsimonious Staggered Grid method of Luo and
   Schuster (1990)
@@ -125,6 +134,7 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 
 """
 from __future__ import division
+import warnings
 
 import numpy
 import scipy.sparse
@@ -144,6 +154,12 @@ except:
     _nonreflexive_psv_boundary_conditions = not_implemented
     _step_scalar = not_implemented
     _reflexive_scalar_boundary_conditions = not_implemented
+
+
+# Tell users at import time that this code is not very trustworthy
+warnings.warn("This code is experimental and poorly tested! " +
+              "We cannot guarantee that the results are accurate and " +
+              "strongly discourage use of this code for research purposes.")
 
 
 class MexHatSource(object):
@@ -388,14 +404,15 @@ def lame_lamb(pvel, svel, dens):
         >>> print lame_lamb(2000, 1000, 2700)
         5400000000
         >>> import numpy as np
-        >>> pv = np.array([2000, 3000])
-        >>> sv = np.array([1000, 1700])
-        >>> dens = np.array([2700, 3100])
-        >>> print lame_lamb(pv, sv, dens)
-        [5400000000 9982000000]
+        >>> pv = np.array([2000, 3000], dtype='float64')
+        >>> sv = np.array([1000, 1700], dtype='float64')
+        >>> dens = np.array([2700, 3100], dtype='float64')
+        >>> lamb = lame_lamb(pv, sv, dens)
+        >>> print "[ {:g}  {:g} ]".format(lamb[0], lamb[1])
+        [ 5.4e+09  9.982e+09 ]
 
     """
-    lamb = dens * pvel ** 2 - 2 * dens * svel ** 2
+    lamb = dens*pvel**2 - 2*dens*svel**2
     return lamb
 
 
@@ -425,10 +442,11 @@ def lame_mu(svel, dens):
         >>> print lame_mu(1000, 2700)
         2700000000
         >>> import numpy as np
-        >>> sv = np.array([1000, 1700])
-        >>> dens = np.array([2700, 3100])
-        >>> print lame_mu(sv, dens)
-        [2700000000 8959000000]
+        >>> sv = np.array([1000, 1700], dtype='float64')
+        >>> dens = np.array([2700, 3100], dtype='float64')
+        >>> mu = lame_mu(sv, dens)
+        >>> print "[ {:g}  {:g} ]".format(mu[0], mu[1])
+        [ 2.7e+09  8.959e+09 ]
 
     """
     mu = dens * svel ** 2

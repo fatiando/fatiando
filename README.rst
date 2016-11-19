@@ -31,16 +31,17 @@ Overview
 Our goal is provide a comprehensive and extensible framework
 for geophysical data analysis and the development of new methodologies.
 
-**Research:** Fatiando allows you to write Python scripts to
-perform your data analysis and generate figures in a reproducible way.
+**Research:**
+Make your research more **reproducible** by writing a Python script or Jupyter
+notebook instead of clicking through complicated menus.
 
-**Development:** Designed for extensibility, Fatiando offers tools for users to
-build upon the existing infrastructure and develop new methods.
-We take care of the boilerplate.
+**Development:**
+Don't start from scratch! Build upon the existing tools in Fatiando to develop
+new methods.
 
-**Teaching:** Fatiando can be combined with the `Jupyter notebook
-<https://jupyter.org/>`__ to make rich interactive documents. Great for
-teaching fundamental concepts of geophysics.
+**Teaching:**
+Combine Fatiando with the Jupyter notebook to make rich, interactive documents.
+Great for teaching fundamental concepts of geophysics!
 
 
 Getting started

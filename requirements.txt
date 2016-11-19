@@ -1,9 +1,0 @@
-numpy
-scipy
-matplotlib
-numba
-future
-basemap
-pillow
-jupyter
-mayavi

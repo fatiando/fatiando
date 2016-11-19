@@ -10,6 +10,24 @@ Version 0.5
 
 **Changes**:
 
+* Moved function ``fatiando.utils.circular_points`` to
+  ``fatiando.gridder.circular_scatter`` module because ``gridder`` is where
+  point generation functions live. The function now returns the x, y coordinate
+  arrays instead of a list of points. You can transform x, y to points by
+  ``points = numpy.transpose([x, y])``. Deleted the function
+  ``utils.connect_points`` because it was only used in a single place and could
+  be substituted by two list comprehensions. Deleted function
+  ``utils.random_points`` because it has the exact same functionality as
+  ``gridder.scatter``.
+  (`PR 317  <https://github.com/fatiando/fatiando/pull/317>`__)
+* Implement unit tests for the ``fatiando.seismic.srtomo`` module. Reached 100%
+  test coverage. Now examples are only in the cookbook.
+  (`PR 316  <https://github.com/fatiando/fatiando/pull/316>`__)
+* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
+  may not provide accurate results.
+  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
+* Add copy method to ``fatiando.mesher`` objects.
+  (`PR 301  <https://github.com/fatiando/fatiando/pull/301>`__)
 * Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
   the `Python Packaging User Guide <https://packaging.python.org/>`__.
   (`PR 294 <https://github.com/fatiando/fatiando/pull/294>`__)
@@ -162,8 +180,7 @@ Version 0.4
   (`PR 144 <https://github.com/fatiando/fatiando/pull/144>`__)
 * **Removed** package ``fatiando.gui``. This was an experimental and temporary
   package to explore interactivity. Given new developments, like the
-  `IPython HTML widgets
-  <http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Interactive%20Widgets/Index.ipynb>`__,
+  IPython HTML widgets,
   it is no longer relevant. The package will be replaced by package specific
   ``interactive`` modules.
   From the original classes implemented in this package, only ``Moulder`` has
@@ -194,7 +211,7 @@ Version 0.3
   gravitational field functions give correct results in all sides of the prism.
   There were singularities due to log(0) and weird results because of arctan2.
   (`PR 113 <https://github.com/fatiando/fatiando/pull/113>`_)
-* `PEP8 <http://www.python.org/dev/peps/pep-0008/>`__ compliance (started by
+* `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ compliance (started by
   @SamuelMarks).
   (`PR 115 <https://github.com/fatiando/fatiando/pull/115>`_)
 * Multithreaded parallelism with OpenMP in
@@ -261,7 +278,7 @@ Version 0.2
   :ref:`fatiando.gravmag.sphere <fatiando_gravmag_sphere>`. (`PR 55
   <https://github.com/fatiando/fatiando/pull/55>`_ and `PR 24
   <https://github.com/fatiando/fatiando/pull/24>`_, the first one by
-  `Vanderlei <http://fatiando.org/people/oliveira-jr/>`__)
+  Vanderlei)
 * **New** function :ref:`fatiando.gridder.profile <fatiando_gridder>` to
   extract a profile (cross-section) from map data. (`PR 46
   <https://github.com/fatiando/fatiando/pull/46>`_)
@@ -271,8 +288,7 @@ Version 0.2
   <https://github.com/fatiando/fatiando/pull/41>`_)
 * **New** scalar wave 2D finite differences modeling in
   :ref:`fatiando.seismic.wavefd <fatiando_seismic_wavefd>`. (`PR 38
-  <https://github.com/fatiando/fatiando/pull/38>`_ the first by `Andre
-  <http://www.fatiando.org/people/ferreira/>`__!)
+  <https://github.com/fatiando/fatiando/pull/38>`_ the first by Andre)
 * **New** algorithms in :ref:`fatiando.seismic.wavefd
   <fatiando_seismic_wavefd>` for elastic waves and a new scalar wave solver!
   Using staggered grid finite
@@ -288,8 +304,7 @@ Version 0.2
   <https://github.com/fatiando/fatiando/pull/44>`_ and `PR 42
   <https://github.com/fatiando/fatiando/pull/42>`_)
 * **New** function to load a grid in Surfer format. (`PR
-  <https://github.com/fatiando/fatiando/pull/33>`_ the first by `Henrique
-  <http://fatiando.org/people/santos/>`__!)
+  <https://github.com/fatiando/fatiando/pull/33>`_ the first by Henrique)
 * **New** module :ref:`fatiando.gravmag.eqlayer <fatiando_gravmag_eqlayer>` for
   equivalent layer processing of potential fields.
 * Refactored all magnetic modeling and inversion to use either scalar or vector
@@ -354,7 +369,7 @@ Version 0.1
 * Transformed all geometric elements (like Prism, Polygon, etc) into classes
 * Ported all C extensions to Python + Numpy. This way compiling is not a
   prerequisite to installing
-* Using `Cython <http://www.cython.org>`_ for optional extension modules. If
+* Using `Cython <http://cython.org/>`_ for optional extension modules. If
   they exist, they are loaded to replace the Python + Numpy versions. This all
   happens at runtime.
 * Move all physical constants used in ``fatiando`` to module
