@@ -6,6 +6,13 @@ This module loads all functions from :mod:`matplotlib.pyplot`, adds new
 functions and overwrites some others (like :func:`~fatiando.vis.mpl.contour`,
 :func:`~fatiando.vis.mpl.pcolor`, etc).
 
+.. warning::
+
+    This module will be **removed** in v0.6. We recommend the use of
+    :mod:`matplotlib.pyplot` module directly. Some of the fatiando specific
+    functions will remain.
+
+
 **Grids**
 
 * :func:`~fatiando.vis.mpl.contour`
@@ -47,6 +54,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 
 """
 
+import warnings
 import numpy
 from matplotlib import pyplot, widgets
 # Quick hack so that the docs can build using the mocks for readthedocs
@@ -61,6 +69,11 @@ import fatiando.gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
+
+# Tell users that this module will be removed in v0.6
+warnings.warn("This module will be removed in v0.6. We recommend the use of " +
+              "matplotlib.pyplot module directly. Some of the fatiando " +
+              "specific functions will remain.")
 
 
 def draw_polygon(area, axes, style='-', marker='o', color='k', width=2,
