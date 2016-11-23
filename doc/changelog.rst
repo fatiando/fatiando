@@ -10,6 +10,10 @@ Version 0.5
 
 **Changes**:
 
+* Add functions ``power_density_spectra`` and ``radial_average_spectrum`` to
+  ``fatiando.gravmag.transform`` to calculate the radial average power density
+  spectrum of gridded potential field data.
+  (`PR 303 <https://github.com/fatiando/fatiando/pull/303>`__)
 * Moved function ``fatiando.utils.circular_points`` to
   ``fatiando.gridder.circular_scatter`` module because ``gridder`` is where
   point generation functions live. The function now returns the x, y coordinate
