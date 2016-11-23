@@ -2,6 +2,11 @@
 Wrappers for calls to Mayavi2's `mlab` module for plotting
 :mod:`fatiando.mesher` objects and automating common tasks.
 
+.. warning::
+
+    This module will be **removed** in v0.7.
+
+
 **Objects**
 
 * :func:`~fatiando.vis.myv.prisms`
@@ -35,11 +40,15 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 ----
 
 """
+import warnings
 import numpy
 
 from fatiando import utils
 from fatiando.constants import MEAN_EARTH_RADIUS
 
+
+# Tell users that this module will be removed in v0.7
+warnings.warn("This module will be removed in v0.7.")
 
 # Do lazy imports of mlab and tvtk to avoid the slow imports when I don't need
 # 3D plotting
