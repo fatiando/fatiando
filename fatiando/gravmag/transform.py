@@ -12,6 +12,10 @@ Potential field transformations, like upward continuation and derivatives.
 * :func:`~fatiando.gravmag.transform.tga`: Calculate the amplitude of the
   total gradient (also called the analytic signal)
 * :func:`~fatiando.gravmag.transform.tilt`: Calculates the tilt angle
+* :func:`~fatiando.gravmag.transform.power_density_spectra`: Calculates
+  the Power Density Spectra of a gridded potential field data.
+* :func:`~fatiando.gravmag.transform.radial_average`: Calculates the
+  the radial average of a Power Density Spectra using concentring rings.
 
 **Derivatives**
 
@@ -501,6 +505,108 @@ def derivz(x, y, data, shape, order=1, method='fft'):
     deriv = numpy.real(numpy.fft.ifft2(deriv_ft))
     # Remove padding from derivative
     return deriv[padx: padx + nx, pady: pady + ny].ravel()
+
+
+def power_density_spectra(x, y, data, shape):
+    r"""
+    Calculates the Power Density Spectra of a 2D gridded potential field
+    through the FFT:
+
+    .. math::
+
+        \Phi_{\Delta T}(k_x, k_y) = | F\left{\Delta T \right}(k_x, k_y) |^2
+
+    .. note:: Requires gridded data.
+
+    .. note:: x, y, z and height should be in meters.
+
+    Parameters:
+
+    * x, y : 1D-arrays
+        The x and y coordinates of the grid points
+    * data : 1D-array
+        The potential field at the grid points
+    * shape : tuple = (nx, ny)
+        The shape of the grid
+
+    Returns:
+
+    * kx, ky : 2D-arrays
+        The wavenumbers of each Power Density Spectra point
+    * pds : 2D-array
+        The Power Density Spectra of the data
+    """
+    kx, ky = _fftfreqs(x, y, shape, shape)
+    pds = abs(numpy.fft.fft2(numpy.reshape(data, shape)))**2
+    return kx, ky, pds
+
+
+def radial_average_spectrum(kx, ky, pds, max_radius=None, ring_width=None):
+    r"""
+    Calculates the average of the Power Density Spectra points that falls
+    inside concentric rings built around the origin of the wavenumber
+    coordinate system with constant width.
+
+    The width of the rings and the inner radius of the biggest ring can be
+    changed by setting the optional parameters ring_width and max_radius,
+    respectively.
+
+    .. note:: To calculate the radially averaged power density spectra
+              use the outputs of the function power_density_spectra as
+              input of this one.
+
+    Parameters:
+
+    * kx, ky : 2D-arrays
+        The x and y coordinates of the grid points
+    * data : 1D-array
+        The potential field at the grid points
+    * shape : tuple = (nx, ny)
+        The shape of the grid
+    * max_radius : float (optional)
+        Inner radius of the biggest ring.
+        By default it's set as the minimum of kx.max() and ky.max().
+        Making it smaller leaves points outside of the averaging,
+        and making it bigger includes points nearer to the boundaries.
+    * ring_width : float (optional)
+        Width of the rings.
+        By default it's set as the largest value of :math:`\Delta k_x` and
+        :math:`\Delta k_y`, being them the equidistances of the kx and ky
+        arrays.
+        Making it bigger gives more populated averages, and
+        making it smaller lowers the ammount of points per ring
+        (use it carefully).
+
+    Returns:
+
+    * k_radial : 1D-array
+        Wavenumbers of each Radially Averaged Power Spectrum point.
+        Also, the inner radius of the rings.
+    * pds_radial : 1D array
+        Radially Averaged Power Spectrum
+    """
+    nx, ny = pds.shape
+    if max_radius is None:
+        max_radius = min(kx.max(), ky.max())
+    if ring_width is None:
+        ring_width = max(kx[1, 0], ky[0, 1])
+    k = numpy.sqrt(kx**2 + ky**2)
+    pds_radial = []
+    k_radial = []
+    radius_i = -1
+    while True:
+        radius_i += 1
+        if radius_i*ring_width > max_radius:
+            break
+        else:
+            if radius_i == 0:
+                inside = k <= 0.5*ring_width
+            else:
+                inside = numpy.logical_and(k > (radius_i - 0.5)*ring_width,
+                                           k <= (radius_i + 0.5)*ring_width)
+            pds_radial.append(pds[inside].mean())
+            k_radial.append(radius_i*ring_width)
+    return numpy.array(k_radial), numpy.array(pds_radial)
 
 
 def _pad_data(data, shape):
