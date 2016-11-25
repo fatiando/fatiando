@@ -30,6 +30,7 @@ Potential field transformations, like upward continuation and derivatives.
 
 """
 from __future__ import division
+import warnings
 import numpy
 
 from .. import utils
@@ -177,8 +178,9 @@ def upcontinue(x, y, data, shape, height):
     """
     assert x.shape == y.shape, \
         "x and y arrays must have same shape"
-    assert height > 0, \
-        "Continuation height increase 'height' should be positive"
+    if height <= 0:
+        warnings.warn("Using 'height' <= 0 means downward continuation, " +
+                      "which is known to be unstable.")
     nx, ny = shape
     # Pad the array with the edge values to avoid instability
     padded, padx, pady = _pad_data(data, shape)
