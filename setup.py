@@ -54,7 +54,6 @@ INSTALL_REQUIRES = [
     'numba',
     'future',
     'matplotlib',
-    'basemap',
     'pillow',
     'jupyter',
 ]
