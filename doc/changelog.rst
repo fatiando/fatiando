@@ -44,9 +44,6 @@ Version 0.5
   anymore. The workaround was to move array allocations out of the jit compiled
   functions.
   (`PR 328 <https://github.com/fatiando/fatiando/pull/328>`__)
-* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
-  may not provide accurate results.
-  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
 
 **New features and improvements**
 
@@ -79,8 +76,25 @@ Version 0.5
   given anomaly.
   (`PR 261 <https://github.com/fatiando/fatiando/pull/261>`__)
 
+**Deprecation**
+
+* Warn users when importing ``fatiando.vis.myv`` that this module will be
+  removed in version 0.7. In version 0.6, we'll add 3D plotting functionality
+  with matplotlib's ``mpl3d`` or another suitable replacement. Users will be
+  encouraged to switch to the new replacement. The ``fatiando.vis.myv`` might
+  be kept as an optional module.
+  (`PR 336 <https://github.com/fatiando/fatiando/pull/336>`__)
+* Warn users when importing ``fatiando.vis.mpl`` that this module will be
+  removed in version 0.6. Using this module as a replacement for
+  ``matplotlib.pyplot`` is **strongly discouraged**. The custom plotting
+  functions, like ``seismic_wiggle``, will be kept and moved to a new module.
+  (`PR 335 <https://github.com/fatiando/fatiando/pull/335>`__)
+
 **Development/maintenance**
 
+* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
+  may not provide accurate results.
+  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
 * Implement unit tests for the ``fatiando.seismic.srtomo`` module. Reached 100%
   test coverage. Now examples are only in the cookbook.
   (`PR 316  <https://github.com/fatiando/fatiando/pull/316>`__)
