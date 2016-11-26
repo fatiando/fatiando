@@ -7,8 +7,6 @@ from fatiando import utils, gridder
 model = None
 xp, yp, zp = None, None, None
 inc, dec = None, None
-precision = 10 ** (-15)
-lower_precision = 10 ** (-12)
 
 
 def setup():
@@ -28,7 +26,7 @@ def test_gz():
     py = _sphere_numpy.gz(xp, yp, zp, model)
     cy = sphere.gz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gxx():
@@ -36,7 +34,7 @@ def test_gxx():
     py = _sphere_numpy.gxx(xp, yp, zp, model)
     cy = sphere.gxx(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gxy():
@@ -44,7 +42,7 @@ def test_gxy():
     py = _sphere_numpy.gxy(xp, yp, zp, model)
     cy = sphere.gxy(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gxz():
@@ -52,7 +50,7 @@ def test_gxz():
     py = _sphere_numpy.gxz(xp, yp, zp, model)
     cy = sphere.gxz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gyy():
@@ -60,7 +58,7 @@ def test_gyy():
     py = _sphere_numpy.gyy(xp, yp, zp, model)
     cy = sphere.gyy(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gyz():
@@ -68,7 +66,7 @@ def test_gyz():
     py = _sphere_numpy.gyz(xp, yp, zp, model)
     cy = sphere.gyz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_gzz():
@@ -76,7 +74,7 @@ def test_gzz():
     py = _sphere_numpy.gzz(xp, yp, zp, model)
     cy = sphere.gzz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= precision), 'max diff: %g' % (max(diff))
+    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
 
 
 def test_tf():
@@ -94,7 +92,7 @@ def test_bx():
     py = _sphere_numpy.bx(xp, yp, zp, model)
     cy = sphere.bx(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= lower_precision), \
+    assert np.all(diff <= 1e-12), \
         'max diff: %g python: %g cython %g' \
         % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -104,7 +102,7 @@ def test_by():
     py = _sphere_numpy.by(xp, yp, zp, model)
     cy = sphere.by(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= lower_precision), \
+    assert np.all(diff <= 1e-12), \
         'max diff: %g python: %g cython %g' \
         % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -114,7 +112,7 @@ def test_bz():
     py = _sphere_numpy.bz(xp, yp, zp, model)
     cy = sphere.bz(xp, yp, zp, model)
     diff = np.abs(py - cy)
-    assert np.all(diff <= lower_precision), \
+    assert np.all(diff <= 1e-12), \
         'max diff: %g python: %g cython %g' \
         % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -125,7 +123,7 @@ def test_kernelxx():
         py = _sphere_numpy.kernelxx(xp, yp, zp, p)
         cy = sphere.kernelxx(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-15), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -136,7 +134,7 @@ def test_kernelxy():
         py = _sphere_numpy.kernelxy(xp, yp, zp, p)
         cy = sphere.kernelxy(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-15), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -147,7 +145,7 @@ def test_kernelxz():
         py = _sphere_numpy.kernelxz(xp, yp, zp, p)
         cy = sphere.kernelxz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-14), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -158,7 +156,7 @@ def test_kernelyy():
         py = _sphere_numpy.kernelyy(xp, yp, zp, p)
         cy = sphere.kernelyy(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-15), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -169,7 +167,7 @@ def test_kernelyz():
         py = _sphere_numpy.kernelyz(xp, yp, zp, p)
         cy = sphere.kernelyz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-15), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
 
@@ -180,6 +178,6 @@ def test_kernelzz():
         py = _sphere_numpy.kernelzz(xp, yp, zp, p)
         cy = sphere.kernelzz(xp, yp, zp, p)
         diff = np.abs(py - cy)
-        assert np.all(diff <= precision), \
+        assert np.all(diff <= 1e-15), \
             'max diff: %g python: %g cython %g' \
             % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])

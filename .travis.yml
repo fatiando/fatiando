@@ -5,10 +5,6 @@ sudo: false
 notifications:
     email: false
 
-os:
-    - linux
-    - osx
-
 addons:
     apt:
         packages:
@@ -23,8 +19,15 @@ git:
 env:
     global: # For pushing the built docs to the fatiando/dev repo
         - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
-    matrix:
-        - PYTHON=2.7
+
+matrix:
+    include:
+        - os: linux
+          env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=false
+        - os: linux
+          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=true
+        - os: osx
+          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false
 
 before_install:
     # Get Miniconda from Continuum
@@ -38,27 +41,17 @@ before_install:
     - source activate testenv
 
 install:
+    - if [ "$BUILD_DOCS" == "true" ]; then conda install --yes mayavi && pip install -r ci/requirements-pip.txt; fi
     - conda install --yes --file ci/requirements-conda.txt
-    - pip install -r ci/requirements-pip.txt
+    - pip install coveralls==0.5
     # Show installed pkg information for postmortem diagnostic
     - conda list
     # Package Fatiando and install
     - python setup.py sdist --formats=gztar
     - pip install dist/fatiando-*.tar.gz
-    # Check that versioneer got the correct version. Do this in a tmp dir to
-    # make sure I'm importing the installed version.
-    - mkdir -p tmp
-    - cd tmp; pwd
-    - pwd; python -c "import fatiando; print(fatiando.__version__)"
-    - cd ..; pwd
 
 script:
-    - mkdir -p tmp
-    - cd tmp; pwd
-    # Use the 'fatiando.test()' command to make sure we're testing an installed
-    # version of the package.
-    - pwd; python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0, 'Tests failed'" && cp .coverage ..
-    - cd ..; pwd
+    - bash ci/run-tests.sh
     - make pep8
     - bash ci/build-docs.sh
 

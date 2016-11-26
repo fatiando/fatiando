@@ -26,44 +26,20 @@ import numba
 import numpy as np
 
 from ..constants import MEAN_EARTH_RADIUS
-from . import _tesseroid_numpy
 
 
 nodes = np.array([-0.577350269189625731058868041146,
                   0.577350269189625731058868041146])
-
-# jit compile the kernel functions from the numpy implementation
-kernelV = numba.jit(_tesseroid_numpy.kernelV, nopython=True)
-kernelx = numba.jit(_tesseroid_numpy.kernelx, nopython=True)
-kernely = numba.jit(_tesseroid_numpy.kernely, nopython=True)
-kernelz = numba.jit(_tesseroid_numpy.kernelz, nopython=True)
-kernelxx = numba.jit(_tesseroid_numpy.kernelxx, nopython=True)
-kernelxy = numba.jit(_tesseroid_numpy.kernelxy, nopython=True)
-kernelxz = numba.jit(_tesseroid_numpy.kernelxz, nopython=True)
-kernelyy = numba.jit(_tesseroid_numpy.kernelyy, nopython=True)
-kernelyz = numba.jit(_tesseroid_numpy.kernelyz, nopython=True)
-kernelzz = numba.jit(_tesseroid_numpy.kernelzz, nopython=True)
 
 
 def engine_factory(kernel):
     """
     Make the engine functions for each specific field by passing in the
     appropriate kernel.
-
-    The call signature is the same as the engine functions in the pure Python
-    implementation (fatiando.gravmag._tesseroid_numpy).
     """
-    @numba.jit(looplift=True)
-    def engine(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-               stack_size, result):
-        # Create the buffer arrays outside of the for loops so numba can remove
-        # them from the jit compilation
-        bounds = np.array(tesseroid.get_bounds())
-        stack = np.empty((stack_size, 6))
-        lonc = np.empty_like(nodes)
-        sinlatc = np.empty_like(nodes)
-        coslatc = np.empty_like(nodes)
-        rc = np.empty_like(nodes)
+    @numba.jit(nopython=True)
+    def engine(lon, sinlat, coslat, radius, bounds, density, ratio,
+               stack, lonc, sinlatc, coslatc, rc, result):
         error_code = 0
         for l in range(result.size):
             for i in range(6):
@@ -79,7 +55,7 @@ def engine_factory(kernel):
                     distance, Llon, Llat, Lr, ratio)
                 error_code += err
                 if new_cells > 1:
-                    if new_cells + (stktop + 1) > stack_size:
+                    if new_cells + (stktop + 1) > stack.shape[0]:
                         raise OverflowError
                     stktop = split(w, e, s, n, top, bottom, nlon, nlat, nr,
                                    stack, stktop)
@@ -91,20 +67,6 @@ def engine_factory(kernel):
                         coslatc, rc)
         return error_code
     return engine
-
-
-# Use the factory to make the functions for specific fields. These are the ones
-# that will be used by fatiando.gravmag.tesseroid
-gx = engine_factory(kernelx)
-gy = engine_factory(kernely)
-gz = engine_factory(kernelz)
-gxx = engine_factory(kernelxx)
-gxy = engine_factory(kernelxy)
-gxz = engine_factory(kernelxz)
-gyy = engine_factory(kernelyy)
-gyz = engine_factory(kernelyz)
-gzz = engine_factory(kernelzz)
-potential = engine_factory(kernelV)
 
 
 @numba.jit(nopython=True)
@@ -190,3 +152,188 @@ def divisions(distance, Llon, Llat, Lr, ratio):
         else:
             nr = 2
     return nlon, nlat, nr, nlon*nlat*nr, error
+
+
+@numba.jit(nopython=True)
+def kernelV(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa/np.sqrt(l_sqr)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*rc[k]*kphi/(l_sqr**1.5)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernely(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(rc[k]*coslatc[j]*sinlon/(l_sqr**1.5))
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(rc[k]*cospsi - radius)/(l_sqr**1.5)
+    # Multiply by -1 so that z is pointing down for gz and the gravity anomaly
+    # doesn't look inverted (ie, negative for positive density)
+    result *= -1
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelxx(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                l_sqr = r_sqr + rc[k]**2 - 2*radius*rc[k]*cospsi
+                kappa = (rc[k]**2)*coslatc[j]
+                result += kappa*(3*((rc[k]*kphi)**2) - l_sqr)/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelxy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc_sqr*kphi*coslatc[j]*sinlon/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelxz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            kphi = coslat*sinlatc[j] - sinlat*coslatc[j]*coslon
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_5 = (r_sqr + rc_sqr - 2*radius*rc[k]*cospsi)**2.5
+                kappa = rc_sqr*coslatc[j]
+                result += kappa*3*rc[k]*kphi*(rc[k]*cospsi - radius)/l_5
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelyy(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                result += kappa*(3*(deltay**2) - l_sqr)/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelyz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lonc[i] - lon)
+        sinlon = np.sin(lonc[i] - lon)
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                kappa = rc_sqr*coslatc[j]
+                deltay = rc[k]*coslatc[j]*sinlon
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*3.*deltay*deltaz/(l_sqr**2.5)
+    return result
+
+
+@numba.jit(nopython=True)
+def kernelzz(lon, coslat, sinlat, radius, lonc, sinlatc, coslatc, rc):
+    r_sqr = radius**2
+    result = 0
+    for i in range(2):
+        coslon = np.cos(lon - lonc[i])
+        for j in range(2):
+            cospsi = sinlat*sinlatc[j] + coslat*coslatc[j]*coslon
+            for k in range(2):
+                rc_sqr = rc[k]**2
+                l_sqr = r_sqr + rc_sqr - 2*radius*rc[k]*cospsi
+                l_5 = l_sqr**2.5
+                kappa = rc_sqr*coslatc[j]
+                deltaz = rc[k]*cospsi - radius
+                result += kappa*(3*deltaz**2 - l_sqr)/l_5
+    return result
+
+
+# Use the factory to make the functions for specific fields. These are the ones
+# that will be used by fatiando.gravmag.tesseroid
+gx = engine_factory(kernelx)
+gy = engine_factory(kernely)
+gz = engine_factory(kernelz)
+gxx = engine_factory(kernelxx)
+gxy = engine_factory(kernelxy)
+gxz = engine_factory(kernelxz)
+gyy = engine_factory(kernelyy)
+gyz = engine_factory(kernelyz)
+gzz = engine_factory(kernelzz)
+potential = engine_factory(kernelV)

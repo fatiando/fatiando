@@ -1,4 +1,3 @@
-coveralls==0.5
 sphinx_bootstrap_theme==0.4.5
 https://github.com/sphinx-gallery/sphinx-gallery/archive/master.zip
 pyface==5.1.0

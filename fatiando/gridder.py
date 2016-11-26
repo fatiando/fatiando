@@ -567,10 +567,17 @@ def pad_array(a, npd=None, padtype='OddReflectionTaper'):
         [(2, 1)]
 
         >>> shape = (5, 6)
-        >>> z = numpy.ones(shape)
+        >>> z = numpy.ones(shape, dtype='int')
         >>> zpad, nps = pad_array(z, padtype='5')
-        >>> print(zpad.shape)
-        (8, 8)
+        >>> zpad
+        array([[5, 5, 5, 5, 5, 5, 5, 5],
+               [5, 5, 5, 5, 5, 5, 5, 5],
+               [5, 1, 1, 1, 1, 1, 1, 5],
+               [5, 1, 1, 1, 1, 1, 1, 5],
+               [5, 1, 1, 1, 1, 1, 1, 5],
+               [5, 1, 1, 1, 1, 1, 1, 5],
+               [5, 1, 1, 1, 1, 1, 1, 5],
+               [5, 5, 5, 5, 5, 5, 5, 5]])
         >>> print(nps)
         [(2, 1), (1, 1)]
 

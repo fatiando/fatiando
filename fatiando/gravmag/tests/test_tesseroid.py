@@ -136,19 +136,6 @@ def test_serial_vs_parallel():
         assert_allclose(serial, parallel, err_msg="Mismatch for {}".format(f))
 
 
-def test_numba_vs_python():
-    "gravmag.tesseroid numba and pure python implementations give same result"
-    model = TesseroidMesh((0.3, 0.6, 0.2, 0.8, 1000, 0), (2, 2, 1))
-    model.addprop('density', -200*np.ones(model.size))
-    lon, lat, height = gridder.regular((0, 1, 0, 2), (20, 20), z=250e3)
-    for f in 'potential gx gy gz gxx gxy gxz gyy gyz gzz'.split():
-        with warnings.catch_warnings(record=True) as w:
-            func = getattr(tesseroid, f)
-            py = func(lon, lat, height, model, engine='numpy')
-            nb = func(lon, lat, height, model, engine='numba')
-        assert_allclose(nb, py, err_msg="Mismatch for {}".format(f))
-
-
 def test_fails_if_shape_mismatch():
     'gravmag.tesseroid fails if given computation points with different shapes'
     model = [Tesseroid(0, 1, 0, 1, 1000, -20000, {'density': 2670})]

@@ -10,9 +10,14 @@ Version 0.5
 
 **Changes**:
 
-* Change the behavior of ``gravmag.transform.upcontinue``. Instead of raise
-  an error when 'height' <= 0 it's now warn users that in this case the
-  computation is unstable.
+* Fixes bug ``fatiando.gravmag.tesseroid`` when running with the latest numba
+  (0.28). The ``looplift`` argument to ``numba.jit`` doesn't seem to work
+  anymore. The workaround was to move array allocations out of the jit compiled
+  functions.
+  (`PR 328 <https://github.com/fatiando/fatiando/pull/328>`__)
+* Change the behavior of ``gravmag.transform.upcontinue``. Instead of raising
+  an error when 'height' <= 0 (downward continuation) it now warns users that
+  in this case the computation is unstable.
   (`PR 337 <https://github.com/fatiando/fatiando/pull/337>`__)
 * Add functions ``power_density_spectra`` and ``radial_average_spectrum`` to
   ``fatiando.gravmag.transform`` to calculate the radial average power density
