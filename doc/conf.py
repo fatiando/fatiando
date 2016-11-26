@@ -23,15 +23,11 @@ extensions = [
     'sphinx_gallery.gen_gallery',
 ]
 
-from mayavi import mlab
-mlab.options.offscreen = True
-
 # Configure the sphinx-gallery plugin
 sphinx_gallery_conf = {
     'examples_dirs': ['../gallery'],
     'gallery_dirs': ['gallery'],
     'filename_pattern': os.sep + '*', # Match any .py file
-    'find_mayavi_figures': True,
 }
 
 # Configure the inline plots from matplotlib plot_directive

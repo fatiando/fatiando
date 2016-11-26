@@ -1,3 +1,0 @@
-Geometric objects and meshes
-----------------------------
-
