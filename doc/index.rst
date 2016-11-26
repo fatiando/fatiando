@@ -112,33 +112,6 @@ documents. Great for teaching fundamental concepts of geophysics!
     </div>
     <div class="row">
         <div class="col-md-6">
-            <h3><a href="api/inversion.html">Inverse Problems</a></h3>
-            <p>
-            API for building inverse problem solvers.
-            </p>
-            <em>
-            Easily prototype a new inversion.
-            Simple and uniform sintax for running invsersions.
-            Ready-made regularization (damping, smoothness, total variation).
-            </em>
-        </div>
-        <div class="col-md-6">
-            <h3><a href="api/vis.html">2D and 3D plotting</a></h3>
-            <p>
-            Utilities for plotting with
-            <a href="http://matplotlib.org/">matplotlib</a>
-            and
-            <a href="http://code.enthought.com/projects/mayavi/">Mayavi</a>.
-            </p>
-            <em>
-            Better defaults for some matplotlib functions,
-            plot 3D objects from <code>fatiando.mesher</code> in Mayavi,
-            automate common plotting tasks.
-            </em>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
             <h3><a href="api/gridder.html">Grid manipulation</a></h3>
             <p>
             Functions for generating and operating on regular grids and data
@@ -266,16 +239,14 @@ publications.
     <div class="col-md-6">
     <h2>Contribute</h2>
 
-There are many ways you can contribute **without writing code**.
+**Feedback**: Send us your bug reports, feature requests, spelling corrections,
+usage examples, etc. We love to hear what the community thinks!
 
-You can start by sending us your **feedback**: bug reports, feature requests,
-spelling corrections, usage examples, etc.
+**Documentation**: We need a lot of help improving our documentation. You can
+report typos, suggest new sections and improvements, and anything that you
+think would make the docs better in any way.
 
-We need a lot of help improving the **documentation**.
-You can report typos, suggest new sections and improvements,
-and anything that you think would make the docs better in any way.
-
-If you  want to get involved with the **code**,
+**Code**: If you  want to get involved with the code,
 take a look at our :ref:`Developer Guide <develop>`.
 All source code development is done in the open on the Github repository
 `fatiando/fatiando <https://github.com/fatiando/fatiando>`__.
@@ -284,8 +255,7 @@ A good place to start is with our `curated list of low-hanging fruit
 
 If you want to help but are not sure how, ask on the `Gitter chat room`_ and
 we'll help you get started.
-
-Don't be afraid to ask for help!
+**Don't be afraid to ask for help!**
 
 .. _mailing list: https://groups.google.com/d/forum/fatiando
 .. _issues on Github: https://github.com/fatiando/fatiando/issues?q=is%3Aopen
