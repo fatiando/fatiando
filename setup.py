@@ -51,7 +51,6 @@ libs = []
 if os.name == 'posix':
     libs.append('m')
 C_EXT = [[['fatiando', 'seismic', '_ttime2d'], {}],
-         [['fatiando', 'seismic', '_wavefd'], {}],
          [['fatiando', 'gravmag', '_polyprism'], {}],
          [['fatiando', 'gravmag', '_sphere'], {}],
          [['fatiando', 'gravmag', '_prism'], {}],
