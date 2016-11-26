@@ -62,3 +62,7 @@ else
     echo -e "Not updating website. Documentation was not built."
 fi
 echo -e "Done"
+
+# Workaround for https://github.com/travis-ci/travis-ci/issues/6522
+# Turn off exit on failure.
+set +e

@@ -12,3 +12,7 @@ then
 else
     echo "Not pushing coverage."
 fi
+
+# Workaround for https://github.com/travis-ci/travis-ci/issues/6522
+# Turn off exit on failure.
+set +e

@@ -22,3 +22,7 @@ then
 else
     python -c "import fatiando; assert fatiando.test(verbose=True) == 0"
 fi
+
+# Workaround for https://github.com/travis-ci/travis-ci/issues/6522
+# Turn off exit on failure.
+set +e
