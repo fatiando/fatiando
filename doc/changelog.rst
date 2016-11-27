@@ -9,7 +9,7 @@ Changelog
 Version 0.5
 -----------
 
-**Release date**: yyyy-mm-dd
+**Release date**: 2016-11-27
 
 **doi**: `10.5281/zenodo.157746 <https://doi.org/10.5281/zenodo.157746>`__
 
