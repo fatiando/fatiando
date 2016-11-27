@@ -3,13 +3,13 @@
 .. raw:: html
 
     <div class="row" style="margin-top: 60px">
-        <div class="col-md-1">
+        <div class="col-md-2">
         </div>
-        <div class="col-md-10">
-            <img src="_static/fatiando-banner-homepage.png" width="100%"
+        <div class="col-md-8">
+            <img src="_static/fatiando-banner.png" width="100%"
                 style="margin-bottom: 50px;"></img>
             </div>
-        <div class="col-md-1">
+        <div class="col-md-2">
         </div>
     </div>
 

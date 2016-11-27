@@ -10,17 +10,17 @@ h2 {
     margin-top: 50px;
 }
 .navbar {
-    background-color: #333;
-    border-radius: 0px;
+    background-color: #00112b;
 }
-.navbar-brand  img {
-    height: 30px;
-    margin: 0px 10px;
+.navbar-brand img {
+    height: 40px;
+    margin: -1px 7px 0px 0px;
 }
 .navbar-brand {
-    padding-top: 16px;
-    font-size: 16pt;
+    padding-top: 12px;
+    font-size: 20pt;
 }
+
 blockquote {
     font-size: 12pt;
     color: #6F6F6F;
