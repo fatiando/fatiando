@@ -1,6 +1,5 @@
 r"""
-Calculates the potential fields of a tesseroid (spherical prism).
-
+Forward model the gravitational fields of a tesseroid (spherical prism).
 
 Functions in this module calculate the gravitational fields of a tesseroid with
 respect to the local North-oriented coordinate system of the computation point.
@@ -32,7 +31,7 @@ See the figure below.
     </div>
 
 
-.. note:: Coordinate systems
+.. admonition:: Coordinate systems
 
     The gravitational attraction
     and gravity gradient tensor
@@ -53,6 +52,7 @@ Gravity
 -------
 
 Forward modeling of gravitational fields is performed by functions:
+
 :func:`~fatiando.gravmag.tesseroid.potential`,
 :func:`~fatiando.gravmag.tesseroid.gx`,
 :func:`~fatiando.gravmag.tesseroid.gy`,
@@ -64,94 +64,12 @@ Forward modeling of gravitational fields is performed by functions:
 :func:`~fatiando.gravmag.tesseroid.gyz`,
 :func:`~fatiando.gravmag.tesseroid.gzz`
 
-The gravitational fields are calculated using the formula of Grombein et al.
-(2013):
-
-.. math::
-    V(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2}
-        \displaystyle\int_{r_1}^{r_2}
-        \frac{1}{\ell} \kappa \ d r' d \phi' d \lambda'
-
-.. math::
-    g_{\alpha}(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2} \displaystyle\int_{r_1}^{r_2}
-        \frac{\Delta_{\alpha}}{\ell^3} \kappa \ d r' d \phi' d \lambda'
-        \ \ \alpha \in \{x,y,z\}
-
-.. math::
-    g_{\alpha\beta}(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2} \displaystyle\int_{r_1}^{r_2}
-        I_{\alpha\beta}({r'}, {\phi'}, {\lambda'} )
-        \ d r' d \phi' d \lambda'
-        \ \ \alpha,\beta \in \{x,y,z\}
-
-.. math::
-    I_{\alpha\beta}({r'}, {\phi'}, {\lambda'}) =
-        \left(
-            \frac{3\Delta_{\alpha} \Delta_{\beta}}{\ell^5} -
-            \frac{\delta_{\alpha\beta}}{\ell^3}
-        \right)
-        \kappa\
-        \ \ \alpha,\beta \in \{x,y,z\}
-
-where :math:`\rho` is density,
-:math:`\{x, y, z\}` correspond to the local coordinate system
-of the computation point P,
-:math:`\delta_{\alpha\beta}` is the `Kronecker delta`_, and
-
-.. math::
-   :nowrap:
-
-    \begin{eqnarray*}
-        \Delta_x &=& r' K_{\phi} \\
-        \Delta_y &=& r' \cos \phi' \sin(\lambda' - \lambda) \\
-        \Delta_z &=& r' \cos \psi - r\\
-        \ell &=& \sqrt{r'^2 + r^2 - 2 r' r \cos \psi} \\
-        \cos\psi &=& \sin\phi\sin\phi' + \cos\phi\cos\phi'
-                     \cos(\lambda' - \lambda) \\
-        K_{\phi} &=& \cos\phi\sin\phi' - \sin\phi\cos\phi'
-                     \cos(\lambda' - \lambda)\\
-        \kappa &=& {r'}^2 \cos \phi'
-    \end{eqnarray*}
-
-
-:math:`\phi` is latitude,
-:math:`\lambda` is longitude, and
-:math:`r` is radius.
-
-.. _Kronecker delta: https://en.wikipedia.org/wiki/Kronecker_delta
-
-Numerical integration
-+++++++++++++++++++++
-
-The above integrals are solved using the Gauss-Legendre Quadrature rule
-(Asgharzadeh et al., 2007;
-Wild-Pfeiffer, 2008):
-
-.. math::
-    g_{\alpha\beta}(r,\phi,\lambda) \approx G \rho
-        \frac{(\lambda_2 - \lambda_1)(\phi_2 - \phi_1)(r_2 - r_1)}{8}
-        \displaystyle\sum_{k=1}^{N^{\lambda}}
-        \displaystyle\sum_{j=1}^{N^{\phi}}
-        \displaystyle\sum_{i=1}^{N^r}
-        W^r_i W^{\phi}_j W^{\lambda}_k
-        I_{\alpha\beta}({r'}_i, {\phi'}_j, {\lambda'}_k )
-        \ \alpha,\beta \in \{1,2,3\}
-
-where :math:`W_i^r`, :math:`W_j^{\phi}`, and :math:`W_k^{\lambda}`
-are weighting coefficients
-and :math:`N^r`, :math:`N^{\phi}`, and :math:`N^{\lambda}`
-are the number of quadrature nodes
-(i.e., the order of the quadrature),
-for the radius, latitude, and longitude, respectively.
-
-Accurate numerical integration is achieved by an adaptive discretization
-algorithm. The one implemented here is a modified version of Li et al (2011).
-The adaptive discretization keeps the integration error below 0.1%.
+The fields are calculated using Gauss-Legendre Quadrature integration and the
+adaptive discretization algorithm of Uieda et al. (2016). The accuracy of the
+integration is controlled by the ``ratio`` argument. Larger values cause finer
+discretization and more accuracy but slower computation times. The defaults
+values are the ones suggested in the paper and guarantee an accuracy of
+approximately 0.1%.
 
 .. warning::
 
@@ -162,24 +80,9 @@ The adaptive discretization keeps the integration error below 0.1%.
 References
 ++++++++++
 
-Asgharzadeh, M. F., R. R. B. von Frese, H. R. Kim, T. E. Leftwich,
-and J. W. Kim (2007),
-Spherical prism gravity effects by Gauss-Legendre quadrature integration,
-Geophysical Journal International, 169(1), 1-11,
-doi:10.1111/j.1365-246X.2007.03214.x.
-
-Grombein, T.; Seitz, K.; Heck, B. (2013), Optimized formulas for the
-gravitational field of a tesseroid, Journal of Geodesy,
-doi: 10.1007/s00190-013-0636-1
-
-Li, Z., T. Hao, Y. Xu, and Y. Xu (2011), An efficient and adaptive approach for
-modeling gravity effects in spherical coordinates, Journal of Applied
-Geophysics, 73(3), 221-231, doi:10.1016/j.jappgeo.2011.01.004.
-
-Wild-Pfeiffer, F. (2008),
-A comparison of different mass elements for use in gravity gradiometry,
-Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
-
+Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids: Forward-modeling
+gravitational fields in spherical coordinates, Geophysics, F41-F48,
+doi:10.1190/geo2015-0204.1
 
 ----
 
@@ -191,7 +94,12 @@ import warnings
 import numpy as np
 from . import _tesseroid_numba
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
+from .._our_duecredit import due, Doi, BibTeX
 
+
+due.cite(Doi("10.1190/geo2015-0204.1"),
+         description='Gravity forward modeling with tesseroids',
+         path="fatiando.gravmag.tesseroid")
 RATIO_V = 1
 RATIO_G = 1.6
 RATIO_GG = 8
@@ -365,6 +273,8 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -396,6 +306,12 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     * res : array
         The calculated field in SI units
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'potential'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
@@ -411,6 +327,8 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G,
 
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
+
+    Implements the method of Uieda et al. (2016).
 
     Parameters:
 
@@ -442,6 +360,12 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G,
 
     * res : array
         The calculated field in mGal
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gx'
@@ -459,6 +383,8 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -489,6 +415,12 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G,
 
     * res : array
         The calculated field in mGal
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gy'
@@ -511,6 +443,8 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -542,6 +476,12 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G,
     * res : array
         The calculated field in mGal
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
@@ -557,6 +497,8 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
+
+    Implements the method of Uieda et al. (2016).
 
     Parameters:
 
@@ -588,6 +530,12 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gxx'
@@ -605,6 +553,8 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -635,6 +585,12 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gxy'
@@ -652,6 +608,8 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -682,6 +640,12 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gxz'
@@ -699,6 +663,8 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -729,6 +695,12 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gyy'
@@ -746,6 +718,8 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -776,6 +750,12 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gyz'
@@ -793,6 +773,8 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -823,6 +805,12 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
 
     * res : array
         The calculated field in Eotvos
+
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
 
     """
     field = 'gzz'
