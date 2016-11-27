@@ -3,26 +3,18 @@
 Changelog
 =========
 
+
+.. _changelog-0.5:
+
 Version 0.5
 -----------
 
-**Release date**: yyyy-mm-dd
+**Release date**: 2016-11-27
 
-**Changes**:
+**doi**: `10.5281/zenodo.157746 <https://doi.org/10.5281/zenodo.157746>`__
 
-* Fixes bug ``fatiando.gravmag.tesseroid`` when running with the latest numba
-  (0.28). The ``looplift`` argument to ``numba.jit`` doesn't seem to work
-  anymore. The workaround was to move array allocations out of the jit compiled
-  functions.
-  (`PR 328 <https://github.com/fatiando/fatiando/pull/328>`__)
-* Change the behavior of ``gravmag.transform.upcontinue``. Instead of raising
-  an error when 'height' <= 0 (downward continuation) it now warns users that
-  in this case the computation is unstable.
-  (`PR 337 <https://github.com/fatiando/fatiando/pull/337>`__)
-* Add functions ``power_density_spectra`` and ``radial_average_spectrum`` to
-  ``fatiando.gravmag.transform`` to calculate the radial average power density
-  spectrum of gridded potential field data.
-  (`PR 303 <https://github.com/fatiando/fatiando/pull/303>`__)
+**Breaking changes**
+
 * Moved function ``fatiando.utils.circular_points`` to
   ``fatiando.gridder.circular_scatter`` module because ``gridder`` is where
   point generation functions live. The function now returns the x, y coordinate
@@ -33,26 +25,6 @@ Version 0.5
   ``utils.random_points`` because it has the exact same functionality as
   ``gridder.scatter``.
   (`PR 317  <https://github.com/fatiando/fatiando/pull/317>`__)
-* Implement unit tests for the ``fatiando.seismic.srtomo`` module. Reached 100%
-  test coverage. Now examples are only in the cookbook.
-  (`PR 316  <https://github.com/fatiando/fatiando/pull/316>`__)
-* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
-  may not provide accurate results.
-  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
-* Add copy method to ``fatiando.mesher`` objects.
-  (`PR 301  <https://github.com/fatiando/fatiando/pull/301>`__)
-* Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
-  the `Python Packaging User Guide <https://packaging.python.org/>`__.
-  (`PR 294 <https://github.com/fatiando/fatiando/pull/294>`__)
-* Enable ``fatiando.mesher.PointGrid`` to have points at different depths by
-  passing it an array as the ``z`` argument.
-  (`PR 283 <https://github.com/fatiando/fatiando/pull/283>`__)
-* Replace `nose <http://nose.readthedocs.io/>`__ with `py.test
-  <http://pytest.org/>`__ as our unit testing framework. Tests are now located
-  in the package ``fatiando.tests`` and installed with Fatiando. This means
-  that we can test an installed version of Fatiando, not just the code in the
-  repository.
-  (`PR 290 <https://github.com/fatiando/fatiando/pull/290>`__)
 * Remove unused module ``fatiando.gravmag.half_sph_shell``. It was used to test
   ``fatiando.gravmag.tesseroid`` but has been replaced by a full spherical
   shell solution that is coded in the tests. It serves no purpose so it should
@@ -64,6 +36,30 @@ Version 0.5
   These names are more unique and will not clash with any other class. This is
   crucial to establish a nice API for ``fatiando.gravmag``.
   (`PR 286 <https://github.com/fatiando/fatiando/pull/286>`__)
+
+**Bug fixes**
+
+* Fixes bug in ``fatiando.gravmag.tesseroid`` when running with the latest
+  numba (0.28). The ``looplift`` argument to ``numba.jit`` doesn't seem to work
+  anymore. The workaround was to move array allocations out of the jit compiled
+  functions.
+  (`PR 328 <https://github.com/fatiando/fatiando/pull/328>`__)
+
+**New features and improvements**
+
+* Change the behavior of ``gravmag.transform.upcontinue``. Instead of raising
+  an error when 'height' <= 0 (downward continuation) it now warns users that
+  in this case the computation is unstable.
+  (`PR 337 <https://github.com/fatiando/fatiando/pull/337>`__)
+* Add functions ``power_density_spectra`` and ``radial_average_spectrum`` to
+  ``fatiando.gravmag.transform`` to calculate the radial average power density
+  spectrum of gridded potential field data.
+  (`PR 303 <https://github.com/fatiando/fatiando/pull/303>`__)
+* Add copy method to ``fatiando.mesher`` objects.
+  (`PR 301  <https://github.com/fatiando/fatiando/pull/301>`__)
+* Enable ``fatiando.mesher.PointGrid`` to have points at different depths by
+  passing it an array as the ``z`` argument.
+  (`PR 283 <https://github.com/fatiando/fatiando/pull/283>`__)
 * Started an example gallery (`matplotlib style
   <http://matplotlib.org/gallery.html>`__) using the Sphinx plug-in
   `sphinx-gallery <http://sphinx-gallery.readthedocs.io/>`__.
@@ -74,27 +70,62 @@ Version 0.5
   unpadded array.  ``fatiando.gridder.pad_coords`` pads the coordinate vectors
   associated with the arrays padded above. Added Kass in the contributors.
   (`PR 239 <https://github.com/fatiando/fatiando/pull/239>`__)
-* Better navigation for long pages in the docs by adding a sidebar with links
-  to subsections.
-  (`PR 275 <https://github.com/fatiando/fatiando/pull/275>`__)
-* Added back-end support for decorators from `duecredit
-  <https://github.com/duecredit/duecredit/>`__ to be added to methods. This
-  allows a report for per-method citations based on the methods used in a given
-  script. Currently only implemented for `gravmag/magdir` but will be added to
-  all methods in time.
-  (`PR 293 <https://github.com/fatiando/fatiando/pull/293>`__)
 * Added function for tilt derivative filter for gravmag data.
   ``fatiando.gravmag.transform.tilt`` returns a value between -90 and 90
   degrees, with the 0 value being located over or nearly over the edge of a
   given anomaly.
   (`PR 261 <https://github.com/fatiando/fatiando/pull/261>`__)
 
+**Deprecation**
 
+* Warn users when importing ``fatiando.vis.myv`` that this module will be
+  removed in version 0.7. In version 0.6, we'll add 3D plotting functionality
+  with matplotlib's ``mpl3d`` or another suitable replacement. Users will be
+  encouraged to switch to the new replacement. The ``fatiando.vis.myv`` might
+  be kept as an optional module.
+  (`PR 336 <https://github.com/fatiando/fatiando/pull/336>`__)
+* Warn users when importing ``fatiando.vis.mpl`` that this module will be
+  removed in version 0.6. Using this module as a replacement for
+  ``matplotlib.pyplot`` is **strongly discouraged**. The custom plotting
+  functions, like ``seismic_wiggle``, will be kept and moved to a new module.
+  (`PR 335 <https://github.com/fatiando/fatiando/pull/335>`__)
+
+**Development/maintenance**
+
+* Warn users that the code in ``fatiando.seismic.wavefd`` is experimental and
+  may not provide accurate results.
+  (`PR 319  <https://github.com/fatiando/fatiando/pull/319>`__)
+* Implement unit tests for the ``fatiando.seismic.srtomo`` module. Reached 100%
+  test coverage. Now examples are only in the cookbook.
+  (`PR 316  <https://github.com/fatiando/fatiando/pull/316>`__)
+* Move from ``distutils`` to ``setuptools`` in ``setup.py``, as recommended in
+  the `Python Packaging User Guide <https://packaging.python.org/>`__.
+  (`PR 294 <https://github.com/fatiando/fatiando/pull/294>`__)
+* Replace `nose <http://nose.readthedocs.io/>`__ with `py.test
+  <http://pytest.org/>`__ as our unit testing framework. Tests are now located
+  in the package ``fatiando.tests`` and installed with Fatiando. This means
+  that we can test an installed version of Fatiando, not just the code in the
+  repository.
+  (`PR 290 <https://github.com/fatiando/fatiando/pull/290>`__)
+* Added back-end support for decorators from `duecredit
+  <https://github.com/duecredit/duecredit/>`__ to be added to methods. This
+  allows a report for per-method citations based on the methods used in a given
+  script. Currently only implemented for `gravmag/magdir` but will be added to
+  all methods in time.
+  (`PR 293 <https://github.com/fatiando/fatiando/pull/293>`__)
+* Better navigation for long pages in the docs by adding a sidebar with links
+  to subsections.
+  (`PR 275 <https://github.com/fatiando/fatiando/pull/275>`__)
+
+
+.. _changelog-0.4:
 
 Version 0.4
 -----------
 
 **Release date**: 2016-04-05
+
+**doi**: `10.5281/zenodo.49087 <https://doi.org/10.5281/zenodo.49087>`__
 
 **Changes**:
 
@@ -205,10 +236,13 @@ Version 0.4
   etc.
   (`PR 143 <https://github.com/fatiando/fatiando/pull/143>`__)
 
+
 Version 0.3
 -----------
 
 **Release date**: 2014-10-28
+
+**doi**: `10.5281/zenodo.16205 <https://doi.org/10.5281/zenodo.16205>`__
 
 **Changes**:
 
@@ -257,10 +291,13 @@ Version 0.3
   estimating the total magnetization vector of multiple sources.
   (`PR 87 <https://github.com/fatiando/fatiando/pull/87>`_)
 
+
 Version 0.2
 -----------
 
 **Release date**: 2014-01-15
+
+**doi**: `10.6084/m9.figshare.1115194 <https://doi.org/10.6084/m9.figshare.1115194>`__
 
 **Changes**:
 
@@ -330,10 +367,13 @@ Version 0.2
 * Removed module ``fatiando.logger``. (`PR 30
   <https://github.com/fatiando/fatiando/pull/30>`_)
 
+
 Version 0.1
 -----------
 
 **Release date**: 2013-04-12
+
+**doi**: `10.5281/zenodo.16207 <https://doi.org/10.5281/zenodo.16207>`__
 
 **Changes**:
 

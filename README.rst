@@ -20,9 +20,9 @@
 .. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
-.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.49087-blue.svg?style=flat-square
-    :alt: doi:10.5281/zenodo.49087
-    :target: http://dx.doi.org/10.5281/zenodo.49087
+.. image:: http://img.shields.io/badge/doi-10.5281/zenodo.157746-blue.svg?style=flat-square
+    :alt: doi:10.5281/zenodo.157746
+    :target: http://dx.doi.org/10.5281/zenodo.157746
 
 
 Overview
