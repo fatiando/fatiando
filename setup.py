@@ -29,11 +29,12 @@ CMDCLASS = versioneer.get_cmdclass()
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
-LICENSE = "BSD 3-clause"
+LICENSE = "BSD License"
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
 SCRIPTS = []
-PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
+# PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
+PACKAGE_DATA = {}
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
