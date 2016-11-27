@@ -83,8 +83,9 @@ def test(doctest=True, verbose=False, coverage=False):
     if verbose:
         args.append('-v')
     if coverage:
-        args.append('--cov-report term-missing')
         args.append('--cov=fatiando')
+        args.append('--cov-report')
+        args.append('term-missing')
     if doctest:
         args.append('--doctest-modules')
     args.append('--pyargs')
