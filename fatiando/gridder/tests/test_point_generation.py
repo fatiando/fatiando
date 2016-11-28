@@ -90,6 +90,7 @@ def test_scatter_noseed():
     x3, y3, z3 = gridder.scatter(area, size, z)
     with raises(AssertionError):
         npt.assert_allclose(x1, x3)
+    with raises(AssertionError):
         npt.assert_allclose(y1, y3)
     npt.assert_allclose(z1, z3)
 
@@ -103,6 +104,18 @@ def test_circular_scatter():
     x, y = gridder.circular_scatter(area, size, random=False)
     distances = np.sqrt((x[1:] - x[:-1])**2 + (y[1:] - y[:-1])**2)
     npt.assert_allclose(distances, distances[0]*np.ones(size-1), rtol=1e-09)
+
+
+def test_circular_scatter_z():
+    """
+    gridder.circular_scatter returns a filled z array.
+    """
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    z_value = 500
+    x, y, z = gridder.circular_scatter(area, size, z=z_value, random=False)
+    assert z.size == size
+    npt.assert_allclose(z, z_value + np.zeros(size))
 
 
 def test_circular_scatter_num_point():
@@ -124,6 +137,7 @@ def test_circular_scatter_random():
         x2, y2 = gridder.circular_scatter(area, size, random=True)
         with raises(AssertionError):
             npt.assert_allclose(x1, x2)
+        with raises(AssertionError):
             npt.assert_allclose(y1, y2)
 
 
