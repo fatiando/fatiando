@@ -4,6 +4,19 @@ Changelog
 =========
 
 
+.. _changelog-0.6:
+
+Version 0.6
+-----------
+
+**Release date**: yyyy-mm-dd
+
+**doi**:
+
+**Changes**
+
+
+
 .. _changelog-0.5:
 
 Version 0.5
