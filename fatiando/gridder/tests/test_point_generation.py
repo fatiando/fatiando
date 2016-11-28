@@ -74,3 +74,65 @@ def test_scatter_fails():
         x, y = gridder.scatter((1, -1, 0, 10), 20, seed=1)
     with raises(AssertionError):
         x, y = gridder.scatter((0, 10, 1, -1), 20, seed=2)
+
+
+def test_scatter_noseed():
+    "gridder.scatter returns different sequence after using random seed"
+    area = [0, 1000, 0, 1000]
+    z = 20
+    size = 1000
+    seed = 1242
+    x1, y1, z1 = gridder.scatter(area, size, z, seed=seed)
+    x2, y2, z2 = gridder.scatter(area, size, z, seed=seed)
+    npt.assert_allclose(x1, x2)
+    npt.assert_allclose(y1, y2)
+    npt.assert_allclose(z1, z2)
+    x3, y3, z3 = gridder.scatter(area, size, z)
+    with raises(AssertionError):
+        npt.assert_allclose(x1, x3)
+        npt.assert_allclose(y1, y3)
+    npt.assert_allclose(z1, z3)
+
+
+def test_circular_scatter():
+    """
+    gridder.circular_scatter returns equidistant points if random=False.
+    """
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    x, y = gridder.circular_scatter(area, size, random=False)
+    distances = np.sqrt((x[1:] - x[:-1])**2 + (y[1:] - y[:-1])**2)
+    npt.assert_allclose(distances, distances[0]*np.ones(size-1), rtol=1e-09)
+
+
+def test_circular_scatter_num_point():
+    "gridder.circular_scatter returns a specified ``n`` number of points."
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    x, y = gridder.circular_scatter(area, size, random=False)
+    assert x.size == size and y.size == size
+    x, y = gridder.circular_scatter(area, size, random=True)
+    assert x.size == size and y.size == size
+
+
+def test_circular_scatter_random():
+    "gridder.circular_scatter return different sequences if random=True"
+    area = [-1000, 1200, -40, 200]
+    size = 1300
+    for i in xrange(20):
+        x1, y1 = gridder.circular_scatter(area, size, random=True)
+        x2, y2 = gridder.circular_scatter(area, size, random=True)
+        with raises(AssertionError):
+            npt.assert_allclose(x1, x2)
+            npt.assert_allclose(y1, y2)
+
+
+def test_circular_scatter_seed():
+    "gridder.circular_scatter returns same sequence using same random seed"
+    area = [0, 1000, 0, 1000]
+    size = 1000
+    for seed in range(10):
+        x1, y1 = gridder.circular_scatter(area, size, random=True, seed=seed)
+        x2, y2 = gridder.circular_scatter(area, size, random=True, seed=seed)
+        npt.assert_allclose(x1, x2)
+        npt.assert_allclose(y1, y2)

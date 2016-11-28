@@ -150,3 +150,50 @@ def scatter(area, n, z=None, seed=None):
     if z is not None:
         arrays.append(z*np.ones(n))
     return arrays
+
+
+def circular_scatter(area, n, z=None, random=False, seed=None):
+    """
+    Generate a set of n points positioned in a circular array.
+
+    The diameter of the circle is equal to the smallest dimension of the area
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        Area inside of which the points are contained
+    * n : int
+        Number of points
+        * z : float or 1d-array
+        Optional. z coordinate of the points. If given, will return an
+        array with the value *z*.
+    * random : True or False
+        If True, positions of the points on the circle will be chosen at random
+    * seed : None or int
+        Seed used to generate the pseudo-random numbers if `random==True`.
+        If `None`, will use a different seed every time.
+        Use the same seed to generate the same random sequence.
+
+    Returns:
+
+    * ``[x, y]``
+        Numpy arrays with the x and y coordinates of the points
+    * ``[x, y, z]``
+        If *z* given. Arrays with the x, y, and z coordinates of the points
+
+    """
+    x1, x2, y1, y2 = area
+    radius = 0.5 * min(x2 - x1, y2 - y1)
+    if random:
+        np.random.seed(seed)
+        angles = np.random.uniform(0, 2*np.pi, n)
+        np.random.seed()
+    else:
+        da = 2*np.pi/n
+        angles = np.arange(0, 2*np.pi, da)
+    xs = 0.5*(x1 + x2) + radius*np.cos(angles)
+    ys = 0.5*(y1 + y2) + radius*np.sin(angles)
+    arrays = [xs, ys]
+    if z is not None:
+        arrays.append(z*np.ones(n))
+    return arrays

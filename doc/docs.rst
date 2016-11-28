@@ -13,9 +13,9 @@ Documentation (version |version|)
             </em>
         </div>
         <div class="col-md-3">
-            <h3><a href="api/fatiando.html">Library reference</a></h3>
+            <h3><a href="api/fatiando.html">API Reference</a></h3>
             <em>
-            The modules and packages of the
+            Documentation for all classes and functions in the
             <code class="docutils literal">fatiando</code> package.
             </em>
         </div>
@@ -73,7 +73,8 @@ Other versions
 --------------
 
 * `Development version <http://www.fatiando.org/dev>`__
-* `Version 0.4 (stable) <http://www.fatiando.org>`__
+* `Version 0.5 (stable) <http://www.fatiando.org/v0.5>`__
+* `Version 0.4 <http://www.fatiando.org/v0.4>`__
 * `Version 0.3 <http://www.fatiando.org/v0.3>`__
 * `Version 0.2 <http://www.fatiando.org/v0.2>`__
 * `Version 0.1 <http://www.fatiando.org/v0.1>`__

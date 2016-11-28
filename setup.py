@@ -5,15 +5,18 @@ import sys
 import os
 from setuptools import setup, Extension, find_packages
 import numpy
-
-# Get the version number and setup versioneer
 import versioneer
+
+# VERSIONEER SETUP
+# #############################################################################
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'fatiando/_version.py'
 versioneer.versionfile_build = 'fatiando/_version.py'
 versioneer.tag_prefix = 'v'
 versioneer.parentdir_prefix = '.'
 
+# PACKAGE METADATA
+# #############################################################################
 NAME = 'fatiando'
 FULLNAME = 'Fatiando a Terra'
 DESCRIPTION = "Modeling and inversion for geophysics"
@@ -26,11 +29,12 @@ CMDCLASS = versioneer.get_cmdclass()
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
-LICENSE = "BSD 3-clause"
+LICENSE = "BSD License"
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
 SCRIPTS = []
-PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
+# PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
+PACKAGE_DATA = {}
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -43,31 +47,45 @@ CLASSIFIERS = [
 ]
 KEYWORDS = 'geophysics modeling inversion gravimetry seismic magnetometry'
 
+# DEPENDENCIES
+# #############################################################################
+INSTALL_REQUIRES = [
+    'numpy',
+    'scipy',
+    'numba',
+    'future',
+    'matplotlib',
+    'pillow',
+    'jupyter',
+]
+
+# C EXTENSIONS
+# #############################################################################
 # The running setup.py with --cython, then set things up to generate the Cython
 # .c files. If not, then compile the pre-converted C files.
-USE_CYTHON = True if '--cython' in sys.argv else False
-ext = '.pyx' if USE_CYTHON else '.c'
+use_cython = True if '--cython' in sys.argv else False
+# Build the module name and the path name for the extension modules
+ext = '.pyx' if use_cython else '.c'
+ext_parts = [
+    ['fatiando', 'seismic', '_ttime2d'],
+    ['fatiando', 'seismic', '_wavefd'],
+    ['fatiando', 'gravmag', '_polyprism'],
+    ['fatiando', 'gravmag', '_sphere'],
+    ['fatiando', 'gravmag', '_prism'],
+]
+extensions = [('.'.join(parts), os.path.join(*parts) + ext)
+              for parts in ext_parts]
 libs = []
 if os.name == 'posix':
     libs.append('m')
-C_EXT = [[['fatiando', 'seismic', '_ttime2d'], {}],
-         [['fatiando', 'seismic', '_wavefd'], {}],
-         [['fatiando', 'gravmag', '_polyprism'], {}],
-         [['fatiando', 'gravmag', '_sphere'], {}],
-         [['fatiando', 'gravmag', '_prism'], {}],
-         ]
-extensions = []
-for e, extra_args in C_EXT:
-    extensions.append(
-        Extension('.'.join(e), [os.path.join(*e) + ext],
-                  libraries=libs,
-                  include_dirs=[numpy.get_include()],
-                  **extra_args))
-if USE_CYTHON:
+ext_args = dict(libraries=libs, include_dirs=[numpy.get_include()])
+EXT_MODULES = [Extension(name, [path], **ext_args)
+               for name, path in extensions]
+# Cythonize the .pyx modules if --cython is used
+if use_cython:
     sys.argv.remove('--cython')
     from Cython.Build import cythonize
-
-    extensions = cythonize(extensions)
+    EXT_MODULES = cythonize(EXT_MODULES)
 
 if __name__ == '__main__':
     setup(name=NAME,
@@ -84,7 +102,8 @@ if __name__ == '__main__':
           platforms=PLATFORMS,
           scripts=SCRIPTS,
           packages=PACKAGES,
-          ext_modules=extensions,
+          ext_modules=EXT_MODULES,
           classifiers=CLASSIFIERS,
           keywords=KEYWORDS,
-          cmdclass=CMDCLASS)
+          cmdclass=CMDCLASS,
+          install_requires=INSTALL_REQUIRES)

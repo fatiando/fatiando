@@ -18,6 +18,7 @@ Functions
 
     regular
     scatter
+    circular_scatter
     interp
     interp_at
     profile

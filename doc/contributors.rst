@@ -15,13 +15,16 @@ A (hopefully) updated list of people who contributed to Fatiando a Terra:
 * `Victor Almeida`_ - UERJ, Brazil.
 * `M. Andy Kass`_ - United States Geological Survey, USA
 * Piotr Kurnik - United Kingdom
+* `Rafael M. Silva`_ - São Paulo, Brazil
+* `Santiago R. Soler`_ - IGSV, Universidad Nacional de San Juan, Argentina
 
 .. _Leonardo Uieda: http://www.leouieda.com
-.. _Vanderlei Coelho de Oliveira Junior: http://fatiando.org/people/oliveira-jr
-.. _José Fernando Caparica Junior: http://fatiando.org/people/caparicajr
-.. _Henrique Bueno dos Santos: http://fatiando.org/people/santos
-.. _André Ferreira: http://fatiando.org/people/ferreira
+.. _Vanderlei Coelho de Oliveira Junior: http://www.pinga-lab.org/people/oliveira-jr.html
+.. _José Fernando Caparica Junior: https://github.com/caparicajr
+.. _Henrique Bueno dos Santos: https://github.com/hbueno
+.. _André Ferreira: https://github.com/eusoubrasileiro
 .. _Martin Bentley: https://twitter.com/astonsplat
-.. _Victor Almeida: http://www.pinga-lab.org/people/victor-almeida.html
+.. _Victor Almeida: http://www.pinga-lab.org/people/victortxa.html
 .. _M. Andy Kass: https://twitter.com/drandykass
-
+.. _Rafael M. Silva: https://twitter.com/rms_lobato
+.. _Santiago R. Soler: https://github.com/santis19

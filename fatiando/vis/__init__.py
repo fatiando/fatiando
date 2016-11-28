@@ -7,7 +7,7 @@ libraries.
 * :mod:`~fatiando.vis.mpl`: 2D plotting using matplotlib_
 * :mod:`~fatiando.vis.myv`: 3D plotting using Mayavi_
 
-.. _matplotlib: http://matplotlib.sourceforge.net/
+.. _matplotlib: http://matplotlib.org/
 .. _Mayavi: http://code.enthought.com/projects/mayavi/
 
 ----

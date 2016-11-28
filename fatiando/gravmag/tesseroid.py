@@ -1,6 +1,5 @@
 r"""
-Calculates the potential fields of a tesseroid (spherical prism).
-
+Forward model the gravitational fields of a tesseroid (spherical prism).
 
 Functions in this module calculate the gravitational fields of a tesseroid with
 respect to the local North-oriented coordinate system of the computation point.
@@ -32,7 +31,7 @@ See the figure below.
     </div>
 
 
-.. note:: Coordinate systems
+.. admonition:: Coordinate systems
 
     The gravitational attraction
     and gravity gradient tensor
@@ -53,6 +52,7 @@ Gravity
 -------
 
 Forward modeling of gravitational fields is performed by functions:
+
 :func:`~fatiando.gravmag.tesseroid.potential`,
 :func:`~fatiando.gravmag.tesseroid.gx`,
 :func:`~fatiando.gravmag.tesseroid.gy`,
@@ -64,94 +64,12 @@ Forward modeling of gravitational fields is performed by functions:
 :func:`~fatiando.gravmag.tesseroid.gyz`,
 :func:`~fatiando.gravmag.tesseroid.gzz`
 
-The gravitational fields are calculated using the formula of Grombein et al.
-(2013):
-
-.. math::
-    V(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2}
-        \displaystyle\int_{r_1}^{r_2}
-        \frac{1}{\ell} \kappa \ d r' d \phi' d \lambda'
-
-.. math::
-    g_{\alpha}(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2} \displaystyle\int_{r_1}^{r_2}
-        \frac{\Delta_{\alpha}}{\ell^3} \kappa \ d r' d \phi' d \lambda'
-        \ \ \alpha \in \{x,y,z\}
-
-.. math::
-    g_{\alpha\beta}(r,\phi,\lambda) = G \rho
-        \displaystyle\int_{\lambda_1}^{\lambda_2}
-        \displaystyle\int_{\phi_1}^{\phi_2} \displaystyle\int_{r_1}^{r_2}
-        I_{\alpha\beta}({r'}, {\phi'}, {\lambda'} )
-        \ d r' d \phi' d \lambda'
-        \ \ \alpha,\beta \in \{x,y,z\}
-
-.. math::
-    I_{\alpha\beta}({r'}, {\phi'}, {\lambda'}) =
-        \left(
-            \frac{3\Delta_{\alpha} \Delta_{\beta}}{\ell^5} -
-            \frac{\delta_{\alpha\beta}}{\ell^3}
-        \right)
-        \kappa\
-        \ \ \alpha,\beta \in \{x,y,z\}
-
-where :math:`\rho` is density,
-:math:`\{x, y, z\}` correspond to the local coordinate system
-of the computation point P,
-:math:`\delta_{\alpha\beta}` is the `Kronecker delta`_, and
-
-.. math::
-   :nowrap:
-
-    \begin{eqnarray*}
-        \Delta_x &=& r' K_{\phi} \\
-        \Delta_y &=& r' \cos \phi' \sin(\lambda' - \lambda) \\
-        \Delta_z &=& r' \cos \psi - r\\
-        \ell &=& \sqrt{r'^2 + r^2 - 2 r' r \cos \psi} \\
-        \cos\psi &=& \sin\phi\sin\phi' + \cos\phi\cos\phi'
-                     \cos(\lambda' - \lambda) \\
-        K_{\phi} &=& \cos\phi\sin\phi' - \sin\phi\cos\phi'
-                     \cos(\lambda' - \lambda)\\
-        \kappa &=& {r'}^2 \cos \phi'
-    \end{eqnarray*}
-
-
-:math:`\phi` is latitude,
-:math:`\lambda` is longitude, and
-:math:`r` is radius.
-
-.. _Kronecker delta: http://en.wikipedia.org/wiki/Kronecker_delta
-
-Numerical integration
-+++++++++++++++++++++
-
-The above integrals are solved using the Gauss-Legendre Quadrature rule
-(Asgharzadeh et al., 2007;
-Wild-Pfeiffer, 2008):
-
-.. math::
-    g_{\alpha\beta}(r,\phi,\lambda) \approx G \rho
-        \frac{(\lambda_2 - \lambda_1)(\phi_2 - \phi_1)(r_2 - r_1)}{8}
-        \displaystyle\sum_{k=1}^{N^{\lambda}}
-        \displaystyle\sum_{j=1}^{N^{\phi}}
-        \displaystyle\sum_{i=1}^{N^r}
-        W^r_i W^{\phi}_j W^{\lambda}_k
-        I_{\alpha\beta}({r'}_i, {\phi'}_j, {\lambda'}_k )
-        \ \alpha,\beta \in \{1,2,3\}
-
-where :math:`W_i^r`, :math:`W_j^{\phi}`, and :math:`W_k^{\lambda}`
-are weighting coefficients
-and :math:`N^r`, :math:`N^{\phi}`, and :math:`N^{\lambda}`
-are the number of quadrature nodes
-(i.e., the order of the quadrature),
-for the radius, latitude, and longitude, respectively.
-
-Accurate numerical integration is achieved by an adaptive discretization
-algorithm. The one implemented here is a modified version of Li et al (2011).
-The adaptive discretization keeps the integration error below 0.1%.
+The fields are calculated using Gauss-Legendre Quadrature integration and the
+adaptive discretization algorithm of Uieda et al. (2016). The accuracy of the
+integration is controlled by the ``ratio`` argument. Larger values cause finer
+discretization and more accuracy but slower computation times. The defaults
+values are the ones suggested in the paper and guarantee an accuracy of
+approximately 0.1%.
 
 .. warning::
 
@@ -162,24 +80,9 @@ The adaptive discretization keeps the integration error below 0.1%.
 References
 ++++++++++
 
-Asgharzadeh, M. F., R. R. B. von Frese, H. R. Kim, T. E. Leftwich,
-and J. W. Kim (2007),
-Spherical prism gravity effects by Gauss-Legendre quadrature integration,
-Geophysical Journal International, 169(1), 1-11,
-doi:10.1111/j.1365-246X.2007.03214.x.
-
-Grombein, T.; Seitz, K.; Heck, B. (2013), Optimized formulas for the
-gravitational field of a tesseroid, Journal of Geodesy,
-doi: 10.1007/s00190-013-0636-1
-
-Li, Z., T. Hao, Y. Xu, and Y. Xu (2011), An efficient and adaptive approach for
-modeling gravity effects in spherical coordinates, Journal of Applied
-Geophysics, 73(3), 221-231, doi:10.1016/j.jappgeo.2011.01.004.
-
-Wild-Pfeiffer, F. (2008),
-A comparison of different mass elements for use in gravity gradiometry,
-Journal of Geodesy, 82(10), 637-653, doi:10.1007/s00190-008-0219-8.
-
+Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids: Forward-modeling
+gravitational fields in spherical coordinates, Geophysics, F41-F48,
+doi:10.1190/geo2015-0204.1
 
 ----
 
@@ -189,14 +92,14 @@ import multiprocessing
 import warnings
 
 import numpy as np
-try:
-    import numba
-    from . import _tesseroid_numba
-except ImportError:
-    numba = None
-from . import _tesseroid_numpy
+from . import _tesseroid_numba
 from ..constants import SI2MGAL, SI2EOTVOS, MEAN_EARTH_RADIUS, G
+from .._our_duecredit import due, Doi, BibTeX
 
+
+due.cite(Doi("10.1190/geo2015-0204.1"),
+         description='Gravity forward modeling with tesseroids',
+         path="fatiando.gravmag.tesseroid")
 RATIO_V = 1
 RATIO_G = 1.6
 RATIO_GG = 8
@@ -239,26 +142,6 @@ def _convert_coords(lon, lat, height):
     return lon, sinlat, coslat, radius
 
 
-def _get_engine(engine):
-    """
-    Get the correct module to perform the computations.
-
-    Options are the Cython version, a pure Python version, and a numba version.
-    """
-    if engine == 'default':
-        if numba is None:
-            engine = 'numpy'
-        else:
-            engine = 'numba'
-    assert engine in ['numpy', 'numba'], \
-        "Invalid compute module {}".fotmat(engine)
-    if engine == 'numba':
-        module = _tesseroid_numba
-    elif engine == 'numpy':
-        module = _tesseroid_numpy
-    return module
-
-
 def _check_tesseroid(tesseroid, dens):
     """
     Check if the tesseroid is valid and get the right density to use.
@@ -299,7 +182,6 @@ def _dispatcher(field, lon, lat, height, model, **kwargs):
     """
     njobs = kwargs.get('njobs', 1)
     pool = kwargs.get('pool', None)
-    engine = kwargs['engine']
     dens = kwargs['dens']
     ratio = kwargs['ratio']
     result = _check_input(lon, lat, height, model, ratio, njobs, pool)
@@ -309,11 +191,11 @@ def _dispatcher(field, lon, lat, height, model, **kwargs):
     else:
         created_pool = False
     if pool is None:
-        _forward_model([lon, lat, height, result, model, dens, ratio, engine,
+        _forward_model([lon, lat, height, result, model, dens, ratio,
                         field])
     else:
         chunks = _split_arrays(arrays=[lon, lat, height, result],
-                               extra_args=[model, dens, ratio, engine, field],
+                               extra_args=[model, dens, ratio, field],
                                nparts=njobs)
         result = np.hstack(pool.map(_forward_model, chunks))
     if created_pool:
@@ -330,23 +212,30 @@ def _forward_model(args):
 
     Arguments should be, in order:
 
-    lon, lat, height, result, model, dens, ratio, engine, field
+    lon, lat, height, result, model, dens, ratio, field
     """
-    lon, lat, height, result, model, dens, ratio, engine, field = args
+    lon, lat, height, result, model, dens, ratio, field = args
     lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
-    module = _get_engine(engine)
-    func = getattr(module, field)
+    func = getattr(_tesseroid_numba, field)
     warning_msg = (
         "Stopped dividing a tesseroid because it's dimensions would be below "
         + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
         + "Will compute without division. Cannot guarantee the accuracy of "
         + "the solution.")
+    # Arrays needed by the kernel. Can't allocate them inside the kernel
+    # because numba doesn't like that.
+    stack = np.empty((STACK_SIZE, 6), dtype='float')
+    lonc = np.empty(2, dtype='float')
+    sinlatc = np.empty(2, dtype='float')
+    coslatc = np.empty(2, dtype='float')
+    rc = np.empty(2)
     for tesseroid in model:
         density = _check_tesseroid(tesseroid, dens)
         if density is None:
             continue
-        error = func(lon, sinlat, coslat, radius, tesseroid, density, ratio,
-                     STACK_SIZE, result)
+        bounds = np.array(tesseroid.get_bounds())
+        error = func(lon, sinlat, coslat, radius, bounds, density, ratio,
+                     stack, lonc, sinlatc, coslatc, rc, result)
         if error != 0:
             warnings.warn(warning_msg, RuntimeWarning)
     return result
@@ -377,12 +266,14 @@ def _split_arrays(arrays, extra_args, nparts):
 
 
 def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
-              engine='default', njobs=1, pool=None):
+              njobs=1, pool=None):
     """
     Calculate the gravitational potential due to a tesseroid model.
 
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
+
+    Implements the method of Uieda et al. (2016).
 
     Parameters:
 
@@ -401,11 +292,6 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -420,15 +306,21 @@ def potential(lon, lat, height, model, dens=None, ratio=RATIO_V,
     * res : array
         The calculated field in SI units
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'potential'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= G
     return result
 
 
-def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gx(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the North component of the gravitational attraction.
@@ -436,6 +328,8 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -453,11 +347,6 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -472,15 +361,21 @@ def gx(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * res : array
         The calculated field in mGal
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gx'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gy(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the East component of the gravitational attraction.
@@ -488,6 +383,8 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -505,11 +402,6 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -524,15 +416,21 @@ def gy(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * res : array
         The calculated field in mGal
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
+def gz(lon, lat, height, model, dens=None, ratio=RATIO_G,
        njobs=1, pool=None):
     """
     Calculate the radial component of the gravitational attraction.
@@ -545,6 +443,8 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -562,11 +462,6 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -581,15 +476,21 @@ def gz(lon, lat, height, model, dens=None, ratio=RATIO_G, engine='default',
     * res : array
         The calculated field in mGal
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2MGAL*G
     return result
 
 
-def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xx component of the gravity gradient tensor.
@@ -597,6 +498,8 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -614,11 +517,6 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -633,15 +531,21 @@ def gxx(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gxx'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xy component of the gravity gradient tensor.
@@ -649,6 +553,8 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -666,11 +572,6 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -685,15 +586,21 @@ def gxy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gxy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the xz component of the gravity gradient tensor.
@@ -701,6 +608,8 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -718,11 +627,6 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -737,15 +641,21 @@ def gxz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gxz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the yy component of the gravity gradient tensor.
@@ -753,6 +663,8 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -770,11 +682,6 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -789,15 +696,21 @@ def gyy(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gyy'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the yz component of the gravity gradient tensor.
@@ -805,6 +718,8 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -822,11 +737,6 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -841,15 +751,21 @@ def gyz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gyz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result
 
 
-def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
+def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG,
         njobs=1, pool=None):
     """
     Calculate the zz component of the gravity gradient tensor.
@@ -857,6 +773,8 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     .. warning:: Tesseroids with dimensions < 10 cm will be ignored to avoid
         numerical errors.
 
+    Implements the method of Uieda et al. (2016).
+
     Parameters:
 
     * lon, lat, height : arrays
@@ -874,11 +792,6 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
         Will divide each tesseroid until the distance between it and the
         computation points is < ratio*size of tesseroid. Used to guarantee the
         accuracy of the numerical integration.
-    * engine : str
-        What implementation to use. If ``'numba'`` will use the numba library
-        implementation for greater speed. If ``'numpy'`` will use a pure Python
-        + numpy version (~100x slower). If ``'default'``, will use numba if it
-        is installed, and numpy if it is not.
     * njobs : int
         Split the computation into *njobs* parts and run it in parallel using
         ``multiprocessing``. If ``njobs=1`` will run the computation in serial.
@@ -893,9 +806,15 @@ def gzz(lon, lat, height, model, dens=None, ratio=RATIO_GG, engine='default',
     * res : array
         The calculated field in Eotvos
 
+    References:
+
+    Uieda, L., V. Barbosa, and C. Braitenberg (2016), Tesseroids:
+    Forward-modeling gravitational fields in spherical coordinates, Geophysics,
+    F41-F48, doi:10.1190/geo2015-0204.1
+
     """
     field = 'gzz'
     result = _dispatcher(field, lon, lat, height, model, dens=dens,
-                         ratio=ratio, engine=engine, njobs=njobs, pool=pool)
+                         ratio=ratio, njobs=njobs, pool=pool)
     result *= SI2EOTVOS*G
     return result

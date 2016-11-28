@@ -1,7 +1,4 @@
 include LICENSE.txt
 include README.rst
 include CITATION.rst
-include MANIFEST.in
-recursive-include fatiando *.pyx
-recursive-include fatiando *.c
 include versioneer.py

@@ -1,4 +1,5 @@
 from __future__ import division
+import pytest
 import numpy as np
 import numpy.testing as npt
 from fatiando.gravmag import transform, prism
@@ -58,6 +59,18 @@ def test_upcontinue():
     assert np.all(check), \
         'Failed for tf (mismatch {:.2f}%)'.format(
         100*(check.size - check.sum())/check.size)
+
+
+def test_upcontinue_warning():
+    "gravmag.transform upward continuation raises warning if height <= 0"
+    model = [Prism(-1000, 1000, -500, 500, 0, 1000, {'density': 1000})]
+    shape = (100, 100)
+    x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
+    data = prism.gz(x, y, z, model)
+    with pytest.warns(UserWarning):
+        up = transform.upcontinue(x, y, data, shape, height=0)
+    with pytest.warns(UserWarning):
+        up = transform.upcontinue(x, y, data, shape, height=-100)
 
 
 def test_second_horizontal_derivatives_fd():
@@ -226,3 +239,32 @@ def test_tilt_analytical_derivatives():
     tilt_analytical = transform.tilt(x, y, data, shape, dx, dy, dz)
     tilt_numerical = transform.tilt(x, y, data, shape)
     npt.assert_allclose(tilt_numerical, tilt_analytical, rtol=0.10)
+
+
+def test_radial_average_spectrum_distances():
+    shape = (201, 201)
+    area = (-100, 100, -100, 100)
+    x, y = gridder.regular(area, shape)
+    x, y = x.reshape(shape), y.reshape(shape)
+    x, y = np.fft.ifftshift(x), np.fft.ifftshift(y)
+    distances = np.sqrt(x**2 + y**2)
+    k, radial_distances = transform.radial_average_spectrum(x, y, distances)
+    npt.assert_allclose(k[2:], radial_distances[2:], rtol=0.1)  # doesn't fail
+
+
+def test_radial_average_spectrum_integers():
+    x = np.arange(-10, 11, 1)
+    y = np.arange(-10, 11, 1)
+    y, x = np.meshgrid(y, x)
+    x, y = np.fft.ifftshift(x), np.fft.ifftshift(y)
+    r = np.sqrt(x**2 + y**2)
+    z = np.zeros(x.shape)
+    integers = np.arange(0, x.max() + 1, 1)
+    for i in integers:
+        if i == 0:
+            inside = r <= 0.5
+        else:
+            inside = np.logical_and(r > i - 0.5, r <= i + 0.5)
+        z[inside] = i
+    k, radial_z = transform.radial_average_spectrum(x, y, z)
+    npt.assert_allclose(integers, radial_z, rtol=0.1)

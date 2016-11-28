@@ -59,7 +59,7 @@ def test(doctest=True, verbose=False, coverage=False):
 
     Uses `py.test <http://pytest.org/>`__ to discover and run the tests. If you
     haven't already, you can install it with `conda
-    <http://conda.pydata.org/>`__ or `pip <https://pip.pypa.io>`__.
+    <http://conda.pydata.org/>`__ or `pip <https://pip.pypa.io/en/stable/>`__.
 
     Parameters:
 
@@ -83,8 +83,11 @@ def test(doctest=True, verbose=False, coverage=False):
     if verbose:
         args.append('-v')
     if coverage:
-        args.append('--cov-report term-missing --cov=fatiando')
+        args.append('--cov=fatiando')
+        args.append('--cov-report')
+        args.append('term-missing')
     if doctest:
         args.append('--doctest-modules')
-    args.append('--pyargs fatiando')
-    return pytest.main(' '.join(args))
+    args.append('--pyargs')
+    args.append('fatiando')
+    return pytest.main(args)

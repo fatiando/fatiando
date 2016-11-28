@@ -23,9 +23,6 @@ extensions = [
     'sphinx_gallery.gen_gallery',
 ]
 
-from mayavi import mlab
-mlab.options.offscreen = True
-
 # Produce pages for each class and function
 autosummary_generate = True
 autodoc_default_flags = ['members', 'inherited-members']
@@ -35,7 +32,6 @@ sphinx_gallery_conf = {
     'examples_dirs': ['../gallery'],
     'gallery_dirs': ['gallery'],
     'filename_pattern': os.sep + '*', # Match any .py file
-    'find_mayavi_figures': True,
 }
 
 # Configure the inline plots from matplotlib plot_directive
