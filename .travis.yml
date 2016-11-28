@@ -18,9 +18,7 @@ env:
 matrix:
     include:
         - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=false MAYAVI=false
-        - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=true MAYAVI=false
+          env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=true MAYAVI=false
         - os: linux
           env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=true
         - os: osx
