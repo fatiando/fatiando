@@ -1,6 +1,11 @@
 """
 Load datasets from the internet.
 
+**I/O**
+
+* :func:`~fatiando.datasets.load_surfer`: Read a Surfer ASCII grid file as
+  numpy arrays
+
 **CRUST2.0**
 
 Load and convert the `CRUST2.0 global crustal model
@@ -33,6 +38,75 @@ import numpy
 
 from . import gridder
 from .mesher import Tesseroid
+
+
+def load_surfer(fname, fmt='ascii'):
+    """
+    Read a Surfer grid file and return three 1d numpy arrays and the grid shape
+
+    Surfer is a contouring, gridding and surface mapping software
+    from GoldenSoftware. The names and logos for Surfer and Golden
+    Software are registered trademarks of Golden Software, Inc.
+
+    http://www.goldensoftware.com/products/surfer
+
+    Parameters:
+
+    * fname : str
+        Name of the Surfer grid file
+    * fmt : str
+        File type, can be 'ascii' or 'binary'
+
+    Returns:
+
+    * x : 1d-array
+        Value of the North-South coordinate of each grid point.
+    * y : 1d-array
+        Value of the East-West coordinate of each grid point.
+    * data : 1d-array
+        Values of the field in each grid point. Field can be for example
+        topography, gravity anomaly etc
+    * shape : tuple = (nx, ny)
+        The number of points in the x and y grid dimensions, respectively
+
+    """
+    assert fmt in ['ascii', 'binary'], "Invalid grid format '%s'. Should be \
+        'ascii' or 'binary'." % (fmt)
+    if fmt == 'ascii':
+        # Surfer ASCII grid structure
+        # DSAA            Surfer ASCII GRD ID
+        # nCols nRows     number of columns and rows
+        # xMin xMax       X min max
+        # yMin yMax       Y min max
+        # zMin zMax       Z min max
+        # z11 z21 z31 ... List of Z values
+        with open(fname) as ftext:
+            # DSAA is a Surfer ASCII GRD ID
+            id = ftext.readline()
+            # Read the number of columns (ny) and rows (nx)
+            ny, nx = [int(s) for s in ftext.readline().split()]
+            shape = (nx, ny)
+            # Read the min/max value of columns/longitude (y direction)
+            ymin, ymax = [float(s) for s in ftext.readline().split()]
+            # Read the min/max value of rows/latitude (x direction)
+            xmin, xmax = [float(s) for s in ftext.readline().split()]
+            area = (xmin, xmax, ymin, ymax)
+            # Read the min/max value of grid values
+            datamin, datamax = [float(s) for s in ftext.readline().split()]
+            data = numpy.fromiter(
+                (float(i) for line in ftext for i in line.split()), dtype='f')
+            data = numpy.ma.masked_greater_equal(data, 1.70141e+38)
+            assert numpy.allclose(datamin, data.min()) \
+                and numpy.allclose(datamax, data.max()), \
+                "Min and max values of grid don't match ones read from file." \
+                + "Read: ({}, {})  Actual: ({}, {})".format(
+                    datamin, datamax, data.min(), data.max())
+        # Create x and y coordinate numpy arrays
+        x, y = gridder.regular(area, shape)
+    if fmt == 'binary':
+        raise NotImplementedError(
+            "Binary file support is not implemented yet.")
+    return x, y, data, shape
 
 
 def fetch_crust2(fname='crust2.tar.gz'):

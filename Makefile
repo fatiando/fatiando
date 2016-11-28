@@ -1,7 +1,7 @@
 # Build, package, test, and clean Fatiando
 
 TESTDIR=tmp-test-dir-with-unique-name
-PEP8ARGS=--show-source --ignore=W503,E226,E241 --exclude=_version.py
+PEP8ARGS=--show-source --ignore=W503,E226,E241,E731 --exclude=_version.py
 
 help:
 	@echo "Commands:"

@@ -1,10 +1,11 @@
+from __future__ import division, absolute_import, print_function
+import numpy.testing as npt
 import numpy as np
-from fatiando import mesher, gridder
-from fatiando.gravmag import prism
-from numpy.testing import assert_array_almost_equal as assert_almost
 from pytest import raises
 import scipy.optimize
 from numpy.random import RandomState
+
+from ... import gridder
 
 
 def test_fails_if_bad_pad_operation():
@@ -23,23 +24,30 @@ def test_pad_and_unpad_equal_2d():
     # rosenbrock: (a-x)^2 + b(y-x^2)^2  a=1 b=100 usually
     X = x.reshape(shape)
     Y = y.reshape(shape)
-    xy = [x, y]
     gz = scipy.optimize.rosen([Y/100000., X/100000.])
     pads = ['mean', 'edge', 'lintaper', 'reflection', 'oddreflection',
             'oddreflectiontaper', '0']
     for p in pads:
         gpad, nps = gridder.pad_array(gz, padtype=p)
         gunpad = gridder.unpad_array(gpad, nps)
-        assert_almost(gunpad, gz)
+        npt.assert_allclose(gunpad, gz)
 
 
 def test_pad_and_unpad_equal_1d():
     'gridder.pad_array and subsequent .unpad_array gives original array: 1D'
-    prng = RandomState(12345)
-    x = prng.rand(21)
+    x = np.array([3, 4, 4, 5, 6])
+    xpad_true = np.array([4.4, 3.2, 3, 4, 4, 5, 6, 4.4])
     xpad, nps = gridder.pad_array(x)
+    npt.assert_allclose(xpad_true, xpad)
+    assert nps == [(2, 1)]
     xunpad = gridder.unpad_array(xpad, nps)
-    assert_almost(xunpad, x)
+    npt.assert_allclose(xunpad, x)
+    # Using a custom number of padding elements
+    xpad, nps = gridder.pad_array(x, npd=(10,))
+    assert nps == [(3, 2)]
+    npt.assert_allclose(xpad[3:-2], x)
+    xunpad = gridder.unpad_array(xpad, nps)
+    npt.assert_allclose(xunpad, x)
 
 
 def test_coordinatevec_padding_1d():
@@ -49,7 +57,7 @@ def test_coordinatevec_padding_1d():
     x = np.arange(100, 172)
     fpad, nps = gridder.pad_array(f)
     N = gridder.pad_coords(x, f.shape, nps)
-    assert_almost(N[0][nps[0][0]:-nps[0][1]], x)
+    npt.assert_allclose(N[0][nps[0][0]:-nps[0][1]], x)
 
 
 def test_coordinatevec_padding_2d():
@@ -65,8 +73,10 @@ def test_coordinatevec_padding_2d():
     Yp = N[1].reshape(gpad.shape)
     Xp = N[0].reshape(gpad.shape)
     assert N[0].reshape(gpad.shape).shape == gpad.shape
-    assert_almost(Yp[nps[0][0]:-nps[0][1], nps[1][0]:-nps[1][1]].ravel(), y)
-    assert_almost(Xp[nps[0][0]:-nps[0][1], nps[1][0]:-nps[1][1]].ravel(), x)
+    npt.assert_allclose(Yp[nps[0][0]:-nps[0][1], nps[1][0]:-nps[1][1]].ravel(),
+                        y)
+    npt.assert_allclose(Xp[nps[0][0]:-nps[0][1], nps[1][0]:-nps[1][1]].ravel(),
+                        x)
 
 
 def test_fails_if_npd_incorrect_dimension():

@@ -23,6 +23,10 @@ extensions = [
     'sphinx_gallery.gen_gallery',
 ]
 
+# Produce pages for each class and function
+autosummary_generate = True
+autodoc_default_flags = ['members', 'inherited-members']
+
 # Configure the sphinx-gallery plugin
 sphinx_gallery_conf = {
     'examples_dirs': ['../gallery'],

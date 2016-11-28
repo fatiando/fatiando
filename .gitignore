@@ -11,6 +11,7 @@ doc/_static/cookbook
 doc/cookbook
 doc/gallery
 doc/modules
+doc/api/generated
 benchmarks/*.tmp
 benchmarks/*.profile
 benchmarks/.ipynb_checkpoints

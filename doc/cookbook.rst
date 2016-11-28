@@ -19,15 +19,6 @@ Meshes and geometric objects
 
     cookbook/mesher*
 
-Regular grids and irregularly spaced data
-------------------------------------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    cookbook/grid*
-
 Gravity and magnetics
 ---------------------
 
