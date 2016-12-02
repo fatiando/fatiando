@@ -21,8 +21,8 @@ matrix:
           env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=true MAYAVI=false
         - os: linux
           env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=true
-        - os: osx
-          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=false
+        #- os: osx
+          #env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=false
 
 before_install:
     # Get Miniconda from Continuum
