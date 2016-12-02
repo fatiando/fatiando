@@ -249,7 +249,7 @@ def _getdataft(x, y, data, shape):
     """
     Get the Fourier transform of the data and the norm of the wavenumber vector
     """
-    Fx, Fy = transform._getfreqs(x, y, data, shape)
+    Fx, Fy = transform._fftfreqs(x, y, shape, shape)
     freq = numpy.sqrt(Fx ** 2 + Fy ** 2)
     dataft = (2. * numpy.pi) * numpy.fft.fft2(numpy.reshape(data, shape))
     return freq, dataft
