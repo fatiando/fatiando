@@ -35,6 +35,7 @@ for geophysical data analysis and the development of new methodologies.
 
 Make your research more **reproducible** by writing a Python script or
 `Jupyter notebook`_ instead of clicking through complicated menus.
+See a list of :ref:`use cases <use_cases>`.
 
 .. raw:: html
 
@@ -162,6 +163,9 @@ for a detailed tour of the library.
 You can also browse the :ref:`Gallery <gallery>` and :ref:`Cookbook <cookbook>`
 for examples of what Fatiando can do.
 
+Want more inspiration? Check out how Fatiando is being used in the
+:ref:`Use cases <use_cases>` page.
+
 .. raw:: html
 
     <div class="alert alert-success">
@@ -280,6 +284,9 @@ we'll help you get started.
     <div class="col-md-6">
     <h2>Announcements</h2>
 
+* **December 2016**: Checkout our new :ref:`Use cases <use_cases>` page
+  showing how Fatiando is making an impact.
+
 * **October 2016**: Fatiando a Terra v0.5 was released!
   This version introduces some new features, breaking changes, and starts a
   major refactoring of the library that will span the next few releases.
@@ -335,6 +342,7 @@ Watch an introduction to what Fatiando is all about in this presentation from
     news.rst
     license.rst
     cite.rst
+    use_cases.rst
     changelog.rst
     install.rst
     api/fatiando.rst

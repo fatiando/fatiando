@@ -6,6 +6,9 @@ Announcements
 2016
 ----
 
+* **December 2016**: Checkout our new :ref:`Use cases <use_cases>` page
+  showing how Fatiando is making an impact.
+
 * **October 2016**: Fatiando a Terra v0.5 was released!
   This version introduces some new features, breaking changes, and starts a
   major refactoring of the library that will span the next few releases.

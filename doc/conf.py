@@ -84,6 +84,7 @@ html_sidebars = {
     'changelog': ['localtoc.html'],
     'api/**': ['localtoc.html'],
     'gallery/index': ['localtoc.html'],
+    'use_cases': ['localtoc.html'],
      }
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
