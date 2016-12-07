@@ -220,7 +220,8 @@ def _find_index(point, mesh):
     return None
 
 
-def harvest(data, seeds, mesh, compactness, threshold, report=False):
+def harvest(data, seeds, mesh, compactness, threshold, report=False,
+            restrict=None):
     """
     Run the inversion algorithm and produce an estimate physical property
     distribution (density and/or magnetization).
@@ -264,7 +265,11 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
                       'misfit': data_misfit_value,
                       'regularizer': regularizing_function_value,
                       'accretions': number_of_accretions}
-
+    * restrict : list of str
+        Restricts seed growth in given directions. Possible directions are
+        ``'above'``, ``'below'``, ``'north'``, ``'south'``, ``'east'`` and
+        ``'west'``. You can pass in multiple directions as a list, e.g.
+        ``['above', 'north']``. Default is ``None`` for unrestricted growth.
 
     Returns:
 
@@ -310,7 +315,8 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
 
     """
     for accretions, update in enumerate(iharvest(data, seeds, mesh,
-                                                 compactness, threshold)):
+                                                 compactness, threshold,
+                                                 restrict)):
         continue
     estimate, predicted = update[:2]
     output = [fmt_estimate(estimate, mesh.size), predicted]
@@ -322,7 +328,7 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False):
     return output
 
 
-def iharvest(data, seeds, mesh, compactness, threshold):
+def iharvest(data, seeds, mesh, compactness, threshold, restrict):
     """
     Same as the :func:`fatiando.gravmag.harvester.harvest` function but this
     one returns an iterator that yields the information of each accretion.
@@ -344,7 +350,8 @@ def iharvest(data, seeds, mesh, compactness, threshold):
     estimate = dict((s.i, s.props) for s in seeds)
     neighbors = []
     for seed in seeds:
-        neighbors.append(_get_neighbors(seed, neighbors, estimate, mesh, data))
+        neighbors.append(_get_neighbors(seed, neighbors, estimate, mesh, data,
+                                        restrict))
     predicted = _init_predicted(data, seeds, mesh)
     totalgoal = _shapefunc(data, predicted)
     totalmisfit = _misfitfunc(data, predicted)
@@ -371,7 +378,8 @@ def iharvest(data, seeds, mesh, compactness, threshold):
                     p += e
                 neighbors[s].pop(best.i)
                 neighbors[s].update(
-                    _get_neighbors(best, neighbors, estimate, mesh, data))
+                    _get_neighbors(best, neighbors, estimate, mesh, data,
+                                   restrict))
                 grew = True
                 accretions += 1
                 yield [estimate, predicted, best, neighbors, totalgoal,
@@ -456,13 +464,13 @@ def _misfitfunc(data, predicted):
     return result
 
 
-def _get_neighbors(cell, neighborhood, estimate, mesh, data):
+def _get_neighbors(cell, neighborhood, estimate, mesh, data, restrict):
     """
     Return a dict with the new neighbors of cell.
     keys are the index of the neighbors in the mesh. values are the Neighbor
     objects.
     """
-    indexes = [n for n in _neighbor_indexes(cell.i, mesh)
+    indexes = [n for n in _neighbor_indexes(cell.i, mesh, restrict)
                if not _is_neighbor(n, cell.props, neighborhood)
                and not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
@@ -526,34 +534,42 @@ def _is_neighbor(index, props, neighborhood):
     return False
 
 
-def _neighbor_indexes(n, mesh):
+def _neighbor_indexes(n, mesh, restrict):
     """Find the indexes of the neighbors of n"""
     nz, ny, nx = mesh.shape
     indexes = []
-    # The guy above
-    tmp = n - nx * ny
-    if tmp > 0:
-        indexes.append(tmp)
-    # The guy below
-    tmp = n + nx * ny
-    if tmp < mesh.size:
-        indexes.append(tmp)
-    # The guy in front
-    tmp = n + 1
-    if n % nx < nx - 1:
-        indexes.append(tmp)
-    # The guy in the back
-    tmp = n - 1
-    if n % nx != 0:
-        indexes.append(tmp)
-    # The guy to the left
-    tmp = n + nx
-    if n % (nx * ny) < nx * (ny - 1):
-        indexes.append(tmp)
-    # The guy to the right
-    tmp = n - nx
-    if n % (nx * ny) >= nx:
-        indexes.append(tmp)
+    if restrict is None:
+        restrict = []
+    if 'above' not in restrict:
+        # The guy above
+        tmp = n - nx * ny
+        if tmp > 0:
+            indexes.append(tmp)
+    if 'below' not in restrict:
+        # The guy below
+        tmp = n + nx * ny
+        if tmp < mesh.size:
+            indexes.append(tmp)
+    if 'north' not in restrict:
+        # The guy in front/north
+        tmp = n + 1
+        if n % nx < nx - 1:
+            indexes.append(tmp)
+    if 'south' not in restrict:
+        # The guy in the back/south
+        tmp = n - 1
+        if n % nx != 0:
+            indexes.append(tmp)
+    if 'east' not in restrict:
+        # The guy to the left/east
+        tmp = n + nx
+        if n % (nx * ny) < nx * (ny - 1):
+            indexes.append(tmp)
+    if 'west' not in restrict:
+        # The guy to the right/west
+        tmp = n - nx
+        if n % (nx * ny) >= nx:
+            indexes.append(tmp)
     # Filter out the ones that do not exist or are masked (topography)
     return [i for i in indexes if i is not None and mesh[i] is not None]
 
