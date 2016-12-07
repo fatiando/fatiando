@@ -5,6 +5,12 @@ sudo: false
 notifications:
     email: false
 
+# Only build pushes from the master branch. PRs are always built. The master
+# build will also push the newly built docs to fatiando.org/dev
+branches:
+    only:
+        - master
+
 # Need to fetch a deeper clone because the default depth Travis uses (50) isn't
 # enough to get the git tags so versioneer can't find the correct version
 # number.

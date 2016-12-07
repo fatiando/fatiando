@@ -3,6 +3,11 @@
 # Not a .NET project, we build ci-helpers in the install step instead
 build: false
 
+# Only build pushes to the master branch.
+branches:
+    only:
+        - master
+
 environment:
     global:
         TEST_CMD: "python -c \"import fatiando; fatiando.test(coverage=True, verbose=True)\""
