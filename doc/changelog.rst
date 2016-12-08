@@ -36,6 +36,11 @@ Version 0.6
   directions in which the harvester will be restricted in seed growth.
   (`PR 314 <https://github.com/fatiando/fatiando/pull/314>`__)
 
+* Added option ``below`` to ``carvetopo()`` function of
+  ``fatiando.mesher.PrismMesh``. If set to ``True``, prisms below the input
+  surface will be masked.
+  (`PR 313 <https://github.com/fatiando/fatiando/pull/313>`__)
+
 .. _changelog-0.5:
 
 Version 0.5
