@@ -29,6 +29,12 @@ Version 0.6
   ``transform._fftfreqs(x, y, shape, shape)`` because that function was renamed.
   (`PR 347 <https://github.com/fatiando/fatiando/pull/347>`__)
 
+**New features and improvements**
+
+* Added option ``restrict`` to function ``harvest()`` in
+  ``fatiando.gravmag.harvester``. The option takes a string list with
+  directions in which the harvester will be restricted in seed growth.
+  (`PR 314 <https://github.com/fatiando/fatiando/pull/314>`__)
 
 .. _changelog-0.5:
 
