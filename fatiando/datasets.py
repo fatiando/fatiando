@@ -1,35 +1,5 @@
 """
-Load datasets from the internet.
-
-**I/O**
-
-* :func:`~fatiando.datasets.load_surfer`: Read a Surfer ASCII grid file as
-  numpy arrays
-
-**CRUST2.0**
-
-Load and convert the `CRUST2.0 global crustal model
-<http://igppweb.ucsd.edu/~gabi/rem.html>`_ (Bassin et al., 2000).
-
-* :func:`~fatiando.datasets.fetch_crust2`: Download the .tar.gz archive with
-  the model from the website
-* :func:`~fatiando.datasets.crust2_to_tesseroids`: Convert the CRUST2.0 model
-  to tesseroids
-
-**Sample data**
-
-Download a `Bouguer anomaly map of Alps (EGM 2008 model)
-<https://gist.github.com/leouieda/6023922>`_ in Surfer ASCII grid file format.
-
-* :func:`~fatiando.io.fetch_bouguer_alps_egm`: Download the .grd archive with
-  the Bouguer anomaly of Alps (EGM 2008 model) from the website
-
-**References**
-
-Bassin, C., Laske, G. and Masters, G., The Current Limits of Resolution for
-Surface Wave Tomography in North America, EOS Trans AGU, 81, F897, 2000.
-
-----
+Functions to read data from files and fetch datasets from the internet.
 """
 import urllib
 import tarfile

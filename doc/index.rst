@@ -88,7 +88,7 @@ documents. Great for teaching fundamental concepts of geophysics!
     <div class="col-md-12">
     <div class="row">
         <div class="col-md-6">
-            <h3><a href="api/gravmag.html">Gravity and magnetics</a></h3>
+            <h3><a href="api.html#module-fatiando.gravmag">Gravity and magnetics</a></h3>
             <p>
             Modeling, inversion, and processing for potential field methods.
             </p>
@@ -100,7 +100,7 @@ documents. Great for teaching fundamental concepts of geophysics!
             </em>
         </div>
         <div class="col-md-6">
-            <h3><a href="api/seismic.html">Seismology and Seismics</a></h3>
+            <h3><a href="api.html#module-fatiando.seismic">Seismology and seismics</a></h3>
             <p>
             Simple modeling functions for seismics and seismology.
             </p>
@@ -113,7 +113,7 @@ documents. Great for teaching fundamental concepts of geophysics!
     </div>
     <div class="row">
         <div class="col-md-6">
-            <h3><a href="api/gridder.html">Grid manipulation</a></h3>
+            <h3><a href="api.html#module-fatiando.gridder">Grid manipulation</a></h3>
             <p>
             Functions for generating and operating on regular grids and data
             that is on a map.
@@ -125,7 +125,7 @@ documents. Great for teaching fundamental concepts of geophysics!
             </em>
         </div>
         <div class="col-md-6">
-            <h3><a href="api/mesher.html">Geometric objects and meshes</a></h3>
+            <h3><a href="api.html#module-fatiando.mesher">Geometric objects and meshes</a></h3>
             <p>
             Classes that represent geometric objects (points, prisms, polygons,
             tesseroids) and meshes (regular prism mesh, points on a grid).
@@ -345,7 +345,7 @@ Watch an introduction to what Fatiando is all about in this presentation from
     use_cases.rst
     changelog.rst
     install.rst
-    api/fatiando.rst
+    api.rst
     develop.rst
     contributors.rst
     cookbook.rst

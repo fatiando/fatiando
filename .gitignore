@@ -12,6 +12,7 @@ doc/cookbook
 doc/gallery
 doc/modules
 doc/api/generated
+doc/api/fatiando*.rst
 benchmarks/*.tmp
 benchmarks/*.profile
 benchmarks/.ipynb_checkpoints

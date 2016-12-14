@@ -40,8 +40,14 @@ cookbook:
 	@echo "Build finished."
 
 clean:
-	rm -rf $(BUILDDIR)/html/* $(BUILDDIR)/doctrees $(CBDIR) cookbook \
-		gallery modules api/generated $(BUILDDIR)/plot_directive
+	rm -rf $(BUILDDIR)/html/*
+	rm -rf $(BUILDDIR)/doctrees
+	rm -rf $(CBDIR) cookbook
+	rm -rf gallery
+	rm -rf modules
+	rm -rf api/generated
+	rm -rf api/fatiando*.rst
+	rm -rf $(BUILDDIR)/plot_directive
 
 html:
 	@echo
