@@ -34,15 +34,15 @@ init:
     - "ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH% %MINICONDA%"
 
 install:
-    - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    - conda info -a
-    - "conda create -q -n testenv python=%PYTHON_VERSION%"
-    - activate testenv
-    - "conda install --file ci\\requirements-conda.txt"
-    - "python setup.py sdist --formats=zip"
-    - "pip install dist\\fatiando*.zip"
+    - cmd: set "PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+    - cmd: conda config --set always_yes yes --set changeps1 no
+    - cmd: conda update -q conda
+    - cmd: conda info -a
+    - cmd: conda create -q -n testenv python="%PYTHON_VERSION%"
+    - cmd: activate testenv
+    - cmd: conda install --file "ci\\requirements-conda.txt"
+    - cmd: python setup.py sdist --formats=zip
+    - cmd: pip install "dist\\fatiando-*.zip"
 
 
 test_script:
