@@ -58,6 +58,7 @@ def load_surfer(fname, dtype=np.float64):
         # Read the number of columns (ny) and rows (nx)
         ny, nx = [int(s) for s in f.readline().split()]
         shape = (nx, ny)
+        # Our x points North, so the first thing we read is y, not x.
         ymin, ymax = [float(s) for s in f.readline().split()]
         xmin, xmax = [float(s) for s in f.readline().split()]
         area = (xmin, xmax, ymin, ymax)
