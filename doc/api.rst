@@ -150,9 +150,6 @@ Functions
     :template: function.rst
 
     load_surfer
-    fetch_crust2
-    crust2_to_tesseroids
-    fetch_bouguer_alps_egm
 
 
 ``fatiando.gravmag``: Gravity and magnetics
