@@ -286,9 +286,13 @@ The documentation for Fatiando is built using
 The source files for the documentation are in the ``doc`` folder of the
 repository.
 The most sections of the docs are built from the ``doc/*.rst`` files.
-The :ref:`API <fatiando>` section is automatically built from the
-`docstrings <http://legacy.python.org/dev/peps/pep-0257/>`__ of
+The :ref:`API <api>` section is automatically built from
+the ``doc/api.rst`` file and
+the `docstrings <http://legacy.python.org/dev/peps/pep-0257/>`__ of
 packages, modules, functions, and classes.
+
+If you created a new function or class, be sure to add it to the list of
+functions and classes of the corresponding package in ``doc/api.rst``.
 
 .. note::
 

@@ -1,5 +1,5 @@
 """
-Create and operate on grids and profiles.
+Create and operate on data grids, scatters, and profiles.
 """
 from .slicing import inside, cut
 from .interpolation import interp, interp_at, profile

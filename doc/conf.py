@@ -83,6 +83,7 @@ html_sidebars = {
     'cookbook': ['localtoc.html'],
     'changelog': ['localtoc.html'],
     'api/**': ['localtoc.html'],
+    'api': ['localtoc.html'],
     'gallery/index': ['localtoc.html'],
     'use_cases': ['localtoc.html'],
      }
@@ -121,7 +122,7 @@ html_theme_options = {
         ("Install", "install"),
         ("Gallery", "gallery/index"),
         # ("Tutorials", ""),
-        ("API", "api/fatiando"),
+        ("API", "api"),
         ("Docs", "docs"),
         ("Contribute", "develop"),
     ],
