@@ -9,10 +9,6 @@ branches:
         - master
 
 environment:
-    global:
-        TEST_CMD: "python -c \"import fatiando; fatiando.test(coverage=True, verbose=True)\""
-        CHECK_VERSION: "python -c \"import fatiando; print('Installed file:', fatiando.__file__); print('Installed version:', fatiando.__version__)\""
-
     matrix:
         - PYTHON: "C:\\Python27"
           PYTHON_VERSION: "2.7"
@@ -45,7 +41,8 @@ install:
     - "conda create -q -n testenv python=%PYTHON_VERSION%"
     - activate testenv
     - "conda install --file ci\\requirements-conda.txt"
-    - "pip install ."
+    - "python setup.py sdist --formats=zip"
+    - "pip install dist\\fatiando*.zip"
 
 
 test_script:
