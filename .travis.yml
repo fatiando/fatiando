@@ -44,7 +44,7 @@ before_install:
 install:
     - if [ "$MAYAVI" == "true" ]; then conda install --yes mayavi; fi
     - conda install --yes --file ci/requirements-conda.txt
-    - if [ "$BUILD_DOCS" == "true" ]; then pip install -r ci/requirements-pip.txt; fi
+    - if [ "$BUILD_DOCS" == "true" ]; then pip install -r ci/requirements-pip.txt && conda install -y basemap; fi
     - if [ "$COVERAGE" == "true" ]; then pip install coveralls==0.5; fi
     # Show installed pkg information for postmortem diagnostic
     - conda list
