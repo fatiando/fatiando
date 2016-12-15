@@ -42,7 +42,9 @@ install:
     - cmd: activate testenv
     - cmd: conda install --file "ci\\requirements-conda.txt"
     - cmd: python setup.py sdist --formats=zip
-    - cmd: pip install "dist\\fatiando-*.zip"
+    - ps: ls dist
+    - ps: set archive = (Get-ChildItem dist\fatiando-*.zip)
+    - ps: pip install $archive
 
 
 test_script:
