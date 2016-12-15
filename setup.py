@@ -30,6 +30,7 @@ with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
 PACKAGE_DATA = {
+    'fatiando.datasets': ['data/*'],
     'fatiando.datasets.tests': ['data/*'],
 }
 LICENSE = "BSD License"

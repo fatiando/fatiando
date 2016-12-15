@@ -30,6 +30,7 @@ def load_surfer(fname, dtype=np.float64):
 
     * data : dict
         The data in a dictionary with some metadata:
+
         * ``'file'`` : string
             The name of the original data file
         * ``'shape'`` : tuple

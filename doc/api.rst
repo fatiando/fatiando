@@ -150,6 +150,8 @@ Functions
     :template: function.rst
 
     load_surfer
+    check_hash
+    fetch_hawaii_gravity
 
 
 ``fatiando.gravmag``: Gravity and magnetics
