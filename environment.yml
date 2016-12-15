@@ -1,4 +1,4 @@
-name: fatiando-dev
+name: fatiando2
 dependencies:
     - python=2.7
     - pip
@@ -10,7 +10,6 @@ dependencies:
     - basemap
     - pillow
     - jupyter
-    - mayavi
     - sphinx
     - pytest
     - pytest-cov
