@@ -57,7 +57,7 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 6))
 ax = axes[0]
 ax.set_title('Original data')
 ax.set_aspect('equal')
-tmp = ax.tricontourf(y/1000, x/1000, gz, 30, cmap='cubehelix_r')
+tmp = ax.tricontourf(y/1000, x/1000, gz, 30, cmap='viridis')
 fig.colorbar(tmp, ax=ax, pad=0.1, aspect=30,
              orientation='horizontal').set_label('mGal')
 ax.plot(y/1000, x/1000, 'xk')
@@ -67,7 +67,7 @@ ax.set_ylabel('x (km)')
 ax = axes[1]
 ax.set_title('Gridded and upward continued')
 ax.set_aspect('equal')
-tmp = ax.tricontourf(y2/1000, x2/1000, gz_up, 30, cmap='cubehelix_r')
+tmp = ax.tricontourf(y2/1000, x2/1000, gz_up, 30, cmap='viridis')
 fig.colorbar(tmp, ax=ax, pad=0.1, aspect=30,
              orientation='horizontal').set_label('mGal')
 ax.set_xlabel('y (km)')

@@ -58,7 +58,7 @@ tmp = bm.contourf(lon, lat, disturbance, 60, cmap='RdBu_r',
 fig.colorbar(tmp, ax=ax, pad=0, aspect=30).set_label('mGal')
 ax = axes[1, 1]
 ax.set_title('Topography-free disturbance')
-tmp = bm.contourf(lon, lat, bouguer, 60, cmap='Reds',
+tmp = bm.contourf(lon, lat, bouguer, 60, cmap='viridis',
                   latlon=True, tri=True, ax=ax)
 fig.colorbar(tmp, ax=ax, pad=0, aspect=30).set_label('mGal')
 plt.tight_layout()
