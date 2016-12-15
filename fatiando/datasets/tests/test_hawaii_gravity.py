@@ -7,11 +7,13 @@ from .. import fetch_hawaii_gravity
 def test_hawaii_data():
     "Fetch the data and perform some sanity checks"
     data = fetch_hawaii_gravity()
-    keys = 'metadata shape area height lat lon topography gravity'.split()
+    keys = ['metadata', 'shape', 'area', 'height', 'lat', 'lon', 'topography',
+            'gravity', 'x', 'y', 'disturbance', 'topo-free',
+            'topo-free-bouguer']
     assert set(data.keys()) == set(keys), "Different keys in data dict"
     npt.assert_allclose(data['shape'], (76, 76))
     size = data['shape'][0]*data['shape'][0]
-    for k in 'lat lon topography gravity'.split():
+    for k in keys[4:]:
         assert data[k].size == size, 'Array size and shape mismatch'
     npt.assert_allclose(data['area'], (13, 28, 195, 210))
     npt.assert_allclose(data['lat'].min(), 13)
