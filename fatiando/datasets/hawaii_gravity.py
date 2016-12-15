@@ -1,6 +1,8 @@
+# coding: utf-8
 """
 Load gravity data from the eigen-6c4 model for Hawaii.
 """
+from __future__ import unicode_literals
 import os
 import hashlib
 
@@ -15,10 +17,11 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 def fetch_hawaii_gravity():
     """
-    Load raw gravity and topography data for Hawaii.
+    Load gravity and topography data for Hawaii.
 
-    The data were generated from the eigen-6c4 spherical harmonic model and
-    downloaded from `ICGEM <http://icgem.gfz-potsdam.de/>`__).
+    The raw gravity and topography data were generated from the eigen-6c4
+    spherical harmonic model and downloaded from `ICGEM
+    <http://icgem.gfz-potsdam.de/>`__).
 
     The topography is in meters and gravity in mGal.
 
@@ -29,7 +32,7 @@ def fetch_hawaii_gravity():
     the WGS84 ellipsoid.
 
     The topography-free disturbances (both Bouguer and full) used densities
-    2670 kg/m^3 for the crust and 1040 kg/m^3 for the ocean water.
+    2670 kg/m³ for the crust and 1040 kg/m³ for the ocean water.
 
     The full topography-free disturbance was calculated using a tesseroid model
     of the topography.
