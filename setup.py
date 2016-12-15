@@ -29,12 +29,14 @@ CMDCLASS = versioneer.get_cmdclass()
 with open("README.rst") as f:
     LONG_DESCRIPTION = ''.join(f.readlines())
 PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
+PACKAGE_DATA = {
+    'fatiando.datasets': ['data/*'],
+    'fatiando.datasets.tests': ['data/*'],
+}
 LICENSE = "BSD License"
 URL = "http://www.fatiando.org"
 PLATFORMS = "Any"
 SCRIPTS = []
-# PACKAGE_DATA = {'fatiando': [os.path.join('data', '*')]}
-PACKAGE_DATA = {}
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -103,6 +105,7 @@ if __name__ == '__main__':
           scripts=SCRIPTS,
           packages=PACKAGES,
           ext_modules=EXT_MODULES,
+          package_data=PACKAGE_DATA,
           classifiers=CLASSIFIERS,
           keywords=KEYWORDS,
           cmdclass=CMDCLASS,

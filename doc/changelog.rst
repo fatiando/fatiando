@@ -13,14 +13,12 @@ Version 0.6
 
 **doi**:
 
-**Changes**
+**Breaking changes**
 
-* Better internal organization of the ``fatiando.gridder`` module. Users won't
-  have to modify theirs existing code. These changes only impact the developer
-  side. Mainly, the module is now a package with functions divided into small
-  modules, making it easier to read and modify the code. Also implemented many
-  new tests, reaching 100% coverage, and several new gallery plots.
-  (`PR 297 <https://github.com/fatiando/fatiando/pull/297>`__)
+* Refactor ``fatiando.datasets``. The ``load_surfer`` function now returns a
+  dictionary with the data and takes different arguments. The functions for
+  loading CRUST2.0 were removed.
+  (`PR 355 <https://github.com/fatiando/fatiando/pull/355>`__)
 
 **Bug fixes**
 
@@ -35,11 +33,29 @@ Version 0.6
   ``fatiando.gravmag.harvester``. The option takes a string list with
   directions in which the harvester will be restricted in seed growth.
   (`PR 314 <https://github.com/fatiando/fatiando/pull/314>`__)
-
 * Added option ``below`` to ``carvetopo()`` function of
   ``fatiando.mesher.PrismMesh``. If set to ``True``, prisms below the input
   surface will be masked.
   (`PR 313 <https://github.com/fatiando/fatiando/pull/313>`__)
+* Added two new functions to ``fatiando.datasets``. ``fetch_hawaii_gravity``
+  loads raw gravity and topography data for Hawaii. The dataset is packaged
+  with Fatiando and users don't have to download it separately. ``check_hash``
+  verifies that the hash of a file is same as a known (recorded) hash. Used to
+  check data files for corruption.
+  (`PR 355 <https://github.com/fatiando/fatiando/pull/355>`__)
+
+**Development/maintenance**
+
+* Better internal organization of the ``fatiando.gridder`` module. Users won't
+  have to modify theirs existing code. These changes only impact the developer
+  side. Mainly, the module is now a package with functions divided into small
+  modules, making it easier to read and modify the code. Also implemented many
+  new tests, reaching 100% coverage, and several new gallery plots.
+  (`PR 297 <https://github.com/fatiando/fatiando/pull/297>`__)
+* Reorganized ``fatiando.datasets`` as a package and reached 100% test
+  coverage. This change doesn't impact users directly.
+  (`PR 355 <https://github.com/fatiando/fatiando/pull/355>`__)
+
 
 .. _changelog-0.5:
 
