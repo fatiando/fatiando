@@ -29,6 +29,10 @@ Version 0.6
 
 **New features and improvements**
 
+* Added functions ``lame_lambda`` and ``lame_mu`` to ``fatiando.seismic`` that
+  calculate the Lamé parameters :math:`\lambda` and :math:`\mu` from the P and
+  S velocities and density.
+  (`PR 359 <https://github.com/fatiando/fatiando/pull/359>`__)
 * Added option ``restrict`` to function ``harvest()`` in
   ``fatiando.gravmag.harvester``. The option takes a string list with
   directions in which the harvester will be restricted in seed growth.
