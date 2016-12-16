@@ -156,6 +156,15 @@ Functions
 
 .. currentmodule:: fatiando.seismic
 
+Classes
+-------
+
+.. autosummary::
+    :toctree: api/
+    :template: class.rst
+
+    RickerWavelet
+
 Functions
 ---------
 
