@@ -98,7 +98,6 @@ Utilities
     :template: function.rst
 
     contaminate
-    normal
     gaussian
     gaussian2d
     safe_solve
@@ -115,12 +114,6 @@ Utilities
     fromimage
     dircos
     ang2vec
-    vecnorm
-    vecmean
-    vecstd
-    sec2hms
-    sec2year
-    year2sec
 
 
 ``fatiando.vis``: Visualization

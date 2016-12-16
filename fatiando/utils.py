@@ -154,34 +154,6 @@ def safe_diagonal(matrix):
         return numpy.diagonal(matrix).copy()
 
 
-def vecnorm(vectors):
-    """
-    Get the l2 norm of each vector in a list.
-
-    Use this to get, for example, the magnetization intensity from a list of
-    magnetization vectors.
-
-    Parameters:
-
-    * vectors : list of arrays
-        The vector
-
-    Returns:
-
-    * norms : list
-        The norms of the vectors
-
-    Examples::
-
-        >>> v = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
-        >>> print vecnorm(v)
-        [ 1.73205081  3.46410162  5.19615242]
-
-    """
-    norm = numpy.sqrt(sum(i ** 2 for i in numpy.transpose(vectors)))
-    return norm
-
-
 def sph2cart(lon, lat, height):
     """
     Convert spherical coordinates to Cartesian geocentric coordinates.
@@ -413,52 +385,6 @@ def dircos(inc, dec):
     return vect
 
 
-def vecmean(arrays):
-    """
-    Take the mean array out of a list of arrays.
-
-    Parameter:
-
-    * arrays : list
-        List of arrays
-
-    Returns:
-
-    * mean : array
-        The mean of each element in the arrays
-
-    Example::
-
-        >>> print vecmean([[1, 1, 2], [2, 3, 5]])
-        [ 1.5  2.   3.5]
-
-    """
-    return numpy.mean(arrays, axis=0)
-
-
-def vecstd(arrays):
-    """
-    Take the standard deviation array out of a list of arrays.
-
-    Parameter:
-
-    * arrays : list
-        List of arrays
-
-    Returns:
-
-    * std : array
-        Standard deviation of each element in the arrays
-
-    Example::
-
-        >>> print vecstd([[1, 1, 2], [2, 3, 5]])
-        [ 0.5  1.   1.5]
-
-    """
-    return numpy.std(arrays, axis=0)
-
-
 class SparseList(object):
 
     """
@@ -529,84 +455,6 @@ class SparseList(object):
         res = self.__getitem__(self.i)
         self.i += 1
         return res
-
-
-def sec2hms(seconds):
-    """
-    Convert seconds into a string with hours, minutes and seconds.
-
-    Parameters:
-
-    * seconds : float
-        Time in seconds
-
-    Returns:
-
-    * time : str
-        String in the format ``'%dh %dm %2.5fs'``
-
-    Example::
-
-        >>> print sec2hms(62.2)
-        0h 1m 2.20000s
-        >>> print sec2hms(3862.12345678)
-        1h 4m 22.12346s
-
-    """
-    h = int(seconds / 3600)
-    m = int((seconds - h * 3600) / 60)
-    s = seconds - h * 3600 - m * 60
-    return '%dh %dm %2.5fs' % (h, m, s)
-
-
-def sec2year(seconds):
-    """
-    Convert seconds into decimal Julian years.
-
-    Julian years have 365.25 days.
-
-    Parameters:
-
-    * seconds : float
-        Time in seconds
-
-    Returns:
-
-    * years : float
-        Time in years
-
-    Example::
-
-        >>> print sec2year(31557600)
-        1.0
-
-    """
-    return float(seconds) / 31557600.0
-
-
-def year2sec(years):
-    """
-    Convert decimal Julian years into seconds.
-
-    Julian years have 365.25 days.
-
-    Parameters:
-
-    * years : float
-        Time in years
-
-    Returns:
-
-    * seconds : float
-        Time in seconds
-
-    Example::
-
-        >>> print year2sec(1)
-        31557600.0
-
-    """
-    return 31557600.0 * float(years)
 
 
 def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
@@ -692,34 +540,6 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         return [contam, stddev]
     else:
         return contam
-
-
-def normal(x, mean, std):
-    """
-    Normal distribution.
-
-    .. math::
-
-        N(x,\\bar{x},\sigma) = \\frac{1}{\sigma\sqrt{2 \pi}}
-        \exp\\left(-\\frac{(x-\\bar{x})^2}{\sigma^2}\\right)
-
-    Parameters:
-
-    * x : float or array
-        Value at which to calculate the normal distribution
-    * mean : float
-        The mean of the distribution :math:`\\bar{x}`
-    * std : float
-        The standard deviation of the distribution :math:`\sigma`
-
-    Returns:
-
-    * normal : array
-        Normal distribution evaluated at *x*
-
-    """
-    factor = (std * numpy.sqrt(2 * numpy.pi))
-    return numpy.exp(-1 * ((mean - x) / std) ** 2) / factor
 
 
 def gaussian(x, mean, std):
