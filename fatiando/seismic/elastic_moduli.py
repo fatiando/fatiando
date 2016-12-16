@@ -38,11 +38,11 @@ def lame_lambda(vp, vs, density):
         >>> print(lame_lambda(vp=2350, vs=1125, density=2500))
         7478125000
         >>> import numpy as np
-        >>> vp = np.array([2000, 3000])
-        >>> vs = np.array([1000, 1700])
-        >>> density = np.array([2700, 3100])
+        >>> vp = np.array([2000., 3000.])
+        >>> vs = np.array([1000., 1700.])
+        >>> density = np.array([2700., 3100.])
         >>> print(lame_lambda(vp, vs, density))
-        [5400000000 9982000000]
+        [  5.40000000e+09   9.98200000e+09]
 
     """
     lamb = density*vp**2 - 2*density*vs**2
@@ -80,10 +80,10 @@ def lame_mu(vs, density):
         >>> print(lame_mu(vs=1125, density=2500))
         3164062500
         >>> import numpy as np
-        >>> vs = np.array([1000, 1700])
-        >>> density = np.array([2700, 3100])
+        >>> vs = np.array([1000., 1700.])
+        >>> density = np.array([2700., 3100.])
         >>> print(lame_mu(vs, density))
-        [2700000000 8959000000]
+        [  2.70000000e+09   8.95900000e+09]
 
     """
     mu = density*vs**2
