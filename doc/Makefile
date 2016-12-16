@@ -42,6 +42,7 @@ cookbook:
 clean:
 	rm -rf $(BUILDDIR)/html/*
 	rm -rf $(BUILDDIR)/doctrees
+	rm -rf $(BUILDDIR)/linkcheck
 	rm -rf $(CBDIR) cookbook
 	rm -rf gallery
 	rm -rf modules
