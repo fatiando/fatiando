@@ -12,10 +12,10 @@ from fatiando import utils, gridder
 def test_pel_polereduce():
     "PELTotalField can reduce data to the pole"
     # Use remanent magnetization
-    sinc, sdec = -70, 30
+    sinc, sdec = -80, 5
     model = [Prism(-100, 100, -500, 500, 0, 100,
                    {'magnetization': utils.ang2vec(5, sinc, sdec)})]
-    inc, dec = -60, -15
+    inc, dec = -83, 5
     shape = (40, 40)
     area = [-2000, 2000, -2000, 2000]
     x, y, z = gridder.regular(area, shape, z=-100)
