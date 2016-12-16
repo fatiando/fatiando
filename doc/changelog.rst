@@ -19,6 +19,9 @@ Version 0.6
   dictionary with the data and takes different arguments. The functions for
   loading CRUST2.0 were removed.
   (`PR 355 <https://github.com/fatiando/fatiando/pull/355>`__)
+* Removed unused functions from ``fatiando.utils``: ``normal``.  ``vecnorm``.
+  ``vecmean``.  ``vecstd``.  ``sec2hms``.  ``sec2year``. and ``year2sec``.
+  (`PR 361 <https://github.com/fatiando/fatiando/pull/361>`__)
 
 **Bug fixes**
 
