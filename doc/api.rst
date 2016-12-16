@@ -154,6 +154,26 @@ Functions
     fetch_hawaii_gravity
 
 
+``fatiando.seismic``: Seismology and seismics
+=============================================
+
+.. automodule:: fatiando.seismic
+    :no-members:
+    :no-inherited-members:
+
+.. currentmodule:: fatiando.seismic
+
+Functions
+---------
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    lame_mu
+    lame_lambda
+
+
 ``fatiando.gravmag``: Gravity and magnetics
 ===========================================
 
@@ -162,16 +182,6 @@ Functions
     :no-inherited-members:
 
 .. currentmodule:: fatiando.gravmag
-
-
-``fatiando.seismic``: Seismology and Seismics
-=============================================
-
-.. automodule:: fatiando.seismic
-    :no-members:
-    :no-inherited-members:
-
-.. currentmodule:: fatiando.seismic
 
 
 ``fatiando.geothermal``: Geothermal methods
