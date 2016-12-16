@@ -1,6 +1,6 @@
 """
-Various tools for seismic and seismology, like direct modeling, inversion
-(tomography), epicenter determination, etc.
+Tools for seismic and seismology, like convolutional modeling and wave
+propagation.
 
 Forward modeling and inversion
 ------------------------------
@@ -20,3 +20,4 @@ Tomography
 ----
 
 """
+from .elastic_moduli import lame_lambda, lame_mu
