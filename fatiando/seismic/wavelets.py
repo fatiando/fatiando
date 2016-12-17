@@ -2,23 +2,23 @@
 Classes to evaluate and sample wavelets.
 """
 from __future__ import division
-from future.utils import with_metaclass
 from future.builtins import super, object
-from abc import ABCMeta, abstractmethod
 import copy
 
 import numpy as np
 
 
-class BaseWavelet(with_metaclass(ABCMeta)):
+class BaseWavelet(object):
+    """
+    Base class for wavelets.
+
+    Implements the ``sample`` method to extract samples with a given sampling
+    rate.
+    """
 
     def __init__(self, amp, delay):
         self.amp = amp
         self.delay = delay
-
-    @abstractmethod
-    def __call__(self, time):
-        pass
 
     def copy(self):
         """
@@ -52,12 +52,15 @@ class BaseWavelet(with_metaclass(ABCMeta)):
 
 
 class RickerWavelet(BaseWavelet):
-    """
+    r"""
     The Ricker (mexican hat) wavelet.
 
     .. math::
 
-        w(t) = A (1 - 2(\pi f t)^2)\exp^{-(\pi f t)^2}
+        w(t) = A \left(1 - 2(\pi f t)^2 \right)e^{-(\pi f t)^2}
+
+    This class can be called as a function to evaluate the wavelet at given
+    times. See the examples below.
 
     Parameters:
 
@@ -72,31 +75,45 @@ class RickerWavelet(BaseWavelet):
 
     Examples:
 
-    .. plot::
-        :include-source:
+    >>> w1 = RickerWavelet(f=2)
+    >>> times = np.linspace(0, 1, 7)
+    >>> # The wavelet class can be called as function of time
+    >>> values = w1(times)
+    >>> # which gives the wavelet values at those times
+    >>> print('[{}]'.format(' '.join(['{:.3f}'.format(v) for v in values])))
+    [-0.001 -0.097 -0.399 1.000 -0.399 -0.097 -0.001]
+    >>> # Notice that the wavelet is symmetric around the 1 amplitude value
 
-        >>> import matplotlib.pyplot as plt
-        >>> import numpy as np
-        >>> from fatiando.seismic import RickerWavelet
-        >>> w1 = RickerWavelet(f=5)
-        >>> w2 = RickerWavelet(f=5, delay=0)
-        >>> w3 = RickerWavelet(f=5, amp=0.5, delay=0.5)
-        >>> times = np.linspace(0, 1, 200)
-        >>> plt.figure()
-        >>> plt.plot(times, w1(times), '-k')
-        >>> plt.plot(times, w2(times), '--k')
-        >>> plt.plot(times, w3(times), '-.k')
-        >>> plt.show()
-        >>> w = RickerWavelet(f=60)
-        >>> samples = w.sample(dt=0.001)
-        >>> plt.figure()
-        >>> plt.plot(samples, '.k')
-        >>> plt.show()
+    >>> # We can control the delay. 0 will make the peak amplitude at t=0.
+    >>> w2 = RickerWavelet(f=1, delay=0)
+    >>> values = w2(times)
+    >>> print('[{}]'.format(' '.join(['{:.3f}'.format(v) for v in values])))
+    [1.000 0.343 -0.399 -0.334 -0.097 -0.013 -0.001]
+
+    >>> # We can also control the amplitude of the wavelet
+    >>> w3 = RickerWavelet(f=2, amp=-0.5)
+    >>> values = w3(times)
+    >>> print('[{}]'.format(' '.join(['{:.3f}'.format(v) for v in values])))
+    [0.000 0.048 0.199 -0.500 0.199 0.048 0.000]
+
+    >>> # Use the 'sample' method to extract samples at a given time interval
+    >>> w4 = RickerWavelet(f=5, amp=10)
+    >>> samples = w4.sample(dt=0.05)
+    >>> print('[{}]'.format(' '.join(['{:.3f}'.format(v) for v in samples])))
+    [-0.010 -0.392 -3.337 -1.261 10.000 -1.261 -3.337 -0.392]
+    >>> # Notice that the end point is not included because 'sample' uses
+    >>> # numpy.arange.
+    >>> # The default duration of the sampling is usually enough to get the
+    >>> # whole wavelet but you can control this if you want.
+    >>> samples = w4.sample(dt=0.05, duration=0.25)
+    >>> print('[{}]'.format(' '.join(['{:.3f}'.format(v) for v in samples])))
+    [-0.010 -0.392 -3.337 -1.261 10.000]
 
     """
 
     def __init__(self, f, amp=1, delay='default'):
         super().__init__(amp, delay)
+        assert f > 0, 'Frequency must be >= 0.'
         self.f = f
         if self.delay == 'default':
             # Standard delay to make the wavelet start at time zero and be
