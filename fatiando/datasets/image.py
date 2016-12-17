@@ -36,6 +36,15 @@ def from_image(fname, pixel_thresh=10, return_colors=False):
     with the desired physical property value, for example
     ``model = template.copy(); model[template == 0] = 2670``.
 
+    A few tips for better results:
+
+    * Use images with a few sharp colors.
+    * Avoid smoothing effects because they create a gradient of colors, so each
+      color in the gradient will be flagged as a unique value in the template.
+    * When scaling an image, use nearest neighbors interpolation.
+    * Use the "pencil" tool to draw the image rather than the "brush" tool to
+      avoid color gradients.
+
     Parameters:
 
     * fname : string
