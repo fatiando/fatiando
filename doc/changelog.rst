@@ -22,6 +22,10 @@ Version 0.6
 * Removed unused functions from ``fatiando.utils``: ``normal``.  ``vecnorm``.
   ``vecmean``.  ``vecstd``.  ``sec2hms``.  ``sec2year``. and ``year2sec``.
   (`PR 361 <https://github.com/fatiando/fatiando/pull/361>`__)
+* Remove function ``fromimage`` from ``fatiando.utils`` and method ``img2prop``
+  from ``fatiando.mesher.SquareMesh``. They were replaced by
+  ``fatiando.datasets.from_image``.
+  (`PR 363 <https://github.com/fatiando/fatiando/pull/363>`__)
 
 **Bug fixes**
 
@@ -32,6 +36,9 @@ Version 0.6
 
 **New features and improvements**
 
+* New function ``from_image`` in ``fatiando.datasets`` that creates a template
+  for a model from an image file.
+  (`PR 363 <https://github.com/fatiando/fatiando/pull/363>`__)
 * Added class ``RickerWavelet`` to ``fatiando.seismic`` to generate and sample
   the wavelet. Lays the ground work to expand later with more wavelets.
   (`PR 362 <https://github.com/fatiando/fatiando/pull/362>`__)

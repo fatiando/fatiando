@@ -8,7 +8,6 @@ import scipy.interpolate
 import copy as cp
 
 from . import gridder
-from . import utils
 
 
 class GeometricElement(object):
@@ -299,33 +298,6 @@ class SquareMesh(object):
 
         """
         self.props[prop] = values
-
-    def img2prop(self, fname, vmin, vmax, prop):
-        """
-        Load the physical property value from an image file.
-
-        The image is converted to gray scale and the gray intensity of each
-        pixel is used to set the value of the physical property of the
-        cells in the mesh. Gray intensity values are scaled to the range
-        ``[vmin, vmax]``.
-
-        If the shape of image (number of pixels in y and x) is different from
-        the shape of the mesh, the image will be interpolated to match the
-        shape of the mesh.
-
-        Parameters:
-
-        * fname : str
-            Name of the image file
-        * vmax, vmin : float
-            Range of physical property values (used to convert the gray scale
-            to physical property values)
-        * prop : str
-            Name of the physical property
-
-        """
-        self.props[prop] = utils.fromimage(fname, ranges=[vmin, vmax],
-                                           shape=self.shape)[::-1, :].ravel()
 
     def get_xs(self):
         """
