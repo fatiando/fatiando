@@ -32,6 +32,9 @@ Version 0.6
 
 **New features and improvements**
 
+* Added class ``RickerWavelet`` to ``fatiando.seismic`` to generate and sample
+  the wavelet. Lays the ground work to expand later with more wavelets.
+  (`PR 362 <https://github.com/fatiando/fatiando/pull/362>`__)
 * Added functions ``lame_lambda`` and ``lame_mu`` to ``fatiando.seismic`` that
   calculate the Lamé parameters :math:`\lambda` and :math:`\mu` from the P and
   S velocities and density.
