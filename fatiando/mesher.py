@@ -299,7 +299,6 @@ class SquareMesh(object):
         """
         self.props[prop] = values
 
-
     def get_xs(self):
         """
         Get a list of the x coordinates of the corners of the cells in the
