@@ -111,7 +111,6 @@ Utilities
     si2nt
     nt2si
     sph2cart
-    fromimage
     dircos
     ang2vec
 
@@ -145,6 +144,7 @@ Functions
     load_surfer
     check_hash
     fetch_hawaii_gravity
+    from_image
 
 
 ``fatiando.seismic``: Seismology and seismics

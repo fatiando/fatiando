@@ -4,8 +4,6 @@ Load gravity data from the eigen-6c4 model for Hawaii.
 """
 from __future__ import unicode_literals
 import os
-import hashlib
-
 import numpy as np
 
 from . import check_hash
