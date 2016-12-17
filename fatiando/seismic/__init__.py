@@ -21,3 +21,4 @@ Tomography
 
 """
 from .elastic_moduli import lame_lambda, lame_mu
+from .wavelets import RickerWavelet
