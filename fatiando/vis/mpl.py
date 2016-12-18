@@ -1057,7 +1057,7 @@ def seismic_wiggle(section, dt, ranges=None, scale=1., color='k',
     dx = (x1 - x0)/ntraces
     pyplot.xlim(x0, x1)
     for i, trace in enumerate(section.transpose()):
-        tr = (((trace -  gmin)/amp) -  toffset)*scale*dx
+        tr = (((trace - gmin)/amp) - toffset)*scale*dx
         x = x0 + i*dx  # x positon for this trace
         pyplot.plot(x + tr, t, 'k')
         pyplot.fill_betweenx(t, x + tr, x, tr > 0, color=color)
