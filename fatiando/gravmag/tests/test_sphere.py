@@ -1,183 +1,75 @@
+import os
 import numpy as np
+import numpy.testing as npt
+from pytest import raises
 
-from fatiando.mesher import Sphere
-from fatiando.gravmag import _sphere_numpy, sphere
-from fatiando import utils, gridder
-
-model = None
-xp, yp, zp = None, None, None
-inc, dec = None, None
-
-
-def setup():
-    global model, xp, yp, zp, inc, dec
-    inc, dec = -30, 50
-    reg_field = np.array(utils.dircos(inc, dec))
-    model = [
-        Sphere(500, 0, 1000, 1000,
-               {'density': -1., 'magnetization': utils.ang2vec(-2, inc, dec)}),
-        Sphere(-1000, 0, 700, 700,
-               {'density': 2., 'magnetization': utils.ang2vec(5, 25, -10)})]
-    xp, yp, zp = gridder.regular([-2000, 2000, -2000, 2000], (50, 50), z=-1)
+from ... import utils, gridder, constants
+from ...mesher import Sphere
+from ...datasets import check_hash
+from .. import sphere
 
 
-def test_gz():
-    "gravmag.sphere.gz python vs cython implementation"
-    py = _sphere_numpy.gz(xp, yp, zp, model)
-    cy = sphere.gz(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
+# Load the test data to check against a regression
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+DATA_SHA256 = \
+    'cbc2e8d64b705325812dd4587bdb52452dbd2cbec3634c06070d1ff71962cd0f'
+TEST_DATA = os.path.join(TEST_DATA_DIR, 'sphere.npz')
+check_hash(TEST_DATA, DATA_SHA256, hash_type='sha256')
+data = np.load(TEST_DATA)
+
+model = eval(str(data['model']))
+inc, dec = data['inc'], data['dec']
+sinc, sdec = data['sinc'], data['sdec']
+area = data['area']
+shape = data['shape']
+height = data['z']
+x, y, z = gridder.regular(area, shape, z=height)
 
 
-def test_gxx():
-    "gravmag.sphere.gxx python vs cython implementation"
-    py = _sphere_numpy.gxx(xp, yp, zp, model)
-    cy = sphere.gxx(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
+def test_sphere_regression():
+    "Test the sphere code against recorded results to check for regressions"
+    for field in 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model)
+        npt.assert_allclose(result, data[field], rtol=1e-10)
+    result = sphere.tf(x, y, z, model, inc, dec)
+    npt.assert_allclose(result, data['tf'], rtol=1e-10)
+    kernels = ['kernel' + k for k in 'xx xy xz yy yz yz zz'.split()]
+    for kernel in kernels:
+        for s in model:
+            result = getattr(sphere, kernel)(x, y, z, s)
+            true = data['g' + kernel[-2:]]/constants.G/constants.SI2EOTVOS
+            npt.assert_allclose(result, true, rtol=1e-10)
 
 
-def test_gxy():
-    "gravmag.sphere.gxy python vs cython implementation"
-    py = _sphere_numpy.gxy(xp, yp, zp, model)
-    cy = sphere.gxy(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
+def test_sphere_regression_force_prop():
+    "Test the sphere code with forcing a physical property value"
+    for field in 'gz gxx gxy gxz gyy gyz gzz'.split():
+        result = getattr(sphere, field)(x, y, z, model, dens=-10)
+        npt.assert_allclose(result, -10*data[field], rtol=1e-10)
+    pmag = utils.ang2vec(-10, sinc, sdec)
+    for field in 'bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model, pmag=pmag)
+        npt.assert_allclose(result, -10*data[field], rtol=1e-10)
+    result = sphere.tf(x, y, z, model, inc, dec, pmag=pmag)
+    npt.assert_allclose(result, -10*data['tf'], rtol=1e-10)
 
 
-def test_gxz():
-    "gravmag.sphere.gxx python vs cython implementation"
-    py = _sphere_numpy.gxz(xp, yp, zp, model)
-    cy = sphere.gxz(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
+def test_sphere_ignore_none():
+    "Sphere ignores model elements that are None"
+    model_none = [None]*10
+    model_none.extend(model)
+    for field in 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model_none)
+        npt.assert_allclose(result, data[field], rtol=1e-10)
+    result = sphere.tf(x, y, z, model_none, inc, dec)
+    npt.assert_allclose(result, data['tf'], rtol=1e-10)
 
 
-def test_gyy():
-    "gravmag.sphere.gyy python vs cython implementation"
-    py = _sphere_numpy.gyy(xp, yp, zp, model)
-    cy = sphere.gyy(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
-
-
-def test_gyz():
-    "gravmag.sphere.gyz python vs cython implementation"
-    py = _sphere_numpy.gyz(xp, yp, zp, model)
-    cy = sphere.gyz(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
-
-
-def test_gzz():
-    "gravmag.sphere.gzz python vs cython implementation"
-    py = _sphere_numpy.gzz(xp, yp, zp, model)
-    cy = sphere.gzz(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-15), 'max diff: %g' % (max(diff))
-
-
-def test_tf():
-    "gravmag.sphere.tf python vs cython implementation"
-    py = _sphere_numpy.tf(xp, yp, zp, model, inc, dec)
-    cy = sphere.tf(xp, yp, zp, model, inc, dec)
-    diff = np.abs(py - cy)
-    # Lower precison because python calculates using Blakely and cython using
-    # the gravity kernels
-    assert np.all(diff <= 10 ** -9), 'max diff: %g' % (max(diff))
-
-
-def test_bx():
-    "gravmag.sphere.bx python vs cython implementation"
-    py = _sphere_numpy.bx(xp, yp, zp, model)
-    cy = sphere.bx(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-12), \
-        'max diff: %g python: %g cython %g' \
-        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_by():
-    "gravmag.sphere.by python vs cython implementation"
-    py = _sphere_numpy.by(xp, yp, zp, model)
-    cy = sphere.by(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-12), \
-        'max diff: %g python: %g cython %g' \
-        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_bz():
-    "gravmag.sphere.bz python vs cython implementation"
-    py = _sphere_numpy.bz(xp, yp, zp, model)
-    cy = sphere.bz(xp, yp, zp, model)
-    diff = np.abs(py - cy)
-    assert np.all(diff <= 1e-12), \
-        'max diff: %g python: %g cython %g' \
-        % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelxx():
-    "gravmag.sphere.kernelxx python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelxx(xp, yp, zp, p)
-        cy = sphere.kernelxx(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-15), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelxy():
-    "gravmag.sphere.kernelxy python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelxy(xp, yp, zp, p)
-        cy = sphere.kernelxy(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-15), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelxz():
-    "gravmag.sphere.kernelxz python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelxz(xp, yp, zp, p)
-        cy = sphere.kernelxz(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-14), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelyy():
-    "gravmag.sphere.kernelyy python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelyy(xp, yp, zp, p)
-        cy = sphere.kernelyy(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-15), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelyz():
-    "gravmag.sphere.kernelyz python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelyz(xp, yp, zp, p)
-        cy = sphere.kernelyz(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-15), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
-
-
-def test_kernelzz():
-    "gravmag.sphere.kernelzz python vs cython implementation"
-    for p in model:
-        py = _sphere_numpy.kernelzz(xp, yp, zp, p)
-        cy = sphere.kernelzz(xp, yp, zp, p)
-        diff = np.abs(py - cy)
-        assert np.all(diff <= 1e-15), \
-            'max diff: %g python: %g cython %g' \
-            % (max(diff), py[diff == max(diff)][0], cy[diff == max(diff)][0])
+def test_sphere_ignore_missing_prop():
+    "Sphere ignores model elements that don't have the needed property"
+    model2 = model + [Sphere(0, 0, 200, 200)]
+    for field in 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model2)
+        npt.assert_allclose(result, data[field], rtol=1e-10)
+    result = sphere.tf(x, y, z, model2, inc, dec)
+    npt.assert_allclose(result, data['tf'], rtol=1e-10)

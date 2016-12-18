@@ -36,6 +36,11 @@ Version 0.6
 
 **New features and improvements**
 
+* Replace Cython coded functions in ``fatiando.gravmag.sphere`` with pure
+  Python + numpy code. Optimized the numpy code to get ~4x speedup in the
+  gravity function and ~2x in the magnetic functions over the Cython code.
+  As a bonus, reached 100% test coverage for this module.
+  (`PR 364 <https://github.com/fatiando/fatiando/pull/364>`__)
 * New function ``from_image`` in ``fatiando.datasets`` that creates a template
   for a model from an image file.
   (`PR 363 <https://github.com/fatiando/fatiando/pull/363>`__)

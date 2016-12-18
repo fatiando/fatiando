@@ -32,6 +32,7 @@ PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
 PACKAGE_DATA = {
     'fatiando.datasets': ['data/*'],
     'fatiando.datasets.tests': ['data/*'],
+    'fatiando.gravmag.tests': ['data/*'],
 }
 LICENSE = "BSD License"
 URL = "http://www.fatiando.org"
@@ -72,7 +73,6 @@ ext_parts = [
     ['fatiando', 'seismic', '_ttime2d'],
     ['fatiando', 'seismic', '_wavefd'],
     ['fatiando', 'gravmag', '_polyprism'],
-    ['fatiando', 'gravmag', '_sphere'],
     ['fatiando', 'gravmag', '_prism'],
 ]
 extensions = [('.'.join(parts), os.path.join(*parts) + ext)
