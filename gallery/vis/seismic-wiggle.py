@@ -28,7 +28,7 @@ data = conv.convolutional_model(rc, f=30, wavelet=conv.rickerwave, dt=dt)
 plt.figure(figsize=(6, 5))
 plt.title("Seismic wiggles")
 # The scale parameter makes the wiggles larger or smaller
-seismic_wiggle(data, dt=dt, scale=3, color='k')
+seismic_wiggle(data, dt, scale=3, color='k')
 plt.ylabel('time (s)')
 plt.xlabel('trace')
 plt.show()
