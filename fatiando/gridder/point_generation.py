@@ -164,7 +164,7 @@ def circular_scatter(area, n, z=None, random=False, seed=None):
         Area inside of which the points are contained
     * n : int
         Number of points
-        * z : float or 1d-array
+    * z : float or 1d-array
         Optional. z coordinate of the points. If given, will return an
         array with the value *z*.
     * random : True or False
@@ -189,8 +189,8 @@ def circular_scatter(area, n, z=None, random=False, seed=None):
         angles = np.random.uniform(0, 2*np.pi, n)
         np.random.seed()
     else:
-        da = 2*np.pi/n
-        angles = np.arange(0, 2*np.pi, da)
+        # The last point is the same as the first, so discard it
+        angles = np.linspace(0, 2*np.pi, n + 1)[:-1]
     xs = 0.5*(x1 + x2) + radius*np.cos(angles)
     ys = 0.5*(y1 + y2) + radius*np.sin(angles)
     arrays = [xs, ys]
