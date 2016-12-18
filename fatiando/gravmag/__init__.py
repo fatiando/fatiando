@@ -2,21 +2,6 @@
 Gravity and magnetics forward modeling, inversion, transformations and
 utilities.
 
-Forward modeling
-----------------
-
-The forward modeling modules provide ways to calculate the gravitational and
-magnetic field of various types of geometric objects:
-
-* :mod:`~fatiando.gravmag.prism`: 3D right rectangular prisms
-* :mod:`~fatiando.gravmag.polyprism`: 3D prisms with polygonal horizontal
-  cross-sections
-* :mod:`~fatiando.gravmag.sphere`: Spheres in Cartesian coordinates
-* :mod:`~fatiando.gravmag.tesseroid`: Tesseroids (spherical prisms) for
-  modeling in spherical coordinates
-* :mod:`~fatiando.gravmag.talwani`: 2D bodies with polygonal vertical
-  cross-sections
-
 Inversion
 ---------
 

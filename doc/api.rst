@@ -185,6 +185,99 @@ Functions
 
 .. currentmodule:: fatiando.gravmag
 
+Forward modeling
+----------------
+
+The ``fatiando.gravmag`` package defines a few modules that calculate the
+potential fields of some geometric primitives.
+
+Spheres
++++++++
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    sphere.gz
+    sphere.gxx
+    sphere.gxy
+    sphere.gxz
+    sphere.gyy
+    sphere.gyz
+    sphere.gzz
+    sphere.tf
+    sphere.bx
+    sphere.by
+    sphere.bz
+
+Polygonal prisms
+++++++++++++++++
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    polyprism.gz
+    polyprism.gxx
+    polyprism.gxy
+    polyprism.gxz
+    polyprism.gyy
+    polyprism.gyz
+    polyprism.gzz
+    polyprism.tf
+    polyprism.bx
+    polyprism.by
+    polyprism.bz
+
+Right-rectangular prisms
+++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    prism.potential
+    prism.gx
+    prism.gy
+    prism.gz
+    prism.gxx
+    prism.gxy
+    prism.gxz
+    prism.gyy
+    prism.gyz
+    prism.gzz
+    prism.tf
+    prism.bx
+    prism.by
+    prism.bz
+
+Polygons (2D)
++++++++++++++
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    talwani.gz
+
+Tesseroids (spherical prisms)
++++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: api/
+    :template: function.rst
+
+    tesseroid.potential
+    tesseroid.gx
+    tesseroid.gy
+    tesseroid.gz
+    tesseroid.gxx
+    tesseroid.gxy
+    tesseroid.gxz
+    tesseroid.gyy
+    tesseroid.gyz
+    tesseroid.gzz
+
 
 ``fatiando.geothermal``: Geothermal methods
 ===========================================
