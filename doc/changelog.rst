@@ -17,7 +17,7 @@ Version 0.6
 
 * The ``seismic_image`` and ``seismic_wiggle`` functions from ``fatiando.vis``
   don't specify default values for the ``dt`` argument anymore. This parameter
-  is specific to the dataset and shouldn't have a default value..
+  is specific to the dataset and shouldn't have a default value.
   (`PR 366 <https://github.com/fatiando/fatiando/pull/366>`__)
 * Refactor ``fatiando.datasets``. The ``load_surfer`` function now returns a
   dictionary with the data and takes different arguments. The functions for
