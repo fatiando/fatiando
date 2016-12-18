@@ -47,24 +47,11 @@ def test_sphere_regression_force_prop():
         result = getattr(sphere, field)(x, y, z, model, dens=-10)
         npt.assert_allclose(result, -10*data[field], rtol=1e-10)
     pmag = utils.ang2vec(-10, sinc, sdec)
+    for field in 'bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model, pmag=pmag)
+        npt.assert_allclose(result, -10*data[field], rtol=1e-10)
     result = sphere.tf(x, y, z, model, inc, dec, pmag=pmag)
     npt.assert_allclose(result, -10*data['tf'], rtol=1e-10)
-
-
-def test_sphere_shape_fails():
-    "Sphere code could fail if x, y, z have diff shapes"
-    for field in 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split():
-        with raises(ValueError):
-            result = getattr(sphere, field)(x, y.reshape(shape), z, model)
-        with raises(ValueError):
-            result = getattr(sphere, field)(x, y, z[:30], model)
-    with raises(ValueError):
-        result = sphere.tf(x, y, z[:30], model, inc, dec)
-    kernels = ['kernel' + k for k in 'xx xy xz yy yz yz zz'.split()]
-    for kernel in kernels:
-        for s in model:
-            with raises(ValueError):
-                result = getattr(sphere, kernel)(x[10:], y, z, s)
 
 
 def test_sphere_ignore_none():
@@ -75,4 +62,14 @@ def test_sphere_ignore_none():
         result = getattr(sphere, field)(x, y, z, model_none)
         npt.assert_allclose(result, data[field], rtol=1e-10)
     result = sphere.tf(x, y, z, model_none, inc, dec)
+    npt.assert_allclose(result, data['tf'], rtol=1e-10)
+
+
+def test_sphere_ignore_missing_prop():
+    "Sphere ignores model elements that don't have the needed property"
+    model2 = model + [Sphere(0, 0, 200, 200)]
+    for field in 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split():
+        result = getattr(sphere, field)(x, y, z, model2)
+        npt.assert_allclose(result, data[field], rtol=1e-10)
+    result = sphere.tf(x, y, z, model2, inc, dec)
     npt.assert_allclose(result, data['tf'], rtol=1e-10)

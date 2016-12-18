@@ -98,21 +98,44 @@ Cambridge University Press.
 from __future__ import division
 
 import numpy
+import numpy as np
 
 from ..constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS
 from .. import utils
 
-try:
-    from . import _sphere
-except ImportError:
-    _sphere = None
+
+# These are the second derivatives of the V = 1/r function that is used by the
+# magnetic field component, total-field magnetic anomaly, gravity gradients,
+# and the kernel functions.
+def _v_xx(x, y, z, r_sqr, r_5):
+    return (3*x**2 - r_sqr)/r_5
+
+
+def _v_xy(x, y, z, r_sqr, r_5):
+    return 3*x*y/r_5
+
+
+def _v_xz(x, y, z, r_sqr, r_5):
+    return 3*x*z/r_5
+
+
+def _v_yy(x, y, z, r_sqr, r_5):
+    return (3*y**2 - r_sqr)/r_5
+
+
+def _v_yz(x, y, z, r_sqr, r_5):
+    return 3*y*z/r_5
+
+
+def _v_zz(x, y, z, r_sqr, r_5):
+    return (3*z**2 - r_sqr)/r_5
 
 
 def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     """
-    Calculate the total-field anomaly of spheres.
+    The total-field magnetic anomaly of homogeneous spheres.
 
-    .. note:: Input units are SI. Output is in nT
+    Input units should be SI. Output is in nT.
 
     Parameters:
 
@@ -120,12 +143,12 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The x, y, and z coordinates where the anomaly will be calculated
     * spheres : list of :class:`fatiando.mesher.Sphere`
         The spheres. Spheres must have the physical property
-        ``'magnetization'``. Spheres without ``'magnetization'`` will be
-        ignored.
-    * inc : float
-        The inclination of the regional field (in degrees)
-    * dec : float
-        The declination of the regional field (in degrees)
+        ``'magnetization'``. Spheres that are ``None`` or without
+        ``'magnetization'`` will be ignored. The magnetization is the total
+        (remanent + induced + any demagnetization effects) magnetization given
+        as a 3-component vector.
+    * inc, dec : floats
+        The inclination and declination of the regional field (in degrees)
     * pmag : [mx, my, mz] or None
         A magnetization vector. If not None, will use this value instead of the
         ``'magnetization'`` property of the spheres. Use this, e.g., for
@@ -137,32 +160,38 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The total-field anomaly
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
-    # Calculate the 3 components of the unit vector in the direction of the
-    # regional field
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
         pmx, pmy, pmz = pmag
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('magnetization' not in sphere.props
-                              and pmag is None):
+        if sphere is None:
             continue
-        # Get the intensity and unit vector from the magnetization
+        if 'magnetization' not in sphere.props and pmag is None:
+            continue
         if pmag is None:
-            mag = sphere.props['magnetization']
-            mx, my, mz = mag
+            mx, my, mz = sphere.props['magnetization']
         else:
             mx, my, mz = pmx, pmy, pmz
-        _sphere.tf(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                   mx, my, mz, fx, fy, fz, res)
-    res *= CM * T2NT
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        # Calculating v_xx, etc to calculate B is ~2x slower than this
+        dotprod = mx*x + my*y + mz*z
+        bx = (3*dotprod*x - r_sqr*mx)/r_5
+        by = (3*dotprod*y - r_sqr*my)/r_5
+        bz = (3*dotprod*z - r_sqr*mz)/r_5
+        res += volume*(fx*bx + fy*by + fz*bz)
+    res *= CM*T2NT
     return res
 
 
-def bx(xp, yp, zp, spheres):
+def bx(xp, yp, zp, spheres, pmag=None):
     """
     Calculates the x component of the magnetic induction produced by spheres.
 
@@ -183,22 +212,34 @@ def bx(xp, yp, zp, spheres):
         The x component of the magnetic induction
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
+    if pmag is not None:
+        pmx, pmy, pmz = pmag
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('magnetization' not in sphere.props):
+        if sphere is None:
             continue
-        # Get the magnetization vector components
-        mx, my, mz = sphere.props['magnetization']
-        _sphere.bx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                   mx, my, mz, res)
+        if 'magnetization' not in sphere.props and pmag is None:
+            continue
+        if pmag is None:
+            mx, my, mz = sphere.props['magnetization']
+        else:
+            mx, my, mz = pmx, pmy, pmz
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        # Calculating v_xx, etc to calculate B is ~1.3x slower than this
+        dotprod = mx*x + my*y + mz*z
+        res += volume*(3*dotprod*x - r_sqr*mx)/r_5
     res *= CM * T2NT
     return res
 
 
-def by(xp, yp, zp, spheres):
+def by(xp, yp, zp, spheres, pmag=None):
     """
     Calculates the y component of the magnetic induction produced by spheres.
 
@@ -219,22 +260,34 @@ def by(xp, yp, zp, spheres):
         The y component of the magnetic induction
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
+    if pmag is not None:
+        pmx, pmy, pmz = pmag
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('magnetization' not in sphere.props):
+        if sphere is None:
             continue
-        # Get the magnetization vector components
-        mx, my, mz = sphere.props['magnetization']
-        _sphere.by(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                   mx, my, mz, res)
+        if 'magnetization' not in sphere.props and pmag is None:
+            continue
+        if pmag is None:
+            mx, my, mz = sphere.props['magnetization']
+        else:
+            mx, my, mz = pmx, pmy, pmz
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        # Calculating v_xx, etc to calculate B is ~1.3x slower than this
+        dotprod = mx*x + my*y + mz*z
+        res += volume*(3*dotprod*y - r_sqr*my)/r_5
     res *= CM * T2NT
     return res
 
 
-def bz(xp, yp, zp, spheres):
+def bz(xp, yp, zp, spheres, pmag=None):
     """
     Calculates the z component of the magnetic induction produced by spheres.
 
@@ -255,29 +308,41 @@ def bz(xp, yp, zp, spheres):
         The z component of the magnetic induction
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    size = len(xp)
-    res = numpy.zeros(size, dtype=numpy.float)
+    if pmag is not None:
+        pmx, pmy, pmz = pmag
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('magnetization' not in sphere.props):
+        if sphere is None:
             continue
-        # Get the magnetization vector components
-        mx, my, mz = sphere.props['magnetization']
-        _sphere.bz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                   mx, my, mz, res)
+        if 'magnetization' not in sphere.props and pmag is None:
+            continue
+        if pmag is None:
+            mx, my, mz = sphere.props['magnetization']
+        else:
+            mx, my, mz = pmx, pmy, pmz
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        # Calculating v_xx, etc to calculate B is ~1.3x slower than this
+        dotprod = mx*x + my*y + mz*z
+        res += volume*(3*dotprod*z - r_sqr*mz)/r_5
     res *= CM * T2NT
     return res
 
 
 def gz(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_z` gravity acceleration component.
+    The :math:`g_z` gravitational acceleration component.
 
-    .. note:: The coordinate system of the input parameters is to be
-        x -> North, y -> East and z -> Down.
+    The coordinate system of the input parameters is x -> North, y -> East and
+    z -> Down.
 
-    .. note:: All input values in SI and output in mGal!
+    All input values should be in SI and output is in mGal.
 
     Parameters:
 
@@ -296,19 +361,25 @@ def gz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                   density, res)
-    res *= G * SI2MGAL
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r = np.sqrt(x**2 + y**2 + z**2)
+        # This is faster than r3 = r_sqrt**1.5
+        r_cb = r*r*r
+        mass = density*4*np.pi*(sphere.radius**3)/3
+        res += mass*z/r_cb
+    res *= G*SI2MGAL
     return res
 
 
@@ -338,19 +409,26 @@ def gxx(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_xx(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
@@ -380,19 +458,26 @@ def gxy(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_xy(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
@@ -422,19 +507,26 @@ def gxz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_xz(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
@@ -464,19 +556,26 @@ def gyy(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_yy(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
@@ -506,25 +605,32 @@ def gyz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_yz(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
 def gzz(xp, yp, zp, spheres, dens=None):
     """
-    Calculates the :math:`g_{zz}` gravity gradient component.
+    The :math:`g_{zz}` gravity gradient component.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -548,19 +654,26 @@ def gzz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for sphere in spheres:
-        if sphere is None or ('density' not in sphere.props and dens is None):
+        if sphere is None:
+            continue
+        if 'density' not in sphere.props and dens is None:
             continue
         if dens is None:
             density = sphere.props['density']
         else:
             density = dens
-        _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
-                    density, res)
-    res *= G * SI2EOTVOS
+        x = sphere.x - xp
+        y = sphere.y - yp
+        z = sphere.z - zp
+        r_sqr = x**2 + y**2 + z**2
+        # This is faster than r5 = r_sqrt**2.5
+        r = np.sqrt(r_sqr)
+        r_5 = r*r*r*r*r
+        volume = 4*np.pi*(sphere.radius**3)/3
+        res += density*volume*_v_zz(x, y, z, r_sqr, r_5)
+    res *= G*SI2EOTVOS
     return res
 
 
@@ -602,11 +715,15 @@ def kernelxx(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_xx(x, y, z, r_sqr, r_5)
     return res
 
 
@@ -648,11 +765,15 @@ def kernelxy(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_xy(x, y, z, r_sqr, r_5)
     return res
 
 
@@ -694,11 +815,15 @@ def kernelxz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_xz(x, y, z, r_sqr, r_5)
     return res
 
 
@@ -740,11 +865,15 @@ def kernelyy(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_yy(x, y, z, r_sqr, r_5)
     return res
 
 
@@ -786,11 +915,15 @@ def kernelyz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_yz(x, y, z, r_sqr, r_5)
     return res
 
 
@@ -832,9 +965,13 @@ def kernelzz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape or xp.shape != zp.shape:
-        raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
-    _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
-                res)
+    x = sphere.x - xp
+    y = sphere.y - yp
+    z = sphere.z - zp
+    r_sqr = x**2 + y**2 + z**2
+    # This is faster than r5 = r_sqrt**2.5
+    r = np.sqrt(r_sqr)
+    r_5 = r*r*r*r*r
+    volume = 4*np.pi*(sphere.radius**3)/3
+    res = volume*_v_zz(x, y, z, r_sqr, r_5)
     return res
