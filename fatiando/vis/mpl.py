@@ -53,7 +53,7 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 ----
 
 """
-
+from __future__ import division
 import warnings
 import numpy
 from matplotlib import pyplot, widgets
@@ -1009,8 +1009,8 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     return plot
 
 
-def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
-                   color='k', normalize=False):
+def seismic_wiggle(section, dt, ranges=None, scale=1., color='k',
+                   normalize=False):
     """
     Plot a seismic section (numpy 2D array matrix) as wiggles.
 
@@ -1019,7 +1019,7 @@ def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
     * section :  2D array
         matrix of traces (first dimension time, second dimension traces)
     * dt : float
-        sample rate in seconds (default 4 ms)
+        sample rate in seconds
     * ranges : (x1, x2)
         min and max horizontal values (default trace number)
     * scale : float
@@ -1047,23 +1047,23 @@ def seismic_wiggle(section, dt=0.004, ranges=None, scale=1.,
     if normalize:
         gmax = section.max()
         gmin = section.min()
-        amp = (gmax-gmin)
+        amp = (gmax - gmin)
         toffset = 0.5
     pyplot.ylim(max(t), 0)
     if ranges is None:
         ranges = (0, ntraces)
     x0, x1 = ranges
     # horizontal increment
-    dx = float((x1-x0)/ntraces)
+    dx = (x1 - x0)/ntraces
     pyplot.xlim(x0, x1)
     for i, trace in enumerate(section.transpose()):
-        tr = (((trace-gmin)/amp)-toffset)*scale*dx
-        x = x0+i*dx  # x positon for this trace
-        pyplot.plot(x+tr, t, 'k')
-        pyplot.fill_betweenx(t, x+tr, x, tr > 0, color=color)
+        tr = (((trace - gmin)/amp) - toffset)*scale*dx
+        x = x0 + i*dx  # x positon for this trace
+        pyplot.plot(x + tr, t, 'k')
+        pyplot.fill_betweenx(t, x + tr, x, tr > 0, color=color)
 
 
-def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray,
+def seismic_image(section, dt, ranges=None, cmap=pyplot.cm.gray,
                   aspect=None, vmin=None, vmax=None):
     """
     Plot a seismic section (numpy 2D array matrix) as an image.
@@ -1073,9 +1073,9 @@ def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray,
     * section :  2D array
         matrix of traces (first dimension time, second dimension traces)
     * dt : float
-        sample rate in seconds (default 4 ms)
+        sample rate in seconds
     * ranges : (x1, x2)
-        min and max horizontal values (default trace number)
+        min and max horizontal coordinate values (default trace number)
     * cmap : colormap
         color map to be used. (see pyplot.cm module)
     * aspect : float
@@ -1096,7 +1096,11 @@ def seismic_image(section, dt=0.004, ranges=None, cmap=pyplot.cm.gray,
     x0, x1 = ranges
     extent = (x0, x1, t[-1:], t[0])
     if aspect is None:  # guarantee a rectangular picture
-        aspect = numpy.round((x1-x0)/numpy.max(t))
+        aspect = numpy.round((x1 - x0)/numpy.max(t))
         aspect -= aspect*0.2
+    if vmin is None and vmax is None:
+        scale = np.abs([section.max(), section.min()]).max()
+        vmin = -scale
+        vmax = scale
     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',
                   extent=extent, vmin=vmin, vmax=vmax)

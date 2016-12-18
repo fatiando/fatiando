@@ -15,6 +15,10 @@ Version 0.6
 
 **Breaking changes**
 
+* The ``seismic_image`` and ``seismic_wiggle`` functions from ``fatiando.vis``
+  don't specify default values for the ``dt`` argument anymore. This parameter
+  is specific to the dataset and shouldn't have a default value.
+  (`PR 366 <https://github.com/fatiando/fatiando/pull/366>`__)
 * Refactor ``fatiando.datasets``. The ``load_surfer`` function now returns a
   dictionary with the data and takes different arguments. The functions for
   loading CRUST2.0 were removed.
@@ -36,6 +40,9 @@ Version 0.6
 
 **New features and improvements**
 
+* Center the colorbar on zero for ``seismic_image`` plots. Makes the plots look
+  nicer when using divergent colormaps like ``'RdBu'``.
+  (`PR 366 <https://github.com/fatiando/fatiando/pull/366>`__)
 * Replace Cython coded functions in ``fatiando.gravmag.sphere`` with pure
   Python + numpy code. Optimized the numpy code to get ~4x speedup in the
   gravity function and ~2x in the magnetic functions over the Cython code.
