@@ -45,7 +45,7 @@ def _v_zz(x, y, z, r_sqr, r_5):
 
 def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     r"""
-    The total-field magnetic anomaly of homogeneous spheres.
+    The total-field magnetic anomaly.
 
     The anomaly is defined as (Blakely, 1995):
 
@@ -130,7 +130,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
 
 def bx(xp, yp, zp, spheres, pmag=None):
     """
-    The x component of the magnetic induction (:math:`\mathbf{B}`) of spheres.
+    The x component of the magnetic induction.
 
     The coordinate system of the input parameters is x -> North, y -> East and
     z -> Down.
@@ -192,7 +192,7 @@ def bx(xp, yp, zp, spheres, pmag=None):
 
 def by(xp, yp, zp, spheres, pmag=None):
     """
-    The y component of the magnetic induction (:math:`\mathbf{B}`) of spheres.
+    The y component of the magnetic induction.
 
     The coordinate system of the input parameters is x -> North, y -> East and
     z -> Down.
@@ -254,7 +254,7 @@ def by(xp, yp, zp, spheres, pmag=None):
 
 def bz(xp, yp, zp, spheres, pmag=None):
     """
-    The z component of the magnetic induction (:math:`\mathbf{B}`) of spheres.
+    The z component of the magnetic induction.
 
     The coordinate system of the input parameters is x -> North, y -> East and
     z -> Down.

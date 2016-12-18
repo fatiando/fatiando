@@ -209,6 +209,12 @@ Spheres
     sphere.bx
     sphere.by
     sphere.bz
+    sphere.kernelxx
+    sphere.kernelxy
+    sphere.kernelxz
+    sphere.kernelyy
+    sphere.kernelyz
+    sphere.kernelzz
 
 Polygonal prisms
 ++++++++++++++++
