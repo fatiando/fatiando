@@ -137,7 +137,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         The total-field anomaly
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
@@ -145,10 +145,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
     if pmag is not None:
-        if isinstance(pmag, float) or isinstance(pmag, int):
-            pmx, pmy, pmz = pmag * fx, pmag * fy, pmag * fz
-        else:
-            pmx, pmy, pmz = pmag
+        pmx, pmy, pmz = pmag
     for sphere in spheres:
         if sphere is None or ('magnetization' not in sphere.props
                               and pmag is None):
@@ -156,10 +153,7 @@ def tf(xp, yp, zp, spheres, inc, dec, pmag=None):
         # Get the intensity and unit vector from the magnetization
         if pmag is None:
             mag = sphere.props['magnetization']
-            if isinstance(mag, float) or isinstance(mag, int):
-                mx, my, mz = mag * fx, mag * fy, mag * fz
-            else:
-                mx, my, mz = mag
+            mx, my, mz = mag
         else:
             mx, my, mz = pmx, pmy, pmz
         _sphere.tf(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius,
@@ -189,7 +183,7 @@ def bx(xp, yp, zp, spheres):
         The x component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
@@ -225,7 +219,7 @@ def by(xp, yp, zp, spheres):
         The y component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
@@ -261,7 +255,7 @@ def bz(xp, yp, zp, spheres):
         The z component of the magnetic induction
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
@@ -302,7 +296,7 @@ def gz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -344,7 +338,7 @@ def gxx(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -386,7 +380,7 @@ def gxy(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -428,7 +422,7 @@ def gxz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -470,7 +464,7 @@ def gyy(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -512,7 +506,7 @@ def gyz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -554,7 +548,7 @@ def gzz(xp, yp, zp, spheres, dens=None):
         The field calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for sphere in spheres:
@@ -608,7 +602,7 @@ def kernelxx(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gxx(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
@@ -654,7 +648,7 @@ def kernelxy(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gxy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
@@ -700,7 +694,7 @@ def kernelxz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gxz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
@@ -746,7 +740,7 @@ def kernelyy(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gyy(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
@@ -792,7 +786,7 @@ def kernelyz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gyz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,
@@ -838,7 +832,7 @@ def kernelzz(xp, yp, zp, sphere):
         The function calculated on xp, yp, zp
 
     """
-    if xp.shape != yp.shape != zp.shape:
+    if xp.shape != yp.shape or xp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     res = numpy.zeros(len(xp), dtype=numpy.float)
     _sphere.gzz(xp, yp, zp, sphere.x, sphere.y, sphere.z, sphere.radius, 1,

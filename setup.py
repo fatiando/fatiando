@@ -32,6 +32,7 @@ PACKAGES = find_packages(exclude=['doc', 'ci', 'cookbook', 'gallery'])
 PACKAGE_DATA = {
     'fatiando.datasets': ['data/*'],
     'fatiando.datasets.tests': ['data/*'],
+    'fatiando.gravmag.tests': ['data/*'],
 }
 LICENSE = "BSD License"
 URL = "http://www.fatiando.org"

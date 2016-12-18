@@ -2,4 +2,4 @@ include LICENSE.txt
 include README.rst
 include CITATION.rst
 include versioneer.py
-recursive-include fatiando *.txt *.gdf *.grd
+recursive-include fatiando *.txt *.gdf *.grd *.png *.npz
