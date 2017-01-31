@@ -1746,27 +1746,26 @@ class TriaxialEllipsoid (GeometricElement):
 
     Examples:
 
-        >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30,
-                                 {'remanence':[10000., 25., 40.],
-                                  'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30,{
+        ...                       'remanence':[10000., 25., 40.],
+        ...                       'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
         [10000.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 |
-        gamma:20.0 | delta:30.0 | density:20 |
-        k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | \
-        remanence:[10000.0, 25.0, 40.0]
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
+0 | delta:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanen\
+ce:[10000.0, 25.0, 40.0]
         >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | \
-        gamma:20.0 | delta:30.0
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
+0 | delta:30.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | \
-        gamma:20.0 | delta:30.0 | density:2670
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
+0 | delta:30.0 | density:2670
 
     """
 
@@ -1895,25 +1894,25 @@ class ProlateEllipsoid (GeometricElement):
 
     Examples:
 
-        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20, \
-        {'remanence':[10000., 25., 40.], \
-        'k':[0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20, {
+        ...                      'remanence':[10000., 25., 40.],
+        ...                      'k':[0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
         [10000.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | \
-        delta:20.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] \
-        | remanence:[10000.0, 25.0, 40.0]
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0 | dens\
+ity:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10000.0, 25.0, 40\
+.0]
         >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20)
         >>> print e
         x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | \
-        delta:20.0 | density:2670
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0 | dens\
+ity:2670
 
     """
 
@@ -2036,25 +2035,25 @@ class OblateEllipsoid (GeometricElement):
 
     Examples:
 
-        >>> e = OblateEllipsoid(1, 2, 3, 4, 7, 10, 20, \
-        {'remanence':[10000., 25., 40.], \
-        'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = OblateEllipsoid(1, 2, 3, 4, 7, 10, 20, {
+        ...                     'remanence':[10000., 25., 40.],
+        ...                     'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
         [10000.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:7.0 | alpha:10.0 | delta:20.0 \
-        | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] \
-        | remanence:[10000.0, 25.0, 40.0]
+        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:7.0 | alpha:10.0 | delta:20.0 | dens\
+ity:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10000.0, 25.0, 40\
+.0]
         >>> e = OblateEllipsoid(1, 2, 3, 12, 15, 10, 20)
         >>> print e
         x:1.0 | y:2.0 | z:3.0 | a:12.0 | b:15.0 | alpha:10.0 | delta:20.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:12.0 | b:15.0 | alpha:10.0 | delta:20.0 \
-        | density:2670
+        x:1.0 | y:2.0 | z:3.0 | a:12.0 | b:15.0 | alpha:10.0 | delta:20.0 | de\
+nsity:2670
 
     """
 
