@@ -27,7 +27,7 @@ def test_pel_polereduce():
     degree = 3
     pel = PELTotalField(x, y, z, data, inc, dec, layer, windows, degree,
                         sinc, sdec)
-    eql = pel + 1e-25*PELSmoothness(layer, windows, degree)
+    eql = pel + 1e-23*PELSmoothness(layer, windows, degree)
     eql.fit()
 
     assert_allclose(eql[0].predicted(), data, rtol=0.05)
