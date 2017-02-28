@@ -67,7 +67,7 @@ def convolutional_model(rc, f, wavelet, dt):
         if np.shape(rc)[0] >= len(w):
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='same')
         else:
-            aux = np.floor(len(w)/2.)
+            aux = int(np.floor(len(w)/2.))
             synth_l[:, j] = np.convolve(rc[:, j], w, mode='full')[aux:-aux]
     return synth_l
 
@@ -136,7 +136,7 @@ def depth_2_time(vel, model, dt, dz):
         TWT[j, :] = TWT[j-1]+2*dz/vel[j, :]
     TMAX = max(TWT[-1, :])
     TMIN = min(TWT[0, :])
-    TWT_rs = np.zeros(np.ceil(TMAX/dt_dwn))
+    TWT_rs = np.zeros(int(np.ceil(TMAX/dt_dwn)))
     for j in range(1, len(TWT_rs)):
         TWT_rs[j] = TWT_rs[j-1]+dt_dwn
     resmpl = int(dt/dt_dwn)
@@ -155,10 +155,10 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
         Resampled input data.
 
     """
-    vel = np.ones((np.ceil(TMAX/dt_dwn), n_traces))
+    vel = np.ones((int(np.ceil(TMAX/dt_dwn)), n_traces))
     for j in range(0, n_traces):
-        kk = np.ceil(TWT[0, j]/dt_dwn)
-        lim = np.ceil(TWT[-1, j]/dt_dwn)-1
+        kk = int(np.ceil(TWT[0, j]/dt_dwn))
+        lim = int(np.ceil(TWT[-1, j]/dt_dwn)) - 1
     # necessary do before resampling to have values in all points of time model
         tck = interpolate.interp1d(TWT[:, j], model[:, j])
         vel[kk:lim, j] = tck(TWT_rs[kk:lim])
@@ -167,7 +167,7 @@ def _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces):
     # because of time conversion, the values between 0 e kk need to be filed
         vel[0:kk, j] = model[0, j]
     # resampling from dt_dwn to dt
-    vel_l = np.zeros((np.ceil(TMAX/dt), n_traces))
+    vel_l = np.zeros((int(np.ceil(TMAX/dt)), n_traces))
     resmpl = int(dt/dt_dwn)
     vel_l[0, :] = vel[0, :]
     for j in range(0, n_traces):
@@ -209,8 +209,8 @@ def rickerwave(f, dt):
     """
     assert f < 0.2*(1./(2.*dt)), "Frequency too high for the dt chosen."
     nw = 2.2/f/dt
-    nw = 2*np.floor(nw/2)+1
-    nc = np.floor(nw/2)
+    nw = 2*int(np.floor(nw/2)) + 1
+    nc = int(np.floor(nw/2))
     ricker = np.zeros(nw)
     k = np.arange(1, nw+1)
     alpha = (nc-k+1)*f*dt*np.pi
