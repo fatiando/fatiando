@@ -1722,7 +1722,7 @@ def vremove(value, prop, cells):
     return [c for c in cells if keep(c)]
 
 
-class TriaxialEllipsoid (GeometricElement):
+class TriaxialEllipsoid(GeometricElement):
 
     """
     Create a triaxial ellipsoid.
@@ -1733,43 +1733,43 @@ class TriaxialEllipsoid (GeometricElement):
     Parameters:
 
     * x, y, z : float
-        The coordinates of the center of the ellipsoid
+        The coordinates of the center of the ellipsoid.
     * a, b, c : float
         Semi-axes of the ellipsoid (a>b>c)
-    * alpha, gamma, delta
-        Orientation angles of the ellipsoid
+    * strike, dip, rake
+        Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10000., 25., 40.],
+                     'remanence':[10., 25., 40.],
                      'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
 
     Examples:
 
         >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30,{
-        ...                       'remanence':[10000., 25., 40.],
+        ...                       'remanence': [10., 25., 40.],
         ...                       'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
-        [10000.0, 25.0, 40.0]
+        [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
-0 | delta:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanen\
-ce:[10000.0, 25.0, 40.0]
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
+ | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence\
+:[10.0, 25.0, 40.0]
         >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
-0 | delta:30.0
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
+ | rake:30.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | alpha:10.0 | gamma:20.\
-0 | delta:30.0 | density:2670
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
+ | rake:30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, c, alpha, gamma, delta, props=None):
+    def __init__(self, x, y, z, a, b, c, strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
         self.x = float(x)
@@ -1778,9 +1778,9 @@ ce:[10000.0, 25.0, 40.0]
         self.a = float(a)
         self.b = float(b)
         self.c = float(c)
-        self.alpha = float(alpha)
-        self.gamma = float(gamma)
-        self.delta = float(delta)
+        self.strike = float(strike)
+        self.dip = float(dip)
+        self.rake = float(rake)
 
         assert self.a > self.b and self.b > self.c, \
             "a must be greater than b and b must greater than c"
@@ -1792,85 +1792,13 @@ ce:[10000.0, 25.0, 40.0]
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
                  ('a', self.a), ('b', self.b), ('c', self.c),
-                 ('alpha', self.alpha), ('gamma', self.gamma),
-                 ('delta', self.delta)]
+                 ('strike', self.strike), ('dip', self.dip),
+                 ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
-    def V(self, angles=None):
-        '''
-        Calculates the coordinate transformation matrix
-        for a triaxial model. The columns of this matrix
-        are defined according to the unit vectors v1, v2
-        and v3 presented by Clark et al. (1986, p. 192).
 
-        Parameters:
-
-        * angles: array like containing the three
-            orientation angles (alpha, gamma, delta) of the main
-            susceptibility axes.
-
-        Returns:
-
-        *matrix: numpy array 2D
-                 A 3x3 matrix with the direction cosines of the new coordinate
-                 system.
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-
-        Example:
-
-            >>> e = TriaxialEllipsoid(11, 3, 4, 3, 2, 1, 180, 90, 0)
-            >>> print e.V()
-            [[  1.00000000e+00   1.22464680e-16   7.49879891e-33]
-             [ -1.22464680e-16   1.00000000e+00   6.12323400e-17]
-             [ -0.00000000e+00  -6.12323400e-17   1.00000000e+00]]
-
-        '''
-
-        if angles is None:
-
-            alpha = numpy.deg2rad(self.alpha)
-            gamma = numpy.deg2rad(self.gamma)
-            delta = numpy.deg2rad(self.delta)
-
-        else:
-
-            assert len(angles) == 3, 'There must be three angles!'
-            alpha = numpy.deg2rad(angles[0])
-            gamma = numpy.deg2rad(angles[1])
-            delta = numpy.deg2rad(angles[2])
-
-        cos_alpha = numpy.cos(alpha)
-        sin_alpha = numpy.sin(alpha)
-
-        cos_gamma = numpy.cos(gamma)
-        sin_gamma = numpy.sin(gamma)
-
-        cos_delta = numpy.cos(delta)
-        sin_delta = numpy.sin(delta)
-
-        v1 = numpy.array([-cos_alpha*cos_delta,
-                          -sin_alpha*cos_delta,
-                          -sin_delta])
-
-        v2 = numpy.array([cos_alpha*cos_gamma*sin_delta + sin_alpha*sin_gamma,
-                          sin_alpha*cos_gamma*sin_delta - cos_alpha*sin_gamma,
-                          -cos_gamma*cos_delta])
-
-        v3 = numpy.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
-                          -cos_alpha*cos_gamma - sin_alpha*sin_gamma*sin_delta,
-                          sin_gamma*cos_delta])
-
-        matrix = numpy.vstack((v1, v2, v3)).T
-
-        return matrix
-
-
-class ProlateEllipsoid (GeometricElement):
+class ProlateEllipsoid(GeometricElement):
 
     """
     Create a prolate ellipsoid.
@@ -1881,42 +1809,43 @@ class ProlateEllipsoid (GeometricElement):
     Parameters:
 
     * x, y, z : float
-        The coordinates of the center of the ellipsoid
+        The coordinates of the center of the ellipsoid.
     * a, b : float
         Semi-axes of the ellipsoid (a>b)
-    * alpha, delta
-        Orientation angles of the ellipsoid
+    * strike, dip, rake
+        Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10000., 25., 40.],
+                     'remanence':[10., 25., 40.],
                      'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
 
     Examples:
 
-        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20, {
-        ...                      'remanence':[10000., 25., 40.],
-        ...                      'k':[0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = ProlateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30,{
+        ...                      'remanence': [10., 25., 40.],
+        ...                      'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
-        [10000.0, 25.0, 40.0]
+        [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0 | dens\
-ity:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10000.0, 25.0, 40\
-.0]
-        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20)
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:4.0 | strike:10.0 | dip:20.0 | rake:\
+30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10.0, \
+25.0, 40.0]
+        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20, 30)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | strike:10.0 | dip:20.0 | rake:\
+30.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | alpha:10.0 | delta:20.0 | dens\
-ity:2670
+        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | strike:10.0 | dip:20.0 | rake:\
+30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, alpha, delta, props=None):
+    def __init__(self, x, y, z, a, b, strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
         self.x = float(x)
@@ -1924,12 +1853,11 @@ ity:2670
         self.z = float(z)
         self.a = float(a)
         self.b = float(b)
-        self.alpha = float(alpha)
-        self.delta = float(delta)
+        self.strike = float(strike)
+        self.dip = float(dip)
+        self.rake = float(rake)
 
         assert self.a > self.b, "a must be greater than b"
-        self.axis = numpy.array([a, b])
-        self.center = numpy.array([x, y, z])
 
     def __str__(self):
         """
@@ -1938,80 +1866,13 @@ ity:2670
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
                  ('a', self.a), ('b', self.b),
-                 ('alpha', self.alpha), ('delta', self.delta)]
+                 ('strike', self.strike), ('dip', self.dip),
+                 ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
-    def V(self, angles=None):
-        '''
-        Calculates the coordinate transformation matrix
-        for a prolate model. The columns of this matrix
-        are defined according to the unit vectors v1, v2
-        and v3 presented by Emerson et al. (1985, p. 49).
 
-        Parameters:
-
-        * angles: array like containing the three
-            orientation angles (alpha, delta) of the main
-            susceptibility axes.
-
-        Returns:
-
-        *matrix: numpy array 2D
-                 A 3x3 matrix with the direction cosines of the new coordinate
-                 system.
-
-        References:
-
-        Emerson, D. W., Clark, D., and Saul, S.: Magnetic exploration models
-        incorporating remanence, demagnetization and anisotropy: HP 41C
-        handheld computer algorithms, Exploration Geophysics, 16, 1-122, 1985.
-
-        Example:
-
-            >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20)
-            >>> print e.V()
-            [[-0.92541658  0.33682409  0.17364818]
-             [-0.16317591  0.05939117 -0.98480775]
-             [-0.34202014 -0.93969262  0.        ]]
-
-        '''
-
-        if angles is None:
-
-            alpha = numpy.deg2rad(self.alpha)
-            delta = numpy.deg2rad(self.delta)
-
-        else:
-
-            assert len(angles) == 2, 'There must be two angles!'
-            alpha = numpy.deg2rad(angles[0])
-            delta = numpy.deg2rad(angles[1])
-
-        cos_alpha = numpy.cos(alpha)
-        sin_alpha = numpy.sin(alpha)
-
-        cos_delta = numpy.cos(delta)
-        sin_delta = numpy.sin(delta)
-
-        v1 = numpy.array([-cos_alpha*cos_delta,
-                          -sin_alpha*cos_delta,
-                          -sin_delta])
-
-        v2 = numpy.array([cos_alpha*sin_delta,
-                          sin_alpha*sin_delta,
-                          -cos_delta])
-
-        v3 = numpy.array([sin_alpha,
-                          -cos_alpha,
-                          0.])
-
-        matrix = numpy.vstack((v1, v2, v3)).T
-
-        return matrix
-
-
-class OblateEllipsoid (GeometricElement):
+class OblateEllipsoid(GeometricElement):
 
     """
     Create a oblate ellipsoid.
@@ -2022,42 +1883,43 @@ class OblateEllipsoid (GeometricElement):
     Parameters:
 
     * x, y, z : float
-        The coordinates of the center of the ellipsoid
+        The coordinates of the center of the ellipsoid.
     * a, b : float
-        Semi-axes of the ellipsoid (b>a)
-    * alpha, delta
-        Orientation angles of the ellipsoid
+        Semi-axes of the ellipsoid (a<b)
+    * strike, dip, rake
+        Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10000., 25., 40.],
+                     'remanence':[10., 25., 40.],
                      'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
 
     Examples:
 
-        >>> e = OblateEllipsoid(1, 2, 3, 4, 7, 10, 20, {
-        ...                     'remanence':[10000., 25., 40.],
+        >>> e = OblateEllipsoid(1, 2, 3, 4, 6, 10, 20, 30,{
+        ...                     'remanence': [10., 25., 40.],
         ...                     'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
         >>> e.props['remanence']
-        [10000.0, 25.0, 40.0]
+        [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
         >>> print e.props['density']
         20
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:7.0 | alpha:10.0 | delta:20.0 | dens\
-ity:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10000.0, 25.0, 40\
-.0]
-        >>> e = OblateEllipsoid(1, 2, 3, 12, 15, 10, 20)
+        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
+30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10.0, \
+25.0, 40.0]
+        >>> e = OblateEllipsoid(1, 2, 3, 4, 6, 10, 20, 30)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:12.0 | b:15.0 | alpha:10.0 | delta:20.0
+        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
+30.0
         >>> e.addprop('density', 2670)
         >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:12.0 | b:15.0 | alpha:10.0 | delta:20.0 | de\
-nsity:2670
+        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
+30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, alpha, delta, props=None):
+    def __init__(self, x, y, z, a, b, strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
         self.x = float(x)
@@ -2065,12 +1927,11 @@ nsity:2670
         self.z = float(z)
         self.a = float(a)
         self.b = float(b)
-        self.alpha = float(alpha)
-        self.delta = float(delta)
+        self.strike = float(strike)
+        self.dip = float(dip)
+        self.rake = float(rake)
 
-        assert self.b > self.a, "b must be greater than a"
-        self.axis = numpy.array([a, b])
-        self.center = numpy.array([x, y, z])
+        assert self.a < self.b, "a must be smaller than b"
 
     def __str__(self):
         """
@@ -2079,74 +1940,7 @@ nsity:2670
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
                  ('a', self.a), ('b', self.b),
-                 ('alpha', self.alpha), ('delta', self.delta)]
+                 ('strike', self.strike), ('dip', self.dip),
+                 ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
-
-    def V(self, angles=None):
-        '''
-        Calculates the coordinate transformation matrix
-        for a oblate model. The columns of this matrix
-        are defined according to the unit vectors v1, v2
-        and v3 presented by Emerson et al. (1985, p. 49).
-
-        Parameters:
-
-        * angles: array like containing the three
-            orientation angles (alpha, delta) of the main
-            susceptibility axes.
-
-        Returns:
-
-        *matrix: numpy array 2D
-                 A 3x3 matrix with the direction cosines of the new coordinate
-                 system.
-
-        References:
-
-        Emerson, D. W., Clark, D., and Saul, S.: Magnetic exploration models
-        incorporating remanence, demagnetization and anisotropy: HP 41C
-        handheld computer algorithms, Exploration Geophysics, 16, 1-122, 1985.
-
-        Example:
-
-            >>> e = OblateEllipsoid(1, 2, 3, 5, 6, 10, 20)
-            >>> print e.V()
-            [[ 0.33682409 -0.92541658 -0.17364818]
-             [ 0.05939117 -0.16317591  0.98480775]
-             [-0.93969262 -0.34202014 -0.        ]]
-
-        '''
-
-        if angles is None:
-
-            alpha = numpy.deg2rad(self.alpha)
-            delta = numpy.deg2rad(self.delta)
-
-        else:
-
-            assert len(angles) == 2, 'There must be two angles!'
-            alpha = numpy.deg2rad(angles[0])
-            delta = numpy.deg2rad(angles[1])
-
-        cos_alpha = numpy.cos(alpha)
-        sin_alpha = numpy.sin(alpha)
-
-        cos_delta = numpy.cos(delta)
-        sin_delta = numpy.sin(delta)
-
-        v1 = numpy.array([-cos_alpha*cos_delta,
-                          -sin_alpha*cos_delta,
-                          -sin_delta])
-
-        v2 = numpy.array([cos_alpha*sin_delta,
-                          sin_alpha*sin_delta,
-                          -cos_delta])
-
-        v3 = numpy.array([sin_alpha,
-                          -cos_alpha,
-                          0.])
-
-        matrix = numpy.vstack((v2, v1, -v3)).T
-
-        return matrix
