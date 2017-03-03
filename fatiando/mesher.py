@@ -1725,7 +1725,21 @@ def vremove(value, prop, cells):
 class TriaxialEllipsoid(GeometricElement):
 
     """
-    Create a triaxial ellipsoid.
+    Create an arbitrarily-oriented triaxial ellipsoid.
+
+    Triaxial ellipsoids are those having different semi-axes.
+    This code follows Clark et al. (1986) and defines the spatial
+    orientation of the ellipsoid by using three angles: strike,
+    rake and dip. These angles are commonly used to define the
+    orientation of geological structures (Allmendinger et al., 2012).
+
+    References:
+
+    Allmendinger, R., Cardozo, N., and Fisher, D. M.: Structural geology
+    algorithms : vectors and tensors, Cambridge University Press, 2012.
+
+    Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
+    of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
 
     .. note:: The coordinate system used is x -> North, y -> East
     and z -> Down
@@ -1734,56 +1748,64 @@ class TriaxialEllipsoid(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the ellipsoid.
-    * a, b, c : float
-        Semi-axes of the ellipsoid (a>b>c)
+    * large_axis, intermediate_axis, small_axis: float
+        Semi-axes forming the ellipsoid.
     * strike, dip, rake
         Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10., 25., 40.],
-                     'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
+                     'remanent magnetization':[10., 25., 40.],
+                     'susceptibility tensor':[0.562, 0.485, 0.25,
+                                              90., 0., 0.]}``
 
     Examples:
 
-        >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30,{
-        ...                       'remanence': [10., 25., 40.],
-        ...                       'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = TriaxialEllipsoid(x=1, y=2, z=3, large_axis=6,
+        ...                       intermediate_axis=5, small_axis=4,
+        ...                       strike=10, dip=20, rake=30, props={
+        ...                       'remanent magnetization': [10., 25., 40.],
+        ...                       'susceptibility tensor': [0.562, 0.485,
+        ...                                                 0.25, 90., 0.,
+        ...                                                 0.]})
         >>> e.props['remanence']
         [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
-        >>> print e.props['density']
+        >>> print(e.props['density'])
         20
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
- | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence\
-:[10.0, 25.0, 40.0]
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
+_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485,\
+ 0.25, 90.0, 0.0, 0.0] | remanent magnetization:[10.0, 25.0, 40.0]
         >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
- | rake:30.0
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
+_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0
         >>> e.addprop('density', 2670)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | c:4.0 | strike:10.0 | dip:20.0\
- | rake:30.0 | density:2670
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
+_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, c, strike, dip, rake, props=None):
+    def __init__(self, x, y, z, large_axis, intermediate_axis, small_axis,
+                 strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-        self.a = float(a)
-        self.b = float(b)
-        self.c = float(c)
-        self.strike = float(strike)
-        self.dip = float(dip)
-        self.rake = float(rake)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.large_axis = large_axis
+        self.intermediate_axis = intermediate_axis
+        self.small_axis = small_axis
+        self.strike = strike
+        self.dip = dip
+        self.rake = rake
 
-        assert self.a > self.b and self.b > self.c, \
-            "a must be greater than b and b must greater than c"
+        assert self.large_axis > self.intermediate_axis and
+        self.intermediate_axis > self.small_axis,
+        "large_axis must be greater than intermediate_axis and \
+intermediate_axis must greater than small_axis"
 
     def __str__(self):
         """
@@ -1791,9 +1813,10 @@ class TriaxialEllipsoid(GeometricElement):
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
-                 ('a', self.a), ('b', self.b), ('c', self.c),
-                 ('strike', self.strike), ('dip', self.dip),
-                 ('rake', self.rake)]
+                 ('large_axis', self.large_axis),
+                 ('intermediate_axis', self.intermediate_axis),
+                 ('small_axis', self.small_axis), ('strike', self.strike),
+                 ('dip', self.dip), ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
@@ -1801,7 +1824,22 @@ class TriaxialEllipsoid(GeometricElement):
 class ProlateEllipsoid(GeometricElement):
 
     """
-    Create a prolate ellipsoid.
+    Create an arbitrarily-oriented prolate ellipsoid.
+
+    Prolate ellipsoids are those having symmetry around the large axes.
+    This code follows Emerson et al. (1985) and defines the spatial
+    orientation of the ellipsoid by using three angles: strike,
+    rake and dip. These angles are commonly used to define the
+    orientation of geological structures (Allmendinger et al., 2012).
+
+    References:
+
+    Allmendinger, R., Cardozo, N., and Fisher, D. M.: Structural geology
+    algorithms : vectors and tensors, Cambridge University Press, 2012.
+
+    Emerson, D. W., Clark, D., and Saul, S.: Magnetic exploration models
+    incorporating remanence, demagnetization and anisotropy: HP 41C
+    handheld computer algorithms, Exploration Geophysics, 16, 1-122, 1985.
 
     .. note:: The coordinate system used is x -> North, y -> East
     and z -> Down
@@ -1810,54 +1848,60 @@ class ProlateEllipsoid(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the ellipsoid.
-    * a, b : float
-        Semi-axes of the ellipsoid (a>b)
+    * large_axis, small_axis: float
+        Semi-axes forming the ellipsoid.
     * strike, dip, rake
         Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10., 25., 40.],
-                     'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
+                     'remanent magnetization':[10., 25., 40.],
+                     'susceptibility tensor':[0.562, 0.485, 0.25,
+                                              90., 0., 0.]}``
 
     Examples:
 
-        >>> e = ProlateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30,{
-        ...                      'remanence': [10., 25., 40.],
-        ...                      'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = ProlateEllipsoid(x=1, y=2, z=3, large_axis=6, small_axis=4,
+        ...                      strike=10, dip=20, rake=30, props={
+        ...                      'remanent magnetization': [10., 25., 40.],
+        ...                      'susceptibility tensor': [0.562, 0.485,
+        ...                                                0.25, 90., 0.,
+        ...                                                0.]})
         >>> e.props['remanence']
         [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
-        >>> print e.props['density']
+        >>> print(e.props['density'])
         20
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:4.0 | strike:10.0 | dip:20.0 | rake:\
-30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10.0, \
-25.0, 40.0]
-        >>> e = ProlateEllipsoid(1, 2, 3, 6, 5, 10, 20, 30)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | strike:10.0 | dip:20.0 | rake:\
-30.0
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] |\
+ remanent magnetization:[10.0, 25.0, 40.0]
+        >>> e = ProlateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30)
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0
         >>> e.addprop('density', 2670)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:6.0 | b:5.0 | strike:10.0 | dip:20.0 | rake:\
-30.0 | density:2670
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, strike, dip, rake, props=None):
+    def __init__(self, x, y, z, large_axis, small_axis,
+                 strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-        self.a = float(a)
-        self.b = float(b)
-        self.strike = float(strike)
-        self.dip = float(dip)
-        self.rake = float(rake)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.large_axis = large_axis
+        self.small_axis = small_axis
+        self.strike = strike
+        self.dip = dip
+        self.rake = rake
 
-        assert self.a > self.b, "a must be greater than b"
+        assert self.large_axis > self.small_axis,
+        "large_axis must be greater than small_axis"
 
     def __str__(self):
         """
@@ -1865,9 +1909,9 @@ class ProlateEllipsoid(GeometricElement):
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
-                 ('a', self.a), ('b', self.b),
-                 ('strike', self.strike), ('dip', self.dip),
-                 ('rake', self.rake)]
+                 ('large_axis', self.large_axis),
+                 ('small_axis', self.small_axis), ('strike', self.strike),
+                 ('dip', self.dip), ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
@@ -1875,7 +1919,23 @@ class ProlateEllipsoid(GeometricElement):
 class OblateEllipsoid(GeometricElement):
 
     """
-    Create a oblate ellipsoid.
+    Create an arbitrarily-oriented oblate ellipsoid.
+
+    Oblate ellipsoids are those having symmetry around the small axes.
+    This code follows a convention similar to that defined by
+    Emerson et al. (1985) and defines the spatial
+    orientation of the ellipsoid by using three angles: strike,
+    rake and dip. These angles are commonly used to define the
+    orientation of geological structures (Allmendinger et al., 2012).
+
+    References:
+
+    Allmendinger, R., Cardozo, N., and Fisher, D. M.: Structural geology
+    algorithms : vectors and tensors, Cambridge University Press, 2012.
+
+    Emerson, D. W., Clark, D., and Saul, S.: Magnetic exploration models
+    incorporating remanence, demagnetization and anisotropy: HP 41C
+    handheld computer algorithms, Exploration Geophysics, 16, 1-122, 1985.
 
     .. note:: The coordinate system used is x -> North, y -> East
     and z -> Down
@@ -1884,54 +1944,60 @@ class OblateEllipsoid(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the ellipsoid.
-    * a, b : float
-        Semi-axes of the ellipsoid (a<b)
+    * large_axis, small_axis: float
+        Semi-axes forming the ellipsoid.
     * strike, dip, rake
         Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanence':[10., 25., 40.],
-                     'k':[0.562, 0.485, 0.25, 90., 0., 0.]}``
+                     'remanent magnetization':[10., 25., 40.],
+                     'susceptibility tensor':[0.562, 0.485, 0.25,
+                                              90., 0., 0.]}``
 
     Examples:
 
-        >>> e = OblateEllipsoid(1, 2, 3, 4, 6, 10, 20, 30,{
-        ...                     'remanence': [10., 25., 40.],
-        ...                     'k': [0.562, 0.485, 0.25, 90., 0., 0.]})
+        >>> e = OblateEllipsoid(x=1, y=2, z=3, large_axis=6, small_axis=4,
+        ...                     strike=10, dip=20, rake=30, props={
+        ...                     'remanent magnetization': [10., 25., 40.],
+        ...                     'susceptibility tensor': [0.562, 0.485,
+        ...                                               0.25, 90., 0.,
+        ...                                               0.]})
         >>> e.props['remanence']
         [10.0, 25.0, 40.0]
         >>> e.addprop('density', 20)
-        >>> print e.props['density']
+        >>> print(e.props['density'])
         20
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
-30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] | remanence:[10.0, \
-25.0, 40.0]
-        >>> e = OblateEllipsoid(1, 2, 3, 4, 6, 10, 20, 30)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
-30.0
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] |\
+ remanent magnetization:[10.0, 25.0, 40.0]
+        >>> e = OblateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30)
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0
         >>> e.addprop('density', 2670)
-        >>> print e
-        x:1.0 | y:2.0 | z:3.0 | a:4.0 | b:6.0 | strike:10.0 | dip:20.0 | rake:\
-30.0 | density:2670
+        >>> print(e)
+        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
+| dip:20.0 | rake:30.0 | density:2670
 
     """
 
-    def __init__(self, x, y, z, a, b, strike, dip, rake, props=None):
+    def __init__(self, x, y, z, large_axis, small_axis,
+                 strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-        self.a = float(a)
-        self.b = float(b)
-        self.strike = float(strike)
-        self.dip = float(dip)
-        self.rake = float(rake)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.large_axis = large_axis
+        self.small_axis = small_axis
+        self.strike = strike
+        self.dip = dip
+        self.rake = rake
 
-        assert self.a < self.b, "a must be smaller than b"
+        assert self.large_axis > self.small_axis,
+        "large_axis must be greater than small_axis"
 
     def __str__(self):
         """
@@ -1939,8 +2005,8 @@ class OblateEllipsoid(GeometricElement):
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
-                 ('a', self.a), ('b', self.b),
-                 ('strike', self.strike), ('dip', self.dip),
-                 ('rake', self.rake)]
+                 ('large_axis', self.large_axis),
+                 ('small_axis', self.small_axis), ('strike', self.strike),
+                 ('dip', self.dip), ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
