@@ -27,10 +27,10 @@ def test_pel_polereduce():
     degree = 3
     pel = PELTotalField(x, y, z, data, inc, dec, layer, windows, degree,
                         sinc, sdec)
-    eql = pel + 1e-25*PELSmoothness(layer, windows, degree)
+    eql = pel + 1e-22*PELSmoothness(layer, windows, degree)
     eql.fit()
 
-    assert_array_almost_equal(eql[0].predicted(), data, decimal=1)
+    assert_allclose(eql[0].predicted(), data, rtol=0.05)
 
     layer.addprop('magnetization',
                   utils.ang2vec(eql.estimate_, inc=-90, dec=0))

@@ -14,9 +14,12 @@
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest version on PyPI
     :target: https://pypi.python.org/pypi/fatiando/
-.. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat-square
+.. image:: http://img.shields.io/travis/fatiando/fatiando/master.svg?style=flat-square&label=linux
     :alt: Travis CI build status
     :target: https://travis-ci.org/fatiando/fatiando
+.. image:: https://img.shields.io/appveyor/ci/leouieda/fatiando/master.svg?style=flat-square&label=windows
+    :alt: AppVeyor build status
+    :target: https://ci.appveyor.com/project/leouieda/fatiando
 .. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
