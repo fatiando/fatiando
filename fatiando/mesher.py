@@ -1755,36 +1755,36 @@ class TriaxialEllipsoid(GeometricElement):
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanent magnetization':[10., 25., 40.],
+                     'remanent magnetization':[10, 25, 40],
                      'susceptibility tensor':[0.562, 0.485, 0.25,
-                                              90., 0., 0.]}``
+                                              90, 0, 0]}``
 
     Examples:
 
         >>> e = TriaxialEllipsoid(x=1, y=2, z=3, large_axis=6,
         ...                       intermediate_axis=5, small_axis=4,
         ...                       strike=10, dip=20, rake=30, props={
-        ...                       'remanent magnetization': [10., 25., 40.],
+        ...                       'remanent magnetization': [10, 25, 40],
         ...                       'susceptibility tensor': [0.562, 0.485,
-        ...                                                 0.25, 90., 0.,
-        ...                                                 0.]})
-        >>> e.props['remanence']
-        [10.0, 25.0, 40.0]
+        ...                                                 0.25, 90, 0,
+        ...                                                 0]})
+        >>> e.props['remanent magnetization']
+        [10, 25, 40]
         >>> e.addprop('density', 20)
         >>> print(e.props['density'])
         20
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
-_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485,\
- 0.25, 90.0, 0.0, 0.0] | remanent magnetization:[10.0, 25.0, 40.0]
-        >>> e = TriaxialEllipsoid(1, 2, 3, 6, 5, 4, 10, 20, 30)
+        x:1 | y:2 | z:3 | large_axis:6 | intermediate_axis:5 | small_axis:4 | \
+strike:10 | dip:20 | rake:30 | density:20 | remanent magnetization:[10, 25, 40\
+] | susceptibility tensor:[0.562, 0.485, 0.25, 90, 0, 0]
+        >>> e = TriaxialEllipsoid(1, 2.7, 3, 6, 5, 4, 10, 20, 30)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
-_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0
+        x:1 | y:2.7 | z:3 | large_axis:6 | intermediate_axis:5 | small_axis:4 \
+| strike:10 | dip:20 | rake:30
         >>> e.addprop('density', 2670)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | intermediate_axis:5.0 | small\
-_axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0 | density:2670
+        x:1 | y:2.7 | z:3 | large_axis:6 | intermediate_axis:5 | small_axis:4 \
+| strike:10 | dip:20 | rake:30 | density:2670
 
     """
 
@@ -1802,8 +1802,8 @@ _axis:4.0 | strike:10.0 | dip:20.0 | rake:30.0 | density:2670
         self.dip = dip
         self.rake = rake
 
-        assert self.large_axis > self.intermediate_axis and
-        self.intermediate_axis > self.small_axis,
+        assert self.large_axis > self.intermediate_axis and \
+            self.intermediate_axis > self.small_axis
         "large_axis must be greater than intermediate_axis and \
 intermediate_axis must greater than small_axis"
 
@@ -1855,35 +1855,35 @@ class ProlateEllipsoid(GeometricElement):
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanent magnetization':[10., 25., 40.],
+                     'remanent magnetization':[13, -5, 7.4],
                      'susceptibility tensor':[0.562, 0.485, 0.25,
-                                              90., 0., 0.]}``
+                                              0, 7, 29.4]}``
 
     Examples:
 
         >>> e = ProlateEllipsoid(x=1, y=2, z=3, large_axis=6, small_axis=4,
         ...                      strike=10, dip=20, rake=30, props={
-        ...                      'remanent magnetization': [10., 25., 40.],
+        ...                      'remanent magnetization': [10, 25, 40],
         ...                      'susceptibility tensor': [0.562, 0.485,
-        ...                                                0.25, 90., 0.,
-        ...                                                0.]})
-        >>> e.props['remanence']
-        [10.0, 25.0, 40.0]
+        ...                                                0.25, 90, 0,
+        ...                                                0]})
+        >>> e.props['remanent magnetization']
+        [10, 25, 40]
         >>> e.addprop('density', 20)
         >>> print(e.props['density'])
         20
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] |\
- remanent magnetization:[10.0, 25.0, 40.0]
+        x:1 | y:2 | z:3 | large_axis:6 | small_axis:4 | strike:10 | dip:20 | r\
+ake:30 | density:20 | remanent magnetization:[10, 25, 40] | susceptibility ten\
+sor:[0.562, 0.485, 0.25, 90, 0, 0]
         >>> e = ProlateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0
+        x:1 | y:2 | z:3 | large_axis:6 | small_axis:4 | strike:10 | dip:20 | r\
+ake:30
         >>> e.addprop('density', 2670)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0 | density:2670
+        x:1 | y:2 | z:3 | large_axis:6 | small_axis:4 | strike:10 | dip:20 | r\
+ake:30 | density:2670
 
     """
 
@@ -1900,7 +1900,7 @@ class ProlateEllipsoid(GeometricElement):
         self.dip = dip
         self.rake = rake
 
-        assert self.large_axis > self.small_axis,
+        assert self.large_axis > self.small_axis
         "large_axis must be greater than small_axis"
 
     def __str__(self):
@@ -1944,59 +1944,59 @@ class OblateEllipsoid(GeometricElement):
 
     * x, y, z : float
         The coordinates of the center of the ellipsoid.
-    * large_axis, small_axis: float
+    * small_axis, large_axis: float
         Semi-axes forming the ellipsoid.
     * strike, dip, rake
         Orientation angles of the ellipsoid.
     * props : dict
         Physical properties assigned to the ellipsoid.
         Ex: ``props={'density':10,
-                     'remanent magnetization':[10., 25., 40.],
+                     'remanent magnetization':[10, 25, 40],
                      'susceptibility tensor':[0.562, 0.485, 0.25,
-                                              90., 0., 0.]}``
+                                              90, 0, 0]}``
 
     Examples:
 
-        >>> e = OblateEllipsoid(x=1, y=2, z=3, large_axis=6, small_axis=4,
+        >>> e = OblateEllipsoid(x=1, y=2, z=3, small_axis=4, large_axis=6,
         ...                     strike=10, dip=20, rake=30, props={
-        ...                     'remanent magnetization': [10., 25., 40.],
+        ...                     'remanent magnetization': [10, 25, 40],
         ...                     'susceptibility tensor': [0.562, 0.485,
-        ...                                               0.25, 90., 0.,
-        ...                                               0.]})
-        >>> e.props['remanence']
-        [10.0, 25.0, 40.0]
+        ...                                               0.25, 90, 0,
+        ...                                               0]})
+        >>> e.props['remanent magnetization']
+        [10, 25, 40]
         >>> e.addprop('density', 20)
         >>> print(e.props['density'])
         20
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0 | density:20 | k:[0.562, 0.485, 0.25, 90.0, 0.0, 0.0] |\
- remanent magnetization:[10.0, 25.0, 40.0]
-        >>> e = OblateEllipsoid(1, 2, 3, 6, 4, 10, 20, 30)
+        x:1 | y:2 | z:3 | small_axis:4 | large_axis:6 | strike:10 | dip:20 | r\
+ake:30 | density:20 | remanent magnetization:[10, 25, 40] | susceptibility ten\
+sor:[0.562, 0.485, 0.25, 90, 0, 0]
+        >>> e = OblateEllipsoid(1, 2, 3, 2, 9, 10, 20, 30)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0
+        x:1 | y:2 | z:3 | small_axis:2 | large_axis:9 | strike:10 | dip:20 | r\
+ake:30
         >>> e.addprop('density', 2670)
         >>> print(e)
-        x:1.0 | y:2.0 | z:3.0 | large_axis:6.0 | small_axis:4.0 | strike:10.0 \
-| dip:20.0 | rake:30.0 | density:2670
+        x:1 | y:2 | z:3 | small_axis:2 | large_axis:9 | strike:10 | dip:20 | r\
+ake:30 | density:2670
 
     """
 
-    def __init__(self, x, y, z, large_axis, small_axis,
+    def __init__(self, x, y, z, small_axis, large_axis,
                  strike, dip, rake, props=None):
         GeometricElement.__init__(self, props)
 
         self.x = x
         self.y = y
         self.z = z
-        self.large_axis = large_axis
         self.small_axis = small_axis
+        self.large_axis = large_axis
         self.strike = strike
         self.dip = dip
         self.rake = rake
 
-        assert self.large_axis > self.small_axis,
+        assert self.large_axis > self.small_axis
         "large_axis must be greater than small_axis"
 
     def __str__(self):
@@ -2005,8 +2005,8 @@ class OblateEllipsoid(GeometricElement):
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
-                 ('large_axis', self.large_axis),
-                 ('small_axis', self.small_axis), ('strike', self.strike),
+                 ('small_axis', self.small_axis),
+                 ('large_axis', self.large_axis), ('strike', self.strike),
                  ('dip', self.dip), ('rake', self.rake)]
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
