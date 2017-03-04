@@ -17,10 +17,10 @@ python -c "import fatiando; print('Fatiando version:', fatiando.__version__)"
 # version of the package.
 if [ "$COVERAGE" == "true" ];
 then
-    python -c "import fatiando; assert fatiando.test(verbose=True, coverage=True) == 0"
+    python -c "import fatiando; fatiando.test(verbose=True, coverage=True)"
     cp .coverage* ..
 else
-    python -c "import fatiando; assert fatiando.test(verbose=True) == 0"
+    python -c "import fatiando; fatiando.test(verbose=True)"
 fi
 
 # Workaround for https://github.com/travis-ci/travis-ci/issues/6522

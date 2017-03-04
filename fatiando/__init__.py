@@ -30,10 +30,10 @@ def test(doctest=True, verbose=False, coverage=False):
         If ``True``, will run test coverage analysis on the code as well.
         Requires ``pytest-cov``.
 
-    Returns:
+    Raises:
 
-    * exit_code : int
-        The exit code for the test run. If ``0``, then all tests pass.
+    * ``AssertionError`` if pytest returns a non-zero error code indicating
+      that some tests have failed.
 
     """
     import pytest
@@ -48,4 +48,5 @@ def test(doctest=True, verbose=False, coverage=False):
         args.append('--doctest-modules')
     args.append('--pyargs')
     args.append('fatiando')
-    return pytest.main(args)
+    status = pytest.main(args)
+    assert status == 0, "Some tests have failed."
