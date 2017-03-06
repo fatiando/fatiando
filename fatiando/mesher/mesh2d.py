@@ -16,7 +16,8 @@ class SquareMesh(RegularMesh):
 
     For all purposes, :class:`~fatiando.mesher.SquareMesh` can be used as a
     list of :class:`~fatiando.mesher.Square`. The order of the squares in the
-    list is: x directions varies first, then y.
+    list is: y directions varies first, then x. This is similar to the grid
+    generation in :func:`fatiando.gridder.regular`.
 
     Parameters:
 
@@ -37,16 +38,16 @@ class SquareMesh(RegularMesh):
         >>> for square in mesh:
         ...     print(square.bounds)
         [0.0, 1.0, 0.0, 2.0]
-        [1.0, 2.0, 0.0, 2.0]
         [0.0, 1.0, 2.0, 4.0]
-        [1.0, 2.0, 2.0, 4.0]
         [0.0, 1.0, 4.0, 6.0]
+        [1.0, 2.0, 0.0, 2.0]
+        [1.0, 2.0, 2.0, 4.0]
         [1.0, 2.0, 4.0, 6.0]
         >>> # You can also index the mesh like a list
         >>> mesh[1].bounds
-        [1.0, 2.0, 0.0, 2.0]
+        [0.0, 1.0, 2.0, 4.0]
         >>> mesh[-2].bounds
-        [0.0, 1.0, 4.0, 6.0]
+        [1.0, 2.0, 2.0, 4.0]
         >>> len(mesh)
         6
         >>> mesh.size
@@ -89,8 +90,8 @@ class SquareMesh(RegularMesh):
         Make a Square that corresponds to the given index of the mesh.
         """
         nx, ny = self.shape
-        j = index//nx
-        i = index - j*nx
+        i = index//ny
+        j = index - i*ny
         x1 = self.bounds[0] + self.dims[0]*i
         x2 = x1 + self.dims[0]
         y1 = self.bounds[2] + self.dims[1]*j
