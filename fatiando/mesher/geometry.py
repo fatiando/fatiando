@@ -5,40 +5,8 @@ Classes that define basic geometric primitives. All inherit from
 from __future__ import division, print_function
 from builtins import object, super
 import numpy as np
-import copy
 
-
-class GeometricElement(object):
-    """
-    Base class for all geometric elements.
-    """
-
-    def __init__(self, props):
-        if props is None:
-            self.props = dict()
-        else:
-            self.props = copy.deepcopy(props)
-
-    def addprop(self, prop, value):
-        """
-        Add a physical property to this geometric element.
-
-        If it already has the property, the given value will overwrite the
-        existing one.
-
-        Parameters:
-
-        * prop : str
-            Name of the physical property.
-        * value : float
-            The value of this physical property.
-
-        """
-        self.props[prop] = value
-
-    def copy(self):
-        """ Return a deep copy of the current instance."""
-        return copy.deepcopy(self)
+from .base import GeometricElement
 
 
 class Polygon(GeometricElement):

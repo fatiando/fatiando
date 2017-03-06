@@ -2,20 +2,9 @@
 Test the geometry primitive classes.
 """
 from __future__ import division
-from ..geometry import GeometricElement
 from .. import Polygon, Square, Prism, PolygonalPrism, Tesseroid, Sphere
 import numpy as np
 import numpy.testing as npt
-
-
-def test_geometric_element_copy():
-    "Make sure copy method works, even for props dictionary"
-    orig = GeometricElement({'density': 5000})
-    cp = orig.copy()
-    assert orig.props == cp.props
-    assert orig is not cp
-    orig.props['density'] = 3000
-    assert orig.props != cp.props
 
 
 def test_polygon_copy():
