@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 import copy
 from operator import mul
 from functools import reduce
+import numpy as np
 
 
 class GeometricElement(object):
@@ -112,4 +113,4 @@ class RegularMesh(with_metaclass(ABCMeta, GeometricElement)):
             See the mesh class docstring for the order of elements.
 
         """
-        self.props[prop] = values
+        self.props[prop] = np.array(values)
