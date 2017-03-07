@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from fatiando.mesher import PrismMesh, Prism
 
 import numpy as np
+import numpy.testing as npt
 
 
 def test_prism_mesh_copy():
@@ -9,7 +10,7 @@ def test_prism_mesh_copy():
     p1.addprop('density', 3200 + np.zeros(p1.size))
     p2 = p1.copy()
     assert p1 is not p2
-    assert np.array_equal(p1.props['density'], p2.props['density'])
+    npt.assert_equal(p1.props['density'], p2.props['density'])
 
 
 def test_carvetopo():
@@ -39,11 +40,11 @@ def test_carvetopo():
                 assert p is None
             else:
                 assert p is not None
-                assert np.any(p0r[i].center() == p.center())
+                npt.assert_allclose(p0r[i].center, p.center)
     # Test p2
     for i, p in enumerate(p2):
         if i == 1:
             assert p is None
         else:
             assert p is not None
-            assert np.any(p2r[i].center() == p.center())
+            npt.assert_allclose(p2r[i].center, p.center)
