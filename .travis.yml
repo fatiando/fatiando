@@ -27,17 +27,17 @@ env:
 
     # Build under all combinations of the of the following
     matrix:
-        - PYTHON=2.7
-        - PYTHON=3.5
-        - PYTHON=3.6
+        - PYTHON=2.7 BUILD_DOCS=true UPDATE_WEBSITE=true
+        - PYTHON=3.5 BUILD_DOCS=true
+        - PYTHON=3.6 BUILD_DOCS=true
 
 matrix:
 
     # Add special build configurations
     include:
-        - env: PYTHON=2.7 MAYAVI=true
+        - env: PYTHON=2.7 MAYAVI=true BUILD_DOCS=false
         # Only submit coverage to coveralls once
-        - env: PYTHON=2.7 COVERAGE=true
+        - env: PYTHON=2.7 COVERAGE=true BUILD_DOCS=false
 
     allow_failures:
         # Still testing Python 3 support so allow these builds to fail
@@ -69,8 +69,8 @@ install:
 script:
     - bash ci/run-tests.sh
     - make pep8
-    - make -C doc
+    - if [ "$BUILD_DOCS" == "true" ]; then make -C doc; fi
 
 after_success:
     - if [ "$COVERAGE" == "true" ]; then coveralls; fi
-    - bash ci/update-website.sh
+    - if [ "$UPDATE_WEBSITE" == "true" ]; then bash ci/update-website.sh; fi
