@@ -27,9 +27,9 @@ env:
 
     # Build under all combinations of the of the following
     matrix:
-        - env: PYTHON=2.7
-        - env: PYTHON=3.5
-        - env: PYTHON=3.6
+        - PYTHON=2.7
+        - PYTHON=3.5
+        - PYTHON=3.6
 
 matrix:
 
