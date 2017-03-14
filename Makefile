@@ -10,7 +10,7 @@ help:
 	@echo "    cython        generate C code from Cython files"
 	@echo "    test          run the test suite (including doctests)"
 	@echo "    pep8          check for PEP8 style compliance"
-	@echo "    pep8-stats    print a summary of the PEP8 check"
+	@echo "    check         run static analysis checks"
 	@echo "    coverage      calculate test coverage using Coverage"
 	@echo "    clean         clean up build and generated files"
 	@echo ""
@@ -36,10 +36,11 @@ coverage:
 	rm -r $(TESTDIR)
 
 pep8:
-	pep8 $(PEP8ARGS) fatiando cookbook gallery setup.py
+	flake8 fatiando gallery setup.py
 
-pep8-stats:
-	pep8 $(PEP8ARGS) --statistics -qq fatiando cookbook gallery setup.py
+check:
+	# Check Python 3 compatibility first
+	pylint fatiando gallery setup.py --py3k || pylint fatiando gallery setup.py
 
 clean:
 	find . -name "*.so" -exec rm -v {} \;

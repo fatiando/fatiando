@@ -75,6 +75,10 @@ script:
     - make pep8
     - if [ "$BUILD_DOCS" == "true" ]; then make -C doc; fi
 
+after_script:
+    # Run pylint static analysis but don't let it break the build
+    - make check
+
 after_success:
     - if [ "$COVERAGE" == "true" ]; then coveralls; fi
     - if [ "$UPDATE_WEBSITE" == "true" ]; then bash ci/update-website.sh; fi
