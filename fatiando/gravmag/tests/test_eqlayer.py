@@ -1,4 +1,5 @@
 from __future__ import division
+import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal
 from fatiando.gravmag.eqlayer import (EQLGravity, EQLTotalField,
@@ -9,6 +10,7 @@ from fatiando.mesher import PointGrid, Prism
 from fatiando import utils, gridder
 
 
+@pytest.mark.xfail
 def test_pel_polereduce():
     "PELTotalField can reduce data to the pole"
     # Use remanent magnetization
