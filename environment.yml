@@ -16,7 +16,5 @@ dependencies:
     - coverage
     - pep8=1.6.2
     - cython
-    - pip:
-        # Need the dev version of sphinx-gallery for the Mayavi plot thumbnails
-        - https://github.com/sphinx-gallery/sphinx-gallery/archive/master.zip
-        - sphinx_bootstrap_theme==0.4.5
+    - sphinx-gallery
+    - sphinx_bootstrap_theme

@@ -2,18 +2,17 @@
 
 .. raw:: html
 
-    <div class="row" style="margin-top: 60px">
+    <div class="row" style="margin-top: 30px">
         <div class="col-md-2">
         </div>
         <div class="col-md-8">
-            <img src="_static/fatiando-banner.png" width="100%"
-                style="margin-bottom: 50px;"></img>
+            <img src="_static/fatiando-banner.png" width="100%"></img>
             </div>
         <div class="col-md-2">
         </div>
     </div>
 
-    <div class="text-center" style="font-size: 16pt; margin-bottom: 50px;">
+    <div class="text-center" style="font-size: 16pt; margin-top: 80px; margin-bottom: 80px;">
 
 
 An open-source Python library for modeling and inversion in geophysics.
