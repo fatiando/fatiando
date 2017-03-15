@@ -1,4 +1,5 @@
 from ...mesher import TriaxialEllipsoid, ProlateEllipsoid, OblateEllipsoid
+from ...mesher import coord_transf_matrix_triaxial, coord_transf_matrix_oblate
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -30,12 +31,12 @@ def test_triaxial_ellipsoid_copy():
         cp.props['susceptibility tensor']
 
 
-def test_triaxial_ellipsoid_coord_transf_matrix():
+def test_coord_transf_matrix_triaxial():
     'Coordinate transformation matrix built with known orientation angles'
     alpha = -np.pi
     gamma = np.pi/2
     delta = 0
-    transf_matrix = TriaxialEllipsoid.coord_transf_matrix(alpha, gamma, delta)
+    transf_matrix = coord_transf_matrix_triaxial(alpha, gamma, delta)
     assert_almost_equal(transf_matrix, np.identity(3), decimal=15)
 
 

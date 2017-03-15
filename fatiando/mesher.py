@@ -1803,22 +1803,18 @@ strike:10 | dip:20 | rake:30 | density:20 | remanent magnetization:[10, 25, 40\
         self.rake = rake
 
         assert self.large_axis > self.intermediate_axis and \
-            self.intermediate_axis > self.small_axis,
-        "large_axis must be greater than intermediate_axis and \
-intermediate_axis must greater than small_axis"
+            self.intermediate_axis > self.small_axis, "large_axis must be grea\
+ter than intermediate_axis and intermediate_axis must greater than small_axis"
 
-    # Auxiliary orientation angles
-    self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                          self.dip,
-                                                          self.rake)
+        # Auxiliary orientation angles
+        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
+                                                              self.dip,
+                                                              self.rake)
 
-    # Coordinate transformation matrix
-    self.transf_matrix = coord_transf_matrix(self.alpha, self.gamma,
-                                             self.delta)
-
-    # Matrix form of the susceptibility tensor
-    if 'susceptibility tensor' in self.props:
-        self.suscep_tensor = susceptibility_tensor()
+        # Coordinate transformation matrix
+        self.transf_matrix = coord_transf_matrix_triaxial(self.alpha,
+                                                          self.gamma,
+                                                          self.delta)
 
     def __str__(self):
         """
@@ -1833,97 +1829,6 @@ intermediate_axis must greater than small_axis"
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
-    def auxiliary_angles(strike, dip, rake):
-        '''
-        Calculate auxiliary angles alpha, gamma and delta (Clark et al., 1986)
-        as functions of geological angles strike, dip and rake
-        (Clark et al., 1986; Allmendinger et al., 2012), given in degrees.
-        This function implements the formulas presented by
-        Clark et al. (1986).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-
-        Allmendinger, R., Cardozo, N., and Fisher, D. M.:
-        Structural geology algorithms : vectors and tensors,
-        Cambridge University Press, 2012.
-        '''
-
-        strike_r = np.deg2rad(strike)
-        cos_dip = np.cos(np.deg2rad(dip))
-        sin_dip = np.sin(np.deg2rad(dip))
-        cos_rake = np.cos(np.deg2rad(rake))
-        sin_rake = np.sin(np.deg2rad(rake))
-
-        aux = sin_dip*sin_rake
-        aux1 = cos_rake/np.sqrt(1 - aux*aux)
-        aux2 = sin_dip*cos_rake
-
-        if aux1 > 1.:
-            aux1 = 1.
-        if aux1 < -1.:
-            aux1 = -1.
-
-        alpha = strike_r - np.arccos(aux1)
-        if aux2 != 0:
-            gamma = -np.arctan(cos_dip/aux2)
-        else:
-            if cos_dip > 0:
-                gamma = np.pi/2
-            if cos_dip < 0:
-                gamma = -np.pi/2
-            if cos_dip == 0:
-                gamma = 0
-        delta = np.arcsin(aux)
-
-        assert delta <= np.pi/2, 'delta must be lower than or equalt to 90 \
-degrees'
-
-        assert (gamma >= -np.pi/2) and (gamma <= np.pi/2), 'gamma must lie \
-between -90 and 90 degrees.'
-
-        return alpha, gamma, delta
-
-    def coord_transf_matrix(alpha, gamma, delta):
-        '''
-        Calculate the coordinate transformation matrix
-        for a triaxial model by using the auxiliary angles
-        alpha, gamma and delta.
-
-        The columns of this matrix are defined according to the unit vectors
-        v1, v2 and v3 presented by Clark et al. (1986, p. 192).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-        '''
-
-        cos_alpha = np.cos(alpha)
-        sin_alpha = np.sin(alpha)
-
-        cos_gamma = np.cos(gamma)
-        sin_gamma = np.sin(gamma)
-
-        cos_delta = np.cos(delta)
-        sin_delta = np.sin(delta)
-
-        v1 = np.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta, -sin_delta])
-
-        v2 = np.array([cos_alpha*cos_gamma*sin_delta + sin_alpha*sin_gamma,
-                       sin_alpha*cos_gamma*sin_delta - cos_alpha*sin_gamma,
-                       -cos_gamma*cos_delta])
-
-        v3 = np.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
-                       -cos_alpha*cos_gamma - sin_alpha*sin_gamma*sin_delta,
-                       sin_gamma*cos_delta])
-
-        transf_matrix = np.vstack((v1, v2, v3)).T
-
-        return transf_matrix
-
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -1934,8 +1839,12 @@ between -90 and 90 degrees.'
         three positive eigenvalues (principal susceptibilities), in
         descending order, and three angles (in degrees) defining
         the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function coord_transf_matrix.
+        The eigenvector matrix is defined by the function
+        coord_transf_matrix_triaxial.
         '''
+
+        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
+is not in the dictionary of physical properties'
 
         assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
@@ -1959,10 +1868,11 @@ be all positive'
         rake = self.props['susceptibility tensor'][5]
 
         # Eigenvector matrix of the susceptibility tensor
-        U = auxiliary_angles(strike, dip, rake)
+        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
+        U = coord_transf_matrix_triaxial(alpha, gamma, delta)
 
-        suscep_tensor = np.dot(U, np.diag([k1, k2, k3]))
-        suscep_tensor = np.dot(suscep_tensor, U.T)
+        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+        suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
         return suscep_tensor
 
@@ -2046,8 +1956,18 @@ ake:30 | density:2670
         self.dip = dip
         self.rake = rake
 
-        assert self.large_axis > self.small_axis
-        "large_axis must be greater than small_axis"
+        assert self.large_axis > self.small_axis, "large_axis must be greater \
+than small_axis"
+
+        # Auxiliary orientation angles
+        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
+                                                              self.dip,
+                                                              self.rake)
+
+        # Coordinate transformation matrix
+        self.transf_matrix = coord_transf_matrix_triaxial(self.alpha,
+                                                          self.gamma,
+                                                          self.delta)
 
     def __str__(self):
         """
@@ -2061,110 +1981,6 @@ ake:30 | density:2670
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
-    # Auxiliary orientation angles
-    self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                          self.dip,
-                                                          self.rake)
-
-    # Coordinate transformation matrix
-    self.transf_matrix = coord_transf_matrix(self.alpha, self.gamma,
-                                             self.delta)
-
-    # Matrix form of the susceptibility tensor
-    if 'susceptibility tensor' in self.props:
-        self.suscep_tensor = susceptibility_tensor()
-
-    def auxiliary_angles(strike, dip, rake):
-        '''
-        Calculate auxiliary angles alpha, gamma and delta (Clark et al., 1986)
-        as functions of geological angles strike, dip and rake
-        (Clark et al., 1986; Allmendinger et al., 2012), given in degrees.
-        This function implements the formulas presented by
-        Clark et al. (1986).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-
-        Allmendinger, R., Cardozo, N., and Fisher, D. M.:
-        Structural geology algorithms : vectors and tensors,
-        Cambridge University Press, 2012.
-        '''
-
-        strike_r = np.deg2rad(strike)
-        cos_dip = np.cos(np.deg2rad(dip))
-        sin_dip = np.sin(np.deg2rad(dip))
-        cos_rake = np.cos(np.deg2rad(rake))
-        sin_rake = np.sin(np.deg2rad(rake))
-
-        aux = sin_dip*sin_rake
-        aux1 = cos_rake/np.sqrt(1 - aux*aux)
-        aux2 = sin_dip*cos_rake
-
-        if aux1 > 1.:
-            aux1 = 1.
-        if aux1 < -1.:
-            aux1 = -1.
-
-        alpha = strike_r - np.arccos(aux1)
-        if aux2 != 0:
-            gamma = -np.arctan(cos_dip/aux2)
-        else:
-            if cos_dip > 0:
-                gamma = np.pi/2
-            if cos_dip < 0:
-                gamma = -np.pi/2
-            if cos_dip == 0:
-                gamma = 0
-        delta = np.arcsin(aux)
-
-        assert delta <= np.pi/2, 'delta must be lower than or equalt to 90 \
-degrees'
-
-        assert (gamma >= -np.pi/2) and (gamma <= np.pi/2), 'gamma must lie \
-between -90 and 90 degrees.'
-
-        return alpha, gamma, delta
-
-    def coord_transf_matrix(alpha, gamma, delta):
-        '''
-        Calculate the coordinate transformation matrix
-        for a triaxial model by using the auxiliary angles
-        alpha, gamma and delta.
-
-        The columns of this matrix are defined according to the unit vectors
-        v1, v2 and v3 presented by Clark et al. (1986, p. 192).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-        '''
-
-        cos_alpha = np.cos(alpha)
-        sin_alpha = np.sin(alpha)
-
-        cos_gamma = np.cos(gamma)
-        sin_gamma = np.sin(gamma)
-
-        cos_delta = np.cos(delta)
-        sin_delta = np.sin(delta)
-
-        v1 = np.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta, -sin_delta])
-
-        v2 = np.array([cos_alpha*cos_gamma*sin_delta + sin_alpha*sin_gamma,
-                       sin_alpha*cos_gamma*sin_delta - cos_alpha*sin_gamma,
-                       -cos_gamma*cos_delta])
-
-        v3 = np.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
-                       -cos_alpha*cos_gamma - sin_alpha*sin_gamma*sin_delta,
-                       sin_gamma*cos_delta])
-
-        transf_matrix = np.vstack((v1, v2, v3)).T
-
-        return transf_matrix
-
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -2175,8 +1991,12 @@ between -90 and 90 degrees.'
         three positive eigenvalues (principal susceptibilities), in
         descending order, and three angles (in degrees) defining
         the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function coord_transf_matrix.
+        The eigenvector matrix is defined by the function
+        coord_transf_matrix_triaxial.
         '''
+
+        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
+is not in the dictionary of physical properties'
 
         assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
@@ -2200,10 +2020,11 @@ be all positive'
         rake = self.props['susceptibility tensor'][5]
 
         # Eigenvector matrix of the susceptibility tensor
-        U = auxiliary_angles(strike, dip, rake)
+        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
+        U = coord_transf_matrix_triaxial(alpha, gamma, delta)
 
-        suscep_tensor = np.dot(U, np.diag([k1, k2, k3]))
-        suscep_tensor = np.dot(suscep_tensor, U.T)
+        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+        suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
         return suscep_tensor
 
@@ -2288,21 +2109,18 @@ ake:30 | density:2670
         self.dip = dip
         self.rake = rake
 
-        assert self.large_axis > self.small_axis
-        "large_axis must be greater than small_axis"
+        assert self.large_axis > self.small_axis, "large_axis must be greater \
+than small_axis"
 
-    # Auxiliary orientation angles
-    self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                          self.dip,
-                                                          self.rake)
+        # Auxiliary orientation angles
+        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
+                                                              self.dip,
+                                                              self.rake)
 
-    # Coordinate transformation matrix
-    self.transf_matrix = coord_transf_matrix(self.alpha, self.gamma,
-                                             self.delta)
-
-    # Matrix form of the susceptibility tensor
-    if 'susceptibility tensor' in self.props:
-        self.suscep_tensor = susceptibility_tensor()
+        # Coordinate transformation matrix
+        self.transf_matrix = coord_transf_matrix_oblate(self.alpha,
+                                                        self.gamma,
+                                                        self.delta)
 
     def __str__(self):
         """
@@ -2316,97 +2134,6 @@ ake:30 | density:2670
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
-    def auxiliary_angles(strike, dip, rake):
-        '''
-        Calculate auxiliary angles alpha, gamma and delta (Clark et al., 1986)
-        as functions of geological angles strike, dip and rake
-        (Clark et al., 1986; Allmendinger et al., 2012), given in degrees.
-        This function implements the formulas presented by
-        Clark et al. (1986).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-
-        Allmendinger, R., Cardozo, N., and Fisher, D. M.:
-        Structural geology algorithms : vectors and tensors,
-        Cambridge University Press, 2012.
-        '''
-
-        strike_r = np.deg2rad(strike)
-        cos_dip = np.cos(np.deg2rad(dip))
-        sin_dip = np.sin(np.deg2rad(dip))
-        cos_rake = np.cos(np.deg2rad(rake))
-        sin_rake = np.sin(np.deg2rad(rake))
-
-        aux = sin_dip*sin_rake
-        aux1 = cos_rake/np.sqrt(1 - aux*aux)
-        aux2 = sin_dip*cos_rake
-
-        if aux1 > 1.:
-            aux1 = 1.
-        if aux1 < -1.:
-            aux1 = -1.
-
-        alpha = strike_r - np.arccos(aux1)
-        if aux2 != 0:
-            gamma = -np.arctan(cos_dip/aux2)
-        else:
-            if cos_dip > 0:
-                gamma = np.pi/2
-            if cos_dip < 0:
-                gamma = -np.pi/2
-            if cos_dip == 0:
-                gamma = 0
-        delta = np.arcsin(aux)
-
-        assert delta <= np.pi/2, 'delta must be lower than or equalt to 90 \
-degrees'
-
-        assert (gamma >= -np.pi/2) and (gamma <= np.pi/2), 'gamma must lie \
-between -90 and 90 degrees.'
-
-        return alpha, gamma, delta
-
-    def coord_transf_matrix(alpha, gamma, delta):
-        '''
-        Calculate the coordinate transformation matrix
-        for a triaxial model by using the auxiliary angles
-        alpha, gamma and delta.
-
-        The columns of this matrix are defined according to the unit vectors
-        v1, v2 and v3 presented by Clark et al. (1986, p. 192).
-
-        References:
-
-        Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
-        of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
-        '''
-
-        cos_alpha = np.cos(alpha)
-        sin_alpha = np.sin(alpha)
-
-        cos_gamma = np.cos(gamma)
-        sin_gamma = np.sin(gamma)
-
-        cos_delta = np.cos(delta)
-        sin_delta = np.sin(delta)
-
-        v1 = np.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta, -sin_delta])
-
-        v2 = np.array([cos_alpha*cos_gamma*sin_delta + sin_alpha*sin_gamma,
-                       sin_alpha*cos_gamma*sin_delta - cos_alpha*sin_gamma,
-                       -cos_gamma*cos_delta])
-
-        v3 = np.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
-                       -cos_alpha*cos_gamma - sin_alpha*sin_gamma*sin_delta,
-                       sin_gamma*cos_delta])
-
-        transf_matrix = np.vstack((v1, v2, v3)).T
-
-        return transf_matrix
-
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -2417,8 +2144,12 @@ between -90 and 90 degrees.'
         three positive eigenvalues (principal susceptibilities), in
         descending order, and three angles (in degrees) defining
         the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function coord_transf_matrix.
+        The eigenvector matrix is defined by the function
+        coord_transf_matrix_oblate.
         '''
+
+        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
+is not in the dictionary of physical properties'
 
         assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
@@ -2442,9 +2173,141 @@ be all positive'
         rake = self.props['susceptibility tensor'][5]
 
         # Eigenvector matrix of the susceptibility tensor
-        U = auxiliary_angles(strike, dip, rake)
+        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
+        U = coord_transf_matrix_oblate(alpha, gamma, delta)
 
-        suscep_tensor = np.dot(U, np.diag([k1, k2, k3]))
-        suscep_tensor = np.dot(suscep_tensor, U.T)
+        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+        suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
         return suscep_tensor
+
+
+def auxiliary_angles(strike, dip, rake):
+    '''
+    Calculate auxiliary angles alpha, gamma and delta (Clark et al., 1986)
+    as functions of geological angles strike, dip and rake
+    (Clark et al., 1986; Allmendinger et al., 2012), given in degrees.
+    This function implements the formulas presented by
+    Clark et al. (1986).
+
+    References:
+
+    Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
+    of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
+
+    Allmendinger, R., Cardozo, N., and Fisher, D. M.:
+    Structural geology algorithms : vectors and tensors,
+    Cambridge University Press, 2012.
+    '''
+
+    strike_r = numpy.deg2rad(strike)
+    cos_dip = numpy.cos(numpy.deg2rad(dip))
+    sin_dip = numpy.sin(numpy.deg2rad(dip))
+    cos_rake = numpy.cos(numpy.deg2rad(rake))
+    sin_rake = numpy.sin(numpy.deg2rad(rake))
+
+    aux = sin_dip*sin_rake
+    aux1 = cos_rake/numpy.sqrt(1 - aux*aux)
+    aux2 = sin_dip*cos_rake
+
+    if aux1 > 1.:
+        aux1 = 1.
+    if aux1 < -1.:
+        aux1 = -1.
+
+    alpha = strike_r - numpy.arccos(aux1)
+    if aux2 != 0:
+        gamma = -numpy.arctan(cos_dip/aux2)
+    else:
+        if cos_dip > 0:
+            gamma = numpy.pi/2
+        if cos_dip < 0:
+            gamma = -numpy.pi/2
+        if cos_dip == 0:
+            gamma = 0
+    delta = numpy.arcsin(aux)
+
+    assert delta <= numpy.pi/2, 'delta must be lower than or equalt to 90 \
+degrees'
+
+    assert (gamma >= -numpy.pi/2) and (gamma <= numpy.pi/2), 'gamma must lie \
+between -90 and 90 degrees.'
+
+    return alpha, gamma, delta
+
+
+def coord_transf_matrix_triaxial(alpha, gamma, delta):
+    '''
+    Calculate the coordinate transformation matrix
+    for triaxial or prolate ellipsoids by using the auxiliary angles
+    alpha, gamma and delta.
+
+    The columns of this matrix are defined according to the unit vectors
+    v1, v2 and v3 presented by Clark et al. (1986, p. 192).
+
+    References:
+
+    Clark, D., Saul, S., and Emerson, D.: Magnetic and gravity anomalies
+    of a triaxial ellipsoid, Exploration Geophysics, 17, 189-200, 1986.
+    '''
+
+    cos_alpha = numpy.cos(alpha)
+    sin_alpha = numpy.sin(alpha)
+
+    cos_gamma = numpy.cos(gamma)
+    sin_gamma = numpy.sin(gamma)
+
+    cos_delta = numpy.cos(delta)
+    sin_delta = numpy.sin(delta)
+
+    v1 = numpy.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta,
+                      -sin_delta])
+
+    v2 = numpy.array([cos_alpha*cos_gamma*sin_delta +
+                      sin_alpha*sin_gamma, sin_alpha*cos_gamma*sin_delta
+                      - cos_alpha*sin_gamma, -cos_gamma*cos_delta])
+
+    v3 = numpy.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
+                      -cos_alpha*cos_gamma
+                      - sin_alpha*sin_gamma*sin_delta,
+                      sin_gamma*cos_delta])
+
+    transf_matrix = numpy.vstack((v1, v2, v3)).T
+
+    return transf_matrix
+
+
+def coord_transf_matrix_oblate(alpha, gamma, delta):
+    '''
+    Calculate the coordinate transformation matrix
+    for oblate ellipsoids by using the auxiliary angles
+    alpha, gamma and delta.
+
+    The columns of this matrix are defined by unit vectors
+    v1, v2 and v3.
+    '''
+
+    cos_alpha = numpy.cos(alpha)
+    sin_alpha = numpy.sin(alpha)
+
+    cos_gamma = numpy.cos(gamma)
+    sin_gamma = numpy.sin(gamma)
+
+    cos_delta = numpy.cos(delta)
+    sin_delta = numpy.sin(delta)
+
+    v1 = numpy.array([-cos_alpha*sin_gamma*sin_delta +
+                      sin_alpha*cos_gamma, -sin_alpha*sin_gamma*sin_delta
+                      - cos_alpha*cos_gamma, -sin_gamma*cos_delta])
+
+    v2 = numpy.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta,
+                      -sin_delta])
+
+    v3 = numpy.array([sin_alpha*sin_gamma + cos_alpha*cos_gamma*sin_delta,
+                      -cos_alpha*sin_gamma
+                      + sin_alpha*cos_gamma*sin_delta,
+                      -cos_gamma*cos_delta])
+
+    transf_matrix = numpy.vstack((v1, v2, v3)).T
+
+    return transf_matrix
