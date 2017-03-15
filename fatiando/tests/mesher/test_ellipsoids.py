@@ -31,13 +31,26 @@ def test_triaxial_ellipsoid_copy():
         cp.props['susceptibility tensor']
 
 
-def test_coord_transf_matrix_triaxial():
+def test_coord_transf_matrix_triaxial_known():
     'Coordinate transformation matrix built with known orientation angles'
     alpha = -np.pi
     gamma = np.pi/2
     delta = 0
     transf_matrix = coord_transf_matrix_triaxial(alpha, gamma, delta)
     assert_almost_equal(transf_matrix, np.identity(3), decimal=15)
+
+
+def test_coord_transf_matrix_triaxial_orthogonal():
+    'Coordinate transformation matrix must be orthogonal'
+    alpha = 38.9
+    gamma = -0.2
+    delta = 174
+    transf_matrix = coord_transf_matrix_triaxial(alpha, gamma, delta)
+    dot1 = np.dot(transf_matrix, transf_matrix.T)
+    dot2 = np.dot(transf_matrix.T, transf_matrix)
+    assert_almost_equal(dot1, dot2, decimal=15)
+    assert_almost_equal(dot1, np.identity(3), decimal=15)
+    assert_almost_equal(dot2, np.identity(3), decimal=15)
 
 
 def test_prolate_ellipsoid_copy():
@@ -90,3 +103,25 @@ def test_oblate_ellipsoid_copy():
     assert orig.z != cp.z
     assert orig.props['remanent magnetization'] != \
         cp.props['remanent magnetization']
+
+
+def test_coord_transf_matrix_oblate_known():
+    'Coordinate transformation matrix built with known orientation angles'
+    alpha = -np.pi
+    gamma = np.pi/2
+    delta = 0
+    transf_matrix = coord_transf_matrix_oblate(alpha, gamma, delta)
+    assert_almost_equal(transf_matrix, np.identity(3)[[1, 2, 0]], decimal=15)
+
+
+def test_coord_transf_matrix_oblate_orthogonal():
+    'Coordinate transformation matrix must be orthogonal'
+    alpha = 7
+    gamma = 23
+    delta = -np.pi/3
+    transf_matrix = coord_transf_matrix_oblate(alpha, gamma, delta)
+    dot1 = np.dot(transf_matrix, transf_matrix.T)
+    dot2 = np.dot(transf_matrix.T, transf_matrix)
+    assert_almost_equal(dot1, dot2, decimal=15)
+    assert_almost_equal(dot1, np.identity(3), decimal=15)
+    assert_almost_equal(dot2, np.identity(3), decimal=15)

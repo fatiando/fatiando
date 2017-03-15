@@ -1818,7 +1818,7 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
 
     def __str__(self):
         """
-        Return a string representation of the ellipsoid.
+        Return a string representation of the triaxial ellipsoid.
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
@@ -1846,7 +1846,7 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
         assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
 is not in the dictionary of physical properties'
 
-        assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
+        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
 
         # Large, intermediate and small eigenvalues of the
@@ -1971,7 +1971,7 @@ than small_axis"
 
     def __str__(self):
         """
-        Return a string representation of the ellipsoid.
+        Return a string representation of the prolate ellipsoid.
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
@@ -1998,7 +1998,7 @@ than small_axis"
         assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
 is not in the dictionary of physical properties'
 
-        assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
+        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
 
         # Large, intermediate and small eigenvalues of the
@@ -2124,7 +2124,7 @@ than small_axis"
 
     def __str__(self):
         """
-        Return a string representation of the ellipsoid.
+        Return a string representation of the oblate ellipsoid.
         """
 
         names = [('x', self.x), ('y', self.y), ('z', self.z),
@@ -2151,7 +2151,7 @@ than small_axis"
         assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
 is not in the dictionary of physical properties'
 
-        assert self.props['susceptibility tensor'].len == 6, 'susceptibili\
+        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
 ty tensor must be a list containing six elements'
 
         # Large, intermediate and small eigenvalues of the
