@@ -1,5 +1,6 @@
 from ...mesher import TriaxialEllipsoid, ProlateEllipsoid, OblateEllipsoid
 from ...mesher import coord_transf_matrix_triaxial, coord_transf_matrix_oblate
+from ...mesher import auxiliary_angles
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -125,3 +126,17 @@ def test_coord_transf_matrix_oblate_orthogonal():
     assert_almost_equal(dot1, dot2, decimal=15)
     assert_almost_equal(dot1, np.identity(3), decimal=15)
     assert_almost_equal(dot2, np.identity(3), decimal=15)
+
+
+def test_auxiliary_angles_known():
+    'Calculate the auxiliary angles with specific input'
+    alpha_ref = np.pi - np.arccos(2/np.sqrt(7))
+    gamma_ref = np.arctan(2*np.sqrt(1.5))
+    delta_ref = np.arcsin(np.sqrt(2)/4)
+    strike = 180
+    dip = 30
+    rake = 45
+    alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
+    assert_almost_equal(alpha_ref, alpha, decimal=15)
+    assert_almost_equal(gamma_ref, gamma, decimal=15)
+    assert_almost_equal(delta_ref, delta, decimal=15)

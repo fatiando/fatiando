@@ -2217,7 +2217,7 @@ def auxiliary_angles(strike, dip, rake):
 
     alpha = strike_r - numpy.arccos(aux1)
     if aux2 != 0:
-        gamma = -numpy.arctan(cos_dip/aux2)
+        gamma = numpy.arctan(cos_dip/aux2)
     else:
         if cos_dip > 0:
             gamma = numpy.pi/2
