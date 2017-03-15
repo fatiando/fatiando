@@ -2264,12 +2264,12 @@ def coord_transf_matrix_triaxial(alpha, gamma, delta):
                       -sin_delta])
 
     v2 = numpy.array([cos_alpha*cos_gamma*sin_delta +
-                      sin_alpha*sin_gamma, sin_alpha*cos_gamma*sin_delta
-                      - cos_alpha*sin_gamma, -cos_gamma*cos_delta])
+                      sin_alpha*sin_gamma, sin_alpha*cos_gamma*sin_delta -
+                      cos_alpha*sin_gamma, -cos_gamma*cos_delta])
 
     v3 = numpy.array([sin_alpha*cos_gamma - cos_alpha*sin_gamma*sin_delta,
-                      -cos_alpha*cos_gamma
-                      - sin_alpha*sin_gamma*sin_delta,
+                      -cos_alpha*cos_gamma -
+                      sin_alpha*sin_gamma*sin_delta,
                       sin_gamma*cos_delta])
 
     transf_matrix = numpy.vstack((v1, v2, v3)).T
@@ -2297,15 +2297,15 @@ def coord_transf_matrix_oblate(alpha, gamma, delta):
     sin_delta = numpy.sin(delta)
 
     v1 = numpy.array([-cos_alpha*sin_gamma*sin_delta +
-                      sin_alpha*cos_gamma, -sin_alpha*sin_gamma*sin_delta
-                      - cos_alpha*cos_gamma, -sin_gamma*cos_delta])
+                      sin_alpha*cos_gamma, -sin_alpha*sin_gamma*sin_delta -
+                      cos_alpha*cos_gamma, sin_gamma*cos_delta])
 
     v2 = numpy.array([-cos_alpha*cos_delta, -sin_alpha*cos_delta,
                       -sin_delta])
 
     v3 = numpy.array([sin_alpha*sin_gamma + cos_alpha*cos_gamma*sin_delta,
-                      -cos_alpha*sin_gamma
-                      + sin_alpha*cos_gamma*sin_delta,
+                      -cos_alpha*sin_gamma +
+                      sin_alpha*cos_gamma*sin_delta,
                       -cos_gamma*cos_delta])
 
     transf_matrix = numpy.vstack((v1, v2, v3)).T
