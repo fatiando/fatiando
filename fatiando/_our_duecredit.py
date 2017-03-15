@@ -1,3 +1,4 @@
+# pylint: skip-file
 # emacs: at the end of the file
 # ex: set sts=4 ts=4 sw=4 et:
 # ## ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #

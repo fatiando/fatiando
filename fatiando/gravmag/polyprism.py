@@ -61,7 +61,7 @@ applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 from numpy import arctan2, log, sqrt
@@ -118,8 +118,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pmx, pmy, pmz = pmag
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props
-                             and pmag is None):
+        if prism is None or ('magnetization' not in prism.props and
+                             pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']
@@ -273,7 +273,6 @@ def gz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 10 ** (-10)
     size = len(xp)
     res = numpy.zeros(size, dtype=numpy.float)
     for prism in prisms:

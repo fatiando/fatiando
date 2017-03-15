@@ -38,7 +38,8 @@ doi:10.1016/j.ejor.2006.06.046.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import copy
 import warnings
 import numpy
@@ -160,7 +161,7 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
     p = numpy.array(initial, dtype=numpy.float)
     misfit = value(p)
     stats['objective'].append(misfit)
-    for iteration in xrange(maxit):
+    for iteration in range(maxit):
         hess = hessian(p)
         grad = gradient(p)
         if precondition:
@@ -179,9 +180,9 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
         misfit = newmisfit
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 
@@ -250,7 +251,7 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
     stats['objective'].append(misfit)
     stats['step_attempts'].append(0)
     stats['step_size'].append(lamb)
-    for iteration in xrange(maxit):
+    for iteration in range(maxit):
         hess = hessian(p)
         minus_gradient = -gradient(p)
         if precondition:
@@ -261,7 +262,7 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
             minus_gradient = safe_dot(precond, minus_gradient)
         stagnation = True
         diag = scipy.sparse.diags(safe_diagonal(hess), 0).tocsr()
-        for step in xrange(maxsteps):
+        for step in range(maxsteps):
             newp = p + safe_solve(hess + lamb * diag, minus_gradient)
             newmisfit = value(newp)
             if newmisfit >= misfit:
@@ -275,10 +276,10 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
         if stagnation:
             stop = True
             warnings.warn(
-                "Exited because couldn't take a step without increasing "
-                + 'the objective function. '
-                + 'Might not have achieved convergence. '
-                + 'Try inscreasing the max number of step attempts allowed.',
+                "Exited because couldn't take a step without increasing " +
+                'the objective function. ' +
+                'Might not have achieved convergence. ' +
+                'Try inscreasing the max number of step attempts allowed.',
                 RuntimeWarning)
         else:
             stop = newmisfit > misfit or abs(
@@ -296,9 +297,9 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
             break
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 
@@ -401,14 +402,14 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
     # This is a mystic parameter of the Armijo rule
     alpha = 10 ** (-4)
     stagnation = False
-    for iteration in xrange(maxit):
+    for iteration in range(maxit):
         grad = gradient(p)
         if linesearch:
             # Calculate now to avoid computing inside the loop
             gradnorm = numpy.linalg.norm(grad) ** 2
             stagnation = True
             # Determine the best step size
-            for i in xrange(maxsteps):
+            for i in range(maxsteps):
                 stepsize = beta**i
                 newp = p - stepsize*grad
                 newmisfit = value(newp)
@@ -421,10 +422,10 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
         if stagnation:
             stop = True
             warnings.warn(
-                "Exited because couldn't take a step without increasing "
-                + 'the objective function. '
-                + 'Might not have achieved convergence. '
-                + 'Try inscreasing the max number of step attempts allowed.',
+                "Exited because couldn't take a step without increasing " +
+                'the objective function. ' +
+                'Might not have achieved convergence. ' +
+                'Try inscreasing the max number of step attempts allowed.',
                 RuntimeWarning)
         else:
             stop = abs((newmisfit - misfit) / misfit) < tol
@@ -441,9 +442,9 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
             break
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 
@@ -535,21 +536,21 @@ def acor(value, bounds, nparams, nants=None, archive_size=None, maxit=1000,
     variance = 2 * diverse ** 2 * archive_size ** 2
     weights = amp * numpy.exp(-numpy.arange(archive_size) ** 2 / variance)
     weights /= numpy.sum(weights)
-    for iteration in xrange(maxit):
-        for k in xrange(nants):
+    for iteration in range(maxit):
+        for k in range(nants):
             # Sample the propabilities to produce new estimates
             ant = numpy.empty(nparams, dtype=numpy.float)
             # 1. Choose a pdf from the archive
             pdf = numpy.searchsorted(
                 numpy.cumsum(weights),
                 numpy.random.uniform())
-            for i in xrange(nparams):
+            for i in range(nparams):
                 # 2. Get the mean and stddev of the chosen pdf
                 mean = archive[pdf][i]
                 std = (evap / (archive_size - 1)) * numpy.sum(
                     abs(p[i] - archive[pdf][i]) for p in archive)
                 # 3. Sample the pdf until the samples are in bounds
-                for atempt in xrange(100):
+                for atempt in range(100):
                     ant[i] = numpy.random.normal(mean, std)
                     if bounds.size == 2:
                         low, high = bounds

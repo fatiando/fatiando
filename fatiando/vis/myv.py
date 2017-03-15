@@ -40,6 +40,8 @@ Wrappers for calls to Mayavi2's `mlab` module for plotting
 ----
 
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import warnings
 import numpy
 
@@ -92,7 +94,7 @@ def _lazy_import_tvtk():
             from enthought.tvtk.api import tvtk
 
 
-def title(text, color=(0, 0, 0),  size=0.3, height=1):
+def title(text, color=(0, 0, 0), size=0.3, height=1):
     """
     Draw a title on a Mayavi figure.
 
@@ -266,22 +268,22 @@ def polyprisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         # The top surface
         points.extend(
             reversed(numpy.transpose([x, y, prism.z1 * numpy.ones_like(x)])))
-        polygons.append(range(offset, offset + nverts))
+        polygons.append(list(range(offset, offset + nverts)))
         scalars.extend(scalar * numpy.ones(nverts))
         offset += nverts
         # The bottom surface
         points.extend(
             reversed(numpy.transpose([x, y, prism.z2 * numpy.ones_like(x)])))
-        polygons.append(range(offset, offset + nverts))
+        polygons.append(list(range(offset, offset + nverts)))
         scalars.extend(scalar * numpy.ones(nverts))
         offset += nverts
         # The sides
-        for i in xrange(nverts):
+        for i in range(nverts):
             x1, y1 = x[i], y[i]
             x2, y2 = x[(i + 1) % nverts], y[(i + 1) % nverts]
             points.extend([[x1, y1, prism.z1], [x2, y2, prism.z1],
                            [x2, y2, prism.z2], [x1, y1, prism.z2]])
-            polygons.append(range(offset, offset + 4))
+            polygons.append(list(range(offset, offset + 4)))
             scalars.extend(scalar * numpy.ones(4))
             offset += 4
     mesh = tvtk.PolyData(points=points, polys=polygons)
@@ -431,7 +433,7 @@ def tesseroids(tesseroids, prop=None, style='surface', opacity=1, edges=True,
             utils.sph2cart(e, n, 0.5 * (top + bottom)),
             utils.sph2cart(w, n, 0.5 * (top + bottom))])
         cells.append(20)
-        cells.extend(range(start, start + 20))
+        cells.extend(list(range(start, start + 20)))
         start += 20
         offsets.append(offset)
         offset += 21
@@ -559,7 +561,7 @@ def prisms(prisms, prop=None, style='surface', opacity=1, edges=True,
         points.extend([[x1, y1, z1], [x2, y1, z1], [x2, y2, z1], [x1, y2, z1],
                        [x1, y1, z2], [x2, y1, z2], [x2, y2, z2], [x1, y2, z2]])
         cells.append(8)
-        cells.extend([i for i in xrange(start, start + 8)])
+        cells.extend([i for i in range(start, start + 8)])
         start += 8
         offsets.append(offset)
         offset += 9

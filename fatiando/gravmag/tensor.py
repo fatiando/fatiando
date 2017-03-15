@@ -42,7 +42,7 @@ maps, Geophysics, 55(12), 1558, doi:10.1190/1.1442807
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy
 import numpy.linalg
 
@@ -74,8 +74,8 @@ def invariants(tensor):
     gyyzz = gyy * gzz
     gyz_sqr = gyz ** 2
     inv1 = gxx * gyy + gyyzz + gxx * gzz - gxy ** 2 - gyz_sqr - gxz ** 2
-    inv2 = (gxx * (gyyzz - gyz_sqr) + gxy * (gyz * gxz - gxy * gzz)
-            + gxz * (gxy * gyz - gxz * gyy))
+    inv2 = (gxx * (gyyzz - gyz_sqr) + gxy * (gyz * gxz - gxy * gzz) +
+            gxz * (gxy * gyz - gxz * gyy))
     inv = -((0.5 * inv2) ** 2) / ((inv1 / 3.) ** 3)
     return [inv1, inv2, inv]
 

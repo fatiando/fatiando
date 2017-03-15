@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ...mesher import SquareMesh
 
 import numpy as np

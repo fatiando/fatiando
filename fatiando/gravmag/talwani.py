@@ -20,6 +20,8 @@ Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
 ----
 
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import numpy
 from numpy import arctan2, pi, sin, cos, log, tan
 
@@ -59,8 +61,8 @@ def gz(xp, zp, polygons, dens=None):
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for polygon in polygons:
-        if polygon is None or ('density' not in polygon.props
-                               and dens is None):
+        if polygon is None or ('density' not in polygon.props and
+                               dens is None):
             continue
         if dens is None:
             density = polygon.props['density']
@@ -69,7 +71,7 @@ def gz(xp, zp, polygons, dens=None):
         x = polygon.x
         z = polygon.y
         nverts = polygon.nverts
-        for v in xrange(nverts):
+        for v in range(nverts):
             # Change the coordinates of this vertice
             xv = x[v] - xp
             zv = z[v] - zp

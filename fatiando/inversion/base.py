@@ -30,7 +30,7 @@ This module defines base classes that are used by the rest of the
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.utils import with_metaclass
 from future.builtins import super, object, range, isinstance, zip, map
 import hashlib
@@ -213,8 +213,8 @@ class OptimizerMixin(with_metaclass(ABCMeta)):
         ``estimate_``.
 
         """
-        not_configured = (getattr(self, 'fit_method', None) is None
-                          or getattr(self, 'fit_args', None) is None)
+        not_configured = (getattr(self, 'fit_method', None) is None or
+                          getattr(self, 'fit_args', None) is None)
         if not_configured:
             if self.islinear:
                 self.config('linear')

@@ -1,0 +1,5 @@
+[flake8]
+exclude =
+    fatiando/_version.py,
+    fatiando/_our_duecredit.py
+ignore = F401,E226

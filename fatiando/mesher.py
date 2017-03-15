@@ -1,7 +1,8 @@
 """
 Generate and operate on various kinds of meshes and geometric elements
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import numpy
 import scipy.special
 import scipy.interpolate
@@ -1154,8 +1155,8 @@ class PrismMesh(object):
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         nz, ny, nx = shape
-        if (not isinstance(nx, int) or not isinstance(ny, int)
-                or not isinstance(nz, int)):
+        if not isinstance(nx, int) or not isinstance(ny, int) or \
+                not isinstance(nz, int):
             raise AttributeError(
                 'Invalid mesh shape {}. shape must be integers'.format(
                     str(shape)))
@@ -1279,7 +1280,7 @@ class PrismMesh(object):
         if numpy.ma.isMA(topo):
             topo_mask = topo.mask
         else:
-            topo_mask = [False for i in xrange(len(topo))]
+            topo_mask = [False for i in range(len(topo))]
         c = 0
         for cellz in zc:
             for h, masked in zip(topo, topo_mask):
@@ -1370,7 +1371,7 @@ class PrismMesh(object):
             raise IndexError('Layer index %d is out of range.' % (i))
         start = i * nx * ny
         end = (i + 1) * nx * ny
-        layer = [self.__getitem__(p) for p in xrange(start, end)]
+        layer = [self.__getitem__(p) for p in range(start, end)]
         return layer
 
     def layers(self):
@@ -1394,7 +1395,7 @@ class PrismMesh(object):
 
         """
         nz, ny, nx = self.shape
-        for i in xrange(nz):
+        for i in range(nz):
             yield self.get_layer(i)
 
     def dump(self, meshfile, propfile, prop):

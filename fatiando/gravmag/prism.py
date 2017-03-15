@@ -83,7 +83,7 @@ doi: 10.1007/s001900000116.
 
 ----
 """
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 

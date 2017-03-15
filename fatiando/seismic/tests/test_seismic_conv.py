@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
 from pytest import raises
@@ -13,7 +14,7 @@ def test_impulse_response():
     """
     w = conv.rickerwave(30., 2.e-3)
     rc_test = np.zeros((w.shape[0], 20))
-    rc_test[w.shape[0]/2, :] = 1.
+    rc_test[w.shape[0]//2, :] = 1.
     spike = conv.convolutional_model(rc_test, 30., conv.rickerwave, dt=2.e-3)
     for j in range(0, rc_test.shape[1]):
         assert_array_almost_equal(spike[:, j], w, 9)
@@ -27,12 +28,12 @@ def test_rc_shorter_than_wavelet():
     """
     w = conv.rickerwave(30., 2.e-3)
     rc_test = np.zeros((21, 20))
-    rc_test[rc_test.shape[0]/2, :] = 1
+    rc_test[rc_test.shape[0]//2, :] = 1
     spike = conv.convolutional_model(rc_test, 30., conv.rickerwave, dt=2.e-3)
     for j in range(0, rc_test.shape[1]):
-        assert_array_almost_equal(spike[:, j],
-                                  w[(w.shape[0]-rc_test.shape[0])/2:
-                                  -(w.shape[0]-rc_test.shape[0])/2], 9)
+        wmin = (w.shape[0] - rc_test.shape[0])//2
+        wmax = -(w.shape[0] - rc_test.shape[0])//2
+        assert_array_almost_equal(spike[:, j], w[wmin:wmax], 9)
 
 
 def test_reflectivity_wrong_dimensions():

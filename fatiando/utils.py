@@ -1,6 +1,8 @@
 """
 Miscellaneous utility functions.
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import math
 
 import numpy
@@ -482,7 +484,7 @@ def contaminate(data, stddev, percent=False, return_stddev=False, seed=None):
         stddev = [stddev]
         data = [data]
     contam = []
-    for i in xrange(len(stddev)):
+    for i in range(len(stddev)):
         if stddev[i] == 0.:
             contam.append(data[i])
             continue

@@ -10,8 +10,12 @@ Interactivity functions and classes using matplotlib and IPython widgets
 ----
 
 """
-from __future__ import division
-import cPickle as pickle
+from __future__ import division, absolute_import
+from future.builtins import zip
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 import numpy
 from matplotlib import pyplot, widgets, patches
@@ -389,7 +393,7 @@ class Moulder(object):
         """
         poly = patches.Polygon(vertices, animated=False, alpha=0.9,
                                color=self._density2color(density))
-        x, y = zip(*poly.xy)
+        x, y = list(zip(*poly.xy))
         line = Line2D(x, y, **self.line_args)
         return poly, line
 
@@ -511,7 +515,7 @@ class Moulder(object):
         elif self._drawing:
             if event.button == 1:
                 self._xy.append([event.xdata, event.ydata])
-                self._drawing_plot.set_data(zip(*self._xy))
+                self._drawing_plot.set_data(list(zip(*self._xy)))
                 self.canvas.restore_region(self.background)
                 self.modelax.draw_artist(self._drawing_plot)
                 self.canvas.blit(self.modelax.bbox)
@@ -567,7 +571,7 @@ class Moulder(object):
             if self._drawing and self._xy:
                 self._xy.pop()
                 if self._xy:
-                    self._drawing_plot.set_data(zip(*self._xy))
+                    self._drawing_plot.set_data(list(zip(*self._xy)))
                 else:
                     self._drawing_plot.set_data([], [])
                 self.canvas.restore_region(self.background)
@@ -580,7 +584,7 @@ class Moulder(object):
                     verts = numpy.atleast_1d(self._ivert)
                     poly.xy = numpy.array([xy for i, xy in enumerate(poly.xy)
                                            if i not in verts])
-                    line.set_data(zip(*poly.xy))
+                    line.set_data(list(zip(*poly.xy)))
                     self._update_data()
                     self._update_data_plot()
                     self.canvas.restore_region(self.background)
@@ -648,7 +652,7 @@ class Moulder(object):
             dy = y - self._lastevent.ydata
             self.polygons[p].xy[:, 0] += dx
             self.polygons[p].xy[:, 1] += dy
-        self.lines[p].set_data(zip(*self.polygons[p].xy))
+        self.lines[p].set_data(list(zip(*self.polygons[p].xy)))
         self._lastevent = event
         self.canvas.restore_region(self.background)
         self.modelax.draw_artist(self.polygons[p])
