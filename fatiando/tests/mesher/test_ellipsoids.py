@@ -1,3 +1,4 @@
+from __future__ import division, absolute_import
 from ...mesher import TriaxialEllipsoid, ProlateEllipsoid, OblateEllipsoid
 from ...mesher import coord_transf_matrix_triaxial, coord_transf_matrix_oblate
 from ...mesher import auxiliary_angles
