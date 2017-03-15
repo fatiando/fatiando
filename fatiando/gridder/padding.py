@@ -2,6 +2,7 @@
 Apply padding to data grids using different algorithms for the filling.
 """
 from __future__ import division, absolute_import, print_function
+from future.builtins import range
 import numpy as np
 
 
@@ -283,7 +284,7 @@ def _padcvec(x, n, dx):
     # of points on either side and the point spacing
     xp = np.zeros(len(x) + n[0] + n[1])
     xp[n[0]:n[0]+len(x)] = x[:]
-    for ii, jj in enumerate(range(0, n[0])[::-1]):
+    for ii, jj in enumerate(list(range(0, n[0]))[::-1]):
         xp[ii] = x[0] - ((jj + 1) * dx)
     for ii, jj in enumerate(range(len(x) + n[0], len(xp))):
         xp[jj] = x[-1] + (dx * (ii + 1))

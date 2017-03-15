@@ -72,7 +72,7 @@ and geophysics, Geophysics, 66(6), p. 1660-1668, doi: 10.1190/1.1487109
 
 ----
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import math
 import numpy
 

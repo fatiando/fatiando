@@ -53,12 +53,13 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import warnings
 import numpy
 from matplotlib import pyplot, widgets
 
-import fatiando.gridder
+from .. import gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -398,7 +399,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
-    thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
+    thickness = [depths[i + 1] - depths[i] for i in range(len(depths) - 1)]
     return thickness, values
 
 
@@ -660,7 +661,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     if len(thickness) != len(values):
         raise ValueError("thickness and values must have same length")
     nlayers = len(thickness)
-    interfaces = [z0 + sum(thickness[:i]) for i in xrange(nlayers + 1)]
+    interfaces = [z0 + sum(thickness[:i]) for i in range(nlayers + 1)]
     ys = [interfaces[0]]
     for y in interfaces[1:-1]:
         ys.append(y)
@@ -863,8 +864,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     if x.shape != y.shape != v.shape:
         raise ValueError("Input arrays x, y, and v must have same shape!")
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -928,8 +928,7 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
     if x.shape != y.shape != v.shape:
         raise ValueError("Input arrays x, y, and v must have same shape!")
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -985,8 +984,7 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     if vmax is None:
         vmax = v.max()
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)

@@ -61,7 +61,7 @@ applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 from numpy import arctan2, log, sqrt

@@ -3,6 +3,7 @@ This is a Python + Numpy implementation of the potential field effects of
 right rectangular prisms. This is used to test the more efficient Cython
 version in fatiando.gravmag._prism. Not meant for actual use.
 """
+from __future__ import absolute_import, division
 import numpy
 from numpy import sqrt, log, arctan2, pi
 

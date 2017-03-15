@@ -1,8 +1,9 @@
+from __future__ import absolute_import, division
 import numpy as np
 
-from fatiando.mesher import PolygonalPrism, Prism
-from fatiando.gravmag import polyprism, prism, _polyprism_numpy
-from fatiando import utils
+from ...mesher import PolygonalPrism, Prism
+from .. import polyprism, prism, _polyprism_numpy
+from ... import utils
 
 model = None
 prismmodel = None

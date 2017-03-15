@@ -23,9 +23,9 @@ p. 159-270. Available at: <http://dx.doi.org/10.1190/1.9781560801580.ch2>
 
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy as np
-from scipy import interpolate  # linear interpolation of velocity/density
+from scipy import interpolate
 
 
 def convolutional_model(rc, f, wavelet, dt):

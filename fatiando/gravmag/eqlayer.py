@@ -30,7 +30,7 @@ equivalent layer, Geophysics, 78(1), G1-G13, doi:10.1190/geo2012-0196.1.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.builtins import super, range
 import numpy
 import scipy.sparse

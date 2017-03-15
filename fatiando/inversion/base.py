@@ -30,7 +30,7 @@ This module defines base classes that are used by the rest of the
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.utils import with_metaclass
 from future.builtins import super, object, range, isinstance, zip, map
 import hashlib

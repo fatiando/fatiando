@@ -21,7 +21,7 @@ array([[  0.,   2.,   3.,   6.,   7.,   5.],
        [  2.,   4.,   3.,   6.,  11.,   9.]])
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import numba
 import numpy as np
 
@@ -116,9 +116,9 @@ def split(w, e, s, n, top, bottom, nlon, nlat, nr, stack, stktop):
     dlon = (e - w)/nlon
     dlat = (n - s)/nlat
     dr = (top - bottom)/nr
-    for i in xrange(nlon):
-        for j in xrange(nlat):
-            for k in xrange(nr):
+    for i in range(nlon):
+        for j in range(nlat):
+            for k in range(nr):
                 stktop += 1
                 stack[stktop, 0] = w + i*dlon
                 stack[stktop, 1] = w + (i + 1)*dlon

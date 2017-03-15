@@ -42,7 +42,7 @@ maps, Geophysics, 55(12), 1558, doi:10.1190/1.1442807
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy
 import numpy.linalg
 

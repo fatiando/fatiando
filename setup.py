@@ -1,6 +1,7 @@
 """
 Build extension modules, package and install Fatiando.
 """
+from __future__ import absolute_import
 import sys
 import os
 from setuptools import setup, Extension, find_packages

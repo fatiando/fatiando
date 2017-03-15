@@ -44,7 +44,7 @@ amplitude and age of the change. The available inversion solvers are:
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.builtins import super
 import numpy as np
 import scipy.special

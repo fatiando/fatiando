@@ -49,6 +49,9 @@ Prospecting, 59(6), 1052-1071, doi:10.1111/j.1365-2478.2011.01005.x
 
 ----
 """
+from __future__ import absolute_import, division
+from future.builtins import range
+from functools import reduce
 import numpy
 
 from fatiando.mesher import PrismMesh
@@ -109,7 +112,7 @@ def migrate(x, y, z, gz, zmin, zmax, meshshape, power=0.5, scale=1):
     depths = mesh.get_zs()[:-1] + 0.5 * dz
     weights = numpy.abs(depths) ** power / (2 * G * numpy.sqrt(numpy.pi))
     density = []
-    for l in xrange(nlayers):
+    for l in range(nlayers):
         sensibility_T = numpy.array(
             [pot_prism.gz(x, y, z, [p], dens=1) for p in mesh.get_layer(l)])
         density.extend(scale * weights[l] * numpy.dot(sensibility_T, gz))

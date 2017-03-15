@@ -15,7 +15,7 @@ See the documentation for :mod:`fatiando.inversion` for examples of using
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import copy
 from abc import abstractmethod
 import numpy as np

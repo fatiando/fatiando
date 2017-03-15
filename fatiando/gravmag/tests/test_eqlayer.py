@@ -1,13 +1,13 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_almost_equal
-from fatiando.gravmag.eqlayer import (EQLGravity, EQLTotalField,
-                                      PELGravity, PELTotalField, PELSmoothness)
-from fatiando.inversion import Damping
-from fatiando.gravmag import sphere, prism
-from fatiando.mesher import PointGrid, Prism
-from fatiando import utils, gridder
+from ..eqlayer import EQLGravity, EQLTotalField, PELGravity, PELTotalField, \
+    PELSmoothness
+from ...inversion import Damping
+from .. import sphere, prism
+from ...mesher import PointGrid, Prism
+from ... import utils, gridder
 
 
 @pytest.mark.xfail

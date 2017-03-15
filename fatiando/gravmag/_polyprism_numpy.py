@@ -1,5 +1,5 @@
 # Numpy implementation for the potential fields of a polygonal prism
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 from numpy import arctan2, log, sqrt

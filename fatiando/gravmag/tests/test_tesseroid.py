@@ -1,14 +1,14 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_allclose
 from pytest import raises
 import multiprocessing
 import warnings
 
-from fatiando.gravmag import tesseroid
-from fatiando.mesher import Tesseroid, TesseroidMesh
-from fatiando import gridder
-from fatiando.constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
+from .. import tesseroid
+from ...mesher import Tesseroid, TesseroidMesh
+from ... import gridder
+from ...constants import SI2MGAL, SI2EOTVOS, G, MEAN_EARTH_RADIUS
 
 
 def test_warn_if_division_makes_too_small():

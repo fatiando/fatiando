@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import numpy as np
 from numpy.testing import assert_array_almost_equal as assert_almost
 from pytest import raises
 
-from fatiando.mesher import Prism
-from fatiando.gravmag import _prism_numpy, prism
-from fatiando import utils, gridder
+from ...mesher import Prism
+from .. import _prism_numpy, prism
+from ... import utils, gridder
 
 
 def test_fails_if_shape_mismatch():

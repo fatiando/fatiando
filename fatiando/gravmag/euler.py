@@ -20,7 +20,7 @@ Geophysics, 55(1), 80-91, doi:10.1190/1.1442774.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.builtins import super
 import numpy as np
 

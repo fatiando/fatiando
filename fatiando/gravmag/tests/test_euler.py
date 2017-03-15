@@ -1,9 +1,8 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy as np
-from fatiando.gravmag import EulerDeconv, EulerDeconvEW, EulerDeconvMW
-from fatiando.gravmag import sphere
-from fatiando.mesher import Sphere
-from fatiando import utils, gridder
+from .. import EulerDeconv, EulerDeconvEW, EulerDeconvMW, sphere
+from ...mesher import Sphere
+from ... import utils, gridder
 
 model = None
 xp, yp, zp = None, None, None

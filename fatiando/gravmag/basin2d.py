@@ -18,8 +18,8 @@ More complex parametrizations are:
 ----
 
 """
-from __future__ import division
-from future.builtins import super
+from __future__ import division, absolute_import
+from future.builtins import super, range
 import numpy as np
 
 from ..inversion.misfit import Misfit
@@ -194,7 +194,7 @@ class PolygonalBasinGravity(Misfit):
         verts = self.p2vertices(p)
         delta = np.array([0, 1])
         jac = np.empty((self.ndata, self.nparams))
-        for i in xrange(self.nparams):
+        for i in range(self.nparams):
             diff = Polygon([verts[i + 2], verts[i + 1] - delta,
                             verts[i], verts[i + 1] + delta], self.props)
             jac[:, i] = talwani.gz(self.x, self.z, [diff])/(2*delta[1])

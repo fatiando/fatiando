@@ -20,6 +20,8 @@ Fracture Zone, J. Geophys. Res., 64(1), 49-59, doi:10.1029/JZ064i001p00049.
 ----
 
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import numpy
 from numpy import arctan2, pi, sin, cos, log, tan
 
@@ -69,7 +71,7 @@ def gz(xp, zp, polygons, dens=None):
         x = polygon.x
         z = polygon.y
         nverts = polygon.nverts
-        for v in xrange(nverts):
+        for v in range(nverts):
             # Change the coordinates of this vertice
             xv = x[v] - xp
             zv = z[v] - zp

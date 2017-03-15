@@ -1,4 +1,5 @@
 from __future__ import division, absolute_import, print_function
+from future.builtins import range
 import numpy.testing as npt
 import numpy as np
 from pytest import raises
@@ -132,7 +133,7 @@ def test_circular_scatter_random():
     "gridder.circular_scatter return different sequences if random=True"
     area = [-1000, 1200, -40, 200]
     size = 1300
-    for i in xrange(20):
+    for i in range(20):
         x1, y1 = gridder.circular_scatter(area, size, random=True)
         x2, y2 = gridder.circular_scatter(area, size, random=True)
         with raises(AssertionError):

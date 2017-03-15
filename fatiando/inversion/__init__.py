@@ -344,6 +344,7 @@ True
 ----
 
 """
+from __future__ import absolute_import
 from .misfit import Misfit
 from .regularization import Damping, Smoothness, Smoothness1D, Smoothness2D, \
     TotalVariation, TotalVariation1D, TotalVariation2D

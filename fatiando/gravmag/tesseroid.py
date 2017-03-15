@@ -87,7 +87,8 @@ doi:10.1190/geo2015-0204.1
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import multiprocessing
 import warnings
 
@@ -258,7 +259,7 @@ def _split_arrays(arrays, extra_args, nparts):
     """
     size = len(arrays[0])
     n = size//nparts
-    strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
+    strides = [(i*n, (i + 1)*n) for i in range(nparts - 1)]
     strides.append((strides[-1][-1], size))
     chunks = [[x[low:high] for x in arrays] + extra_args
               for low, high in strides]

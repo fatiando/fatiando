@@ -5,7 +5,10 @@ and other utilities.
 See the API reference for each subpackage for a list of all functions and
 classes defined by it.
 """
+from __future__ import absolute_import
 from ._version import get_versions
+
+
 __version__ = get_versions()['version']
 __commit__ = get_versions()['full']
 del get_versions

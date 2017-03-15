@@ -73,11 +73,13 @@ install:
 script:
     - bash ci/run-tests.sh
     - make pep8
+    # Check for Python 3 compatibility regressions
+    - make check3
     - if [ "$BUILD_DOCS" == "true" ]; then make -C doc; fi
 
 after_script:
     # Run pylint static analysis but don't let it break the build
-    - make check
+    - make lint
 
 after_success:
     - if [ "$COVERAGE" == "true" ]; then coveralls; fi

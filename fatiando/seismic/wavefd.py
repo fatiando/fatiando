@@ -133,14 +133,16 @@ finite-differencing of the wave equation, Geophysical Research Letters, 17(2),
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import warnings
+import math
 
 import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 
-from fatiando.seismic._wavefd import _apply_damping, _step_elastic_sh, \
+from ._wavefd import _apply_damping, _step_elastic_sh, \
     _step_elastic_psv, _xz2ps, _nonreflexive_sh_boundary_conditions, \
     _nonreflexive_psv_boundary_conditions, _step_scalar, \
     _reflexive_scalar_boundary_conditions
@@ -184,8 +186,8 @@ class MexHatSource(object):
     def __init__(self, x, z, area, shape, amp, frequency, delay=0):
         nz, nx = shape
         dz, dx = sum(area[2:]) / (nz - 1), sum(area[:2]) / (nx - 1)
-        self.i = int(round((z - area[2]) / dz))
-        self.j = int(round((x - area[0]) / dx))
+        self.i = int(math.floor((z - area[2]) / dz))
+        self.j = int(math.floor((x - area[0]) / dx))
         self.x, self.z = x, z
         self.amp = amp
         self.frequency = frequency
@@ -447,10 +449,10 @@ def _add_pad(array, pad, shape):
     """
     array_pad = numpy.zeros(shape, dtype=numpy.float)
     array_pad[:-pad, pad:-pad] = array
-    for k in xrange(pad):
+    for k in range(pad):
         array_pad[:-pad, k] = array[:, 0]
         array_pad[:-pad, -(k + 1)] = array[:, -1]
-    for k in xrange(pad):
+    for k in range(pad):
         array_pad[-(pad - k), :] = array_pad[-(pad + 1), :]
     return array_pad
 
@@ -511,9 +513,10 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1) / ds)), int(round((x - x1) / ds))]
+        stations = [[int(math.floor((z - z1) / ds)),
+                     int(math.floor((x - x1) / ds))]
                     for x, z in stations]
-        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+        seismograms = [numpy.zeros(iterations) for i in range(len(stations))]
     else:
         stations, seismograms = [], []
     # Add some padding to x and z. The padding region is where the wave is
@@ -539,7 +542,7 @@ def scalar(vel, area, dt, iterations, sources, stations=None,
     if snapshot is not None:
         yield 0, u[1, :-pad, pad:-pad], seismograms
 
-    for iteration in xrange(1, iterations):
+    for iteration in range(1, iterations):
         t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
         _step_scalar(u[tp1], u[t], u[tm1], 2, nx - 2, 2, nz - 2,
@@ -625,9 +628,10 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
+        stations = [[int(math.floor((z - z1) / dz)),
+                     int(math.floor((x - x1) / dx))]
                     for x, z in stations]
-        seismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+        seismograms = [numpy.zeros(iterations) for i in range(len(stations))]
     else:
         stations, seismograms = [], []
     # Add some padding to x and z. The padding region is where the wave is
@@ -652,7 +656,7 @@ def elastic_sh(mu, density, area, dt, iterations, sources, stations=None,
         seismogram[0] = u[1, i, j + pad]
     if snapshot is not None:
         yield 0, u[1, :-pad, pad:-pad], seismograms
-    for iteration in xrange(1, iterations):
+    for iteration in range(1, iterations):
         t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
         _step_elastic_sh(u[tp1], u[t], u[tm1], 3, nx - 3, 3, nz - 3, dt, dx,
@@ -750,10 +754,11 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     # Get the index of the closest point to the stations and start the
     # seismograms
     if stations is not None:
-        stations = [[int(round((z - z1) / dz)), int(round((x - x1) / dx))]
+        stations = [[int(math.floor((z - z1) / dz)),
+                     int(math.floor((x - x1) / dx))]
                     for x, z in stations]
-        xseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
-        zseismograms = [numpy.zeros(iterations) for i in xrange(len(stations))]
+        xseismograms = [numpy.zeros(iterations) for i in range(len(stations))]
+        zseismograms = [numpy.zeros(iterations) for i in range(len(stations))]
     else:
         stations, xseismograms, zseismograms = [], [], []
     # Add padding to have an absorbing region to simulate an infinite medium
@@ -799,7 +804,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
         else:
             yield [0, ux[1, :-pad, pad:-pad], uz[1, :-pad, pad:-pad],
                    xseismograms, zseismograms]
-    for iteration in xrange(1, iterations):
+    for iteration in range(1, iterations):
         t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
         _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1, 1, nz - 1, dt, dx,
