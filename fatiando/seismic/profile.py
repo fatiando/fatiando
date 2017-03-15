@@ -19,8 +19,8 @@ well.
 ----
 
 """
-from __future__ import division
-from future.builtins import super
+from __future__ import division, absolute_import
+from future.builtins import super, range
 import numpy as np
 
 from . import ttime2d
@@ -69,11 +69,11 @@ def layered_straight_ray(thickness, velocity, zp):
         raise ValueError("thickness and velocity must have same length")
     nlayers = len(thickness)
     zmax = sum(thickness)
-    z = [sum(thickness[:i]) for i in xrange(nlayers + 1)]
+    z = [sum(thickness[:i]) for i in range(nlayers + 1)]
     layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': velocity[i]})
-              for i in xrange(nlayers)]
+              for i in range(nlayers)]
     srcs = [(0, 0)] * len(zp)
-    recs = [(0, z) for z in zp]
+    recs = [(0, k) for k in zp]
     return ttime2d.straight(layers, 'vp', srcs, recs)
 
 
@@ -185,9 +185,9 @@ class LayeredStraight(Misfit):
         thicks = self.thickness
         nlayers = len(thicks)
         zmax = np.sum(thicks)
-        z = [np.sum(thicks[:i]) for i in xrange(nlayers + 1)]
+        z = [np.sum(thicks[:i]) for i in range(nlayers + 1)]
         layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': 1.})
-                  for i in xrange(nlayers)]
+                  for i in range(nlayers)]
         srcs = [(0, 0)]*self.ndata
         recs = np.transpose([np.zeros(self.ndata), self.zp])
         jac = np.empty((self.ndata, self.nparams))

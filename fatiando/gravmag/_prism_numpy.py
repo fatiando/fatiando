@@ -3,6 +3,7 @@ This is a Python + Numpy implementation of the potential field effects of
 right rectangular prisms. This is used to test the more efficient Cython
 version in fatiando.gravmag._prism. Not meant for actual use.
 """
+from __future__ import absolute_import, division
 import numpy
 from numpy import sqrt, log, arctan2, pi
 
@@ -51,14 +52,14 @@ def potential(xp, yp, zp, prisms, dens=None):
             for j in range(2):
                 for i in range(2):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
-                    kernel = (x[i]*y[j]*safe_log(z[k] + r)
-                              + y[j]*z[k]*safe_log(x[i] + r)
-                              + x[i]*z[k]*safe_log(y[j] + r)
-                              - 0.5*x[i]**2 *
-                              safe_atan2(z[k]*y[j], x[i]*r)
-                              - 0.5*y[j]**2 *
-                              safe_atan2(z[k]*x[i], y[j]*r)
-                              - 0.5*z[k]**2*safe_atan2(x[i]*y[j], z[k]*r))
+                    kernel = (x[i]*y[j]*safe_log(z[k] + r) +
+                              y[j]*z[k]*safe_log(x[i] + r) +
+                              x[i]*z[k]*safe_log(y[j] + r) -
+                              0.5*x[i]**2 *
+                              safe_atan2(z[k]*y[j], x[i]*r) -
+                              0.5*y[j]**2 *
+                              safe_atan2(z[k]*x[i], y[j]*r) -
+                              0.5*z[k]**2*safe_atan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant
     res *= G
@@ -86,9 +87,9 @@ def gx(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(y[j]*safe_log(z[k] + r)
-                               + z[k]*safe_log(y[j] + r)
-                               - x[i]*safe_atan2(z[k]*y[j], x[i]*r))
+                    kernel = -(y[j]*safe_log(z[k] + r) +
+                               z[k]*safe_log(y[j] + r) -
+                               x[i]*safe_atan2(z[k]*y[j], x[i]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -117,9 +118,9 @@ def gy(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(z[k]*safe_log(x[i] + r)
-                               + x[i]*safe_log(z[k] + r)
-                               - y[j]*safe_atan2(x[i]*z[k], y[j]*r))
+                    kernel = -(z[k]*safe_log(x[i] + r) +
+                               x[i]*safe_log(z[k] + r) -
+                               y[j]*safe_atan2(x[i]*z[k], y[j]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -148,9 +149,9 @@ def gz(xp, yp, zp, prisms, dens=None):
                     r = sqrt(x[i]**2 + y[j]**2 + z[k]**2)
                     # Minus because Nagy et al (2000) give the formula for the
                     # gradient of the potential. Gravity is -grad(V)
-                    kernel = -(x[i]*safe_log(y[j] + r)
-                               + y[j]*safe_log(x[i] + r)
-                               - z[k]*safe_atan2(x[i]*y[j], z[k]*r))
+                    kernel = -(x[i]*safe_log(y[j] + r) +
+                               y[j]*safe_log(x[i] + r) -
+                               z[k]*safe_atan2(x[i]*y[j], z[k]*r))
                     res += ((-1.)**(i + j + k))*kernel*density
     # Now all that is left is to multiply res by the gravitational constant and
     # convert it to mGal units
@@ -267,8 +268,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pintensity = numpy.linalg.norm(pmag)
             pmx, pmy, pmz = numpy.array(pmag) / pintensity
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props
-                             and pmag is None):
+        if prism is None or ('magnetization' not in prism.props and
+                             pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']
@@ -300,13 +301,13 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
                     zr = z[k]*r
                     res += ((-1.)**(i + j))*intensity*(
                         0.5*(my*fz + mz*fy) *
-                        safe_log((r - x[i]) / (r + x[i]))
-                        + 0.5*(mx*fz + mz*fx) *
-                        safe_log((r - y[j]) / (r + y[j]))
-                        - (mx*fy + my*fx)*safe_log(r + z[k])
-                        - mx*fx*safe_atan2(xy, x_sqr + zr + z_sqr)
-                        - my*fy*safe_atan2(xy, r_sqr + zr - x_sqr)
-                        + mz*fz*safe_atan2(xy, zr))
+                        safe_log((r - x[i]) / (r + x[i])) +
+                        0.5*(mx*fz + mz*fx) *
+                        safe_log((r - y[j]) / (r + y[j])) -
+                        (mx*fy + my*fx)*safe_log(r + z[k]) -
+                        mx*fx*safe_atan2(xy, x_sqr + zr + z_sqr) -
+                        my*fy*safe_atan2(xy, r_sqr + zr - x_sqr) +
+                        mz*fz*safe_atan2(xy, zr))
     res *= CM*T2NT
     return res
 

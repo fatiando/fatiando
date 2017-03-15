@@ -1,10 +1,10 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import pytest
 import numpy as np
 import numpy.testing as npt
-from fatiando.gravmag import transform, prism
-from fatiando import gridder, utils
-from fatiando.mesher import Prism
+from .. import transform, prism
+from ... import gridder, utils
+from ...mesher import Prism
 
 
 def _trim(array, shape, d=20):
@@ -68,9 +68,9 @@ def test_upcontinue_warning():
     x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
     data = prism.gz(x, y, z, model)
     with pytest.warns(UserWarning):
-        up = transform.upcontinue(x, y, data, shape, height=0)
+        transform.upcontinue(x, y, data, shape, height=0)
     with pytest.warns(UserWarning):
-        up = transform.upcontinue(x, y, data, shape, height=-100)
+        transform.upcontinue(x, y, data, shape, height=-100)
 
 
 def test_second_horizontal_derivatives_fd():

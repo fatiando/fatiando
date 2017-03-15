@@ -1,5 +1,5 @@
 # Numpy implementation for the potential fields of a polygonal prism
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 from numpy import arctan2, log, sqrt
@@ -21,8 +21,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pmx, pmy, pmz = pmag
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props
-                             and pmag is None):
+        if prism is None or ('magnetization' not in prism.props and
+                             pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']

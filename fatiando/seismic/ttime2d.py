@@ -7,6 +7,8 @@ Calculate travel-times of seismic waves in 2D.
 ----
 
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import multiprocessing
 import math
 import numpy
@@ -90,7 +92,7 @@ def straight(cells, prop, srcs, recs, velocity=None, par=False):
     perjob = size / jobs
     processes = []
     pipes = []
-    for i in xrange(jobs):
+    for i in range(jobs):
         if i == jobs - 1:
             end = size
         else:
@@ -127,7 +129,7 @@ def _straight(cells, prop, srcs, recs, velocity):
     Calculate the travel time of a straight ray.
     """
     times = numpy.zeros(len(srcs), dtype=numpy.float)
-    for l in xrange(len(times)):
+    for l in range(len(times)):
         x_src, y_src = srcs[l]
         x_rec, y_rec = recs[l]
         maxx = max(x_src, x_rec)
@@ -161,7 +163,7 @@ def _straight(cells, prop, srcs, recs, velocity):
                 b_ray = y_src - a_ray * (x_src)
                 # Add the src and rec locations so that the travel time of a
                 # src or rec inside a cell is accounted for
-                xps = [x1,  x2, (y1 - b_ray) / a_ray, (y2 - b_ray) / a_ray,
+                xps = [x1, x2, (y1 - b_ray) / a_ray, (y2 - b_ray) / a_ray,
                        x_src, x_rec]
                 yps = [a_ray * x1 + b_ray, a_ray * x2 + b_ray, y1, y2, y_src,
                        y_rec]

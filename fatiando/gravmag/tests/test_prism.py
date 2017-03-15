@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import numpy as np
 from numpy.testing import assert_array_almost_equal as assert_almost
 from pytest import raises
 
-from fatiando.mesher import Prism
-from fatiando.gravmag import _prism_numpy, prism
-from fatiando import utils, gridder
+from ...mesher import Prism
+from .. import _prism_numpy, prism
+from ... import utils, gridder
 
 
 def test_fails_if_shape_mismatch():
@@ -235,8 +236,6 @@ def test_cython_agains_numpy():
 
 def test_around():
     "gravmag.prism gravitational results are consistent around the prism"
-    funcs = ['potential', 'gx', 'gy', 'gz',
-             'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
     model = [Prism(-300, 300, -300, 300, -300, 300, {'density': 1000})]
     # Make the computation points surround the prism
     shape = (101, 101)

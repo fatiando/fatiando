@@ -2,7 +2,7 @@
 """
 Load gravity data from the eigen-6c4 model for Hawaii.
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import os
 import numpy as np
 

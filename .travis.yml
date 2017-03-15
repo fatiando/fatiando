@@ -17,18 +17,36 @@ branches:
 git:
     depth: 100
 
+os:
+    - linux
+
 env:
-    global: # For pushing the built docs to the fatiando/dev repo
+    global:
+        # Encrypted Github API key for pushing the built docs to the fatiando/dev repo
         - secure: cXRXecOJ0LpQBPfl/CvrrvuDTQpN0zZ1mpGG4rs02yWRmRoykqzJpPNHBHZ1MWEHGwOP9QqXjuPTRPEHYBP4I9V/7uHgrd4rIg50gonyr0LdQFLL9QxsM6SMH/zHyma+hpWmg2k3ad6zBd0GFkaACtVlS/x2F8JG+W6TrU/oL+I=
+        - BUILD_DOCS=true
+        - UPDATE_WEBSITE=false
+        - MAYAVI=false
+        - COVERAGE=false
+
+    # Build under all combinations of the of the following
+    matrix:
+        - PYTHON=2.7 UPDATE_WEBSITE=true
+        - PYTHON=3.5
+        - PYTHON=3.6
 
 matrix:
+
+    # Add special build configurations
     include:
-        - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=true COVERAGE=true MAYAVI=false
-        - os: linux
-          env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=true
-        #- os: osx
-          #env: PYTHON=2.7 BUILD_DOCS=false COVERAGE=false MAYAVI=false
+        - env: PYTHON=2.7 MAYAVI=true BUILD_DOCS=false
+        # Only submit coverage to coveralls once
+        - env: PYTHON=2.7 COVERAGE=true BUILD_DOCS=false
+
+    allow_failures:
+        # Still testing Python 3 support so allow these builds to fail
+        - env: PYTHON=3.6
+        - env: PYTHON=3.5
 
 before_install:
     # Get Miniconda from Continuum
@@ -42,9 +60,9 @@ before_install:
     - source activate testenv
 
 install:
-    - if [ "$MAYAVI" == "true" ]; then conda install --yes mayavi; fi
-    - conda install --yes --file ci/requirements-conda.txt
-    - if [ "$BUILD_DOCS" == "true" ]; then pip install -r ci/requirements-pip.txt && conda install -y basemap; fi
+    - if [ "$MAYAVI" == "true" ]; then conda install --yes mayavi -c conda-forge; fi
+    - conda install --yes --file ci/requirements.txt -c conda-forge
+    - conda install -y basemap
     - if [ "$COVERAGE" == "true" ]; then pip install coveralls==0.5; fi
     # Show installed pkg information for postmortem diagnostic
     - conda list
@@ -55,8 +73,10 @@ install:
 script:
     - bash ci/run-tests.sh
     - make pep8
-    - bash ci/build-docs.sh
+    # Check for Python 3 compatibility regressions
+    - make check3
+    - if [ "$BUILD_DOCS" == "true" ]; then make -C doc; fi
 
 after_success:
-    - bash ci/submit-coverage.sh
-    - bash ci/update-website.sh
+    - if [ "$COVERAGE" == "true" ]; then coveralls; fi
+    - if [ "$UPDATE_WEBSITE" == "true" ]; then bash ci/update-website.sh; fi

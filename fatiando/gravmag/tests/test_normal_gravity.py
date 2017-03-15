@@ -1,14 +1,12 @@
-from __future__ import division
-from fatiando.gravmag.normal_gravity import (WGS84,
-                                             gamma_somigliana,
-                                             gamma_somigliana_free_air,
-                                             gamma_closed_form,
-                                             bouguer_plate)
-
-from fatiando import utils
+from __future__ import division, absolute_import
+from future.builtins import range
 
 import numpy
 from numpy.testing import assert_almost_equal
+
+from ..normal_gravity import WGS84, gamma_somigliana, \
+    gamma_somigliana_free_air, gamma_closed_form, bouguer_plate
+from ... import utils
 
 
 def test_bouguer():
@@ -27,7 +25,7 @@ def test_bouguer():
     bg_water = bg[:25][::-1]
     bg_rock = bg[26:]
     assert len(bg_rock) == len(bg_water), "Diff size in rock and water"
-    for i in xrange(len(bg_water)):
+    for i in range(len(bg_water)):
         assert_almost_equal(bg_water[i], -0.5*bg_rock[i], decimal=5,
                             err_msg="water = -0.5*rock with array")
 
@@ -58,12 +56,12 @@ def test_closed_form():
     lat = numpy.linspace(-90, 90, 200)
     som = gamma_somigliana(lat, ellipsoid=WGS84)
     closed = gamma_closed_form(lat, 0, ellipsoid=WGS84)
-    for i in xrange(len(lat)):
+    for i in range(len(lat)):
         assert_almost_equal(closed[i], som[i], decimal=3,
                             err_msg='lat = {}'.format(lat[i]))
 
-    gradient = (gamma_closed_form(lat, 1, ellipsoid=WGS84)
-                - gamma_closed_form(lat, 0, ellipsoid=WGS84))
+    gradient = (gamma_closed_form(lat, 1, ellipsoid=WGS84) -
+                gamma_closed_form(lat, 0, ellipsoid=WGS84))
     mean = numpy.mean(gradient)
     assert_almost_equal(mean, -0.3086, decimal=4, err_msg='mean vs free-air')
 

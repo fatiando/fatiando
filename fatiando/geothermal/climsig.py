@@ -44,7 +44,7 @@ amplitude and age of the change. The available inversion solvers are:
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.builtins import super
 import numpy as np
 import scipy.special
@@ -79,8 +79,8 @@ def linear(amp, age, zp, diffus=THERMAL_DIFFUSIVITY_YEAR):
 
     """
     tmp = zp / np.sqrt(4. * diffus * age)
-    res = amp * ((1. + 2 * tmp ** 2) * scipy.special.erfc(tmp)
-                 - 2. / np.sqrt(np.pi) * tmp * np.exp(-tmp ** 2))
+    res = amp*((1 + 2*tmp**2)*scipy.special.erfc(tmp) -
+               2/np.sqrt(np.pi)*tmp*np.exp(-tmp**2))
     return res
 
 
@@ -226,9 +226,8 @@ class SingleChange(Misfit):
             jac[:, 1] = amp*tmp*np.exp(-(tmp**2))/(np.sqrt(np.pi)*age)
         if self.mode == 'linear':
             delta = 0.5
-            at_p = linear(amp, age, self.zp, self.diffus)
             jac[:, 0] = linear(1., age, self.zp, self.diffus)
-            jac[:, 1] = (
-                linear(amp, age + delta, self.zp, self.diffus)
-                - linear(amp, age - delta, self.zp, self.diffus))/(2*delta)
+            jac[:, 1] = (linear(amp, age + delta, self.zp, self.diffus) -
+                         linear(amp, age - delta, self.zp, self.diffus)
+                         )/(2*delta)
         return jac

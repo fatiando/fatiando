@@ -1,7 +1,7 @@
 """
 Functions for dealing with Surfer data grids.
 """
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy as np
 
@@ -54,8 +54,8 @@ def load_surfer(fname, dtype=np.float64):
     # zMin zMax       Z min max
     # z11 z21 z31 ... List of Z values
     with open(fname) as f:
-        # DSAA is a Surfer ASCII GRD ID
-        id = f.readline()
+        # DSAA is a Surfer ASCII GRD ID (discard it for now)
+        f.readline()
         # Read the number of columns (ny) and rows (nx)
         ny, nx = [int(s) for s in f.readline().split()]
         shape = (nx, ny)

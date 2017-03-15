@@ -1,9 +1,8 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy as np
-from fatiando.gravmag import EulerDeconv, EulerDeconvEW, EulerDeconvMW
-from fatiando.gravmag import sphere
-from fatiando.mesher import Sphere
-from fatiando import utils, gridder
+from .. import EulerDeconv, EulerDeconvEW, EulerDeconvMW, sphere
+from ...mesher import Sphere
+from ... import utils, gridder
 
 model = None
 xp, yp, zp = None, None, None
@@ -28,12 +27,12 @@ def setup():
     field = sphere.tf(x, y, z, [model], inc, dec) + base
     # Use finite difference derivatives so that these tests don't depend on the
     # performance of the FFT derivatives.
-    dx = (sphere.tf(x + 1, y, z, [model], inc, dec)
-          - sphere.tf(x - 1, y, z, [model], inc, dec))/2
-    dy = (sphere.tf(x, y + 1, z, [model], inc, dec)
-          - sphere.tf(x, y - 1, z, [model], inc, dec))/2
-    dz = (sphere.tf(x, y, z + 1, [model], inc, dec)
-          - sphere.tf(x, y, z - 1, [model], inc, dec))/2
+    dx = (sphere.tf(x + 1, y, z, [model], inc, dec) -
+          sphere.tf(x - 1, y, z, [model], inc, dec))/2
+    dy = (sphere.tf(x, y + 1, z, [model], inc, dec) -
+          sphere.tf(x, y - 1, z, [model], inc, dec))/2
+    dz = (sphere.tf(x, y, z + 1, [model], inc, dec) -
+          sphere.tf(x, y, z - 1, [model], inc, dec))/2
 
 
 def test_euler_sphere_mag():

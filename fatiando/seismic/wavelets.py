@@ -1,7 +1,7 @@
 """
 Classes to evaluate and sample wavelets.
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from future.builtins import super, object
 import copy
 

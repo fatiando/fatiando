@@ -72,7 +72,7 @@ and geophysics, Geophysics, 66(6), p. 1660-1668, doi: 10.1190/1.1487109
 
 ----
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import math
 import numpy
 
@@ -197,8 +197,8 @@ def gamma_somigliana(latitude, ellipsoid=WGS84):
     lat = numpy.deg2rad(latitude)
     sin2 = numpy.sin(lat)**2
     cos2 = numpy.cos(lat)**2
-    top = ((ellipsoid.a*ellipsoid.gamma_a)*cos2
-           + (ellipsoid.b*ellipsoid.gamma_b)*sin2)
+    top = ((ellipsoid.a*ellipsoid.gamma_a)*cos2 +
+           (ellipsoid.b*ellipsoid.gamma_b)*sin2)
     bottom = numpy.sqrt(ellipsoid.a**2*cos2 + ellipsoid.b**2*sin2)
     gamma = top/bottom
     return utils.si2mgal(gamma)

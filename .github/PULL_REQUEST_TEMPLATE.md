@@ -12,7 +12,7 @@ back that you need from the other developers.
 - [ ] Docstrings follow the style conventions
 - [ ] Code follows PEP8 style conventions
 - [ ] Code and docs have been spellchecked
-- [ ] Include new dependencies in `doc/install.rst`, `environment.yml`, `ci/requirements-conda.txt` and `ci/requirements-pip.txt`.
+- [ ] Include new dependencies in `doc/install.rst`, `environment.yml`, `ci/requirements.txt`.
 - [ ] Documentation builds properly (run `cd doc; make` locally)
 - [ ] Changelog entry (leave for last to avoid conflicts)
 - [ ] Firt-time contributor? Add yourself to `doc/contributors.rst` (leave for last to avoid conflicts)

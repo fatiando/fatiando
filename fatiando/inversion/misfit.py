@@ -15,7 +15,7 @@ See the documentation for :mod:`fatiando.inversion` for examples of using
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import copy
 from abc import abstractmethod
 import numpy as np
@@ -106,8 +106,8 @@ class Misfit(OptimizerMixin, OperatorMixin):
             obj = copy.copy(self)
         for name in ['predicted', 'jacobian', 'hessian']:
             meth = getattr(obj, name)
-            is_cached = (isinstance(meth, CachedMethod)
-                         or isinstance(meth, CachedMethodPermanent))
+            is_cached = (isinstance(meth, CachedMethod) or
+                         isinstance(meth, CachedMethodPermanent))
             if is_cached:
                 setattr(obj, name, copy.copy(meth))
                 getattr(obj, name).instance = obj

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from pytest import raises
 from .. import RickerWavelet
 
@@ -18,6 +19,6 @@ def test_ricker_copy():
 def test_ricker_fail_zero_frequency():
     "Wavelet creation should fail if f=0"
     with raises(AssertionError):
-        w = RickerWavelet(f=-1)
+        RickerWavelet(f=-1)
     with raises(AssertionError):
-        w = RickerWavelet(f=0)
+        RickerWavelet(f=0)

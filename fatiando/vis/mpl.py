@@ -53,19 +53,13 @@ Grids are automatically reshaped and interpolated if desired or necessary.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import warnings
 import numpy
 from matplotlib import pyplot, widgets
-# Quick hack so that the docs can build using the mocks for readthedocs
-# Ideal would be to log an error message saying that functions from pyplot
-# were not imported
-try:
-    from matplotlib.pyplot import *
-except:
-    pass
 
-import fatiando.gridder
+from .. import gridder
 
 # Dummy variable to laizy import the basemap toolkit (slow)
 Basemap = None
@@ -405,7 +399,7 @@ def draw_layers(area, axes, style='-', marker='o', color='k', width=2):
     line.figure.canvas.mpl_connect('key_press_event', erase)
     line.figure.canvas.mpl_connect('motion_notify_event', move)
     pyplot.show()
-    thickness = [depths[i + 1] - depths[i] for i in xrange(len(depths) - 1)]
+    thickness = [depths[i + 1] - depths[i] for i in range(len(depths) - 1)]
     return thickness, values
 
 
@@ -428,10 +422,10 @@ def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
 
     """
     west, east, south, north = area
-    meridians = basemap.drawmeridians(numpy.arange(west, east, dlon),
-                                      labels=[0, 0, 0, 1], linewidth=linewidth)
-    parallels = basemap.drawparallels(numpy.arange(south, north, dlat),
-                                      labels=[1, 0, 0, 0], linewidth=linewidth)
+    basemap.drawmeridians(numpy.arange(west, east, dlon), labels=[0, 0, 0, 1],
+                          linewidth=linewidth)
+    basemap.drawparallels(numpy.arange(south, north, dlat),
+                          labels=[1, 0, 0, 0], linewidth=linewidth)
 
 
 def draw_countries(basemap, linewidth=1, style='dashed'):
@@ -667,7 +661,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
     if len(thickness) != len(values):
         raise ValueError("thickness and values must have same length")
     nlayers = len(thickness)
-    interfaces = [z0 + sum(thickness[:i]) for i in xrange(nlayers + 1)]
+    interfaces = [z0 + sum(thickness[:i]) for i in range(nlayers + 1)]
     ys = [interfaces[0]]
     for y in interfaces[1:-1]:
         ys.append(y)
@@ -870,8 +864,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     if x.shape != y.shape != v.shape:
         raise ValueError("Input arrays x, y, and v must have same shape!")
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -935,8 +928,7 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
     if x.shape != y.shape != v.shape:
         raise ValueError("Input arrays x, y, and v must have same shape!")
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -992,8 +984,7 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     if vmax is None:
         vmax = v.max()
     if interp:
-        x, y, v = fatiando.gridder.interp(x, y, v, shape,
-                                          extrapolate=extrapolate)
+        x, y, v = gridder.interp(x, y, v, shape, extrapolate=extrapolate)
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
@@ -1099,7 +1090,7 @@ def seismic_image(section, dt, ranges=None, cmap=pyplot.cm.gray,
         aspect = numpy.round((x1 - x0)/numpy.max(t))
         aspect -= aspect*0.2
     if vmin is None and vmax is None:
-        scale = np.abs([section.max(), section.min()]).max()
+        scale = numpy.abs([section.max(), section.min()]).max()
         vmin = -scale
         vmax = scale
     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',

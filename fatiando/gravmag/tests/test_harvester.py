@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+from future.builtins import range
 import numpy as np
-from fatiando.gravmag import harvester, prism
-from fatiando.mesher import PrismMesh
-from fatiando import gridder
+from .. import harvester, prism
+from ...mesher import PrismMesh
+from ... import gridder
 
 
 def test_harvest_restrict():
@@ -24,7 +26,7 @@ def test_harvest_restrict():
     for testcase in cases:
         mref = PrismMesh(bounds, shape)
         mesh = mref.copy()
-        mref.addprop('density', [fill(i, testcase) for i in xrange(mref.size)])
+        mref.addprop('density', [fill(i, testcase) for i in range(mref.size)])
         # Calculate reference gravity field
         xp, yp, zp = gridder.regular(bounds[:4], shapegz, z=-1)
         gzref = prism.gz(xp, yp, zp, mref)

@@ -29,7 +29,7 @@ Potential field transformations, like upward continuation and derivatives.
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
 import warnings
 import numpy
 

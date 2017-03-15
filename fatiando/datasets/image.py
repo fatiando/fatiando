@@ -1,6 +1,7 @@
 """
 Load data/models from images.
 """
+from __future__ import absolute_import
 import os
 from PIL import Image
 import scipy.misc

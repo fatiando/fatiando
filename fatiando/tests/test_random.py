@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division
+from future.builtins import range
 import numpy
 from numpy.testing import assert_allclose
 from fatiando import utils
@@ -8,7 +10,7 @@ def test_utils_contaminate():
     size = 10 ** 6
     data = numpy.zeros(size)
     std = 4.213
-    for i in xrange(20):
+    for i in range(20):
         noise = utils.contaminate(data, std)
         assert abs(noise.mean()) < 10 ** -10, 'mean:%g' % (noise.mean())
         assert abs(noise.std() - std) / std < 0.01, 'std:%g' % (noise.std())
@@ -19,7 +21,7 @@ def test_utils_contaminate_seed():
     size = 10 ** 6
     data = numpy.zeros(size)
     std = 4400.213
-    for i in xrange(20):
+    for i in range(20):
         noise = utils.contaminate(data, std, seed=i)
         assert abs(noise.mean()) < 10 ** - \
             10, 's:%d mean:%g' % (i, noise.mean())
@@ -32,7 +34,7 @@ def test_utils_contaminate_diff():
     size = 1235
     data = numpy.linspace(-100., 12255., size)
     noise = 244.4
-    for i in xrange(20):
+    for i in range(20):
         d1 = utils.contaminate(data, noise)
         d2 = utils.contaminate(data, noise)
         assert numpy.all(d1 != d2)

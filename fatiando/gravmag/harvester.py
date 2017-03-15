@@ -64,6 +64,8 @@ doi:10.1190/segam2012-0383.1
 ----
 
 """
+from __future__ import absolute_import, division
+from future.builtins import range
 import json
 import bisect
 from math import sqrt
@@ -322,7 +324,7 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False,
     output = [fmt_estimate(estimate, mesh.size), predicted]
     if report:
         goal, misfit, regul = update[4:]
-        soa = goal - compactness * 1. / (sum(mesh.shape) / 3.) * regul
+        soa = goal - compactness*1/(sum(mesh.shape)/3)*regul
         output.append({'goal': goal, 'misfit': misfit, 'regularizer': regul,
                        'accretions': accretions, 'shape-of-anomaly': soa})
     return output
@@ -357,13 +359,13 @@ def iharvest(data, seeds, mesh, compactness, threshold, restrict):
     totalmisfit = _misfitfunc(data, predicted)
     regularizer = 0.
     # Weight the regularizing function by the mean extent of the mesh
-    mu = compactness * 1. / (sum(mesh.shape) / 3.)
+    mu = compactness*1/(sum(mesh.shape)/3)
     yield [estimate, predicted, None, neighbors, totalgoal, totalmisfit,
            regularizer]
     accretions = 0
-    for iteration in xrange(mesh.size - nseeds):
+    for iteration in range(mesh.size - nseeds):
         grew = False  # To check if at least one seed grew (stopping criterion)
-        for s in xrange(nseeds):
+        for s in range(nseeds):
             best, bestgoal, bestmisfit, bestregularizer = _grow(
                 neighbors[s], data, predicted, totalmisfit, mu, regularizer,
                 threshold)
@@ -429,7 +431,7 @@ def _grow(neighbors, data, predicted, totalmisfit, mu, regularizer, threshold):
         pred = [p + e for p, e in zip(predicted, neighbors[n].effect)]
         misfit = _misfitfunc(data, pred)
         if (misfit < totalmisfit and
-                float(abs(misfit - totalmisfit)) / totalmisfit >= threshold):
+                abs(misfit - totalmisfit)/totalmisfit >= threshold):
             reg = regularizer + neighbors[n].distance
             goal = _shapefunc(data, pred) + mu * reg
             if bestgoal is None or goal < bestgoal:
@@ -447,7 +449,7 @@ def _shapefunc(data, predicted):
     """
     result = 0.
     for d, p in zip(data, predicted):
-        alpha = numpy.sum(d.observed * p) / d.norm ** 2
+        alpha = numpy.sum(d.observed * p)/d.norm**2
         result += numpy.linalg.norm(alpha * d.observed - p)
     return result
 
@@ -460,7 +462,7 @@ def _misfitfunc(data, predicted):
     result = 0.
     for d, p, in zip(data, predicted):
         residuals = d.observed - p
-        result += sqrt(numpy.dot(d.weights * residuals, residuals)) / d.norm
+        result += sqrt(numpy.dot(d.weights*residuals, residuals))/d.norm
     return result
 
 
@@ -471,8 +473,8 @@ def _get_neighbors(cell, neighborhood, estimate, mesh, data, restrict):
     objects.
     """
     indexes = [n for n in _neighbor_indexes(cell.i, mesh, restrict)
-               if not _is_neighbor(n, cell.props, neighborhood)
-               and not _in_estimate(n, cell.props, estimate)]
+               if not _is_neighbor(n, cell.props, neighborhood) and
+               not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
         (i, Neighbor(
             i, cell.props, cell.seed, _distance(i, cell.seed, mesh),
@@ -504,9 +506,9 @@ def _index2ijk(index, mesh):
     Transform the index of a cell in mesh to a 3-dimensional (i,j,k) index.
     """
     nz, ny, nx = mesh.shape
-    k = index / (nx * ny)
-    j = (index - k * (nx * ny)) / nx
-    i = (index - k * (nx * ny) - j * nx)
+    k = index//(nx*ny)
+    j = (index - k*(nx*ny))//nx
+    i = (index - k*(nx*ny) - j*nx)
     return i, j, k
 
 
@@ -642,7 +644,7 @@ def weights(x, y, seeds, influences, decay=2):
         The calculated weights
 
     """
-    distances = numpy.array([((x - s.x) ** 2 + (y - s.y) ** 2) / influence ** 2
+    distances = numpy.array([((x - s.x) ** 2 + (y - s.y) ** 2)/influence**2
                              for s, influence in zip(seeds, influences)])
     # min along axis=0 gets the smallest value from each column
     weights = numpy.exp(-(distances.min(axis=0) ** decay))

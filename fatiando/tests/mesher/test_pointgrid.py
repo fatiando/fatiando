@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import numpy as np
 import numpy.testing as npt
 from pytest import raises
@@ -91,17 +91,17 @@ def test_fails_invalid_index():
     "Indexing should fail for an invalid index"
     area, z, shape = [0, 10, 2, 6], 200, (2, 3)
     g = PointGrid(area, z, shape)
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g[-7]
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g[-500]
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g[6]
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g[28752]
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g[[1]]
-    with raises(IndexError) as e:
+    with raises(IndexError):
         g['1']
 
 

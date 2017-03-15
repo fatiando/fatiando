@@ -69,7 +69,7 @@ rst_epilog = """
 html_last_updated_fmt = '%b %d, %Y'
 html_title = 'Fatiando {}'.format(version)
 html_short_title = 'Fatiando a Terra'
-html_logo = '_static/fatiando-logo.png'
+html_logo = '_static/fatiando-navbar-logo.png'
 html_favicon = u'favicon.ico'
 html_static_path = ['_static']
 html_extra_path = ['.nojekyll', 'CNAME']
@@ -125,6 +125,8 @@ html_theme_options = {
         ("API", "api"),
         ("Docs", "docs"),
         ("Contribute", "develop"),
+        ("Cite", "cite"),
+        ('<i class="fa fa-github fa-lg" title="Source code on Github"></i>', "https://github.com/fatiando/fatiando", True),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,

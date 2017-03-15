@@ -3,10 +3,15 @@ scipy
 matplotlib
 numba
 future
+basemap
 pillow
 jupyter
 sphinx
 pytest
 pytest-cov
 coverage
-pep8=1.6.2
+flake8
+pylint
+cython
+sphinx-gallery
+sphinx_bootstrap_theme

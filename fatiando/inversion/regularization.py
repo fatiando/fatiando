@@ -34,8 +34,8 @@ See :class:`fatiando.gravmag.eqlayer.EQLGravity` for an example.
 ----
 
 """
-from __future__ import division
-from future.builtins import super
+from __future__ import division, absolute_import
+from future.builtins import super, range
 import copy
 
 import numpy
@@ -43,9 +43,6 @@ import scipy.sparse
 
 from .base import OperatorMixin, CachedMethod, CachedMethodPermanent
 from ..utils import safe_dot
-
-__all__ = ["Damping", "Smoothness", "Smoothness1D", "Smoothness2D",
-           "TotalVariation", "TotalVariation1D", "TotalVariation2D"]
 
 
 class Regularization(OperatorMixin):
@@ -627,8 +624,8 @@ def fd1d(size):
             [ 0,  0,  1, -1]])
 
     """
-    i = range(size - 1) + range(size - 1)
-    j = range(size - 1) + range(1, size)
+    i = list(range(size - 1)) + list(range(size - 1))
+    j = list(range(size - 1)) + list(range(1, size))
     v = [1] * (size - 1) + [-1] * (size - 1)
     return scipy.sparse.coo_matrix((v, (i, j)), (size - 1, size)).tocsr()
 
@@ -670,8 +667,8 @@ def fd2d(shape):
     I, J, V = [], [], []
     deriv = 0
     param = 0
-    for i in xrange(ny):
-        for j in xrange(nx - 1):
+    for i in range(ny):
+        for j in range(nx - 1):
             I.extend([deriv, deriv])
             J.extend([param, param + 1])
             V.extend([1, -1])
@@ -679,8 +676,8 @@ def fd2d(shape):
             param += 1
         param += 1
     param = 0
-    for i in xrange(ny - 1):
-        for j in xrange(nx):
+    for i in range(ny - 1):
+        for j in range(nx):
             I.extend([deriv, deriv])
             J.extend([param, param + nx])
             V.extend([1, -1])

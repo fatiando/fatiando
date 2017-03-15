@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from fatiando.mesher import PrismMesh, Prism
 
 import numpy as np

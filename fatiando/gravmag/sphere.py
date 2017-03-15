@@ -1,7 +1,7 @@
 r"""
 The potential fields of a homogeneous sphere.
 """
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy
 import numpy as np

@@ -87,7 +87,8 @@ doi:10.1190/geo2015-0204.1
 ----
 
 """
-from __future__ import division
+from __future__ import division, absolute_import
+from future.builtins import range
 import multiprocessing
 import warnings
 
@@ -159,9 +160,9 @@ def _check_tesseroid(tesseroid, dens):
         "Invalid tesseroid dimensions {}".format(tesseroid.get_bounds())
     # Check if the tesseroid has volume > 0
     if (e - w <= 1e-6) or (n - s <= 1e-6) or (top - bottom <= 1e-3):
-        msg = ("Encountered tesseroid with dimensions smaller than the "
-               + "numerical threshold (1e-6 degrees or 1e-3 m). "
-               + "Ignoring this tesseroid.")
+        msg = ("Encountered tesseroid with dimensions smaller than the " +
+               "numerical threshold (1e-6 degrees or 1e-3 m). " +
+               "Ignoring this tesseroid.")
         warnings.warn(msg, RuntimeWarning)
         return None
     if dens is not None:
@@ -218,10 +219,10 @@ def _forward_model(args):
     lon, sinlat, coslat, radius = _convert_coords(lon, lat, height)
     func = getattr(_tesseroid_numba, field)
     warning_msg = (
-        "Stopped dividing a tesseroid because it's dimensions would be below "
-        + "the minimum numerical threshold (1e-6 degrees or 1e-3 m). "
-        + "Will compute without division. Cannot guarantee the accuracy of "
-        + "the solution.")
+        "Stopped dividing a tesseroid because it's dimensions would be " +
+        "below the minimum numerical threshold (1e-6 degrees or 1e-3 m). " +
+        "Will compute without division. Cannot guarantee the accuracy of " +
+        "the solution.")
     # Arrays needed by the kernel. Can't allocate them inside the kernel
     # because numba doesn't like that.
     stack = np.empty((STACK_SIZE, 6), dtype='float')
@@ -258,7 +259,7 @@ def _split_arrays(arrays, extra_args, nparts):
     """
     size = len(arrays[0])
     n = size//nparts
-    strides = [(i*n, (i + 1)*n) for i in xrange(nparts - 1)]
+    strides = [(i*n, (i + 1)*n) for i in range(nparts - 1)]
     strides.append((strides[-1][-1], size))
     chunks = [[x[low:high] for x in arrays] + extra_args
               for low, high in strides]
