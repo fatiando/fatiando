@@ -1,7 +1,7 @@
 """
 Mesh classes that define a relief (topography) between two interfaces.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 from future.builtins import super
 import numpy as np
 

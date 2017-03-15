@@ -1,7 +1,7 @@
 """
 3D mesh classes that behave as lists of their elements.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 from builtins import super, range
 import numpy as np
 
@@ -221,7 +221,6 @@ class PrismMesh(RegularMesh):
         """
         x, y, height = map(np.array, [x, y, height])
         xc, yc, zc = self.centers
-        area = [xc.min(), xc.max(), yc.min(), yc.max()]
         xc, yc, topo = gridder.interp(x, y, height, self.shape[1:],
                                       algorithm='cubic')
         if self.zdown:

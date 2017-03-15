@@ -1,7 +1,7 @@
 """
 Base classes for geometries and meshes.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 from future.utils import with_metaclass
 from future.builtins import object, super
 from abc import ABCMeta, abstractmethod

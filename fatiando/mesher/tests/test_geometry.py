@@ -1,7 +1,7 @@
 """
 Test the geometry primitive classes.
 """
-from __future__ import division
+from __future__ import division, absolute_import
 from .. import Polygon, Square, Prism, PolygonalPrism, Tesseroid, Sphere
 import numpy as np
 import numpy.testing as npt

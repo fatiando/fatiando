@@ -2,7 +2,7 @@
 Classes that define basic geometric primitives. All inherit from
 ``GeometricElement``.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 from builtins import object, super
 import numpy as np
 

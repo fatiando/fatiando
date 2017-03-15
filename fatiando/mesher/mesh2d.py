@@ -1,7 +1,7 @@
 """
 2D meshes (can iterate over like a list of geometric objects).
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 from builtins import object, super
 import numpy as np
 import copy
