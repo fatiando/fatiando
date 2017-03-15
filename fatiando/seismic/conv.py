@@ -135,11 +135,9 @@ def depth_2_time(vel, model, dt, dz):
     for j in range(1, n_samples):
         TWT[j, :] = TWT[j-1]+2*dz/vel[j, :]
     TMAX = max(TWT[-1, :])
-    TMIN = min(TWT[0, :])
     TWT_rs = np.zeros(int(np.ceil(TMAX/dt_dwn)))
     for j in range(1, len(TWT_rs)):
         TWT_rs[j] = TWT_rs[j-1]+dt_dwn
-    resmpl = int(dt/dt_dwn)
     model_t = _resampling(model, TMAX, TWT, TWT_rs, dt, dt_dwn, n_traces)
     return model_t
 

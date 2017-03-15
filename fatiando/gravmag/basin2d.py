@@ -339,11 +339,11 @@ class Triangular(Misfit):
         verts = self.verts
         x, z = p
         jac = np.transpose([
-            (talwani.gz(xp, zp, [Polygon(verts + [[x + delta, z]], props)])
-             - talwani.gz(xp, zp, [Polygon(verts + [[x - delta, z]], props)])
+            (talwani.gz(xp, zp, [Polygon(verts + [[x + delta, z]], props)]) -
+             talwani.gz(xp, zp, [Polygon(verts + [[x - delta, z]], props)])
              ) / (2. * delta),
-            (talwani.gz(xp, zp, [Polygon(verts + [[x, z + delta]], props)])
-             - talwani.gz(xp, zp, [Polygon(verts + [[x, z - delta]], props)])
+            (talwani.gz(xp, zp, [Polygon(verts + [[x, z + delta]], props)]) -
+             talwani.gz(xp, zp, [Polygon(verts + [[x, z - delta]], props)])
              ) / (2. * delta)])
         return jac
 

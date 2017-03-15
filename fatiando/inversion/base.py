@@ -213,8 +213,8 @@ class OptimizerMixin(with_metaclass(ABCMeta)):
         ``estimate_``.
 
         """
-        not_configured = (getattr(self, 'fit_method', None) is None
-                          or getattr(self, 'fit_args', None) is None)
+        not_configured = (getattr(self, 'fit_method', None) is None or
+                          getattr(self, 'fit_args', None) is None)
         if not_configured:
             if self.islinear:
                 self.config('linear')

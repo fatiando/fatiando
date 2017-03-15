@@ -92,7 +92,7 @@ def _lazy_import_tvtk():
             from enthought.tvtk.api import tvtk
 
 
-def title(text, color=(0, 0, 0),  size=0.3, height=1):
+def title(text, color=(0, 0, 0), size=0.3, height=1):
     """
     Draw a title on a Mayavi figure.
 

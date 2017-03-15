@@ -179,9 +179,9 @@ def newton(hessian, gradient, value, initial, maxit=30, tol=10 ** -5,
         misfit = newmisfit
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 
@@ -275,10 +275,10 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
         if stagnation:
             stop = True
             warnings.warn(
-                "Exited because couldn't take a step without increasing "
-                + 'the objective function. '
-                + 'Might not have achieved convergence. '
-                + 'Try inscreasing the max number of step attempts allowed.',
+                "Exited because couldn't take a step without increasing " +
+                'the objective function. ' +
+                'Might not have achieved convergence. ' +
+                'Try inscreasing the max number of step attempts allowed.',
                 RuntimeWarning)
         else:
             stop = newmisfit > misfit or abs(
@@ -296,9 +296,9 @@ def levmarq(hessian, gradient, value, initial, maxit=30, maxsteps=20, lamb=10,
             break
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 
@@ -421,10 +421,10 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
         if stagnation:
             stop = True
             warnings.warn(
-                "Exited because couldn't take a step without increasing "
-                + 'the objective function. '
-                + 'Might not have achieved convergence. '
-                + 'Try inscreasing the max number of step attempts allowed.',
+                "Exited because couldn't take a step without increasing " +
+                'the objective function. ' +
+                'Might not have achieved convergence. ' +
+                'Try inscreasing the max number of step attempts allowed.',
                 RuntimeWarning)
         else:
             stop = abs((newmisfit - misfit) / misfit) < tol
@@ -441,9 +441,9 @@ def steepest(gradient, value, initial, maxit=1000, linesearch=True,
             break
     if iteration == maxit - 1:
         warnings.warn(
-            'Exited because maximum iterations reached. '
-            + 'Might not have achieved convergence. '
-            + 'Try inscreasing the maximum number of iterations allowed.',
+            'Exited because maximum iterations reached. ' +
+            'Might not have achieved convergence. ' +
+            'Try inscreasing the maximum number of iterations allowed.',
             RuntimeWarning)
 
 

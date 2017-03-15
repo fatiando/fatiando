@@ -140,20 +140,10 @@ import numpy
 import scipy.sparse
 import scipy.sparse.linalg
 
-try:
-    from fatiando.seismic._wavefd import *
-except:
-    def not_implemented(*args, **kwargs):
-        raise NotImplementedError(
-            "Couldn't load C coded extension module.")
-    _apply_damping = not_implemented
-    _step_elastic_sh = not_implemented
-    _step_elastic_psv = not_implemented
-    _xz2ps = not_implemented
-    _nonreflexive_sh_boundary_conditions = not_implemented
-    _nonreflexive_psv_boundary_conditions = not_implemented
-    _step_scalar = not_implemented
-    _reflexive_scalar_boundary_conditions = not_implemented
+from fatiando.seismic._wavefd import _apply_damping, _step_elastic_sh, \
+    _step_elastic_psv, _xz2ps, _nonreflexive_sh_boundary_conditions, \
+    _nonreflexive_psv_boundary_conditions, _step_scalar, \
+    _reflexive_scalar_boundary_conditions
 
 
 # Tell users at import time that this code is not very trustworthy
@@ -312,16 +302,16 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0,
     nz, nx = shape
     xsources, zsources = [], []
     center = sourcetype(x, z, area, shape, amp, frequency, delay)
-    i, j = center.indexes()
+    ic, jc = center.indexes()
     tmp = numpy.sqrt(2)
-    locations = [[i - 1, j - 1, -amp, -amp],
-                 [i - 1, j, 0, -tmp * amp],
-                 [i - 1, j + 1, amp, -amp],
-                 [i, j - 1, -tmp * amp, 0],
-                 [i, j + 1, tmp * amp, 0],
-                 [i + 1, j - 1, -amp, amp],
-                 [i + 1, j, 0, tmp * amp],
-                 [i + 1, j + 1, amp, amp]]
+    locations = [[ic - 1, jc - 1, -amp, -amp],
+                 [ic - 1, jc, 0, -tmp * amp],
+                 [ic - 1, jc + 1, amp, -amp],
+                 [ic, jc - 1, -tmp * amp, 0],
+                 [ic, jc + 1, tmp * amp, 0],
+                 [ic + 1, jc - 1, -amp, amp],
+                 [ic + 1, jc, 0, tmp * amp],
+                 [ic + 1, jc + 1, amp, amp]]
     locations = [[i, j, xamp, zamp] for i, j, xamp, zamp in locations
                  if i >= 0 and i < nz and j >= 0 and j < nx]
     for i, j, xamp, zamp in locations:
@@ -335,7 +325,6 @@ def blast_source(x, z, area, shape, amp, frequency, delay=0,
 
 
 class GaussSource(MexHatSource):
-
     r"""
     A wave source that vibrates as a Gaussian derivative wavelet.
 
@@ -370,9 +359,8 @@ class GaussSource(MexHatSource):
 
     def __call__(self, time):
         t = time - self.delay
-        psi = self.amp * ((2 * numpy.sqrt(numpy.e) * self.frequency)
-                          * t * numpy.exp(-2 * (t ** 2) * self.f2)
-                          )
+        psi = self.amp*((2*numpy.sqrt(numpy.e)*self.frequency)*t *
+                        numpy.exp(-2*(t**2)*self.f2))
         return psi
 
 
@@ -814,7 +802,7 @@ def elastic_psv(mu, lamb, density, area, dt, iterations, sources,
     for iteration in xrange(1, iterations):
         t, tm1 = iteration % 2, (iteration + 1) % 2
         tp1 = tm1
-        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1,  1, nz - 1, dt, dx,
+        _step_elastic_psv(ux, uz, tp1, t, tm1, 1, nx - 1, 1, nz - 1, dt, dx,
                           dz, mu_pad, lamb_pad, dens_pad)
         _apply_damping(ux[t], nx, nz, pad, taper)
         _apply_damping(uz[t], nx, nz, pad, taper)

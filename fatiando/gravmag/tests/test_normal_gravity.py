@@ -62,8 +62,8 @@ def test_closed_form():
         assert_almost_equal(closed[i], som[i], decimal=3,
                             err_msg='lat = {}'.format(lat[i]))
 
-    gradient = (gamma_closed_form(lat, 1, ellipsoid=WGS84)
-                - gamma_closed_form(lat, 0, ellipsoid=WGS84))
+    gradient = (gamma_closed_form(lat, 1, ellipsoid=WGS84) -
+                gamma_closed_form(lat, 0, ellipsoid=WGS84))
     mean = numpy.mean(gradient)
     assert_almost_equal(mean, -0.3086, decimal=4, err_msg='mean vs free-air')
 

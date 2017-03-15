@@ -471,8 +471,8 @@ def _get_neighbors(cell, neighborhood, estimate, mesh, data, restrict):
     objects.
     """
     indexes = [n for n in _neighbor_indexes(cell.i, mesh, restrict)
-               if not _is_neighbor(n, cell.props, neighborhood)
-               and not _in_estimate(n, cell.props, estimate)]
+               if not _is_neighbor(n, cell.props, neighborhood) and
+               not _in_estimate(n, cell.props, estimate)]
     neighbors = dict(
         (i, Neighbor(
             i, cell.props, cell.seed, _distance(i, cell.seed, mesh),

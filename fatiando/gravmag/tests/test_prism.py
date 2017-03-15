@@ -235,8 +235,6 @@ def test_cython_agains_numpy():
 
 def test_around():
     "gravmag.prism gravitational results are consistent around the prism"
-    funcs = ['potential', 'gx', 'gy', 'gz',
-             'gxx', 'gxy', 'gxz', 'gyy', 'gyz', 'gzz']
     model = [Prism(-300, 300, -300, 300, -300, 300, {'density': 1000})]
     # Make the computation points surround the prism
     shape = (101, 101)

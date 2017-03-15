@@ -344,6 +344,7 @@ True
 ----
 
 """
-from .misfit import *
-from .regularization import *
-from .hyper_param import *
+from .misfit import Misfit
+from .regularization import Damping, Smoothness, Smoothness1D, Smoothness2D, \
+    TotalVariation, TotalVariation1D, TotalVariation2D
+from .hyper_param import LCurve

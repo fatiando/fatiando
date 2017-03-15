@@ -57,13 +57,6 @@ from __future__ import division
 import warnings
 import numpy
 from matplotlib import pyplot, widgets
-# Quick hack so that the docs can build using the mocks for readthedocs
-# Ideal would be to log an error message saying that functions from pyplot
-# were not imported
-try:
-    from matplotlib.pyplot import *
-except:
-    pass
 
 import fatiando.gridder
 
@@ -428,10 +421,10 @@ def draw_geolines(area, dlon, dlat, basemap, linewidth=1):
 
     """
     west, east, south, north = area
-    meridians = basemap.drawmeridians(numpy.arange(west, east, dlon),
-                                      labels=[0, 0, 0, 1], linewidth=linewidth)
-    parallels = basemap.drawparallels(numpy.arange(south, north, dlat),
-                                      labels=[1, 0, 0, 0], linewidth=linewidth)
+    basemap.drawmeridians(numpy.arange(west, east, dlon), labels=[0, 0, 0, 1],
+                          linewidth=linewidth)
+    basemap.drawparallels(numpy.arange(south, north, dlat),
+                          labels=[1, 0, 0, 0], linewidth=linewidth)
 
 
 def draw_countries(basemap, linewidth=1, style='dashed'):
@@ -1099,7 +1092,7 @@ def seismic_image(section, dt, ranges=None, cmap=pyplot.cm.gray,
         aspect = numpy.round((x1 - x0)/numpy.max(t))
         aspect -= aspect*0.2
     if vmin is None and vmax is None:
-        scale = np.abs([section.max(), section.min()]).max()
+        scale = numpy.abs([section.max(), section.min()]).max()
         vmin = -scale
         vmax = scale
     pyplot.imshow(data, aspect=aspect, cmap=cmap, origin='upper',

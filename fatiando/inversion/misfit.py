@@ -106,8 +106,8 @@ class Misfit(OptimizerMixin, OperatorMixin):
             obj = copy.copy(self)
         for name in ['predicted', 'jacobian', 'hessian']:
             meth = getattr(obj, name)
-            is_cached = (isinstance(meth, CachedMethod)
-                         or isinstance(meth, CachedMethodPermanent))
+            is_cached = (isinstance(meth, CachedMethod) or
+                         isinstance(meth, CachedMethodPermanent))
             if is_cached:
                 setattr(obj, name, copy.copy(meth))
                 getattr(obj, name).instance = obj

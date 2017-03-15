@@ -1154,8 +1154,8 @@ class PrismMesh(object):
     def __init__(self, bounds, shape, props=None):
         object.__init__(self)
         nz, ny, nx = shape
-        if (not isinstance(nx, int) or not isinstance(ny, int)
-                or not isinstance(nz, int)):
+        if not isinstance(nx, int) or not isinstance(ny, int) or \
+                not isinstance(nz, int):
             raise AttributeError(
                 'Invalid mesh shape {}. shape must be integers'.format(
                     str(shape)))

@@ -68,9 +68,9 @@ def test_upcontinue_warning():
     x, y, z = gridder.regular([-5000, 5000, -5000, 5000], shape, z=-500)
     data = prism.gz(x, y, z, model)
     with pytest.warns(UserWarning):
-        up = transform.upcontinue(x, y, data, shape, height=0)
+        transform.upcontinue(x, y, data, shape, height=0)
     with pytest.warns(UserWarning):
-        up = transform.upcontinue(x, y, data, shape, height=-100)
+        transform.upcontinue(x, y, data, shape, height=-100)
 
 
 def test_second_horizontal_derivatives_fd():

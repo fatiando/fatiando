@@ -59,8 +59,8 @@ def gz(xp, zp, polygons, dens=None):
         raise ValueError("Input arrays xp and zp must have same shape!")
     res = numpy.zeros_like(xp)
     for polygon in polygons:
-        if polygon is None or ('density' not in polygon.props
-                               and dens is None):
+        if polygon is None or ('density' not in polygon.props and
+                               dens is None):
             continue
         if dens is None:
             density = polygon.props['density']

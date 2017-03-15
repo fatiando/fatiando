@@ -161,7 +161,7 @@ def _straight(cells, prop, srcs, recs, velocity):
                 b_ray = y_src - a_ray * (x_src)
                 # Add the src and rec locations so that the travel time of a
                 # src or rec inside a cell is accounted for
-                xps = [x1,  x2, (y1 - b_ray) / a_ray, (y2 - b_ray) / a_ray,
+                xps = [x1, x2, (y1 - b_ray) / a_ray, (y2 - b_ray) / a_ray,
                        x_src, x_rec]
                 yps = [a_ray * x1 + b_ray, a_ray * x2 + b_ray, y1, y2, y_src,
                        y_rec]

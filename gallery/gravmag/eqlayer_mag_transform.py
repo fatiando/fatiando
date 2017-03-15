@@ -49,8 +49,8 @@ data = utils.contaminate(prism.tf(x, y, z, model, inc, dec), 5, seed=0)
 # Notice that we only estimate the intensity. We must provide the magnetization
 # direction of the layer through the sinc and sdec parameters.
 layer = mesher.PointGrid(area, 700, shape)
-eql = (EQLTotalField(x, y, z, data, inc, dec, layer, sinc=inc, sdec=dec)
-       + 1e-15*Damping(layer.size))
+eql = (EQLTotalField(x, y, z, data, inc, dec, layer, sinc=inc, sdec=dec) +
+       1e-15*Damping(layer.size))
 eql.fit()
 # Print some statistics of how well the estimated layer fits the data
 residuals = eql[0].residuals()

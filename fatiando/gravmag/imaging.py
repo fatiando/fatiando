@@ -168,17 +168,16 @@ def sandwich(x, y, z, data, shape, zmin, zmax, nlayers, power=0.5):
     density = []
     # Offset by the data z because in the paper the data is at z=0
     for depth, weight in zip(depths - z[0], weights):
+        # The 1e-10 is to avoid zero division when freq[i]==0
         density.extend(
             numpy.real(numpy.fft.ifft2(
                 weight *
-                (numpy.exp(-freq * depth) - numpy.exp(-freq * (depth + dz)))
-                * freq * dataft /
+                (numpy.exp(-freq * depth) - numpy.exp(-freq * (depth + dz))) *
+                freq * dataft /
                 (numpy.pi * G *
                  reduce(numpy.add,
-                        [w * (numpy.exp(-freq * h)
-                         - numpy.exp(-freq * (h + dz))) ** 2
-                         # To avoid zero division when freq[i]==0
-                         + 10. ** (-10)
+                        [w * (numpy.exp(-freq * h) -
+                         numpy.exp(-freq * (h + dz))) ** 2 + 1e-10
                          for h, w in zip(depths, weights)])
                  )
             ).ravel()))

@@ -30,9 +30,9 @@ def test_rc_shorter_than_wavelet():
     rc_test[rc_test.shape[0]/2, :] = 1
     spike = conv.convolutional_model(rc_test, 30., conv.rickerwave, dt=2.e-3)
     for j in range(0, rc_test.shape[1]):
-        assert_array_almost_equal(spike[:, j],
-                                  w[(w.shape[0]-rc_test.shape[0])/2:
-                                  -(w.shape[0]-rc_test.shape[0])/2], 9)
+        wmin = (w.shape[0] - rc_test.shape[0])/2
+        wmax = -(w.shape[0] - rc_test.shape[0])/2
+        assert_array_almost_equal(spike[:, j], w[wmin:wmax], 9)
 
 
 def test_reflectivity_wrong_dimensions():

@@ -73,7 +73,7 @@ def layered_straight_ray(thickness, velocity, zp):
     layers = [Square((0, zmax, z[i], z[i + 1]), props={'vp': velocity[i]})
               for i in xrange(nlayers)]
     srcs = [(0, 0)] * len(zp)
-    recs = [(0, z) for z in zp]
+    recs = [(0, k) for k in zp]
     return ttime2d.straight(layers, 'vp', srcs, recs)
 
 

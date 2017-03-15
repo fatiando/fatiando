@@ -21,8 +21,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pmx, pmy, pmz = pmag
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props
-                             and pmag is None):
+        if prism is None or ('magnetization' not in prism.props and
+                             pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']
