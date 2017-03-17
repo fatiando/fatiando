@@ -8,7 +8,7 @@ import scipy.special
 import scipy.interpolate
 import copy as cp
 
-from fatiando import gridder
+from . import gridder
 
 
 class GeometricElement(object):
