@@ -2,7 +2,7 @@
 Generate and operate on various kinds of meshes and geometric elements
 """
 from __future__ import division, absolute_import
-from future.builtins import range
+from future.builtins import range, super
 import numpy
 import scipy.special
 import scipy.interpolate
@@ -1724,7 +1724,6 @@ def vremove(value, prop, cells):
 
 
 class TriaxialEllipsoid(GeometricElement):
-
     """
     Create an arbitrarily-oriented triaxial ellipsoid.
 
@@ -1791,7 +1790,7 @@ strike:10 | dip:20 | rake:30 | density:20 | remanent magnetization:[10, 25, 40\
 
     def __init__(self, x, y, z, large_axis, intermediate_axis, small_axis,
                  strike, dip, rake, props=None):
-        GeometricElement.__init__(self, props)
+        super().__init__(props)
 
         self.x = x
         self.y = y
@@ -1808,14 +1807,14 @@ strike:10 | dip:20 | rake:30 | density:20 | remanent magnetization:[10, 25, 40\
 ter than intermediate_axis and intermediate_axis must greater than small_axis"
 
         # Auxiliary orientation angles
-        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                              self.dip,
-                                                              self.rake)
+        alpha, gamma, delta = _auxiliary_angles(self.strike,
+                                                self.dip,
+                                                self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_triaxial(self.alpha,
-                                                          self.gamma,
-                                                          self.delta)
+        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
+                                                          gamma,
+                                                          delta)
 
     def __str__(self):
         """
@@ -1830,6 +1829,7 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
+    @property
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -1844,42 +1844,43 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
         coord_transf_matrix_triaxial.
         '''
 
-        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
-is not in the dictionary of physical properties'
+        if 'susceptibility tensor' in self.props:
 
-        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
-ty tensor must be a list containing six elements'
+            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
+ity tensor must be a list containing six elements'
 
-        # Large, intermediate and small eigenvalues of the
-        # susceptibility tensor (principal susceptibilities)
-        k1 = self.props['susceptibility tensor'][0]
-        k2 = self.props['susceptibility tensor'][1]
-        k3 = self.props['susceptibility tensor'][2]
+            # Large, intermediate and small eigenvalues of the
+            # susceptibility tensor (principal susceptibilities)
+            k1 = self.props['susceptibility tensor'][0]
+            k2 = self.props['susceptibility tensor'][1]
+            k3 = self.props['susceptibility tensor'][2]
 
-        assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
+            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
 descending order'
 
-        assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
 be all positive'
 
-        # Angles (in degrees) defining the eigenvector matrix
-        # of the susceptibility tensor
-        strike = self.props['susceptibility tensor'][3]
-        dip = self.props['susceptibility tensor'][4]
-        rake = self.props['susceptibility tensor'][5]
+            # Angles (in degrees) defining the eigenvector matrix
+            # of the susceptibility tensor
+            strike = self.props['susceptibility tensor'][3]
+            dip = self.props['susceptibility tensor'][4]
+            rake = self.props['susceptibility tensor'][5]
 
-        # Eigenvector matrix of the susceptibility tensor
-        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
-        U = coord_transf_matrix_triaxial(alpha, gamma, delta)
+            # Eigenvector matrix of the susceptibility tensor
+            alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
+            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
 
-        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
-        suscep_tensor = numpy.dot(suscep_tensor, U.T)
+            suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+            suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
-        return suscep_tensor
+            return suscep_tensor
+
+        else:
+            return None
 
 
 class ProlateEllipsoid(GeometricElement):
-
     """
     Create an arbitrarily-oriented prolate ellipsoid.
 
@@ -1946,7 +1947,7 @@ ake:30 | density:2670
 
     def __init__(self, x, y, z, large_axis, small_axis,
                  strike, dip, rake, props=None):
-        GeometricElement.__init__(self, props)
+        super().__init__(props)
 
         self.x = x
         self.y = y
@@ -1961,14 +1962,14 @@ ake:30 | density:2670
 than small_axis"
 
         # Auxiliary orientation angles
-        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                              self.dip,
-                                                              self.rake)
+        alpha, gamma, delta = _auxiliary_angles(self.strike,
+                                                self.dip,
+                                                self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_triaxial(self.alpha,
-                                                          self.gamma,
-                                                          self.delta)
+        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
+                                                          gamma,
+                                                          delta)
 
     def __str__(self):
         """
@@ -1982,6 +1983,7 @@ than small_axis"
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
+    @property
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -1996,42 +1998,43 @@ than small_axis"
         coord_transf_matrix_triaxial.
         '''
 
-        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
-is not in the dictionary of physical properties'
+        if 'susceptibility tensor' in self.props:
 
-        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
-ty tensor must be a list containing six elements'
+            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
+ity tensor must be a list containing six elements'
 
-        # Large, intermediate and small eigenvalues of the
-        # susceptibility tensor (principal susceptibilities)
-        k1 = self.props['susceptibility tensor'][0]
-        k2 = self.props['susceptibility tensor'][1]
-        k3 = self.props['susceptibility tensor'][2]
+            # Large, intermediate and small eigenvalues of the
+            # susceptibility tensor (principal susceptibilities)
+            k1 = self.props['susceptibility tensor'][0]
+            k2 = self.props['susceptibility tensor'][1]
+            k3 = self.props['susceptibility tensor'][2]
 
-        assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
+            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
 descending order'
 
-        assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
 be all positive'
 
-        # Angles (in degrees) defining the eigenvector matrix
-        # of the susceptibility tensor
-        strike = self.props['susceptibility tensor'][3]
-        dip = self.props['susceptibility tensor'][4]
-        rake = self.props['susceptibility tensor'][5]
+            # Angles (in degrees) defining the eigenvector matrix
+            # of the susceptibility tensor
+            strike = self.props['susceptibility tensor'][3]
+            dip = self.props['susceptibility tensor'][4]
+            rake = self.props['susceptibility tensor'][5]
 
-        # Eigenvector matrix of the susceptibility tensor
-        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
-        U = coord_transf_matrix_triaxial(alpha, gamma, delta)
+            # Eigenvector matrix of the susceptibility tensor
+            alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
+            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
 
-        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
-        suscep_tensor = numpy.dot(suscep_tensor, U.T)
+            suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+            suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
-        return suscep_tensor
+            return suscep_tensor
+
+        else:
+            return None
 
 
 class OblateEllipsoid(GeometricElement):
-
     """
     Create an arbitrarily-oriented oblate ellipsoid.
 
@@ -2099,7 +2102,7 @@ ake:30 | density:2670
 
     def __init__(self, x, y, z, small_axis, large_axis,
                  strike, dip, rake, props=None):
-        GeometricElement.__init__(self, props)
+        super().__init__(props)
 
         self.x = x
         self.y = y
@@ -2114,14 +2117,14 @@ ake:30 | density:2670
 than small_axis"
 
         # Auxiliary orientation angles
-        self.alpha, self.gamma, self.delta = auxiliary_angles(self.strike,
-                                                              self.dip,
-                                                              self.rake)
+        alpha, gamma, delta = _auxiliary_angles(self.strike,
+                                                self.dip,
+                                                self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_oblate(self.alpha,
-                                                        self.gamma,
-                                                        self.delta)
+        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
+                                                          gamma,
+                                                          delta)
 
     def __str__(self):
         """
@@ -2135,6 +2138,7 @@ than small_axis"
         names = names + [(p, self.props[p]) for p in sorted(self.props)]
         return ' | '.join('%s:%s' % (n, v) for n, v in names)
 
+    @property
     def susceptibility_tensor(self):
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
@@ -2149,41 +2153,43 @@ than small_axis"
         coord_transf_matrix_oblate.
         '''
 
-        assert 'susceptibility tensor' in self.props, 'susceptibility tensor \
-is not in the dictionary of physical properties'
+        if 'susceptibility tensor' in self.props:
 
-        assert len(self.props['susceptibility tensor']) == 6, 'susceptibili\
-ty tensor must be a list containing six elements'
+            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
+ity tensor must be a list containing six elements'
 
-        # Large, intermediate and small eigenvalues of the
-        # susceptibility tensor (principal susceptibilities)
-        k1 = self.props['susceptibility tensor'][0]
-        k2 = self.props['susceptibility tensor'][1]
-        k3 = self.props['susceptibility tensor'][2]
+            # Large, intermediate and small eigenvalues of the
+            # susceptibility tensor (principal susceptibilities)
+            k1 = self.props['susceptibility tensor'][0]
+            k2 = self.props['susceptibility tensor'][1]
+            k3 = self.props['susceptibility tensor'][2]
 
-        assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
+            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
 descending order'
 
-        assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
 be all positive'
 
-        # Angles (in degrees) defining the eigenvector matrix
-        # of the susceptibility tensor
-        strike = self.props['susceptibility tensor'][3]
-        dip = self.props['susceptibility tensor'][4]
-        rake = self.props['susceptibility tensor'][5]
+            # Angles (in degrees) defining the eigenvector matrix
+            # of the susceptibility tensor
+            strike = self.props['susceptibility tensor'][3]
+            dip = self.props['susceptibility tensor'][4]
+            rake = self.props['susceptibility tensor'][5]
 
-        # Eigenvector matrix of the susceptibility tensor
-        alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
-        U = coord_transf_matrix_oblate(alpha, gamma, delta)
+            # Eigenvector matrix of the susceptibility tensor
+            alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
+            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
 
-        suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
-        suscep_tensor = numpy.dot(suscep_tensor, U.T)
+            suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
+            suscep_tensor = numpy.dot(suscep_tensor, U.T)
 
-        return suscep_tensor
+            return suscep_tensor
+
+        else:
+            return None
 
 
-def auxiliary_angles(strike, dip, rake):
+def _auxiliary_angles(strike, dip, rake):
     '''
     Calculate auxiliary angles alpha, gamma and delta (Clark et al., 1986)
     as functions of geological angles strike, dip and rake

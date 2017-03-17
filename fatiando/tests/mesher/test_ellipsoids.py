@@ -1,7 +1,10 @@
 from __future__ import division, absolute_import
-from ...mesher import TriaxialEllipsoid, ProlateEllipsoid, OblateEllipsoid
-from ...mesher import coord_transf_matrix_triaxial, coord_transf_matrix_oblate
-from ...mesher import auxiliary_angles
+from ...mesher import TriaxialEllipsoid
+from ...mesher import ProlateEllipsoid
+from ...mesher import OblateEllipsoid
+from ...mesher import coord_transf_matrix_triaxial
+from ...mesher import coord_transf_matrix_oblate
+from ...mesher import _auxiliary_angles
 import numpy as np
 from numpy.testing import assert_almost_equal
 from pytest import raises
@@ -50,7 +53,19 @@ def test_triaxial_ellipsoid_susceptibility_tensor_fmt():
                                  'susceptibility tensor': [0.562, 0.485,
                                                            0.25, 90, 0]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
+
+
+def test_triaxial_ellipsoid_susceptibility_tensor_symm():
+    'susceptibility tensor must be symmetric'
+    e = TriaxialEllipsoid(x=1, y=2, z=3, large_axis=6,
+                          intermediate_axis=5, small_axis=4,
+                          strike=10, dip=20, rake=30,
+                          props={'remanent magnetization': [10, 25, 40],
+                                 'susceptibility tensor': [0.562, 0.485,
+                                                           0.25, 15, -80, 29]})
+    assert_almost_equal(e.susceptibility_tensor, e.susceptibility_tensor.T,
+                        decimal=15)
 
 
 def test_triaxial_ellipsoid_principal_susceptibilities_order():
@@ -62,7 +77,7 @@ def test_triaxial_ellipsoid_principal_susceptibilities_order():
                                  'susceptibility tensor': [0.1, 0.485,
                                                            0.25, 90, 0, 6]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_triaxial_ellipsoid_principal_susceptibilities_signal():
@@ -74,7 +89,7 @@ def test_triaxial_ellipsoid_principal_susceptibilities_signal():
                                  'susceptibility tensor': [0.5, 0.485,
                                                            -0.25, 90, 0, 6]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_coord_transf_matrix_triaxial_known():
@@ -139,7 +154,7 @@ def test_prolate_ellipsoid_susceptibility_tensor_fmt():
                                 'susceptibility tensor': [0.562, 0.485, 0.25,
                                                           90, 0]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_prolate_ellipsoid_principal_susceptibilities_order():
@@ -150,7 +165,7 @@ def test_prolate_ellipsoid_principal_susceptibilities_order():
                                 'susceptibility tensor': [0.562, 0.8, 0.25,
                                                           4, 10, 12]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_prolate_ellipsoid_principal_susceptibilities_signal():
@@ -161,7 +176,7 @@ def test_prolate_ellipsoid_principal_susceptibilities_signal():
                                 'susceptibility tensor': [-0.562, 0.485, 0.25,
                                                           0, 20, 3]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_oblate_ellipsoid_copy():
@@ -204,7 +219,19 @@ def test_oblate_ellipsoid_susceptibility_tensor_fmt():
                                'susceptibility tensor': [0.562, 0.485, 0.25,
                                                          90, 0]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
+
+
+def test_oblate_ellipsoid_susceptibility_tensor_symm():
+    'susceptibility tensor must be symmetric'
+    e = OblateEllipsoid(x=1, y=2, z=3,
+                        small_axis=4, large_axis=6,
+                        strike=10, dip=20, rake=30,
+                        props={'remanent magnetization': [10, 25, 40],
+                               'susceptibility tensor': [0.562, 0.485,
+                                                         0.25, -240, 71, -2]})
+    assert_almost_equal(e.susceptibility_tensor, e.susceptibility_tensor.T,
+                        decimal=15)
 
 
 def test_oblate_ellipsoid_principal_susceptibilities_order():
@@ -215,7 +242,7 @@ def test_oblate_ellipsoid_principal_susceptibilities_order():
                                'susceptibility tensor': [0.562, 0.485, 0.9,
                                                          19, -14, 100]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_oblate_ellipsoid_principal_susceptibilities_signal():
@@ -226,7 +253,7 @@ def test_oblate_ellipsoid_principal_susceptibilities_signal():
                                'susceptibility tensor': [0.562, -0.485, 0.1,
                                                          19, -14, 100]})
     with raises(AssertionError):
-        e.susceptibility_tensor()
+        e.susceptibility_tensor
 
 
 def test_coord_transf_matrix_oblate_known():
@@ -238,7 +265,7 @@ def test_coord_transf_matrix_oblate_known():
     assert_almost_equal(transf_matrix, np.identity(3)[[1, 2, 0]], decimal=15)
 
 
-def test_coord_transf_matrix_oblate_orthogonal():
+def test_coord_transf_matrix_oblate_orthonal():
     'Coordinate transformation matrix must be orthogonal'
     alpha = 7
     gamma = 23
@@ -251,7 +278,7 @@ def test_coord_transf_matrix_oblate_orthogonal():
     assert_almost_equal(dot2, np.identity(3), decimal=15)
 
 
-def test_auxiliary_angles_known():
+def test__auxiliary_angles_known():
     'Calculate the auxiliary angles with specific input'
     alpha_ref = np.pi - np.arccos(2/np.sqrt(7))
     gamma_ref = np.arctan(2*np.sqrt(1.5))
@@ -259,7 +286,7 @@ def test_auxiliary_angles_known():
     strike = 180
     dip = 30
     rake = 45
-    alpha, gamma, delta = auxiliary_angles(strike, dip, rake)
+    alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
     assert_almost_equal(alpha_ref, alpha, decimal=15)
     assert_almost_equal(gamma_ref, gamma, decimal=15)
     assert_almost_equal(delta_ref, delta, decimal=15)
