@@ -8,7 +8,7 @@ import scipy.special
 import scipy.interpolate
 import copy as cp
 
-from . import gridder
+from fatiando import gridder
 
 
 class GeometricElement(object):
@@ -1812,9 +1812,9 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
                                                 self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
-                                                          gamma,
-                                                          delta)
+        self.transf_matrix = _coord_transf_matrix_triaxial(alpha,
+                                                           gamma,
+                                                           delta)
 
     def __str__(self):
         """
@@ -1834,42 +1834,47 @@ ter than intermediate_axis and intermediate_axis must greater than small_axis"
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
 
-        The susceptibility tensor is calculated if 'susceptibility tensor'
-        is defined in the dictionary of physical properties props.
-        In this case, 'susceptibility tensor' must have six elements:
-        three positive eigenvalues (principal susceptibilities), in
-        descending order, and three angles (in degrees) defining
-        the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function
-        coord_transf_matrix_triaxial.
+        The susceptibility tensor is calculated if
+        'principal susceptibilities' and 'susceptibility angles' are
+        defined in the dictionary of physical properties props.
+        The 'principal susceptibilities' must be a list containing
+        the three positive eigenvalues (principal susceptibilities k1, k2
+        and k3) of the susceptibility tensor, in descending order. The
+        'susceptibility angles' must be a list containing three angles
+        (in degree) used to compute the eigenvector matrix U of the
+        susceptibility tensor. The eigenvector matrix is defined by the
+        function _coord_transf_matrix_triaxial.
         '''
 
-        if 'susceptibility tensor' in self.props:
+        if 'principal susceptibilities' and 'susceptibility angles' \
+                in self.props:
 
-            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
-ity tensor must be a list containing six elements'
+            assert len(self.props['principal susceptibilities']) == 3, \
+                'there must be three principal susceptibilities'
+            assert len(self.props['susceptibility angles']) == 3, \
+                'there must be three angles'
 
             # Large, intermediate and small eigenvalues of the
             # susceptibility tensor (principal susceptibilities)
-            k1 = self.props['susceptibility tensor'][0]
-            k2 = self.props['susceptibility tensor'][1]
-            k3 = self.props['susceptibility tensor'][2]
+            k1 = self.props['principal susceptibilities'][0]
+            k2 = self.props['principal susceptibilities'][1]
+            k3 = self.props['principal susceptibilities'][2]
 
-            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
-descending order'
+            assert k1 >= k2 >= k3, 'the principal susceptibilities must be \
+given in descending order'
 
-            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
-be all positive'
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the principal \
+susceptibilities must be all positive'
 
             # Angles (in degrees) defining the eigenvector matrix
             # of the susceptibility tensor
-            strike = self.props['susceptibility tensor'][3]
-            dip = self.props['susceptibility tensor'][4]
-            rake = self.props['susceptibility tensor'][5]
+            strike = self.props['susceptibility angles'][0]
+            dip = self.props['susceptibility angles'][1]
+            rake = self.props['susceptibility angles'][2]
 
             # Eigenvector matrix of the susceptibility tensor
             alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
-            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
+            U = _coord_transf_matrix_triaxial(alpha, gamma, delta)
 
             suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
             suscep_tensor = numpy.dot(suscep_tensor, U.T)
@@ -1967,9 +1972,9 @@ than small_axis"
                                                 self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
-                                                          gamma,
-                                                          delta)
+        self.transf_matrix = _coord_transf_matrix_triaxial(alpha,
+                                                           gamma,
+                                                           delta)
 
     def __str__(self):
         """
@@ -1988,42 +1993,47 @@ than small_axis"
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
 
-        The susceptibility tensor is calculated if 'susceptibility tensor'
-        is defined in the dictionary of physical properties props.
-        In this case, 'susceptibility tensor' must have six elements:
-        three positive eigenvalues (principal susceptibilities), in
-        descending order, and three angles (in degrees) defining
-        the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function
-        coord_transf_matrix_triaxial.
+        The susceptibility tensor is calculated if
+        'principal susceptibilities' and 'susceptibility angles' are
+        defined in the dictionary of physical properties props.
+        The 'principal susceptibilities' must be a list containing
+        the three positive eigenvalues (principal susceptibilities k1, k2
+        and k3) of the susceptibility tensor, in descending order. The
+        'susceptibility angles' must be a list containing three angles
+        (in degree) used to compute the eigenvector matrix U of the
+        susceptibility tensor. The eigenvector matrix is defined by the
+        function _coord_transf_matrix_triaxial.
         '''
 
-        if 'susceptibility tensor' in self.props:
+        if 'principal susceptibilities' and 'susceptibility angles' \
+                in self.props:
 
-            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
-ity tensor must be a list containing six elements'
+            assert len(self.props['principal susceptibilities']) == 3, \
+                'there must be three principal susceptibilities'
+            assert len(self.props['susceptibility angles']) == 3, \
+                'there must be three angles'
 
             # Large, intermediate and small eigenvalues of the
             # susceptibility tensor (principal susceptibilities)
-            k1 = self.props['susceptibility tensor'][0]
-            k2 = self.props['susceptibility tensor'][1]
-            k3 = self.props['susceptibility tensor'][2]
+            k1 = self.props['principal susceptibilities'][0]
+            k2 = self.props['principal susceptibilities'][1]
+            k3 = self.props['principal susceptibilities'][2]
 
-            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
-descending order'
+            assert k1 >= k2 >= k3, 'the principal susceptibilities must be \
+given in descending order'
 
-            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
-be all positive'
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the principal \
+susceptibilities must be all positive'
 
             # Angles (in degrees) defining the eigenvector matrix
             # of the susceptibility tensor
-            strike = self.props['susceptibility tensor'][3]
-            dip = self.props['susceptibility tensor'][4]
-            rake = self.props['susceptibility tensor'][5]
+            strike = self.props['susceptibility angles'][0]
+            dip = self.props['susceptibility angles'][1]
+            rake = self.props['susceptibility angles'][2]
 
             # Eigenvector matrix of the susceptibility tensor
             alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
-            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
+            U = _coord_transf_matrix_triaxial(alpha, gamma, delta)
 
             suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
             suscep_tensor = numpy.dot(suscep_tensor, U.T)
@@ -2122,9 +2132,9 @@ than small_axis"
                                                 self.rake)
 
         # Coordinate transformation matrix
-        self.transf_matrix = coord_transf_matrix_triaxial(alpha,
-                                                          gamma,
-                                                          delta)
+        self.transf_matrix = _coord_transf_matrix_triaxial(alpha,
+                                                           gamma,
+                                                           delta)
 
     def __str__(self):
         """
@@ -2143,42 +2153,47 @@ than small_axis"
         '''
         Calculate the susceptibility tensor (in SI) in the main system.
 
-        The susceptibility tensor is calculated if 'susceptibility tensor'
-        is defined in the dictionary of physical properties props.
-        In this case, 'susceptibility tensor' must have six elements:
-        three positive eigenvalues (principal susceptibilities), in
-        descending order, and three angles (in degrees) defining
-        the eigenvector matrix U of the susceptibility tensor, respectively.
-        The eigenvector matrix is defined by the function
-        coord_transf_matrix_oblate.
+        The susceptibility tensor is calculated if
+        'principal susceptibilities' and 'susceptibility angles' are
+        defined in the dictionary of physical properties props.
+        The 'principal susceptibilities' must be a list containing
+        the three positive eigenvalues (principal susceptibilities k1, k2
+        and k3) of the susceptibility tensor, in descending order. The
+        'susceptibility angles' must be a list containing three angles
+        (in degree) used to compute the eigenvector matrix U of the
+        susceptibility tensor. The eigenvector matrix is defined by the
+        function _coord_transf_matrix_triaxial.
         '''
 
-        if 'susceptibility tensor' in self.props:
+        if 'principal susceptibilities' and 'susceptibility angles' \
+                in self.props:
 
-            assert len(self.props['susceptibility tensor']) == 6, 'susceptibil\
-ity tensor must be a list containing six elements'
+            assert len(self.props['principal susceptibilities']) == 3, \
+                'there must be three principal susceptibilities'
+            assert len(self.props['susceptibility angles']) == 3, \
+                'there must be three angles'
 
             # Large, intermediate and small eigenvalues of the
             # susceptibility tensor (principal susceptibilities)
-            k1 = self.props['susceptibility tensor'][0]
-            k2 = self.props['susceptibility tensor'][1]
-            k3 = self.props['susceptibility tensor'][2]
+            k1 = self.props['principal susceptibilities'][0]
+            k2 = self.props['principal susceptibilities'][1]
+            k3 = self.props['principal susceptibilities'][2]
 
-            assert k1 >= k2 >= k3, 'the eigenvalues must be given in \
-descending order'
+            assert k1 >= k2 >= k3, 'the principal susceptibilities must be \
+given in descending order'
 
-            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the eigenvalues must \
-be all positive'
+            assert (k1 > 0) and (k2 > 0) and (k3 > 0), 'the principal \
+susceptibilities must be all positive'
 
             # Angles (in degrees) defining the eigenvector matrix
             # of the susceptibility tensor
-            strike = self.props['susceptibility tensor'][3]
-            dip = self.props['susceptibility tensor'][4]
-            rake = self.props['susceptibility tensor'][5]
+            strike = self.props['susceptibility angles'][0]
+            dip = self.props['susceptibility angles'][1]
+            rake = self.props['susceptibility angles'][2]
 
             # Eigenvector matrix of the susceptibility tensor
             alpha, gamma, delta = _auxiliary_angles(strike, dip, rake)
-            U = coord_transf_matrix_triaxial(alpha, gamma, delta)
+            U = _coord_transf_matrix_triaxial(alpha, gamma, delta)
 
             suscep_tensor = numpy.dot(U, numpy.diag([k1, k2, k3]))
             suscep_tensor = numpy.dot(suscep_tensor, U.T)
@@ -2243,7 +2258,7 @@ between -90 and 90 degrees.'
     return alpha, gamma, delta
 
 
-def coord_transf_matrix_triaxial(alpha, gamma, delta):
+def _coord_transf_matrix_triaxial(alpha, gamma, delta):
     '''
     Calculate the coordinate transformation matrix
     for triaxial or prolate ellipsoids by using the auxiliary angles
@@ -2284,7 +2299,7 @@ def coord_transf_matrix_triaxial(alpha, gamma, delta):
     return transf_matrix
 
 
-def coord_transf_matrix_oblate(alpha, gamma, delta):
+def _coord_transf_matrix_oblate(alpha, gamma, delta):
     '''
     Calculate the coordinate transformation matrix
     for oblate ellipsoids by using the auxiliary angles
