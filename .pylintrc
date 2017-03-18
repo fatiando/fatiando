@@ -204,7 +204,7 @@ spelling-store-unknown-words=no
 [BASIC]
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,x,y,z,x1,x2,y1,y2,z1,z2,xp,yp,zp,xc,yc,zc,nx,ny,nc,dx,dy,dz,dt,p1,p2,r1,r2,w,e,s,n,_
+good-names=i,j,k,x,y,z,x1,x2,y1,y2,z1,z2,xp,yp,zp,xc,yc,zc,nx,ny,nz,dx,dy,dz,dt,p1,p2,r1,r2,w,e,s,n,_
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata

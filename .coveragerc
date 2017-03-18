@@ -1,0 +1,6 @@
+[run]
+omit =
+    fatiando/_version.py
+    fatiando/_our_duecredit.py
+    fatiando/__init__.py
+    */tests/*

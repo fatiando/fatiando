@@ -1,7 +1,8 @@
 # Build, package, test, and clean Fatiando
 
-TESTDIR=tmp-test-dir-with-unique-name
-PEP8ARGS=--show-source --ignore=W503,E226,E241,E731 --exclude=_version.py
+TESTDIR=tmp-test-dir
+PYTEST_ARGS=--doctest-modules --pyargs
+PYTEST_COV_ARGS=--cov-config=.coveragerc --cov-report=term-missing
 
 help:
 	@echo "Commands:"
@@ -31,11 +32,9 @@ test:
 	rm -r $(TESTDIR)
 
 coverage:
-	# Run a tmp folder to make sure the tests are run on the installed version
-	# of Fatiando
-	mkdir -p $(TESTDIR)
-	cd $(TESTDIR); python -c "import fatiando; fatiando.test(coverage=True)"
-	rm -r $(TESTDIR)
+	# For some reason pytest-cov doesn't find the rc file if running on a
+	# different dir. So run it in the base dir.
+	pytest $(PYTEST_COV_ARGS) --cov=fatiando $(PYTEST_ARGS) fatiando
 
 pep8:
 	flake8 fatiando gallery setup.py

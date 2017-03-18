@@ -71,7 +71,7 @@ install:
     - pip install dist/fatiando-*.tar.gz
 
 script:
-    - bash ci/run-tests.sh
+    - if [ "$COVERAGE" == "true" ]; then make coverage; else make test; fi
     - make pep8
     # Check for Python 3 compatibility regressions
     - make check3
