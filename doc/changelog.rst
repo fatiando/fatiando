@@ -15,6 +15,12 @@ Version 0.6
 
 **Breaking changes**
 
+* Remove functions ``extract``, ``vfilter``, and ``vremove`` from
+  ``fatiando.mesher``. They were only used in certain runs of
+  ``fatiando.gravmag.harvester`` and don't fit the overall design of the
+  ``mesher`` package. They will be replaced by better designed methods in the
+  ``PrismMesh`` class.
+  (`PR 383 <https://github.com/fatiando/fatiando/pull/383>`__)
 * The ``seismic_image`` and ``seismic_wiggle`` functions from ``fatiando.vis``
   don't specify default values for the ``dt`` argument anymore. This parameter
   is specific to the dataset and shouldn't have a default value.
@@ -75,6 +81,10 @@ Version 0.6
 
 **Development/maintenance**
 
+* Turn ``fatiando.mesher`` module into a package (as was done for ``gridder``).
+  The tests were moved into ``fatiando/mesher/tests``. Nothing changes from the
+  user perspective.
+  (`PR 383 <https://github.com/fatiando/fatiando/pull/383>`__)
 * Better internal organization of the ``fatiando.gridder`` module. Users won't
   have to modify theirs existing code. These changes only impact the developer
   side. Mainly, the module is now a package with functions divided into small
