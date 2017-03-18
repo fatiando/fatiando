@@ -2,7 +2,7 @@
 
 TESTDIR=tmp-test-dir
 COVDIR=tmp-cov-dir
-PYTEST_ARGS=--doctest-modules --pyargs
+PYTEST_ARGS=--doctest-modules -v --pyargs
 PYTEST_COV_ARGS=--cov-config=../.coveragerc --cov-report=term-missing
 
 help:
@@ -28,13 +28,12 @@ cython:
 test:
 	# Run a tmp folder to make sure the tests are run on the installed version
 	mkdir -p $(TESTDIR)
-	cd $(TESTDIR); python -c "import fatiando; fatiando.test()"
+	cd $(TESTDIR); python -c "import fatiando; fatiando.test(verbose=True)"
 	rm -r $(TESTDIR)
 
 coverage:
 	# Run a tmp folder to make sure the tests are run on the installed version
 	mkdir -p $(COVDIR)
-	cp .coveragerc $(COVDIR)
 	cd $(COVDIR); pytest $(PYTEST_COV_ARGS) --cov=fatiando $(PYTEST_ARGS) fatiando
 	cp $(COVDIR)/.coverage* .
 	rm -r $(COVDIR)
