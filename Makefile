@@ -1,7 +1,9 @@
 # Build, package, test, and clean Fatiando
 
-TESTDIR=tmp-test-dir-with-unique-name
-PEP8ARGS=--show-source --ignore=W503,E226,E241,E731 --exclude=_version.py
+TESTDIR=tmp-test-dir
+COVDIR=tmp-cov-dir
+PYTEST_ARGS=--doctest-modules -v --pyargs
+PYTEST_COV_ARGS=--cov-config=../.coveragerc --cov-report=term-missing
 
 help:
 	@echo "Commands:"
@@ -25,17 +27,16 @@ cython:
 
 test:
 	# Run a tmp folder to make sure the tests are run on the installed version
-	# of Fatiando
 	mkdir -p $(TESTDIR)
-	cd $(TESTDIR); python -c "import fatiando; fatiando.test()"
+	cd $(TESTDIR); python -c "import fatiando; fatiando.test(verbose=True)"
 	rm -r $(TESTDIR)
 
 coverage:
 	# Run a tmp folder to make sure the tests are run on the installed version
-	# of Fatiando
-	mkdir -p $(TESTDIR)
-	cd $(TESTDIR); python -c "import fatiando; fatiando.test(coverage=True)"
-	rm -r $(TESTDIR)
+	mkdir -p $(COVDIR)
+	cd $(COVDIR); pytest $(PYTEST_COV_ARGS) --cov=fatiando $(PYTEST_ARGS) fatiando
+	cp $(COVDIR)/.coverage* .
+	rm -r $(COVDIR)
 
 pep8:
 	flake8 fatiando gallery setup.py
@@ -59,4 +60,4 @@ clean:
 	rm -rvf crust2.tar.gz cookbook/crust2.tar.gz
 	rm -rvf bouguer_alps_egm08.grd cookbook/bouguer_alps_egm08.grd
 	rm -rvf *.gdf cookbook/*.gdf
-	rm -rvf $(TESTDIR)
+	rm -rvf $(TESTDIR) $(COVDIR)
