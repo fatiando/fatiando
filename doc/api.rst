@@ -68,20 +68,9 @@ Meshes and collections
 
     SquareMesh
     PrismMesh
-    PrismRelief
     TesseroidMesh
+    PrismRelief
     PointGrid
-
-Utilities
----------
-
-.. autosummary::
-    :toctree: api/
-    :template: function.rst
-
-    extract
-    vfilter
-    vremove
 
 
 ``fatiando.utils``: Utility functions
