@@ -1,18 +1,12 @@
 from __future__ import division, absolute_import
+from future.builtins import range
+
 import numpy as np
 import numpy.testing as npt
 from pytest import raises
-from future.builtins import range
 
-from ...mesher import PointGrid
 from ... import gridder
-
-
-area = [-1000., 1000., -2000., 0.]
-shape = (20, 21)
-xp, yp = gridder.regular(area, shape)
-zp = 100*np.arange(xp.size)
-model = PointGrid(area, zp, shape)
+from ..mesh import PrismMesh, Prism, SquareMesh, PointGrid, TesseroidMesh
 
 
 def test_pointgrid():
@@ -107,6 +101,11 @@ def test_fails_invalid_index():
 
 def test_fails_split():
     "model.split should fail if split shape is not multiple of model.shape"
+    area = [-1000., 1000., -2000., 0.]
+    shape = (20, 21)
+    xp, yp = gridder.regular(area, shape)
+    zp = 100*np.arange(xp.size)
+    model = PointGrid(area, zp, shape)
     raises(ValueError, model.split, (6, 21))
     raises(ValueError, model.split, (2, 4))
     raises(ValueError, model.split, (3, 5))
@@ -114,6 +113,11 @@ def test_fails_split():
 
 def test_z_split_x():
     "model.split along x vs numpy.vsplit splits the z array correctly"
+    area = [-1000., 1000., -2000., 0.]
+    shape = (20, 21)
+    xp, yp = gridder.regular(area, shape)
+    zp = 100*np.arange(xp.size)
+    model = PointGrid(area, zp, shape)
     subshape = (2, 1)
     submodels = model.split(subshape)
     temp = np.vsplit(np.reshape(zp, shape), subshape[0])
@@ -125,6 +129,11 @@ def test_z_split_x():
 
 def test_z_split_y():
     "model.split along y vs numpy.hsplit splits the z array correctly"
+    area = [-1000., 1000., -2000., 0.]
+    shape = (20, 21)
+    xp, yp = gridder.regular(area, shape)
+    zp = 100*np.arange(xp.size)
+    model = PointGrid(area, zp, shape)
     subshape = (1, 3)
     submodels = model.split(subshape)
     temp = np.hsplit(np.reshape(zp, shape), subshape[1])
@@ -141,3 +150,74 @@ def test_point_grid_copy():
     p1.addprop('density', 3200)
     p2.addprop('density', 2000)
     assert p1.props['density'] != p2.props['density']
+
+
+def test_prism_mesh_copy():
+    p1 = PrismMesh((0, 1, 0, 2, 0, 3), (1, 2, 2))
+    p1.addprop('density', 3200 + np.zeros(p1.size))
+    p2 = p1.copy()
+    assert p1 is not p2
+    assert np.array_equal(p1.props['density'], p2.props['density'])
+
+
+def test_carvetopo():
+    bounds = (0, 1, 0, 1, 0, 2)
+    shape = (2, 1, 1)
+    topox = [0, 0, 1, 1]
+    topoy = [0, 1, 0, 1]
+    topoz = [-1, -1, -1, -1]
+    # Create reference prism meshs
+    p0r = []
+    p0r.append(None)
+    p0r.append(Prism(0, 1, 0, 1, 1, 2))
+    p2r = []
+    p2r.append(Prism(0, 1, 0, 1, 0, 1))
+    p2r.append(None)
+    # Create test prism meshes
+    p0 = PrismMesh(bounds, shape)
+    p0.carvetopo(topox, topoy, topoz)
+    p1 = PrismMesh(bounds, shape)
+    p1.carvetopo(topox, topoy, topoz, below=False)
+    p2 = PrismMesh(bounds, shape)
+    p2.carvetopo(topox, topoy, topoz, below=True)
+    # Test p0 and p1 which should be the same
+    for pi in [p0, p1]:
+        for i, p in enumerate(pi):
+            if i == 0:
+                assert p is None
+            else:
+                assert p is not None
+                assert np.any(p0r[i].center() == p.center())
+    # Test p2
+    for i, p in enumerate(p2):
+        if i == 1:
+            assert p is None
+        else:
+            assert p is not None
+            assert np.any(p2r[i].center() == p.center())
+
+
+def test_square_mesh_copy():
+    mesh = SquareMesh((0, 4, 0, 6), (2, 2))
+    mesh.addprop('slowness', 234 + np.zeros(mesh.size))
+    cp = mesh.copy()
+    assert np.array_equal(mesh.props['slowness'], cp.props['slowness'])
+    assert mesh is not cp
+    assert mesh.bounds == cp.bounds
+    assert mesh.dims == cp.dims
+    assert np.array_equal(mesh.get_xs(), cp.get_xs())
+    assert np.array_equal(mesh.get_ys(), cp.get_ys())
+    cp.addprop('density', 3000 + np.zeros(cp.size))
+    assert mesh.props != cp.props
+
+
+def test_tesseroid_mesh_copy():
+    orig = TesseroidMesh((0, 1, 0, 2, 3, 0), (1, 2, 2))
+    cp = orig.copy()
+    assert cp is not orig
+    assert orig.celltype == cp.celltype
+    assert orig.bounds == cp.bounds
+    assert orig.dump == cp.dump
+    orig.addprop('density', 3300 + np.zeros(orig.size))
+    cp = orig.copy()
+    assert np.array_equal(orig.props['density'], cp.props['density'])

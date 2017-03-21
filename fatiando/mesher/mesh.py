@@ -1,183 +1,22 @@
 """
-Generate and operate on various kinds of meshes and geometric elements
+Meshes (collections) of geometric objects.
+
+Meshes behave like lists/arrays of geometric objects (they are iterables).
 """
 from __future__ import division, absolute_import
-from future.builtins import range
-import numpy
+from future.builtins import range, object, super
+import numpy as np
 import scipy.special
 import scipy.interpolate
 import copy as cp
 
-from . import gridder
-
-
-class GeometricElement(object):
-
-    """
-    Base class for all geometric elements.
-    """
-
-    def __init__(self, props):
-        self.props = {}
-        if props is not None:
-            for p in props:
-                self.props[p] = props[p]
-
-    def addprop(self, prop, value):
-        """
-        Add a physical property to this geometric element.
-
-        If it already has the property, the given value will overwrite the
-        existing one.
-
-        Parameters:
-
-        * prop : str
-            Name of the physical property.
-        * value : float
-            The value of this physical property.
-
-        """
-        self.props[prop] = value
-
-    def copy(self):
-        """ Return a deep copy of the current instance."""
-        return cp.deepcopy(self)
-
-
-class Polygon(GeometricElement):
-
-    """
-    Create a polygon object.
-
-    .. note:: Most applications require the vertices to be **clockwise**!
-
-    Parameters:
-
-    * vertices : list of lists
-        List of [x, y] pairs with the coordinates of the vertices.
-    * props : dict
-        Physical properties assigned to the polygon.
-        Ex: ``props={'density':10, 'susceptibility':10000}``
-
-    Examples::
-
-        >>> poly = Polygon([[0, 0], [1, 4], [2, 5]], {'density': 500})
-        >>> poly.props
-        {'density': 500}
-        >>> poly.nverts
-        3
-        >>> poly.vertices
-        array([[0, 0],
-               [1, 4],
-               [2, 5]])
-        >>> poly.x
-        array([0, 1, 2])
-        >>> poly.y
-        array([0, 4, 5])
-
-    """
-
-    def __init__(self, vertices, props=None):
-        super(Polygon, self).__init__(props)
-        self._vertices = numpy.asarray(vertices)
-
-    @property
-    def vertices(self):
-        return self._vertices
-
-    @property
-    def nverts(self):
-        return len(self.vertices)
-
-    @property
-    def x(self):
-        return self.vertices[:, 0]
-
-    @property
-    def y(self):
-        return self.vertices[:, 1]
-
-
-class Square(Polygon):
-
-    """
-    Create a square object.
-
-    Parameters:
-
-    * bounds : list = [x1, x2, y1, y2]
-        Coordinates of the top right and bottom left corners of the square
-    * props : dict
-        Physical properties assigned to the square.
-        Ex: ``props={'density':10, 'slowness':10000}``
-
-    Example::
-
-        >>> sq = Square([0, 1, 2, 4], {'density': 750})
-        >>> sq.bounds
-        [0, 1, 2, 4]
-        >>> sq.x1
-        0
-        >>> sq.x2
-        1
-        >>> sq.props
-        {'density': 750}
-        >>> sq.addprop('magnetization', 100)
-        >>> sq.props['magnetization']
-        100
-
-    A square can be used as a :class:`~fatiando.mesher.Polygon`::
-
-        >>> sq.vertices
-        array([[0, 2],
-               [1, 2],
-               [1, 4],
-               [0, 4]])
-        >>> sq.x
-        array([0, 1, 1, 0])
-        >>> sq.y
-        array([2, 2, 4, 4])
-        >>> sq.nverts
-        4
-
-    """
-
-    def __init__(self, bounds, props=None):
-        super(Square, self).__init__(None, props)
-        self.x1, self.x2, self.y1, self.y2 = bounds
-
-    @property
-    def bounds(self):
-        """
-        The x, y boundaries of the square as [xmin, xmax, ymin, ymax]
-        """
-        return [self.x1, self.x2, self.y1, self.y2]
-
-    @property
-    def vertices(self):
-        """
-        The vertices of the square.
-        """
-        verts = numpy.array(
-            [[self.x1, self.y1],
-             [self.x2, self.y1],
-             [self.x2, self.y2],
-             [self.x1, self.y2]])
-        return verts
-
-    def __str__(self):
-        """Return a string representation of the square."""
-        names = [('x1', self.x1), ('x2', self.x2), ('y1', self.y1),
-                 ('y2', self.y2)]
-        names.extend((p, self.props[p]) for p in sorted(self.props))
-        return ' | '.join('%s:%g' % (n, v) for n, v in names)
+from .. import gridder
+from .geometry import Square, Prism, Sphere, Tesseroid
 
 
 class SquareMesh(object):
-
     """
-    Generate a 2D regular mesh of squares.
+    A 2D regular mesh of squares.
 
     For all purposes, :class:`~fatiando.mesher.SquareMesh` can be used as a
     list of :class:`~fatiando.mesher.Square`. The order of the squares in the
@@ -229,7 +68,6 @@ class SquareMesh(object):
     """
 
     def __init__(self, bounds, shape, props=None):
-        object.__init__(self)
         ny, nx = shape
         size = int(nx * ny)
         x1, x2, y1, y2 = bounds
@@ -310,13 +148,13 @@ class SquareMesh(object):
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
         ny, nx = self.shape
-        xs = numpy.arange(x1, x2 + dx, dx, 'f')
+        xs = np.arange(x1, x2 + dx, dx, 'f')
         if len(xs) == nx + 2:
             return xs[0:-1]
         elif len(xs) == nx:
             xs = xs.tolist()
             xs.append(x2)
-            return numpy.array(xs)
+            return np.array(xs)
         else:
             return xs
 
@@ -330,13 +168,13 @@ class SquareMesh(object):
         dx, dy = self.dims
         x1, x2, y1, y2 = self.bounds
         ny, nx = self.shape
-        ys = numpy.arange(y1, y2, dy, 'f')
+        ys = np.arange(y1, y2, dy, 'f')
         if len(ys) == ny + 2:
             return ys[0:-1]
         elif len(ys) == ny:
             ys = ys.tolist()
             ys.append(y2)
-            return numpy.array(ys)
+            return np.array(ys)
         else:
             return ys
 
@@ -345,413 +183,9 @@ class SquareMesh(object):
         return cp.deepcopy(self)
 
 
-class Prism(GeometricElement):
-
-    """
-    Create a 3D right rectangular prism.
-
-    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
-
-    Parameters:
-
-    * x1, x2 : float
-        South and north borders of the prism
-    * y1, y2 : float
-        West and east borders of the prism
-    * z1, z2 : float
-        Top and bottom of the prism
-    * props : dict
-        Physical properties assigned to the prism.
-        Ex: ``props={'density':10, 'magnetization':10000}``
-
-    Examples:
-
-        >>> from fatiando.mesher import Prism
-        >>> p = Prism(1, 2, 3, 4, 5, 6, {'density':200})
-        >>> p.props['density']
-        200
-        >>> print p.get_bounds()
-        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-        >>> print p
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:200
-        >>> p = Prism(1, 2, 3, 4, 5, 6)
-        >>> print p
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6
-        >>> p.addprop('density', 2670)
-        >>> print p
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | density:2670
-
-    """
-
-    def __init__(self, x1, x2, y1, y2, z1, z2, props=None):
-        GeometricElement.__init__(self, props)
-        self.x1 = float(x1)
-        self.x2 = float(x2)
-        self.y1 = float(y1)
-        self.y2 = float(y2)
-        self.z1 = float(z1)
-        self.z2 = float(z2)
-
-    def __str__(self):
-        """Return a string representation of the prism."""
-        names = [('x1', self.x1), ('x2', self.x2), ('y1', self.y1),
-                 ('y2', self.y2), ('z1', self.z1), ('z2', self.z2)]
-        names.extend((p, self.props[p]) for p in sorted(self.props))
-        return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def get_bounds(self):
-        """
-        Get the bounding box of the prism (i.e., the borders of the prism).
-
-        Returns:
-
-        * bounds : list
-            ``[x1, x2, y1, y2, z1, z2]``, the bounds of the prism
-
-        Examples:
-
-            >>> p = Prism(1, 2, 3, 4, 5, 6)
-            >>> print p.get_bounds()
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
-
-        """
-        return [self.x1, self.x2, self.y1, self.y2, self.z1, self.z2]
-
-    def center(self):
-        """
-        Return the coordinates of the center of the prism.
-
-        Returns:
-
-        * coords : list = [xc, yc, zc]
-            Coordinates of the center
-
-        Example:
-
-            >>> prism = Prism(1, 2, 1, 3, 0, 2)
-            >>> print prism.center()
-            [ 1.5  2.   1. ]
-
-        """
-        xc = 0.5 * (self.x1 + self.x2)
-        yc = 0.5 * (self.y1 + self.y2)
-        zc = 0.5 * (self.z1 + self.z2)
-        return numpy.array([xc, yc, zc])
-
-
-class Tesseroid(GeometricElement):
-
-    """
-    Create a tesseroid (spherical prism).
-
-    Parameters:
-
-    * w, e : float
-        West and east borders of the tesseroid in decimal degrees
-    * s, n : float
-        South and north borders of the tesseroid in decimal degrees
-    * top, bottom : float
-        Bottom and top of the tesseroid with respect to the mean earth radius
-        in meters. Ex: if the top is 100 meters above the mean earth radius,
-        ``top=100``, if 100 meters below ``top=-100``.
-    * props : dict
-        Physical properties assigned to the tesseroid.
-        Ex: ``props={'density':10, 'magnetization':10000}``
-
-    Examples:
-
-        >>> from fatiando.mesher import Tesseroid
-        >>> t = Tesseroid(1, 2, 3, 4, 6, 5, {'density':200})
-        >>> t.props['density']
-        200
-        >>> print t.get_bounds()
-        [1.0, 2.0, 3.0, 4.0, 6.0, 5.0]
-        >>> print t
-        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5 | density:200
-        >>> t = Tesseroid(1, 2, 3, 4, 6, 5)
-        >>> print t
-        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5
-        >>> t.addprop('density', 2670)
-        >>> print t
-        w:1 | e:2 | s:3 | n:4 | top:6 | bottom:5 | density:2670
-
-    """
-
-    def __init__(self, w, e, s, n, top, bottom, props=None):
-        GeometricElement.__init__(self, props)
-        self.w = float(w)
-        self.e = float(e)
-        self.s = float(s)
-        self.n = float(n)
-        self.bottom = float(bottom)
-        self.top = float(top)
-
-    def __str__(self):
-        """Return a string representation of the tesseroid."""
-        names = [('w', self.w), ('e', self.e), ('s', self.s),
-                 ('n', self.n), ('top', self.top), ('bottom', self.bottom)]
-        names.extend((p, self.props[p]) for p in sorted(self.props))
-        return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-    def get_bounds(self):
-        """
-        Get the bounding box of the tesseroid (i.e., the borders).
-
-        Returns:
-
-        * bounds : list
-            ``[w, e, s, n, top, bottom]``, the bounds of the tesseroid
-
-        Examples:
-
-            >>> t = Tesseroid(1, 2, 3, 4, 6, 5)
-            >>> print t.get_bounds()
-            [1.0, 2.0, 3.0, 4.0, 6.0, 5.0]
-
-        """
-        return [self.w, self.e, self.s, self.n, self.top, self.bottom]
-
-    def half(self, lon=True, lat=True, r=True):
-        """
-        Divide the tesseroid in 2 halfs for each dimension (total 8)
-
-        The smaller tesseroids will share the large one's props.
-
-        Parameters:
-
-        * lon, lat, r : True or False
-            Dimensions along which the tesseroid will be split in half.
-
-        Returns:
-
-        * tesseroids : list
-            A list of maximum 8 tesseroids that make up the larger one.
-
-        Examples::
-
-            >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
-            >>> split = tess.half()
-            >>> print len(split)
-            8
-            >>> for t in split:
-            ...     print t
-            w:-10 | e:0 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-            w:-10 | e:0 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-            w:-10 | e:0 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-            w:-10 | e:0 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-            w:0 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-            w:0 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-            w:0 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-            w:0 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-            >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
-            >>> split = tess.half(lat=False)
-            >>> print len(split)
-            4
-            >>> for t in split:
-            ...     print t
-            w:-15 | e:0 | s:-20 | n:20 | top:-20 | bottom:-40
-            w:-15 | e:0 | s:-20 | n:20 | top:0 | bottom:-20
-            w:0 | e:15 | s:-20 | n:20 | top:-20 | bottom:-40
-            w:0 | e:15 | s:-20 | n:20 | top:0 | bottom:-20
-
-        """
-        dlon = 0.5 * (self.e - self.w)
-        dlat = 0.5 * (self.n - self.s)
-        dh = 0.5 * (self.top - self.bottom)
-        wests = [self.w, self.w + dlon]
-        souths = [self.s, self.s + dlat]
-        bottoms = [self.bottom, self.bottom + dh]
-        if not lon:
-            dlon *= 2
-            wests.pop()
-        if not lat:
-            dlat *= 2
-            souths.pop()
-        if not r:
-            dh *= 2
-            bottoms.pop()
-        split = [
-            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
-            for i in wests for j in souths for k in bottoms]
-        return split
-
-    def split(self, nlon, nlat, nh):
-        """
-        Split the tesseroid into smaller ones.
-
-        The smaller tesseroids will share the large one's props.
-
-        Parameters:
-
-        * nlon, nlat, nh : int
-            The number of sections to split in the longitudinal, latitudinal,
-            and vertical dimensions
-
-        Returns:
-
-        * tesseroids : list
-            A list of nlon*nlat*nh tesseroids that make up the larger one.
-
-
-        Examples::
-
-            >>> tess = Tesseroid(-10, 10, -20, 20, 0, -40, {'density':2})
-            >>> split = tess.split(1, 2, 2)
-            >>> print len(split)
-            4
-            >>> for t in split:
-            ...     print t
-            w:-10 | e:10 | s:-20 | n:0 | top:-20 | bottom:-40 | density:2
-            w:-10 | e:10 | s:-20 | n:0 | top:0 | bottom:-20 | density:2
-            w:-10 | e:10 | s:0 | n:20 | top:-20 | bottom:-40 | density:2
-            w:-10 | e:10 | s:0 | n:20 | top:0 | bottom:-20 | density:2
-            >>> tess = Tesseroid(-15, 15, -20, 20, 0, -40)
-            >>> split = tess.split(3, 1, 1)
-            >>> print len(split)
-            3
-            >>> for t in split:
-            ...     print t
-            w:-15 | e:-5 | s:-20 | n:20 | top:0 | bottom:-40
-            w:-5 | e:5 | s:-20 | n:20 | top:0 | bottom:-40
-            w:5 | e:15 | s:-20 | n:20 | top:0 | bottom:-40
-
-        """
-        wests = numpy.linspace(self.w, self.e, nlon + 1)
-        souths = numpy.linspace(self.s, self.n, nlat + 1)
-        bottoms = numpy.linspace(self.bottom, self.top, nh + 1)
-        dlon = wests[1] - wests[0]
-        dlat = souths[1] - souths[0]
-        dh = bottoms[1] - bottoms[0]
-        tesseroids = [
-            Tesseroid(i, i + dlon, j, j + dlat, k + dh, k, props=self.props)
-            for i in wests[:-1] for j in souths[:-1] for k in bottoms[:-1]]
-        return tesseroids
-
-
-class Sphere(GeometricElement):
-
-    """
-    Create a sphere.
-
-    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
-
-    Parameters:
-
-    * x, y, z : float
-        The coordinates of the center of the sphere
-    * radius : float
-        The radius of the sphere
-    * props : dict
-        Physical properties assigned to the prism.
-        Ex: ``props={'density':10, 'magnetization':10000}``
-
-    Examples:
-
-        >>> s = Sphere(1, 2, 3, 10, {'magnetization':200})
-        >>> s.props['magnetization']
-        200
-        >>> s.addprop('density', 20)
-        >>> print s.props['density']
-        20
-        >>> print s
-        x:1 | y:2 | z:3 | radius:10 | density:20 | magnetization:200
-        >>> s = Sphere(1, 2, 3, 4)
-        >>> print s
-        x:1 | y:2 | z:3 | radius:4
-        >>> s.addprop('density', 2670)
-        >>> print s
-        x:1 | y:2 | z:3 | radius:4 | density:2670
-
-    """
-
-    def __init__(self, x, y, z, radius, props=None):
-        GeometricElement.__init__(self, props)
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-        self.radius = float(radius)
-        self.center = numpy.array([x, y, z])
-
-    def __str__(self):
-        """Return a string representation of the sphere."""
-        names = [('x', self.x), ('y', self.y), ('z', self.z),
-                 ('radius', self.radius)]
-        names.extend((p, self.props[p]) for p in sorted(self.props))
-        return ' | '.join('%s:%g' % (n, v) for n, v in names)
-
-
-class PolygonalPrism(GeometricElement):
-
-    """
-    Create a 3D prism with polygonal crossection.
-
-    .. note:: The coordinate system used is x -> North, y -> East and z -> Down
-
-    .. note:: *vertices* must be **CLOCKWISE** or will give inverse result.
-
-    Parameters:
-
-    * vertices : list of lists
-        Coordinates of the vertices. A list of ``[x, y]`` pairs.
-    * z1, z2 : float
-        Top and bottom of the prism
-    * props :  dict
-        Physical properties assigned to the prism.
-        Ex: ``props={'density':10, 'magnetization':10000}``
-
-    Examples:
-
-        >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
-        >>> p = PolygonalPrism(verts, 0, 3, props={'temperature':25})
-        >>> p.props['temperature']
-        25
-        >>> print p.x
-        [ 1.  1.  2.  2.]
-        >>> print p.y
-        [ 1.  2.  2.  1.]
-        >>> print p.z1, p.z2
-        0.0 3.0
-        >>> p.addprop('density', 2670)
-        >>> print p.props['density']
-        2670
-
-    """
-
-    def __init__(self, vertices, z1, z2, props=None):
-        GeometricElement.__init__(self, props)
-        self.x = numpy.fromiter((v[0] for v in vertices), dtype=numpy.float)
-        self.y = numpy.fromiter((v[1] for v in vertices), dtype=numpy.float)
-        self.z1 = float(z1)
-        self.z2 = float(z2)
-        self.nverts = len(vertices)
-
-    def topolygon(self):
-        """
-        Get the polygon describing the prism viewed from above.
-
-        Returns:
-
-        * polygon : :func:`fatiando.mesher.Polygon`
-            The polygon
-
-        Example:
-
-            >>> verts = [[1, 1], [1, 2], [2, 2], [2, 1]]
-            >>> p = PolygonalPrism(verts, 0, 100)
-            >>> poly = p.topolygon()
-            >>> print poly.x
-            [ 1.  1.  2.  2.]
-            >>> print poly.y
-            [ 1.  2.  2.  1.]
-
-        """
-        verts = numpy.transpose([self.x, self.y])
-        return Polygon(verts, self.props)
-
-
 class PointGrid(object):
     """
-    Create a regular grid of 3D point sources (spheres of unit volume).
+    A regular grid of 3D point sources (spheres of unit volume).
 
     Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
 
@@ -805,7 +239,6 @@ class PointGrid(object):
     """
 
     def __init__(self, area, z, shape, props=None):
-        object.__init__(self)
         self.area = area
         self.shape = shape
         if props is None:
@@ -814,8 +247,8 @@ class PointGrid(object):
             self.props = props
         nx, ny = shape
         self.size = nx*ny
-        self.z = numpy.zeros(self.size) + z
-        self.radius = scipy.special.cbrt(3. / (4. * numpy.pi))
+        self.z = np.zeros(self.size) + z
+        self.radius = scipy.special.cbrt(3. / (4. * np.pi))
         self.x, self.y = gridder.regular(area, shape)
         # The spacing between points
         self.dx, self.dy = gridder.spacing(area, shape)
@@ -883,8 +316,8 @@ class PointGrid(object):
 
         Examples::
 
-            >>> import numpy
-            >>> z = numpy.linspace(0, 1100, 12)
+            >>> import numpy as np
+            >>> z = np.linspace(0, 1100, 12)
             >>> g = PointGrid((0, 3, 0, 2), z, (4, 3))
             >>> g.addprop('bla', [1,   2,  3,
             ...                   4,   5,  6,
@@ -931,8 +364,8 @@ class PointGrid(object):
             raise ValueError(
                 'Cannot split! nx and ny must be divisible by grid shape')
         x1, x2, y1, y2 = self.area
-        xs = numpy.linspace(x1, x2, totalx)
-        ys = numpy.linspace(y1, y2, totaly)
+        xs = np.linspace(x1, x2, totalx)
+        ys = np.linspace(y1, y2, totaly)
         mx, my = (totalx//nx, totaly//ny)
         dx, dy = self.dx*(mx - 1), self.dy*(my - 1)
         subs = []
@@ -941,10 +374,10 @@ class PointGrid(object):
                 area = [xstart, xstart + dx, ystart, ystart + dy]
                 props = {}
                 for p in self.props:
-                    pmatrix = numpy.reshape(self.props[p], self.shape)
+                    pmatrix = np.reshape(self.props[p], self.shape)
                     props[p] = pmatrix[i*mx:(i + 1)*mx,
                                        j*my:(j + 1)*my].ravel()
-                zmatrix = numpy.reshape(self.z, self.shape)
+                zmatrix = np.reshape(self.z, self.shape)
                 zs = zmatrix[i*mx:(i + 1)*mx,
                              j*my:(j + 1)*my].ravel()
                 subs.append(PointGrid(area, zs, (mx, my), props))
@@ -956,9 +389,8 @@ class PointGrid(object):
 
 
 class PrismRelief(object):
-
     """
-    Generate a 3D model of a relief (topography) using prisms.
+    A 3D model of a relief (topography) using prisms.
 
     Use to generate:
     * topographic model
@@ -987,7 +419,6 @@ class PrismRelief(object):
     """
 
     def __init__(self, ref, dims, nodes):
-        object.__init__(self)
         x, y, z = nodes
         if len(x) != len(y) != len(z):
             raise ValueError(
@@ -1063,7 +494,7 @@ class PrismRelief(object):
 
 class PrismMesh(object):
     """
-    Generate a 3D regular mesh of right rectangular prisms.
+    A 3D regular mesh of right rectangular prisms.
 
     Prisms are ordered as follows: first layers (z coordinate),
     then EW rows (y) and finaly x coordinate (NS).
@@ -1153,7 +584,6 @@ class PrismMesh(object):
     celltype = Prism
 
     def __init__(self, bounds, shape, props=None):
-        object.__init__(self)
         nz, ny, nx = shape
         if not isinstance(nx, int) or not isinstance(ny, int) or \
                 not isinstance(nz, int):
@@ -1258,17 +688,17 @@ class PrismMesh(object):
         x1, x2, y1, y2, z1, z2 = self.bounds
         dx, dy, dz = self.dims
         # The coordinates of the centers of the cells
-        xc = numpy.arange(x1, x2, dx) + 0.5 * dx
+        xc = np.arange(x1, x2, dx) + 0.5 * dx
         # Sometimes arange returns more due to rounding
         if len(xc) > nx:
             xc = xc[:-1]
-        yc = numpy.arange(y1, y2, dy) + 0.5 * dy
+        yc = np.arange(y1, y2, dy) + 0.5 * dy
         if len(yc) > ny:
             yc = yc[:-1]
-        zc = numpy.arange(z1, z2, dz) + 0.5 * dz
+        zc = np.arange(z1, z2, dz) + 0.5 * dz
         if len(zc) > nz:
             zc = zc[:-1]
-        XC, YC = numpy.meshgrid(xc, yc)
+        XC, YC = np.meshgrid(xc, yc)
         topo = scipy.interpolate.griddata((x, y), height, (XC, YC),
                                           method='cubic').ravel()
         if self.zdown:
@@ -1277,7 +707,7 @@ class PrismMesh(object):
         # griddata returns a masked array. If the interpolated point is out of
         # of the data range, mask will be True. Use this to remove all cells
         # below a masked topo point (ie, one with no height information)
-        if numpy.ma.isMA(topo):
+        if np.ma.isMA(topo):
             topo_mask = topo.mask
         else:
             topo_mask = [False for i in range(len(topo))]
@@ -1303,7 +733,7 @@ class PrismMesh(object):
         x1, x2, y1, y2, z1, z2 = self.bounds
         dx, dy, dz = self.dims
         nz, ny, nx = self.shape
-        xs = numpy.arange(x1, x2 + dx, dx)
+        xs = np.arange(x1, x2 + dx, dx)
         if xs.size > nx + 1:
             return xs[:-1]
         return xs
@@ -1315,7 +745,7 @@ class PrismMesh(object):
         x1, x2, y1, y2, z1, z2 = self.bounds
         dx, dy, dz = self.dims
         nz, ny, nx = self.shape
-        ys = numpy.arange(y1, y2 + dy, dy)
+        ys = np.arange(y1, y2 + dy, dy)
         if ys.size > ny + 1:
             return ys[:-1]
         return ys
@@ -1327,7 +757,7 @@ class PrismMesh(object):
         x1, x2, y1, y2, z1, z2 = self.bounds
         dx, dy, dz = self.dims
         nz, ny, nx = self.shape
-        zs = numpy.arange(z1, z2 + dz, dz)
+        zs = np.arange(z1, z2 + dz, dz)
         if zs.size > nz + 1:
             return zs[:-1]
         return zs
@@ -1454,11 +884,11 @@ class PrismMesh(object):
             "%d*%g" % (nz, dz)])
         if isstr:
             meshfile.close()
-        values = numpy.fromiter(self.props[prop], dtype=numpy.float)
+        values = np.fromiter(self.props[prop], dtype=np.float)
         # Replace the masked cells with a dummy value
         values[self.mask] = -10000000
-        reordered = numpy.ravel(numpy.reshape(values, self.shape), order='F')
-        numpy.savetxt(propfile, reordered, fmt='%.4f')
+        reordered = np.ravel(np.reshape(values, self.shape), order='F')
+        np.savetxt(propfile, reordered, fmt='%.4f')
 
     def copy(self):
         """ Return a deep copy of the current instance."""
@@ -1466,9 +896,8 @@ class PrismMesh(object):
 
 
 class TesseroidMesh(PrismMesh):
-
     """
-    Generate a 3D regular mesh of tesseroids.
+    A 3D regular mesh of tesseroids.
 
     Tesseroids are ordered as follows: first layers (height coordinate),
     then N-S rows and finaly E-W.
@@ -1573,151 +1002,6 @@ class TesseroidMesh(PrismMesh):
     celltype = Tesseroid
 
     def __init__(self, bounds, shape, props=None):
-        PrismMesh.__init__(self, bounds, shape, props)
+        super().__init__(bounds, shape, props)
         self.zdown = False
         self.dump = None
-
-
-def extract(prop, prisms):
-    """
-    Extract the values of a physical property from the cells in a list.
-
-    If a cell is ``None`` or doesn't have the physical property, a value of
-    ``None`` will be put in it's place.
-
-    Parameters:
-
-    * prop : str
-        The name of the physical property to extract
-    * cells : list
-        A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
-        :class:`~fatiando.mesher.PolygonalPrism`, etc)
-
-    Returns:
-
-    * values : array
-        The extracted values
-
-    Examples:
-
-        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':10}),
-        ...          None,
-        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':2000})]
-        >>> print extract('foo', cells)
-        [1, 10, None, None]
-
-    """
-    def getprop(p):
-        if p is None or prop not in p.props:
-            return None
-        return p.props[prop]
-    return [getprop(p) for p in prisms]
-
-
-def vfilter(vmin, vmax, prop, cells):
-    """
-    Remove cells whose physical property value falls outside a given range.
-
-    If a cell is `None` or doesn't have the physical property, it will be not
-    be included in the result.
-
-    Parameters:
-
-    * vmin : float
-        Minimum value
-    * vmax : float
-        Maximum value
-    * prop : str
-        The name of the physical property used to filter
-    * cells : list
-        A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
-        :class:`~fatiando.mesher.PolygonalPrism`, etc)
-
-    Returns:
-
-    * filtered : list
-        The cells that fall within the desired range
-
-    Examples:
-
-        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':20}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':3}),
-        ...          None,
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':4}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':200}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':1000})]
-        >>> for cell in vfilter(0, 10, 'foo', cells):
-        ...     print cell
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:1
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:3
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:4
-
-    """
-    def isin(cell):
-        if cell is None or prop not in cell.props:
-            return False
-        value = cell.props[prop]
-        if not isinstance(value, float) and not isinstance(value, int):
-            value = numpy.linalg.norm(cell.props[prop])
-        if value < vmin or value > vmax:
-            return False
-        return True
-    return [c for c in cells if isin(c)]
-
-
-def vremove(value, prop, cells):
-    """
-    Remove the cells with a given physical property value.
-
-    If a cell is `None` it will be not be included in the result.
-
-    If a cell doesn't have the physical property, it will be included in the
-    result.
-
-    Parameters:
-
-    * value : float
-        The value of the physical property to remove. If the physical property
-        is a vector, will compare the norm of the vector to **value**.
-    * prop : str
-        The name of the physical property to remove
-    * cells : list
-        A list of cells (e.g., :class:`~fatiando.mesher.Prism`,
-        :class:`~fatiando.mesher.PolygonalPrism`, etc)
-
-    Returns:
-
-    * removed : list
-        A list of cells that have *prop* != *value*
-
-    Examples:
-
-        >>> cells = [Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':20}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':3}),
-        ...          None,
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':1}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'foo':200}),
-        ...          Prism(1, 2, 3, 4, 5, 6, {'bar':1000})]
-        >>> for cell in vremove(1, 'foo', cells):
-        ...     print cell
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:20
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:3
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | foo:200
-        x1:1 | x2:2 | y1:3 | y2:4 | z1:5 | z2:6 | bar:1000
-
-    """
-    def keep(cell):
-        if cell is None:
-            return False
-        if prop not in cell.props:
-            return True
-        p = cell.props[prop]
-        if not isinstance(p, float) and not isinstance(p, int):
-            p = numpy.linalg.norm(cell.props[prop])
-        if p != value:
-            return True
-        return False
-    return [c for c in cells if keep(c)]

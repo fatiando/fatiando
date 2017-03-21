@@ -102,7 +102,7 @@ class PolygonalBasinGravity(Misfit):
     >>> misfit.p_
     array([ 800.,  500.])
     >>> type(misfit.estimate_)
-    <class 'fatiando.mesher.Polygon'>
+    <class 'fatiando.mesher.geometry.Polygon'>
     >>> misfit.estimate_.vertices
     array([[ 3000.,     0.],
            [ 2000.,   800.],
@@ -215,7 +215,7 @@ class PolygonalBasinGravity(Misfit):
         >>> misfit = PolygonalBasinGravity(x, z, data, 3, {}, top=-100)
         >>> poly = misfit.fmt_estimate([1, 2, 3])
         >>> type(poly)
-        <class 'fatiando.mesher.Polygon'>
+        <class 'fatiando.mesher.geometry.Polygon'>
         >>> poly.vertices
         array([[ 300., -100.],
                [ 200.,    1.],
