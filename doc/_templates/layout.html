@@ -5,8 +5,24 @@
 {% set bootswatch_css_custom = ['_static/style.css',
                                 '_static/font-awesome/css/font-awesome.css'] %}
 
+
 {% block extrahead %}
+
     {{ super() }}
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="http://www.fatiando.org/_static/fatiando-logo.png">
+    <meta name="twitter:site" content="@leouieda">
+    <meta name="twitter:title" content="Fatiando a Terra">
+    <meta name="twitter:description" content="Open-source Python library for geophysics">
+
+    <meta property="og:title" content="Fatiando a Terra">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://www.fatiando.org/">
+    <meta property="og:site_name" content="Fatiando a Terra">
+    <meta property="og:image" content="http://www.fatiando.org/_static/fatiando-logo.png">
+    <meta property="og:description" content="Open-source Python library for geophysics">
+
     <!-- Google Analytics -->
     <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -17,44 +33,76 @@
     ga('create', 'UA-38125837-1', 'auto');
     ga('send', 'pageview');
     </script>
+
 {% endblock %}
+
 
 {% block header %}
-{% if version == "dev" %}
-<div class="container-fluid" style="margin: 0px; padding: 0px;">
-    <div class="alert alert-dismissible alert-info text-center" style="margin: 0px; border-radius: 0px;">
-    <button type="button" class="close" data-dismiss="alert">×</button>
-    This page reflects the <strong>development version</strong> of Fatiando a
-    Terra
-    (<a href="https://github.com/fatiando/fatiando"><em>master</em> branch
-      <i class="fa fa-github-square"></i></a>)
-    </div>
-</div>
-{% endif %}
-{{ super() }}
+
+    {% if version == "dev" %}
+        <div class="container-fluid" style="margin: 0px; padding: 0px;">
+            <div class="alert alert-dismissible alert-warning text-center dev-version-warning">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                This page reflects the <strong>development version</strong>
+                (<a href="https://github.com/fatiando/fatiando"><em>master</em> branch
+                  on Github</a>).
+                Go to <a href="http://www.fatiando.org">fatiando.org</a> for the latest
+                release.
+            </div>
+        </div>
+    {% endif %}
+
+    {{ super() }}
+
 {% endblock %}
 
-{%- block footer %}
-<footer class="footer">
-    <div class="container">
-        <p class="pull-right">
-            <a href="#">Back to top</a>
-            {% if theme_source_link_position == "footer" %}
-                <br/>
-                {% include "sourcelink.html" %}
-            {% endif %}
-        </p>
 
-        <p class="text-center">
-        {%- if show_copyright %}
-            &copy; Copyright {{ copyright }}.
-        {%- endif %}
-        {%- if show_sphinx %}
-            {% trans sphinx_version=sphinx_version|e %}Created using <a
-                href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.{%
-            endtrans %}
-        {%- endif %}
-        </p>
-    </div>
-</footer>
-{%- endblock %}
+{% block footer %}
+
+    <footer class="footer">
+        <div class="container">
+            <p class="pull-right">
+                <a href="#">Back to top</a>
+                {% if theme_source_link_position == "footer" %}
+                    <br/>
+                    {% include "sourcelink.html" %}
+                {% endif %}
+            </p>
+
+            <p class="text-center">
+            {%- if show_copyright %}
+                &copy; Copyright {{ copyright }}.
+            {%- endif %}
+            {%- if show_sphinx %}
+                {% trans sphinx_version=sphinx_version|e %}Created using <a
+                    href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.{%
+                endtrans %}
+            {%- endif %}
+            </p>
+        </div>
+    </footer>
+
+{% endblock %}
+
+
+{% block content %}
+    {{ navBar() }}
+
+    {% if pagename == 'index' %}
+
+        {{ body }}
+
+    {% else %}
+
+        <div class="container page-container">
+            <div class="row">
+                {% block sidebar1 %}{{ bsidebar() }}{% endblock %}
+                <div class="{{ bs_span_prefix }}{{ bs_content_width }} content">
+                    {{ body }}
+                </div>
+                {% block sidebar2 %} {# possible location for sidebar #} {% endblock %}
+            </div>
+        </div>
+
+    {% endif %}
+{% endblock %}
