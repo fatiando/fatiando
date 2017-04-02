@@ -1,7 +1,16 @@
+/* To stick the footer to the bottom of the page */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
 body {
     color: #222;
     font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif !important;
     font-size: 12pt;
+    /* Margin bottom by footer height with a little room to accomodate small
+     * screens */
+    margin-bottom: 200px;
 }
 
 a {
@@ -26,11 +35,20 @@ blockquote {
     text-decoration: underline;
 }
 
+.page-container {
+    margin-top: 35px;
+}
+
 .footer {
     color: #6F6F6F;
     margin-top: 50px;
     padding-bottom: 30px;
     font-size: 11pt;
+    /* To stick the footer to the bottom of the page */
+    position: absolute;
+    bottom: 0;
+    /* Set the fixed height of the footer here */
+    min-height: 110px;
 }
 
 .jumbotron p {
@@ -103,14 +121,15 @@ div.figure {
 
 .menu {
     border: none;
-    margin-bottom: 35px;
-    background-color: #00112b;
+    margin-bottom: 0px;
+    background-color: #172c4d;
     color: #ffffff;
     position: relative;
     min-height: 50px;
     display: block;
     font-size: 16px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    /*box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);*/
+    padding: 0px;
 }
 
 .menu a {
@@ -118,8 +137,12 @@ div.figure {
 }
 
 .menu-brand {
-    font-size: 20pt;
-    padding-top: 10px;
+    font-size: 16pt;
+    padding-top: 11px;
+}
+
+.menu-brand > a > img {
+    padding-right: 10px;
 }
 
 .menu-brand > a:hover {
@@ -128,7 +151,7 @@ div.figure {
 
 .menu-version {
     color: #777777;
-    font-size: 12pt;
+    font-size: 11pt;
     font-weight: bold;
     margin-left: 10px;
 }
@@ -149,4 +172,64 @@ div.figure {
     display: inline;
     padding-right: 12px;
     padding-left: 12px;
+}
+
+.menu-search {
+}
+
+.dev-version-warning {
+    font-size: 11pt;
+    margin: 0px;
+    border-radius: 0px;
+    padding: 5px;
+    padding-right: 35px;
+}
+
+
+/* Front page */
+
+.banner {
+    background-color: #172c4d;
+    padding-top: 60px;
+    padding-bottom: 100px;
+    padding-left: 0px;
+    padding-right: 0px;
+    color: #f9f9f9;
+}
+
+.banner-logo {
+    width: 80%;
+}
+
+.site-title {
+    margin-top: 30px;
+}
+
+.site-slogan {
+    margin-top: 100px;
+    font-size: 20pt;
+}
+
+.site-description {
+    margin-top: 40px;
+    font-size: 16pt;
+    color: #bbbbbb;
+}
+
+.home-row {
+    padding-top: 70px;
+}
+
+.home-row > h2 {
+    text-align: center;
+    margin-bottom: 50px;
+    font-size: 30pt;
+}
+
+.home-row-video {
+    margin-top: 40px;
+}
+
+.home-overview {
+    margin-bottom: 40px;
 }
