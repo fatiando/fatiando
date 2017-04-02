@@ -28,6 +28,18 @@
     :target: http://dx.doi.org/10.5281/zenodo.157746
 
 
+Disclaimer
+----------
+
+Fatiando is under active development and we are still changing the API between
+releases.
+Names will change and functions will move as we improve our design.
+You might have to update your scripts and notebooks to get the latest features
+from a new release.
+
+Please bear with us.
+
+
 Overview
 --------
 
