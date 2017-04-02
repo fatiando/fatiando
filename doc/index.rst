@@ -44,6 +44,33 @@
         </div>
     </div>
 
+.. raw:: html
+
+    <div class="container-fluid home-warning text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-10">
+                    <h3>Disclaimer</h3>
+                    <p>
+                    Fatiando is under active development and we are still
+                    changing the
+                    <a href="/api.html">API</a> between releases.
+                    Names will change and functions will move as we improve our
+                    design.
+                    You might have to update your scripts and notebooks to get
+                    the <a href="/changelog.html">latest features</a>.
+                    <br>
+                    Please bear with us.
+                    </p>
+                </div>
+                <div class="col-md-1">
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 .. raw:: html
 
@@ -145,7 +172,7 @@
 
     <div class="home-row">
 
-    <h2>Get started</h2>
+        <h2>Get started</h2>
 
 See the :ref:`install instructions <install>` to set up your computer and
 install Fatiando.
@@ -171,7 +198,7 @@ releases and events and give your feedback.
 
     <div class="home-row">
 
-    <h2>Get help</h2>
+        <h2>Get help</h2>
 
 There are many ways to contact us:
 
@@ -192,7 +219,7 @@ full error message.
 
     <div class="home-row">
 
-    <h2>Contribute</h2>
+        <h2>Contribute</h2>
 
 **Feedback**: Send us your bug reports, feature requests, spelling corrections,
 usage examples, etc. We love to hear what the community thinks!
@@ -227,7 +254,7 @@ we'll help you get started.
 
     <div class="home-row">
 
-    <h2>Support</h2>
+        <h2>Support</h2>
 
 Fatiando is research software **made by scientists**.
 Your citations help us justify the effort that goes into building and
@@ -257,7 +284,7 @@ publications.
 
     <div class="home-row">
 
-    <h2>Watch</h2>
+        <h2>Watch</h2>
 
     <div class="text-center">
 

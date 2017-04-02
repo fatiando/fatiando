@@ -217,7 +217,7 @@ div.figure {
 }
 
 .home-row {
-    padding-top: 70px;
+    padding-top: 50px;
 }
 
 .home-row > h2 {
@@ -232,4 +232,23 @@ div.figure {
 
 .home-overview {
     margin-bottom: 40px;
+}
+
+.home-warning {
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background-color: #f39c12;
+    color: #f9f9f9;
+    font-size: 12pt;
+}
+
+.home-warning h3 {
+    margin-top: 10.5px;
+    margin-bottom: 10.5px;
+    /*font-weight: bold;*/
+}
+
+.home-warning a {
+    color: #f9f9f9;
+    text-decoration: underline;
 }
