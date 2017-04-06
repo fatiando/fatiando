@@ -43,7 +43,10 @@ def load_surfer(fname, dtype=np.float64):
             Value of the East-West coordinate of each grid point.
         * ``'data'`` : 1d-array
             Values of the field in each grid point. Field can be for example
-            topography, gravity anomaly, etc.
+            topography, gravity anomaly, etc. If any field values are >=
+            1.70141e+38 (Surfers way of marking NaN values), the array will be
+            masked at those values (i.e., ``'data'`` will be a numpy masked
+            array).
 
     """
     # Surfer ASCII grid structure
@@ -68,7 +71,10 @@ def load_surfer(fname, dtype=np.float64):
                              for line in f
                              for i in line.split()),
                             dtype=dtype)
-        field = np.ma.masked_greater_equal(field, 1.70141e+38)
+        surfer_nan = 1.70141e+38
+        nans = field >= surfer_nan
+        if np.any(nans):
+            field = np.ma.masked_where(nans, field)
         err_msg = "{} of data ({}) doesn't match one from file ({})."
         assert np.allclose(dmin, field.min()), err_msg.format('Min', dmin,
                                                               field.min())
