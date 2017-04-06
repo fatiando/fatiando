@@ -8,7 +8,7 @@ import numpy as np
 from .. import gridder
 
 
-def load_surfer(fname, dtype=np.float64):
+def load_surfer(fname, dtype='float64'):
     """
     Read data from a Surfer ASCII grid file.
 
@@ -43,7 +43,10 @@ def load_surfer(fname, dtype=np.float64):
             Value of the East-West coordinate of each grid point.
         * ``'data'`` : 1d-array
             Values of the field in each grid point. Field can be for example
-            topography, gravity anomaly, etc.
+            topography, gravity anomaly, etc. If any field values are >=
+            1.70141e+38 (Surfers way of marking NaN values), the array will be
+            masked at those values (i.e., ``'data'`` will be a numpy masked
+            array).
 
     """
     # Surfer ASCII grid structure
@@ -53,22 +56,24 @@ def load_surfer(fname, dtype=np.float64):
     # yMin yMax       Y min max
     # zMin zMax       Z min max
     # z11 z21 z31 ... List of Z values
-    with open(fname) as f:
+    with open(fname) as input_file:
         # DSAA is a Surfer ASCII GRD ID (discard it for now)
-        f.readline()
+        input_file.readline()
         # Read the number of columns (ny) and rows (nx)
-        ny, nx = [int(s) for s in f.readline().split()]
+        ny, nx = [int(s) for s in input_file.readline().split()]
         shape = (nx, ny)
         # Our x points North, so the first thing we read is y, not x.
-        ymin, ymax = [float(s) for s in f.readline().split()]
-        xmin, xmax = [float(s) for s in f.readline().split()]
+        ymin, ymax = [float(s) for s in input_file.readline().split()]
+        xmin, xmax = [float(s) for s in input_file.readline().split()]
         area = (xmin, xmax, ymin, ymax)
-        dmin, dmax = [float(s) for s in f.readline().split()]
-        field = np.fromiter((float(i)
-                             for line in f
-                             for i in line.split()),
+        dmin, dmax = [float(s) for s in input_file.readline().split()]
+        field = np.fromiter((float(s)
+                             for line in input_file
+                             for s in line.split()),
                             dtype=dtype)
-        field = np.ma.masked_greater_equal(field, 1.70141e+38)
+        nans = field >= 1.70141e+38
+        if np.any(nans):
+            field = np.ma.masked_where(nans, field)
         err_msg = "{} of data ({}) doesn't match one from file ({})."
         assert np.allclose(dmin, field.min()), err_msg.format('Min', dmin,
                                                               field.min())
