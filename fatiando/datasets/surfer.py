@@ -8,7 +8,7 @@ import numpy as np
 from .. import gridder
 
 
-def load_surfer(fname, dtype=np.float64):
+def load_surfer(fname, dtype='float64'):
     """
     Read data from a Surfer ASCII grid file.
 
@@ -56,23 +56,22 @@ def load_surfer(fname, dtype=np.float64):
     # yMin yMax       Y min max
     # zMin zMax       Z min max
     # z11 z21 z31 ... List of Z values
-    with open(fname) as f:
+    with open(fname) as input_file:
         # DSAA is a Surfer ASCII GRD ID (discard it for now)
-        f.readline()
+        input_file.readline()
         # Read the number of columns (ny) and rows (nx)
-        ny, nx = [int(s) for s in f.readline().split()]
+        ny, nx = [int(s) for s in input_file.readline().split()]
         shape = (nx, ny)
         # Our x points North, so the first thing we read is y, not x.
-        ymin, ymax = [float(s) for s in f.readline().split()]
-        xmin, xmax = [float(s) for s in f.readline().split()]
+        ymin, ymax = [float(s) for s in input_file.readline().split()]
+        xmin, xmax = [float(s) for s in input_file.readline().split()]
         area = (xmin, xmax, ymin, ymax)
-        dmin, dmax = [float(s) for s in f.readline().split()]
-        field = np.fromiter((float(i)
-                             for line in f
-                             for i in line.split()),
+        dmin, dmax = [float(s) for s in input_file.readline().split()]
+        field = np.fromiter((float(s)
+                             for line in input_file
+                             for s in line.split()),
                             dtype=dtype)
-        surfer_nan = 1.70141e+38
-        nans = field >= surfer_nan
+        nans = field >= 1.70141e+38
         if np.any(nans):
             field = np.ma.masked_where(nans, field)
         err_msg = "{} of data ({}) doesn't match one from file ({})."
