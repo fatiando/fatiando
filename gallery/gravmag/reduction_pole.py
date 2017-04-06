@@ -56,4 +56,3 @@ ax.set_ylim(area[0]/1000, area[1]/1000)
 
 plt.tight_layout()
 plt.show()
-
