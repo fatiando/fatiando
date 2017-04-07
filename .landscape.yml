@@ -1,0 +1,15 @@
+doc-warnings: true
+test-warnings: true
+strictness: medium
+max-line-length: 80
+autodetect: true
+requirements:
+  - ci/requirements.txt
+ignore-paths:
+  - doc
+  - cookbook
+  - fatiando/_our_duecredit.py
+  - fatiando/_version.py
+  - versioneer.py
+python-targets:
+  - 2
