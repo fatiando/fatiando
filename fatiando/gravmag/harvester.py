@@ -270,8 +270,8 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False,
     * restrict : list of str
         Restricts seed growth in given directions. Possible directions are
         ``'above'``, ``'below'``, ``'north'``, ``'south'``, ``'east'`` and
-        ``'west'``. You can pass in multiple directions as a list, e.g.
-        ``['above', 'north']``. Default is ``None`` for unrestricted growth.
+        ``'west'``. You can pass in one or directions as a list, e.g.
+        ``['above']``. Default is ``None`` for unrestricted growth.
 
     Returns:
 
@@ -316,6 +316,7 @@ def harvest(data, seeds, mesh, compactness, threshold, report=False,
 
 
     """
+    restrict = _test_restriction(restrict)
     for accretions, update in enumerate(iharvest(data, seeds, mesh,
                                                  compactness, threshold,
                                                  restrict)):
@@ -540,8 +541,6 @@ def _neighbor_indexes(n, mesh, restrict):
     """Find the indexes of the neighbors of n"""
     nz, ny, nx = mesh.shape
     indexes = []
-    if restrict is None:
-        restrict = []
     if 'above' not in restrict:
         # The guy above
         tmp = n - nx * ny
@@ -574,6 +573,20 @@ def _neighbor_indexes(n, mesh, restrict):
             indexes.append(tmp)
     # Filter out the ones that do not exist or are masked (topography)
     return [i for i in indexes if i is not None and mesh[i] is not None]
+
+
+def _test_restriction(restrict):
+    """
+    Test for correct spelling of items in restrict list.
+    """
+    cases = ['above', 'below', 'north', 'south', 'east', 'west']
+    if restrict is None:
+        return []
+    else:
+        for case in restrict:
+            if not(case in cases):
+                raise ValueError("Unrecognized item in restrict: %s" % case)
+    return restrict
 
 
 class PrismSeed(Prism):
