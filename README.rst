@@ -4,12 +4,11 @@
 
 ----
 
-**Website and documentation**: `www.fatiando.org <http://www.fatiando.org>`__
-
-**Development documentation**: `www.fatiando.org/dev <http://www.fatiando.org/dev>`__
-
-**Mailing list (get updates and ask for help)**: `groups.google.com/d/forum/fatiando <https://groups.google.com/d/forum/fatiando>`__
-
+`Website <http://www.fatiando.org>`__ | 
+`Documentation <http://www.fatiando.org/docs>`__ |
+`Gallery <http://www.fatiando.org/gallery/>`__ |
+`Docs (development version) <http://www.fatiando.org/dev>`__ |
+`Mailing list <https://groups.google.com/d/forum/fatiando>`__ 
 
 .. image:: http://img.shields.io/pypi/v/fatiando.svg?style=flat-square
     :alt: Latest version on PyPI
@@ -23,6 +22,9 @@
 .. image:: http://img.shields.io/coveralls/fatiando/fatiando/master.svg?style=flat-square
     :alt: Test coverage status
     :target: https://coveralls.io/r/fatiando/fatiando?branch=master
+.. image:: https://landscape.io/github/fatiando/fatiando/master/landscape.svg?style=flat-square
+    :target: https://landscape.io/github/fatiando/fatiando/master
+    :alt: Code health report by landscape.io
 .. image:: http://img.shields.io/badge/doi-10.5281/zenodo.157746-blue.svg?style=flat-square
     :alt: doi:10.5281/zenodo.157746
     :target: http://dx.doi.org/10.5281/zenodo.157746
@@ -64,16 +66,16 @@ Getting started
 
 1. `Install Fatiando <http://www.fatiando.org/install.html>`__ and its
    dependencies.
-2. Browse the `Gallery <http://www.fatiando.org/dev/gallery/index.html>`__ and
-   `Cookbook <http://www.fatiando.org/cookbook.html>`__ for examples of what
-   Fatiando can do.
-3. Take a look at the `Documentation <http://www.fatiando.org/docs.html>`__ for
-   a detailed reference of the library.
-4. Get involved in the development through our `Developer Guide
-   <http://www.fatiando.org/develop.html>`__.
+2. Browse the `Gallery <http://www.fatiando.org/gallery/index.html>`__ 
+   for examples of what Fatiando can do.
+3. Take a look at the rest of the 
+   `Documentation <http://www.fatiando.org/docs.html>`__ for
+   more information about the library.
+4. Get involved in the community and see how you can help
+   in our `Contributor Guide <http://www.fatiando.org/develop.html>`__.
 
 
-Participating and asking for help
+Contributing and asking for help
 ---------------------------------
 
 **Subscribe** to our Google Groups mailing list to stay informed and ask for
@@ -94,23 +96,27 @@ comment and give feedback. See our `Roadmap for v1.0
 the project is headed. **Your input is welcome!**
 
 
-Citing
-------
+Supporting
+----------
 
-If you use it in your research, please cite Fatiando in your publications as:
+If you use Fatiando in your research, please **cite** it in your publications as:
 
     Uieda, L., V. C. Oliveira Jr, and V. C. F. Barbosa (2013), Modeling the
     Earth with Fatiando a Terra, Proceedings of the 12th Python in Science
     Conference, pp. 91 - 98.
 
-Please **also cite the method papers** of individual functions/classes.
-References are available in the documentation of each module.
+Please also **cite the method papers** of individual functions/classes.
+References are available in the documentation of each module/function/class.
 
 See the `CITATION.rst
 <https://github.com/fatiando/fatiando/blob/master/CITATION.rst>`__ file or the
 `Citing section <http://www.fatiando.org/cite.html>`__ of the docs for more
 information.
 
+You can also show your support by buying a **sticker** `from Stickermule 
+<https://www.stickermule.com/marketplace/16580-fatiando-a-terra>`__.
+We don't make any money from the sales but it helps spread the word about the 
+project.
 
 License
 -------
