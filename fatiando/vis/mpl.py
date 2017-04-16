@@ -571,7 +571,7 @@ def set_area(area):
     pyplot.ylim(y1, y2)
 
 
-def points(pts, style='.k', size=10, label=None, xy2ne=False):
+def points(pts, style='.k', size=10, label=None, xy2ne=False, **kwargs):
     """
     Plot a list of points.
 
@@ -590,6 +590,8 @@ def points(pts, style='.k', size=10, label=None, xy2ne=False):
         the polygon are north. Use this when drawing on a map viewed from
         above. If the y-axis of the plot is supposed to be z (depth), then use
         ``xy2ne=False``.
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.plot() for optional keyword arguments
 
     Returns:
 
@@ -600,13 +602,12 @@ def points(pts, style='.k', size=10, label=None, xy2ne=False):
     x, y = numpy.array(pts).T
     if xy2ne:
         x, y = y, x
-    kwargs = {}
     if label is not None:
         kwargs['label'] = label
     return pyplot.plot(x, y, style, markersize=size, **kwargs)
 
 
-def paths(pts1, pts2, style='-k', linewidth=1, label=None):
+def paths(pts1, pts2, style='-k', linewidth=1, label=None, **kwargs):
     """
     Plot paths between the two sets of points.
 
@@ -622,9 +623,11 @@ def paths(pts1, pts2, style='-k', linewidth=1, label=None):
         The width of the lines representing the paths
     * label : str
         If not None, then the string that will show in the legend
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.plot() for optional keyword arguments
 
     """
-    kwargs = {'linewidth': linewidth}
+    kwargs.update({'linewidth': linewidth})
     if label is not None:
         kwargs['label'] = label
     for p1, p2 in zip(pts1, pts2):
@@ -679,7 +682,7 @@ def layers(thickness, values, style='-k', z0=0., linewidth=1, label=None,
 
 
 def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
-           xy2ne=False):
+           xy2ne=False, **kwargs):
     """
     Plot a square.
 
@@ -704,6 +707,8 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         the polygon are north. Use this when drawing on a map viewed from
         above. If the y-axis of the plot is supposed to be z (depth), then use
         ``xy2ne=False``.
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.plot() for optional keyword arguments
 
     Returns:
 
@@ -716,7 +721,7 @@ def square(area, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         x1, x2, y1, y2 = y1, y2, x1, x2
     xs = [x1, x1, x2, x2, x1]
     ys = [y1, y2, y2, y1, y1]
-    kwargs = {'linewidth': linewidth}
+    kwargs.update({'linewidth': linewidth})
     if label is not None:
         kwargs['label'] = label
     plot, = pyplot.plot(xs, ys, style, **kwargs)
@@ -761,7 +766,7 @@ def squaremesh(mesh, prop, cmap=pyplot.cm.jet, vmin=None, vmax=None):
 
 
 def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
-            xy2ne=False, linealpha=1.):
+            xy2ne=False, linealpha=1., **kwargs):
     """
     Plot a polygon.
 
@@ -789,6 +794,8 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         the polygon are north. Use this when drawing on a map viewed from
         above. If the y-axis of the plot is supposed to be z (depth), then use
         ``xy2ne=False``.
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.plot() for optional keyword arguments
 
     Returns:
 
@@ -806,7 +813,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
         tmpx.append(polygon.x[0])
         tmpy = [y for y in polygon.y]
         tmpy.append(polygon.y[0])
-    kwargs = {'linewidth': linewidth, 'alpha': linealpha}
+    kwargs.update({'linewidth': linewidth, 'alpha': linealpha})
     if label is not None:
         kwargs['label'] = label
     line, = pyplot.plot(tmpx, tmpy, style, **kwargs)
@@ -817,7 +824,7 @@ def polygon(polygon, style='-k', linewidth=1, fill=None, alpha=1., label=None,
 
 def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
             label=None, clabel=True, style='solid', linewidth=1.0,
-            basemap=None):
+            basemap=None, **kwargs):
     """
     Make a contour plot of the data.
 
@@ -852,6 +859,8 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
         (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.contour() for optional keyword arguments
 
     Returns:
 
@@ -868,7 +877,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
-    kwargs = dict(colors=color, picker=True)
+    kwargs.update(dict(colors=color, picker=True))
     if basemap is None:
         ct_data = pyplot.contour(X, Y, V, levels, **kwargs)
         pyplot.xlim(X.min(), X.max())
@@ -889,7 +898,7 @@ def contour(x, y, v, shape, levels, interp=False, extrapolate=False, color='k',
 
 
 def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
-             vmin=None, vmax=None, cmap=pyplot.cm.jet, basemap=None):
+             vmin=None, vmax=None, cmap=pyplot.cm.jet, basemap=None, **kwargs):
     """
     Make a filled contour plot of the data.
 
@@ -918,6 +927,8 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
         (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.contourf() for optional keyword arguments
 
     Returns:
 
@@ -932,7 +943,7 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
     X = numpy.reshape(x, shape)
     Y = numpy.reshape(y, shape)
     V = numpy.reshape(v, shape)
-    kwargs = dict(vmin=vmin, vmax=vmax, cmap=cmap, picker=True)
+    kwargs.update(dict(vmin=vmin, vmax=vmax, cmap=cmap, picker=True))
     if basemap is None:
         ct_data = pyplot.contourf(X, Y, V, levels, **kwargs)
         pyplot.xlim(X.min(), X.max())
@@ -944,7 +955,7 @@ def contourf(x, y, v, shape, levels, interp=False, extrapolate=False,
 
 
 def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
-           vmin=None, vmax=None, basemap=None):
+           vmin=None, vmax=None, basemap=None, **kwargs):
     """
     Make a pseudo-color plot of the data.
 
@@ -970,6 +981,8 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     * basemap : mpl_toolkits.basemap.Basemap
         If not None, will use this basemap for plotting with a map projection
         (see :func:`~fatiando.vis.mpl.basemap` for creating basemaps)
+    * **kwargs: optional keyword arguments
+        See matplotlib.pyplot.pcolor() for optional keyword arguments
 
     Returns:
 
@@ -990,13 +1003,13 @@ def pcolor(x, y, v, shape, interp=False, extrapolate=False, cmap=pyplot.cm.jet,
     V = numpy.reshape(v, shape)
     if basemap is None:
         plot = pyplot.pcolor(X, Y, V, cmap=cmap, vmin=vmin, vmax=vmax,
-                             picker=True)
+                             picker=True, **kwargs)
         pyplot.xlim(X.min(), X.max())
         pyplot.ylim(Y.min(), Y.max())
     else:
         lon, lat = basemap(X, Y)
         plot = basemap.pcolor(lon, lat, V, cmap=cmap, vmin=vmin, vmax=vmax,
-                              picker=True)
+                              picker=True, **kwargs)
     return plot
 
 
