@@ -2,6 +2,14 @@
 Straight-ray 2D travel-time tomography (i.e., does not consider reflection or
 refraction)
 
+.. warning::
+
+    The SRTomo class is meant as a teaching tool and not a **real tomography
+    code**. It approximates the seismic rays with straight lines, thus ignoring
+    refraction (Snell's Law). Results can be significantly distorted,
+    particularly on highly heterogeneous media.
+
+
 **Solver**
 
 * :class:`~fatiando.seismic.srtomo.SRTomo`: Data misfit class that runs the
