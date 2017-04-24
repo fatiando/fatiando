@@ -12,6 +12,14 @@ This simple tomography is implemented in the
 :class:`~fatiando.seismic.srtomo.SRTomo` class. The example below uses 3 forms
 of regularization to invert a synthetic data-set.
 
+.. warning::
+
+    The SRTomo class is meant as a teaching tool and not a **real tomography
+    code**. It approximates the seismic rays with straight lines, thus ignoring
+    refraction (Snell's Law). Results can be significantly distorted,
+    particularly on highly heterogeneous media.
+
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
