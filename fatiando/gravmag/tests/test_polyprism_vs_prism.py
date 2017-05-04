@@ -15,10 +15,10 @@ inc, dec = -30, 50
 props1 = {'density': 2., 'magnetization': utils.ang2vec(-20, 25, -10)}
 props2 = {'density': -3., 'magnetization': utils.ang2vec(10, inc, dec)}
 model = [
-    PolygonalPrism([[100,-100], [100, 100], [-100, 100], [-100,-100]], 100,
+    PolygonalPrism([[100, -100], [100, 100], [-100, 100], [-100, -100]], 100,
                    300, props1),
-    PolygonalPrism([[400,-100], [600,-100], [600, 100], [400, 100]], 100, 300,
-                   props2)
+    PolygonalPrism([[400, -100], [600, -100], [600, 100], [400, 100]], 100,
+                   300, props2)
 ]
 prismmodel = [Prism(-100, 100, -100, 100, 100, 300, props1),
               Prism(400, 600, -100, 100, 100, 300, props2)]
