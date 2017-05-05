@@ -18,8 +18,8 @@ TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 TEST_DATA_FILE = os.path.join(TEST_DATA_DIR, 'polyprism.npz')
 # Hash obtained using openssl
 TEST_DATA_SHA256 = \
-    '7b4f6efa389c70a2963c40f13a25072feed85608773703788a6b88f57d53f028'
-FIELDS = 'gz gxx gxy gxz gyy gyz gzz bx by bz'.split()
+    '6b7f749692ff3698f5197d30ce26c2ec567421b482086627004457bd0fa8999d'
+FIELDS = 'gz gxx gxy gxz gyy gyz gzz bx by bz tf'.split()
 
 
 @pytest.fixture(scope='module')
