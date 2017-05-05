@@ -78,6 +78,13 @@ Version 0.6
   verifies that the hash of a file is same as a known (recorded) hash. Used to
   check data files for corruption.
   (`PR 355 <https://github.com/fatiando/fatiando/pull/355>`__)
+* More rigorous regression tests for the ``fatiando.gravmag`` forward modeling
+  functions. Tests compare the current output against a saved output that if
+  known to be correct. This helps ensure that the values don't change suddenly
+  but in a consistent way that we wouldn't catch otherwise (like by a constant
+  value).
+  (PRs `364 <https://github.com/fatiando/fatiando/pull/364>`__,
+  `395 <https://github.com/fatiando/fatiando/pull/395>`__)
 
 **Development/maintenance**
 
