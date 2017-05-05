@@ -119,8 +119,8 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
             pmx, pmy, pmz = pmag
     res = numpy.zeros(len(xp), dtype=numpy.float)
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props
-                             and pmag is None):
+        if prism is None or ('magnetization' not in prism.props and
+                             pmag is None):
             continue
         if pmag is None:
             mag = prism.props['magnetization']
@@ -275,7 +275,6 @@ def gz(xp, yp, zp, prisms):
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
     dummy = 1e-10
-    size = len(xp)
     res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
