@@ -313,17 +313,25 @@ def gz(xp, yp, zp, prisms):
             E1k2 = R1k2*Bk2
             E2k1 = R2k1*Bk1
             E2k2 = R2k2*Bk2
+            # Simplifying these arctans with, e.g., (Z2 - Z1)*arctan2(Qk2*p -
+            # Qk1*p, p*p + Qk2*Qk1) doesn't work because of the restrictions
+            # regarding the angles for that identity. The regression tests
+            # fail for some points by a large amount.
             kernel += (Z2 - Z1)*(arctan2(Qk2, p) - arctan2(Qk1, p))
-            # kernel += (Z2 - Z1)*arctan2(Qk2*p - Qk1*p, p*p + Qk2*Qk1)
             kernel += Z2*(arctan2(Z2*Qk1, R2k1*p) - arctan2(Z2*Qk2, R2k2*p))
             kernel += Z1*(arctan2(Z1*Qk2, R1k2*p) - arctan2(Z1*Qk1, R1k1*p))
             Ck1 = Qk1*Ak1
             Ck2 = Qk2*Ak2
-            # dummy helps prevent zero division errors
-            kernel += 0.5*p*(Ak1/(Bk1 + dummy))*log(
-                (E1k1 - Ck1)*(E2k1 + Ck1)/((E1k1 + Ck1)*(E2k1 - Ck1) + dummy))
+            # dummy helps prevent zero division and log(0) errors (that's why I
+            # need to add it twice)
+            # Simplifying these two logs with a single one is not worth it
+            # because it would introduce two pow operations.
+            kernel += 0.5*p*Ak1/(Bk1 + dummy)*log(
+                (E1k1 - Ck1)*(E2k1 + Ck1)/((E1k1 + Ck1)*(E2k1 - Ck1) + dummy) +
+                dummy)
             kernel += 0.5*p*(Ak2/(Bk2 + dummy))*log(
-                (E2k2 - Ck2)*(E1k2 + Ck2)/((E2k2 + Ck2)*(E1k2 - Ck2) + dummy))
+                (E2k2 - Ck2)*(E1k2 + Ck2)/((E2k2 + Ck2)*(E1k2 - Ck2) + dummy) +
+                dummy)
         res += kernel*density
     res *= G*SI2MGAL
     return res
