@@ -1,78 +1,19 @@
-r"""
-Calculate the potential fields of the 3D prism with polygonal crossection using
-the formula of Plouff (1976).
-
-**Gravity**
-
-First and second derivatives of the gravitational potential:
-
-* :func:`~fatiando.gravmag.polyprism.gz`
-* :func:`~fatiando.gravmag.polyprism.gxx`
-* :func:`~fatiando.gravmag.polyprism.gxy`
-* :func:`~fatiando.gravmag.polyprism.gxz`
-* :func:`~fatiando.gravmag.polyprism.gyy`
-* :func:`~fatiando.gravmag.polyprism.gyz`
-* :func:`~fatiando.gravmag.polyprism.gzz`
-
-**Magnetic**
-
-There are functions to calculate the total-field anomaly and the 3 components
-of magnetic induction:
-
-* :func:`~fatiando.gravmag.polyprism.tf`
-* :func:`~fatiando.gravmag.polyprism.bx`
-* :func:`~fatiando.gravmag.polyprism.by`
-* :func:`~fatiando.gravmag.polyprism.bz`
-
-**Auxiliary Functions**
-
-Calculates the second derivatives of the function
-
-.. math::
-
-    \phi(x,y,z) = \int\int\int \frac{1}{r}
-                  \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
-
-with respect to the variables :math:`x`, :math:`y`, and :math:`z`.
-In this equation,
-
-.. math::
-
-    r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}
-
-and :math:`\nu`, :math:`\eta`, :math:`\zeta` are the Cartesian
-coordinates of an element inside the volume of a 3D prism with
-polygonal crossection. These second derivatives are used to calculate
-the total field anomaly and the gravity gradient tensor
-components produced by a 3D prism with polygonal crossection.
-
-* :func:`~fatiando.gravmag.polyprism.kernelxx`
-* :func:`~fatiando.gravmag.polyprism.kernelxy`
-* :func:`~fatiando.gravmag.polyprism.kernelxz`
-* :func:`~fatiando.gravmag.polyprism.kernelyy`
-* :func:`~fatiando.gravmag.polyprism.kernelyz`
-* :func:`~fatiando.gravmag.polyprism.kernelzz`
-
-**References**
-
-Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
-applications to magnetic terrain corrections, Geophysics, 41(4), 727-741.
-
-----
-
+"""
+The potential fields of a homogeneous 3D prism with polygonal cross-section.
 """
 from __future__ import division, absolute_import
 from future.builtins import range
 
-import numpy
-from numpy import arctan2, log, sqrt
+import numpy as np
 
 from .. import utils
 from ..constants import SI2MGAL, SI2EOTVOS, G, CM, T2NT
-try:
-    from . import _polyprism
-except ImportError:
-    _polyprism = None
+from .._our_duecredit import due, Doi
+
+
+due.cite(Doi("10.1190/1.1440645"),
+         description='Forward modeling formula for polygonal prisms.',
+         path='fatiando.gravmag.polyprism')
 
 
 def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
@@ -106,6 +47,12 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     * res : array
         The field calculated on xp, yp, zp
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -138,8 +85,7 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
 
 def bx(xp, yp, zp, prisms):
     """
-    Calculates the x component of the magnetic induction produced by 3D
-    prisms with polygonal crosssection.
+    x component of magnetic induction of a polygonal prism.
 
     .. note:: Input units are SI. Output is in nT
 
@@ -157,10 +103,16 @@ def bx(xp, yp, zp, prisms):
     * bx: array
         The x component of the magnetic induction
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props):
             continue
@@ -176,8 +128,7 @@ def bx(xp, yp, zp, prisms):
 
 def by(xp, yp, zp, prisms):
     """
-    Calculates the y component of the magnetic induction produced by 3D
-    prisms with polygonal crosssection.
+    y component of magnetic induction of a polygonal prism.
 
     .. note:: Input units are SI. Output is in nT
 
@@ -195,10 +146,16 @@ def by(xp, yp, zp, prisms):
     * by: array
         The y component of the magnetic induction
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props):
             continue
@@ -214,8 +171,7 @@ def by(xp, yp, zp, prisms):
 
 def bz(xp, yp, zp, prisms):
     """
-    Calculates the z component of the magnetic induction produced by 3D
-    prisms with polygonal crosssection.
+    z component of magnetic induction of a polygonal prism.
 
     .. note:: Input units are SI. Output is in nT
 
@@ -233,10 +189,16 @@ def bz(xp, yp, zp, prisms):
     * bz: array
         The z component of the magnetic induction
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or ('magnetization' not in prism.props):
             continue
@@ -252,7 +214,7 @@ def bz(xp, yp, zp, prisms):
 
 def gz(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{z}` gravity acceleration component.
+    z component of gravitational acceleration of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -272,6 +234,12 @@ def gz(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -302,14 +270,14 @@ def gz(xp, yp, zp, prisms):
             Qk2 = (Yk2 - Yk1)*Yk2 + (Xk2 - Xk1)*Xk2
             Ak1 = Xk1**2 + Yk1**2
             Ak2 = Xk2**2 + Yk2**2
-            R1k1 = sqrt(Ak1 + Z1_sqr)
-            R1k2 = sqrt(Ak2 + Z1_sqr)
-            R2k1 = sqrt(Ak1 + Z2_sqr)
-            R2k2 = sqrt(Ak2 + Z2_sqr)
-            Ak1 = sqrt(Ak1)
-            Ak2 = sqrt(Ak2)
-            Bk1 = sqrt(Qk1**2 + p_sqr)
-            Bk2 = sqrt(Qk2**2 + p_sqr)
+            R1k1 = np.sqrt(Ak1 + Z1_sqr)
+            R1k2 = np.sqrt(Ak2 + Z1_sqr)
+            R2k1 = np.sqrt(Ak1 + Z2_sqr)
+            R2k2 = np.sqrt(Ak2 + Z2_sqr)
+            Ak1 = np.sqrt(Ak1)
+            Ak2 = np.sqrt(Ak2)
+            Bk1 = np.sqrt(Qk1**2 + p_sqr)
+            Bk2 = np.sqrt(Qk2**2 + p_sqr)
             E1k1 = R1k1*Bk1
             E1k2 = R1k2*Bk2
             E2k1 = R2k1*Bk1
@@ -318,19 +286,21 @@ def gz(xp, yp, zp, prisms):
             # Qk1*p, p*p + Qk2*Qk1) doesn't work because of the restrictions
             # regarding the angles for that identity. The regression tests
             # fail for some points by a large amount.
-            kernel += (Z2 - Z1)*(arctan2(Qk2, p) - arctan2(Qk1, p))
-            kernel += Z2*(arctan2(Z2*Qk1, R2k1*p) - arctan2(Z2*Qk2, R2k2*p))
-            kernel += Z1*(arctan2(Z1*Qk2, R1k2*p) - arctan2(Z1*Qk1, R1k1*p))
+            kernel += (Z2 - Z1)*(np.arctan2(Qk2, p) - np.arctan2(Qk1, p))
+            kernel += Z2*(np.arctan2(Z2*Qk1, R2k1*p) -
+                          np.arctan2(Z2*Qk2, R2k2*p))
+            kernel += Z1*(np.arctan2(Z1*Qk2, R1k2*p) -
+                          np.arctan2(Z1*Qk1, R1k1*p))
             Ck1 = Qk1*Ak1
             Ck2 = Qk2*Ak2
             # dummy helps prevent zero division and log(0) errors (that's why I
             # need to add it twice)
             # Simplifying these two logs with a single one is not worth it
             # because it would introduce two pow operations.
-            kernel += 0.5*p*Ak1/(Bk1 + dummy)*log(
+            kernel += 0.5*p*Ak1/(Bk1 + dummy)*np.log(
                 (E1k1 - Ck1)*(E2k1 + Ck1)/((E1k1 + Ck1)*(E2k1 - Ck1) + dummy) +
                 dummy)
-            kernel += 0.5*p*(Ak2/(Bk2 + dummy))*log(
+            kernel += 0.5*p*(Ak2/(Bk2 + dummy))*np.log(
                 (E2k2 - Ck2)*(E1k2 + Ck2)/((E2k2 + Ck2)*(E1k2 - Ck2) + dummy) +
                 dummy)
         res += kernel*density
@@ -340,7 +310,7 @@ def gz(xp, yp, zp, prisms):
 
 def gxx(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{xx}` gravity gradient tensor component.
+    xx component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -360,6 +330,12 @@ def gxx(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -376,7 +352,7 @@ def gxx(xp, yp, zp, prisms):
 
 def gxy(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{xy}` gravity gradient tensor component.
+    xy component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -396,6 +372,12 @@ def gxy(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -412,7 +394,7 @@ def gxy(xp, yp, zp, prisms):
 
 def gxz(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{xz}` gravity gradient tensor component.
+    xz component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -432,6 +414,12 @@ def gxz(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -448,7 +436,7 @@ def gxz(xp, yp, zp, prisms):
 
 def gyy(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{yy}` gravity gradient tensor component.
+    yy component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -468,6 +456,12 @@ def gyy(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -484,7 +478,7 @@ def gyy(xp, yp, zp, prisms):
 
 def gyz(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{yz}` gravity gradient tensor component.
+    yz component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -504,6 +498,12 @@ def gyz(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -520,7 +520,7 @@ def gyz(xp, yp, zp, prisms):
 
 def gzz(xp, yp, zp, prisms):
     r"""
-    Calculates the :math:`g_{zz}` gravity gradient tensor component.
+    zz component of the gravity gradient tensor of a polygonal prism.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -540,6 +540,12 @@ def gzz(xp, yp, zp, prisms):
 
     * res : array
         The effect calculated on the computation points.
+
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
 
     """
     if xp.shape != yp.shape != zp.shape:
@@ -592,6 +598,12 @@ def kernelxx(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -614,22 +626,22 @@ def kernelxx(xp, yp, zp, prism):
         deltay = Y2 - Y1 + dummy
         n = deltax/deltay
         g = X1 - Y1*n
-        dist = sqrt(deltax*deltax + deltay*deltay)
+        dist = np.sqrt(deltax*deltax + deltay*deltay)
         cross = X1*Y2 - X2*Y1
         p = cross/dist + dummy
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
-        atan_diff_d2 = arctan2(Z2*d2, p*R22) - arctan2(Z1*d2, p*R21)
-        atan_diff_d1 = arctan2(Z2*d1, p*R12) - arctan2(Z1*d1, p*R11)
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
+        atan_diff_d2 = np.arctan2(Z2*d2, p*R22) - np.arctan2(Z1*d2, p*R21)
+        atan_diff_d1 = np.arctan2(Z2*d1, p*R12) - np.arctan2(Z1*d1, p*R11)
         tmp = g*Y2*atan_diff_d2/(p*d2) + n*p*atan_diff_d2/(d2)
         tmp -= g*Y1*atan_diff_d1/(p*d1) + n*p*atan_diff_d1/(d1)
-        tmp += n*log(
+        tmp += n*np.log(
             (Z2 + R12)*(Z1 + R21)/((Z1 + R11)*(Z2 + R22) + dummy) + dummy)
         tmp *= -1/(1 + n*n)
         kernel += tmp
@@ -674,6 +686,12 @@ def kernelxy(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -697,22 +715,22 @@ def kernelxy(xp, yp, zp, prism):
         n = deltax/deltay
         g = X1 - Y1*n
         g_sqr = g*g
-        dist = sqrt(deltax*deltax + deltay*deltay)
+        dist = np.sqrt(deltax*deltax + deltay*deltay)
         cross = X1*Y2 - X2*Y1
         p = cross/dist + dummy
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
-        atan_diff_d2 = arctan2(Z2*d2, p*R22) - arctan2(Z1*d2, p*R21)
-        atan_diff_d1 = arctan2(Z2*d1, p*R12) - arctan2(Z1*d1, p*R11)
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
+        atan_diff_d2 = np.arctan2(Z2*d2, p*R22) - np.arctan2(Z1*d2, p*R21)
+        atan_diff_d1 = np.arctan2(Z2*d1, p*R12) - np.arctan2(Z1*d1, p*R11)
         tmp = (g_sqr + g*n*Y2)*atan_diff_d2/(p*d2) - p*atan_diff_d2/d2
         tmp -= (g_sqr + g*n*Y1)*atan_diff_d1/(p*d1) - p*atan_diff_d1/d1
-        tmp += log(
+        tmp += np.log(
             (Z2 + R22)*(Z1 + R11)/((Z1 + R21)*(Z2 + R12) + dummy) + dummy)
         tmp *= 1/(1 + n*n)
         kernel += tmp
@@ -757,6 +775,12 @@ def kernelxz(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -781,21 +805,21 @@ def kernelxz(xp, yp, zp, prism):
         n_sqr_p1 = n*n + 1
         g = X1 - Y1*n
         ng = n*g
-        dist = sqrt(deltax*deltax + deltay*deltay)
+        dist = np.sqrt(deltax*deltax + deltay*deltay)
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
         # Collapsing these logs decreases the precision too much leading to a
         # larger difference with the prism code.
-        log_r22 = log((R22 - d2)/(R22 + d2) + dummy)
-        log_r21 = log((R21 - d2)/(R21 + d2) + dummy)
-        log_r12 = log((R12 - d1)/(R12 + d1) + dummy)
-        log_r11 = log((R11 - d1)/(R11 + d1) + dummy)
+        log_r22 = np.log((R22 - d2)/(R22 + d2) + dummy)
+        log_r21 = np.log((R21 - d2)/(R21 + d2) + dummy)
+        log_r12 = np.log((R12 - d1)/(R12 + d1) + dummy)
+        log_r11 = np.log((R11 - d1)/(R11 + d1) + dummy)
         log_diff_d1 = (0.5/d1)*(log_r12 - log_r11)
         log_diff_d2 = (0.5/d2)*(log_r22 - log_r21)
         tmp = (Y2*n_sqr_p1 + ng)*log_diff_d2
@@ -843,6 +867,12 @@ def kernelyy(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -865,22 +895,22 @@ def kernelyy(xp, yp, zp, prism):
         deltay = Y2 - Y1 + dummy
         m = deltay/deltax
         c = Y1 - X1*m
-        dist = sqrt(deltax*deltax + deltay*deltay)
+        dist = np.sqrt(deltax*deltax + deltay*deltay)
         cross = X1*Y2 - X2*Y1
         p = cross/dist + dummy
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
-        atan_diff_d2 = arctan2(Z2*d2, p*R22) - arctan2(Z1*d2, p*R21)
-        atan_diff_d1 = arctan2(Z2*d1, p*R12) - arctan2(Z1*d1, p*R11)
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
+        atan_diff_d2 = np.arctan2(Z2*d2, p*R22) - np.arctan2(Z1*d2, p*R21)
+        atan_diff_d1 = np.arctan2(Z2*d1, p*R12) - np.arctan2(Z1*d1, p*R11)
         tmp = c*X2*atan_diff_d2/(p*d2) + m*p*atan_diff_d2/d2
         tmp -= c*X1*atan_diff_d1/(p*d1) + m*p*atan_diff_d1/d1
-        tmp += m*log(
+        tmp += m*np.log(
             (Z2 + R12)*(Z1 + R21)/((Z2 + R22)*(Z1 + R11)) + dummy)
         tmp *= 1/(1 + m*m)
         kernel += tmp
@@ -925,6 +955,12 @@ def kernelyz(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -949,20 +985,20 @@ def kernelyz(xp, yp, zp, prism):
         m_sqr_p1 = m*m + 1
         c = Y1 - X1*m
         cm = c*m
-        dist = sqrt(deltax*deltax + deltay*deltay)
+        dist = np.sqrt(deltax*deltax + deltay*deltay)
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
         # Same remark about collapsing logs as kernelxz
-        log_r11 = log((R11 - d1)/(R11 + d1) + dummy)
-        log_r12 = log((R12 - d1)/(R12 + d1) + dummy)
-        log_r21 = log((R21 - d2)/(R21 + d2) + dummy)
-        log_r22 = log((R22 - d2)/(R22 + d2) + dummy)
+        log_r11 = np.log((R11 - d1)/(R11 + d1) + dummy)
+        log_r12 = np.log((R12 - d1)/(R12 + d1) + dummy)
+        log_r21 = np.log((R21 - d2)/(R21 + d2) + dummy)
+        log_r22 = np.log((R22 - d2)/(R22 + d2) + dummy)
         tmp = (X2*m_sqr_p1 + cm)*(0.5/d2)*(log_r22 - log_r21)
         tmp -= (X1*m_sqr_p1 + cm)*(0.5/d1)*(log_r12 - log_r11)
         tmp *= 1/m_sqr_p1
@@ -1008,6 +1044,12 @@ def kernelzz(xp, yp, zp, prism):
     * res : array
         The effect calculated on the computation points.
 
+    References:
+
+    Plouff, D. , 1976, Gravity and magnetic fields of polygonal prisms and
+    applications to magnetic terrain corrections, Geophysics, 41(4), 727-741,
+    doi:10.1190/1.1440645.
+
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
@@ -1030,17 +1072,17 @@ def kernelzz(xp, yp, zp, prism):
         deltay = Y2 - Y1
         # dist is only used in divisions. Add dummy to avoid zero division
         # errors if the two vertices coincide.
-        dist = sqrt(deltax*deltax + deltay*deltay) + dummy
+        dist = np.sqrt(deltax*deltax + deltay*deltay) + dummy
         cross = X1*Y2 - X2*Y1
         p = cross/dist
         d1 = (deltax*X1 + deltay*Y1)/dist
         d2 = (deltax*X2 + deltay*Y2)/dist
         vert1_sqr = X1*X1 + Y1*Y1
         vert2_sqr = X2*X2 + Y2*Y2
-        R11 = sqrt(vert1_sqr + Z1_sqr)
-        R12 = sqrt(vert1_sqr + Z2_sqr)
-        R21 = sqrt(vert2_sqr + Z1_sqr)
-        R22 = sqrt(vert2_sqr + Z2_sqr)
-        kernel += (arctan2(Z2*d2, p*R22) - arctan2(Z1*d2, p*R21) -
-                   arctan2(Z2*d1, p*R12) + arctan2(Z1*d1, p*R11))
+        R11 = np.sqrt(vert1_sqr + Z1_sqr)
+        R12 = np.sqrt(vert1_sqr + Z2_sqr)
+        R21 = np.sqrt(vert2_sqr + Z1_sqr)
+        R22 = np.sqrt(vert2_sqr + Z2_sqr)
+        kernel += (np.arctan2(Z2*d2, p*R22) - np.arctan2(Z1*d2, p*R21) -
+                   np.arctan2(Z2*d1, p*R12) + np.arctan2(Z1*d1, p*R11))
     return kernel
