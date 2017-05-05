@@ -470,15 +470,12 @@ def gyy(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        density = prism.props['density']
-        _polyprism.gyy(xp, yp, zp, x, y, z1, z2, density, res)
+        res += kernelyy(xp, yp, zp, prism)*density
     res *= G * SI2EOTVOS
     return res
 
@@ -509,15 +506,12 @@ def gyz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        density = prism.props['density']
-        _polyprism.gyz(xp, yp, zp, x, y, z1, z2, density, res)
+        res += kernelyz(xp, yp, zp, prism)*density
     res *= G * SI2EOTVOS
     return res
 
