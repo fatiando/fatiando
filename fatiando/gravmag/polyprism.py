@@ -719,15 +719,10 @@ def kernelxy(xp, yp, zp, prism):
         atan_diff_d1 = arctan2(Z2*d1, p*R12) - arctan2(Z1*d1, p*R11)
         tmp = (g_sqr + g*n*Y2)*atan_diff_d2/(p*d2) - p*atan_diff_d2/d2
         tmp -= (g_sqr + g*n*Y1)*atan_diff_d1/(p*d1) - p*atan_diff_d1/d1
-
-        aux14 = log(Z2 + R22 + dummy) - log(Z1 + R21 + dummy)
-        aux15 = log(Z2 + R12 + dummy) - log(Z1 + R11 + dummy)
-        tmp += aux14 - aux15
+        tmp += log(
+            (Z2 + R22)*(Z1 + R11)/((Z1 + R21)*(Z2 + R12) + dummy) + dummy)
         tmp *= 1/(1 + n*n)
-
         kernel += tmp
-
-
     return kernel
 
 

@@ -83,12 +83,23 @@ def test_polyprism_regression(data, model):
             tolerance = 1e-10
         elif field == 'gz':
             tolerance = 1e-6
-        else:
+        elif field == 'gxx':
             tolerance = 1e-8
+        elif field == 'gxy':
+            tolerance = 1e-6
+        elif field == 'gzz':
+            tolerance = 1e-9
+        else:
+            tolerance = 1e-10
         npt.assert_allclose(result, data[field], atol=tolerance, rtol=0,
                             err_msg='field: {}'.format(field))
     density = model[0].props['density']
     for kernel in KERNELS:
         result = getattr(polyprism, kernel)(x, y, z, model[0])
         true = data['g' + kernel[-2:]]/constants.G/constants.SI2EOTVOS/density
-        npt.assert_allclose(result, true, rtol=0, atol=1e-10)
+        if kernel[-2:] == 'xy':
+            tolerance = 1e-8
+        else:
+            tolerance = 1e-10
+        npt.assert_allclose(result, true, rtol=0, atol=tolerance,
+                            err_msg='kernel: {}'.format(kernel))
