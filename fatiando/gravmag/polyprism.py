@@ -557,15 +557,44 @@ def gzz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    dummy = 1e-10
+    res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
             continue
-        density = prism.props['density']
         x, y = prism.x, prism.y
         z1, z2 = prism.z1, prism.z2
         density = prism.props['density']
-        _polyprism.gzz(xp, yp, zp, x, y, z1, z2, density, res)
+        nverts = prism.nverts
+        # Calculate the effect of the prism
+        Z1 = z1 - zp
+        Z2 = z2 - zp
+        Z1_sqr = Z1*Z1
+        Z2_sqr = Z2*Z2
+        kernel = 0
+        for k in range(nverts):
+            X1 = x[k] - xp
+            Y1 = y[k] - yp
+            X2 = x[(k + 1) % nverts] - xp
+            Y2 = y[(k + 1) % nverts] - yp
+            deltax = X2 - X1
+            deltay = Y2 - Y1
+            # dist is only used in divisions. Add dummy to avoid zero division
+            # errors if the two vertices coincide.
+            dist = sqrt(deltax*deltax + deltay*deltay) + dummy
+            cross = X1*Y2 - X2*Y1
+            p = cross/dist
+            d1 = (deltax*X1 + deltay*Y1)/dist
+            d2 = (deltax*X2 + deltay*Y2)/dist
+            vert1_sqr = X1*X1 + Y1*Y1
+            vert2_sqr = X2*X2 + Y2*Y2
+            R11 = sqrt(vert1_sqr + Z1_sqr)
+            R12 = sqrt(vert1_sqr + Z2_sqr)
+            R21 = sqrt(vert2_sqr + Z1_sqr)
+            R22 = sqrt(vert2_sqr + Z2_sqr)
+            kernel += (arctan2(Z2*d2, p*R22) - arctan2(Z1*d2, p*R21) -
+                       arctan2(Z2*d1, p*R12) + arctan2(Z1*d1, p*R11))
+        res += kernel*density
     res *= G * SI2EOTVOS
     return res
 
