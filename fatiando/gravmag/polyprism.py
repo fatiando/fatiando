@@ -112,27 +112,26 @@ def tf(xp, yp, zp, prisms, inc, dec, pmag=None):
     # Calculate the 3 components of the unit vector in the direction of the
     # regional field
     fx, fy, fz = utils.dircos(inc, dec)
-    if pmag is not None:
-        if isinstance(pmag, float) or isinstance(pmag, int):
-            pmx, pmy, pmz = pmag * fx, pmag * fy, pmag * fz
-        else:
-            pmx, pmy, pmz = pmag
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
-        if prism is None or ('magnetization' not in prism.props and
-                             pmag is None):
+        if prism is None:
+            continue
+        if 'magnetization' not in prism.props and pmag is None:
             continue
         if pmag is None:
-            mag = prism.props['magnetization']
-            if isinstance(mag, float) or isinstance(mag, int):
-                mx, my, mz = mag * fx, mag * fy, mag * fz
-            else:
-                mx, my, mz = mag
+            mx, my, mz = prism.props['magnetization']
         else:
-            mx, my, mz = pmx, pmy, pmz
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        _polyprism.tf(xp, yp, zp, x, y, z1, z2, mx, my, mz, fx, fy, fz, res)
+            mx, my, mz = pmag
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        bx = v1*mx + v2*my + v3*mz
+        by = v2*mx + v4*my + v5*mz
+        bz = v3*mx + v5*my + v6*mz
+        res += fx*bx + fy*by + fz*bz
     res *= CM * T2NT
     return res
 
@@ -167,9 +166,10 @@ def bx(xp, yp, zp, prisms):
             continue
         # Get the magnetization vector components
         mx, my, mz = prism.props['magnetization']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        _polyprism.bx(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
+        v1 = kernelxx(xp, yp, zp, prism)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v3 = kernelxz(xp, yp, zp, prism)
+        res += v1*mx + v2*my + v3*mz
     res *= CM * T2NT
     return res
 
@@ -204,9 +204,10 @@ def by(xp, yp, zp, prisms):
             continue
         # Get the magnetization vector components
         mx, my, mz = prism.props['magnetization']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        _polyprism.by(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
+        v2 = kernelxy(xp, yp, zp, prism)
+        v4 = kernelyy(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        res += v2*mx + v4*my + v5*mz
     res *= CM * T2NT
     return res
 
@@ -241,9 +242,10 @@ def bz(xp, yp, zp, prisms):
             continue
         # Get the magnetization vector components
         mx, my, mz = prism.props['magnetization']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        _polyprism.bz(xp, yp, zp, x, y, z1, z2, mx, my, mz, res)
+        v3 = kernelxz(xp, yp, zp, prism)
+        v5 = kernelyz(xp, yp, zp, prism)
+        v6 = kernelzz(xp, yp, zp, prism)
+        res += v3*mx + v5*my + v6*mz
     res *= CM * T2NT
     return res
 
@@ -948,8 +950,6 @@ def kernelyz(xp, yp, zp, prism):
         c = Y1 - X1*m
         cm = c*m
         dist = sqrt(deltax*deltax + deltay*deltay)
-        cross = X1*Y2 - X2*Y1
-        p = cross/dist + dummy
         d1 = (deltax*X1 + deltay*Y1)/dist + dummy
         d2 = (deltax*X2 + deltay*Y2)/dist + dummy
         vert1_sqr = X1*X1 + Y1*Y1
@@ -967,7 +967,6 @@ def kernelyz(xp, yp, zp, prism):
         tmp -= (X1*m_sqr_p1 + cm)*(0.5/d1)*(log_r12 - log_r11)
         tmp *= 1/m_sqr_p1
         kernel += tmp
-
     return kernel
 
 

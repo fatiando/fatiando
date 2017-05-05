@@ -78,9 +78,9 @@ def test_polyprism_regression(data, model):
         else:
             result = getattr(polyprism, field)(x, y, z, model)
         if field == 'tf':
-            tolerance = 1e-10
+            tolerance = 1e-7
         elif field in 'bx by bz'.split():
-            tolerance = 1e-10
+            tolerance = 1e-6
         elif field == 'gz':
             tolerance = 1e-6
         elif field == 'gxx':
