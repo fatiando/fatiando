@@ -8,7 +8,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from ... import utils, gridder
+from ... import utils, gridder, constants
 from ...mesher import PolygonalPrism
 from ...datasets import check_hash
 from .. import polyprism
@@ -20,6 +20,7 @@ TEST_DATA_FILE = os.path.join(TEST_DATA_DIR, 'polyprism.npz')
 TEST_DATA_SHA256 = \
     '6b7f749692ff3698f5197d30ce26c2ec567421b482086627004457bd0fa8999d'
 FIELDS = 'gz gxx gxy gxz gyy gyz gzz bx by bz tf'.split()
+KERNELS = ['kernel' + k for k in 'xx xy xz yy yz zz'.split()]
 
 
 @pytest.fixture(scope='module')
@@ -86,3 +87,8 @@ def test_polyprism_regression(data, model):
             tolerance = 1e-9
         npt.assert_allclose(result, data[field], atol=tolerance, rtol=0,
                             err_msg='field: {}'.format(field))
+    density = model[0].props['density']
+    for kernel in KERNELS:
+        result = getattr(polyprism, kernel)(x, y, z, model[0])
+        true = data['g' + kernel[-2:]]/constants.G/constants.SI2EOTVOS/density
+        npt.assert_allclose(result, true, rtol=0, atol=1e-10)
