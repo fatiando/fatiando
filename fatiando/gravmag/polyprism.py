@@ -434,15 +434,12 @@ def gxz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
             continue
         density = prism.props['density']
-        x, y = prism.x, prism.y
-        z1, z2 = prism.z1, prism.z2
-        density = prism.props['density']
-        _polyprism.gxz(xp, yp, zp, x, y, z1, z2, density, res)
+        res += kernelxz(xp, yp, zp, prism)*density
     res *= G * SI2EOTVOS
     return res
 
@@ -767,11 +764,49 @@ def kernelxz(xp, yp, zp, prism):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    res = numpy.zeros(len(xp), dtype=numpy.float)
+    dummy = 1e-10
     x, y = prism.x, prism.y
     z1, z2 = prism.z1, prism.z2
-    _polyprism.gxz(xp, yp, zp, x, y, z1, z2, 1, res)
-    return res
+    nverts = prism.nverts
+    # Calculate the effect of the prism
+    Z1 = z1 - zp
+    Z2 = z2 - zp
+    Z1_sqr = Z1*Z1
+    Z2_sqr = Z2*Z2
+    kernel = 0
+    for k in range(nverts):
+        X1 = x[k] - xp
+        Y1 = y[k] - yp
+        X2 = x[(k + 1) % nverts] - xp
+        Y2 = y[(k + 1) % nverts] - yp
+        deltax = X2 - X1 + dummy
+        deltay = Y2 - Y1 + dummy
+        n = deltax/deltay
+        n_sqr_p1 = n*n + 1
+        g = X1 - Y1*n
+        ng = n*g
+        dist = sqrt(deltax*deltax + deltay*deltay)
+        d1 = (deltax*X1 + deltay*Y1)/dist + dummy
+        d2 = (deltax*X2 + deltay*Y2)/dist + dummy
+        vert1_sqr = X1*X1 + Y1*Y1
+        vert2_sqr = X2*X2 + Y2*Y2
+        R11 = sqrt(vert1_sqr + Z1_sqr)
+        R12 = sqrt(vert1_sqr + Z2_sqr)
+        R21 = sqrt(vert2_sqr + Z1_sqr)
+        R22 = sqrt(vert2_sqr + Z2_sqr)
+        # Collapsing these logs decreases the precision too much leading to a
+        # larger difference with the prism code.
+        log_r22 = log((R22 - d2)/(R22 + d2) + dummy)
+        log_r21 = log((R21 - d2)/(R21 + d2) + dummy)
+        log_r12 = log((R12 - d1)/(R12 + d1) + dummy)
+        log_r11 = log((R11 - d1)/(R11 + d1) + dummy)
+        log_diff_d1 = (0.5/d1)*(log_r12 - log_r11)
+        log_diff_d2 = (0.5/d2)*(log_r22 - log_r21)
+        tmp = (Y2*n_sqr_p1 + ng)*log_diff_d2
+        tmp -= (Y1*n_sqr_p1 + ng)*log_diff_d1
+        tmp *= -1/n_sqr_p1
+        kernel += tmp
+    return kernel
 
 
 def kernelyy(xp, yp, zp, prism):

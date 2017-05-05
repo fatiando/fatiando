@@ -66,5 +66,9 @@ def test_polyprism_vs_prism(grid, models):
             resprism = getattr(prism, kernel)(x, y, z, prismmodel[i])
             respoly = getattr(polyprism, kernel)(x, y, z, polymodel[i])
             tolerance = 1e-8
+            max_diff = np.abs(respoly - resprism).max()
+            max_val = np.abs(respoly).max()
+            msg = 'kernel: {}  max diff: {}  max val: {}'.format(
+                kernel, max_diff, max_val)
             npt.assert_allclose(respoly, resprism, atol=tolerance, rtol=0,
-                                err_msg='kernel: {}'.format(kernel))
+                                err_msg=msg)

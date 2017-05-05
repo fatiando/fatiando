@@ -97,9 +97,6 @@ def test_polyprism_regression(data, model):
     for kernel in KERNELS:
         result = getattr(polyprism, kernel)(x, y, z, model[0])
         true = data['g' + kernel[-2:]]/constants.G/constants.SI2EOTVOS/density
-        if kernel[-2:] == 'xy':
-            tolerance = 1e-8
-        else:
-            tolerance = 1e-10
+        tolerance = 1e-8
         npt.assert_allclose(result, true, rtol=0, atol=tolerance,
                             err_msg='kernel: {}'.format(kernel))
