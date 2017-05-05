@@ -84,7 +84,8 @@ Version 0.6
   but in a consistent way that we wouldn't catch otherwise (like by a constant
   value).
   (PRs `364 <https://github.com/fatiando/fatiando/pull/364>`__,
-  `395 <https://github.com/fatiando/fatiando/pull/395>`__)
+  `395 <https://github.com/fatiando/fatiando/pull/395>`__,
+  `396 <https://github.com/fatiando/fatiando/pull/396>`__)
 
 **Development/maintenance**
 
