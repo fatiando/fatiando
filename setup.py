@@ -73,7 +73,6 @@ ext = '.pyx' if use_cython else '.c'
 ext_parts = [
     ['fatiando', 'seismic', '_ttime2d'],
     ['fatiando', 'seismic', '_wavefd'],
-    ['fatiando', 'gravmag', '_polyprism'],
     ['fatiando', 'gravmag', '_prism'],
 ]
 extensions = [('.'.join(parts), os.path.join(*parts) + ext)
