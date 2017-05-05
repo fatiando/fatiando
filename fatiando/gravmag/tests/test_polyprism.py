@@ -87,6 +87,8 @@ def test_polyprism_regression(data, model):
             tolerance = 1e-8
         elif field == 'gxy':
             tolerance = 1e-6
+        elif field == 'gyy':
+            tolerance = 1e-8
         elif field == 'gzz':
             tolerance = 1e-9
         else:
