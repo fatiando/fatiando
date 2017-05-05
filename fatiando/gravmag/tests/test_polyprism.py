@@ -84,7 +84,7 @@ def test_polyprism_regression(data, model):
         elif field == 'gz':
             tolerance = 1e-6
         else:
-            tolerance = 1e-9
+            tolerance = 1e-8
         npt.assert_allclose(result, data[field], atol=tolerance, rtol=0,
                             err_msg='field: {}'.format(field))
     density = model[0].props['density']

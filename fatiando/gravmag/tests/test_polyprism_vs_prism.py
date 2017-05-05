@@ -25,8 +25,8 @@ def models():
     props1 = {'density': 2., 'magnetization': utils.ang2vec(-20, 25, -10)}
     props2 = {'density': -3., 'magnetization': utils.ang2vec(10, -30, 50)}
     polymodel = [
-        PolygonalPrism([[100, -100], [100, 100], [-100, 100], [-100, -100]], 100,
-                       300, props1),
+        PolygonalPrism([[100, -100], [100, 100], [-100, 100], [-100, -100]],
+                       100, 300, props1),
         PolygonalPrism([[400, -100], [600, -100], [600, 100], [400, 100]], 100,
                        300, props2)
     ]

@@ -554,7 +554,6 @@ def gzz(xp, yp, zp, prisms):
     """
     if xp.shape != yp.shape != zp.shape:
         raise ValueError("Input arrays xp, yp, and zp must have same shape!")
-    dummy = 1e-10
     res = 0
     for prism in prisms:
         if prism is None or 'density' not in prism.props:
@@ -640,9 +639,8 @@ def kernelxx(xp, yp, zp, prism):
         atan_diff_d1 = arctan2(Z2*d1, p*R12) - arctan2(Z1*d1, p*R11)
         tmp = g*Y2*atan_diff_d2/(p*d2) + n*p*atan_diff_d2/(d2)
         tmp -= g*Y1*atan_diff_d1/(p*d1) + n*p*atan_diff_d1/(d1)
-        log_diff_r2 = log(Z2 + R22 + dummy) - log(Z1 + R21 + dummy)
-        log_diff_r1 = log(Z2 + R12 + dummy) - log(Z1 + R11 + dummy)
-        tmp += n*(log_diff_r1 - log_diff_r2)
+        tmp += n*log(
+            (Z2 + R12)*(Z1 + R21)/((Z1 + R11)*(Z2 + R22) + dummy) + dummy)
         tmp *= -1/(1 + n*n)
         kernel += tmp
     return kernel
