@@ -3,7 +3,6 @@ The potential fields of a homogeneous sphere.
 """
 from __future__ import division, absolute_import
 
-import numpy
 import numpy as np
 
 from ..constants import SI2MGAL, G, CM, T2NT, SI2EOTVOS

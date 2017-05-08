@@ -8,7 +8,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from ... import utils, gridder
+from ... import utils, gridder, constants
 from ...mesher import PolygonalPrism
 from ...datasets import check_hash
 from .. import polyprism
@@ -20,6 +20,7 @@ TEST_DATA_FILE = os.path.join(TEST_DATA_DIR, 'polyprism.npz')
 TEST_DATA_SHA256 = \
     '6b7f749692ff3698f5197d30ce26c2ec567421b482086627004457bd0fa8999d'
 FIELDS = 'gz gxx gxy gxz gyy gyz gzz bx by bz tf'.split()
+KERNELS = ['kernel' + k for k in 'xx xy xz yy yz zz'.split()]
 
 
 @pytest.fixture(scope='module')
@@ -76,5 +77,28 @@ def test_polyprism_regression(data, model):
             result = getattr(polyprism, field)(x, y, z, model, inc, dec)
         else:
             result = getattr(polyprism, field)(x, y, z, model)
-        npt.assert_allclose(result, data[field], atol=1e-10, rtol=0,
+        if field == 'tf':
+            tolerance = 1e-7
+        elif field in 'bx by bz'.split():
+            tolerance = 1e-6
+        elif field == 'gz':
+            tolerance = 1e-6
+        elif field == 'gxx':
+            tolerance = 1e-8
+        elif field == 'gxy':
+            tolerance = 1e-6
+        elif field == 'gyy':
+            tolerance = 1e-8
+        elif field == 'gzz':
+            tolerance = 1e-9
+        else:
+            tolerance = 1e-10
+        npt.assert_allclose(result, data[field], atol=tolerance, rtol=0,
                             err_msg='field: {}'.format(field))
+    density = model[0].props['density']
+    for kernel in KERNELS:
+        result = getattr(polyprism, kernel)(x, y, z, model[0])
+        true = data['g' + kernel[-2:]]/constants.G/constants.SI2EOTVOS/density
+        tolerance = 1e-8
+        npt.assert_allclose(result, true, rtol=0, atol=tolerance,
+                            err_msg='kernel: {}'.format(kernel))
