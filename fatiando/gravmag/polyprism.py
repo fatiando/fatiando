@@ -562,24 +562,21 @@ def gzz(xp, yp, zp, prisms):
 
 def kernelxx(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The xx second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial x^2},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -591,7 +588,8 @@ def kernelxx(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 
@@ -650,24 +648,21 @@ def kernelxx(xp, yp, zp, prism):
 
 def kernelxy(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The xy second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial x \partial y},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -679,7 +674,8 @@ def kernelxy(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 
@@ -739,24 +735,21 @@ def kernelxy(xp, yp, zp, prism):
 
 def kernelxz(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The xz second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial x \partial z},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -768,7 +761,8 @@ def kernelxz(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 
@@ -831,24 +825,21 @@ def kernelxz(xp, yp, zp, prism):
 
 def kernelyy(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The yy second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial y^2},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -860,7 +851,8 @@ def kernelyy(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 
@@ -919,24 +911,21 @@ def kernelyy(xp, yp, zp, prism):
 
 def kernelyz(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The yz second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial y \partial z},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -948,7 +937,8 @@ def kernelyz(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 
@@ -1008,24 +998,21 @@ def kernelyz(xp, yp, zp, prism):
 
 def kernelzz(xp, yp, zp, prism):
     r"""
-    Calculates the function
+    The zz second-derivative of the kernel function :math:`\phi`.
 
     .. math::
 
-        \frac{\partial^2 \phi(x,y,z)}{\partial z^2},
-
-    where
-
-    .. math::
-
-        \phi(x,y,z) = \int \int \int \frac{1}{r}
+        \phi(x,y,z) = \iiint_\Omega \frac{1}{r}
                       \mathrm{d}\nu \mathrm{d}\eta \mathrm{d}\zeta
 
-    and
+    in which
 
     .. math::
 
         r = \sqrt{(x - \nu)^2 + (y - \eta)^2 + (z - \zeta)^2}.
+
+    This function is used to calculate the gravity gradient tensor, magnetic
+    induction, and total field magnetic anomaly.
 
     .. note:: The coordinate system of the input parameters is to be
         x -> North, y -> East and z -> Down.
@@ -1037,7 +1024,8 @@ def kernelzz(xp, yp, zp, prism):
     * xp, yp, zp : arrays
         The x, y, and z coordinates of the computation points.
     * prisms : object of :class:`fatiando.mesher.PolygonalPrism`
-        The model used to calculate the function.
+        The model used as the integration domain :math:`\Omega` of the kernel
+        function.
 
     Returns:
 

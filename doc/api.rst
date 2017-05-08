@@ -223,6 +223,12 @@ Polygonal prisms
     polyprism.bx
     polyprism.by
     polyprism.bz
+    polyprism.kernelxx
+    polyprism.kernelxy
+    polyprism.kernelxz
+    polyprism.kernelyy
+    polyprism.kernelyz
+    polyprism.kernelzz
 
 Right-rectangular prisms
 ++++++++++++++++++++++++
