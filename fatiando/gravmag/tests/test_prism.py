@@ -4,7 +4,7 @@ Verify if functions fail the way they are expected.
 Check that field values are consistent around the prism.
 Test against saved results to avoid regressions.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal as assert_almost
