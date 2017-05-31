@@ -15,4 +15,4 @@ back that you need from the other developers.
 - [ ] Include new dependencies in `doc/install.rst`, `environment.yml`, `ci/requirements.txt`.
 - [ ] Documentation builds properly (run `cd doc; make` locally)
 - [ ] Changelog entry (leave for last to avoid conflicts)
-- [ ] Firt-time contributor? Add yourself to `doc/contributors.rst` (leave for last to avoid conflicts)
+- [ ] First-time contributor? Add yourself to `doc/contributors.rst` (leave for last to avoid conflicts)
