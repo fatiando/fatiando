@@ -32,6 +32,7 @@ sphinx_gallery_conf = {
     'examples_dirs': ['../gallery'],
     'gallery_dirs': ['gallery'],
     'filename_pattern': os.sep + '*', # Match any .py file
+    'backreferences_dir': False,
 }
 
 # Configure the inline plots from matplotlib plot_directive
@@ -154,3 +155,8 @@ html_theme_options = {
     'source_link_position': "footer",
     'bootstrap_version': "3",
 }
+
+# Load the custom CSS files (needs sphinx >= 1.6 for this to work)
+def setup(app):
+    app.add_stylesheet("style.css")
+    app.add_stylesheet("font-awesome/css/font-awesome.css")
