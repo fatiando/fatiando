@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from IPython.display import Image, HTML, display, display_png
 
 
-def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
+def anim_to_html(anim, fps=6, dpi=30, writer='avconv', fmt='mp4'):
     """
     Convert a matplotlib animation object to a video embedded in an HTML
     <video> tag.
@@ -20,17 +20,20 @@ def anim_to_html(anim, fps=6, dpi=30, writer='avconv'):
     """
     VIDEO_TAG = """
     <video controls>
-    <source src="data:video/webm;base64,{0}" type="video/webm">
+    <source src="data:video/{fmt};base64,{data}" type="video/{fmt}">
     Your browser does not support the video tag.
     </video>"""
     plt.close(anim._fig)
+    extra_args = []
+    if writer == 'avconv':
+        extra_args.extend(['-vcodec', 'libvpx'])
     if not hasattr(anim, '_encoded_video'):
-        with NamedTemporaryFile(suffix='.webm') as f:
+        with NamedTemporaryFile(suffix='.' + fmt) as f:
             anim.save(f.name, fps=fps, dpi=dpi, writer=writer,
-                      extra_args=['-vcodec', 'libvpx'])
+                      extra_args=extra_args)
             video = open(f.name, "rb").read()
         anim._encoded_video = video.encode("base64")
-    return HTML(VIDEO_TAG.format(anim._encoded_video))
+    return HTML(VIDEO_TAG.format(fmt=fmt, data=anim._encoded_video))
 
 
 def format_time(t):
