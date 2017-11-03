@@ -42,10 +42,10 @@ def test_pointmesh():
     z = np.array([5, 6.3, 18, 0.2])
     g = PointMesh(x, y, z)
     assert g.size == x.size
-    centers = [[ 12.7,   8. ,   5. ],
-               [  4. ,  34. ,   6.3],
-               [  0.,   2.,  18.],
-               [ 23. ,   7.1,   0.2]]
+    centers = [[12.7, 8., 5.],
+               [4., 34., 6.3],
+               [0., 2., 18.],
+               [23., 7.1, 0.2]]
     for point, true_c in zip(g, centers):
         npt.assert_allclose(point.center, true_c)
     for i in range(g.size):
