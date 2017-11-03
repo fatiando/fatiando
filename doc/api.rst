@@ -71,6 +71,7 @@ Meshes and collections
     TesseroidMesh
     PrismRelief
     PointGrid
+    PointMesh
 
 
 ``fatiando.utils``: Utility functions
@@ -288,4 +289,3 @@ Tesseroids (spherical prisms)
     :no-inherited-members:
 
 .. currentmodule:: fatiando.geothermal
-
