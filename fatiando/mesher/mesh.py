@@ -388,6 +388,117 @@ class PointGrid(object):
         return cp.deepcopy(self)
 
 
+class PointMesh(object):
+    """
+    A generic mesh of 3D point sources (spheres of unit volume).
+
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
+
+    Grid points are ordered like a C matrix, first each row in a column, then
+    change columns. In this case, the x direction (North-South) are the rows
+    and y (East-West) are the columns.
+
+    Parameters:
+
+    * x, y, z : 1d-arrays
+        The x, y, and z coordinates of each point in the mesh
+        (remember, z is positive downward).
+    * props :  dict
+        Physical properties of each point in the grid.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property for
+        each point in the mesh.
+
+    Examples::
+
+        >>> x = np.array([12.7, 4, 0, 23])
+        >>> y = np.array([8, 34, 2, 7.1])
+        >>> z = np.array([5, 6.3, 18, 0.2])
+        >>> g = PointMesh(x, y, z)
+        >>> g.size
+        4
+        >>> g[0].center
+        array([ 12.7,   8. ,   5. ])
+        >>> g[-1].center
+        array([ 23. ,   7.1,   0.2])
+        >>> for p in g:
+        ...     p.center
+        array([ 12.7,   8. ,   5. ])
+        array([  4. ,  34. ,   6.3])
+        array([  0.,   2.,  18.])
+        array([ 23. ,   7.1,   0.2])
+        >>> g.addprop('density', [200, -1000.0, 90, 130.7])
+        >>> for p in g:
+        ...     p.props['density']
+        200
+        -1000.0
+        90
+        130.7
+
+    """
+
+    def __init__(self, x, y, z, props=None):
+        assert x.size == y.size == z.size, 'x, y, and z must have the \
+same size'
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
+        self.x = x
+        self.y = y
+        self.z = z
+        self.radius = scipy.special.cbrt(3. / (4. * np.pi))
+        # The number of elements forming the mesh
+        self.size = self.x.size
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, index):
+        if not isinstance(index, int):
+            raise IndexError('Invalid index type. Should be int.')
+        if index >= self.size or index < -self.size:
+            raise IndexError('Mesh index out of range.')
+        # To walk backwards in the list
+        if index < 0:
+            index = self.size + index
+        props = dict([p, self.props[p][index]] for p in self.props)
+        sphere = Sphere(self.x[index], self.y[index], self.z[index],
+                        self.radius, props=props)
+        return sphere
+
+    def __iter__(self):
+        self.i = 0
+        return self
+
+    def next(self):
+        if self.i >= self.size:
+            raise StopIteration
+        sphere = self.__getitem__(self.i)
+        self.i += 1
+        return sphere
+
+    def addprop(self, prop, values):
+        """
+        Add physical property values to the points in the mesh.
+
+        Different physical properties of the grid are stored in a dictionary.
+
+        Parameters:
+
+        * prop : str
+            Name of the physical property.
+        * values :  list or array
+            Value of this physical property in each point of the mesh.
+
+        """
+        self.props[prop] = values
+
+    def copy(self):
+        """ Return a deep copy of the current instance."""
+        return cp.deepcopy(self)
+
+
 class PrismRelief(object):
     """
     A 3D model of a relief (topography) using prisms.

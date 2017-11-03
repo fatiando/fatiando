@@ -6,7 +6,8 @@ import numpy.testing as npt
 from pytest import raises
 
 from ... import gridder
-from ..mesh import PrismMesh, Prism, SquareMesh, PointGrid, TesseroidMesh
+from ..mesh import PrismMesh, Prism, SquareMesh, TesseroidMesh
+from ..mesh import PointGrid, PointMesh
 
 
 def test_pointgrid():
@@ -32,6 +33,25 @@ def test_pointgrid():
     npt.assert_allclose(g.z.reshape(g.shape), z + np.zeros(shape))
     npt.assert_allclose(g.dx, 10)
     npt.assert_allclose(g.dy, 2)
+
+
+def test_pointmesh():
+    "Test basic functionality of the class"
+    x = np.array([12.7, 4, 0, 23])
+    y = np.array([8, 34, 2, 7.1])
+    z = np.array([5, 6.3, 18, 0.2])
+    g = PointMesh(x, y, z)
+    assert g.size == x.size
+    centers = [[ 12.7,   8. ,   5. ],
+               [  4. ,  34. ,   6.3],
+               [  0.,   2.,  18.],
+               [ 23. ,   7.1,   0.2]]
+    for point, true_c in zip(g, centers):
+        npt.assert_allclose(point.center, true_c)
+    for i in range(g.size):
+        npt.assert_allclose(g[i].center, centers[i])
+    for i in range(-1, -(g.size + 1), -1):
+        npt.assert_allclose(g[i].center, centers[i])
 
 
 def test_pointgrid_z_array():
@@ -111,6 +131,14 @@ def test_fails_split():
     raises(ValueError, model.split, (3, 5))
 
 
+def test_point_mesh_invalid_input():
+    "it should fails for input with different sizes"
+    x = np.linspace(0., 130., 10)
+    y = np.linspace(-90., 100., 7)
+    z = np.zeros_like(x)
+    raises(AssertionError, PointMesh, x, y, z)
+
+
 def test_z_split_x():
     "model.split along x vs numpy.vsplit splits the z array correctly"
     area = [-1000., 1000., -2000., 0.]
@@ -145,6 +173,18 @@ def test_z_split_y():
 
 def test_point_grid_copy():
     p1 = PointGrid([0, 10, 2, 6], 200, (2, 3))
+    p2 = p1.copy()
+    assert p1 is not p2
+    p1.addprop('density', 3200)
+    p2.addprop('density', 2000)
+    assert p1.props['density'] != p2.props['density']
+
+
+def test_point_mesh_copy():
+    x = np.linspace(0., 13., 7)
+    y = np.linspace(-90., 100., 7)
+    z = np.zeros_like(x)
+    p1 = PointMesh(x, y, z)
     p2 = p1.copy()
     assert p1 is not p2
     p1.addprop('density', 3200)
