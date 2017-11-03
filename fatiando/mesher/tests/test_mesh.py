@@ -132,7 +132,7 @@ def test_fails_split():
 
 
 def test_point_mesh_invalid_input():
-    "it should fails for input with different sizes"
+    "It should fails for input with different sizes"
     x = np.linspace(0., 130., 10)
     y = np.linspace(-90., 100., 7)
     z = np.zeros_like(x)
