@@ -183,211 +183,6 @@ class SquareMesh(object):
         return cp.deepcopy(self)
 
 
-class PointGrid(object):
-    """
-    A regular grid of 3D point sources (spheres of unit volume).
-
-    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
-
-    Grid points are ordered like a C matrix, first each row in a column, then
-    change columns. In this case, the x direction (North-South) are the rows
-    and y (East-West) are the columns.
-
-    Parameters:
-
-    * area : list = [x1, x2, y1, y2]
-        The area where the grid will be spread out
-    * z : float or 1d-array
-        The z coordinates of each point in the grid (remember, z is positive
-        downward).
-    * shape : tuple = (nx, ny)
-        The number of points in the x and y directions
-    * props :  dict
-        Physical properties of each point in the grid.
-        Each key should be the name of a physical property. The corresponding
-        value should be a list with the values of that particular property for
-        each point in the grid.
-
-    Examples::
-
-        >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
-        >>> g.shape
-        (2, 3)
-        >>> g.size
-        6
-        >>> g[0].center
-        array([   0.,    2.,  200.])
-        >>> g[-1].center
-        array([  10.,    6.,  200.])
-        >>> for p in g:
-        ...     p.center
-        array([   0.,    2.,  200.])
-        array([   0.,    4.,  200.])
-        array([   0.,    6.,  200.])
-        array([  10.,    2.,  200.])
-        array([  10.,    4.,  200.])
-        array([  10.,    6.,  200.])
-        >>> g.x.reshape(g.shape)
-        array([[  0.,   0.,   0.],
-               [ 10.,  10.,  10.]])
-        >>> g.y.reshape(g.shape)
-        array([[ 2.,  4.,  6.],
-               [ 2.,  4.,  6.]])
-        >>> g.dx, g.dy
-        (10.0, 2.0)
-
-    """
-
-    def __init__(self, area, z, shape, props=None):
-        self.area = area
-        self.shape = shape
-        if props is None:
-            self.props = {}
-        else:
-            self.props = props
-        nx, ny = shape
-        self.size = nx*ny
-        self.z = np.zeros(self.size) + z
-        self.radius = scipy.special.cbrt(3. / (4. * np.pi))
-        self.x, self.y = gridder.regular(area, shape)
-        # The spacing between points
-        self.dx, self.dy = gridder.spacing(area, shape)
-
-    def __len__(self):
-        return self.size
-
-    def __getitem__(self, index):
-        if not isinstance(index, int):
-            raise IndexError('Invalid index type. Should be int.')
-        if index >= self.size or index < -self.size:
-            raise IndexError('Grid index out of range.')
-        # To walk backwards in the list
-        if index < 0:
-            index = self.size + index
-        props = dict([p, self.props[p][index]] for p in self.props)
-        sphere = Sphere(self.x[index], self.y[index], self.z[index],
-                        self.radius, props=props)
-        return sphere
-
-    def __iter__(self):
-        self.i = 0
-        return self
-
-    def next(self):
-        if self.i >= self.size:
-            raise StopIteration
-        sphere = self.__getitem__(self.i)
-        self.i += 1
-        return sphere
-
-    def addprop(self, prop, values):
-        """
-        Add physical property values to the points in the grid.
-
-        Different physical properties of the grid are stored in a dictionary.
-
-        Parameters:
-
-        * prop : str
-            Name of the physical property.
-        * values :  list or array
-            Value of this physical property in each point of the grid
-
-        """
-        self.props[prop] = values
-
-    def split(self, shape):
-        """
-        Divide the grid into subgrids.
-
-        .. note::
-
-            Remember that x is the North-South direction and y is East-West.
-
-        Parameters:
-
-        * shape : tuple = (nx, ny)
-            Number of subgrids along the x and y directions, respectively.
-
-        Returns:
-
-        * subgrids : list
-            List of :class:`~fatiando.mesher.PointGrid`
-
-        Examples::
-
-            >>> import numpy as np
-            >>> z = np.linspace(0, 1100, 12)
-            >>> g = PointGrid((0, 3, 0, 2), z, (4, 3))
-            >>> g.addprop('bla', [1,   2,  3,
-            ...                   4,   5,  6,
-            ...                   7,   8,  9,
-            ...                   10, 11, 12])
-            >>> grids = g.split((2, 3))
-            >>> for s in grids:
-            ...     s.props['bla']
-            array([1, 4])
-            array([2, 5])
-            array([3, 6])
-            array([ 7, 10])
-            array([ 8, 11])
-            array([ 9, 12])
-            >>> for s in grids:
-            ...     s.x
-            array([ 0.,  1.])
-            array([ 0.,  1.])
-            array([ 0.,  1.])
-            array([ 2.,  3.])
-            array([ 2.,  3.])
-            array([ 2.,  3.])
-            >>> for s in grids:
-            ...     s.y
-            array([ 0.,  0.])
-            array([ 1.,  1.])
-            array([ 2.,  2.])
-            array([ 0.,  0.])
-            array([ 1.,  1.])
-            array([ 2.,  2.])
-            >>> for s in grids:
-            ...     s.z
-            array([   0.,  300.])
-            array([ 100.,  400.])
-            array([ 200.,  500.])
-            array([ 600.,  900.])
-            array([  700.,  1000.])
-            array([  800.,  1100.])
-
-        """
-        nx, ny = shape
-        totalx, totaly = self.shape
-        if totalx % nx != 0 or totaly % ny != 0:
-            raise ValueError(
-                'Cannot split! nx and ny must be divisible by grid shape')
-        x1, x2, y1, y2 = self.area
-        xs = np.linspace(x1, x2, totalx)
-        ys = np.linspace(y1, y2, totaly)
-        mx, my = (totalx//nx, totaly//ny)
-        dx, dy = self.dx*(mx - 1), self.dy*(my - 1)
-        subs = []
-        for i, xstart in enumerate(xs[::mx]):
-            for j, ystart in enumerate(ys[::my]):
-                area = [xstart, xstart + dx, ystart, ystart + dy]
-                props = {}
-                for p in self.props:
-                    pmatrix = np.reshape(self.props[p], self.shape)
-                    props[p] = pmatrix[i*mx:(i + 1)*mx,
-                                       j*my:(j + 1)*my].ravel()
-                zmatrix = np.reshape(self.z, self.shape)
-                zs = zmatrix[i*mx:(i + 1)*mx,
-                             j*my:(j + 1)*my].ravel()
-                subs.append(PointGrid(area, zs, (mx, my), props))
-        return subs
-
-    def copy(self):
-        """ Return a deep copy of the current instance."""
-        return cp.deepcopy(self)
-
-
 class IrregularPointMesh(object):
     """
     A generic mesh of 3D point sources (spheres of unit volume).
@@ -493,6 +288,167 @@ same size'
     def copy(self):
         """ Return a deep copy of the current instance."""
         return cp.deepcopy(self)
+
+
+class PointGrid(IrregularPointMesh):
+    """
+    A regular grid of 3D point sources (spheres of unit volume).
+
+    Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
+
+    Grid points are ordered like a C matrix, first each row in a column, then
+    change columns. In this case, the x direction (North-South) are the rows
+    and y (East-West) are the columns.
+
+    Parameters:
+
+    * area : list = [x1, x2, y1, y2]
+        The area where the grid will be spread out
+    * z : float or 1d-array
+        The z coordinates of each point in the grid (remember, z is positive
+        downward).
+    * shape : tuple = (nx, ny)
+        The number of points in the x and y directions
+    * props :  dict
+        Physical properties of each point in the grid.
+        Each key should be the name of a physical property. The corresponding
+        value should be a list with the values of that particular property for
+        each point in the grid.
+
+    Examples::
+
+        >>> g = PointGrid([0, 10, 2, 6], 200, (2, 3))
+        >>> g.shape
+        (2, 3)
+        >>> g.size
+        6
+        >>> g[0].center
+        array([   0.,    2.,  200.])
+        >>> g[-1].center
+        array([  10.,    6.,  200.])
+        >>> for p in g:
+        ...     p.center
+        array([   0.,    2.,  200.])
+        array([   0.,    4.,  200.])
+        array([   0.,    6.,  200.])
+        array([  10.,    2.,  200.])
+        array([  10.,    4.,  200.])
+        array([  10.,    6.,  200.])
+        >>> g.x
+        array([  0.,   0.,   0.,  10.,  10.,  10.])
+        >>> g.x.reshape(g.shape)
+        array([[  0.,   0.,   0.],
+               [ 10.,  10.,  10.]])
+        >>> g.y.reshape(g.shape)
+        array([[ 2.,  4.,  6.],
+               [ 2.,  4.,  6.]])
+        >>> g.dx, g.dy
+        (10.0, 2.0)
+
+    """
+
+    def __init__(self, area, z, shape, props=None):
+        self.area = area
+        self.shape = shape
+        if props is None:
+            self.props = {}
+        else:
+            self.props = props
+        nx, ny = shape
+        self.size = nx*ny
+        z = np.zeros(self.size) + z
+        self.radius = scipy.special.cbrt(3. / (4. * np.pi))
+        x, y = gridder.regular(area, shape)
+        # The spacing between points
+        self.dx, self.dy = gridder.spacing(area, shape)
+        super().__init__(x, y, z, props)
+
+    def split(self, shape):
+        """
+        Divide the grid into subgrids.
+
+        .. note::
+
+            Remember that x is the North-South direction and y is East-West.
+
+        Parameters:
+
+        * shape : tuple = (nx, ny)
+            Number of subgrids along the x and y directions, respectively.
+
+        Returns:
+
+        * subgrids : list
+            List of :class:`~fatiando.mesher.PointGrid`
+
+        Examples::
+
+            >>> import numpy as np
+            >>> z = np.linspace(0, 1100, 12)
+            >>> g = PointGrid((0, 3, 0, 2), z, (4, 3))
+            >>> g.addprop('bla', [1,   2,  3,
+            ...                   4,   5,  6,
+            ...                   7,   8,  9,
+            ...                   10, 11, 12])
+            >>> grids = g.split((2, 3))
+            >>> for s in grids:
+            ...     s.props['bla']
+            array([1, 4])
+            array([2, 5])
+            array([3, 6])
+            array([ 7, 10])
+            array([ 8, 11])
+            array([ 9, 12])
+            >>> for s in grids:
+            ...     s.x
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 0.,  1.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
+            array([ 2.,  3.])
+            >>> for s in grids:
+            ...     s.y
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
+            array([ 0.,  0.])
+            array([ 1.,  1.])
+            array([ 2.,  2.])
+            >>> for s in grids:
+            ...     s.z
+            array([   0.,  300.])
+            array([ 100.,  400.])
+            array([ 200.,  500.])
+            array([ 600.,  900.])
+            array([  700.,  1000.])
+            array([  800.,  1100.])
+
+        """
+        nx, ny = shape
+        totalx, totaly = self.shape
+        if totalx % nx != 0 or totaly % ny != 0:
+            raise ValueError(
+                'Cannot split! nx and ny must be divisible by grid shape')
+        x1, x2, y1, y2 = self.area
+        xs = np.linspace(x1, x2, totalx)
+        ys = np.linspace(y1, y2, totaly)
+        mx, my = (totalx//nx, totaly//ny)
+        dx, dy = self.dx*(mx - 1), self.dy*(my - 1)
+        subs = []
+        for i, xstart in enumerate(xs[::mx]):
+            for j, ystart in enumerate(ys[::my]):
+                area = [xstart, xstart + dx, ystart, ystart + dy]
+                props = {}
+                for p in self.props:
+                    pmatrix = np.reshape(self.props[p], self.shape)
+                    props[p] = pmatrix[i*mx:(i + 1)*mx,
+                                       j*my:(j + 1)*my].ravel()
+                zmatrix = np.reshape(self.z, self.shape)
+                zs = zmatrix[i*mx:(i + 1)*mx,
+                             j*my:(j + 1)*my].ravel()
+                subs.append(PointGrid(area, zs, (mx, my), props))
+        return subs
 
 
 class PrismRelief(object):
