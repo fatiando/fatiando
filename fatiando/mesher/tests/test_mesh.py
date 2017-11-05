@@ -7,7 +7,7 @@ from pytest import raises
 
 from ... import gridder
 from ..mesh import PrismMesh, Prism, SquareMesh, TesseroidMesh
-from ..mesh import PointGrid, PointMesh
+from ..mesh import PointGrid, IrregularPointMesh
 
 
 def test_pointgrid():
@@ -35,12 +35,12 @@ def test_pointgrid():
     npt.assert_allclose(g.dy, 2)
 
 
-def test_pointmesh():
+def test_irregularpointmesh():
     "Test basic functionality of the class"
     x = np.array([12.7, 4, 0, 23])
     y = np.array([8, 34, 2, 7.1])
     z = np.array([5, 6.3, 18, 0.2])
-    g = PointMesh(x, y, z)
+    g = IrregularPointMesh(x, y, z)
     assert g.size == x.size
     centers = [[12.7, 8., 5.],
                [4., 34., 6.3],
@@ -136,7 +136,7 @@ def test_point_mesh_invalid_input():
     x = np.linspace(0., 130., 10)
     y = np.linspace(-90., 100., 7)
     z = np.zeros_like(x)
-    raises(AssertionError, PointMesh, x, y, z)
+    raises(AssertionError, IrregularPointMesh, x, y, z)
 
 
 def test_z_split_x():
@@ -184,7 +184,7 @@ def test_point_mesh_copy():
     x = np.linspace(0., 13., 7)
     y = np.linspace(-90., 100., 7)
     z = np.zeros_like(x)
-    p1 = PointMesh(x, y, z)
+    p1 = IrregularPointMesh(x, y, z)
     p2 = p1.copy()
     assert p1 is not p2
     p1.addprop('density', 3200)

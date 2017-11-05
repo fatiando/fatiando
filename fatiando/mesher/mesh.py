@@ -388,21 +388,17 @@ class PointGrid(object):
         return cp.deepcopy(self)
 
 
-class PointMesh(object):
+class IrregularPointMesh(object):
     """
     A generic mesh of 3D point sources (spheres of unit volume).
 
     Use this as a 1D list of :class:`~fatiando.mesher.Sphere`.
 
-    Grid points are ordered like a C matrix, first each row in a column, then
-    change columns. In this case, the x direction (North-South) are the rows
-    and y (East-West) are the columns.
-
     Parameters:
 
     * x, y, z : 1d-arrays
-        The x, y, and z coordinates of each point in the mesh
-        (remember, z is positive downward).
+        The x, y, and z coordinates of each point in the mesh. Remember, x is
+        points to North, y points to East and z is positive downward.
     * props :  dict
         Physical properties of each point in the grid.
         Each key should be the name of a physical property. The corresponding
@@ -414,7 +410,7 @@ class PointMesh(object):
         >>> x = np.array([12.7, 4, 0, 23])
         >>> y = np.array([8, 34, 2, 7.1])
         >>> z = np.array([5, 6.3, 18, 0.2])
-        >>> g = PointMesh(x, y, z)
+        >>> g = IrregularPointMesh(x, y, z)
         >>> g.size
         4
         >>> g[0].center
