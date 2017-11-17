@@ -591,7 +591,8 @@ def radial_average_spectrum(kx, ky, pds, max_radius=None, ring_width=None):
     if max_radius is None:
         max_radius = min(kx.max(), ky.max())
     if ring_width is None:
-        ring_width = max(kx[1, 0], ky[0, 1])
+        ring_width = max(numpy.unique(kx)[numpy.unique(kx) > 0][0],
+                         numpy.unique(ky)[numpy.unique(ky) > 0][0])
     k = numpy.sqrt(kx**2 + ky**2)
     pds_radial = []
     k_radial = []
