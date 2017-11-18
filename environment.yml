@@ -1,7 +1,7 @@
-name: fatiando2
+name: fatiando
 channels:
-    - defaults
     - conda-forge
+    - defaults
 dependencies:
     - python=2.7
     - pip
