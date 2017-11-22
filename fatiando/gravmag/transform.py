@@ -560,11 +560,9 @@ def radial_average_spectrum(kx, ky, pds, max_radius=None, ring_width=None):
     Parameters:
 
     * kx, ky : 2D-arrays
-        The x and y coordinates of the grid points
-    * data : 1D-array
-        The potential field at the grid points
-    * shape : tuple = (nx, ny)
-        The shape of the grid
+        The wavenumbers arrays in the `x` and `y` directions
+    * pds : 2D-array
+        The Power Density Spectra
     * max_radius : float (optional)
         Inner radius of the biggest ring.
         By default it's set as the minimum of kx.max() and ky.max().
@@ -591,7 +589,8 @@ def radial_average_spectrum(kx, ky, pds, max_radius=None, ring_width=None):
     if max_radius is None:
         max_radius = min(kx.max(), ky.max())
     if ring_width is None:
-        ring_width = max(kx[1, 0], ky[0, 1])
+        ring_width = max(numpy.unique(kx)[numpy.unique(kx) > 0][0],
+                         numpy.unique(ky)[numpy.unique(ky) > 0][0])
     k = numpy.sqrt(kx**2 + ky**2)
     pds_radial = []
     k_radial = []
