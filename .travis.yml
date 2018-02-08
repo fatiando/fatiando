@@ -73,8 +73,6 @@ install:
 script:
     - if [ "$COVERAGE" == "true" ]; then make coverage; else make test; fi
     - make pep8
-    # Check for Python 3 compatibility regressions
-    - make check3
     - if [ "$BUILD_DOCS" == "true" ]; then make -C doc; fi
 
 after_success:
