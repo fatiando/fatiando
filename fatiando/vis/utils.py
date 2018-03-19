@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from IPython.display import Image, HTML, display, display_png
 
 
-def anim_to_html(anim, fps=6, dpi=30, writer='avconv', fmt='mp4'):
+def anim_to_html(anim, fps=6, dpi=30, writer='ffmpeg', fmt='mp4'):
     """
     Convert a matplotlib animation object to a video embedded in an HTML
     <video> tag.
@@ -27,6 +27,8 @@ def anim_to_html(anim, fps=6, dpi=30, writer='avconv', fmt='mp4'):
     extra_args = []
     if writer == 'avconv':
         extra_args.extend(['-vcodec', 'libvpx'])
+    if writer == 'ffmpeg':
+        extra_args.extend(['-vcodec', 'libx264'])
     if not hasattr(anim, '_encoded_video'):
         with NamedTemporaryFile(suffix='.' + fmt) as f:
             anim.save(f.name, fps=fps, dpi=dpi, writer=writer,

@@ -339,7 +339,7 @@ class FDElasticPSV(WaveFD2D):
     def animate(self, every=1, plottype=['wavefield'], cutoff=None,
                 cmap=plt.cm.seismic, scale=1, every_particle=5,
                 ax=None,  interval=100, embed=False, blit=False,
-                fps=10, dpi=70, writer='avconv', **kwargs):
+                fps=10, dpi=70, writer='ffmpeg', **kwargs):
         nz, nx = self.shape
         mx, mz = nx*self.dx, nz*self.dz
         if ax is None:

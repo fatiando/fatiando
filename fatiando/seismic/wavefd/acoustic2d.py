@@ -214,7 +214,7 @@ class FDAcoustic2D(WaveFD2D):
         plt.colorbar(pad=0, aspect=30).set_label('Pressure')
 
     def animate(self, every=1, cutoff=None, ax=None, cmap=plt.cm.seismic,
-                embed=False, fps=10, dpi=70, writer='avconv', **kwargs):
+                embed=False, fps=10, dpi=70, writer='ffmpeg', **kwargs):
         """
         Creates a 2D animation from all the simulation iterations
         that has been run.
