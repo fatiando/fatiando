@@ -83,7 +83,7 @@ if __name__ == '__main__':
           platforms=PLATFORMS,
           scripts=SCRIPTS,
           packages=PACKAGES,
-          ext_modules=extensions,
+          # ext_modules=extensions,
           classifiers=CLASSIFIERS,
           keywords=KEYWORDS,
           cmdclass=CMDCLASS)
